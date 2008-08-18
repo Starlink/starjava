@@ -32,6 +32,10 @@ public class ParameterTest extends TestCase {
         "db", "dbtable", "dbra", "dbdec",
         "ra1", "dec1", "ra2", "dec2", "error",
         "select", "assign", "sql",
+           // plotting
+        "out", "ofmt",
+        "xdataN", "ydataN", "auxdataN",
+        "subsetNS", "colourNS", "shapeNS", "transparencyNS",
     } ) );
 
     public ParameterTest( String name ) {
