@@ -1,7 +1,9 @@
-package uk.ac.starlink.ttools.plottask;
+package uk.ac.starlink.ttools.task;
 
 import uk.ac.starlink.ttools.plot.PtPlotSurface;
 import uk.ac.starlink.ttools.plot.ScatterPlot;
+import uk.ac.starlink.ttools.plottask.PlotTask;
+import uk.ac.starlink.ttools.plottask.PlotStateFactory;
 
 /**
  * Task for performing a 2D scatter plot.

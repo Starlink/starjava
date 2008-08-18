@@ -1,7 +1,9 @@
-package uk.ac.starlink.ttools.plottask;
+package uk.ac.starlink.ttools.task;
 
 import uk.ac.starlink.ttools.plot.Histogram;
 import uk.ac.starlink.ttools.plot.PtPlotSurface;
+import uk.ac.starlink.ttools.plottask.HistogramPlotStateFactory;
+import uk.ac.starlink.ttools.plottask.PlotTask;
 
 /**
  * Task for performing a 1D histogram.
