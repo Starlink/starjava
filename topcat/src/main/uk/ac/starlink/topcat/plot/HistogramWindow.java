@@ -27,7 +27,6 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.IteratorRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -315,7 +314,8 @@ public class HistogramWindow extends GraphicsWindow {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
                             ValueInfo axinfo =
-                                getYInfo( HistogramWindow.this.hasWeights(),
+                                Histogram
+                               .getYInfo( HistogramWindow.this.hasWeights(),
                                           HistogramWindow.this.isNormalised() );
                             yaxed.setAxis( axinfo );
                         }
@@ -344,7 +344,8 @@ public class HistogramWindow extends GraphicsWindow {
             public AxisEditor[] createAxisEditors() {
                 AxisEditor yaxed = new AxisEditor( "Y" );
                 ValueInfo axinfo =
-                    getYInfo( HistogramWindow.this.hasWeights(),
+                    Histogram
+                   .getYInfo( HistogramWindow.this.hasWeights(),
                               HistogramWindow.this.isNormalised() );
                 yaxed.setAxis( axinfo );
                 return new AxisEditor[] {
@@ -844,42 +845,6 @@ public class HistogramWindow extends GraphicsWindow {
                 }
             };
         }
-    }
-
-    /**
-     * Returns a metadata object describing the values on the vertical axis.
-     *
-     * @param  isWeighted  whether the histogram uses weighted counts
-     * @param  isNormalised  whether the histogram values are normalised to 1
-     * @return  metadata object
-     */
-    private static ValueInfo getYInfo( boolean isWeighted,
-                                       boolean isNormalised ) {
-        final String name;
-        final String descrip;
-        if ( isWeighted ) {
-            if ( isNormalised ) {
-                name = "Normalised weighted count";
-                descrip = "Normalised weighted sum of values";
-            }
-            else {
-                name = "Weighted count";
-                descrip = "Weighted sum of values";
-            }
-        }
-        else {
-            if ( isNormalised ) {
-                name = "Normalised count";
-                descrip = "Normalised sum of values";
-            }
-            else {
-                name = "Count";
-                descrip = "Number of values";
-            }
-        }
-        final boolean isInt = ( ! isWeighted ) && ( ! isNormalised );
-        return new DefaultValueInfo( name, isInt ? Integer.class : Double.class,
-                                     descrip + " in bin" );
     }
 
     /**

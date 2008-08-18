@@ -6,6 +6,8 @@ import java.awt.Rectangle;
 import java.util.BitSet;
 import java.util.Iterator;
 import javax.swing.JComponent;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Component which draws a histogram.
@@ -284,6 +286,42 @@ public class Histogram extends SurfacePlot {
     }
 
     /**
+     * Returns a metadata object describing the values on the vertical axis.
+     * 
+     * @param  isWeighted  whether the histogram uses weighted counts
+     * @param  isNormalised  whether the histogram values are normalised to 1
+     * @return  metadata object
+     */
+    public static ValueInfo getYInfo( boolean isWeighted,
+                                      boolean isNormalised ) {
+        final String name;
+        final String descrip;
+        if ( isWeighted ) {
+            if ( isNormalised ) {
+                name = "Normalised weighted count";
+                descrip = "Normalised weighted sum of values";
+            }
+            else {
+                name = "Weighted count";
+                descrip = "Weighted sum of values";
+            }
+        }
+        else {
+            if ( isNormalised ) {
+                name = "Normalised count";
+                descrip = "Normalised sum of values";
+            }
+            else {
+                name = "Count";
+                descrip = "Number of values";
+            }
+        }
+        final boolean isInt = ( ! isWeighted ) && ( ! isNormalised );
+        return new DefaultValueInfo( name, isInt ? Integer.class : Double.class,
+                                     descrip + " in bin" );
+    }
+
+    /**
      * Component class which holds the plotted bars (but not the axes
      * etc) themselves.
      */
@@ -301,5 +339,4 @@ public class Histogram extends SurfacePlot {
             drawData( g );
         }
     }
-
 }
