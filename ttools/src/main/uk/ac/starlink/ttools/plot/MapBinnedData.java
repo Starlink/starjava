@@ -26,7 +26,7 @@ public class MapBinnedData implements BinnedData {
     private final BinMapper mapper_;
     private boolean isFloat_;
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.tplot" );
+        Logger.getLogger( "uk.ac.starlink.ttools.plot" );
 
     /**
      * Constructs a new BinnedData.

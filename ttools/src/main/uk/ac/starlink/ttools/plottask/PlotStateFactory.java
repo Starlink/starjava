@@ -35,8 +35,8 @@ import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
 
 /**
- * Obtains a {@link uk.ac.starlink.tplot.PlotState} and associated
- * {@link uk.ac.starlink.tplot.PlotData} from the execution environment.
+ * Obtains a {@link uk.ac.starlink.ttools.plot.PlotState} and associated
+ * {@link uk.ac.starlink.ttools.plot.PlotData} from the execution environment.
  * It sets up and interrogates a lot of parameters which describe how the
  * plot should be done, and organises this information into a single 
  * object, a PlotState.  It is subclassed for different plot types.

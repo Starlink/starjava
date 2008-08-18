@@ -8,7 +8,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.Style;
 
 /**
- * Defines an object which can obtain a {@link uk.ac.starlink.tplot.Style}
+ * Defines an object which can obtain a {@link uk.ac.starlink.ttools.plot.Style}
  * object from the environment.
  *
  * @author   Mark Taylor

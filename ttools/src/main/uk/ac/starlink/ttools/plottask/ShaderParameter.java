@@ -9,7 +9,7 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 
 /**
- * Parameter for choosing {@link uk.ac.starlink.tplot.Shader} objects.
+ * Parameter for choosing {@link uk.ac.starlink.ttools.plot.Shader} objects.
  *
  * @author   Mark Taylor
  * @since    7 Aug 2008

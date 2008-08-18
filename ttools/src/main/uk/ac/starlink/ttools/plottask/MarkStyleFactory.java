@@ -17,8 +17,8 @@ import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot.StyleSet;
 
 /**
- * StyleFactory for obtaining {@link uk.ac.starlink.tplot.MarkStyle} instances
- * suitable for use with a scatter plot.
+ * StyleFactory for obtaining {@link uk.ac.starlink.ttools.plot.MarkStyle} 
+ * instances suitable for use with a scatter plot.
  *
  * @author   Mark Taylor
  * @since    8 Aug 2008
@@ -69,7 +69,7 @@ public class MarkStyleFactory extends StyleFactory {
     }
 
     /**
-     * Returns a {@link uk.ac.starlink.tplot.MarkStyle} instance.
+     * Returns a {@link uk.ac.starlink.ttools.plot.MarkStyle} instance.
      */
     public Style getStyle( Environment env, String stSuffix )
             throws TaskException {

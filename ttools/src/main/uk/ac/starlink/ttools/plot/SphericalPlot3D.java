@@ -7,8 +7,6 @@ import java.awt.Rectangle;
 import java.util.Arrays;
 import uk.ac.starlink.util.WrapUtils;
 
-import uk.ac.starlink.tplot.*;
-
 /**
  * Plot3D which works with spherical polar coordinates.
  *

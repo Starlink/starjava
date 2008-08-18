@@ -174,7 +174,7 @@ public class Shaders {
     private static Shader[] customShaders_;
 
     private final static Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.tplot" );
+        Logger.getLogger( "uk.ac.starlink.ttools.plot" );
 
     /**
      * Basic abstract partial shader implementation.
