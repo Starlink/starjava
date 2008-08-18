@@ -92,7 +92,11 @@ public class UsageWriter {
         String usage = ( param.getName() + " = " + param.getUsage() )
                       .replaceAll( "<", "&lt;" )
                       .replaceAll( ">", "&gt;" );
-        String descrip = param.getDescription().toString();
+        String descrip = param.getDescription();
+        if ( descrip == null ) {
+            throw new NullPointerException( "No description for parameter "
+                                          + param );
+        }
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "<dt><code>" )
             .append( ( param.getName() + " = " + param.getUsage() )
