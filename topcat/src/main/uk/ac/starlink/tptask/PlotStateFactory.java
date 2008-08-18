@@ -482,13 +482,26 @@ public class PlotStateFactory {
              * for non-auxiliary axes only. */
             else {
                 if ( idim < mainNdim ) {
-                    double pad =
-                        ( stateRange[ 1 ] - stateRange[ 0 ] ) * PAD_RATIO;
-                    if ( loCalc ) {
-                        stateRange[ 0 ] -= pad;
+                    if ( state.getLogFlags()[ idim ] ) {
+                        double pad =
+                            Math.pow( stateRange[ 1 ] / stateRange[ 0 ],
+                                      PAD_RATIO );
+                        if ( loCalc ) {
+                            stateRange[ 0 ] /= pad;
+                        }
+                        if ( hiCalc ) {
+                            stateRange[ 1 ] *= pad;
+                        }
                     }
-                    if ( hiCalc ) {
-                        stateRange[ 1 ] += pad;
+                    else {
+                        double pad =
+                            ( stateRange[ 1 ] - stateRange[ 0 ] ) * PAD_RATIO;
+                        if ( loCalc ) {
+                            stateRange[ 0 ] -= pad;
+                        }
+                        if ( hiCalc ) {
+                            stateRange[ 1 ] += pad;
+                        }
                     }
                 }
             }
