@@ -78,6 +78,12 @@ public class PlotStateFactory {
         errNdim_ = errNdim;
 
         gridParam_ = new BooleanParameter( "grid" );
+        gridParam_.setPrompt( "Draw grid lines?" );
+        gridParam_.setDescription( new String[] {
+            "<p>If true, grid lines are drawn on the plot.",
+            "If false, they are absent.",
+            "</p>",
+        } );
         gridParam_.setDefault( true );
     }
 
@@ -757,6 +763,14 @@ public class PlotStateFactory {
      */
     private Parameter createLabelParameter( String tlabel ) {
         Parameter labelParam = new Parameter( "txtlabel" + tlabel );
+        labelParam.setPrompt( "Label annotating each plotted point" );
+        labelParam.setDescription( new String[] {
+            "<p>Gives an expression which will label each plotted point.",
+            "If given, the text (or number) resulting from evaluating",
+            "the expression will be written near each point which is",
+            "plotted.",
+            "</p>",
+        } );
         labelParam.setNullPermitted( true );
         return labelParam;
     }
@@ -769,6 +783,16 @@ public class PlotStateFactory {
      */
     private Parameter createSubsetExpressionParameter( String stlabel ) {
         Parameter param = new Parameter( SUBSET_PREFIX + stlabel );
+        param.setPrompt( "Selection criterion for subset " + stlabel );
+        param.setDescription( new String[] {
+            "<p>Gives the selection criterion for the subset labelled",
+            "\"<code>" + stlabel + "</code>\".",
+            "This is a boolean expression which may be the name of",
+            "a boolean-valued column or any other boolean-valued expression.",
+            "Rows for which the expression evaluates true will be included",
+            "in the subset, and those for which it evaluates false will not.",
+            "</p>",
+        } );
         param.setUsage( "<expr>" );
         return param;
     }
@@ -782,6 +806,14 @@ public class PlotStateFactory {
     private Parameter createSubsetNameParameter( String stlabel ) {
         Parameter nameParam = new Parameter( STYLE_PREFIX + "name" + stlabel );
         nameParam.setNullPermitted( true );
+        nameParam.setPrompt( "Label for subset " + stlabel );
+        nameParam.setDescription( new String[] {
+            "<p>Provides a name to use for a subset with the symbolic label",
+            stlabel + ".",
+            "This name will be used for display in the legend,",
+            "if one is displayed.",
+            "</p>",
+        } );
         return nameParam;
     }
 
@@ -849,14 +881,55 @@ public class PlotStateFactory {
         public AxisParameterSet( String axName ) {
             axName_ = axName.toLowerCase();
             loParam_ = new DoubleParameter( axName_ + "lo" );
+            loParam_.setPrompt( "Lower bound for " + axName_ + " axis" );
+            loParam_.setDescription( new String[] {
+                "<p>The lower limit for the plotted " + axName_ + " axis.",
+                "If not set, a value will be chosen which is low enough",
+                "to accommodate all the data.",
+                "</p>",
+            } );
             loParam_.setNullPermitted( true );
+
             hiParam_ = new DoubleParameter( axName_ + "hi" );
+            hiParam_.setPrompt( "Upper bound for " + axName_ + " axis" );
+            hiParam_.setDescription( new String[] {
+                "<p>The upper limit for the plotted " + axName_ + " axis.",
+                "If not set, a value will be chosen which is high enough",
+                "to accommodate all the data.",
+                "</p>",
+            } );
             hiParam_.setNullPermitted( true );
+
             logParam_ = new BooleanParameter( axName_ + "log" );
+            logParam_.setPrompt( "Logarithmic scale on " + axName_
+                               + " axis?" );
+            logParam_.setDescription( new String[] {
+                "<p>If false (the default), the scale on the " + axName_,
+                "axis is linear; if true it is logarithmic.",
+                "</p>",
+            } );
             logParam_.setDefault( "false" );
+
             flipParam_ = new BooleanParameter( axName_ + "flip" );
+            flipParam_.setPrompt( "Reversed direction on " + axName_
+                                + "axis?" );
+            flipParam_.setDescription( new String[] {
+                "<p>If set true, the scale on the " + axName_ + " axis",
+                "will increase in the opposite sense from usual",
+                "(e.g. right to left rather than left to right).",
+                "</p>",
+            } );
             flipParam_.setDefault( "false" );
+
             labelParam_ = new Parameter( axName_ + "label" );
+            labelParam_.setPrompt( "Label for axis " + axName_ );
+            labelParam_.setDescription( new String[] {
+                "<p>Specifies a label to be used for annotating axis "
+                + axName_ + ".",
+                "A default values based on the plotted data will be used",
+                "if no value is supplied for this parameter.",
+                "</p>",
+            } );
             labelParam_.setNullPermitted( true );
         }
 
@@ -888,6 +961,13 @@ public class PlotStateFactory {
         public Parameter createCoordParameter( String tlabel ) {
             Parameter param = new Parameter( axName_ + "data" + tlabel );
             param.setUsage( "<expr>" );
+            param.setPrompt( "Value to plot on " + axName_ + " axis"
+                           + " for table " + tlabel );
+            param.setDescription( new String[] {
+                "<p>Gives a column name or expression for the " + axName_,
+                "axis data for table " + tlabel + ".",
+                "</p>",
+            } );
             return param;
         }
 
