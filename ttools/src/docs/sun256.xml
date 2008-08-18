@@ -2799,7 +2799,7 @@ There are no parameters.
 
 </subsect>
 
-<subsect>
+<subsect id="plothist" tocleaf="yes">
 <subhead><title><code>plothist</code>: &plothist-purpose;</title></subhead>
 
 &plothist-summary;
