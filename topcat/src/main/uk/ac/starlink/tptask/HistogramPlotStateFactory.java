@@ -3,6 +3,7 @@ package uk.ac.starlink.tptask;
 import gnu.jel.CompilationException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.BooleanParameter;
@@ -10,12 +11,17 @@ import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.tplot.BinnedData;
 import uk.ac.starlink.tplot.DataBounds;
-import uk.ac.starlink.tplot.HistogramUtils;
+import uk.ac.starlink.tplot.Histogram;
 import uk.ac.starlink.tplot.HistogramPlotState;
+import uk.ac.starlink.tplot.MapBinnedData;
+import uk.ac.starlink.tplot.NormalisedBinnedData;
 import uk.ac.starlink.tplot.PlotData;
 import uk.ac.starlink.tplot.PlotState;
+import uk.ac.starlink.tplot.PointSequence;
 import uk.ac.starlink.tplot.Range;
+import uk.ac.starlink.tplot.Rounder;
 import uk.ac.starlink.tplot.Style;
 import uk.ac.starlink.tplot.TablePlot;
 
@@ -34,6 +40,9 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
     private final BooleanParameter normParam_;
     private final BooleanParameter cumulativeParam_;
     private final DoubleParameter binbaseParam_;
+
+    private static final int DEFAULT_BINS = 20;
+    private static final double PAD_RATIO = 0.01;
 
     /**
      * Constructor.
@@ -70,6 +79,8 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         binwidthParam_.setPrompt( "Bin width" );
         binwidthParam_.setDescription( new String[] {
             "<p>Defines the width on the X axis of histogram bins.",
+            "If the X axis is logarithmic, then this is a multiplicative",
+            "value.",
             "</p>",
         } );
         binwidthParam_.setNullPermitted( true );
@@ -163,15 +174,23 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         } );
 
         binwidthParam_.setMinimum( xlog ? 1.0 : 0.0, false );
-        state.setBinWidth( binwidthParam_.doubleValue( env ) );
+        double xlo = state.getRanges()[ 0 ][ 0 ];
+        double xhi = state.getRanges()[ 0 ][ 1 ];
+        if ( ! Double.isNaN( xlo ) && ! Double.isNaN( xhi ) ) {
+            binwidthParam_.setNullPermitted( false );
+            binwidthParam_.setDefault( Double
+                                      .toString( getDefaultBinWidth( xlo, xhi,
+                                                                     xlog ) ) );
+        }
+        double bw = binwidthParam_.doubleValue( env );
+        state.setBinWidth( Double.isNaN( bw ) ? 0.0 : bw );
 
         state.setNormalised( normParam_.booleanValue( env ) );
 
         state.setAxisLabels( new String[] {
             state.getAxisLabels()[ 0 ],
-            HistogramUtils.getYInfo( state.getWeighted(),
-                                     state.getNormalised() )
-                          .getName(),
+            Histogram.getYInfo( state.getWeighted(), state.getNormalised() )
+                     .getName(),
         } );
 
         state.setNormalised( normParam_.booleanValue( env ) );
@@ -208,14 +227,150 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         return false;
     }
 
-    public DataBounds calculateBounds( PlotState state, TablePlot plot ) {
-        DataBounds xDataBounds = super.calculateBounds( state, plot );
-        Range xRange = xDataBounds.getRanges()[ 0 ];
+    protected void configureFromBounds( PlotState pstate, DataBounds bounds ) {
+        HistogramPlotState state = (HistogramPlotState) pstate;
+
+        double[] stateXrange = state.getRanges()[ 0 ];
+        double[] calcXrange = bounds.getRanges()[ 0 ].getBounds();
+
+        /* Work out if we need to calculate X range. */
+        boolean xloCalc = Double.isNaN( stateXrange[ 0 ] );
+        boolean xhiCalc = Double.isNaN( stateXrange[ 1 ] );
+
+        /* Determine the effective X range anyway. */
+        double xlo = xloCalc ? calcXrange[ 0 ] : stateXrange[ 0 ];
+        double xhi = xhiCalc ? calcXrange[ 1 ] : stateXrange[ 1 ];
+
+        /* Calculate and set the bin width if necessary. */
         boolean xlog = state.getLogFlags()[ 0 ];
-        double[] xBounds = xRange.getFiniteBounds( xlog );
-  return null;
+        double binBase = state.getBinBase();
+        if ( ! ( state.getBinWidth() > 0 ) ) {
+            state.setBinWidth( getDefaultBinWidth( xlo, xhi, xlog ) );
+        }
+        double binWidth = state.getBinWidth();
+
+        /* If we are claculating X bounds, do some more fiddling. */
+        if ( xloCalc || xhiCalc ) {
+
+            /* Make sure that the bounds accommodate the limits of the 
+             * extreme bins. */
+            MapBinnedData.BinMapper mapper =
+                MapBinnedData.createBinMapper( xlog, binWidth, binBase );
+            if ( xloCalc ) {
+                xlo = mapper.getBounds( mapper.getKey( xlo ) )[ 0 ];
+            }
+            if ( xhiCalc ) {
+                xhi = mapper.getBounds( mapper.getKey( xhi ) )[ 1 ];
+            }
+
+            /* And then add some additional padding. */
+            if ( xlog ) {
+                double pad = Math.pow( xhi  / xlo, PAD_RATIO );
+                if ( xloCalc ) {
+                    xlo /= pad;
+                }
+                if ( xhiCalc ) {
+                    xhi *= pad;
+                }
+            }
+            else {
+                double pad = ( xhi - xlo ) * PAD_RATIO;
+                if ( xloCalc ) {
+                    xlo -= pad;
+                }
+                if ( xhiCalc ) {
+                    xhi += pad;
+                }
+            }
+        }
+
+        /* Work out if we need to calculate Y range. */
+        double ylo = state.getRanges()[ 1 ][ 0 ];
+        double yhi = state.getRanges()[ 1 ][ 1 ];
+        assert ! Double.isNaN( ylo );
+        if ( Double.isNaN( yhi ) ) {
+
+            /* If so, acquire a BinMapper to accumulate bin heights. */
+            int nset = state.getPlotData().getSetCount();
+            boolean norm = state.getNormalised();
+            boolean cumulative = state.getCumulative();
+            boolean ylog = state.getLogFlags()[ 1 ];
+            MapBinnedData.BinMapper mapper =
+                MapBinnedData.createBinMapper( xlog, binWidth, binBase );
+            BinnedData binData = new MapBinnedData( nset, mapper );
+            if ( norm ) {
+                binData = new NormalisedBinnedData( binData );
+            }
+
+            /* Populate it from the data. */
+            boolean[] setFlags = new boolean[ nset ];
+            PointSequence pseq = state.getPlotData().getPointSequence();
+            while ( pseq.next() ) {
+                double[] coords = pseq.getPoint();
+                double x = coords[ 0 ];
+                double w = coords[ 1 ];
+                if ( x >= xlo && x <= xhi && ! Double.isNaN( w ) ) {
+                    for ( int is = 0; is < nset; is++ ) {
+                        setFlags[ is ] = pseq.isIncluded( is );
+                    }
+                    binData.submitDatum( x, w, setFlags );
+                }
+            }
+            pseq.close();
+
+            /* Find the highest bin count for each set. */
+            double[] ymaxes = new double[ nset ];
+            for ( Iterator binIt = binData.getBinIterator( false );
+                  binIt.hasNext(); ) {
+                BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                for ( int is = 0; is < nset; is++ ) {
+                    double s = bin.getWeightedCount( is );
+                    ymaxes[ is ] = cumulative ? ymaxes[ is ] + s
+                                              : Math.max( ymaxes[ is ], s );
+                }
+            }
+
+            /* Find the highest bin count overall. */
+            double yMax = 0;
+            for ( int is = 0; is < nset; is++ ) {
+                yMax = Math.max( yMax, ymaxes[ is ] );
+            }
+            yhi = yMax;
+
+            /* Add some further padding. */
+            if ( ylog ) {
+                yhi *= Math.pow( yhi / ylo,  PAD_RATIO );
+            }
+            else {
+                yhi += ( yhi - ylo ) * PAD_RATIO;
+            }
+        }
+   
+        /* Store the calculated ranges into the plot state. */
+        state.setRanges( new double[][] { { xlo, xhi }, { ylo, yhi } } );
     }
 
+    /**
+     * Returns a suitable default bin width value for a histogram.
+     *
+     * @param   xlo  lower X bound
+     * @param   xhi  upper X bound
+     * @param   xlog  whether X axis is logarithmic
+     * @return   suitable bin width (multiplicative for xlog=true)
+     */
+    private double getDefaultBinWidth( double xlo, double xhi, boolean xlog ) {
+        int nbin = DEFAULT_BINS;
+        return xlog
+             ? Rounder.LOG.round( Math.exp( Math.log( xhi / xlo ) / nbin ) )
+             : Rounder.LINEAR.round( ( xhi - xlo ) / nbin );
+    }
+
+    /**
+     * Constructs a weighting parameter.
+     *
+     * @param   tlabel   table identifier label
+     * @return   new weighting parameter
+     */
     private Parameter createWeightParameter( String tlabel )  {
         Parameter param = new Parameter( "weight" + tlabel );
         param.setPrompt( "Histogram weighting for table " + tlabel );
