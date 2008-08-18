@@ -33,6 +33,8 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
+  <!ENTITY plothist-summary SYSTEM 'plothist-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
   <!ENTITY sqlclient-summary SYSTEM 'sqlclient-summary.xml'>
   <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
@@ -2790,6 +2792,20 @@ There are no parameters.
 
 </subsect>
 
+<subsect id="plot2d" tocleaf="yes">
+<subhead><title><code>plot2d</code>: &plot2d-purpose;</title></subhead>
+
+&plot2d-summary;
+
+</subsect>
+
+<subsect>
+<subhead><title><code>plothist</code>: &plothist-purpose;</title></subhead>
+
+&plothist-summary;
+
+</subsect>
+
 <subsect id="regquery" tocleaf="yes">
 <subhead><title><code>regquery</code>: &regquery-purpose;</title></subhead>
 
@@ -4608,6 +4624,10 @@ functionality:
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+<li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
+    (Jibble) for encapsulated postscript output</li>
+<li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
+    (Acme) for GIF output</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within STILTS)</li>
@@ -5251,6 +5271,7 @@ but my thanks are especially due to the following:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Plotting!</li>
     <li>Efficiency improvements (~25%? in both CPU time and memory usage) 
         for HEALPix-based sky crossmatching 
         (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
