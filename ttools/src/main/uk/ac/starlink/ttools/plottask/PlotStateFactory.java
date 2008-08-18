@@ -749,7 +749,7 @@ public class PlotStateFactory {
             "<li><code>null</code>: no errors</li>",
             "</ul>",
             "The expression in each case is a numeric algebraic expression",
-            "as described in <xref id='jel'/>.",
+            "as described in <ref id='jel'/>.",
             "</p>",
         } );
         return param;

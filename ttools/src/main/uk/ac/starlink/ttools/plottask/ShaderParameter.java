@@ -68,9 +68,9 @@ public class ShaderParameter extends StyleParameter {
         setDescription( new String[] {
             "<p>Determines how data from auxiliary axes will be displayed.",
             "Generally this is some kind of colour ramp.",
-            "These are the available <i>colour fixing</i> options:",
+            "These are the available <em>colour fixing</em> options:",
             formatShaderList( ABS_SHADERS ),
-            "and these are the available <i>colour modifying</i> options:",
+            "and these are the available <em>colour modifying</em> options:",
             formatShaderList( MOD_SHADERS ),
             "</p>",
         } );
