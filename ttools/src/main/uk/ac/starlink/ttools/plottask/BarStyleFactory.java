@@ -149,6 +149,7 @@ public class BarStyleFactory extends StyleFactory {
             "Only certain bar styles are affected by the line width.",
             "</p>",
         } );
+        param.setDefault( Integer.toString( 2 ) );
         param.setMinimum( 1 );
         return param;
     }
