@@ -16,6 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.ttools.plot.Style;
 
 /**
  * Graphical component which provides a GUI for editing the characteristics

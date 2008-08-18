@@ -1,9 +1,11 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.event.ActionListener;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.ErrorMode;
 
 /**
  * Defines an object which provides column selectors for a plot.
@@ -21,6 +23,14 @@ public interface AxesSelector {
      * @return   column selector panel
      */
     JComponent getColumnSelectorPanel();
+
+    /**
+     * Returns the array of combo boxes which are used to select column or
+     * other values.
+     *
+     * @return  array of column selector combo boxes
+     */
+    JComboBox[] getColumnSelectors();
 
     /** 
      * Set up column selectors correctly for the given model.

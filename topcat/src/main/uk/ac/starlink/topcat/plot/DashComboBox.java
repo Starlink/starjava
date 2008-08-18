@@ -9,6 +9,7 @@ import java.awt.Stroke;
 import java.util.Arrays;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
@@ -17,7 +18,7 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
  * @author   Mark Taylor
  * @since    12 Jan 2006
  * @see   java.awt.BasicStroke
- * @see   uk.ac.starlink.topcat.plot.DefaultStyle
+ * @see   uk.ac.starlink.ttools.plot.DefaultStyle
  */
 public class DashComboBox extends RenderingComboBox {
 

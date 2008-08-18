@@ -14,9 +14,10 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.topcat.Wrapper;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.util.Wrapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -86,8 +87,8 @@ public class AugmentedAxesSelector implements AxesSelector, Wrapper {
             for ( int i = 0; i < naux; i++ ) {
                 AxisDataSelector selector = auxSelector_.getDataSelector( i );
                 JComboBox shaderSelector = new JComboBox( shaderModels_[ i ] );
-                shaderSelector.setRenderer( Shaders
-                                           .createRenderer( shaderSelector ) );
+                shaderSelector
+                   .setRenderer( new ShaderListCellRenderer( shaderSelector ) );
                 JComponent box = Box.createHorizontalBox();
                 box.add( new ShrinkWrapper( shaderSelector ) );
                 box.add( Box.createHorizontalStrut( 5 ) );
@@ -157,6 +158,19 @@ public class AugmentedAxesSelector implements AxesSelector, Wrapper {
 
     public JComponent getColumnSelectorPanel() {
         return selectorPanel_;
+    }
+
+    public JComboBox[] getColumnSelectors() {
+        JComboBox[] baseSelectors = baseSelector_.getColumnSelectors();
+        JComboBox[] auxSelectors = auxSelector_.getColumnSelectors();
+        JComboBox[] selectors =
+            new JComboBox[ baseSelectors.length + auxSelectors.length ];
+        System.arraycopy( baseSelectors, 0, selectors, 0,
+                          baseSelectors.length );
+        System.arraycopy( auxSelectors, 0,
+                          selectors, baseSelectors.length,
+                          auxSelectors.length );
+        return selectors;
     }
 
     public int getNdim() {

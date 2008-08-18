@@ -21,6 +21,9 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.event.ListDataListener;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.ttools.plot.ErrorModeSelection;
+import uk.ac.starlink.ttools.plot.ErrorRenderer;
 
 /**
  * Model for selecting {@link ErrorMode} values.
@@ -29,7 +32,8 @@ import uk.ac.starlink.topcat.ActionForwarder;
  * @author   Mark Taylor
  * @since    26 Feb 2007
  */
-public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
+public class ErrorModeSelectionModel
+        implements ErrorModeSelection, ComboBoxModel, ActionListener {
 
     private final int iaxis_;
     private final String axisName_;
@@ -62,7 +66,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
      *
      * @return  error mode
      */
-    public ErrorMode getMode() {
+    public ErrorMode getErrorMode() {
         return options_[ iOpt_ ];
     }
 
@@ -173,7 +177,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
         ButtonModel model = new DefaultButtonModel() {
             ErrorMode lastOnMode = ErrorMode.SYMMETRIC;
             public String getActionCommand() {
-                ErrorMode currentMode = getMode();
+                ErrorMode currentMode = getErrorMode();
                 if ( currentMode == ErrorMode.NONE ) {
                     return lastOnMode.toString();
                 }
@@ -188,7 +192,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
                                getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
         addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                button.setSelected( getMode() != ErrorMode.NONE );
+                button.setSelected( getErrorMode() != ErrorMode.NONE );
             }
         } );
         model.addActionListener( this );
@@ -211,7 +215,7 @@ public class ErrorModeSelectionModel implements ComboBoxModel, ActionListener {
     }
 
     public Object getSelectedItem() {
-        return getMode();
+        return getErrorMode();
     }
 
     public void setSelectedItem( Object mode ) {

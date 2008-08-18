@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.ErrorMode;
 
 /**
  * AxesSelector implementation which deals with the straightforward
@@ -77,7 +79,8 @@ public class CartesianAxesSelector implements AxesSelector {
                 ActionListener listener = new ActionListener() {
                     public void actionPerformed( ActionEvent evt ) {
                         dataSelectors_[ idim ]
-                            .setErrorMode( errorModeModels_[ idim ].getMode() );
+                            .setErrorMode( errorModeModels_[ idim ]
+                                          .getErrorMode() );
                     }
                 };
                 errorModeModels_[ idim ].addActionListener( listener );
@@ -93,6 +96,15 @@ public class CartesianAxesSelector implements AxesSelector {
      */
     public JComponent getColumnSelectorPanel() {
         return entryBox_;
+    }
+
+    public JComboBox[] getColumnSelectors() {
+        List selectorList = new ArrayList();
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            selectorList.addAll( Arrays.asList( dataSelectors_[ idim ]
+                                       .getSelectors() ) );
+        }
+        return (JComboBox[]) selectorList.toArray( new JComboBox[ 0 ] );
     }
 
     public int getNdim() {
@@ -150,7 +162,7 @@ public class CartesianAxesSelector implements AxesSelector {
         int nerr = errorModeModels_.length;
         ErrorMode[] modes = new ErrorMode[ nerr ];
         for ( int ierr = 0; ierr < nerr; ierr++ ) {
-            modes[ ierr ] = errorModeModels_[ ierr ].getMode();
+            modes[ ierr ] = errorModeModels_[ ierr ].getErrorMode();
         }
         return modes;
     }

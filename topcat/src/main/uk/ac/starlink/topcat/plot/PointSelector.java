@@ -37,7 +37,6 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxStack;
-import uk.ac.starlink.topcat.EmptyIcon;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;
@@ -45,6 +44,10 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.WeakTopcatListener;
+import uk.ac.starlink.ttools.plot.EmptyIcon;
+import uk.ac.starlink.ttools.plot.MarkStyle;
+import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot.StyleSet;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -75,6 +78,9 @@ public class PointSelector extends JPanel {
     private StyleAnnotator annotator_;
     private StyleWindow styleWindow_;
     private String selectorLabel_;
+
+    /** ActionEvent command string indicating a change of table. */
+    public static final String TABLE_CHANGED = "TABLE_CHANGED";
 
     public PointSelector( AxesSelector axesSelector, MutableStyleSet styles ) {
         super( new BorderLayout() );
@@ -644,6 +650,10 @@ public class PointSelector extends JPanel {
 
         /* Configure the column selectors. */
         axesSelector_.setTable( tcModel );
+
+        /* Notify listeners. */
+        actionForwarder_.actionPerformed( new ActionEvent( this, 0,
+                                                           TABLE_CHANGED ) );
 
         /* Repaint. */
         revalidate();

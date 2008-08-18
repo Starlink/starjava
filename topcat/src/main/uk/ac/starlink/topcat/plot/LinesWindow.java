@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -12,8 +13,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +31,10 @@ import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JPanel;
+import javax.swing.OverlayLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputAdapter;
@@ -45,7 +51,25 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.plot.DataBounds;
+import uk.ac.starlink.ttools.plot.ErrorRenderer;
+import uk.ac.starlink.ttools.plot.LinesPlot;
+import uk.ac.starlink.ttools.plot.LinesPlotState;
+import uk.ac.starlink.ttools.plot.MarkStyles;
+import uk.ac.starlink.ttools.plot.PlotData;
+import uk.ac.starlink.ttools.plot.PlotEvent;
+import uk.ac.starlink.ttools.plot.PlotListener;
+import uk.ac.starlink.ttools.plot.PlotState;
+import uk.ac.starlink.ttools.plot.PlotSurface;
+import uk.ac.starlink.ttools.plot.PointIterator;
+import uk.ac.starlink.ttools.plot.PointPlacer;
+import uk.ac.starlink.ttools.plot.PointSequence;
+import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot.StyleSet;
+import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.WrapUtils;
 
 /**
  * GraphicsWindow which draws a stack of line graphs.
@@ -55,7 +79,7 @@ import uk.ac.starlink.ttools.convert.ValueConverter;
  */
 public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
-    private final LinesPlot plot_;
+    private final JComponent plotPanel_;
     private final ToggleButtonModel antialiasModel_;
     private final ToggleButtonModel vlineModel_;
     private final ToggleButtonModel zeroLineModel_;
@@ -63,7 +87,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
     private Range[] yDataRanges_;
     private StyleSet styles_;
-    private int[] activePoints_;
+    private Annotator annotator_;
 
     private static final Color[] COLORS;
     static {
@@ -103,31 +127,36 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", AXIS_NAMES, 0, true,
+        super( "Line Plot", new LinesPlot(), AXIS_NAMES, 0, true,
                createErrorModeModels( AXIS_NAMES ), parent );
 
         /* Set some initial values. */
-        activePoints_ = new int[ 0 ];
         yViewRangeMap_ = new HashMap();
+        annotator_ = new Annotator();
 
         /* Construct a plot component to hold the plotted graphs. */
-        plot_ = new LinesPlot() {
-            protected void requestZoomX( double x0, double x1 ) {
-                getAxisWindow().getEditors()[ 0 ].clearBounds();
-                getViewRanges()[ 0 ].setBounds( x0, x1 );
-                replot();
+        final LinesPlot plot = (LinesPlot) getPlot();
+        plot.setPreferredSize( new Dimension( 400, 400 ) );
+        plot.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
+
+        /* Overlay components of display. */
+        plotPanel_ = new JPanel();
+        plotPanel_.setOpaque( false );
+        plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
+        plotPanel_.add( annotator_ );
+        plotPanel_.add( plot );
+
+        /* Zooming. */
+        final Zoomer zoomer = new Zoomer();
+        zoomer.setCursorComponent( plot );
+        plot.addPlotListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                zoomer.setRegions( Arrays
+                                  .asList( createZoomRegions( plot ) ) );
             }
-            protected void requestZoomY( int igraph, double y0, double y1 ) {
-                getAxisWindow().getEditors()[ 1 + igraph ].clearBounds();
-                PointSelector psel = getPointSelectors().getSelector( igraph );
-                if ( yViewRangeMap_.containsKey( psel ) ) {
-                    ((Range) yViewRangeMap_.get( psel )).setBounds( y0, y1 );
-                }
-                replot();
-            }
-        };
-        plot_.setPreferredSize( new Dimension( 400, 400 ) );
-        plot_.setBorder( BorderFactory.createEmptyBorder( 10, 0, 0, 10 ) );
+        } );
+        plot.addMouseListener( zoomer );
+        plot.addMouseMotionListener( zoomer );
 
         /* The axis window has to be kept up to date with the point selectors,
          * since the number of axis editor components it contains is the
@@ -162,7 +191,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         zeroLineModel_.addActionListener( gridListener );
 
         /* Add a status line reporting on cursor position. */
-        JComponent posLabel = plot_.createPositionLabel();
+        JComponent posLabel = new LinesPositionLabel( plot );
         posLabel.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                 posLabel.getMaximumSize()
                                                         .height ) );
@@ -170,7 +199,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         getStatusBox().add( Box.createHorizontalGlue() );
 
         /* Arrange for clicking on a given point to cause row activation. */
-        plot_.addMouseListener( new PointClickListener() );
+        plot.addMouseListener( new PointClickListener() );
         getPointSelectors().addTopcatListener( this );
 
         /* Rescaling actions. */
@@ -203,7 +232,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                                                    "containing only points " +
                                                    "in the visible X range" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getPointsInRange() );
+                addNewSubsets( plot.getPointsInRange() );
             }
         };
 
@@ -212,7 +241,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                                              ResourceIcon.Y_CURSOR,
                                              "Display a vertical line " +
                                              "which follows the mouse" );
-        new CrosshairListener( plot_, vlineModel_ );
+        new CrosshairListener( plot, vlineModel_ );
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
@@ -289,14 +318,13 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         replot();
     }
 
-    protected JComponent getPlot() {
-        return plot_;
+    protected JComponent getPlotPanel() {
+        return plotPanel_;
     }
 
-    protected void doReplot( PlotState state, Points points ) {
-        plot_.setPoints( points );
-        plot_.setState( (LinesPlotState) state );
-        plot_.repaint();
+    protected void doReplot( PlotState state ) {
+        annotator_.setState( state );
+        super.doReplot( state );
     }
 
     protected PlotState createPlotState() {
@@ -359,7 +387,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         /* Configure information for each subset about which graph it will
          * be plotted on. */
-        SetId[] setIds = state.getPointSelection().getSetIds();
+        SetId[] setIds = ((PointSelection) state.getPlotData()).getSetIds();
         int nset = setIds.length;
         int[] graphIndices = new int[ nset ];
         for ( int iset = 0; iset < nset; iset++ ) {
@@ -373,9 +401,6 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         /* Y=0 lines. */
         state.setYZeroFlag( zeroLineModel_.isSelected() );
-
-        /* Active points. */
-        state.setActivePoints( activePoints_ );
 
         /* Return state. */
         return state;
@@ -474,92 +499,16 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     /**
      * Returns a 1-element array giving only the X axis range.
      */
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
+    public Range[] calculateRanges( PlotData data, PlotState state ) {
         Range xRange = getViewRanges()[ 0 ];
-        double[] xBounds = xRange.isClear() ? null
+        double[] xLimits = xRange.isClear() ? null
                                             : xRange.getFiniteBounds( false );
-        Range[] xyRanges = calculateRanges( pointSelection, points, xBounds );
+        DataBounds xyBounds = ((LinesPlot) getPlot())
+                             .calculateBounds( data, state, xLimits );
+        Range[] xyRanges = xyBounds.getRanges();
         yDataRanges_ = new Range[ xyRanges.length - 1 ];
         System.arraycopy( xyRanges, 1, yDataRanges_, 0, xyRanges.length - 1 );
         return new Range[] { xyRanges[ 0 ] };
-    }
-
-    /**
-     * Calculates data ranges along the X and Y axes for a given 
-     * point selection and data object.
-     *
-     * @param  pointSelection  point selection for calculations
-     * @param  ponints  points data
-     * @param  xBounds  (lower,upper) bounds array giving region for range
-     *         determination; may be null for the whole X region
-     */
-    private Range[] calculateRanges( PointSelection pointSelection,
-                                     Points points, double[] xBounds ) {
-
-        /* Set X and Y bounds. */
-        double xlo = xBounds == null ? - Double.MAX_VALUE : xBounds[ 0 ];
-        double xhi = xBounds == null ? + Double.MAX_VALUE : xBounds[ 1 ];
-        double ylo = - Double.MAX_VALUE;
-        double yhi = + Double.MAX_VALUE;
-
-        /* Work out which graph each set belongs to. */
-        PointSelectorSet pointSelectors = getPointSelectors();
-        int ngraph = pointSelectors.getSelectorCount();
-        List pselList = new ArrayList( ngraph );
-        for ( int isel = 0; isel < ngraph; isel++ ) {
-            pselList.add( pointSelectors.getSelector( isel ) );
-        }
-        SetId[] setIds = pointSelection.getSetIds();
-        int nset = setIds.length;
-        int[] graphIndices = new int[ nset ];
-        for ( int iset = 0; iset < nset; iset++ ) {
-            int igraph = pselList.indexOf( setIds[ iset ].getPointSelector() );
-            graphIndices[ iset ] = igraph;
-        }
-
-        /* Set up initial values for extrema. */
-        Range xRange = new Range();
-        Range[] yRanges = new Range[ ngraph ];
-        for ( int i = 0; i < ngraph; i++ ) {
-            yRanges[ i ] = new Range();
-        }
-
-        /* Go through all the data finding extrema. */
-        RowSubset[] sets = pointSelection.getSubsets();
-        int npoint = points.getCount();
-        for ( int ip = 0; ip < npoint; ip++ ) {
-            double[] coords = points.getPoint( ip );
-            double x = coords[ 0 ];
-            double y = coords[ 1 ];
-            if ( x >= xlo && x <= xhi && y >= ylo && y <= yhi ) {
-                boolean isUsed = false;
-                for ( int iset = 0; iset < nset; iset++ ) {
-                    if ( sets[ iset ].isIncluded( ip ) ) {
-                        int igraph = graphIndices[ iset ];
-                        isUsed = true;
-                        yRanges[ igraph ].submit( y );
-                    }
-                }
-                if ( isUsed ) {
-                    xRange.submit( x );
-                }
-            }
-        }
-
-        /* Package and return calculated ranges. */
-        Range[] ranges = new Range[ ngraph + 1 ];
-        ranges[ 0 ] = xRange;
-        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
-            yRanges[ igraph ].pad( 0.025 );
-            ranges[ igraph + 1 ] = yRanges[ igraph ];
-        }
-        return ranges;
-    }
-
-    public Rectangle getPlotBounds() {
-        Rectangle bounds = plot_.getPlotRegion();
-        return bounds == null ? getMainArea().getBounds() : bounds;
     }
 
     protected boolean isLegendInteresting( PlotState state ) {
@@ -567,7 +516,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
         /* Determine whether any of the plotted graphs contain more than one
          * dataset. */
         boolean hasMultiples = false;
-        SetId[] setIds = state.getPointSelection().getSetIds();
+        SetId[] setIds = ((PointSelection) state.getPlotData()).getSetIds();
         Set pselSet = new HashSet();
         for ( int i = 0; ! hasMultiples && i < setIds.length; i++ ) {
             PointSelector psel = setIds[ i ].getPointSelector();
@@ -593,7 +542,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
     private static LinesAxesSelector
                    findLinesAxesSelector( AxesSelector axsel ) {
         return (LinesAxesSelector)
-               TopcatUtils.getWrapped( axsel, LinesAxesSelector.class );
+               WrapUtils.getWrapped( axsel, LinesAxesSelector.class );
     }
 
     /*
@@ -604,17 +553,113 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
             Object datum = evt.getDatum();
             if ( datum instanceof Long ) {
                 TopcatModel tcModel = evt.getModel();
-                PointSelection psel = plot_.getState().getPointSelection();
+                PointSelection psel = 
+                    (PointSelection) getPlot().getState().getPlotData();
                 long lrow = ((Long) datum).longValue();
                 long[] lps = psel.getPointsForRow( tcModel, lrow );
                 int[] ips = new int[ lps.length ];
                 for ( int i = 0; i < lps.length; i++ ) {
                     ips[ i ] = Tables.checkedLongToInt( lps[ i ] );
                 }
-                activePoints_ = ips;
+                annotator_.setActivePoints( ips );
                 replot();
             }
         }
+    }
+
+    /**
+     * Called when the plot geometry changes to ensure that the zoomer has
+     * the right associated regions.
+     *
+     * @param   plot   lines plot for which zoom regions are required
+     * @return  array of appropriate X and Y axis zoom region objects
+     */
+    private ZoomRegion[] createZoomRegions( LinesPlot plot ) {
+        LinesPlotState state = (LinesPlotState) plot.getState();
+        int ngraph = state.getGraphCount();
+        PlotSurface[] surfaces = plot.getSurfaces();
+        ZoomRegion[] regions = new ZoomRegion[ ngraph + 1 ];
+
+        /* Add Y axis zoom regions for each graph. */
+        for ( int igraph = 0; igraph < ngraph; igraph++ ) {
+            final int ig = igraph;
+            final PlotSurface surface = surfaces[ igraph ];
+            final boolean flip = state.getYFlipFlags()[ igraph ];
+            Rectangle displayBox = surface.getClip().getBounds();
+            final int xPos = displayBox.x;
+            final int yPos = displayBox.y;
+            final int yInc = displayBox.height;
+            Rectangle yAxisBox =
+                new Rectangle( 0, displayBox.y, displayBox.x, yInc );
+            ZoomRegion yZoom = new AxisZoomRegion( false, yAxisBox,
+                                                   displayBox ) {
+                public void zoomed( double[][] bounds ) {
+                    double v0 = bounds[ 0 ][ 0 ];
+                    double v1 = bounds[ 0 ][ 1 ];
+                    int y0 = (int) Math.round( yPos + v0 * yInc );
+                    int y1 = (int) Math.round( yPos + v1 * yInc );
+                    requestZoomY( ig,
+                                  surface.graphicsToData( xPos, flip ? y0 : y1,
+                                                          false )[ 1 ],
+                                  surface.graphicsToData( xPos, flip ? y1 : y0,
+                                                          false )[ 1 ] );
+                }
+            };
+            regions[ igraph ] = yZoom;
+        }
+
+        /* Add an X axis zoom region applying to all the graphs. */
+        final PlotSurface surface0 = surfaces[ ngraph - 1 ];
+        Rectangle displayBox = plot.getPlotBounds();
+        final int xPos = displayBox.x;
+        final int xInc = displayBox.width;
+        Rectangle xAxisBox =
+            new Rectangle( xPos, displayBox.y + displayBox.height,
+                           xInc, plot.getHeight() );
+        ZoomRegion xZoom = new AxisZoomRegion( true, xAxisBox, displayBox ) {
+            public void zoomed( double[][] bounds ) {
+                double v0 = bounds[ 0 ][ 0 ];
+                double v1 = bounds[ 0 ][ 1 ];
+                int x0 = (int) Math.round( xPos + v0 * xInc );
+                int x1 = (int) Math.round( xPos + v1 * xInc );
+                requestZoomX( surface0.graphicsToData( x0, 0, false )[ 0 ],
+                              surface0.graphicsToData( x1, 0, false )[ 0 ] );
+            }
+        };
+        regions[ ngraph ] = xZoom;
+
+        /* Return combined set of zoom regions. */
+        return regions;
+    }
+
+    /**
+     * Indicates that the user has asked to zoom to a particular region
+     * in the X direction.
+     *
+     * @param   x0  lower bound of new view region in data coordinates
+     * @param   x1  upper bound of new view region in data coordinates
+     */
+    private void requestZoomX( double x0, double x1 ) {
+        getAxisWindow().getEditors()[ 0 ].clearBounds();
+        getViewRanges()[ 0 ].setBounds( x0, x1 );
+        replot();
+    }
+
+    /**
+     * Indicates that the user has asked to zoom to a particular region
+     * in the Y direction for one of the graphs.
+     *
+     * @param  igraph  index of graph to zoom on
+     * @param  y0    lower bound of new view region in data coordinates
+     * @param  y1    upper bound of new view region in data coordinates
+     */
+    private void requestZoomY( int igraph, double y0, double y1 ) {
+        getAxisWindow().getEditors()[ 1 + igraph ].clearBounds();
+        PointSelector psel = getPointSelectors().getSelector( igraph );
+        if ( yViewRangeMap_.containsKey( psel ) ) {
+            ((Range) yViewRangeMap_.get( psel )).setBounds( y0, y1 );
+        }
+        replot();
     }
 
     /**
@@ -709,20 +754,83 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      */
     private class PointClickListener extends MouseAdapter {
         public void mouseClicked( MouseEvent evt ) {
+            LinesPlot plot = (LinesPlot) getPlot();
             if ( evt.getButton() == MouseEvent.BUTTON1 ) {
-                PointIterator pit = plot_.getPlottedPointIterator();
-                if ( pit != null ) {
-                    int ip = pit.getClosestPoint( evt.getPoint(), 4 );
-                    if ( ip >= 0 ) {
-                        PointSelection psel = 
-                            plot_.getState().getPointSelection();
-                        psel.getPointTable( ip )
-                            .highlightRow( psel.getPointRow( ip ) );
+                PointIterator pit = plot.getPlottedPointIterator();
+                int ip = pit.getClosestPoint( evt.getPoint(), 4 );
+                if ( ip >= 0 ) {
+                    PointSelection psel =
+                        (PointSelection) plot.getState().getPlotData();
+                    psel.getPointTable( ip )
+                        .highlightRow( psel.getPointRow( ip ) );
+                }
+                else {
+                    annotator_.setActivePoints( new int[ 0 ] );
+                    replot();
+                }
+            }
+        }
+    }
+
+    /**
+     * Panel which can write annotations.
+     */
+    private class Annotator extends AnnotationPanel {
+        private LinesPlotState state_;
+
+        /**
+         * Sets the plot state.
+         *
+         * @param  state plot state
+         */
+        public void setState( PlotState state ) {
+            state_ = (LinesPlotState) state;
+        }
+
+        protected void paintComponent( Graphics g ) {
+            int[] activePoints = getActivePoints();
+            if ( activePoints.length == 0 || state_ == null ) {
+                return;
+            }
+
+            /* Assemble a per-graph array of active point lists and 
+             * corresponding point placers. */
+            PointPlacer[] placers = ((LinesPlot) getPlot()).getPointPlacers();
+            int ngraph = placers.length;
+            BitSet activeMask = new BitSet();
+            for ( int i = 0; i < activePoints.length; i++ ) {
+                activeMask.set( activePoints[ i ] );
+            }
+            PlotData data = state_.getPlotData();
+            int nset = data.getSetCount();
+            int[] graphIndices = state_.getGraphIndices();
+            IntList[] activeLists = new IntList[ ngraph ];
+            for ( int ig = 0; ig < ngraph; ig++ ) {
+                activeLists[ ig ] = new IntList();
+            }
+            PointSequence pseq = data.getPointSequence();
+            for ( int ip = 0; pseq.next(); ip++ ) {
+                if ( activeMask.get( ip ) ) {
+                    for ( int is = 0; is < nset; is++ ) {
+                        if ( pseq.isIncluded( is ) ) {
+                            activeLists[ graphIndices[ is ] ].add( ip );
+                        }
                     }
-                    else {
-                        activePoints_ = new int[ 0 ];
-                        replot();
-                    }
+                }
+            }
+
+            /* Now for each constituent graph plot the active points associated
+             * with it.  Do this by creating an AnnotationPanel which would
+             * paint the right thing, and then rather than placing it just
+             * invoke its paintComponent method directly. */
+            for ( int ig = 0; ig < ngraph; ig++ ) {
+                int[] ips = activeLists[ ig ].toIntArray();
+                if ( ips.length > 0 ) {
+                    AnnotationPanel ann = new AnnotationPanel();
+                    ann.setPlotData( data );
+                    ann.setPlacer( placers[ ig ] );
+                    ann.setActivePoints( ips );
+                    ann.paintComponent( g );
                 }
             }
         }
@@ -811,7 +919,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                 visible_ = false;
             }
             if ( p != null && on_ ) {
-                Rectangle zone = linesPlot_.getPlotRegion();
+                Rectangle zone = linesPlot_.getPlotBounds();
                 if ( zone.contains( p ) ) {
                     vLine_.x = p.x;
                     vLine_.y = zone.y;
@@ -849,13 +957,16 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
 
         public void actionPerformed( ActionEvent evt ) {
             PlotState state = getPlotState();
+            PointSelection psel = (PointSelection) state.getPlotData();
             Points points = getPoints();
             if ( state.getValid() && points != null ) {
                 double[] xLimits = scaleY_ && ! scaleX_
                                  ? state.getRanges()[ 0 ]
                                  : null;
-                Range[] ranges = calculateRanges( state.getPointSelection(),
-                                                  points, xLimits );
+                Range[] ranges = ((LinesPlot) getPlot())
+                                .calculateBounds( psel.createPlotData( points ),
+                                                  state, xLimits )
+                                .getRanges();
                 getAxisWindow().clearRanges();
                 if ( scaleX_ ) {
                     getDataRanges()[ 0 ] = ranges[ 0 ];
@@ -957,6 +1068,119 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
                     break;
                 }
             }
+        }
+    }
+
+    /**
+     * Component which can display the current coordinates of the cursor
+     * within a LinesPlot component.
+     */
+    private static class LinesPositionLabel extends JLabel
+                                            implements MouseMotionListener {
+        private final LinesPlot plot_;
+        private int isurf_;
+        private PlotSurface surface_;
+        private PositionReporter reporter_;
+
+        /**
+         * Constructor.
+         *
+         * @param  plot  plot for which cursor position should be reported
+         */
+        LinesPositionLabel( LinesPlot plot ) {
+            plot_ = plot;
+            Font font = getFont();
+            setFont( new Font( "Monospaced",
+                               font.getStyle(), font.getSize() ) );
+            setBorder( BorderFactory.createCompoundBorder(
+                           BorderFactory.createEtchedBorder(),
+                           BorderFactory.createEmptyBorder( 0, 5, 0, 5 ) ) );
+            plot.addMouseMotionListener( this );
+            reportPosition( null );
+        }
+
+        public void mouseMoved( MouseEvent evt ) {
+            reportPosition( evt.getPoint() );
+        }
+
+        public void mouseDragged( MouseEvent evt ) {
+            reportPosition( evt.getPoint() );
+        }
+
+        /**
+         * Reports the position at a given point by drawing it as the text
+         * content of this label.
+         *
+         * @param  p   position
+         */
+        private void reportPosition( Point p ) {
+            PositionReporter reporter = getReporter( p );
+            StringBuffer sbuf = new StringBuffer( "Position: " );
+            if ( reporter != null ) {
+                String[] fc = reporter.formatPosition( p.x, p.y );
+                if ( fc != null ) {
+                    sbuf.append( '(' )
+                        .append( fc[ 0 ] )
+                        .append( ", " )
+                        .append( fc[ 1 ] )
+                        .append( ')' );
+                }
+            }
+            setText( sbuf.toString() );
+        }
+
+        /**
+         * Returns a reporter object which corresponds to the given position.
+         *
+         * @param   p  point at which reporting is required
+         * @return  position reporter which knows about coordinates
+         *          at <code>p</code> (may be null if invalid position)
+         */
+        private PositionReporter getReporter( Point p ) {
+            LinesPlotState state = (LinesPlotState) plot_.getState();
+            PlotSurface[] surfaces = plot_.getSurfaces();
+
+            /* No point, no reporter. */
+            if ( p == null || state == null || ! state.getValid() ) {
+                return null;
+            }
+
+            /* If the reporter required is the same as for the last call
+             * to this method, and if that reporter is still valid for
+             * this plot, return the same one. */
+            if ( isurf_ < surfaces.length &&
+                 surface_ == surfaces[ isurf_ ] &&
+                 surface_.getClip().contains( p ) ) {
+                return reporter_;
+            }
+
+            else {
+
+                /* Search through the plot surfaces corresponding to the
+                 * most recent graphs plotted. */
+                for ( int is = 0; is < surfaces.length; is++ ) {
+                    PlotSurface surf = surfaces[ is ];
+                    if ( surf.getClip().contains( p ) ) {
+
+                        /* If the point is within one, construct a new
+                         * suitable reporter, save it and enough information
+                         * to be able to tell whether it's still valid later,
+                         * and return it. */
+                        ValueConverter xConv = state.getConverters()[ 0 ];
+                        ValueConverter yConv = state.getYConverters()[ is ];
+                        isurf_ = is;
+                        surface_ = surf;
+                        reporter_ = new PositionReporter( surf, xConv, yConv ) {
+                            protected void reportPosition( String[] coords ) {
+                            }
+                        };
+                        return reporter_;
+                    }
+                }
+            }
+
+            /* Point is not in any of the known graphs - return null. */
+            return null;
         }
     }
 }

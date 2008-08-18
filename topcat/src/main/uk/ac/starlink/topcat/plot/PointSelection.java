@@ -13,6 +13,11 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.ttools.plot.PlotData;
+import uk.ac.starlink.ttools.plot.PointSequence;
+import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot.WrapperPlotData;
 
 /**
  * Encapsulates the selection of the list of points which is to be plotted.
@@ -21,7 +26,7 @@ import uk.ac.starlink.topcat.TopcatModel;
  * @author   Mark Taylor
  * @since    2 Nov 2005
  */
-public class PointSelection {
+public class PointSelection implements PlotData {
 
     private final int ndim_;
     private final int nTable_;
@@ -35,6 +40,7 @@ public class PointSelection {
     private final Style[] styles_;
     private final SetId[] setIds_;
     private final PointSelector mainSelector_;
+    private Points points_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
@@ -114,6 +120,9 @@ public class PointSelection {
         subsets_ = (RowSubset[]) subsetList.toArray( new RowSubset[ 0 ] );
         styles_ = (Style[]) styleList.toArray( new Style[ 0 ] );
         setIds_ = (SetId[]) idList.toArray( new SetId[ 0 ] );
+
+        /* Set dummy points object. */
+        points_ = getEmptyPoints();
     }
 
     /** 
@@ -242,6 +251,69 @@ public class PointSelection {
      */
     public Style[] getStyles() {
         return styles_;
+    }
+
+    public int getSetCount() {
+        return subsets_.length;
+    }
+
+    public String getSetName( int iset ) {
+        return subsets_[ iset ].getName();
+    }
+
+    public Style getSetStyle( int iset ) {
+        return styles_[ iset ];
+    }
+
+    public int getNdim() {
+        return points_.getNdim();
+    }
+
+    public int getNerror() {
+        return points_.getNerror();
+    }
+
+    public boolean hasLabels() {
+        return points_.hasLabels();
+    }
+
+    /**
+     * Returns a PlotData object based on this point selection but with a 
+     * given points object.  Since PointSelection implements PlotData in
+     * any case, this is not always necessary, but what this method provides
+     * is a PlotData whose data will not change if the points object owned
+     * by this PointSelection is replaced.
+     *
+     * @param  points  fixed points data
+     * @return   plot data closure
+     */
+    public PlotData createPlotData( final Points points ) {
+        return new WrapperPlotData( this ) {
+            public int getNdim() {
+                return points.getNdim();
+            }
+            public int getNerror() {
+                return points.getNerror();
+            }
+            public boolean hasLabels() {
+                return points.hasLabels();
+            }
+            public PointSequence getPointSequence() {
+                return new SelectionPointSequence( points );
+            }
+        };
+    }
+
+    public PointSequence getPointSequence() {
+        return new SelectionPointSequence( points_ );
+    }
+
+    public void setPoints( Points points ) {
+        points_ = points;
+    }
+
+    public Points getPoints() {
+        return points_;
     }
 
     /**
@@ -409,6 +481,10 @@ public class PointSelection {
             && Arrays.equals( this.labelTables_, other.labelTables_ );
     }
 
+    /**
+     * Equals is implemented efficiently to identify two PointSelection 
+     * objects which will behave in the same way.
+     */
     public boolean equals( Object otherObject ) {
         if ( ! ( otherObject instanceof PointSelection ) ) {
             return false;
@@ -436,6 +512,49 @@ public class PointSelection {
             code = 23 * code + styles_[ is ].hashCode();
         }
         return code;
+    }
+
+    /**
+     * PointSequence implementation used by a PointSelection.
+     */
+    private final class SelectionPointSequence implements PointSequence {
+
+        private final Points psPoints_;
+        private final int npoint_;
+        private int ip_ = -1;
+
+        /**
+         * Constructor.
+         */
+        SelectionPointSequence( Points points ) {
+            psPoints_ = points == null ? new EmptyPoints() : points;
+            npoint_ = psPoints_.getCount();
+        }
+
+        public boolean next() {
+            return ++ip_ < npoint_;
+        }
+
+        public double[] getPoint() {
+            return psPoints_.getPoint( ip_ );
+        }
+
+        public double[][] getErrors() {
+            return psPoints_.getErrors( ip_ );
+        }
+
+        public String getLabel() {
+            return psPoints_.getLabel( ip_ );
+        }
+
+        public boolean isIncluded( int iset ) {
+            return subsets_[ iset ].isIncluded( ip_ );
+        }
+
+        public void close() {
+            ip_ = Integer.MIN_VALUE;
+            return;
+        }
     }
 
     /**

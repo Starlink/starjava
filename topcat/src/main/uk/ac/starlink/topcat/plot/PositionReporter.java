@@ -5,6 +5,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.text.DecimalFormat;
+import uk.ac.starlink.ttools.plot.PlotSurface;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 
 /**

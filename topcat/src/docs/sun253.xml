@@ -3318,6 +3318,20 @@ makes the program store data from large tables on disk rather than in memory.
 The following ones have special significance within TOPCAT:
 <dl>
 
+<dt><code>apple.laf.useScreenMenuBar</code></dt>
+<dd><p>On the Apple Macintosh platform only, this property controls whether
+    menus appear at the top of the screen as usual for Mac, or at the
+    top of individual windows as usual for Java.  By default when using
+    Java 1.5 or later it is set to <code>true</code> for TOPCAT, 
+    so menus mostly appear at the top of the screen (though it's not 
+    true to say that TOPCAT obeys the Mac look and feel completely); 
+    if you prefer the more Java-like look and feel, set it to 
+    <code>false</code>.
+    There are bugs with this feature in Apple's Java 1.4 JRE, so it's
+    set false by default in that case, but you can try setting it true 
+    at your own risk if you like.
+    </p></dd>
+
 <dt><code>java.io.tmpdir</code></dt>
 <dd><p>The directory in which TOPCAT will write any temporary files it needs.
     This is usually only done if the <code>-disk</code> flag has been
@@ -3342,6 +3356,39 @@ The following ones have special significance within TOPCAT:
     static methods which define user-provided
     functions for use in custom activation expressions.
     (see <ref id="jelExtend"/>).
+    </p></dd>
+
+<dt><code>lut.files</code></dt>
+<dd><p>Can be set to a (colon-separated on *nix, semicolon-separated on Windows)
+    list of files giving custom lookup tables for auxiliary axis and
+    density map colour maps.  Each file should be a text file containing
+    a number of space-separated lines, each containing red, green, blue 
+    samples in the range 0-1.  For instance the file
+    <verbatim>
+       1.0  1.0  0.0
+       1.0  0.0  1.0
+    </verbatim>
+    would give a colour map that fades from yellow to magenta.  Any number of
+    samples may be given; the scale is interpolated.
+    </p></dd>
+
+<dt><code>mark.workaround</code></dt>
+<dd><p>If set to "true", this will work around a bug in the 
+    <code>mark()</code>/<code>reset()</code> methods of some java 
+    <code>InputStream</code> classes.  These are rather common, 
+    including in Sun's J2SE system libraries.
+    Use this if you are seeing errors that say something like
+    "<code>Resetting to invalid mark</code>".
+    Currently defaults to "false".</p></dd>
+
+<dt><code>myspace.cache</code></dt>
+<dd><p>If set to "true", this will prevent directories in the MySpace file
+    browser from being read more than once.  This is a workaround for
+    MySpace performance problems at time of writing (April 2006);
+    setting it true may lead to out of date file listings in MySpace,
+    but it may be much faster.  This behaviour may be withdrawn in
+    future versions if MySpace performance improves. 
+    Currently defaults to "false".
     </p></dd>
 
 <dt><code>star.connectors</code></dt>
@@ -3382,6 +3429,11 @@ The following ones have special significance within TOPCAT:
     handler classes (see <ref id="customHandlers"/>).
     </p></dd>
 
+<dt><code>user.dir</code></dt>
+<dd><p>Sets the current working directory.
+    This determines the default from which the file browsers will start.
+    </p></dd>
+
 <dt><code>votable.strict</code></dt>
 <dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
     when parsing VOTables.  This prevents the parser from working round
@@ -3389,39 +3441,6 @@ The following ones have special significance within TOPCAT:
     attributes on FIELD/PARAM elements with <code>datatype="char"</code>.
     False by default.
     </p></dd>
-
-<dt><code>apple.laf.useScreenMenuBar</code></dt>
-<dd><p>On the Apple Macintosh platform only, this property controls whether
-    menus appear at the top of the screen as usual for Mac, or at the
-    top of individual windows as usual for Java.  By default when using
-    Java 1.5 or later it is set to <code>true</code> for TOPCAT, 
-    so menus mostly appear at the top of the screen (though it's not 
-    true to say that TOPCAT obeys the Mac look and feel completely); 
-    if you prefer the more Java-like look and feel, set it to 
-    <code>false</code>.
-    There are bugs with this feature in Apple's Java 1.4 JRE, so it's
-    set false by default in that case, but you can try setting it true 
-    at your own risk if you like.
-    </p></dd>
-
-<dt><code>myspace.cache</code></dt>
-<dd><p>If set to "true", this will prevent directories in the MySpace file
-    browser from being read more than once.  This is a workaround for
-    MySpace performance problems at time of writing (April 2006);
-    setting it true may lead to out of date file listings in MySpace,
-    but it may be much faster.  This behaviour may be withdrawn in
-    future versions if MySpace performance improves. 
-    Currently defaults to "false".
-    </p></dd>
-
-<dt><code>mark.workaround</code></dt>
-<dd><p>If set to "true", this will work around a bug in the 
-    <code>mark()</code>/<code>reset()</code> methods of some java 
-    <code>InputStream</code> classes.  These are rather common, 
-    including in Sun's J2SE system libraries.
-    Use this if you are seeing errors that say something like
-    "<code>Resetting to invalid mark</code>".
-    Currently defaults to "false".</p></dd>
 
 </dl>
 </p>
@@ -5790,6 +5809,12 @@ ones to use - some good combinations are the three RGB ones or
 the three YUV ones.
 </p>
 
+<p>A fairly wide range of colour maps of both kinds is provided by default.
+If these do not suit your needs, it is possible to provide your own
+custom colour fixing maps using the <label>lut.files</label> system 
+property - see <ref id="jvmProperties"/>.
+</p>
+
 <p>It is easy to generate attractive screenshots using auxiliary axes.
 Making visual sense of the results is a different matter.
 One visualisation expert tried to dissuade their introduction in TOPCAT
@@ -5984,8 +6009,9 @@ you want or use the tiny up/down arrows at the right to increase/decrease
 the bin size.
 The <label>Offset</label> checkbox on the left determines where the zero
 point on the horizontal axis falls in relation to the bins; 
-if the box is checked then zero is in the centre of a bin, 
-and if it's unchecked then zero is on a bin boundary.
+if the box is checked then zero (or one for logarithmic X axis) 
+is in the centre of a bin, and if it's unchecked then zero (or one) 
+is on a bin boundary.
 </p>
 
 <p>The following buttons are available on the toolbar:
@@ -6061,6 +6087,12 @@ and if it's unchecked then zero is on a bin boundary.
     For a cumulative plot, the height is determined by counting all the
     points between negative infinity and the upper bound of the range on
     the X axis that it covers.
+    </p></dd>
+
+<dt>&IMG.NORMALISE; Normalisation</dt>
+<dd><p>Toggles whether histograms are normalised.
+    When selected, each dataset will be normalised so that the sum of
+    the counts of all its bars over the whole range of data is equal to one.
     </p></dd>
 
 <dt>&IMG.YLOG; Log Y Axis</dt>
@@ -7390,6 +7422,10 @@ using image-specific software such as GAIA or Aladin.
     the colour map selected in the <label>Indexed Colours</label> 
     selector below the plot.  In this case the style editor colour selectors
     have no effect and are disabled.
+    A fairly wide range of colour maps is provided by default.
+    If these do not suit your needs, it is possible to provide your own
+    custom colour maps using the <label>lut.files</label> system property -
+    see <ref id="jvmProperties"/>.
     </p></dd>
 
 <dt>RGB Mode</dt>
@@ -7729,6 +7765,9 @@ changed by typing a new directory into the <label>File Name</label> field,
 or moving up the directory hierarchy using the selector box at the top,
 or navigating the file system by clicking the up-directory button
 or double-clicking on displayed directories.
+The initial default directory can be changed by setting the 
+<code>user.dir</code> 
+<ref id="jvmProperties" plaintextref="yes">system property</ref>.
 </p>
 
 <p>All files are shown, and there is no indication of which ones represent
@@ -7797,7 +7836,10 @@ in some ways, but with important differences:
 </p>
 
 <p>The main part of the window shows a "tree" representation of the
-hierarchy, initially rooted at the current directory.
+hierarchy, initially rooted at the current directory
+(the initial directory can be changed by setting the 
+<code>user.dir</code> 
+<ref id="jvmProperties" plaintextref="yes">system property</ref>).
 Each line displayed represents a "node" which may be a file or
 some other type of item (for instance an HDU in a FITS file or an
 entry in a tar archive).  The line contains a little icon
@@ -8248,6 +8290,9 @@ changed by typing a new directory into the <label>File Name</label> field,
 or moving up the directory hierarchy using the selector box at the top,
 or navigating the file system by clicking the up-directory button
 or double-clicking on displayed directories.
+The initial default directory can be changed by setting the
+<code>user.dir</code> 
+<ref id="jvmProperties" plaintextref="yes">system property</ref>.
 </p>
 
 <p>The browser can display files in remote filestores such as on
@@ -9836,14 +9881,15 @@ comments (apologies for any missed out):
 <li>Roy Platon (RAL)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
 <li>Jonathan Irwin (Cambridge)</li>
-<li>Mark Allen (Strasbourg)</li>
-<li>Francois Ochsenbein (Strasbourg)</li>
+<li>Mark Allen (CDS)</li>
+<li>Francois Ochsenbein (CDS)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
 <li>Richard McMahon (IoA)</li>
 <li>Anita Richards (Jodrell Bank)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Gerard Lemson (MPE Garching)</li>
+<li>Evanthia Hatziminaoglou (ESO)</li>
 <li>James Price (Bristol)</li>
 <li>Aaron Robotham (Bristol)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
@@ -9853,6 +9899,7 @@ comments (apologies for any missed out):
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Luke Davies (Bristol)</li>
+<li>Sebastien Derriere (CDS)</li>
 </ul>
 </p>
 
@@ -11061,8 +11108,42 @@ introduced since the last version:
     <dt>Next version</dt>
     <dd><p>
         <ul>
+        <li>Efficiency improvements (~25%? in both CPU time and memory usage)
+            for HEALPix-based sky crossmatching
+            (thanks to Nikolay Kouropatkine at Fermilab for a new version of
+            the PixTools library).</li>
         <li>Fix pair matching performance bug (slower if tables were not 
             given in the right order) introduced at v1.4.</li>
+        <li>Fix problem which caused the graphics system to hang or fail
+            when drawing Dot-to-dot lines in 2D plot for points a very 
+            long way off the screen.</li>
+        <li>In overplots using different tables, an attempt is now made to
+            use the same columns/expressions for axis values as for the
+            main table.  This may be convenient when overplotting data from
+            several similar tables.</li>
+        <li>Fix bug which caused incorrect plotting of cumulative histograms
+            with small weights.</li>
+        <li>Added normalisation option to 
+            <ref id="HistogramWindow">Histogram Window</ref>.</li>
+        <li>The <label>lut.files</label> system property can now be used to
+            configure custom colour maps for auxiliary axes and density maps -
+            see <ref id="jvmProperties"/>.</li>
+        <li>Extensive internal reorganisation of the code has taken place.
+            Should be no user-visible effects, but please report anything
+            which seems to be misbehaving.</li>
+        <li>Sexagesimal field identification for ASCII input files less 
+            stringent (now permits minutes or seconds equal to 60).</li>
+        <li>HEALPix bug fix
+            (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                     >PixTools</webref> bug fix update).</li>
+        <li>New class <ref id="Arrays">Arrays</ref>
+            added to algebraic functions.</li>
+        <li>Take notice of <code>-disk</code> flag when loading tables from 
+            JDBC.</li>
+        <li>Tweak to spike-style bar drawing in Histogram, now has tidier 
+            appearance when using dashed lines.</li>
+        <li>Histogram <label>Offset</label> control now works for logarithmic
+            X scale as well as linear.</li>
         </ul>
         </p></dd>
 

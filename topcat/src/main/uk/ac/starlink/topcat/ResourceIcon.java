@@ -36,9 +36,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
-import uk.ac.starlink.topcat.plot.ErrorMode;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
+import uk.ac.starlink.ttools.plot.ErrorMode;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
@@ -108,6 +108,7 @@ public class ResourceIcon implements Icon {
         STATS = makeIcon( "sigma0.gif" ),
         HISTOGRAM = makeIcon( "hist0.gif" ),
         CUMULATIVE = makeIcon( "cum0.gif" ),
+        NORMALISE = makeIcon( "hnorm1.gif" ),
         PLOT = makeIcon( "plot0.gif" ),
         DENSITY = makeIcon( "2hist2.gif" ),
         PLOT3D = makeIcon( "3dax6.gif" ),

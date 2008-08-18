@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +16,14 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.ttools.plot.ErrorRenderer;
+import uk.ac.starlink.ttools.plot.PlotData;
+import uk.ac.starlink.ttools.plot.PlotState;
+import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot.SphericalPlot3D;
+import uk.ac.starlink.ttools.plot.SphericalPlotState;
+import uk.ac.starlink.util.WrapUtils;
 
 /**
  * Graphics window for viewing 3D scatter plots using spherical polar
@@ -43,7 +52,7 @@ public class SphereWindow extends Plot3DWindow {
     public SphereWindow( Component parent ) {
         super( "Spherical Plot",
                new String[] { "Longitude", "Latitude", "Radius" }, 3, parent, 
-               new ErrorModeSelectionModel[ 0 ], new SphericalPlot3D() );
+               new ErrorModeSelectionModel[ 0 ], createPlot() );
 
         /* Set up toggle button model for whether the radial axis is used. */
         radialToggler_ =
@@ -78,8 +87,8 @@ public class SphereWindow extends Plot3DWindow {
                 boolean hasTan = tangentErrorToggler_.isSelected();
                 ErrorMode mode = hasTan ? ErrorMode.SYMMETRIC
                                         : ErrorMode.NONE;
-                if ( tangentErrorModeModels_[ 0 ].getMode() != mode ) {
-                    assert tangentErrorModeModels_[ 1 ].getMode() != mode;
+                if ( tangentErrorModeModels_[ 0 ].getErrorMode() != mode ) {
+                    assert tangentErrorModeModels_[ 1 ].getErrorMode() != mode;
                     tangentErrorModeModels_[ 0 ].setMode( mode );
                     tangentErrorModeModels_[ 1 ].setMode( mode );
                 }
@@ -137,7 +146,13 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     protected PlotState createPlotState() {
-        SphericalPlotState state = new SphericalPlotState();
+        SphericalPlotState state = new SphericalPlotState() {
+            public PlotData getPlotData() {
+                PlotData data = super.getPlotData();
+                adjustPlotData( this, data );
+                return data;
+            }
+        };
         ValueInfo rInfo =
             getSphericalAxesSelector( getPointSelectors().getMainSelector() )
            .getRadialInfo();
@@ -202,76 +217,6 @@ public class SphereWindow extends Plot3DWindow {
     }
 
     /**
-     * Returns a single range for the main axes, corresponding to the 
-     * radial axis.
-     * Ranges on the other main axes aren't much use.
-     * The radial one will just be between [0..1] if no radial coordinate
-     * has been chosen.
-     * Ranges for any currently visible auxiliary axes are appended
-     * to the array.
-     */
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
-        PointSelectorSet pointSelectors = getPointSelectors();
-
-        /* Work out the radial range. */
-        Range radialRange;
-        boolean hasRadial = false;
-        for ( int i = 0; i < pointSelectors.getSelectorCount(); i++ ) {
-            ValueInfo rInfo =
-                getSphericalAxesSelector( pointSelectors.getSelector( i ) )
-               .getRadialInfo();
-            hasRadial = hasRadial || ( rInfo != null );
-        }
-        if ( hasRadial ) {
-            RowSubset[] sets = pointSelection.getSubsets();
-            int nset = sets.length;
-            int npoint = points.getCount();
-            double r2max = 0.0;
-            for ( int ip = 0; ip < npoint; ip++ ) {
-                long lp = (long) ip;
-                double[] coords = points.getPoint( ip );
-                boolean isUsed = false;
-                for ( int is = 0; is < nset && ! isUsed; is++ ) {
-                    isUsed = isUsed || sets[ is ].isIncluded( lp );
-                }
-                if ( isUsed ) {
-                    double r2 = coords[ 0 ] * coords[ 0 ]
-                              + coords[ 1 ] * coords[ 1 ]
-                              + coords[ 2 ] * coords[ 2 ];
-                    if ( r2 > r2max && ! Double.isInfinite( r2 ) ) {
-                        r2max = r2;
-                    }
-                }
-            }
-            double rmax = r2max > 0.0 ? Math.sqrt( r2max ) : 1.0;
-            radialRange = new Range( 0.0, rmax );
-        }
-        else {
-            radialRange = new Range( 0.0, 1.0 );
-        }
-
-        /* Work out any auxiliary ranges. */
-        Range[] auxRanges;
-        int nVis = getVisibleAuxAxisCount();
-        if ( nVis > 0 ) {
-            Range[] allRanges = super.calculateRanges( pointSelection, points );
-            assert allRanges.length == 3 + nVis;
-            auxRanges = new Range[ nVis ];
-            System.arraycopy( allRanges, 3, auxRanges, 0, nVis );
-        }
-        else {
-            auxRanges = new Range[ 0 ];
-        }
-
-        /* Put them together. */
-        Range[] ranges = new Range[ 1 + auxRanges.length ];
-        ranges[ 0 ] = radialRange;
-        System.arraycopy( auxRanges, 0, ranges, 1, auxRanges.length );
-        return ranges;
-    }
-
-    /**
      * Returns the SphericalAxesSelector associated with a given PointSelector.
      *
      * @param  psel   point selector
@@ -280,7 +225,7 @@ public class SphereWindow extends Plot3DWindow {
     private static SphericalAxesSelector
                    getSphericalAxesSelector( PointSelector psel ) {
         return (SphericalAxesSelector)
-               TopcatUtils.getWrapped( psel.getAxesSelector() );
+               WrapUtils.getWrapped( psel.getAxesSelector() );
     }
 
     /**
@@ -314,5 +259,53 @@ public class SphereWindow extends Plot3DWindow {
                 g.setColor( oldColor );
             }
         };
+    }
+
+    /**
+     * Generates a plot to be used with this window.
+     *
+     * @return  3D plot
+     */
+    private static SphericalPlot3D createPlot() {
+        return new SphericalPlot3D() {
+            protected boolean paintMemoryError( OutOfMemoryError e ) {
+                TopcatUtils.memoryErrorLater( e );
+                return true;
+            }
+        };
+    }
+
+    /**
+     * Modifies a PlotData object used by this window.
+     * This is an optimisation to do with current pixel size.
+     *
+     * @param  state  plot state
+     * @param  data   plot data object - may be modified
+     */
+    private void adjustPlotData( SphericalPlotState state, PlotData data ) {
+        if ( data instanceof PointSelection ) {
+            Points points = ((PointSelection) data).getPoints();
+            if ( points != null ) {
+                Object basePoints = WrapUtils.getWrapped( points );
+                if ( basePoints instanceof SphericalPolarPointStore ) {
+
+                    /* If the data is a spherical polar point store, tell it
+                     * roughly what the display pixel size is for this plot.
+                     * This enables skipping some expensive calculaations of
+                     * error points where it is known that they will end up in
+                     * the same pixel as the error point. */
+                    SphericalPolarPointStore sphPoints =
+                        (SphericalPolarPointStore) basePoints;
+                    Dimension size = getPlot().getSize();
+                    int scale = Math.max( size.width, size.height );
+
+                    /* This is a rough estimate, but it should be an
+                     * underestimate, which is safe though perhaps not
+                     * maximally efficient. */
+                    double minTanErr = 1.0 / ( scale * state.getZoomScale() );
+                    sphPoints.setMinimumTanError( minTanErr );
+                }
+            }
+        }
     }
 }

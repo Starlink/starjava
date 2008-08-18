@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -26,7 +27,6 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.IteratorRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -37,6 +37,21 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.BarStyles;
+import uk.ac.starlink.ttools.plot.BinnedData;
+import uk.ac.starlink.ttools.plot.Histogram;
+import uk.ac.starlink.ttools.plot.HistogramPlotState;
+import uk.ac.starlink.ttools.plot.MapBinnedData;
+import uk.ac.starlink.ttools.plot.NormalisedBinnedData;
+import uk.ac.starlink.ttools.plot.PlotData;
+import uk.ac.starlink.ttools.plot.PlotEvent;
+import uk.ac.starlink.ttools.plot.PlotListener;
+import uk.ac.starlink.ttools.plot.PlotState;
+import uk.ac.starlink.ttools.plot.PointSequence;
+import uk.ac.starlink.ttools.plot.PtPlotSurface;
+import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot.Rounder;
+import uk.ac.starlink.ttools.plot.StyleSet;
 
 /**
  * GraphicsWindow which presents one-dimensional data as a histogram.
@@ -46,30 +61,25 @@ import uk.ac.starlink.topcat.TopcatModel;
  */
 public class HistogramWindow extends GraphicsWindow {
 
-    private final Histogram plot_;
+    private final SurfaceZoomRegionList zoomRegionList_;
     private final Action[] validityActions_;
     private final ToggleButtonModel yLogModel_;
     private final ToggleButtonModel cumulativeModel_;
     private final ToggleButtonModel weightModel_;
+    private final ToggleButtonModel normaliseModel_;
     private final JCheckBox offsetSelector_;
     private final RoundingSpinner binSizer_;
     private final RoundingSpinner.RoundingSpinnerModel linearBinModel_;
     private final RoundingSpinner.RoundingSpinnerModel logBinModel_;
 
     private double autoYMax_;
-    private double autoYMaxCumulative_;
+    private double autoYMaxCum_;
+    private double autoYMaxNorm_;
+    private double autoYMaxCumNorm_;
     private double autoLinearBinWidth_;
     private double autoLogBinWidth_;
 
     private static final int DEFAULT_BINS = 20;
-
-    /** Description of vertical plot axis. */
-    private final static ValueInfo COUNT_INFO = 
-        new DefaultValueInfo( "Count", Integer.class,
-                              "Number of values in bin" );
-    private final static ValueInfo WEIGHT_INFO =
-        new DefaultValueInfo( "Weighted count", Double.class,
-                              "Weighted sum of values in bin" );
 
     /**
      * Constructs a new histogram window.
@@ -77,18 +87,27 @@ public class HistogramWindow extends GraphicsWindow {
      * @param  parent  parent component (may be used for positioning)
      */
     public HistogramWindow( Component parent ) {
-        super( "Histogram", new String[] { "X" }, 0, false,
-               new ErrorModeSelectionModel[ 0 ], parent );
+        super( "Histogram", new Histogram( new PtPlotSurface() ), 
+               new String[] { "X" }, 0, false, new ErrorModeSelectionModel[ 0 ],
+               parent );
+        final Histogram plot = (Histogram) getPlot();
+        plot.setPreferredSize( new Dimension( 500, 300 ) );
 
-        /* Create the histogram plot itself.  Being a histogram, there's
-         * no point zooming in such a way that the Y axis goes below zero,
-         * so block that. */
-        PlotSurface surf = new PtPlotSurface() {
-            void _setYRange( double min, double max ) {
+        /* Being a histogram, there's no point zooming in such a way 
+         * that the Y axis goes below zero, so block that. */
+        plot.setSurface( new PtPlotSurface() {
+            public void _setYRange( double min, double max ) {
                 super._setYRange( Math.max( getMinYValue(), min ), max );
             }
-        };
-        plot_ = new Histogram( surf ) {
+        } );
+
+        /* Zooming. */
+        plot.addPlotListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                zoomRegionList_.reconfigure();
+            }
+        } );
+        zoomRegionList_ = new SurfaceZoomRegionList( plot ) {
             protected void requestZoom( double[][] bounds ) {
                 double[] xbounds = bounds[ 0 ];
                 if ( xbounds != null ) {
@@ -105,6 +124,12 @@ public class HistogramWindow extends GraphicsWindow {
                 replot();
             }
         };
+        Zoomer zoomer = new Zoomer();
+        zoomer.setRegions( zoomRegionList_ );
+        zoomer.setCursorComponent( plot );
+        Component scomp = plot.getSurface().getComponent();
+        scomp.addMouseListener( zoomer );
+        scomp.addMouseMotionListener( zoomer );
 
         /* Actions for rescaling the axes. */
         Action rescaleActionXY =
@@ -138,6 +163,12 @@ public class HistogramWindow extends GraphicsWindow {
                                    "Allow weighting of histogram counts" );
         weightModel_.addActionListener( getReplotListener() );
 
+        /* Model to allow normalisation of the histogram. */
+        normaliseModel_ =
+            new ToggleButtonModel( "Normalisation", ResourceIcon.NORMALISE,
+                                   "Normalise histogram counts to unity" );
+        normaliseModel_.addActionListener( getReplotListener() );
+
         /* Actions for saving or exporting the binned data as a table. */
         TableSource binSrc = new TableSource() {
             public StarTable getStarTable() {
@@ -161,7 +192,6 @@ public class HistogramWindow extends GraphicsWindow {
                 boolean isLog = getLogModels()[ 0 ].isSelected();
                 binSizer_.setLogarithmic( isLog );
                 binSizer_.setModel( isLog ? logBinModel_ : linearBinModel_ );
-                offsetSelector_.setEnabled( ! isLog );
             }
         } );
         binSizer_.addChangeListener( getReplotListener() );
@@ -181,6 +211,7 @@ public class HistogramWindow extends GraphicsWindow {
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( cumulativeModel_.createMenuItem() );
         plotMenu.add( weightModel_.createMenuItem() );
+        plotMenu.add( normaliseModel_.createMenuItem() );
         plotMenu.add( rescaleActionXY );
         plotMenu.add( rescaleActionX );
         plotMenu.add( rescaleActionY );
@@ -208,7 +239,7 @@ public class HistogramWindow extends GraphicsWindow {
                                                   + "containing only currently "
                                                   + "visible range" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getVisiblePoints() );
+                addNewSubsets( plot.getVisiblePoints() );
             }
         };
         subsetMenu.add( fromVisibleAction );
@@ -243,6 +274,7 @@ public class HistogramWindow extends GraphicsWindow {
         getToolBar().add( getGridModel().createToolbarButton() );
         getToolBar().add( getLegendModel().createToolbarButton() );
         getToolBar().add( cumulativeModel_.createToolbarButton() );
+        getToolBar().add( normaliseModel_.createToolbarButton() );
         getToolBar().add( yLogModel_.createToolbarButton() );
         getToolBar().add( fromVisibleAction );
         getToolBar().addSeparator();
@@ -264,8 +296,8 @@ public class HistogramWindow extends GraphicsWindow {
         replot();
     }
 
-    protected JComponent getPlot() {
-        return plot_;
+    protected JComponent getPlotPanel() {
+        return getPlot();
     }
 
     protected PointSelector createPointSelector() {
@@ -281,9 +313,10 @@ public class HistogramWindow extends GraphicsWindow {
                 if ( yaxed != null ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            ValueInfo axinfo = HistogramWindow.this.hasWeights()
-                                             ? WEIGHT_INFO
-                                             : COUNT_INFO;
+                            ValueInfo axinfo =
+                                Histogram
+                               .getYInfo( HistogramWindow.this.hasWeights(),
+                                          HistogramWindow.this.isNormalised() );
                             yaxed.setAxis( axinfo );
                         }
                     } );
@@ -291,6 +324,7 @@ public class HistogramWindow extends GraphicsWindow {
             }
         };
         weightModel_.addActionListener( weightAction );
+        normaliseModel_.addActionListener( weightAction );
 
         /* Basic selector for X axis. */
         AxesSelector axsel =
@@ -309,9 +343,10 @@ public class HistogramWindow extends GraphicsWindow {
              * axis and one for the counts axis (screen Y axis). */
             public AxisEditor[] createAxisEditors() {
                 AxisEditor yaxed = new AxisEditor( "Y" );
-                ValueInfo axinfo = HistogramWindow.this.hasWeights()
-                                 ? WEIGHT_INFO
-                                 : COUNT_INFO;
+                ValueInfo axinfo =
+                    Histogram
+                   .getYInfo( HistogramWindow.this.hasWeights(),
+                              HistogramWindow.this.isNormalised() );
                 yaxed.setAxis( axinfo );
                 return new AxisEditor[] {
                     super.createAxisEditors()[ 0 ],
@@ -334,17 +369,6 @@ public class HistogramWindow extends GraphicsWindow {
 
     public int getMainRangeCount() {
         return 1;
-    }
-
-    protected void doReplot( PlotState pstate, Points points ) {
-
-        /* Send the plot component the most up to date plotting state. */
-        HistogramPlotState state = (HistogramPlotState) pstate;
-        plot_.setPoints( points );
-        plot_.setState( state );
-
-        /* Schedule a repaint. */
-        plot_.repaint();
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
@@ -387,7 +411,16 @@ public class HistogramWindow extends GraphicsWindow {
             if ( bw > 0 ) {
                 state.setBinWidth( bw );
             }
-            state.setZeroMid( offsetSelector_.isSelected() );
+            double binBase;
+            if ( getLogModels()[ 0 ].isSelected() ) {
+                binBase = offsetSelector_.isSelected() ? 1.0
+                                                       : Math.sqrt( bw );
+            }
+            else {
+                binBase = offsetSelector_.isSelected() ? - bw / 2.0
+                                                       : 0.0;
+            }
+            state.setBinBase( binBase );
             state.setCumulative( cumulativeModel_.isSelected() );
 
             /* The state obtained from the superclass implementation has
@@ -406,12 +439,15 @@ public class HistogramWindow extends GraphicsWindow {
             /* Calculate the Y data range based on the autosized range
              * calculated last time calculateMaxCount was called and on
              * the current state (bin width and cumuluative flag). */
+            double autoYMax = isNormalised() ? autoYMaxNorm_ : autoYMax_;
+            double autoYMaxCumulative = isNormalised() ? autoYMaxCumNorm_
+                                                       : autoYMaxCum_;
             double yMax = cumulativeModel_.isSelected()
-                ? autoYMaxCumulative_
+                ? autoYMaxCumulative
                 : ( state.getLogFlags()[ 0 ]
-                        ? autoYMax_ * Math.log( bw )
-                                    / Math.log( autoLogBinWidth_ )
-                        : autoYMax_ * bw / autoLinearBinWidth_ );
+                        ? autoYMax * Math.log( bw )
+                                   / Math.log( autoLogBinWidth_ )
+                        : autoYMax * bw / autoLinearBinWidth_ );
             Range yRange = new Range( 0.0, yMax );
             yRange.limit( getViewRanges()[ 1 ] );
             state.setRanges( new double[][] {
@@ -419,8 +455,9 @@ public class HistogramWindow extends GraphicsWindow {
                 yRange.getFiniteBounds( yLogModel_.isSelected() )
             } );
 
-            /* See if there is any weighting on the Y axis. */
+            /* Configure weighting and normalisation. */
             state.setWeighted( hasWeights() );
+            state.setNormalised( isNormalised() );
         }
 
         /* Configure some actions to be enabled/disabled according to 
@@ -450,21 +487,21 @@ public class HistogramWindow extends GraphicsWindow {
         return false;
     }
 
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
-        Range xRange = super.calculateRanges( pointSelection, points )[ 0 ];
-        boolean xlog = getLogModels()[ 0 ].isSelected();
-        double[] xBounds = xRange.getFiniteBounds( xlog );
-        calculateMaxCount( pointSelection, points, xBounds, true );
-        return new Range[] { xRange };
+    /**
+     * Indicates whether histogram normalisation is in operation.
+     *
+     * @return  true iff histogram is normalised
+     */
+    private boolean isNormalised() {
+        return normaliseModel_.isSelected();
     }
 
-    public Rectangle getPlotBounds() {
-        Rectangle bounds =
-            new Rectangle( plot_.getSurface().getClip().getBounds() );
-        bounds.y--;
-        bounds.height += 2;
-        return bounds;
+    public Range[] calculateRanges( PlotData data, PlotState state ) {
+        Range xRange = super.calculateRanges( data, state )[ 0 ];
+        boolean xlog = getLogModels()[ 0 ].isSelected();
+        double[] xBounds = xRange.getFiniteBounds( xlog );
+        calculateMaxCount( data, xBounds, true );
+        return new Range[] { xRange };
     }
 
     /**
@@ -473,14 +510,12 @@ public class HistogramWindow extends GraphicsWindow {
      * plot state values such as bin size.
      * This method stores its results in instance variables for later use.
      *
-     * @param  pointSelection  point selection
-     * @param  points  points data
+     * @param  data  plot data
      * @param  xBounds   bounds on the X axis for assessment
      * @param  autoWidth  true iff you want the bin width to be (re)calculated
      *         automatically by this routine
      */
-    private void calculateMaxCount( PointSelection pointSelection,
-                                    Points points, double[] xBounds,
+    private void calculateMaxCount( PlotData data, double[] xBounds,
                                     boolean autoWidth ) {
 
         /* Get and possibly store the bin size. */
@@ -511,32 +546,46 @@ public class HistogramWindow extends GraphicsWindow {
         double bwLog = ((Number) logBinModel_.getValue()).doubleValue();
         double bwLinear = ((Number) linearBinModel_.getValue()).doubleValue();
 
-        /* Acquire an empty binned data object. */
-        RowSubset[] rsets = pointSelection.getSubsets();
-        int nset = rsets.length;
-        boolean zeromid = offsetSelector_.isSelected();
-        MapBinnedData binned = getLogModels()[ 0 ].isSelected()
-            ? MapBinnedData.createLogBinnedData( nset, bwLog )
-            : MapBinnedData.createLinearBinnedData( nset, bwLinear, zeromid );
-        MapBinnedData.BinMapper mapper = binned.getMapper();
+        /* Acquire empty binned data objects, one normalised one not. */
+        int nset = data.getSetCount();
+        boolean xlog = getLogModels()[ 0 ].isSelected();
+        boolean offset = offsetSelector_.isSelected();
+        final double binBase;
+        final double binWidth;
+        if ( xlog ) {
+            binBase = offset ? 1.0 : Math.sqrt( bwLog );
+            binWidth = bwLog;
+        }
+        else {
+            binBase = offset ? bwLinear / 2.0 : 0.0;
+            binWidth = bwLinear;
+        }
+        MapBinnedData.BinMapper mapper =
+            MapBinnedData.createBinMapper( xlog, binWidth, binBase );
+        BinnedData binned = new MapBinnedData( nset, mapper );
+        BinnedData binnedNorm =
+            new NormalisedBinnedData( new MapBinnedData( nset, mapper ) );
+
+        /* Work out the X bounds. */
         double xlo = mapper.getBounds( mapper.getKey( xBounds[ 0 ] ) )[ 0 ];
         double xhi = mapper.getBounds( mapper.getKey( xBounds[ 1 ] ) )[ 1 ];
 
-        /* Populate it. */
-        int np = points.getCount();
+        /* Populate the binned data objects. */
         boolean[] setFlags = new boolean[ nset ];
-        for ( int ip = 0; ip < np; ip++ ) {
-            long lp = (long) ip;
-            double[] coords = points.getPoint( ip );
+        PointSequence pseq = data.getPointSequence();
+        while ( pseq.next() ) {
+            double[] coords = pseq.getPoint();
             double x = coords[ 0 ];
             double w = coords[ 1 ];
-            if ( x >= xlo && x <= xhi ) {
+            if ( x >= xlo && x <= xhi && ! Double.isNaN( w ) ) {
                 for ( int is = 0; is < nset; is++ ) {
-                    setFlags[ is ] = rsets[ is ].isIncluded( lp );
+                    setFlags[ is ] = pseq.isIncluded( is );
                 }
                 binned.submitDatum( x, w, setFlags );
+                binnedNorm.submitDatum( x, w, setFlags );
             }
         }
+        pseq.close();
 
         /* Find the highest bin count. */
         double[] ymaxes = new double[ nset ];
@@ -557,11 +606,32 @@ public class HistogramWindow extends GraphicsWindow {
             yMaxTot = Math.max( yMaxTot, ytots[ is ] );
         }
 
+        /* Do the same for the case of normalised histograms. */
+        double[] ynmaxes = new double[ nset ];
+        double[] yntots = new double[ nset ];
+        for ( Iterator binIt = binnedNorm.getBinIterator( false );
+              binIt.hasNext(); ) {
+            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+            for ( int is = 0; is < nset; is++ ) {
+                double s = bin.getWeightedCount( is );
+                yntots[ is ] += s;
+                ynmaxes[ is ] = Math.max( ynmaxes[ is ], s );
+            }
+        }
+        double yMaxNorm = 0;
+        double yMaxTotNorm = 0;
+        for ( int is = 0; is < nset; is++ ) {
+            yMaxNorm = Math.max( yMaxNorm, ynmaxes[ is ] );
+            yMaxTotNorm = Math.max( yMaxTotNorm, yntots[ is ] );
+        }
+  
         /* Store results for later calculations. */
-        autoYMax_ = yMax * ( 1 + getPadRatio() );
         autoLinearBinWidth_ = bwLinear;
         autoLogBinWidth_ = bwLog;
-        autoYMaxCumulative_ = yMaxTot * ( 1 + getPadRatio() );
+        autoYMax_ = yMax * ( 1 + getPadRatio() );
+        autoYMaxNorm_ = yMaxNorm * ( 1 + getPadRatio() );
+        autoYMaxCum_ = yMaxTot * ( 1 + getPadRatio() );
+        autoYMaxCumNorm_ = yMaxTotNorm * ( 1 + getPadRatio() );
     }
 
     /**
@@ -585,17 +655,21 @@ public class HistogramWindow extends GraphicsWindow {
      * @return   table representing the current histogram
      */
     private StarTable getBinDataTable() {
+        Histogram plot = (Histogram) getPlot();
 
         /* Get the binned data object from the last plotted histogram. */
-        final BinnedData binData = plot_.getBinnedData();
+        final BinnedData binData = plot.getBinnedData();
 
         /* Is it a weighted sum or a simple count? */
-        HistogramPlotState state = (HistogramPlotState) plot_.getState();
+        HistogramPlotState state = (HistogramPlotState) plot.getState();
         final boolean weighted = state.getWeighted();
+        final boolean isInt = binData.isInteger();
 
         /* Get the list of set IDs which describes which table/subset pairs
          * each of the sets in the binned data represents. */
-        SetId[] setIds = getPointSelectors().getPointSelection().getSetIds();
+        SetId[] setIds =
+           ((PointSelection) getPointSelectors().getPointSelection())
+          .getSetIds();
         final int nset = setIds.length;
 
         /* Set up the first two columns of the output table, which are
@@ -617,24 +691,23 @@ public class HistogramWindow extends GraphicsWindow {
             ColumnInfo weightInfo = getWeightInfo( setId );
             TopcatModel tcModel = setId.getPointSelector().getTable();
             StringBuffer descrip = new StringBuffer();
-            descrip.append( "Count " );
+            descrip.append( state.getNormalised() ? "Normalised count"
+                                                  : "Count"  );
             if ( weightInfo != null ) {
-                descrip.append( "weighted by " )
-                       .append( weightInfo.getName() )
-                       .append( " " );
+                descrip.append( " weighted by " )
+                       .append( weightInfo.getName() );
             }
             RowSubset rset =
                 (RowSubset) tcModel.getSubsets().get( setId.getSetIndex() );
             if ( rset != RowSubset.ALL ) {
-                descrip.append( "for row subset " )
-                       .append( rset.getName() )
-                       .append( ' ' );
+                descrip.append( " for row subset " )
+                       .append( rset.getName() );
             }
-            descrip.append( "in table " )
+            descrip.append( " in table " )
                    .append( tcModel.getLabel() );
             ColumnInfo colInfo =
                 new ColumnInfo( namer.getName( setId ), 
-                                weighted ? Double.class : Integer.class,
+                                isInt ? Integer.class : Double.class,
                                 descrip.toString() );
             if ( weightInfo != null ) {
                 colInfo.setUnitString( weightInfo.getUnitString() );
@@ -669,10 +742,10 @@ public class HistogramWindow extends GraphicsWindow {
                         row[ icol++ ] = new Double( bin.getHighBound() );
                         for ( int iset = 0; iset < nset; iset++ ) {
                             double sum = bin.getWeightedCount( iset );
-                            assert weighted || ( sum == (int) sum ) : sum;
+                            assert ( ! isInt ) || ( sum == (int) sum ) : sum;
                             row[ icol++ ] =
-                                weighted ? (Number) new Double( sum )
-                                         : (Number) new Integer( (int) sum );
+                                isInt ? (Number) new Integer( (int) sum )
+                                      : (Number) new Double( sum );
                         }
                         return row;
                     }
@@ -826,15 +899,16 @@ public class HistogramWindow extends GraphicsWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             PlotState state = getPlotState();
-            PointSelection pointSelection = state.getPointSelection();
             Points points = getPoints();
             if ( state.getValid() && points != null ) {
+                PlotData data = ((PointSelection) state.getPlotData())
+                               .createPlotData( points );
 
                 /* Do X scaling if required. */
                 double[] xBounds;
                 if ( scaleX_ ) {
                     Range xRange = HistogramWindow.super
-                        .calculateRanges( pointSelection, points )[ 0 ];
+                                  .calculateRanges( data, state )[ 0 ];
                     getDataRanges()[ 0 ] = xRange;
                     getViewRanges()[ 0 ].clear();
                     getAxisWindow().getEditors()[ 0 ].clearBounds();
@@ -847,8 +921,7 @@ public class HistogramWindow extends GraphicsWindow {
 
                 /* Do Y scaling if required. */
                 if ( scaleY_ ) {
-                    calculateMaxCount( pointSelection, points, xBounds,
-                                       scaleX_ );
+                    calculateMaxCount( data, xBounds, scaleX_ );
                     getViewRanges()[ 1 ].clear();
                     getAxisWindow().getEditors()[ 1 ].clearBounds();
                 }

@@ -9,12 +9,19 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.ttools.plot.ErrorRenderer;
+import uk.ac.starlink.ttools.plot.MarkShape;
+import uk.ac.starlink.ttools.plot.MarkStyle;
+import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
 
 /**
- * StyleEditor implementation for suitable for a {@link LinesPlot}.
- * The style objects used are (currently) {@link MarkStyle}s.
+ * StyleEditor implementation for suitable for a 
+ * {@link uk.ac.starlink.ttools.plot.LinesPlot}.
+ * The style objects used are (currently) 
+ * {@link uk.ac.starlink.ttools.plot.MarkStyle}s.
  *
  * @author   Mark Taylor
  * @since    14 Mar 2006
@@ -186,8 +193,9 @@ public class LinesStyleEditor extends StyleEditor {
         List lineMark = (List) lineMarkSelector_.getValue();
         boolean hasLine = ((Boolean) lineMark.get( 0 )).booleanValue();
         boolean hasMark = ((Boolean) lineMark.get( 1 )).booleanValue();
-        boolean hasError = errorModeModels_[ 0 ].getMode() != ErrorMode.NONE
-                        || errorModeModels_[ 1 ].getMode() != ErrorMode.NONE;
+        boolean hasError =
+            errorModeModels_[ 0 ].getErrorMode() != ErrorMode.NONE ||
+            errorModeModels_[ 1 ].getErrorMode() != ErrorMode.NONE;
         thickSelector_.setEnabled( hasLine );
         dashSelector_.setEnabled( hasLine );
         sizeSelector_.setEnabled( hasMark );

@@ -1,25 +1,15 @@
 package uk.ac.starlink.topcat.plot;
 
-import Acme.JPM.Encoders.GifEncoder;
-import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Composite;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,11 +18,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
@@ -65,7 +52,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
-import org.jibble.epsgraphics.EpsGraphics2D;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
@@ -81,7 +67,24 @@ import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.plot.AuxLegend;
+import uk.ac.starlink.ttools.plot.ErrorMarkStyleSet;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.ttools.plot.ErrorRenderer;
+import uk.ac.starlink.ttools.plot.GraphicExporter;
+import uk.ac.starlink.ttools.plot.Legend;
+import uk.ac.starlink.ttools.plot.MarkStyle;
+import uk.ac.starlink.ttools.plot.MarkStyles;
+import uk.ac.starlink.ttools.plot.PlotData;
+import uk.ac.starlink.ttools.plot.PlotState;
+import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot.Shaders;
+import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot.StyleSet;
+import uk.ac.starlink.ttools.plot.TablePlot;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.util.WrapUtils;
 import uk.ac.starlink.util.gui.ChangingComboBoxModel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -122,6 +125,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public abstract class GraphicsWindow extends AuxWindow {
 
+    private final TablePlot plot_;
     private final int ndim_;
     private final int naux_;
     private final boolean hasLabels_;
@@ -233,16 +237,18 @@ public abstract class GraphicsWindow extends AuxWindow {
      * <code>naux=0</code>.
      *
      * @param   viewName  name of the view window
+     * @param   plot    component which draws the plot
      * @param   axisNames  array of labels by which each main axis is known
      * @param   naux   number of auxiliary axes
      * @param   errorModeModels   array of selecction models for error modes
      * @param   parent   parent window - may be used for positioning
      */
-    public GraphicsWindow( String viewName, String[] axisNames, int naux,
-                           boolean hasLabels,
+    public GraphicsWindow( String viewName, TablePlot plot, String[] axisNames,
+                           int naux, boolean hasLabels,
                            ErrorModeSelectionModel[] errorModeModels,
                            Component parent ) {
         super( viewName, parent );
+        plot_ = plot;
         axisNames_ = axisNames;
         ndim_ = axisNames.length;
         naux_ = naux;
@@ -305,10 +311,14 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* Shader selection models for each auxiliary axis. */
         auxShaderModels_ = new ComboBoxModel[ naux ];
+        Shader[] customShaders = Shaders.getCustomShaders();
         for ( int i = 0; i < naux; i++ ) {
             ChangingComboBoxModel shaderModel =
                 new ChangingComboBoxModel( SHADERS );
-            shaderModel.setSelectedItem( SHADERS[ 1 ] );
+            for ( int is = 0; is < customShaders.length; is++ ) {
+                shaderModel.insertElementAt( customShaders[ is ], 1 );
+            }
+            shaderModel.setSelectedItem( shaderModel.getElementAt( 1 ) );
             shaderModel.addChangeListener( replotListener_ );
             auxShaderModels_[ i ] = shaderModel;
         }
@@ -386,7 +396,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
                 /* Configure it for zooming. */
                 final int idim = iaux + getMainRangeCount();
-                ZoomRegion zoomRegion = auxLegend.new ZoomRegion() {
+                ZoomRegion zoomRegion = new AuxLegendZoomRegion( auxLegend ) {
                     protected void dataZoomed( double lo, double hi ) {
                         getAxisWindow().getEditors()[ idim ].clearBounds();
                         getViewRanges()[ idim ]
@@ -395,6 +405,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                     }
                 };
                 Zoomer zoomer = new Zoomer();
+                zoomer.setCursorComponent( auxLegend );
                 zoomer.setRegions( Collections.singletonList( zoomRegion ) );
                 auxLegend.addMouseListener( zoomer );
                 auxLegend.addMouseMotionListener( zoomer );
@@ -455,37 +466,24 @@ public abstract class GraphicsWindow extends AuxWindow {
         noProgress_ = new DefaultBoundedRangeModel();
 
         /* Actions for exporting the plot. */
-        Action gifAction = new ExportAction( "GIF", ResourceIcon.IMAGE,
-                                             "Save plot as a GIF file",
-                                             new String[] { ".gif", } ) {
-            public void exportTo( OutputStream out ) throws IOException {
-                exportGif( out );
-            }
-        };
-        Action epsAction = new ExportAction( "EPS", ResourceIcon.PRINT,
-                                             "Export to Encapsulated " +
-                                             "Postscript file",
-                                             new String[] { ".ps", ".eps", } ) {
-            public void exportTo( OutputStream out ) throws IOException {
-                exportEPS( out );
-            }
-        };
-        ImageIOExportAction jpegAction =
-            new ImageIOExportAction( "JPEG", new String[] { ".jpg", ".jpeg", },
-                                     false, ResourceIcon.JPEG );
-        ImageIOExportAction pngAction =
-            new ImageIOExportAction( "PNG", new String[] { ".png", },
-                                     true, null );
+        Action gifAction =
+            new GraphicExportAction( GraphicExporter.GIF, ResourceIcon.IMAGE,
+                                     "Save plot as a GIF file" );
+        Action epsAction =
+            new GraphicExportAction( GraphicExporter.EPS, ResourceIcon.PRINT,
+                                     "Export to Encapsulated Postscript file" );
+        Action jpegAction =
+            new GraphicExportAction( GraphicExporter.JPEG, ResourceIcon.JPEG,
+                                     "Save plot as a JPEG file" );
+        Action pngAction =
+            new GraphicExportAction( GraphicExporter.PNG, ResourceIcon.IMAGE,
+                                     "Save plot as a PNG file" );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( epsAction );
         exportMenu_.add( gifAction );
-        if ( jpegAction.isImplemented() ) {
-            exportMenu_.add( jpegAction );
-        }
-        if ( pngAction.isImplemented() ) {
-            exportMenu_.add( pngAction );
-        }
+        exportMenu_.add( jpegAction );
+        exportMenu_.add( pngAction );
         getJMenuBar().add( exportMenu_ );
 
         /* Other actions. */
@@ -577,7 +575,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         placeMainComponents( false );
 
         /* Insert the plot component itself into the plotting component. */
-        plotArea_.add( getPlot(), BorderLayout.CENTER );
+        plotArea_.add( getPlotPanel(), BorderLayout.CENTER );
 
         /* Add a starter point selector. */
         PointSelector mainSel = createPointSelector();
@@ -647,7 +645,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         mainSel.setStyles( getStyles() );
 
         /* Configure legend. */
-        legend_.setErrorModeModels( getErrorModeModels() );
+        legend_.setErrorModeSelections( getErrorModeModels() );
     }
 
     /**
@@ -839,7 +837,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         int ndim = 0;
         ErrorMode[] modes = new ErrorMode[ modeModels.length ];
         for ( int idim = 0; idim < modeModels.length; idim++ ) {
-            modes[ idim ] = modeModels[ idim ].getMode();
+            modes[ idim ] = modeModels[ idim ].getErrorMode();
             if ( ! ErrorMode.NONE.equals( modes[ idim ] ) ) {
                 ndim++;
             }
@@ -995,39 +993,38 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Returns the plot object for this window.
+     *
+     * @return  plot
+     */
+    public TablePlot getPlot() {
+        return plot_;
+    }
+
+    /**
      * Returns the component containing the graphics output of this 
      * window.  This is the component which is exported or printed etc
      * alongside the legend which is managed by GraphicsWindow.
      * It should therefore contain only the output data, not any user 
      * interface decoration.
      *
-     * @return   plot component
+     * @return   plot container
      */
-    protected abstract JComponent getPlot();
+    protected abstract JComponent getPlotPanel();
 
     /**
-     * Returns the bounds of the actual plot.  This may be used for visual 
-     * alignment of some items in the window.  It is permissible to return
-     * just the bounds of the plot component itself, but alignment of other
-     * components (legends) may look better if the bounds of the actual 
-     * plotting region (for instance, excluding external axis labels) is 
-     * returned.
-     *
-     * @return  plot region bounds
-     */
-    public abstract Rectangle getPlotBounds();
-
-    /**
-     * Performs an actual plot.  Concrete subclasses should implement this
-     * to paint the component according to the given <code>state</code>
-     * and <code>points</code>.  
-     * Probably a {@link java.awt.Component#repaint()} will be required
-     * at the end.
+     * Performs an actual plot.
      *
      * @param  state  plot state determining details of plot configuration
-     * @param  points  data to plot
      */
-    protected abstract void doReplot( PlotState state, Points points );
+    protected void doReplot( PlotState state ) {
+
+        /* Send the plot component the most up to date plotting state. */
+        plot_.setState( state );
+
+        /* Schedule a replot. */
+        plot_.repaint();
+    }
 
     /**
      * Returns a new PointSelector instance to be used for selecting
@@ -1225,7 +1222,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 boolean isActive = false;
                 for ( int isel = 0; isel < nsel && ! isActive; isel++ ) {
                     AugmentedAxesSelector augSel =
-                        (AugmentedAxesSelector) TopcatUtils
+                        (AugmentedAxesSelector) WrapUtils
                        .getWrapped( pointSelectors_.getSelector( isel )
                                                    .getAxesSelector(),
                                     AugmentedAxesSelector.class );
@@ -1255,7 +1252,7 @@ public abstract class GraphicsWindow extends AuxWindow {
          * (that is if the point selection has changed since last time
          * it was read). */
         PointSelection pointSelection = pointSelectors_.getPointSelection();
-        state.setPointSelection( pointSelection );
+        state.setPlotData( pointSelection );
         boolean sameData = pointSelection.sameData( lastPointSelection_ );
         if ( ( ! sameData ) || forceReread_ ) {
             forceReread_ = false;
@@ -1278,12 +1275,12 @@ public abstract class GraphicsWindow extends AuxWindow {
             assert pointsReader_ == null;
 
             /* Start an asynchronous data read to get the new dataset. */
-            pointsReader_ = new PointsReader( pointSelection );
+            pointsReader_ = new PointsReader( pointSelection, state );
             pointsReader_.start();
 
             /* In the mean time, install a blank dataset. */
             points_ = pointSelection.getEmptyPoints();
-            dataRanges_ = calculateRanges( pointSelection, points_ );
+            dataRanges_ = calculateRanges( pointSelection, points_, state );
 
             /* Remember point selection for comparison next time. */
             lastPointSelection_ = pointSelection;
@@ -1414,7 +1411,11 @@ public abstract class GraphicsWindow extends AuxWindow {
             configureLegends( state );
 
             /* Do the actual painting. */
-            doReplot( state, points_ );
+            PointSelection psel = (PointSelection) state.getPlotData();
+            if ( psel != null ) {
+                psel.setPoints( points_ );
+            }
+            doReplot( state );
 
             /* Log and store state for future use. */
             logger_.info( "Replot " + ++nPlot_ );
@@ -1434,7 +1435,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         /* Work out the space available above and below the actual plot
          * region within the plot component. */
         Rectangle containerRegion = plotArea_.getBounds();
-        Rectangle plotRegion = getPlotBounds();
+        Rectangle plotRegion = plot_.getPlotBounds();
         int topgap = plotRegion.y;
         int botgap = containerRegion.height - plotRegion.height - topgap;
 
@@ -1448,17 +1449,18 @@ public abstract class GraphicsWindow extends AuxWindow {
         legend_.setBorder( border );
 
         /* Update plot style legend contents. */
-        PointSelection psel = state.getPointSelection();
-        if ( psel == null ) {
+        PlotData data = state.getPlotData();
+        if ( data == null ) {
             legend_.setStyles( new Style[ 0 ], new String[ 0 ] );
         }
         else {
-            RowSubset[] rsets = psel.getSubsets();
-            String[] labels = new String[ rsets.length ];
-            for ( int i = 0; i < rsets.length; i++ ) {
-                labels[ i ] = rsets[ i ].getName();
+            int nset = data.getSetCount();
+            Style[] styles = new Style[ nset ];
+            String[] labels = new String[ nset ];
+            for ( int is = 0; is < nset; is++ ) {
+                styles[ is ] = data.getSetStyle( is );
+                labels[ is ] = data.getSetName( is );
             }
-            Style[] styles = psel.getStyles();
             legend_.setStyles( styles, labels );
 
             /* If the legend has never been seen before and is worth looking
@@ -1489,12 +1491,12 @@ public abstract class GraphicsWindow extends AuxWindow {
 
         /* If there is more than one labelled subset for display, the legend
          * conveys some useful information. */
-        PointSelection psel = state.getPointSelection();
+        PlotData data = state.getPlotData();
         int nLabel = 0;
-        if ( psel != null ) {
-            RowSubset[] rsets = psel.getSubsets();
-            for ( int is = 0; is < rsets.length; is++ ) {
-                String label = rsets[ is ].getName();
+        if ( data != null ) {
+            int nset = data.getSetCount();
+            for ( int is = 0; is < nset; is++ ) {
+                String label = data.getSetName( is );
                 if ( label != null && label.length() > 0 ) {
                     nLabel++;
                 }
@@ -1549,7 +1551,8 @@ public abstract class GraphicsWindow extends AuxWindow {
          * deconvolve it into individual masks for any of the tables
          * that our point selection is currently dealing with. */
         PointSelection.TableMask[] tableMasks =
-            lastState_.getPointSelection().getTableMasks( pointsMask );
+            ((PointSelection) lastState_.getPlotData())
+           .getTableMasks( pointsMask );
 
         /* Handle each of the affected tables separately. */
         for ( int i = 0; i < tableMasks.length; i++ ) {
@@ -1564,67 +1567,36 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
+     * Calculates data ranges based on a PointSelection and a Points object.
+     *
+     * @param  pointSelection  point selection
+     * @param  points  points data
+     * @param  state  plot state
+     * @return   array of per-axis data ranges 
+     */
+    private Range[] calculateRanges( final PointSelection pointSelection,
+                                     final Points points, PlotState state ) {
+        return calculateRanges( pointSelection.createPlotData( points ),
+                                state );
+    }
+
+    /**
      * Calculates data ranges for a given data set.
      * The returned Range array is the one which will be returned from
      * future calls of {@link #getDataRanges}.
-     * Subclasses may override this method to alter its behaviour.
      *
-     * @param  pointSelection  point selection for the plot
-     * @param  points  point data for the plot
+     * @param  data  point data for the plot
+     * @param  state  plot state
+     * @return  ranges
      */
-    public Range[] calculateRanges( PointSelection pointSelection,
-                                    Points points ) {
-        boolean hasErrors = points.getNerror() > 0;
+    public Range[] calculateRanges( PlotData data, PlotState state ) {
 
-        /* Set up blank range objects. */
-        int ndim = points.getNdim();
-        Range[] ranges = new Range[ ndim ];
-        for ( int idim = 0; idim < ndim; idim++ ) {
-            ranges[ idim ] = new Range();
-        }
-
-        /* Submit each data point which will be plotted to the ranges. */
-        RowSubset[] sets = pointSelection.getSubsets();
-        int nset = sets.length;
-        int npoint = points.getCount();
-        for ( int ip = 0; ip < npoint; ip++ ) {
-            double[] coords = points.getPoint( ip );
-            boolean isValid = true;
-            for ( int idim = 0; idim < ndim_ && isValid; idim++ ) {
-                isValid = isValid && ( ! Double.isNaN( coords[ idim ] ) &&
-                                       ! Double.isInfinite( coords[ idim ] ) );
-            }
-            if ( isValid ) {
-                boolean isUsed = false;
-                for ( int iset = 0; iset < nset && ! isUsed; iset++ ) {
-                    isUsed = isUsed || sets[ iset ].isIncluded( ip );
-                }
-                if ( isUsed ) {
-                    for ( int idim = 0; idim < ndim; idim++ ) {
-                        ranges[ idim ].submit( coords[ idim ] );
-                    }
-                    if ( hasErrors ) {
-                        double[][] errs = points.getErrors( ip );
-                        for ( int ierr = 0; ierr < errs.length; ierr++ ) {
-                            double[] err= errs[ ierr ];
-                            if ( err != null ) {
-
-                                /* Note when adjusting ranges for errors we
-                                 * only examine the non-auxiliary dimensions
-                                 * (ndim_ not ndim) since aux axes don't have
-                                 * errors. */
-                                for ( int idim = 0; idim < ndim_; idim++ ) {
-                                    ranges[ idim ].submit( err[ idim ] );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        /* Actual calculations are delegated to the plot object, which 
+         * understands the data well enough to do it. */
+        Range[] ranges = plot_.calculateBounds( data, state ).getRanges();
 
         /* Add some padding at each end. */
-        for ( int idim = 0; idim < ndim; idim++ ) {
+        for ( int idim = 0; idim < ranges.length; idim++ ) {
             ranges[ idim ].pad( getPadRatio() );
         }
 
@@ -1639,134 +1611,15 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private void rescale() {
         PlotState state = getPlotState();
-        Points points = getPoints();
+        Points points = points_;
         if ( state.getValid() && points != null ) {
             getAxisWindow().clearRanges();
-            dataRanges_ = calculateRanges( state.getPointSelection(), points ); 
+            dataRanges_ = calculateRanges( (PointSelection) state.getPlotData(),
+                                           points, state );
             for ( int i = 0; i < viewRanges_.length; i++ ) {
                 viewRanges_[ i ].clear();
             }
         }
-    }
-
-    /**
-     * Exports the currently displayed plot to encapsulated postscript.
-     *
-     * @param  ostrm  destination stream for the EPS
-     */
-    private void exportEPS( OutputStream ostrm ) throws IOException {
-
-        /* Scale to a pixel size which makes the bounding box sit sensibly
-         * on an A4 or letter page.  EpsGraphics2D default scale is 72dpi. */
-        JComponent plot = plotArea_;
-        Rectangle bounds = plot.getBounds();
-        double padfrac = 0.05;
-        double xdpi = bounds.width / 6.0;
-        double ydpi = bounds.height / 9.0;
-        double scale;
-        int pad;
-        if ( xdpi > ydpi ) {
-            scale = 72.0 / xdpi;
-            pad = (int) Math.ceil( bounds.width * padfrac * scale );
-        }
-        else {
-            scale = 72.0 / ydpi;
-            pad = (int) Math.ceil( bounds.height * padfrac * scale );
-        }
-        int xlo = (int) Math.floor( scale * bounds.x ) - pad;
-        int ylo = (int) Math.floor( scale * bounds.y ) - pad;
-        int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) ) + pad;
-        int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) ) + pad;
-
-        /* Construct a graphics object which will write postscript
-         * down this stream. */
-        EpsGraphics2D g2 = 
-            new FixedEpsGraphics2D( getTitle(), ostrm, xlo, ylo, xhi, yhi );
-        g2.scale( scale, scale );
-
-        /* Do the drawing. */
-        plot.print( g2 );
-
-        /* Note this close call *must* be made, otherwise the
-         * eps file is not flushed or correctly terminated.
-         * This closes the output stream too. */
-        g2.close();
-    }
-
-    /**
-     * Exports the currently displayed plot to GIF format.
-     *
-     * <p>There's something wrong with this - it ought to produce a
-     * transparent background, but it doesn't.  I'm not sure why, or
-     * even whether it's to do with the plot or the encoder.
-     *
-     * @param  ostrm  destination stream for the gif
-     */
-    private void exportGif( OutputStream ostrm ) throws IOException {
-
-        /* Get the component which will be plotted and its dimensions. */
-        JComponent plot = plotArea_;
-        int w = plot.getWidth();
-        int h = plot.getHeight();
-
-        /* Create a BufferedImage to draw it onto. */
-        BufferedImage image =
-            new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
-
-        /* Set the background to transparent white. */
-        Graphics2D g = image.createGraphics();
-        g.setBackground( new Color( 0x00ffffff, true ) );
-        g.clearRect( 0, 0, w, h );
-
-        /* Draw the component onto the image. */
-        plot.print( g );
-        g.dispose();
-
-        /* Count the number of colours represented in the resulting image. */
-        Set colors = new HashSet();
-        for ( int ix = 0; ix < w; ix++ ) {
-            for ( int iy = 0; iy < h; iy++ ) {
-                colors.add( new Integer( image.getRGB( ix, iy ) ) );
-            }
-        }
-
-        /* If there are too many, redraw the image into an indexed image
-         * instead.  This is necessary since the GIF encoder we're using
-         * here just gives up if there are too many. */
-        if ( colors.size() > 254 ) {
-            logger_.warning( "GIF export colour map filled up - "
-                           + "JPEG or PNG might do a better job" );
-
-            /* Create an image with a suitable colour model. */
-            IndexColorModel gifColorModel = getGifColorModel();
-            image = new BufferedImage( w, h, BufferedImage.TYPE_BYTE_INDEXED,
-                                       gifColorModel );
-
-            /* Zero all pixels to the transparent colour. */
-            WritableRaster raster = image.getRaster();
-            int itrans = gifColorModel.getTransparentPixel();
-            if ( itrans >= 0 ) {
-                byte[] pixValue = new byte[] { (byte) itrans };
-                for ( int ix = 0; ix < w; ix++ ) {
-                    for ( int iy = 0; iy < h; iy++ ) {
-                        raster.setDataElements( ix, iy, pixValue );
-                    }
-                }
-            }
-
-            /* Draw the plot on it. */
-            Graphics2D gifG = image.createGraphics();
-
-            /* Set dithering false.  But it still seems to dither on a
-             * drawImage!  Can't get to the bottom of it. */
-            gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
-                                   RenderingHints.VALUE_DITHER_DISABLE );
-            plot.print( gifG );
-            gifG.dispose();
-        }
-
-        /* Write the image as a gif down the provided stream. */
-        new GifEncoder( image, ostrm ).encode();
     }
 
     /**
@@ -1822,53 +1675,6 @@ public abstract class GraphicsWindow extends AuxWindow {
 //      super.finalize();
 //      logger_.fine( "Finalize " + this.getClass().getName() );
 //  }
-
-    /**
-     * Returns a colour model suitable for use with GIF images.
-     * It has a selection of RGB colours and one transparent colour.
-     *
-     * @return  standard GIF indexed colour model
-     */
-    protected IndexColorModel getGifColorModel() {
-
-        /* Acquire a standard general-purpose 256-entry indexed colour model. */
-        IndexColorModel rgbModel =
-            (IndexColorModel)
-            new BufferedImage( 1, 1, BufferedImage.TYPE_BYTE_INDEXED )
-           .getColorModel();
-
-        /* Get r/g/b entries from it. */
-        byte[][] rgbs = new byte[ 3 ][ 256 ];
-        rgbModel.getReds( rgbs[ 0 ] );
-        rgbModel.getGreens( rgbs[ 1 ] );
-        rgbModel.getBlues( rgbs[ 2 ] );
-
-        /* Set one entry transparent. */
-        int itrans = 254;
-        rgbs[ 0 ][ itrans ] = (byte) 255;
-        rgbs[ 1 ][ itrans ] = (byte) 255;
-        rgbs[ 2 ][ itrans ] = (byte) 255;
-        IndexColorModel gifModel =
-            new IndexColorModel( 8, 256, rgbs[ 0 ], rgbs[ 1 ], rgbs[ 2 ],
-                                 itrans );
-
-        /* Return the  model. */
-        return gifModel;
-    }
-
-    /**
-     * Determines whether the given graphics context represents a 
-     * vector graphics type environment (such as PostScript).
-     *
-     * @param  g  graphics context to test
-     * @return  true iff <code>g</code> is PostScript-like
-     */
-    public static boolean isVector( Graphics g ) {
-        return ( g instanceof EpsGraphics2D )
-            || ( g instanceof Graphics2D
-                 && ((Graphics2D) g).getDeviceConfiguration().getDevice()
-                                    .getType() == GraphicsDevice.TYPE_PRINTER );
-    }
 
     /**
      * Creates a default set of ErrorModeSelectionModels given a list of
@@ -1931,9 +1737,10 @@ public abstract class GraphicsWindow extends AuxWindow {
          * @param   descrip  description for action
          * @param   extensions  array of standard file extensions for format
          */
-        ExportAction( String formatName, Icon icon, String desc,
+        ExportAction( String formatName, Icon icon, String descrip,
                       String[] extensions ) {
-            this( formatName, icon, desc, new SuffixFileFilter( extensions ) );
+            this( formatName, icon, descrip,
+                  new SuffixFileFilter( extensions ) );
         }
 
         /**
@@ -1944,9 +1751,9 @@ public abstract class GraphicsWindow extends AuxWindow {
          * @param   descrip  description for action
          * @param   filter   file filter appropriate for export files
          */
-        ExportAction( String formatName, Icon icon, String desc, 
+        ExportAction( String formatName, Icon icon, String descrip, 
                       FileFilter filter ) {
-            super( "Export as " + formatName, icon, desc );
+            super( "Export as " + formatName, icon, descrip );
             formatName_ = formatName;
             filter_ = filter;
         }
@@ -1999,69 +1806,30 @@ public abstract class GraphicsWindow extends AuxWindow {
     }
 
     /**
-     * ExportAction which uses the java ImageIO framework to do the export.
+     * Action which exports the currently displayed plot component 
+     * as a graphics file.
      */
-    private class ImageIOExportAction extends ExportAction {
+    private class GraphicExportAction extends ExportAction {
 
-        private final boolean ok_;
-        private final String formatName_;
-        private final int imageType_;
+        private final GraphicExporter gExporter_;
 
         /**
          * Constructor.
          *
-         * @param  format name, as recognised by ImageIO
-         * @param  extensions  array of suitable filename extensions
-         * @param  transparent  whether to attempt a transparent background
-         * @param  icon   icon for action, or null for default
+         * @param   gExporter  format-specific graphics exporter
+         * @param   icon   icon for action
+         * @param   descrip  description for action
+         * @param   extensions  array of standard file extensions for format
          */
-        public ImageIOExportAction( String formatName, String[] extensions,
-                                    boolean transparent, Icon icon ) {
-            super( formatName, icon == null ? ResourceIcon.IMAGE : icon,
-                   "Save plot as a " + formatName + " file", extensions );
-            ok_ = ImageIO.getImageWritersByFormatName( formatName ).hasNext();
-            formatName_ = formatName;
-            imageType_ = transparent ? BufferedImage.TYPE_INT_ARGB
-                                     : BufferedImage.TYPE_INT_RGB;
-        }
-
-        public boolean isImplemented() {
-            return ok_;
-        }
-
-        public boolean isEnabled() {
-            return ok_ && super.isEnabled();
+        GraphicExportAction( GraphicExporter gExporter, Icon icon,
+                             String descrip ) {
+            super( gExporter.getName(), icon, descrip,
+                   gExporter.getFileSuffixes() );
+            gExporter_ = gExporter;
         }
 
         public void exportTo( OutputStream out ) throws IOException {
-            JComponent plot = plotArea_;
-
-            /* Create an image buffer on which to paint. */
-            int w = plot.getWidth();
-            int h = plot.getHeight();
-            BufferedImage image = new BufferedImage( w, h, imageType_ );
-            Graphics2D g2 = image.createGraphics();
-
-            /* Clear the background to transparent white.  Failing to do this
-             * leaves all kinds of junk in the background. */
-            Color color = g2.getColor();
-            Composite compos = g2.getComposite();
-            g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
-            g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
-            g2.fillRect( 0, 0, w, h );
-            g2.setColor( color );
-            g2.setComposite( compos );
-
-            /* Paint the graphics to the buffer. */
-            plot.print( g2 );
-
-            /* Export. */
-            boolean done = ImageIO.write( image, formatName_, out );
-            out.flush();
-            if ( ! done ) {
-                throw new IOException( "No handler for format " + formatName_ +
-                                       " (surprising - thought there was)" );
-            }
+            gExporter_.exportGraphic( plotArea_, out );
         }
     }
 
@@ -2070,6 +1838,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      */
     private class PointsReader extends Thread {
         final PointSelection pointSelection_;
+        final PlotState prState_;
         final long start_;
 
         /**
@@ -2077,10 +1846,12 @@ public abstract class GraphicsWindow extends AuxWindow {
          * a given point selection object.
          *
          * @param  pointSelection  point selection
+         * @param  state  plot state
          */
-        PointsReader( PointSelection pointSelection ) {
+        PointsReader( PointSelection pointSelection, final PlotState state ) {
             super( "Point Reader" );
             pointSelection_ = pointSelection;
+            prState_ = state;
             start_ = System.currentTimeMillis();
         }
 
@@ -2157,8 +1928,8 @@ public abstract class GraphicsWindow extends AuxWindow {
                      * update range information, and schedule a replot. */
                     if ( success1 ) {
                         points_ = points1;
-                        dataRanges_ = calculateRanges( pointSelection_,
-                                                       points1 );
+                        dataRanges_ = calculateRanges( pointSelection_, points1,
+                                                       prState_ );
                         replot();
                     }
 

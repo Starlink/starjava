@@ -9,7 +9,8 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.Wrapper;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.util.Wrapper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -78,6 +79,15 @@ public class LabelledAxesSelector implements AxesSelector, Wrapper {
 
     public JComponent getColumnSelectorPanel() {
         return selectorPanel_;
+    }
+
+    public JComboBox[] getColumnSelectors() {
+        JComboBox[] baseSelectors = baseSelector_.getColumnSelectors();
+        JComboBox[] selectors = new JComboBox[ baseSelectors.length + 1 ];
+        System.arraycopy( baseSelectors, 0, selectors, 0,
+                          baseSelectors.length );
+        selectors[ baseSelectors.length ] = labelSelector_;
+        return selectors;
     }
 
     public int getNdim() {

@@ -28,6 +28,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.ttools.plot.ErrorRenderer;
+import uk.ac.starlink.ttools.plot.MarkShape;
+import uk.ac.starlink.ttools.plot.MarkStyle;
+import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot.XYStats;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;
 
@@ -381,7 +387,7 @@ public class MarkStyleEditor extends StyleEditor {
         int ndim = errorModeModels_.length;
         ErrorMode[] modes = new ErrorMode[ ndim ];
         for ( int idim = 0; idim < ndim; idim++ ) {
-            modes[ idim ] = errorModeModels_[ idim ].getMode();
+            modes[ idim ] = errorModeModels_[ idim ].getErrorMode();
         }
         return modes;
     }
@@ -596,7 +602,7 @@ public class MarkStyleEditor extends StyleEditor {
             int ndim = 0;
             for ( int idim = 0; idim < modeModels_.length; idim++ ) {
                 if ( ! ErrorMode.NONE
-                      .equals( modeModels_[ idim ].getMode() ) ) {
+                      .equals( modeModels_[ idim ].getErrorMode() ) ) {
                     ndim++;
                 }
             }
@@ -645,7 +651,7 @@ public class MarkStyleEditor extends StyleEditor {
                     ErrorRenderer er = (ErrorRenderer) value;
                     ErrorMode[] modes = new ErrorMode[ errModels_.length ];
                     for ( int imode = 0; imode < modes.length; imode++ ) {
-                        modes[ imode ] = errModels_[ imode ].getMode();
+                        modes[ imode ] = errModels_[ imode ].getErrorMode();
                     }
                     icon = er.getLegendIcon( modes, 40, 15, 5, 1 );
                     icon = new ColoredIcon( icon, c.getForeground() );

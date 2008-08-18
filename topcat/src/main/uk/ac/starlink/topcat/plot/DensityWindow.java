@@ -53,6 +53,20 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatPlasticListener;
 import uk.ac.starlink.topcat.TopcatTransmitter;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.plot.BinGrid;
+import uk.ac.starlink.ttools.plot.DensityPlot;
+import uk.ac.starlink.ttools.plot.DensityPlotEvent;
+import uk.ac.starlink.ttools.plot.DensityPlotState;
+import uk.ac.starlink.ttools.plot.DensityStyle;
+import uk.ac.starlink.ttools.plot.PlotEvent;
+import uk.ac.starlink.ttools.plot.PlotListener;
+import uk.ac.starlink.ttools.plot.PlotState;
+import uk.ac.starlink.ttools.plot.PlotSurface;
+import uk.ac.starlink.ttools.plot.PtPlotSurface;
+import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot.Shaders;
+import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot.StyleSet;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.URLUtils;
@@ -70,11 +84,9 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class DensityWindow extends GraphicsWindow {
 
-    private final DensityPlot plot_;
     private final JComponent plotPanel_;
     private final BlobPanel blobPanel_;
     private final Action blobAction_;
-    private final CountsLabel plotStatus_;
     private final ToggleButtonModel rgbModel_;
     private final ToggleButtonModel zLogModel_;
     private final ToggleButtonModel weightModel_;
@@ -108,8 +120,9 @@ public class DensityWindow extends GraphicsWindow {
      * @param   parent   parent component (may be used for positioning)
      */
     public DensityWindow( Component parent ) {
-        super( "Density Map", AXIS_NAMES, 0, false,
-               new ErrorModeSelectionModel[ 0 ], parent );
+        super( "Density Map", new DensityPlot( new PtPlotSurface() ),
+               AXIS_NAMES, 0, false, new ErrorModeSelectionModel[ 0 ], parent );
+        final DensityPlot plot = (DensityPlot) getPlot();
 
         /* There's only one style set it makes sense to use for this window.
          * Construct it here. */
@@ -119,19 +132,19 @@ public class DensityWindow extends GraphicsWindow {
             new DStyle( DensityStyle.BLUE ),
         };
 
-        /* Construct a plotting surface to receive the graphics. */
+        /* Adjust the plotting surface for receiving the graphics. */
+        final PlotSurface surface = plot.getSurface();
         setPadRatio( 0 );
-        final PlotSurface surface = new PtPlotSurface();
         ((PtPlotSurface) surface)._tickLength = 0;
 
         /* Grid looks a bit messy, so turn it off. */
         getGridModel().setSelected( false );
 
-        /* Construct and populate the plot panel with the 2d histogram
-         * itself and a transparent layer for doodling blobs on. */
-        plot_ = new DensityPlot( surface ) {
+        /* Zooming. */
+        final SurfaceZoomRegionList zoomRegions =
+                new SurfaceZoomRegionList( plot ) {
             protected void requestZoom( double[][] bounds ) {
-                for ( int idim = 0; idim < 2; idim ++ ) {
+                for ( int idim = 0; idim < 2; idim++ ) {
                     if ( bounds[ idim ] != null ) {
                         getAxisWindow().getEditors()[ idim ].clearBounds();
                         getViewRanges()[ idim ].setBounds( bounds[ idim ] );
@@ -139,37 +152,33 @@ public class DensityWindow extends GraphicsWindow {
                 }
                 replot();
             }
-            protected void reportCounts( int nPoint, int nInc, int nVis ) {
-                plotStatus_.setValues( new int[] { nPoint, nInc, nVis } );
-            }
-            protected void reportCuts( double[] loCuts, double[] hiCuts,
-                                       DensityStyle[] styles ) {
-                StringBuffer sbuf = new StringBuffer();
-                boolean weighted = 
-                    ((DensityPlotState) getState()).getWeighted();
-                for ( int i = 0; loCuts != null && i < loCuts.length; i++ ) {
-                    if ( i > 0 ) {
-                        sbuf.append( ";  " );
-                    }
-                    if ( weighted ) {
-                        sbuf.append( (float) loCuts[ i ] )
-                            .append( " \u2014 " )
-                            .append( (float) hiCuts[ i ] );
-                    }
-                    else {
-                        sbuf.append( (int) loCuts[ i ] )
-                            .append( " \u2014 " )
-                            .append( (int) hiCuts[ i ] );
-                    }
-                }
-                cutLabel_.setText( sbuf.toString() );
-            }
         };
+        Zoomer zoomer = new Zoomer();
+        zoomer.setRegions( zoomRegions );
+        zoomer.setCursorComponent( plot );
+        Component scomp = surface.getComponent();
+        scomp.addMouseListener( zoomer );
+        scomp.addMouseMotionListener( zoomer );
+
+        /* Respond to plot changes. */
+        plot.addPlotListener( new PlotListener() {
+            public void plotChanged( PlotEvent evt ) {
+                zoomRegions.reconfigure();
+                DensityPlotEvent devt = (DensityPlotEvent) evt;
+                String cutter = 
+                    getCutLabelText( devt.getLoCuts(), devt.getHiCuts(),
+                                     ((DensityPlotState) devt.getPlotState())
+                                    .getWeighted() );
+                cutLabel_.setText( cutter );
+            }
+        } );
+
         plotPanel_ = new JPanel();
         plotPanel_.setOpaque( false );
         blobPanel_ = new BlobPanel() {
             protected void blobCompleted( Shape blob ) {
-                addNewSubsets( plot_.getContainedMask( blob ) );
+                addNewSubsets( plot.getPlottedPointIterator()
+                                   .getContainedPoints( blob ) );
             }
         };
         blobPanel_.setColors( new Color( 0x80a0a0a0, true ),
@@ -177,17 +186,16 @@ public class DensityWindow extends GraphicsWindow {
         blobAction_ = blobPanel_.getBlobAction();
         plotPanel_.setLayout( new OverlayLayout( plotPanel_ ) );
         plotPanel_.add( blobPanel_ );
-        plotPanel_.add( plot_ );
+        plotPanel_.add( plot );
 
         /* Construct and add a status line. */
-        plotStatus_ = new CountsLabel( new String[] {
-            "Potential", "Included", "Visible",
-        } );
+        PlotStatsLabel plotStatus = new PlotStatsLabel();
+        plot.addPlotListener( plotStatus );
         PositionLabel posStatus = new PositionLabel( surface );
         posStatus.setMaximumSize( new Dimension( Integer.MAX_VALUE,
                                                  posStatus.getMaximumSize()
                                                           .height ) );
-        getStatusBox().add( plotStatus_ );
+        getStatusBox().add( plotStatus );
         getStatusBox().add( Box.createHorizontalStrut( 5 ) );
         getStatusBox().add( posStatus );
 
@@ -214,6 +222,12 @@ public class DensityWindow extends GraphicsWindow {
         /* Model for the shader which controls the indexed (non-RGB) 
          * colour map. */
         shaderModel_ = new ChangingComboBoxModel( INDEXED_SHADERS );
+        Shader[] customShaders = Shaders.getCustomShaders();
+        for ( int is = 0; is < customShaders.length; is++ ) {
+            ((ChangingComboBoxModel) shaderModel_)
+                                    .insertElementAt( customShaders[ is ], 0 );
+        }
+        shaderModel_.setSelectedItem( shaderModel_.getElementAt( 0 ) );
         ((ChangingComboBoxModel) shaderModel_)
                                 .addChangeListener( getReplotListener() );
         ((ChangingComboBoxModel) shaderModel_)
@@ -296,7 +310,8 @@ public class DensityWindow extends GraphicsWindow {
         /* Indexed colourmap selector. */
         JComponent shBox = Box.createHorizontalBox();
         final JComboBox shaderSelector = new JComboBox( shaderModel_ );
-        shaderSelector.setRenderer( Shaders.createRenderer( shaderSelector ) );
+        shaderSelector
+            .setRenderer( new ShaderListCellRenderer( shaderSelector ) );
         shBox.add( Box.createHorizontalStrut( 5 ) );
         shBox.add( new ShrinkWrapper( shaderSelector ) );
         shBox.add( Box.createHorizontalStrut( 5 ) );
@@ -356,7 +371,7 @@ public class DensityWindow extends GraphicsWindow {
                                                     "containing only " +
                                                     "currently visible data" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addNewSubsets( plot_.getVisibleMask() );
+                addNewSubsets( plot.getPlottedPointIterator().getAllPoints() );
             }
         };
         subsetMenu.add( blobAction_ );
@@ -398,7 +413,7 @@ public class DensityWindow extends GraphicsWindow {
         axwin.setEditors( new AxisEditor[] { axes[ 0 ], axes[ 1 ], } );
     }
 
-    protected JComponent getPlot() {
+    protected JComponent getPlotPanel() {
         return plotPanel_;
     }
 
@@ -474,25 +489,13 @@ public class DensityWindow extends GraphicsWindow {
         return state;
     }
 
-    protected void doReplot( PlotState state, Points points ) {
+    protected void doReplot( PlotState state ) {
 
         /* Cancel any current blob drawing. */
         blobPanel_.setActive( false );
 
-        /* Send the plot component the most up to date plotting state. */
-        plot_.setPoints( points );
-        plot_.setState( state );
-
-        /* Schedule for repainting so changes can take effect. */
-        plot_.repaint();
-    }
-
-    public Rectangle getPlotBounds() {
-        Rectangle bounds =
-            new Rectangle( plot_.getSurface().getClip().getBounds() );
-        bounds.y--;
-        bounds.height += 2;
-        return bounds;
+        /* Do replot. */
+        super.doReplot( state );
     }
 
     public StyleSet getDefaultStyles( int npoint ) {
@@ -509,6 +512,34 @@ public class DensityWindow extends GraphicsWindow {
     protected boolean isLegendInteresting( PlotState state ) {
         return super.isLegendInteresting( state )
             && ((DensityPlotState) state).getRgb();
+    }
+
+    /**
+     * Returns label text to use which indicates per-channel cut levels.
+     *
+     * @param  loCuts  per-channel lower absolute cut level array
+     * @param  hiCuts  per-channel upper absolute cut level array
+     * @param  weighted  true iff weighting is in use
+     */
+    private static String getCutLabelText( double[] loCuts, double[] hiCuts,
+                                           boolean weighted ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; loCuts != null && i < loCuts.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( ";  " );
+            }
+            if ( weighted ) {
+                sbuf.append( (float) loCuts[ i ] )
+                    .append( " \u2014 " )
+                    .append( (float) hiCuts[ i ] );
+            }
+            else {
+                sbuf.append( (int) loCuts[ i ] )
+                    .append( " \u2014 " )
+                    .append( (int) hiCuts[ i ] );
+            }
+        }
+        return sbuf.toString();
     }
 
     /**
@@ -573,8 +604,9 @@ public class DensityWindow extends GraphicsWindow {
             throws IOException, FitsException {
         final DataOutputStream out = new DataOutputStream( ostrm );
 
-        BinGrid[] grids = plot_.getBinnedData();
-        DensityPlotState state = (DensityPlotState) plot_.getState();
+        DensityPlot plot = (DensityPlot) getPlot();
+        BinGrid[] grids = plot.getBinnedData();
+        DensityPlotState state = (DensityPlotState) plot.getState();
         boolean weighted = state.getWeighted();
         int ngrid = grids.length;
 
@@ -664,7 +696,7 @@ public class DensityWindow extends GraphicsWindow {
         if ( state.getLogFlags()[ 1 ] ) {
             name2 = "log(" + name2 + ")";
         }
-        PlotSurface surface = plot_.getSurface();
+        PlotSurface surface = plot.getSurface();
         Rectangle bbox = surface.getClip().getBounds();
         int x0 = bbox.x;
         int y0 = bbox.y;

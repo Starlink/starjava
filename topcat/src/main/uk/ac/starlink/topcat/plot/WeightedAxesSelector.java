@@ -12,6 +12,7 @@ import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperColumn;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.ErrorMode;
 
 /**
  * AxesSelector implementation which adds a weighting axis to the
@@ -79,6 +80,18 @@ public class WeightedAxesSelector implements AxesSelector {
 
     public JComponent getColumnSelectorPanel() {
         return selectorContainer_;
+    }
+
+    public JComboBox[] getColumnSelectors() {
+        JComboBox[] baseSelectors = baseSelector_.getColumnSelectors();
+        JComboBox[] weightSelectors = weightSelector_.getColumnSelectors();
+        JComboBox[] selectors =
+            new JComboBox[ baseSelectors.length + weightSelectors.length ];
+        System.arraycopy( baseSelectors, 0, selectors, 0,
+                          baseSelectors.length );
+        System.arraycopy( weightSelectors, 0, selectors, baseSelectors.length,
+                          weightSelectors.length );
+        return selectors;
     }
 
     public void setTable( TopcatModel tcModel ) {
