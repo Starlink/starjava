@@ -1088,12 +1088,17 @@
           failonerror="yes"
           output="${build.docs}/purpose-defs.xml"
           logerror="yes"
-          classpathref="classpath"/>
+          fork="yes"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.UsageWriter"
           failonerror="yes"
           fork="yes"
           dir="${build.docs}"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.FilterDoc"
           failonerror="yes"
           output="${build.docs}/filter-docs.xml"
