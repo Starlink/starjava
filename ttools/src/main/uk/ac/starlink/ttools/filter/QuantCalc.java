@@ -37,7 +37,7 @@ public abstract class QuantCalc {
     /**
      * Submits a datum for accumulation.
      *
-     * @return   obj  data object - must be instance of numeric class 
+     * @param    obj  data object - must be instance of numeric class 
      *           suitable for this accumulator
      */
     public abstract void acceptDatum( Object obj );
