@@ -94,7 +94,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>28 January 2008</docdate>
+<docdate>19 August 2008</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -11105,47 +11105,66 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-    <dt>Next version</dt>
+<dt>Version 3.3 (19 August 2008)</dt>
+<dd><p>
+    <dl>
+    <dt>Functionality enhancements:</dt>
     <dd><p>
         <ul>
-        <li>Efficiency improvements (~25%? in both CPU time and memory usage)
-            for HEALPix-based sky crossmatching
-            (thanks to Nikolay Kouropatkine at Fermilab for a new version of
-            the PixTools library).</li>
-        <li>Fix pair matching performance bug (slower if tables were not 
-            given in the right order) introduced at v1.4.</li>
-        <li>Fix problem which caused the graphics system to hang or fail
-            when drawing Dot-to-dot lines in 2D plot for points a very 
-            long way off the screen.</li>
-        <li>In overplots using different tables, an attempt is now made to
-            use the same columns/expressions for axis values as for the
-            main table.  This may be convenient when overplotting data from
-            several similar tables.</li>
-        <li>Fix bug which caused incorrect plotting of cumulative histograms
-            with small weights.</li>
-        <li>Added normalisation option to 
-            <ref id="HistogramWindow">Histogram Window</ref>.</li>
-        <li>The <label>lut.files</label> system property can now be used to
-            configure custom colour maps for auxiliary axes and density maps -
-            see <ref id="jvmProperties"/>.</li>
-        <li>Extensive internal reorganisation of the code has taken place.
-            Should be no user-visible effects, but please report anything
-            which seems to be misbehaving.</li>
-        <li>Sexagesimal field identification for ASCII input files less 
-            stringent (now permits minutes or seconds equal to 60).</li>
-        <li>HEALPix bug fix
-            (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
-                     >PixTools</webref> bug fix update).</li>
+        <li>Added normalisation option (&IMG.NORMALISE;)
+            to <ref id="HistogramWindow">Histogram Window</ref>.</li>
+        <li>In overplots using different tables, an attempt is now made
+            to use the same columns/expressions for axis values as
+            for the main table.  This may be convenient when 
+            overplotting data from several similar tables.</li>
+        <li>FITS files with columns using variable-length arrays
+            ('P' or 'Q' data type descriptors) can now be read
+            (in random access mode, i.e. from an uncompressed FITS file
+            on disk, only).</li>
+        <li>The <label>lut.files</label> system property can now 
+            be used to configure custom colour maps for auxiliary axes
+            and density maps - see <ref id="jvmProperties"/>.</li>
         <li>New class <ref id="Arrays">Arrays</ref>
             added to algebraic functions.</li>
-        <li>Take notice of <code>-disk</code> flag when loading tables from 
-            JDBC.</li>
-        <li>Tweak to spike-style bar drawing in Histogram, now has tidier 
-            appearance when using dashed lines.</li>
-        <li>Histogram <label>Offset</label> control now works for logarithmic
-            X scale as well as linear.</li>
+        <li>Histogram <label>Offset</label> control now works for
+            logarithmic X scale as well as linear.</li>
         </ul>
         </p></dd>
+    <dt>Bug fixes and other changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Efficiency improvements (~25%? in both CPU time and 
+            memory usage) for HEALPix-based sky crossmatching.
+            Thanks to Nikolay Kouropatkine at Fermilab for a 
+            new version of the 
+            <webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                    >PixTools</webref> library
+            which provided this improvement
+            (this version also fixed a - minor? - HEALPix bug).</li>
+        <li>Sexagesimal field identification for ASCII input files has
+            become more forgiving; it now accepts minutes or seconds 
+            equal to 60 without a syntax error.</li>
+        <li>Fixed a pair matching performance bug (slower if tables were not 
+            given in the right order) introduced at v1.4.</li>
+        <li>The <code>-disk</code> flag is now honoured when loading 
+            tables from JDBC, which makes it possible to input larger
+            datasets from RDBMS.</li>
+        <li>Fixed problem which caused the graphics system to hang or fail
+            when drawing Dot-to-dot lines in 2D plot for points a very 
+            long way off the screen.</li>
+        <li>Fixed bug which caused incorrect plotting of cumulative
+            histograms with small weights.</li>
+        <li>Slight modification to spike-style bar drawing in Histogram,
+            now has tidier appearance when using dashed lines.</li>
+        </ul>
+        </p></dd>
+    <dt>Internal</dt>
+    <dd><p>There has been extensive internal reorgamisation of the plotting
+        classes.  There should be no user-visible effects of this, but
+        please report anything which seems to be misbehaving.
+        </p></dd>
+    </dl>
+    </p></dd>
 
 </dl>
 </p>
