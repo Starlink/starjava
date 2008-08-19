@@ -103,7 +103,7 @@ public abstract class NamedObjectParameter extends Parameter {
      * {@link #addOption} or {@link #toString(java.lang.Object)} must be
      * able to translate it.  Or it could be null.
      *
-     * @param  new default value as an object
+     * @param  option  new default value as an object
      */
     public void setDefaultOption( Object option ) {
         if ( option == null ) {
