@@ -1305,30 +1305,33 @@ public class SpecDataFactory
     {
         int stype = SpecDataFactory.DEFAULT;
         String simpleType = type.toLowerCase();
-        if ( simpleType.equals( "application/fits" ) ||
+
+        //   Note allow for application/fits;xxxx, so use startsWith,
+        //   same for full mime types below.
+        if ( simpleType.startsWith( "application/fits" ) ||
              simpleType.equals( "fits" ) ) {
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
         }
-        else if ( simpleType.equals( "spectrum/fits" ) ) {
+        else if ( simpleType.startsWith( "spectrum/fits" ) ) {
             //  FITS format, is that image or table? Don't know who
             //  thought this was a mime-type?
             stype = SpecDataFactory.FITS;
         }
-        else if ( simpleType.equals( "text/plain" ) ) {
+        else if ( simpleType.startsWith( "text/plain" ) ) {
             //  ASCII table of some kind.
             stype = SpecDataFactory.TABLE;
         }
-        else if ( simpleType.equals( "application/x-votable+xml" ) ||
+        else if ( simpleType.startsWith( "application/x-votable+xml" ) ||
                   simpleType.equals( "text/xml;x-votable" ) ||
-                  simpleType.equals( "text/x-votable+xml" ) ||
+                  simpleType.startsWith( "text/x-votable+xml" ) ||
                   simpleType.equals( "xml" ) ) {
             // VOTable spectrum, open as a table. Is really the SSAP native
             // XML representation so could an SED? In which case this might be
             // better as SpecDataFactory.SED, we'll see.
             stype = SpecDataFactory.TABLE;
         }
-        else if ( simpleType.equals( "spectrum/votable" ) ||
+        else if ( simpleType.startsWith( "spectrum/votable" ) ||
                   simpleType.equals( "votable" ) ) {
             stype = SpecDataFactory.TABLE;
 
