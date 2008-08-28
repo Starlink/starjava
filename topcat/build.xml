@@ -1330,7 +1330,7 @@
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
           fork="yes"
-          maxmemory="128M">
+          maxmemory="256M">
       <classpath>
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
