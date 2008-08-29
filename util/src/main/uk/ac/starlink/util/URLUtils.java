@@ -65,6 +65,12 @@ public class URLUtils {
         Pattern.compile( "(file:)(/*)(.*)" );
 
     /**
+     * Private constructor prevents instantiation.
+     */
+    private URLUtils() {
+    }
+
+    /**
      * Obtains a URL from a string.  If the String has the form of a URL,
      * it is turned directly into a URL.  If it does not, it is treated as
      * a filename, and turned into a file-protocol URL.  In the latter
@@ -306,6 +312,36 @@ public class URLUtils {
         }
         else {
             return false;
+        }
+    }
+
+    /**
+     * Locates the local file, if any, represented by a URL.
+     * If the URL string uses the "file:" protocol, and has no query or anchor
+     * parts, the filename will be extracted and the corresponding file
+     * returned.  Otherwise, null is returned.
+     *
+     * @param   url  URL string
+     * @return   local file referenced by <code>url</code>, or null
+     */
+    public static File urlToFile( String url ) {
+        URL u;
+        try {
+            u = new URL( url );
+        }
+        catch ( MalformedURLException e ) {
+            return null;
+        }
+        if ( u.getProtocol().equals( "file" ) && u.getRef() == null
+                                              && u.getQuery() == null ) {
+            String path = u.getPath();
+            String filename = File.separatorChar == '/'
+                            ? path
+                            : path.replace( '/', File.separatorChar );
+            return new File( filename );
+        }
+        else {
+            return null;
         }
     }
 
