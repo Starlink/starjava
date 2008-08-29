@@ -559,7 +559,7 @@ public class TopcatPlasticListener extends HubManager {
     private boolean highlightObject( URI sender, String tableId, int irow ) {
 
         /* See if we have the table named in the message. */
-        TableWithRows tr = (TableWithRows) lookupTable( tableId );
+        TableWithRows tr = lookupTable( tableId );
         final TopcatModel tcModel = tr == null
                                   ? null
                                   : (TopcatModel) tr.tcModelRef_.get();
@@ -597,7 +597,7 @@ public class TopcatPlasticListener extends HubManager {
      * @return   true iff highlight was successful
      */
     private boolean showObjects( URI sender, String tableId, List objList ) {
-        TableWithRows tr = (TableWithRows) lookupTable( tableId );
+        TableWithRows tr = lookupTable( tableId );
         TopcatModel tcModel = tr == null
                             ? null
                             : (TopcatModel) tr.tcModelRef_.get();
