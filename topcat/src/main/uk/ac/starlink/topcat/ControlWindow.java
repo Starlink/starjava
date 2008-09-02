@@ -148,6 +148,7 @@ public class ControlWindow extends AuxWindow
     private final JButton activatorButton_ = new JButton();
     private final TopcatPlasticListener plasticServer_;
     private final PlasticTransmitter tableTransmitter_;
+    private final TopcatSampConnector sampConnector_;
 
     private final Action readAct_;
     private final Action writeAct_;
@@ -222,6 +223,17 @@ public class ControlWindow extends AuxWindow
         /* Plastic transmitter. */
         plasticServer_ = new TopcatPlasticListener( this );
         tableTransmitter_ = plasticServer_.createTableTransmitter( this );
+
+        /* SAMP. */
+        TopcatSampConnector sampConn;
+        try {
+            sampConn = new TopcatSampConnector( this );
+        }
+        catch ( IOException e ) {
+            sampConn = null;
+            logger_.warning( "Error initialising SAMP: " + e );
+        }
+        sampConnector_ = sampConn;
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -441,13 +453,13 @@ public class ControlWindow extends AuxWindow
             interopMenu.addSeparator();
             interopMenu.add( tableTransmitter_.getBroadcastAction() );
             interopMenu.add( tableTransmitter_.createSendMenu() );
-            interopMenu.addSeparator();
-            interopMenu.add( interophelpAct );
         }
         catch ( SecurityException e ) {
             interopMenu.setEnabled( false );
             logger_.warning( "Security manager denies use of PLASTIC" );
         }
+        interopMenu.addSeparator();
+        interopMenu.add( interophelpAct );
         getJMenuBar().add( interopMenu );
 
         /* Mark this window as top-level. */
