@@ -69,6 +69,7 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
+import org.astrogrid.samp.gui.DefaultSendActionManager;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.HubManager;
@@ -149,6 +150,7 @@ public class ControlWindow extends AuxWindow
     private final TopcatPlasticListener plasticServer_;
     private final PlasticTransmitter tableTransmitter_;
     private final TopcatSampConnector sampConnector_;
+    private final DefaultSendActionManager tableSender_;
 
     private final Action readAct_;
     private final Action writeAct_;
@@ -225,15 +227,19 @@ public class ControlWindow extends AuxWindow
         tableTransmitter_ = plasticServer_.createTableTransmitter( this );
 
         /* SAMP. */
-        TopcatSampConnector sampConn;
+        TopcatSampConnector sampConnector;
+        TableSendManager tableSender;
         try {
-            sampConn = new TopcatSampConnector( this );
+            sampConnector = new TopcatSampConnector( this );
+            tableSender = new TableSendManager( sampConnector );
         }
         catch ( IOException e ) {
-            sampConn = null;
-            logger_.warning( "Error initialising SAMP: " + e );
+            logger_.warning( "Failed to start SAMP: " + e );
+            sampConnector = null;
+            tableSender = null;
         }
-        sampConnector_ = sampConn;
+        sampConnector_ = sampConnector;
+        tableSender_ = tableSender;
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -457,6 +463,15 @@ public class ControlWindow extends AuxWindow
         catch ( SecurityException e ) {
             interopMenu.setEnabled( false );
             logger_.warning( "Security manager denies use of PLASTIC" );
+        }
+        try {
+            interopMenu.addSeparator();
+            interopMenu.add( sampConnector_.getRegisterAction() );
+            interopMenu.add( tableSender_.getBroadcastAction() );
+            interopMenu.add( tableSender_.createSendMenu() );
+        }
+        catch ( Exception e ) {
+            logger_.warning( "Trouble with SAMP: " + e );
         }
         interopMenu.addSeparator();
         interopMenu.add( interophelpAct );
@@ -759,6 +774,7 @@ public class ControlWindow extends AuxWindow
         writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
         tableTransmitter_.setEnabled( hasModel );
+        tableSender_.setEnabled( hasModel );
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
         subsetSelector_.setEnabled( hasModel );
