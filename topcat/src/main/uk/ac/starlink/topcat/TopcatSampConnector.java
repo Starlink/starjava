@@ -7,9 +7,11 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -23,12 +25,7 @@ import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
-import org.astrogrid.samp.gui.DefaultSendActionManager;
-import org.astrogrid.samp.gui.SendActionManager;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
@@ -45,6 +42,7 @@ public class TopcatSampConnector extends HubConnector {
     private final ControlWindow controlWindow_;
     private final Map idMap_;
     private final Map highlightMap_;
+    private int idCount_;
 
     /**
      * Constructor.
@@ -57,8 +55,6 @@ public class TopcatSampConnector extends HubConnector {
         controlWindow_ = controlWindow;
         idMap_ = Collections.synchronizedMap( new HashMap() );
         highlightMap_ = Collections.synchronizedMap( new WeakHashMap() );
-        StarTableOutput sto = controlWindow.getTableOutput();
-        TopcatServer server = TopcatServer.getInstance();
 
         /* Declare metadata. */
         Metadata meta = new Metadata();
@@ -83,6 +79,55 @@ public class TopcatSampConnector extends HubConnector {
 
         /* Set an autoconnect time and start looking out for a hub. */
         setAutoconnect( 5 );
+    }
+
+    /**
+     * Returns the control window which owns this connector.
+     *
+     * @return  control window
+     */
+    public ControlWindow getControlWindow() {
+        return controlWindow_;
+    }
+
+    /**
+     * Returns a public reference ID which may be used to the current state
+     * of a given TOPCAT table.  For now, "state" refers to the combination
+     * of the table and its row sequence, though other items may become 
+     * important if SAMP messages arise which require consistency of
+     * other attributes.
+     *
+     * @param    tcModel   table to identify
+     * @return   opaque ID string
+     */
+    public String getTableId( TopcatModel tcModel ) {
+        int[] rowMap = tcModel.getViewModel().getRowMap();
+
+        /* If the table model and row map is the same as an existing entry
+         * in the map, return the ID for that one. */
+        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            String id = (String) entry.getKey();
+            TableWithRows tr = (TableWithRows) entry.getValue();
+            if ( tr.getTable() == tcModel &&
+                 Arrays.equals( tr.rowMap_, rowMap ) ) {
+                return id;
+            }
+        }
+
+        /* It's not, so we will need to make a new entry in the map as well
+         * as returning an ID. */
+        /* If the rowMap is null and the table has a URL, use that as the ID. */
+        URL url = tcModel.getDataModel().getURL();
+        String id;
+        if ( rowMap == null && url != null ) {
+            id = url.toString();
+        }
+        else {
+            id = createId();
+        }
+        idMap_.put( id, new TableWithRows( tcModel, rowMap ) );
+        return id;
     }
 
     /**
@@ -329,6 +374,18 @@ public class TopcatSampConnector extends HubConnector {
                                        .append( " is loaded" )
                                        .toString() );
         }
+    }
+
+    /**
+     * Returns a unique ID each time it is called.
+     *
+     * @return   opaque ID string
+     */
+    private synchronized String createId() {
+        return "topcat"
+             + Integer.toString( System.identityHashCode( this ) & 0xffff, 16 )
+             + "-"
+             + ++idCount_;
     }
 
     /**
