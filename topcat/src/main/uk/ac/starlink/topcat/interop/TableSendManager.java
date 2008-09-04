@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +9,8 @@ import org.astrogrid.samp.gui.DefaultSendActionManager;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.TopcatModel;
 
 /**
  * SendManager which will transmit a table.
@@ -95,8 +97,8 @@ public class TableSendManager extends DefaultSendActionManager {
          * @param   table  table
          * @return   servable resource
          */
-        private TopcatServer.Resource createResource( final StarTable table ) {
-            return new TopcatServer.Resource() {
+        private ServerResource createResource( final StarTable table ) {
+            return new ServerResource() {
                 public long getContentLength() {
                     return -1L;
                 } 
