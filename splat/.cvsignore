@@ -1,0 +1,11 @@
+*.sdf
+*.fits
+*.xml
+*.txt
+*.log
+bin
+build
+etc
+lib
+docs
+.splat.install
