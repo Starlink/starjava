@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
@@ -34,6 +35,8 @@ public class TopcatServer {
     private final ClientProfile profile_;
     private boolean started_;
     private static TopcatServer instance_;
+    private static Logger logger_ =
+        Logger.getLogger( TopcatServer.class.getName() );
 
     /**
      * Private constructor constructs sole instance.
@@ -93,10 +96,19 @@ public class TopcatServer {
      * @param   resource   resource to make available
      * @return    URL at which <code>resource</code> can be found
      */
-    public URL addResource( String name, Resource resource ) {
+    public URL addResource( String name, ServerResource resource ) {
         checkStarted();
         return resourceHandler_.addResource( name == null ? "" : name,
                                              resource );
+    }
+
+    /**
+     * Removes a resource from this server.
+     *
+     * @param  url  URL returned by a previous addResource call
+     */
+    public void expireResource( URL url ) {
+        resourceHandler_.expireResource( url );
     }
 
     /**
@@ -136,6 +148,19 @@ public class TopcatServer {
         private final Map resourceMap_;
         private int iRes_;
 
+        /** Dummy resource indicating a withdrawn item. */
+        private static final ServerResource EXPIRED = new ServerResource() {
+            public String getContentType() {
+                throw new AssertionError();
+            }
+            public long getContentLength() {
+                throw new AssertionError();
+            }
+            public void writeBody( OutputStream out ) {
+                throw new AssertionError();
+            }
+        };
+
         /**
          * Constructor.
          *
@@ -162,17 +187,37 @@ public class TopcatServer {
          * @param   resource  resource to make available
          * @return   URL at which resource can be found
          */
-        public synchronized URL addResource( String name, Resource resource ) {
+        public synchronized URL addResource( String name,
+                                             ServerResource resource ) {
             String path = basePath_ + Integer.toString( ++iRes_ ) + "/";
             if ( name != null ) {
                 path += name;
             }
             resourceMap_.put( path, resource );
             try {
+                URL url = new URL( serverUrl_, path );
+                logger_.info( "Resource added: " + url );
                 return new URL( serverUrl_, path );
             }
             catch ( MalformedURLException e ) {
                 throw new AssertionError( "Unknown protocol http??" );
+            }
+        }
+
+        /**
+         * Removes a resource from this server.
+         *
+         * @param  url  URL returned by a previous addResource call
+         */
+        public synchronized void expireResource( URL url ) {
+            String path = url.getPath();
+            if ( resourceMap_.containsKey( path ) ) {
+                logger_.info( "Resource expired: " + url );
+                resourceMap_.put( path, EXPIRED );
+            } 
+            else {
+                throw new IllegalArgumentException( "Unknown URL to expire: "
+                                                  + url );
             }
         }
 
@@ -181,8 +226,12 @@ public class TopcatServer {
             if ( ! path.startsWith( basePath_ ) ) {
                 return null;
             }
-            else if ( resourceMap_.containsKey( path ) ) {
-                final Resource resource = (Resource) resourceMap_.get( path );
+            final ServerResource resource =
+                (ServerResource) resourceMap_.get( path );
+            if ( resource == EXPIRED ) {
+                return HttpServer.createErrorResponse( 410, "Gone" );
+            }
+            else if ( resource != null ) {
                 Map hdrMap = new HashMap();
                 hdrMap.put( "Content-Type", resource.getContentType() );
                 long contentLength = resource.getContentLength();
@@ -214,33 +263,5 @@ public class TopcatServer {
                 return HttpServer.createErrorResponse( 404, "Not found" );
             }
         }
-    }
-
-    /**
-     * Defines a resource served by this server.
-     */
-    public interface Resource {
-
-        /**
-         * Returns the MIME type of this resource.
-         *
-         * @return   value of Content-Type HTTP header
-         */
-        String getContentType();
-
-        /**
-         * Returns the number of bytes in this resource, if known.
-         *
-         * @return   value of Content-Length HTTP header if known;
-         *           otherwise a negative number
-         */
-        long getContentLength();
-
-        /**
-         * Writes resource body.
-         *
-         * @param  out  destination stream
-         */
-        void writeBody( OutputStream out ) throws IOException;
     }
 }
