@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
@@ -26,6 +27,11 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.topcat.BitsRowSubset;
+import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
@@ -76,9 +82,6 @@ public class TopcatSampConnector extends HubConnector {
             addMessageHandler( handlers[ ih ] );
         }
         declareSubscriptions( computeSubscriptions() );
-
-        /* Set an autoconnect time and start looking out for a hub. */
-        setAutoconnect( 5 );
     }
 
     /**
@@ -118,7 +121,7 @@ public class TopcatSampConnector extends HubConnector {
         /* It's not, so we will need to make a new entry in the map as well
          * as returning an ID. */
         /* If the rowMap is null and the table has a URL, use that as the ID. */
-        URL url = tcModel.getDataModel().getURL();
+        URL url = tcModel.getDataModel().getBaseTable().getURL();
         String id;
         if ( rowMap == null && url != null ) {
             id = url.toString();
@@ -128,6 +131,87 @@ public class TopcatSampConnector extends HubConnector {
         }
         idMap_.put( id, new TableWithRows( tcModel, rowMap ) );
         return id;
+    }
+
+    /**
+     * Creates a message suitable for sending a row list selection SAMP
+     * message to other clients.  It is sensibly done here because this
+     * class keeps track of which tables have been labelled with which
+     * IDs in communications with other SAMP clients.
+     *
+     * @param  tcModel  table
+     * @param  rset    row subset of tcModel to send
+     * @return   table.select.rowList message
+     */
+    public Map createSubsetMessage( TopcatModel tcModel, RowSubset rset ) {
+
+        /* Try to identify a table we have already talked about via SAMP 
+         * which relates to the supplied table. 
+         * Note this can't be done perfectly: there may be more than one
+         * possible entry in the stored ID map, if the same table has been
+         * broadcast multiple times using different row maps.  But since we
+         * are only being asked to send one message, we have to plump 
+         * for one of them.  Just pick the first (i.e. a random) one. */
+        TableWithRows tr = new TableWithRows( tcModel, null );
+        String tableId = null;
+        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            String id = (String) entry.getKey();
+            TableWithRows twr = (TableWithRows) entry.getValue();
+            if ( twr.getTable() == tcModel ) {
+                tableId = id;
+                tr = twr;
+                break;
+            }
+        }
+
+        /* Try to get a URL for it, if it does not represent a table with
+         * permuted rows (if it did, messages about row indexes would
+         * use the wrong values). */
+        String url = null;
+        if ( tr.getRowMap() == null ) {
+            URL uurl = tcModel.getDataModel().getBaseTable().getURL();
+            if ( uurl != null ) {
+                url = uurl.toString();
+            }
+        }
+
+        /* Assemble a list of row indices in SAMP-friendly format which 
+         * represents the subset we have been asked to represent,
+         * but in terms of the row numbers of the publicly identified table. */
+        int[] rowMap = tr.getRowMap();
+        List rowList = new ArrayList();
+        if ( rowMap == null ) {
+            int nrow = (int) tcModel.getDataModel().getRowCount();
+            for ( int ir = 0; ir < nrow; ir++ ) {
+                if ( rset.isIncluded( ir ) ) {
+                    rowList.add( SampUtils.encodeInt( ir ) );
+                }
+            }
+        }
+        else {
+            int nrow = rowMap.length;
+            for ( int ir = 0; ir < nrow; ir++ ) {
+                if ( rset.isIncluded( rowMap[ ir ] ) ) {
+                    rowList.add( SampUtils.encodeInt( ir ) );
+                }
+            }
+        }
+
+        /* Assemble and return the SAMP message. */
+        Message msg = new Message( "table.select.rowList" );
+        if ( tableId != null ) {
+            msg.addParam( "table-id", tableId );
+        }
+        if ( url != null ) {
+            msg.addParam( "url", url );
+        }
+        if ( url == null && tableId == null ) {
+            msg.addParam( "table-id", createId() );  // pretty pointless
+        }
+        msg.addParam( "row-list", rowList );
+        msg.check();
+        return msg;
     }
 
     /**
