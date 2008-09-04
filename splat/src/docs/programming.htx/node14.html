@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+
+<!--Converted with LaTeX2HTML 2002-2 (1.70)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -11,36 +12,41 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <META NAME="keywords" CONTENT="programming">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
 <LINK REL="STYLESHEET" HREF="programming.css">
+
 <LINK REL="next" HREF="node15.html">
 <LINK REL="previous" HREF="node13.html">
 <LINK REL="up" HREF="node13.html">
 <LINK REL="next" HREF="node15.html">
 </HEAD>
+
 <BODY >
 <BR> <HR>
 <A NAME="tex2html249"
- HREF="node15.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html247"
- HREF="node13.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html241"
- HREF="node13.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html250"
- HREF="node15.html">SpectralFileFilter</A>
+  HREF="node15.html">SpectralFileFilter</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html248"
- HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+  HREF="node13.html">Package uk.ac.starlink.splat.util</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html242"
- HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+  HREF="node13.html">Package uk.ac.starlink.splat.util</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
@@ -52,46 +58,55 @@ RemoteUtilities
    
 <P>
 
+<!-- MATH
+ $\fbox{\parbox{\textwidth}{
+\textit{public
+ class RemoteUtilities}
+}}$
+ -->
 <IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="img8.gif"
+ WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img9.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
 class RemoteUtilities}
-}}">
-
+}}"> 
 <P>
 This class provides utility methods for remote control based
  access to SPLAT.
 
 <P>
 <B><FONT SIZE="+1">Methods</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public static boolean <B>isListening</B>(<TT>Object[]</TT> <B>contactDetails</B>)<A NAME="l238"></A><A NAME="l239"></A></TT>
 <BLOCKQUOTE>Find out if SPLAT is listening on the given hostname and port
  and recognises the given cookie.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>contactDetails</B></STRONG>
+<DT><STRONG><B>contactDetails</B></STRONG></DT>
 <DD>return from readContactFile.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns true if an instance of SPLAT was successfully contacted. 
-
+<UL>
+<LI>Returns true if an instance of SPLAT was successfully contacted. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public static Object <B>readContactFile</B>()<A NAME="l240"></A><A NAME="l241"></A></TT>
 <BLOCKQUOTE>Parse the contact file returning its contents as an Object array.
 
-<UL><LI>Returns array of three Objects. These are really the hostname
+<UL>
+<LI>Returns array of three Objects. These are really the hostname
          String, an Integer with the port number and a String
          containing the validation cookie. Returns null if not
          available. 
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public static String <B>sendRemoteCommand</B>(<TT>Object[]</TT> <B>contactDetails</B>, <TT>String</TT> <B>command</B>)<A NAME="l242"></A><A NAME="l243"></A></TT>
@@ -99,49 +114,57 @@ This class provides utility methods for remote control based
  interpreter. Needs the hostname, port and cookie from the
  contact file.
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>contactDetails</B></STRONG>
+<DT><STRONG><B>contactDetails</B></STRONG></DT>
 <DD>return from readContactFile.
-   <DT><STRONG><B>command</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>command</B></STRONG></DT>
 <DD>the beanshell command to execute.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the string that returns from the command, null for an error. 
-
+<UL>
+<LI>Returns the string that returns from the command, null for an error. 
+</LI>
 <LI>Exceptions
-
-<UL><LI>
+  
+<UL>
+<LI>
 <BR><TT>Exception</TT> - exception resulting from any network problems.
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <BR> <HR>
 <A NAME="tex2html249"
- HREF="node15.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html247"
- HREF="node13.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html241"
- HREF="node13.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html250"
- HREF="node15.html">SpectralFileFilter</A>
+  HREF="node15.html">SpectralFileFilter</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html248"
- HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+  HREF="node13.html">Package uk.ac.starlink.splat.util</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html242"
- HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+  HREF="node13.html">Package uk.ac.starlink.splat.util</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

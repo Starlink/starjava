@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+
+<!--Converted with LaTeX2HTML 2002-2 (1.70)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -11,35 +12,40 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <META NAME="keywords" CONTENT="programming">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
 <LINK REL="STYLESHEET" HREF="programming.css">
+
 <LINK REL="previous" HREF="node9.html">
 <LINK REL="up" HREF="node7.html">
 <LINK REL="next" HREF="node11.html">
 </HEAD>
+
 <BODY >
 <BR> <HR>
 <A NAME="tex2html208"
- HREF="node11.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node11.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html206"
- HREF="node7.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html202"
- HREF="node9.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node9.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html209"
- HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
+  HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html207"
- HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+  HREF="node7.html">Package uk.ac.starlink.splat.data</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html203"
- HREF="node9.html">SpecData</A>
+  HREF="node9.html">SpecData</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
@@ -51,14 +57,19 @@ SpecDataFactory
    
 <P>
 
+<!-- MATH
+ $\fbox{\parbox{\textwidth}{
+\textit{public
+ class SpecDataFactory}
+}}$
+ -->
 <IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="img6.gif"
+ WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img6.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
 class SpecDataFactory}
-}}">
-
+}}"> 
 <P>
 This class creates and clones instances of SpecData that are
  appropriate to the data format of the given spectrum specification.
@@ -71,33 +82,38 @@ The specification is usual the file name plus extension and any
 
 <P>
 <B><FONT SIZE="+1">Methods</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public SpecData <B>get</B>(<TT>String</TT> <B>specspec</B>)<A NAME="l123"></A><A NAME="l124"></A></TT>
 <BLOCKQUOTE>Check the format of the incoming specification and create an
   instance of SpecData for it.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>specspec</B></STRONG>
+<DT><STRONG><B>specspec</B></STRONG></DT>
 <DD>the specification of the spectrum to be
                   opened (i.e. file.fits, file.sdf,
                   file.fits[2], file.more.ext_1 etc.).
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the SpecData object created from the given
+<UL>
+<LI>Returns the SpecData object created from the given
           specification. 
-
+</LI>
 <LI>Exceptions
-
-<UL><LI>
+  
+<UL>
+<LI>
 <BR><TT>SplatException</TT> - thrown if specification does not
              specify a spectrum.
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public SpecData
@@ -108,60 +124,69 @@ The specification is usual the file name plus extension and any
  another implementation format. The destination format is
  decided using the usual rules on specification string.
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>source</B></STRONG>
+<DT><STRONG><B>source</B></STRONG></DT>
 <DD>SpecData object to be cloned.
-   <DT><STRONG><B>specspec</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>specspec</B></STRONG></DT>
 <DD>name of the resultant clone (defines
                  implementation type).
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the cloned SpecData object. 
-
+<UL>
+<LI>Returns the cloned SpecData object. 
+</LI>
 <LI>Exceptions
-
-<UL><LI>
+  
+<UL>
+<LI>
 <BR><TT>SplatException</TT> - maybe thrown if there are problems
             creating the new SpecData object or the implementation.
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public static SpecDataFactory <B>getReference</B>()<A NAME="l127"></A><A NAME="l128"></A></TT>
 <BLOCKQUOTE>Return reference to the only allowed instance of this class.
 
-<UL><LI>Returns reference to only instance of this class. 
-
+<UL>
+<LI>Returns reference to only instance of this class. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 
 <P>
 <BR> <HR>
 <A NAME="tex2html208"
- HREF="node11.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node11.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html206"
- HREF="node7.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html202"
- HREF="node9.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node9.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html209"
- HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
+  HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html207"
- HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+  HREF="node7.html">Package uk.ac.starlink.splat.data</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html203"
- HREF="node9.html">SpecData</A>
+  HREF="node9.html">SpecData</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+
+<!--Converted with LaTeX2HTML 2002-2 (1.70)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -11,35 +12,40 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <META NAME="keywords" CONTENT="programming">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
 <LINK REL="STYLESHEET" HREF="programming.css">
+
 <LINK REL="previous" HREF="node4.html">
 <LINK REL="up" HREF="node3.html">
 <LINK REL="next" HREF="node6.html">
 </HEAD>
+
 <BODY >
 <BR> <HR>
 <A NAME="tex2html145"
- HREF="node6.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html143"
- HREF="node3.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html139"
- HREF="node4.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html146"
- HREF="node6.html">API documentation</A>
+  HREF="node6.html">API documentation</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html144"
- HREF="node3.html">Extending SPLAT</A>
+  HREF="node3.html">Extending SPLAT</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html140"
- HREF="node4.html">Plugins</A>
+  HREF="node4.html">Plugins</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
@@ -54,10 +60,11 @@ simple things like display a spectrum and add a spectrum to a plot. In
 fact this is such a useful idea that there are two commands already
 available. These are:
 
-<UL><LI><TT>splatdisp</TT>
-
+<UL>
+<LI><TT>splatdisp</TT>
+</LI>
 <LI><TT>splatdispmany</TT>
-
+</LI>
 </UL>
 The first command takes the name of a spectrum and adds it to a plot,
 if a plot identifier is given (this is the <TT>n</TT> in any names
@@ -78,14 +85,15 @@ is the same as described in the plugins section.
 The port number used by <I>SPLAT</I> is written into the file
 <TT>$HOME/.splat/.remote</TT>, which can only be read by the
 owner. The file contains three fields:
-<DL COMPACT>
-<DT>1.
-<DD>the machine internet address
-<DT>2.
-<DD>the port number
-<DT>3.
-<DD>a security cookie
-</DL>
+
+<OL>
+<LI>the machine internet address
+</LI>
+<LI>the port number
+</LI>
+<LI>a security cookie
+</LI>
+</OL>
 When you connect through a port the first message you send should be
 the security cookie. If this isn't given or an invalid value is given
 then the port is immediately closed. After this is acknowledged you
@@ -99,9 +107,12 @@ given wavelength. The second changes the drawing colour of a spectrum.
 
 <P>
 <DIV ALIGN="CENTER">
-  <IMG
- WIDTH="199" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
- SRC="img2.gif"
+<!-- MATH
+ $\fbox{Example zoom and centre}$
+ -->
+<IMG
+ WIDTH="200" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
  ALT="\fbox{Example zoom and centre}">
 </DIV>
 
@@ -289,9 +300,12 @@ The example is available as the command <TT>zoomandcentre</TT> in
 
 <P>
 <DIV ALIGN="CENTER">
-  <IMG
- WIDTH="150" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
- SRC="img3.gif"
+<!-- MATH
+ $\fbox{Example set colour}$
+ -->
+<IMG
+ WIDTH="151" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
  ALT="\fbox{Example set colour}">
 </DIV>
 
@@ -452,29 +466,28 @@ in this document about the internal API structure).
 
 <P>
 
-<P>
 <BR> <HR>
 <A NAME="tex2html145"
- HREF="node6.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html143"
- HREF="node3.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html139"
- HREF="node4.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html146"
- HREF="node6.html">API documentation</A>
+  HREF="node6.html">API documentation</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html144"
- HREF="node3.html">Extending SPLAT</A>
+  HREF="node3.html">Extending SPLAT</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html140"
- HREF="node4.html">Plugins</A>
+  HREF="node4.html">Plugins</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

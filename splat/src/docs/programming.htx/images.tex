@@ -1,91 +1,168 @@
 \batchmode
 \documentclass[twoside,11pt]{article}
-\makeatletter
-\input{/loc/pwda/pdraper/java/cvs/java/source/splat/src/docs/programming_htx/html.sty}
-\input{/loc/pwda/pdraper/java/cvs/java/source/splat/src/docs/programming_htx/star2html.sty} 
+\RequirePackage{ifthen}
 
-\usepackage{graphicx}
+
+\input{/loc/pwda/pdraper/java/amd64/java/source/splat/src/docs/programming_htx/html.sty}
+\input{/loc/pwda/pdraper/java/amd64/java/source/splat/src/docs/programming_htx/star2html.sty} 
+
+
+\usepackage{graphicx}        
+
 
 \pagestyle{myheadings}
 \raggedbottom
 
-\providecommand{\stardoccategory}  {Programming User Note}\providecommand{\stardocinitials}  {PROG}\providecommand{\stardocsource}    {PRG1.1}\providecommand{\stardoccopyright}
-{Copyright \copyright\ 2001 Council for the Central Laboratory of the
-Research Councils}
-\providecommand{\stardocnumber}    {1.1}\providecommand{\stardocauthors}   {Peter W. Draper}\providecommand{\stardocdate}      {21 December 2001}\providecommand{\stardoctitle}     {SPLAT - A Spectral Analysis Tool}\providecommand{\stardocversion}   {1.0}\providecommand{\stardocmanual}    {Provisional Programmers' Manual}\providecommand{\stardocabstract}  {
+%
+\providecommand{\stardoccategory}{Programming User Note}%
+\providecommand{\stardocinitials}{PROG}%
+\providecommand{\stardocsource}{PRG1.1}%
+\providecommand{\stardoccopyright}{Copyright \copyright\ 2001 Council for the Central Laboratory of the
+Research Councils} 
+
+%
+\providecommand{\stardocnumber}{1.1}%
+\providecommand{\stardocauthors}{Peter W. Draper}%
+\providecommand{\stardocdate}{21 December 2001}%
+\providecommand{\stardoctitle}{SPLAT - A Spectral Analysis Tool}%
+\providecommand{\stardocversion}{1.0}%
+\providecommand{\stardocmanual}{Provisional Programmers' Manual}%
+\providecommand{\stardocabstract}{
 \textsf{SPLAT} is an extensible analysis and display tool for extracted
 spectra. This document describes some information that is expected to
 be useful when extending \textsf{SPLAT}.
-}
-\providecommand{\stardocname}{PROG/1.1}\markboth{PROG/1.1}{PROG/1.1}
-\setlength{\textwidth}{160mm}\setlength{\textheight}{230mm}\setlength{\topmargin}{-2mm}\setlength{\oddsidemargin}{0mm}\setlength{\evensidemargin}{0mm}\setlength{\parindent}{0mm}\setlength{\parskip}{\medskipamount}\setlength{\unitlength}{1mm}
-\providecommand{\SPLAT}{\textsf{SPLAT}}
-\providecommand{\mainfigure}[1]
-{\begin{center}
+} 
+
+%
+\providecommand{\stardocname}{PROG/1.1} 
+\markboth{PROG/1.1}{PROG/1.1}
+
+\setlength{\textwidth}{160mm} 
+
+\setlength{\textheight}{230mm} 
+
+\setlength{\topmargin}{-2mm} 
+
+\setlength{\oddsidemargin}{0mm} 
+
+\setlength{\evensidemargin}{0mm} 
+
+\setlength{\parindent}{0mm} 
+
+\setlength{\parskip}{\medskipamount} 
+
+\setlength{\unitlength}{1mm} 
+
+%
+\providecommand{\SPLAT}{\textsf{SPLAT}} 
+
+%
+\providecommand{\mainfigure}[1]{\begin{center}
  \htmladdimg{#1.gif}
  \end{center}
-}
-\providecommand{\clippedmainfigure}[1]
-{\begin{quote}
+} 
+
+%
+\providecommand{\clippedmainfigure}[1]{\begin{quote}
  \htmladdimg{#1.gif}
  \end{quote}
-}
-\providecommand{\inline}[1]
-        {\htmladdimg[align=center]{#1.gif}}
-\providecommand{\menuitem}[1]{\textbf{#1}}\providecommand{\submenuitem}[2]{\textbf{#1=>#2}}\providecommand{\labelitem}[1]{\textbf{#1}}
-\providecommand{\hitext}[1]{\texttt{#1}}
-\providecommand{\ie}{\textit{i.e.}}
-\providecommand{\eg}{\textit{e.g.}}
-\providecommand{\etc}{\textit{etc.}}
-\providecommand{\subheading}[1]{\textbf{\large{#1}}}
-\providecommand{\exampleheading}[1]
-{\begin{center}
+} 
+
+%
+\providecommand{\inline}[1]{\htmladdimg[align=center]{#1.gif}} 
+
+%
+\providecommand{\menuitem}[1]{\textbf{#1}}%
+\providecommand{\submenuitem}[2]{\textbf{#1=>#2}}%
+\providecommand{\labelitem}[1]{\textbf{#1}} 
+
+%
+\providecommand{\hitext}[1]{\texttt{#1}} 
+
+%
+\providecommand{\ie}{\textit{i.e.}} 
+
+%
+\providecommand{\eg}{\textit{e.g.}} 
+
+%
+\providecommand{\etc}{\textit{etc.}} 
+
+%
+\providecommand{\subheading}[1]{\textbf{\large{#1}}} 
+
+%
+\providecommand{\exampleheading}[1]{\begin{center}
   \fbox{#1}
  \end{center}
-}
+} 
+
+%
 \providecommand{\entityintro}[3]{
   \htmlref{\textbf{\Large{#1}}}{#2}
   \dotfill\pageref{#2}
   \begin{quote}
   #3
   \end{quote}
-}
-\providecommand{\refdefined}[1]{}
+} 
+
+%
+\providecommand{\refdefined}[1]{} 
+
+%
 \providecommand{\startsection}[4]{
    \subsubsection{\label{#3}{#2}}
    #4
-}
+} 
+
+%
 \providecommand{\startsubsubsection}[1]{
    \begin{quote}
    \textbf{\large{#1}}
    \end{quote}
-}
-\providecommand{\method}[1]{\texttt{#1}}
-\newenvironment{desc}{\begin{quote}}{\end{quote}}
+} 
+
+%
+\providecommand{\method}[1]{\texttt{#1}} 
+
+
+
+%
+\newenvironment{desc}{\begin{quote}}{\end{quote}} 
+
+%
 \providecommand{\constructors}{
    
 
 \textbf{\large{Constructors}}\\
    \hrule
-}
+} 
+
+%
 \providecommand{\methods}{
    
 
 \textbf{\large{Methods}}\\
    \hrule
-}
+} 
+
+%
 \providecommand{\inherited}[1]{
    
 
 \textbf{\large{Methods inherited from class #1}}\\
    \hrule
-}
+} 
+
+%
 \providecommand{\fields}[1]{
    
 
 \textbf{\large{#1}}\\
    \hrule
-}
+} 
+
+%
 \providecommand{\field}[2]{
    
 
@@ -93,10 +170,19 @@ be useful when extending \textsf{SPLAT}.
    \begin{itemize}
    \item #2
    \end{itemize}
-}
+} 
+
+
+%
 \renewcommand{\thepage}{\roman{page}}
+
+
 \usepackage[dvips]{color}
-\pagecolor[gray]{.7}
+
+
+\pagecolor{white}
+
+\usepackage[]{inputenc}
 
 
 
@@ -104,7 +190,14 @@ be useful when extending \textsf{SPLAT}.
 
 \makeatletter
 \count@=\the\catcode`\_ \catcode`\_=8 
-\newenvironment{tex2html_wrap}{}{} \catcode`\_=\count@
+\newenvironment{tex2html_wrap}{}{}%
+\catcode`\<=12\catcode`\_=\count@
+\newcommand{\providedcommand}[1]{\expandafter\providecommand\csname #1\endcsname}%
+\newcommand{\renewedcommand}[1]{\expandafter\providecommand\csname #1\endcsname{}%
+  \expandafter\renewcommand\csname #1\endcsname}%
+\newcommand{\newedenvironment}[1]{\newenvironment{#1}{}{}\renewenvironment{#1}}%
+\let\newedcommand\renewedcommand
+\let\renewedenvironment\newedenvironment
 \makeatother
 \let\mathon=$
 \let\mathoff=$
@@ -115,54 +208,58 @@ be useful when extending \textsf{SPLAT}.
 \addtolength{\textheight}{\topmargin}\setlength{\topmargin}{0pt}
 \addtolength{\textheight}{\headheight}\setlength{\headheight}{0pt}
 \addtolength{\textheight}{\headsep}\setlength{\headsep}{0pt}
-\setlength{\textwidth}{451pt}
-\setlength{\textheight}{554pt}
+\setlength{\textwidth}{698pt}
+\setlength{\textheight}{902pt}
 \newwrite\lthtmlwrite
 \makeatletter
 \let\realnormalsize=\normalsize
 \global\topskip=2sp
 \def\preveqno{}\let\real@float=\@float \let\realend@float=\end@float
 \def\@float{\let\@savefreelist\@freelist\real@float}
+\def\liih@math{\ifmmode$\else\bad@math\fi}
 \def\end@float{\realend@float\global\let\@freelist\@savefreelist}
 \let\real@dbflt=\@dbflt \let\end@dblfloat=\end@float
 \let\@largefloatcheck=\relax
+\let\if@boxedmulticols=\iftrue
 \def\@dbflt{\let\@savefreelist\@freelist\real@dbflt}
 \def\adjustnormalsize{\def\normalsize{\mathsurround=0pt \realnormalsize
- \parindent=0pt\abovedisplayskip=0pt\belowdisplayskip=0pt}\normalsize}%
-\def\lthtmltypeout#1{{\let\protect\string\immediate\write\lthtmlwrite{#1}}}%
+ \parindent=0pt\abovedisplayskip=0pt\belowdisplayskip=0pt}%
+ \def\phantompar{\csname par\endcsname}\normalsize}%
+\def\lthtmltypeout#1{{\let\protect\string \immediate\write\lthtmlwrite{#1}}}%
 \newcommand\lthtmlhboxmathA{\adjustnormalsize\setbox\sizebox=\hbox\bgroup\kern.05em }%
 \newcommand\lthtmlhboxmathB{\adjustnormalsize\setbox\sizebox=\hbox to\hsize\bgroup\hfill }%
 \newcommand\lthtmlvboxmathA{\adjustnormalsize\setbox\sizebox=\vbox\bgroup %
- \let\ifinner=\iffalse }%
+ \let\ifinner=\iffalse \let\)\liih@math }%
 \newcommand\lthtmlboxmathZ{\@next\next\@currlist{}{\def\next{\voidb@x}}%
  \expandafter\box\next\egroup}%
-\newcommand\lthtmlmathtype[1]{\def\lthtmlmathenv{#1}}%
+\newcommand\lthtmlmathtype[1]{\gdef\lthtmlmathenv{#1}}%
 \newcommand\lthtmllogmath{\lthtmltypeout{l2hSize %
 :\lthtmlmathenv:\the\ht\sizebox::\the\dp\sizebox::\the\wd\sizebox.\preveqno}}%
 \newcommand\lthtmlfigureA[1]{\let\@savefreelist\@freelist
-
        \lthtmlmathtype{#1}\lthtmlvboxmathA}%
-\newcommand\lthtmlpictureA[1]{\let\@savefreelist\@freelist
-
-       \lthtmlmathtype{#1}\lthtmlhboxmathB}%
+\newcommand\lthtmlpictureA{\bgroup\catcode`\_=8 \lthtmlpictureB}%
+\newcommand\lthtmlpictureB[1]{\lthtmlmathtype{#1}\egroup
+       \let\@savefreelist\@freelist \lthtmlhboxmathB}%
 \newcommand\lthtmlpictureZ[1]{\hfill\lthtmlfigureZ}%
 \newcommand\lthtmlfigureZ{\lthtmlboxmathZ\lthtmllogmath\copy\sizebox
-
        \global\let\@freelist\@savefreelist}%
-\newcommand\lthtmldisplayA[1]{\lthtmlmathtype{#1}\lthtmlvboxmathA}%
+\newcommand\lthtmldisplayA{\bgroup\catcode`\_=8 \lthtmldisplayAi}%
+\newcommand\lthtmldisplayAi[1]{\lthtmlmathtype{#1}\egroup\lthtmlvboxmathA}%
 \newcommand\lthtmldisplayB[1]{\edef\preveqno{(\theequation)}%
   \lthtmldisplayA{#1}\let\@eqnnum\relax}%
 \newcommand\lthtmldisplayZ{\lthtmlboxmathZ\lthtmllogmath\lthtmlsetmath}%
-\newcommand\lthtmlinlinemathA[1]{\lthtmlmathtype{#1}\lthtmlhboxmathA
+\newcommand\lthtmlinlinemathA{\bgroup\catcode`\_=8 \lthtmlinlinemathB}
+\newcommand\lthtmlinlinemathB[1]{\lthtmlmathtype{#1}\egroup\lthtmlhboxmathA
   \vrule height1.5ex width0pt }%
-\newcommand\lthtmlinlineA[1]{\lthtmlmathtype{#1}\lthtmlhboxmathA}%
+\newcommand\lthtmlinlineA{\bgroup\catcode`\_=8 \lthtmlinlineB}%
+\newcommand\lthtmlinlineB[1]{\lthtmlmathtype{#1}\egroup\lthtmlhboxmathA}%
 \newcommand\lthtmlinlineZ{\egroup\expandafter\ifdim\dp\sizebox>0pt %
   \expandafter\centerinlinemath\fi\lthtmllogmath\lthtmlsetinline}
 \newcommand\lthtmlinlinemathZ{\egroup\expandafter\ifdim\dp\sizebox>0pt %
   \expandafter\centerinlinemath\fi\lthtmllogmath\lthtmlsetmath}
 \newcommand\lthtmlindisplaymathZ{\egroup %
   \centerinlinemath\lthtmllogmath\lthtmlsetmath}
-\def\lthtmlsetinline{\hbox{\vrule width.1em\kern-.05em\vtop{\vbox{%
+\def\lthtmlsetinline{\hbox{\vrule width.1em \vtop{\vbox{%
   \kern.1em\copy\sizebox}\ifdim\dp\sizebox>0pt\kern.1em\else\kern.3pt\fi
   \ifdim\hsize>\wd\sizebox \hrule depth1pt\fi}}}
 \def\lthtmlsetmath{\hbox{\vrule width.1em\kern-.05em\vtop{\vbox{%
@@ -177,6 +274,7 @@ be useful when extending \textsf{SPLAT}.
 \def\lthtmlcheckvsize{\ifdim\ht\sizebox<\vsize 
   \ifdim\wd\sizebox<\hsize\expandafter\hfill\fi \expandafter\vfill
   \else\expandafter\vss\fi}%
+\providecommand{\selectlanguage}[1]{}%
 \makeatletter \tracingstats = 1 
 
 
@@ -205,27 +303,26 @@ be useful when extending \textsf{SPLAT}.
 \stepcounter{section}
 
 \renewcommand{\thepage}{\arabic{page}}
-\setcounter{page}{1}
 \stepcounter{section}
 \stepcounter{section}
 \stepcounter{subsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline477}%
+\lthtmlinlinemathA{tex2html_wrap_inline473}%
 \fbox{Example spectral auto-loading}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline568}%
+\lthtmlinlinemathA{tex2html_wrap_inline562}%
 \fbox{Example zoom and centre}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline582}%
+\lthtmlinlinemathA{tex2html_wrap_inline576}%
 \fbox{Example set colour}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \appendix
@@ -233,85 +330,103 @@ be useful when extending \textsf{SPLAT}.
 \stepcounter{subsection}
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline2153}%
+\lthtmlinlinemathA{tex2html_wrap_inline2143}%
 \fbox
 {\parbox{\textwidth}{
 \textit{public class MEMSpecDataImpl extends SpecDataImpl}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline2197}%
+\lthtmlinlinemathA{tex2html_wrap_inline2187}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class SpecData implements SpecDataAccess, AnalyticSpectrum, java.io.Serializable}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline2369}%
+\lthtmlinlinemathA{tex2html_wrap_inline2359}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class SpecDataFactory}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsection}
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline3487}%
+\lthtmlinlinemathA{tex2html_wrap_inline3477}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class PlotControl extends javax.swing.JPanel implements MouseMotionTracker, SpecListener, FigureListener, PlotScaledListener, java.awt.event.ActionListener}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
+\lthtmlcheckvsize\clearpage}
+
+{\newpage\clearpage
+\lthtmlinlinemathA{tex2html_wrap_inline3459}%
+$/$%
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsection}
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline3956}%
+\lthtmlinlinemathA{tex2html_wrap_inline3946}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class RemoteUtilities}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline3974}%
+\lthtmlinlinemathA{tex2html_wrap_inline3964}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class SpectralFileFilter implements java.io.FileFilter}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
+\lthtmlcheckvsize\clearpage}
+
+{\newpage\clearpage
+\lthtmlinlinemathA{tex2html_wrap_inline3930}%
+$\{$%
+\lthtmlinlinemathZ
+\lthtmlcheckvsize\clearpage}
+
+{\newpage\clearpage
+\lthtmlinlinemathA{tex2html_wrap_inline3932}%
+$\}$%
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsection}
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline5484}%
+\lthtmlinlinemathA{tex2html_wrap_inline5474}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class GlobalSpecPlotList}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{subsubsection}
 {\newpage\clearpage
-\lthtmlinlineA{tex2html_nomath_inline5570}%
+\lthtmlinlinemathA{tex2html_wrap_inline5560}%
 \fbox{\parbox{\textwidth}{
 \textit{public
  class SplatBrowser extends javax.swing.JFrame}
 }}%
-\lthtmlinlineZ
+\lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 \stepcounter{section}
@@ -321,6 +436,18 @@ be useful when extending \textsf{SPLAT}.
 \stepcounter{subsection}
 \stepcounter{subsubsection}
 \stepcounter{subsection}
+{\newpage\clearpage
+\lthtmlinlinemathA{tex2html_wrap_inline5788}%
+$|$%
+\lthtmlinlinemathZ
+\lthtmlcheckvsize\clearpage}
+
+{\newpage\clearpage
+\lthtmlinlinemathA{tex2html_wrap_inline5796}%
+$[]$%
+\lthtmlinlinemathZ
+\lthtmlcheckvsize\clearpage}
+
 \stepcounter{subsection}
 \stepcounter{subsubsection}
 \stepcounter{subsubsection}

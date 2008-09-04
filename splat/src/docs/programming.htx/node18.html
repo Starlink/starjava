@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+
+<!--Converted with LaTeX2HTML 2002-2 (1.70)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -11,35 +12,40 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <META NAME="keywords" CONTENT="programming">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
 <LINK REL="STYLESHEET" HREF="programming.css">
+
 <LINK REL="previous" HREF="node17.html">
 <LINK REL="up" HREF="node16.html">
 <LINK REL="next" HREF="node19.html">
 </HEAD>
+
 <BODY >
 <BR> <HR>
 <A NAME="tex2html285"
- HREF="node19.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node19.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html283"
- HREF="node16.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node16.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html279"
- HREF="node17.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node17.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html286"
- HREF="node19.html">BeanShell User's Manual</A>
+  HREF="node19.html">BeanShell User's Manual</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html284"
- HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+  HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html280"
- HREF="node17.html">GlobalSpecPlotList</A>
+  HREF="node17.html">GlobalSpecPlotList</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
@@ -51,14 +57,19 @@ SplatBrowser
    
 <P>
 
+<!-- MATH
+ $\fbox{\parbox{\textwidth}{
+\textit{public
+ class SplatBrowser extends javax.swing.JFrame}
+}}$
+ -->
 <IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="img11.gif"
+ WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img14.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
 class SplatBrowser extends javax.swing.JFrame}
-}}">
-
+}}"> 
 <P>
 This is the main class for the SPLAT program. It creates the
  browser interface that displays and controls the global lists of
@@ -86,35 +97,35 @@ The actual display and interactive analysis of spectra takes place
 
 <P>
 <B><FONT SIZE="+1">Serializable Fields</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 
 <P>
 <TT>private Timer <B>waitTimer</B></TT>
-
-<UL><LI>Timer for used for event queue actions.
    
+<UL>
+<LI>Timer for used for event queue actions.
+   
+</LI>
 </UL>
 
 <P>
 <TT>private int <B>filesDone</B></TT>
-
-<UL><LI>Number of spectra currently loaded by the addChosenSpectra method.
    
+<UL>
+<LI>Number of spectra currently loaded by the addChosenSpectra method.
+   
+</LI>
 </UL>
 
 <P>
 <TT>private int <B>plotProgress</B></TT>
-
-<UL><LI>
-</UL>
+   
 
 <P>
 
 <P>
 <B><FONT SIZE="+1">Constructors</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public <B>SplatBrowser</B>()<A NAME="l336"></A><A NAME="l337"></A></TT>
 <BLOCKQUOTE>Create a browser with no existing spectra.</BLOCKQUOTE>
 <P>
@@ -122,34 +133,40 @@ The actual display and interactive analysis of spectra takes place
 <BLOCKQUOTE>Constructor, with list of spectra to initialise. All spectra
  given this way are displayed in a single plot.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>inspec</B></STRONG>
+<DT><STRONG><B>inspec</B></STRONG></DT>
 <DD>list of spectra to add. If null then none are
                 added.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 
 <P>
 <B><FONT SIZE="+1">Methods</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public boolean <B>addSpectrum</B>(<TT>String</TT> <B>name</B>)<A NAME="l340"></A><A NAME="l341"></A></TT>
 <BLOCKQUOTE>Add a new spectrum to the global list.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>name</B></STRONG>
+<DT><STRONG><B>name</B></STRONG></DT>
 <DD>the name (i.e. file specification) of the spectrum
               to add.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns true if spectrum is added, false otherwise. 
-
+<UL>
+<LI>Returns true if spectrum is added, false otherwise. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>animateSelectedSpectra</B>()<A NAME="l342"></A><A NAME="l343"></A></TT>
@@ -180,20 +197,26 @@ The actual display and interactive analysis of spectra takes place
  that plot is returned (which will be different from the one
  requested).
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>id</B></STRONG>
+<DT><STRONG><B>id</B></STRONG></DT>
 <DD>the plot identifier number.
-   <DT><STRONG><B>list</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>list</B></STRONG></DT>
 <DD>the list of spectra file names (or disk
              specifications).
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the id of the plot that the spectra are displayed
+<UL>
+<LI>Returns the id of the plot that the spectra are displayed
          in, -1 if it fails. 
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public int <B>displaySpectra</B>(<TT>String</TT> <B>list</B>)<A NAME="l354"></A><A NAME="l355"></A></TT>
@@ -201,88 +224,108 @@ The actual display and interactive analysis of spectra takes place
  names are assumed to be in a space separated list stored in a
  single String.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>list</B></STRONG>
+<DT><STRONG><B>list</B></STRONG></DT>
 <DD>the list of spectra file names (or disk
              specifications).
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the identifier of the plot that the spectra are
+<UL>
+<LI>Returns the identifier of the plot that the spectra are
          displayed in, -1 if it fails. 
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public PlotControlFrame <B>displaySpectrum</B>(<TT>SpecData</TT> <B>spectrum</B>)<A NAME="l356"></A><A NAME="l357"></A></TT>
 <BLOCKQUOTE>Display a spectrum in a new plot.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>spectrum</B></STRONG>
+<DT><STRONG><B>spectrum</B></STRONG></DT>
 <DD>The spectrum to display.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the plot that the spectrum is displayed in. 
-
+<UL>
+<LI>Returns the plot that the spectrum is displayed in. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public PlotControlFrame <B>displaySpectrum</B>(<TT>String</TT> <B>spectrum</B>)<A NAME="l358"></A><A NAME="l359"></A></TT>
 <BLOCKQUOTE>Add and display a new spectrum in a new plot.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>spectrum</B></STRONG>
+<DT><STRONG><B>spectrum</B></STRONG></DT>
 <DD>the name (i.e. file specification) of the spectrum
                  to add and display.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the plot that the spectrum is displayed in. 
-
+<UL>
+<LI>Returns the plot that the spectrum is displayed in. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public int <B>getSelectedPlots</B>()<A NAME="l360"></A><A NAME="l361"></A></TT>
 <BLOCKQUOTE>Get a list of all plots current selected in the plot table.
 
-<UL><LI>Returns list of indices of selected plot, otherwise null. 
-
+<UL>
+<LI>Returns list of indices of selected plot, otherwise null. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public int <B>getSelectedSpectra</B>()<A NAME="l362"></A><A NAME="l363"></A></TT>
 <BLOCKQUOTE>Get a list of all spectra current selected in the global list.
 
-<UL><LI>Returns list of indices of selected spectra, otherwise null. 
-
+<UL>
+<LI>Returns list of indices of selected spectra, otherwise null. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>multiDisplaySelectedSpectra</B>(<TT>boolean</TT> <B>fit</B>)<A NAME="l364"></A><A NAME="l365"></A></TT>
 <BLOCKQUOTE>Display all the currently selected spectra in the currently
  selected plot, or create a new plot for them.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>fit</B></STRONG>
+<DT><STRONG><B>fit</B></STRONG></DT>
 <DD>whether to make all spectra fit the width and height
             of the plot
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>removePlot</B>(<TT>PlotControlFrame</TT> <B>plot</B>)<A NAME="l366"></A><A NAME="l367"></A></TT>
 <BLOCKQUOTE>Remove a plot from the global list.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>plot</B></STRONG>
+<DT><STRONG><B>plot</B></STRONG></DT>
 <DD>reference to the frame (i.e. window) containing the
              plot (these have a one to one relationship).
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>removeSelectedPlots</B>()<A NAME="l368"></A><A NAME="l369"></A></TT>
@@ -296,15 +339,20 @@ The actual display and interactive analysis of spectra takes place
 <TT>public void <B>saveSpectrum</B>(<TT>int</TT> <B>globalIndex</B>, <TT>String</TT> <B>spectrum</B>)<A NAME="l372"></A><A NAME="l373"></A></TT>
 <BLOCKQUOTE>Save a spectrum to disk file.
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>globalIndex</B></STRONG>
+<DT><STRONG><B>globalIndex</B></STRONG></DT>
 <DD>the index on the global list of the spectrum
                     to save.
-   <DT><STRONG><B>spectrum</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>spectrum</B></STRONG></DT>
 <DD>the file to write the spectrum into.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>selectAllPlots</B>()<A NAME="l374"></A><A NAME="l375"></A></TT>
@@ -320,29 +368,28 @@ The actual display and interactive analysis of spectra takes place
 <TT>public void <B>showUnaryMathsWindow</B>()<A NAME="l380"></A><A NAME="l381"></A></TT>
 <BLOCKQUOTE>Show window for performing simple unary mathematical
  operations on a spectrum.</BLOCKQUOTE>
-<P>
 <BR> <HR>
 <A NAME="tex2html285"
- HREF="node19.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node19.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html283"
- HREF="node16.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node16.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html279"
- HREF="node17.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node17.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html286"
- HREF="node19.html">BeanShell User's Manual</A>
+  HREF="node19.html">BeanShell User's Manual</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html284"
- HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+  HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html280"
- HREF="node17.html">GlobalSpecPlotList</A>
+  HREF="node17.html">GlobalSpecPlotList</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

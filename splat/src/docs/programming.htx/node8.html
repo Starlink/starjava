@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+
+<!--Converted with LaTeX2HTML 2002-2 (1.70)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -11,36 +12,41 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <META NAME="keywords" CONTENT="programming">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
 <LINK REL="STYLESHEET" HREF="programming.css">
+
 <LINK REL="next" HREF="node9.html">
 <LINK REL="previous" HREF="node7.html">
 <LINK REL="up" HREF="node7.html">
 <LINK REL="next" HREF="node9.html">
 </HEAD>
+
 <BODY >
 <BR> <HR>
 <A NAME="tex2html190"
- HREF="node9.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node9.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html188"
- HREF="node7.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html182"
- HREF="node7.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node7.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html191"
- HREF="node9.html">SpecData</A>
+  HREF="node9.html">SpecData</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html189"
- HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+  HREF="node7.html">Package uk.ac.starlink.splat.data</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html183"
- HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+  HREF="node7.html">Package uk.ac.starlink.splat.data</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
@@ -49,14 +55,19 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <BR>
 MEMSpecDataImpl
 </H3>
-   <IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="img4.gif"
+   <!-- MATH
+ $\fbox
+{\parbox{\textwidth}{
+\textit{public class MEMSpecDataImpl extends SpecDataImpl}
+}}$
+ -->
+<IMG
+ WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img4.png"
  ALT="\fbox
 {\parbox{\textwidth}{
 \textit{public class MEMSpecDataImpl extends SpecDataImpl}
-}}">
-
+}}"> 
 <P>
 This class provides an implementation of SpecDataImpl to access
  spectra stored in existing memory. All values are copied into
@@ -68,74 +79,85 @@ The main use of this class is for temporary, generated and copied
 
 <P>
 <B><FONT SIZE="+1">Constructors</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public <B>MEMSpecDataImpl</B>(<TT>String</TT> <B>name</B>)<A NAME="l3"></A><A NAME="l4"></A></TT>
 <BLOCKQUOTE>Constructor - just take a symbolic name for the spectrum, no
  other significance.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>name</B></STRONG>
+<DT><STRONG><B>name</B></STRONG></DT>
 <DD>a symbolic name for the spectrum.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public <B>MEMSpecDataImpl</B>(<TT>String</TT> <B>name</B>, <TT>SpecData</TT> <B>spectrum</B>)<A NAME="l5"></A><A NAME="l6"></A></TT>
 <BLOCKQUOTE>Constructor, clone from another spectrum.
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>name</B></STRONG>
+<DT><STRONG><B>name</B></STRONG></DT>
 <DD>a symbolic name for the spectrum.
-   <DT><STRONG><B>spectrum</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>spectrum</B></STRONG></DT>
 <DD>a SpecData object to copy.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 
 <P>
 <B><FONT SIZE="+1">Methods</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public long <B>getAst</B>()<A NAME="l7"></A><A NAME="l8"></A></TT>
 <BLOCKQUOTE>Return reference to AST frameset that defines the coordinate
  relations used by this spectrum.
 
-<UL><LI>Returns reference to a raw AST frameset. 
-
+<UL>
+<LI>Returns reference to a raw AST frameset. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public double <B>getData</B>()<A NAME="l9"></A><A NAME="l10"></A></TT>
 <BLOCKQUOTE>Return a copy of the spectrum data values.
 
-<UL><LI>Returns reference to the spectrum data values. 
-
+<UL>
+<LI>Returns reference to the spectrum data values. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public double <B>getDataErrors</B>()<A NAME="l11"></A><A NAME="l12"></A></TT>
 <BLOCKQUOTE>Return a copy of the spectrum data errors.
 
-<UL><LI>Returns reference to the spectrum data values. 
-
+<UL>
+<LI>Returns reference to the spectrum data values. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public String <B>getDataFormat</B>()<A NAME="l13"></A><A NAME="l14"></A></TT>
 <BLOCKQUOTE>Return the data format.
 
-<UL><LI>Returns the String "MEMORY". 
-
+<UL>
+<LI>Returns the String "MEMORY". 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public int <B>getDims</B>()<A NAME="l15"></A><A NAME="l16"></A></TT>
 <BLOCKQUOTE>Return the data array dimensionality (always length of
  spectrum).
 
-<UL><LI>Returns integer array of size 1 returning the number of data
+<UL>
+<LI>Returns integer array of size 1 returning the number of data
                  values available. 
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public String <B>getFullName</B>()<A NAME="l17"></A><A NAME="l18"></A></TT>
@@ -143,79 +165,96 @@ The main use of this class is for temporary, generated and copied
  no real meaning (i.e. no disk file or URL) so always returns a
  string reminding users that they need to save it.
 
-<UL><LI>Returns the String "Memory spectrum". 
-
+<UL>
+<LI>Returns the String "Memory spectrum". 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public String <B>getShortName</B>()<A NAME="l19"></A><A NAME="l20"></A></TT>
 <BLOCKQUOTE>Return a symbolic name.
 
-<UL><LI>Returns a symbolic name for the spectrum. Based on the filename. 
-
+<UL>
+<LI>Returns a symbolic name for the spectrum. Based on the filename. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>save</B>()<A NAME="l21"></A><A NAME="l22"></A></TT>
 <BLOCKQUOTE>Save is just a copy for this class.
 
-<UL><LI>Exceptions
-
-<UL><LI>
+<UL>
+<LI>Exceptions
+  
+<UL>
+<LI>
 <BR><TT>SplatException</TT> - never thrown for this implementation.
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>setData</B>(<TT>double[]</TT> <B>data</B>, <TT>double[]</TT> <B>coords</B>)<A NAME="l23"></A><A NAME="l24"></A></TT>
 <BLOCKQUOTE>Set the spectrum data. No errors.
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>data</B></STRONG>
+<DT><STRONG><B>data</B></STRONG></DT>
 <DD>the spectrum data values.
-   <DT><STRONG><B>coords</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>coords</B></STRONG></DT>
 <DD>the spectrum coordinates, one per data value.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>setData</B>(<TT>double[]</TT> <B>data</B>, <TT>double[]</TT> <B>coords</B>, <TT>double[]</TT> <B>errors</B>)<A NAME="l25"></A><A NAME="l26"></A></TT>
 <BLOCKQUOTE>Set the spectrum data. With errors.
 
-<UL><LI>Parameters
+<UL>
+<LI>Parameters
   <DL>
-<DT><STRONG><B>data</B></STRONG>
+<DT><STRONG><B>data</B></STRONG></DT>
 <DD>the spectrum data values.
-   <DT><STRONG><B>coords</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>coords</B></STRONG></DT>
 <DD>the spectrum coordinates, one per data value.
-   <DT><STRONG><B>errors</B></STRONG>
+   
+</DD>
+<DT><STRONG><B>errors</B></STRONG></DT>
 <DD>the errors of the spectrum data values.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <BR> <HR>
 <A NAME="tex2html190"
- HREF="node9.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node9.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html188"
- HREF="node7.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html182"
- HREF="node7.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node7.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html191"
- HREF="node9.html">SpecData</A>
+  HREF="node9.html">SpecData</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html189"
- HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+  HREF="node7.html">Package uk.ac.starlink.splat.data</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html183"
- HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+  HREF="node7.html">Package uk.ac.starlink.splat.data</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

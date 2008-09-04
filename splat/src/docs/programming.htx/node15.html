@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+
+<!--Converted with LaTeX2HTML 2002-2 (1.70)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -11,35 +12,40 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <META NAME="keywords" CONTENT="programming">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
 <LINK REL="STYLESHEET" HREF="programming.css">
+
 <LINK REL="previous" HREF="node14.html">
 <LINK REL="up" HREF="node13.html">
 <LINK REL="next" HREF="node16.html">
 </HEAD>
+
 <BODY >
 <BR> <HR>
 <A NAME="tex2html257"
- HREF="node16.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node16.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html255"
- HREF="node13.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html251"
- HREF="node14.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node14.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html258"
- HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+  HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html256"
- HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+  HREF="node13.html">Package uk.ac.starlink.splat.util</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html252"
- HREF="node14.html">RemoteUtilities</A>
+  HREF="node14.html">RemoteUtilities</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
@@ -51,14 +57,19 @@ SpectralFileFilter
    
 <P>
 
+<!-- MATH
+ $\fbox{\parbox{\textwidth}{
+\textit{public
+ class SpectralFileFilter implements java.io.FileFilter}
+}}$
+ -->
 <IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="img9.gif"
+ WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img10.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
 class SpectralFileFilter implements java.io.FileFilter}
-}}">
-
+}}"> 
 <P>
 A convenience implementation of java.io.FileFilter that filters out
  all files except for those type extensions that it knows about.
@@ -74,96 +85,125 @@ Example - create a new filter that filters out all files
 <BR>
 SpectralFileFilter filter = new SpectralFileFilter(
 <BR>
-new String{"gif", "jpg"}, "JPEG &amp; GIF Images")
+new String<IMG
+ WIDTH="12" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img11.png"
+ ALT="$\{$">"gif", "jpg"<IMG
+ WIDTH="12" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.png"
+ ALT="$\}$">, "JPEG &amp; GIF Images")
 <BR>
  </TT>
 
 
 <P>
 <B><FONT SIZE="+1">Constructors</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public <B>SpectralFileFilter</B>()<A NAME="l244"></A><A NAME="l245"></A></TT>
 <BLOCKQUOTE>Creates a file filter. If no filters are added, then all
  files are accepted.
 
-<UL><LI>See also
-
-<UL><LI><TT>SpectralFileFilter.addExtension</TT> 
+<UL>
+<LI>See also
+  
+<UL>
+<LI><TT>SpectralFileFilter.addExtension</TT> 
 
 
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public <B>SpectralFileFilter</B>(<TT>String</TT> <B>extension</B>)<A NAME="l247"></A><A NAME="l248"></A></TT>
 <BLOCKQUOTE>Creates a file filter that accepts files with the given extension.
  Example: new SpectralFileFilter("jpg");
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>extension</B></STRONG>
+<DT><STRONG><B>extension</B></STRONG></DT>
 <DD>file extension.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>See also
-
-<UL><LI><TT>SpectralFileFilter.addExtension</TT> 
+<UL>
+<LI>See also
+  
+<UL>
+<LI><TT>SpectralFileFilter.addExtension</TT> 
 
 
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public <B>SpectralFileFilter</B>(<TT>String[]</TT> <B>filters</B>)<A NAME="l249"></A><A NAME="l250"></A></TT>
 <BLOCKQUOTE>Creates a file filter from the given string array.
- Example: new SpectralFileFilter( String {"gif", "jpg"} );
+ Example: new SpectralFileFilter( String <IMG
+ WIDTH="12" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img11.png"
+ ALT="$\{$">"gif", "jpg"<IMG
+ WIDTH="12" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.png"
+ ALT="$\}$"> );
 
 <P>
 Note that the "." before the extension is not needed and will
  be ignored.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>filters</B></STRONG>
+<DT><STRONG><B>filters</B></STRONG></DT>
 <DD>array of file extensions to use a filters.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>See also
-
-<UL><LI><TT>SpectralFileFilter.addExtension</TT> 
+<UL>
+<LI>See also
+  
+<UL>
+<LI><TT>SpectralFileFilter.addExtension</TT> 
 
 
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 
 <P>
 <B><FONT SIZE="+1">Methods</FONT></B>
-<BR>
-   <HR>
+<BR>   <HR>
 <TT>public boolean <B>accept</B>(<TT>java.io.File</TT> <B>pathname</B>)<A NAME="l251"></A><A NAME="l252"></A></TT>
 <BLOCKQUOTE>Tests whether or not the specified abstract pathname should be
  included in a pathname list.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>pathname</B></STRONG>
+<DT><STRONG><B>pathname</B></STRONG></DT>
 <DD>The abstract pathname to be tested
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns true if and only if pathname should be included. 
-
+<UL>
+<LI>Returns true if and only if pathname should be included. 
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public void <B>addExtension</B>(<TT>String</TT> <B>extension</B>)<A NAME="l253"></A><A NAME="l254"></A></TT>
@@ -186,65 +226,74 @@ filter.addExtension("tif");
 Note that the "." before the extension is not needed and will
  be ignored.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>extension</B></STRONG>
+<DT><STRONG><B>extension</B></STRONG></DT>
 <DD>a file extension to add.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 <TT>public String <B>getExtension</B>(<TT>java.io.File</TT> <B>f</B>)<A NAME="l255"></A><A NAME="l256"></A></TT>
 <BLOCKQUOTE>Return the extension portion of the file's name.
 
-<UL><LI>Parameter
+<UL>
+<LI>Parameter
   <DL>
-<DT><STRONG><B>f</B></STRONG>
+<DT><STRONG><B>f</B></STRONG></DT>
 <DD>a File object.
-  </DL>
-
+  
+</DD>
+</DL>
+</LI>
 </UL>
 
-<UL><LI>Returns the file extension. 
-
+<UL>
+<LI>Returns the file extension. 
+</LI>
 <LI>See also
+  
+<UL>
+<LI><TT>SpectralFileFilter.getExtension</TT> 
 
-<UL><LI><TT>SpectralFileFilter.getExtension</TT> 
 
-
-
+</LI>
 <LI><TT>java.io.FileFilter.accept</TT> 
 
 
   
+</LI>
 </UL>
-
+</LI>
 </UL></BLOCKQUOTE>
 <P>
 
 <P>
 <BR> <HR>
 <A NAME="tex2html257"
- HREF="node16.html">
-<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+  HREF="node16.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
 <A NAME="tex2html255"
- HREF="node13.html">
-<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+  HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
 <A NAME="tex2html251"
- HREF="node14.html">
-<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+  HREF="node14.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A>   <A HREF="programming.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="134"></A>
 <BR>
 <B> Next:</B> <A NAME="tex2html258"
- HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+  HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html256"
- HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+  HREF="node13.html">Package uk.ac.starlink.splat.util</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html252"
- HREF="node14.html">RemoteUtilities</A>
+  HREF="node14.html">RemoteUtilities</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->

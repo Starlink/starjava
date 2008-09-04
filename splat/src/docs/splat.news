@@ -9,6 +9,8 @@
    An error in the derivates used when fitting the Voigt profile has been
    corrected. This should give closer fits in some cases.
    
+   MIME types from SSAP queries may now include trailing attributes.
+
    3.8-7
    =====
 
