@@ -1,5 +1,14 @@
 1 Starlink SPLAT news.
 
+   3.8-8
+   =====
+
+   The line profile fits now include error estimates for the fitting
+   parameters. 
+
+   An error in the derivates used when fitting the Voigt profile has been
+   corrected. This should give closer fits in some cases.
+   
    3.8-7
    =====
 

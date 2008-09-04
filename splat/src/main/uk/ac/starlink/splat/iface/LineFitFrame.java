@@ -1040,14 +1040,25 @@ public class LineFitFrame
                     genCoords, fitY, 0 );
 
         //  Add results to view.
-        double[] results = new double[7];
+        double[] results = new double[12];
         results[0] = lineIndex;
         results[1] = fitter.getScale();
-        results[2] = fitter.getCentre();
-        results[3] = fitter.getSigma();
-        results[4] = fitter.getFWHM();
-        results[5] = fitter.getFlux();
-        results[6] = fitter.calcRms( fitCoords, fitData );
+        results[2] = fitter.getScaleError();
+        results[3] = fitter.getCentre();
+        results[4] = fitter.getCentreError();
+        results[5] = fitter.getSigma();
+        results[6] = fitter.getSigmaError();
+        results[7] = fitter.getFWHM();
+        results[8] = fitter.getFWHMError();
+        results[9] = fitter.getFlux();
+        results[10] = fitter.getFluxError();
+        results[11] = fitter.calcRms( fitCoords, fitData );
+        
+        //  Testing section, do not release.
+        //System.out.println( fitter.toString() );
+        //fitter.test( fitter.getScale(), fitter.getCentre(), 
+        //             fitter.getSigma(), fitY.length );
+
         lineView.addOrUpdateLine( LineProperties.GAUSS, results );
     }
 
@@ -1104,15 +1115,26 @@ public class LineFitFrame
                     genCoords, fitY, 1 );
 
         //  Add results to view.
-        double[] results = new double[7];
+        double[] results = new double[12];
         results[0] = lineIndex;
         results[1] = fitter.getScale();
-        results[2] = fitter.getCentre();
-        results[3] = fitter.getWidth();
-        results[4] = fitter.getFWHM();
-        results[5] = fitter.getFlux();
-        results[6] = fitter.calcRms( fitCoords, fitData );
+        results[2] = fitter.getScaleError();
+        results[3] = fitter.getCentre();
+        results[4] = fitter.getCentreError();
+        results[5] = fitter.getWidth();
+        results[6] = fitter.getWidthError();
+        results[7] = fitter.getFWHM();
+        results[8] = fitter.getFWHMError();
+        results[9] = fitter.getFlux();
+        results[10] = fitter.getFluxError();
+        results[11] = fitter.calcRms( fitCoords, fitData );
+
         lineView.addOrUpdateLine( LineProperties.LORENTZ, results );
+
+        //  Testing section, do not release.
+        //System.out.println( fitter.toString() );
+        //fitter.test( fitter.getScale(), fitter.getCentre(), 
+        //             fitter.getWidth(), fitY.length );
     }
 
     /**
@@ -1168,16 +1190,27 @@ public class LineFitFrame
                     genCoords, fitY, 2 );
 
         //  Add results to view.
-        double[] results = new double[8];
+        double[] results = new double[14];
         results[0] = lineIndex;
         results[1] = fitter.getScale();
-        results[2] = fitter.getCentre();
-        results[3] = fitter.getGWidth();
-        results[4] = fitter.getLWidth();
-        results[5] = fitter.getFWHM();
-        results[6] = fitter.getFlux();
-        results[7] = fitter.calcRms( fitCoords, fitData );
+        results[2] = fitter.getScaleError();
+        results[3] = fitter.getCentre();
+        results[4] = fitter.getCentreError();
+        results[5] = fitter.getGWidth();
+        results[6] = fitter.getGWidthError();
+        results[7] = fitter.getLWidth();
+        results[8] = fitter.getLWidthError();
+        results[9] = fitter.getFWHM();
+        results[10] = fitter.getFWHMError();
+        results[11] = fitter.getFlux();
+        results[12] = fitter.getFluxError();
+        results[13] = fitter.calcRms( fitCoords, fitData );
         lineView.addOrUpdateLine( LineProperties.VOIGT, results );
+
+        //  Testing section, do not release.
+        //System.out.println( fitter.toString() );
+        //fitter.test( fitter.getScale(), fitter.getCentre(),
+        //             fitter.getGWidth(), fitter.getLWidth(), fitY.length );
     }
 
     /**

@@ -133,7 +133,7 @@ public class PolynomialFitter
     }
 
     /**
-     * Determine a chisquare value and its probability for this fit.
+     * Determine a chi-square value and its probability for this fit.
      *
      * @param x array of positions along X.
      * @param y array of positions along Y.
@@ -156,7 +156,7 @@ public class PolynomialFitter
     /**
      * Get chi squared and its probability for this fit. These are
      * only indicators of the relative merit of a fit if the weights
-     * are not the inverse variances of the data.
+     * are the inverse variances of the data.
      *
      * @return double array of two values, the chi square and its
      *         probability of being less than this value (given the

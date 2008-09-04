@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2001 Central Laboratory of the Research Councils
  * Copyright (C) 2005 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     19-JAN-2001 (Peter W. Draper):
@@ -39,10 +40,14 @@ public class LineProperties
      * First index is a fit type.
      */
     public final static String[][] PROP_NAMES = {
+        /* QUICK */
         {"ID", "Peak", "Centre", "Width", "Equiv", "Flux", "Asym"},
-        {"ID", "Peak", "Centre", "Width", "FWHM", "Flux", "Rms"},
-        {"ID", "Peak", "Centre", "Width", "FWHM", "Flux", "Rms"},
-        {"ID", "Peak", "Centre", "Gwidth", "Lwidth", "FWHM", "Flux", "Rms"}
+        /* GAUSS */
+        {"ID", "Peak", "PeakErr", "Centre", "CentreErr", "Width", "WidthErr", "FWHM", "FWHMErr", "Flux", "FluxErr", "Rms"},
+        /* LORENTZ */
+        {"ID", "Peak", "PeakErr", "Centre", "CentreErr", "Width", "WidthErr", "FWHM", "FWHMErr", "Flux", "FluxErr", "Rms"},
+        /* VOIGT */
+        {"ID", "Peak", "PeakErr", "Centre", "CentreErr", "Gwidth", "GwidthErr", "Lwidth", "LwidthErr", "FWHM", "FWHMErr", "Flux", "FluxErr", "Rms"}
     };
 
     /**
@@ -61,14 +66,23 @@ public class LineProperties
     protected final static int DOUBLE = 3;
 
     protected final static int[][] WRAPPERS = {
-        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
-         AST_DOUBLE_X, DOUBLE, DOUBLE}, 
+        /* QUICK */
         {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
-         AST_DOUBLE_Y, AST_DOUBLE_Y}, 
-        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
-         AST_DOUBLE_Y, AST_DOUBLE_Y}, 
-        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
-         AST_DOUBLE_X, AST_DOUBLE_Y, AST_DOUBLE_Y} 
+         DOUBLE, DOUBLE},
+        /* GAUSS */
+        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
+         AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_Y,
+         AST_DOUBLE_Y, AST_DOUBLE_Y},
+        /* LORENTZ */
+        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
+         AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_Y,
+         AST_DOUBLE_Y, AST_DOUBLE_Y},
+        /* VOIGT */
+        {INTEGER, AST_DOUBLE_Y, AST_DOUBLE_Y, AST_DOUBLE_X, AST_DOUBLE_X,
+         AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_X,
+         AST_DOUBLE_X, AST_DOUBLE_X, AST_DOUBLE_Y, AST_DOUBLE_Y,
+         AST_DOUBLE_Y
+        }
     };
 
     /**

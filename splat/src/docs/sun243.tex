@@ -6,7 +6,7 @@
 % ? End of specify used packages
 
 % Nice fonts -- during development.
-\usepackage{fancyheadings}
+\usepackage{fancyhdr}
 \usepackage[latin1]{inputenc}
 \usepackage{ae}
 \usepackage{cmbright}
@@ -28,11 +28,11 @@ Copyright \copyright\ 2007-2008 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.32}
+\newcommand{\stardocnumber}    {243.33}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {20 February 2008}
+\newcommand{\stardocdate}      {3 September 2008}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.8-6}
+\newcommand{\stardocversion}   {3.8-8}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -2725,6 +2725,13 @@ hash (\#) and are ignored.
  each of the types and what their measurements represent is given
  below.
 
+ The error estimates are based on the variances produced by the fit.
+ If you have errors for the data values, these will be used as weights
+ and providing they are realistic the errors will be correct. In the
+ absence of data errors the errors produced will be decided assuming
+ that the fit is good (the chi-square statistic will be artificially
+ forced to have a value of 1).
+
  \labelitem{Quick}: The default line measurement type. This is based on
  the ABLINE technique described in the \xref{FIGARO}{sun86}{}
  documentation. This just uses an analysis of the intensities in the
@@ -2762,10 +2769,15 @@ hash (\#) and are ignored.
  \begin{itemize}
    \item \hitext{ID}, integer identifier (same as other fits).
    \item \hitext{Peak}, the Gaussian peak ($A$).
+   \item \hitext{PeakErr}, an estimate of the error.
    \item \hitext{Centre}, the position of the Gaussian peak ($c$).
+   \item \hitext{CentreErr}, an estimate of the error.
    \item \hitext{Width}, the Gaussian sigma ($\sigma$).
+   \item \hitext{WidthErr}, an estimate of the error.
    \item \hitext{FWHM}, the full width of profile at half maximum.
+   \item \hitext{FWHMErr}, an estimate of the error.
    \item \hitext{Flux}, the integrated flux of the Gaussian.
+   \item \hitext{FluxErr}, an estimate of the error.
    \item \hitext{Rms}, the root mean square difference between the
          Gaussian and the line data.
  \end{itemize}
@@ -2786,10 +2798,15 @@ hash (\#) and are ignored.
  \begin{itemize}
    \item \hitext{ID}, integer identifier (same as other fits).
    \item \hitext{Peak}, the Lorentzian peak ($A$).
+   \item \hitext{PeakErr}, an estimate of the error.
    \item \hitext{Centre}, the position of the Lorentzian peak ($c$).
+   \item \hitext{CentreErr}, an estimate of the error.
    \item \hitext{Width}, the Lorentzian width ($w$).
+   \item \hitext{WidthErr}, an estimate of the error.
    \item \hitext{FWHM}, the full width of profile at half maximum.
+   \item \hitext{FWHMErr}, an estimate of the error.
    \item \hitext{Flux}, the integrated flux of the Lorentzian.
+   \item \hitext{FluxErr}, an estimate of the error.
    \item \hitext{Rms}, the root mean square difference between the
          Lorentzian and the line data.
  \end{itemize}
@@ -2824,11 +2841,17 @@ hash (\#) and are ignored.
  \begin{itemize}
    \item \hitext{ID}, integer identifier (same as other fits).
    \item \hitext{Peak}, the Voigt peak ($A$).
+   \item \hitext{PeakErr}, an estimate of the error.
    \item \hitext{Centre}, the position of the Voigt peak ($c$).
+   \item \hitext{CentreErr}, an estimate of the error.
    \item \hitext{Gwidth}, the Gaussian width ($\sigma$).
+   \item \hitext{GwidthErr}, an estimate of the error.
    \item \hitext{Lwidth}, the Lorentzian full width at half maximum ($w$).
+   \item \hitext{LwidthErr}, an estimate of the error.
    \item \hitext{FWHM}, the full width of profile at half maximum (estimate).
+   \item \hitext{FWHMErr}, an estimate of the error.
    \item \hitext{Flux}, the integrated flux of the Voigt profile.
+   \item \hitext{FluxErr}, an estimate of the error.
    \item \hitext{Rms}, the root mean square difference between the
          Voigt and the line data.
  \end{itemize}
@@ -2840,27 +2863,34 @@ hash (\#) and are ignored.
  results:} table can be written out to a text file. Just select the
  \submenuitem{File}{Save line fits} item and either pick an existing file
  to overwrite, or enter a new file name. The format of this file is
- very simple, as shown by the following example:
+ very simple, as shown by the following example (long lines are wrapped
+ for presentation):
  \begin{quote}
   \begin{verbatim}
 
 # File created by Starlink SPLAT-VO
 
 # Quick results:
-# ID    Peak    Centre  Width   Equiv   Flux    Asym    
-0 0.5321614 4101.807 10.44628 7.857605 9.0610475 1.910094
+# ID Peak Centre Width Equiv Flux Asym	
+0 0.5280543 4101.737 9.664325 0 8.636 1.046
 
 # Gaussian results:
-# ID    Peak    Centre  Width   FWHM    Flux    Rms     
-0 0.4762166 4101.639 6.377338 15.01748 7.612616 0.03396829 
+# ID Peak PeakErr Centre CentreErr Width WidthErr FWHM FWHMErr	
+# Flux FluxErr Rms	
+0 0.47457 0.013518 4101.637 0.20611 6.266466 0.2061116 14.7564 0.4853556 
+7.454487 0.3243526 0.03108123 
 
 # Lorentzian results:
-# ID    Peak    Centre  Width   FWHM    Flux    Rms     
-0 0.5317154 4101.672 4.212697 11.91531 9.951863 0.01053175 
+# ID Peak PeakErr Centre CentreErr Width WidthErr FWHM FWHMErr	
+# Flux FluxErr Rms	
+0 0.5306862 0.00502416 4101.669 0.05490553 4.108373 0.05540269 11.62023 0.1567025 
+9.686626 0.1596041 0.009050248 
 
 # Voigt results:
-# ID    Peak    Centre  Gwidth  Lwidth  FWHM    Flux    Rms     
-0 0.5299186 4101.669 1.100747 11.39916 11.99854 9.820011 0.01089378 
+# ID Peak PeakErr Centre CentreErr Gwidth GwidthErr Lwidth	
+# LwidthErr FWHM FWHMErr Flux FluxErr Rms	
+0 0.5308469 0.0120453 4101.668 0.05545499 0.6207013 0.7700358 11.48657 0.3663733 
+11.68279 0.4136257 9.687501 0.1166889 0.009053993 
 
   \end{verbatim}
  \end{quote}
@@ -3691,10 +3721,27 @@ requests for useful features -- thanks to them all.
 
 \section{Changes}
 
+\subsection{3.8-8}
 
+
+The line profile fits now include error estimates for the fitting parameters. 
+
+An error in the derivates used when fitting the Voigt profile has been 
+corrected. This should give closer fits in some cases.
+   
 \subsection{3.8-7}
 The cutter tool box now offers simple linear interpolation to replace
 the selected range of values.
+
+The exception dialog will now always display the error trace, previously
+requesting this sometimes caused the dialog to just close.
+
+When attempting to overwrite an NDF that is already opened a suitable
+error message is now displayed, rather than an unhelp report about
+a null exception.
+
+Printing to postscript should make better use of the available space
+and fix a scaling problem with the encapulated option.
 
 \subsection{3.8-6}
 
@@ -3706,7 +3753,6 @@ problem.
 
 The errors of a spectrum can now be plotted as the spectral line, not just as
 error bars.
-
 
 \subsection{3.8-5}
 

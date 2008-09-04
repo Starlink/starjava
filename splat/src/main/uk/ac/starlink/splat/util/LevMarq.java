@@ -266,17 +266,10 @@ public class LevMarq
      */
     public boolean isParamFloating( int n )
     {
-        if ( n<= mparam ) {
-            if ( ia[n] == 1 ) {
-                return true;
-            }
-            else {
-                return false;
-            }
+        if ( n <= mparam && ia[n] == 1 ) {
+           return true;
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -319,7 +312,7 @@ public class LevMarq
     }
 
     /**
-     *  Returns the Chi Squared value from the current fit.
+     *  Returns the chi-squared value from the current fit.
      */
     public double getChisq()
     {
@@ -382,9 +375,7 @@ public class LevMarq
         if ( n <= mparam ) {
             return covar[n][n];
         }
-        else {
-            return 0;
-        }
+        return 0;
     }
 
     /**
@@ -395,26 +386,30 @@ public class LevMarq
         if ( ( n <= mparam ) && ( m <= mparam ) ) {
             return covar[n][m];
         }
-        else {
-            return 0;
-        }
+        return 0;
     }
 
     /**
-     *  Returns the square root of the covariance matrix element
-     *  covar[n][n] which is the variance of the nth fitting
-     *  parameter.
+     *  Returns the square root of the covariance matrix element covar[n][n]
+     *  which is the variance of the nth fitting parameter.
+     *
+     *  If rebase is true then the error will be scaled so that the current
+     *  chi-square represents a good fit (scaled to 1). This may give a useful
+     *  error estimate when no actual sigma values were available (and unit
+     *  values were used).
      */
-    public double getVariance( int n )
+    public double getError( int n, boolean rebase )
     {
-        if ( n <= mparam ) {
-            return Math.sqrt( covar[n][n] );
+        double result = 0.0;
+        if ( n <= mparam && covar[n][n] > 0.0 ) {
+            result = Math.sqrt( covar[n][n] );
+            if ( rebase ) {
+                int nfree = ndata - mparam;
+                result = result * Math.sqrt( chisq / nfree );
+            }
         }
-        else {
-            return 0;
-        }
+        return result;
     }
-
 
     /**
      *  Alambda is an internal variable in the fitting procedure.
@@ -512,7 +507,7 @@ public class LevMarq
             big = 0.0;
             for ( j = 1; j <= n; j++ ) {
                 if ( ipiv[j] != 1 ) {
-		    for ( k = 1; k <= n;k++ ) {
+                    for ( k = 1; k <= n;k++ ) {
                         if ( ipiv[k] == 0 ) {
                             if ( Math.abs( covar[j][k] ) >= big ) {
                                 big =Math.abs( covar[j][k] );
@@ -526,59 +521,59 @@ public class LevMarq
                             return;
                         }
                     }
-		}
-	    }
+                }
+            }
 
             ipiv[icol] += 1;
 
             if ( irow != icol ) {
                 for ( l = 1; l <= n; l++ ) {
-		    temp = covar[irow][l];
-		    covar[irow][l]= covar[icol][l];
-		    covar[icol][l]= temp;
-		}
+                    temp = covar[irow][l];
+                    covar[irow][l]= covar[icol][l];
+                    covar[icol][l]= temp;
+                }
                 for ( l = 1; l <= m; l++ ) {
-		    temp = oneda[irow];
-		    oneda[irow] = oneda[icol];
-		    oneda[icol]= temp;
-		}
+                    temp = oneda[irow];
+                    oneda[irow] = oneda[icol];
+                    oneda[icol]= temp;
+                }
             }
             indexr[i] = irow;
             indexc[i] = icol;
             if ( covar[icol][icol] == 0.0 ) {
                 System.err.println(
-	   "fitting error - singular matrix in LevMarq.gaussj()  at " + icol );
+           "fitting error - singular matrix in LevMarq.gaussj()  at " + icol );
                 return;
             }
             pivinv = 1.0 / covar[icol][icol];
             covar[icol][icol] = 1.0;
             for ( l = 1; l <= n; l++ ) {
-		covar[icol][l] *= pivinv;
-	    }
+                covar[icol][l] *= pivinv;
+            }
             for ( l = 1; l <= m; l++ ) {
-		oneda[icol] *= pivinv;
-	    }
+                oneda[icol] *= pivinv;
+            }
             for ( ll = 1; ll <= n; ll++ ) {
                 if( ll != icol ) {
                     dum = covar[ll][icol];
                     covar[ll][icol] = 0.0;
                     for ( l = 1; l <= n; l++ ) {
-			covar[ll][l] -= covar[icol][l] * dum;
-		    }
+                        covar[ll][l] -= covar[icol][l] * dum;
+                    }
                     for ( l = 1; l <= m; l++ ) {
-			oneda[ll] -= oneda[icol] * dum;
-		    }
+                        oneda[ll] -= oneda[icol] * dum;
+                    }
                 }
-	    }
+            }
         }
         for ( l = n;l >= 1; l-- ) {
             if ( indexr[l] != indexc[l] ) {
                 for ( k = 1; k <= n; k++ ) {
                     temp = covar[k][indexr[l]];
-		    covar[k][indexr[l]] = covar[k][indexc[l]];
-		    covar[k][indexc[l]] = temp;
-		}
-	    }
+                    covar[k][indexr[l]] = covar[k][indexc[l]];
+                    covar[k][indexc[l]] = temp;
+                }
+            }
         }
     }
 
@@ -597,67 +592,67 @@ public class LevMarq
         if ( alambda < 0.0 ) {
 
             //  Count number of floating parameters.
-	    for ( mfit = 0, j = 1; j <= mparam; j++ ) {
-		if ( ia[j] == 1 ) mfit++;
-	    }
-	    alambda = 0.001;
-	    mrqcof( alpha, beta );
-	    oldchisq = chisq;
+            for ( mfit = 0, j = 1; j <= mparam; j++ ) {
+                if ( ia[j] == 1 ) mfit++;
+            }
+            alambda = 0.001;
+            mrqcof( alpha, beta );
+            oldchisq = chisq;
         }
         for ( j = 0, l = 1; l <= mparam;l++ ) {
-	    if ( ia[l] == 1 ) {
-		for( j++, k=0, m=1; m <= mparam; m++ ) {
-		    if( ia[m] == 1 ) {
-			k++;
-			covar[j][k] = alpha[j][k];
-		    }
-		}
-		covar[j][j] = alpha[j][j] * (1.0 + alambda);
-		oneda[j] = beta[j];
-	    }
+            if ( ia[l] == 1 ) {
+                for( j++, k=0, m=1; m <= mparam; m++ ) {
+                    if( ia[m] == 1 ) {
+                        k++;
+                        covar[j][k] = alpha[j][k];
+                    }
+                }
+                covar[j][j] = alpha[j][j] * (1.0 + alambda);
+                oneda[j] = beta[j];
+            }
         }
 
         gaussj( mfit, 1 );
 
         for ( j = 1; j <= mfit; j++ ) {
-	    da[j] = oneda[j];
-	}
+            da[j] = oneda[j];
+        }
         if ( alambda == 0.0 ) {
-	    covsrt();
-	    return 0;
+            covsrt();
+            return 0;
         }
         for ( j = 0, l = 1; l <= mparam; l++ ) {
-	    if ( ia[l] == 1 ) {
-		aold[l] = a[l];
-		a[l] = a[l] + da[++j];
-	    }
+            if ( ia[l] == 1 ) {
+                aold[l] = a[l];
+                a[l] = a[l] + da[++j];
+            }
         }
 
-	mrqcof( covar, da );
+        mrqcof( covar, da );
 
-	if ( chisq < oldchisq ) {
-	    alambda *= 0.1;
-	    oldchisq = chisq;
-	    for ( j = 0, l = 1; l <= mparam; l++ ) {
-		if ( ia[l] == 1 ) {
-		    for ( j++, k=0, m=1; m <= mparam; m++) {
-			if ( ia[m] == 1 ) {
-			    k++;
-			    alpha[j][k] = covar[j][k];
-			}
-		    }
-		    beta[j] = da[j];
-		}
-	    }
+        if ( chisq < oldchisq ) {
+            alambda *= 0.1;
+            oldchisq = chisq;
+            for ( j = 0, l = 1; l <= mparam; l++ ) {
+                if ( ia[l] == 1 ) {
+                    for ( j++, k=0, m=1; m <= mparam; m++) {
+                        if ( ia[m] == 1 ) {
+                            k++;
+                            alpha[j][k] = covar[j][k];
+                        }
+                    }
+                    beta[j] = da[j];
+                }
+            }
         }
-	else {
-	    for ( j = 0, l = 1; l <= mparam;l++ ) {
-		if( ia[l] == 1 ) {
-		    a[l] = aold[l];
-		}
-	    }
-	    alambda *= 10.;
-	    chisq = oldchisq;
+        else {
+            for ( j = 0, l = 1; l <= mparam;l++ ) {
+                if( ia[l] == 1 ) {
+                    a[l] = aold[l];
+                }
+            }
+            alambda *= 10.;
+            chisq = oldchisq;
         }
         return chisq;
     }
@@ -684,39 +679,39 @@ public class LevMarq
 
         mfit=0;
         for ( j = 1; j <= mparam; j++ ) {
-	    if ( ia[j] == 1 ) {
-		mfit++;
-	    }
+            if ( ia[j] == 1 ) {
+                mfit++;
+            }
         }
         for (j = 1; j <= mfit; j++ ) {
-	    for ( k = 1; k <= j; k++ ) {
-		alpha[j][k]= 0.0;
-	    }
-	    beta[j] = 0.0;
+            for ( k = 1; k <= j; k++ ) {
+                alpha[j][k]= 0.0;
+            }
+            beta[j] = 0.0;
         }
         chisq = 0;
         for ( i = 1; i <= ndata; i++ ) {
             fit[i] = funcs.eval( x[i], a, mparam, dyda );
-	    sig2i = 1.0 / ( sigma[i] * sigma[i] );
-	    dy = y[i] - fit[i];
-	    for ( j = 0, l = 1; l <= mparam; l++ ) {
-		if ( ia[l] == 1 ) {
-		    wt = dyda[l] * sig2i;
-		    for ( j++, k=0, m=1; m <= l; m++ ) {
-			if ( ia[m] == 1 ) {
-			    alpha[j][++k] += wt * dyda[m];
-			}
-		    }
-		    beta[j] += dy * wt;
-		}
-	    }
-	    chisq += dy * dy * sig2i;
+            sig2i = 1.0 / ( sigma[i] * sigma[i] );
+            dy = y[i] - fit[i];
+            for ( j = 0, l = 1; l <= mparam; l++ ) {
+                if ( ia[l] == 1 ) {
+                    wt = dyda[l] * sig2i;
+                    for ( j++, k=0, m=1; m <= l; m++ ) {
+                        if ( ia[m] == 1 ) {
+                            alpha[j][++k] += wt * dyda[m];
+                        }
+                    }
+                    beta[j] += dy * wt;
+                }
+            }
+            chisq += dy * dy * sig2i;
         }
         for ( j = 2; j <= mfit;j++ ) {
             for ( k = 1; k < j;k++ ) {
-		alpha[k][j] = alpha[j][k];
-	    }
-	}
+                alpha[k][j] = alpha[j][k];
+            }
+        }
     }
 
 
@@ -727,41 +722,41 @@ public class LevMarq
     public double fitData()
     {
         int ncount = 1;
-	double ratio;
-	double chi2;
-	double oldchi2;
-	double oldalambda;
+        double ratio;
+        double chi2;
+        double oldchi2;
+        double oldalambda;
 
         alambda = -1.0F;
         chi2 = mrqmin();
         converged = true;
-	do {
-	    oldchi2 = chi2;
-	    oldalambda = alambda;
+        do {
+            oldchi2 = chi2;
+            oldalambda = alambda;
 
             // Do minimisation.
-	    chi2 = mrqmin();
+            chi2 = mrqmin();
 
             // If fit isn't changed or bettered for required number of
             // iterations then break out of loop.
-	    if ( oldalambda <= alambda ) {
-		ratio = 0;
-		ncount++;
-		if ( ncount == iterations ) {
+            if ( oldalambda <= alambda ) {
+                ratio = 0;
+                ncount++;
+                if ( ncount == iterations ) {
                     ratio = 1.0;
                     converged = false;
                 }
-	    }
-	    else {
-                ratio = chi2 / oldchi2;
-		ncount = 1;
             }
-        } 
+            else {
+                ratio = chi2 / oldchi2;
+                ncount = 1;
+            }
+        }
         while ( ratio <= converge );
 
-	alambda = 0.0;
-	mrqmin();
-	return 0;
+        alambda = 0.0;
+        mrqmin();
+        return 0;
     }
 
     /**
