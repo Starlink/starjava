@@ -1,0 +1,231 @@
+package uk.ac.starlink.topcat.interop;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import javax.swing.Action;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import nom.tam.fits.FitsException;
+import org.votech.plastic.PlasticHubListener;
+import uk.ac.starlink.plastic.ApplicationItem;
+import uk.ac.starlink.plastic.HubManager;
+import uk.ac.starlink.plastic.MessageId;
+import uk.ac.starlink.plastic.PlasticHub;
+import uk.ac.starlink.plastic.PlasticListWindow;
+import uk.ac.starlink.plastic.PlasticTransmitter;
+import uk.ac.starlink.plastic.PlasticUtils;
+import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.SubsetWindow;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatPlasticListener;
+import uk.ac.starlink.topcat.TopcatTransmitter;
+import uk.ac.starlink.topcat.plot.DensityWindow;
+import uk.ac.starlink.util.URLUtils;
+
+/**
+ * TopcatCommunicator which uses PLASTIC as the messaging protocol.
+ *
+ * @author   Mark Taylor
+ * @since    4 Sep 2008
+ */
+public class PlasticCommunicator implements TopcatCommunicator {
+
+    private final ControlWindow control_;
+    private final TopcatPlasticListener plasticServer_;
+    private final Transmitter tableTransmitter_;
+
+    /**
+     * Constructor.
+     *
+     * @param  control  TOPCAT control window
+     */
+    public PlasticCommunicator( ControlWindow control ) {
+        control_ = control;
+        plasticServer_ = new TopcatPlasticListener( control );
+        tableTransmitter_ =
+            adaptTransmitter( plasticServer_.createTableTransmitter() );
+    }
+
+    public String getProtocolName() {
+        return "PLASTIC";
+    }
+
+    public boolean setActive() {
+        boolean isReg;
+        try {
+            plasticServer_.register();
+            isReg = true;
+        }
+        catch ( IOException e ) {
+            isReg = false;
+        }
+        plasticServer_.setAutoRegister( 5000 );
+        return isReg;
+    }
+
+    public Action[] getInteropActions() {
+        return new Action[] {
+            plasticServer_.getRegisterAction( true ),
+            plasticServer_.getRegisterAction( false ),
+            new HubWatchAction( control_, plasticServer_ ),
+            plasticServer_.getHubStartAction( true ),
+            plasticServer_.getHubStartAction( false ),
+        };
+    }
+
+    public Transmitter getTableTransmitter() {
+        return tableTransmitter_;
+    }
+
+    public Transmitter createImageTransmitter( final DensityWindow densWin ) {
+        PlasticTransmitter ptrans =
+                new TopcatTransmitter( plasticServer_, MessageId.FITS_LOADIMAGE,
+                                       "FITS image" ) {
+            protected void transmit( PlasticHubListener hub, URI clientId,
+                                     ApplicationItem app )
+                    throws IOException {
+                URI[] recipients = app == null ? null
+                                               : new URI[] { app.getId() };
+                transmitDensityFits( densWin, hub, clientId, recipients );
+            }
+        };
+        return adaptTransmitter( ptrans );
+    }
+
+    public Transmitter createSubsetTransmitter( TopcatModel tcModel,
+                                                SubsetWindow subSelector ) {
+        return adaptTransmitter( plasticServer_
+                                .createSubsetTransmitter( tcModel,
+                                                          subSelector ) );
+    }
+
+    public void startHub( boolean external ) throws IOException {
+        if ( external ) {
+            PlasticUtils.startExternalHub( true );
+        }
+        else {
+            PlasticHub.startHub( null, null );
+        }
+    }
+
+    /**
+     * Turns a PlasticTransmitter into a Transmitter.
+     *
+     * @param   plasTrans  base transmitter object
+     * @return   Transmitter facade
+     */
+    private static Transmitter adaptTransmitter( final PlasticTransmitter
+                                                       plasTrans ) {
+        return new Transmitter() {
+            public Action getBroadcastAction() {
+                return plasTrans.getBroadcastAction();
+            }
+            public JMenu createSendMenu() {
+                return plasTrans.createSendMenu();
+            }
+            public void setEnabled( boolean isEnabled ) {
+                plasTrans.setEnabled( isEnabled );
+            }
+        };
+    }
+
+    /**
+     * Transmits the image currently plotted in the given DensityWindow 
+     * a as a FITS file to PLASTIC listeners.
+     *
+     * @param  densWin  window holding plot
+     * @param  hub  hub object
+     * @param  plasticId  registration ID for this applicaition
+     * @param  recipients  list of targets PLASTIC ids for this message;
+     *         if null broadcast to all
+     */
+    private static void transmitDensityFits( final DensityWindow densWin,
+                                             final PlasticHubListener hub,
+                                             final URI plasticId,
+                                             final URI[] recipients )
+            throws IOException {
+
+        /* Write the data as a FITS image to a temporary file preparatory
+         * to broadcast. */
+        final File tmpfile = File.createTempFile( "plastic", ".fits" );
+        final String tmpUrl = URLUtils.makeFileURL( tmpfile ).toString();
+        tmpfile.deleteOnExit();
+        OutputStream ostrm =
+            new BufferedOutputStream( new FileOutputStream( tmpfile ) );
+        try {
+            densWin.exportFits( ostrm );
+        }
+        catch ( IOException e ) {
+            tmpfile.delete();
+            throw e;
+        }
+        catch ( FitsException e ) {
+            tmpfile.delete();
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+        finally {
+            ostrm.close();
+        }
+
+        /* Do the broadcast, synchronously so that we don't delete the
+         * temporary file to early, but in another thread so we don't block
+         * the GUI. */
+        new Thread( "FITS broadcast" ) {
+            public void run() {
+                List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
+                URI msgId = MessageId.FITS_LOADIMAGE;
+                Map responses = recipients == null
+                    ? hub.request( plasticId, msgId, argList )
+                    : hub.requestToSubset( plasticId, msgId, argList,
+                                           Arrays.asList( recipients ) );
+                tmpfile.delete();
+            }
+        }.start();
+    }
+
+    /**
+     * Action which displays a window giving some information about 
+     * the state of the PLASTIC hub.
+     */     
+    private static class HubWatchAction extends BasicAction {
+        private final Component parent_;
+        private final HubManager hubManager_;
+        private JFrame hubWindow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  parent  parent window
+         * @param  hubManager  connection manager
+         */
+        HubWatchAction( Component parent, HubManager hubManager ) {
+            super( "Show Registered Applications", null,
+                   "Display applications registered with the PLASTIC hub" );
+            parent_ = parent;
+            hubManager_ = hubManager;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( hubWindow_ == null ) {
+                hubWindow_ = new PlasticListWindow( hubManager_
+                                                   .getApplicationListModel() );
+                hubWindow_.setTitle( "PLASTIC apps" );
+                AuxWindow.positionAfter( parent_, hubWindow_ );
+                hubWindow_.pack();
+            }
+            hubWindow_.setVisible( true );
+        }
+    }
+}
