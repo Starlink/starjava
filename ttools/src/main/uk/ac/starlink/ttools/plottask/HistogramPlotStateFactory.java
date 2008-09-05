@@ -287,14 +287,16 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         /* Work out if we need to calculate Y range. */
         double ylo = state.getRanges()[ 1 ][ 0 ];
         double yhi = state.getRanges()[ 1 ][ 1 ];
-        assert ! Double.isNaN( ylo );
-        if ( Double.isNaN( yhi ) ) {
+        boolean ylog = state.getLogFlags()[ 1 ];
+        boolean calcYlo = Double.isNaN( ylo );
+        boolean calcYhi = Double.isNaN( yhi );
+        assert ylog || ! calcYlo;
+        if ( calcYlo || calcYhi ) {
 
             /* If so, acquire a BinMapper to accumulate bin heights. */
             int nset = state.getPlotData().getSetCount();
             boolean norm = state.getNormalised();
             boolean cumulative = state.getCumulative();
-            boolean ylog = state.getLogFlags()[ 1 ];
             MapBinnedData.BinMapper mapper =
                 MapBinnedData.createBinMapper( xlog, binWidth, binBase );
             BinnedData binData = new MapBinnedData( nset, mapper );
@@ -318,31 +320,44 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             }
             pseq.close();
 
-            /* Find the highest bin count for each set. */
-            double[] ymaxes = new double[ nset ];
+            /* Find the highest and lowest bin counts. */
+            double[] sums = new double[ nset ];
+            Range range = new Range();
             for ( Iterator binIt = binData.getBinIterator( false );
                   binIt.hasNext(); ) {
                 BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
                 for ( int is = 0; is < nset; is++ ) {
                     double s = bin.getWeightedCount( is );
-                    ymaxes[ is ] = cumulative ? ymaxes[ is ] + s
-                                              : Math.max( ymaxes[ is ], s );
+                    sums[ is ] += s;
+                    range.submit( cumulative ? sums[ is ] : s );
                 }
             }
+            double[] ybounds = range.getFiniteBounds( ylog );
 
-            /* Find the highest bin count overall. */
-            double yMax = 0;
-            for ( int is = 0; is < nset; is++ ) {
-                yMax = Math.max( yMax, ymaxes[ is ] );
+            /* Set Y range appropriately. */
+            if ( calcYlo ) {
+                ylo = ybounds[ 0 ];
             }
-            yhi = yMax;
+            if ( calcYhi ) {
+                yhi = ybounds[ 1 ];
+            }
 
             /* Add some further padding. */
             if ( ylog ) {
-                yhi *= Math.pow( yhi / ylo,  PAD_RATIO );
+                if ( calcYlo ) {
+                    ylo /= Math.pow( yhi / ylo, PAD_RATIO );
+                }
+                if ( calcYhi ) {
+                    yhi *= Math.pow( yhi / ylo, PAD_RATIO );
+                }
             }
             else {
-                yhi += ( yhi - ylo ) * PAD_RATIO;
+                if ( calcYlo && ylo != 0 ) {
+                    ylo -= ( yhi - ylo ) * PAD_RATIO;
+                }
+                if ( calcYhi ) {
+                    yhi += ( yhi - ylo ) * PAD_RATIO;
+                }
             }
         }
    
