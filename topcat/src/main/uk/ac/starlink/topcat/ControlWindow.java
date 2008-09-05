@@ -69,12 +69,8 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
-import org.astrogrid.samp.gui.DefaultSendActionManager;
-import org.votech.plastic.PlasticHubListener;
-import uk.ac.starlink.plastic.ApplicationItem;
-import uk.ac.starlink.plastic.HubManager;
-import uk.ac.starlink.plastic.PlasticListWindow;
-import uk.ac.starlink.plastic.PlasticTransmitter;
+import org.astrogrid.samp.SampUtils;
+import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -82,6 +78,10 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
+import uk.ac.starlink.topcat.interop.PlasticCommunicator;
+import uk.ac.starlink.topcat.interop.SampCommunicator;
+import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
@@ -109,6 +109,9 @@ public class ControlWindow extends AuxWindow
 
     private static ControlWindow instance_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
+
+    /** "plastic", "samp" or null to indicate communications preference. */
+    static String interopType_;
 
     private final JList tablesList_;
     private final DefaultListModel tablesModel_;
@@ -147,10 +150,8 @@ public class ControlWindow extends AuxWindow
     private final JComboBox sortSelector_ = new JComboBox();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JButton activatorButton_ = new JButton();
+    private final TopcatCommunicator communicator_;
     private final TopcatPlasticListener plasticServer_;
-    private final PlasticTransmitter tableTransmitter_;
-    private final TopcatSampConnector sampConnector_;
-    private final DefaultSendActionManager tableSender_;
 
     private final Action readAct_;
     private final Action writeAct_;
@@ -222,24 +223,9 @@ public class ControlWindow extends AuxWindow
         tablesList_.setDragEnabled( true );
         tablesList_.setTransferHandler( bothTransferHandler_ );
 
-        /* Plastic transmitter. */
+        /* SAMP/PLASTIC interoperability. */
+        communicator_ = createCommunicator( this );
         plasticServer_ = new TopcatPlasticListener( this );
-        tableTransmitter_ = plasticServer_.createTableTransmitter( this );
-
-        /* SAMP. */
-        TopcatSampConnector sampConnector;
-        TableSendManager tableSender;
-        try {
-            sampConnector = new TopcatSampConnector( this );
-            tableSender = new TableSendManager( sampConnector );
-        }
-        catch ( IOException e ) {
-            logger_.warning( "Failed to start SAMP: " + e );
-            sampConnector = null;
-            tableSender = null;
-        }
-        sampConnector_ = sampConnector;
-        tableSender_ = tableSender;
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -324,6 +310,7 @@ public class ControlWindow extends AuxWindow
                                    "four existing tables", 4 ),
         };
 
+        Transmitter tableTransmitter = communicator_.getTableTransmitter();
         Action interophelpAct = new HelpAction( "interop", this );
         interophelpAct.putValue( Action.NAME, "Help on interoperability" );
         interophelpAct.putValue( Action.SHORT_DESCRIPTION,
@@ -403,9 +390,8 @@ public class ControlWindow extends AuxWindow
         fileMenu.insertSeparator( fileMenuPos++ );
         fileMenu.insert( writeAct_, fileMenuPos++ );
         fileMenu.insert( dupAct_, fileMenuPos++ );
-        fileMenu.insert( tableTransmitter_.getBroadcastAction(),
-                         fileMenuPos++ );
-        fileMenu.insert( tableTransmitter_.createSendMenu(), fileMenuPos++ );
+        fileMenu.insert( tableTransmitter.getBroadcastAction(), fileMenuPos++ );
+        fileMenu.insert( tableTransmitter.createSendMenu(), fileMenuPos++ );
         if ( MirageHandler.isMirageAvailable() ) {
             fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
@@ -448,31 +434,16 @@ public class ControlWindow extends AuxWindow
         getJMenuBar().add( winMenu );
 
         /* Add a menu for tool interop. */
-        JMenu interopMenu = new JMenu( "Interop" );
+        JMenu interopMenu =
+            new JMenu( "Interop(" + communicator_.getProtocolName() + ")" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
-        try {
-            interopMenu.add( plasticServer_.getRegisterAction( true ) );
-            interopMenu.add( plasticServer_.getRegisterAction( false ) );
-            interopMenu.add( plasticServer_.getHubStartAction( true ) );
-            interopMenu.add( plasticServer_.getHubStartAction( false ) );
-            interopMenu.add( new HubWatchAction( plasticServer_ ) );
-            interopMenu.addSeparator();
-            interopMenu.add( tableTransmitter_.getBroadcastAction() );
-            interopMenu.add( tableTransmitter_.createSendMenu() );
+        Action[] commActions = communicator_.getInteropActions();
+        for ( int ia = 0; ia < commActions.length; ia++ ) {
+            interopMenu.add( commActions[ ia ] );
         }
-        catch ( SecurityException e ) {
-            interopMenu.setEnabled( false );
-            logger_.warning( "Security manager denies use of PLASTIC" );
-        }
-        try {
-            interopMenu.addSeparator();
-            interopMenu.add( sampConnector_.getRegisterAction() );
-            interopMenu.add( tableSender_.getBroadcastAction() );
-            interopMenu.add( tableSender_.createSendMenu() );
-        }
-        catch ( Exception e ) {
-            logger_.warning( "Trouble with SAMP: " + e );
-        }
+        interopMenu.addSeparator();
+        interopMenu.add( tableTransmitter.getBroadcastAction() );
+        interopMenu.add( tableTransmitter.createSendMenu() );
         interopMenu.addSeparator();
         interopMenu.add( interophelpAct );
         getJMenuBar().add( interopMenu );
@@ -522,10 +493,14 @@ public class ControlWindow extends AuxWindow
 
     /**
      * Returns the object which acts as this window's server
-     * for PLASTIC requests.
+     * for interop requests.
      *
      * @return  plastic server  
      */
+    public TopcatCommunicator getCommunicator() {
+        return communicator_;
+    }
+
     public TopcatPlasticListener getPlasticServer() {
         return plasticServer_;
     }
@@ -773,8 +748,7 @@ public class ControlWindow extends AuxWindow
          * are up to date. */
         writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
-        tableTransmitter_.setEnabled( hasModel );
-        tableSender_.setEnabled( hasModel );
+        communicator_.getTableTransmitter().setEnabled( hasModel );
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
         subsetSelector_.setEnabled( hasModel );
@@ -891,6 +865,62 @@ public class ControlWindow extends AuxWindow
         updateControls();
     }
 
+    /**
+     * Constructs a new TopcatCommunicator.
+     * The implementation used is determined by the value of the 
+     * <code>interopType_</code> static variable.
+     *
+     * @param  control   control window
+     */
+    private static TopcatCommunicator
+                   createCommunicator( ControlWindow control ) {
+        if ( "plastic".equals( interopType_ ) ) {
+            logger_.info( "Run in PLASTIC mode by request" );
+            return new PlasticCommunicator( control );
+        }
+        else if ( "samp".equals( interopType_ ) ) {
+            logger_.info( "Run in SAMP mode by request" );
+            try {
+                return new SampCommunicator( control );
+            }
+            catch ( IOException e ) {
+                throw new RuntimeException( "SAMP config failed", e );
+            }
+        }
+        else {
+            assert interopType_ == null;
+            if ( SampUtils.getLockFile().exists() ) {
+                logger_.info( "SAMP hub running - run in SAMP mode" );
+                try {
+                    return new SampCommunicator( control );
+                }
+                catch ( IOException e ) {
+                    logger_.warning( "SAMP setup failed: " + e );
+                    logger_.info( "Fall back to PLASTIC" );
+                    return new PlasticCommunicator( control );
+                }
+            }
+            else if ( PlasticUtils.isHubRunning() ) {
+                logger_.info( "PLASTIC hub running - run in PLASTIC mode" );
+                return new PlasticCommunicator( control );
+            }
+            else {
+                TopcatCommunicator comm;
+                try {
+                    comm = new SampCommunicator( control );
+                }
+                catch ( IOException e ) {
+                    logger_.warning( "SAMP setup failed: " + e );
+                    logger_.info( "Fall back to PLASTIC" );
+                    comm = new PlasticCommunicator( control );
+                }
+                logger_.info( "Run in " + comm.getProtocolName()
+                            + " mode by default" );
+                return comm;
+            }
+        }
+    }
+
 
     /**
      * General control actions.
@@ -943,32 +973,6 @@ public class ControlWindow extends AuxWindow
                 matchWin = new MatchWindow( ControlWindow.this, nTable );
             }
             matchWin.makeVisible();
-        }
-    }
-
-    /**
-     * Action which displays a window giving some information about 
-     * the state of the PLASTIC hub.
-     */
-    private class HubWatchAction extends BasicAction {
-        private final HubManager hubManager_;
-        private JFrame hubWindow_;
-
-        HubWatchAction( HubManager hubManager ) {
-            super( "Show Registered Applications", null,
-                   "Display applications registered with the PLASTIC hub" );
-            hubManager_ = hubManager;
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            if ( hubWindow_ == null ) {
-                hubWindow_ = new PlasticListWindow( hubManager_
-                                                   .getApplicationListModel() );
-                hubWindow_.setTitle( "PLASTIC apps" );
-                AuxWindow.positionAfter( ControlWindow.this, hubWindow_ );
-                hubWindow_.pack();
-            }
-            hubWindow_.setVisible( true );
         }
     }
 
