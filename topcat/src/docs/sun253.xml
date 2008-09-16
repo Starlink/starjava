@@ -11171,6 +11171,7 @@ introduced since the last version:
     <ul>
     <li>Fixed histogram bug (blank plot) for small values when using 
         logarithmic Y axis.</li>
+    <li>Fix stacktrace error in 3D plots when no data is available.</li>
     </ul>
     </p></dd>
 
