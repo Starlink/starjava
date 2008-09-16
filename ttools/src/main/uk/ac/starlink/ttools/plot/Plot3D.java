@@ -166,8 +166,11 @@ public abstract class Plot3D extends TablePlot {
 
         /* Prepare data. */
         Plot3DState state = (Plot3DState) getState();
+        if ( state == null || ! state.getValid() ) {
+            return;
+        }
         PlotData data = state.getPlotData();
-        if ( data == null || state == null || ! state.getValid() ) {
+        if ( data == null ) {
             return;
         }
         int nset = data.getSetCount();
