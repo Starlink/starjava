@@ -215,6 +215,82 @@ public class TopcatSampConnector extends HubConnector {
     }
 
     /**
+     * Creates a message suitable for sending a row highlight SAMP message
+     * to other clients.
+     *
+     * @param   tcModel  table
+     * @param   lrow  index of row in tcModel to highlight
+     * @return   table.highlight.row message, or null if no suitable message
+     *           can be constructed
+     */
+    public Map createRowMessage( TopcatModel tcModel, long lrow ) {
+
+        /* Get a table id. */
+        TableWithRows tr = new TableWithRows( tcModel, null );
+        String tableId = null;
+        for ( Iterator it = idMap_.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            String id = (String) entry.getKey();
+            TableWithRows twr = (TableWithRows) entry.getValue();
+            if ( twr.getTable() == tcModel ) {
+                tableId = id;
+                tr = twr;
+                break;
+            }
+        }
+
+        /* Get a URL. */
+        String url = null;
+        if ( tr.getRowMap() == null ) {
+            URL uurl = tcModel.getDataModel().getBaseTable().getURL();
+            if ( uurl != null ) {
+                url = uurl.toString();
+            }
+        }
+
+        /* If neither URL nor table-id can be found, return null since the
+         * message would be useless. */
+        if ( tableId == null && url == null ) {
+            return null;
+        }
+
+        /* Get the (possibly transformed) row index. */
+        int[] rowMap = tr.getRowMap();
+        long row;
+        if ( rowMap == null ) {
+            row = lrow;
+        }
+        else {
+            long r = -1;
+            int nrow = rowMap.length;
+            for ( int ir = 0; ir < nrow && r < 0; ir++ ) {
+                if ( rowMap[ ir ] == lrow ) {
+                    r = ir;
+                }
+            }
+            row = r;
+        }
+
+        /* If the row isn't present in the referenced copy of the table,
+         * return null, since the message would be useless. */
+        if ( row < 0 ) {
+            return null;
+        }
+
+        /* Assemble and return the SAMP message. */
+        Message msg = new Message( "table.highlight.row" );
+        if ( tableId != null ) {
+            msg.addParam( "table-id", tableId );
+        }
+        if ( url != null ) {
+            msg.addParam( "url", url );
+        }
+        msg.addParam( "row", SampUtils.encodeLong( row ) );
+        msg.check();
+        return msg;
+    }
+
+    /**
      * Returns the message handlers which implement SAMP message receipt.
      * This method is called from the constructor.
      *
