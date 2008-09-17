@@ -60,10 +60,27 @@ public interface TopcatCommunicator {
      * a commonly-known table.
      *
      * @param  tcModel   table
-     * @parma  subsetWindow   subset window
+     * @param  subsetWindow   subset window
      */
     Transmitter createSubsetTransmitter( TopcatModel tcModel,
                                          SubsetWindow subsetWindow );
+
+
+    /**
+     * Returns an object which can be used to send messages drawing attention
+     * to particular sky positions.
+     *
+     * @return   new activity object
+     */
+    SkyPointActivity createSkyPointActivity();
+
+    /**
+     * Returns an object which can be used to send messages highlighting
+     * table rows.
+     *
+     * @return   new activity object
+     */
+    RowActivity createRowActivity();
 
     /**
      * Attempts to start a messaging hub suitable for use with this object.

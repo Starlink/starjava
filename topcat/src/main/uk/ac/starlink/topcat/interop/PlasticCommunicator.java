@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
+import javax.swing.ComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import nom.tam.fits.FitsException;
@@ -117,6 +118,44 @@ public class PlasticCommunicator implements TopcatCommunicator {
         else {
             PlasticHub.startHub( null, null );
         }
+    }
+
+    public SkyPointActivity createSkyPointActivity() {
+        final ComboBoxModel selector =
+            plasticServer_.createPlasticComboBoxModel( MessageId.SKY_POINT );
+        return new SkyPointActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return selector;
+            }
+            public void pointAtSky( double ra, double dec ) throws IOException {
+                Object item = selector.getSelectedItem();
+                final URI[] recipients =
+                    item instanceof ApplicationItem
+                         ? new URI[] { ((ApplicationItem) item).getId() }
+                         : null;
+                plasticServer_.pointAt( ra, dec, recipients );
+            }
+        };
+    }
+
+    public RowActivity createRowActivity() {
+        final ComboBoxModel selector =
+            plasticServer_
+           .createPlasticComboBoxModel( MessageId.VOT_HIGHLIGHTOBJECT );
+        return new RowActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return selector;
+            }
+            public void highlightRow( TopcatModel tcModel, long lrow )
+                    throws IOException {
+                Object item = selector.getSelectedItem();
+                final URI[] recipients =
+                    item instanceof ApplicationItem
+                         ? new URI[] { ((ApplicationItem) item).getId() }
+                         : null;
+                plasticServer_.highlightRow( tcModel, lrow, recipients );
+            }
+        };
     }
 
     /**

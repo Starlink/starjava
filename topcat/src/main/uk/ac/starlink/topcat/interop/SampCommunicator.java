@@ -10,14 +10,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.ComboBoxModel;
 import javax.swing.JMenu;
 import nom.tam.fits.FitsException;
 import org.astrogrid.samp.Message;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.gui.ConnectorGui;
 import org.astrogrid.samp.gui.DefaultSendActionManager;
 import org.astrogrid.samp.gui.SendActionManager;
 import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
@@ -46,7 +48,7 @@ public class SampCommunicator implements TopcatCommunicator {
     public SampCommunicator( ControlWindow control ) throws IOException {
         sampConnector_ = new TopcatSampConnector( control );
         tableTransmitter_ =
-            adaptTransmitter( new TableSendManager( sampConnector_ ) );
+            adaptTransmitter( new TableSendActionManager( sampConnector_ ) );
     }
 
     public String getProtocolName() {
@@ -70,12 +72,46 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     public Transmitter createImageTransmitter( DensityWindow densWin ) {
-        return adaptTransmitter( new DensityImageSendManager( densWin ) );
+        return adaptTransmitter( new DensityImageSendActionManager( densWin ) );
     }
 
     public Transmitter createSubsetTransmitter( TopcatModel tcModel,
                                                 SubsetWindow subWin ) {
-        return adaptTransmitter( new SubsetSendManager( tcModel, subWin ) );
+        return adaptTransmitter( new SubsetSendActionManager( tcModel,
+                                                              subWin ) );
+    }
+
+    public SkyPointActivity createSkyPointActivity() {
+        final SendManager pointSender =
+            new SendManager( sampConnector_, "coord.pointAt.sky" );
+        return new SkyPointActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return pointSender.getComboBoxModel();
+            }
+            public void pointAtSky( double ra, double dec ) throws IOException {
+                Message msg = new Message( "coord.pointAt.sky" );
+                msg.addParam( "ra", SampUtils.encodeFloat( ra ) );
+                msg.addParam( "dec", SampUtils.encodeFloat( dec ) );
+                pointSender.notify( msg );
+            }
+        };
+    }
+
+    public RowActivity createRowActivity() {
+        final SendManager rowSender =
+            new SendManager( sampConnector_, "table.highlight.row" );
+        return new RowActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return rowSender.getComboBoxModel();
+            }
+            public void highlightRow( TopcatModel tcModel, long lrow )
+                    throws IOException {
+                Map msg = sampConnector_.createRowMessage( tcModel, lrow );
+                if ( msg != null ) {
+                    rowSender.notify( msg );
+                }
+            }
+        };
     }
 
     public Action[] getInteropActions() {
@@ -94,7 +130,7 @@ public class SampCommunicator implements TopcatCommunicator {
             HubRunner.runExternalHub( true );
         }
         else {
-            HubRunner.runHub( false, XmlRpcImplementation.INTERNAL );
+            HubRunner.runHub( false, XmlRpcKit.INTERNAL );
         }
     }
 
@@ -120,10 +156,10 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     /**
-     * SendManager for sending subsets as row selections from the 
+     * SendActionManager for sending subsets as row selections from the 
      * subset window.
      */
-    private class SubsetSendManager extends DefaultSendActionManager {
+    private class SubsetSendActionManager extends DefaultSendActionManager {
         private final TopcatModel tcModel_;
         private final SubsetWindow subWin_;
 
@@ -133,7 +169,7 @@ public class SampCommunicator implements TopcatCommunicator {
          * @param   tcModel  table
          * @param   subWin   subset window
          */
-        SubsetSendManager( TopcatModel tcModel, SubsetWindow subWin ) {
+        SubsetSendActionManager( TopcatModel tcModel, SubsetWindow subWin ) {
             super( subWin, sampConnector_, "table.select.rowList",
                    "Row Subset" );
             tcModel_ = tcModel;
@@ -147,9 +183,10 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     /**
-     * SendManager for sending FITS images from the density plot window.
+     * SendActionManager for sending FITS images from the density plot window.
      */
-    private class DensityImageSendManager extends DefaultSendActionManager {
+    private class DensityImageSendActionManager
+            extends DefaultSendActionManager {
         private final DensityWindow densWin_;
 
         /**
@@ -157,7 +194,7 @@ public class SampCommunicator implements TopcatCommunicator {
          *
          * @param   densWin  density plot window
          */
-        DensityImageSendManager( DensityWindow densWin ) {
+        DensityImageSendActionManager( DensityWindow densWin ) {
             super( densWin, sampConnector_, "image.load.fits", "FITS Image" );
             densWin_ = densWin;
         }
