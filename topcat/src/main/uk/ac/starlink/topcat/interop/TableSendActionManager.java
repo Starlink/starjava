@@ -13,13 +13,13 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 
 /**
- * SendManager which will transmit a table.
+ * SendActionManager which will transmit a table.
  * The table sent is the currently selected one in the control window.
  *
  * @author   Mark Taylor
  * @since    2 Sep 2008
  */
-public class TableSendManager extends DefaultSendActionManager {
+public class TableSendActionManager extends DefaultSendActionManager {
 
     private final TopcatSampConnector connector_;
     private final ControlWindow control_;
@@ -30,7 +30,7 @@ public class TableSendManager extends DefaultSendActionManager {
      *
      * @param   connector   hub connector
      */
-    public TableSendManager( TopcatSampConnector connector )
+    public TableSendActionManager( TopcatSampConnector connector )
             throws IOException {
         super( connector.getControlWindow(), connector, "table.load.votable",
                "VOTable" );
