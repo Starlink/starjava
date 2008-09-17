@@ -45,6 +45,8 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Spectrum;
+import uk.ac.starlink.topcat.interop.RowActivity;
+import uk.ac.starlink.topcat.interop.SkyPointActivity;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 
 /**
@@ -405,15 +407,14 @@ public class ActivationQueryWindow extends QueryWindow {
      * Factory implementation for sending a PLASTIC highlightObject message.
      */
     private class PlasticHighlightActivatorFactory extends ActivatorFactory {
-        JComboBox appSelector_;
+        final RowActivity rowPointer_;
+        final JComboBox appSelector_;
 
         PlasticHighlightActivatorFactory() {
             super( "Transmit Row" );
-            TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
-            ComboBoxModel appModel =
-                ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( MessageId.VOT_HIGHLIGHTOBJECT );
+            rowPointer_ = ControlWindow.getInstance().getCommunicator()
+                         .createRowActivity();
+            ComboBoxModel appModel = rowPointer_.getTargetSelector();
             appSelector_ = new JComboBox( appModel );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "Target Application", appSelector_ );
@@ -426,22 +427,11 @@ public class ActivationQueryWindow extends QueryWindow {
         }
 
         Activator makeActivator() {
-            Object app = appSelector_.getSelectedItem();
-            final URI[] recipients = app instanceof ApplicationItem
-                        ? new URI[] { ((ApplicationItem) app).getId() }
-                        : null;
-            final TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
             return new Activator() {
                 public String activateRow( long lrow ) {
                     try {
-                        if ( pserv.highlightRow( tcModel_, lrow,
-                                                 recipients ) ) {
-                            return tcModel_ + "(" + lrow + ")";
-                        }
-                        else {
-                            return "no send (" + lrow + ")";
-                        }
+                        rowPointer_.highlightRow( tcModel_, lrow );
+                        return tcModel_ + "(" + lrow + ")";
                     }
                     catch ( IOException e ) {
                         return "send (" + lrow + ") failed - " + e;
@@ -458,21 +448,20 @@ public class ActivationQueryWindow extends QueryWindow {
      * Factory implementation for transmitting a PointAt message over PLASTIC.
      */
     private class PlasticPointAtActivatorFactory extends ActivatorFactory {
-        ColumnSelector raSelector_;
-        ColumnSelector decSelector_;
-        JComboBox appSelector_;
+        final SkyPointActivity skyPointer_;
+        final ColumnSelector raSelector_;
+        final ColumnSelector decSelector_;
+        final JComboBox appSelector_;
 
         PlasticPointAtActivatorFactory() {
             super( "Transmit Coordinates" );
+            skyPointer_ = ControlWindow.getInstance().getCommunicator()
+                         .createSkyPointActivity();
             raSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.RA_INFO ), false );
             decSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.DEC_INFO ), false );
-            TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
-            ComboBoxModel appModel =
-                ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( MessageId.SKY_POINT );
+            ComboBoxModel appModel = skyPointer_.getTargetSelector();
             appSelector_ = new JComboBox( appModel );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "RA Column", raSelector_ );
@@ -496,12 +485,6 @@ public class ActivationQueryWindow extends QueryWindow {
                                                JOptionPane.ERROR_MESSAGE );
                 return null;
             }
-            Object app = appSelector_.getSelectedItem();
-            final URI[] recipients = app instanceof ApplicationItem
-                        ? new URI[] { ((ApplicationItem) app).getId() }
-                        : null;
-            final TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
             return new Activator() {
                 public String activateRow( long lrow ) {
                     Object raObj;
@@ -521,15 +504,15 @@ public class ActivationQueryWindow extends QueryWindow {
                             ra = Math.toDegrees( ra );
                             dec = Math.toDegrees( dec );
                             try {
-                                pserv.pointAt( ra, dec, recipients );
+                                skyPointer_.pointAtSky( ra, dec );
                                 return "(" + ra + ", " + dec + ")";
                             }
                             catch ( IOException e ) {
-                                return "point failed";
+                                return "point failed: " + e;
                             }
                         }
                         else {
-                            return "No position at (" + raObj + ", " 
+                            return "No position at (" + raObj + ", "
                                  + decObj + ")";
                         }
                     }
