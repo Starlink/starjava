@@ -78,8 +78,8 @@ public class ActivationQueryWindow extends QueryWindow {
             new ImageActivatorFactory(),
             new SpectrumActivatorFactory(),
             new BrowserActivatorFactory(),
-            new PlasticHighlightActivatorFactory(),
-            new PlasticPointAtActivatorFactory(),
+            new InteropHighlightActivatorFactory(),
+            new InteropPointAtActivatorFactory(),
             new JELActivatorFactory(),
         };
 
@@ -404,13 +404,14 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
-     * Factory implementation for sending a PLASTIC highlightObject message.
+     * Factory implementation for sending a PLASTIC/SAMP highlight row
+     * message.
      */
-    private class PlasticHighlightActivatorFactory extends ActivatorFactory {
+    private class InteropHighlightActivatorFactory extends ActivatorFactory {
         final RowActivity rowPointer_;
         final JComboBox appSelector_;
 
-        PlasticHighlightActivatorFactory() {
+        InteropHighlightActivatorFactory() {
             super( "Transmit Row" );
             rowPointer_ = ControlWindow.getInstance().getCommunicator()
                          .createRowActivity();
@@ -445,15 +446,16 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
-     * Factory implementation for transmitting a PointAt message over PLASTIC.
+     * Factory implementation for transmitting a PointAt message over 
+     * PLASTIC or SAMP.
      */
-    private class PlasticPointAtActivatorFactory extends ActivatorFactory {
+    private class InteropPointAtActivatorFactory extends ActivatorFactory {
         final SkyPointActivity skyPointer_;
         final ColumnSelector raSelector_;
         final ColumnSelector decSelector_;
         final JComboBox appSelector_;
 
-        PlasticPointAtActivatorFactory() {
+        InteropPointAtActivatorFactory() {
             super( "Transmit Coordinates" );
             skyPointer_ = ControlWindow.getInstance().getCommunicator()
                          .createSkyPointActivity();
