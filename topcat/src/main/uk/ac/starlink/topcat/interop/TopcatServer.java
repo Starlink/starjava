@@ -8,12 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.astrogrid.samp.client.ClientProfile;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.internal.HttpServer;
-import org.astrogrid.samp.xmlrpc.internal.InternalClient;
+import org.astrogrid.samp.xmlrpc.internal.InternalClientFactory;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
 /**
@@ -31,7 +31,7 @@ public class TopcatServer {
     private final HttpServer httpServer_;
     private final ResourceHandler resourceHandler_;
     private final SampXmlRpcServerFactory xServerFactory_;
-    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcClientFactory xClientFactory_;
     private final ClientProfile profile_;
     private boolean started_;
     private static TopcatServer instance_;
@@ -47,7 +47,7 @@ public class TopcatServer {
         resourceHandler_ = new ResourceHandler( httpServer_, "/dynamic" );
         httpServer_.addHandler( resourceHandler_ );
 
-        xClient_ = new InternalClient();
+        xClientFactory_ = new InternalClientFactory();
         final SampXmlRpcServer xServer =
             new InternalServer( httpServer_, "/xmlrpc" );
         xServerFactory_ = new SampXmlRpcServerFactory() {
@@ -56,7 +56,8 @@ public class TopcatServer {
                 return xServer;
             }
         };
-        profile_ = new StandardClientProfile( xClient_, xServerFactory_ );
+        profile_ = new StandardClientProfile( xClientFactory_,
+                                              xServerFactory_ );
     }
 
     /**
@@ -73,8 +74,8 @@ public class TopcatServer {
      *
      * @return  SAMP XML-RPC client
      */
-    public SampXmlRpcClient getSampClient() {
-        return xClient_;
+    public SampXmlRpcClientFactory getSampClientFactory() {
+        return xClientFactory_;
     }
 
     /**
