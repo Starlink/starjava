@@ -151,7 +151,6 @@ public class ControlWindow extends AuxWindow
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JButton activatorButton_ = new JButton();
     private final TopcatCommunicator communicator_;
-    private final TopcatPlasticListener plasticServer_;
 
     private final Action readAct_;
     private final Action writeAct_;
@@ -225,7 +224,6 @@ public class ControlWindow extends AuxWindow
 
         /* SAMP/PLASTIC interoperability. */
         communicator_ = createCommunicator( this );
-        plasticServer_ = new TopcatPlasticListener( this );
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -499,10 +497,6 @@ public class ControlWindow extends AuxWindow
      */
     public TopcatCommunicator getCommunicator() {
         return communicator_;
-    }
-
-    public TopcatPlasticListener getPlasticServer() {
-        return plasticServer_;
     }
 
     /**
