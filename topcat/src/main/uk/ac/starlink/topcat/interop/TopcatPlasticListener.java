@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -31,6 +31,11 @@ import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.topcat.BitsRowSubset;
+import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.SubsetWindow;
+import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.DataFormat;
