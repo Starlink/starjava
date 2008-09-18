@@ -114,6 +114,10 @@ public class SampCommunicator implements TopcatCommunicator {
         };
     }
 
+    public ImageActivity createImageActivity() {
+        return new SampImageActivity( sampConnector_ );
+    }
+
     public Action[] getInteropActions() {
         ConnectorGui gui = new ConnectorGui( sampConnector_ );
         return new Action[] {

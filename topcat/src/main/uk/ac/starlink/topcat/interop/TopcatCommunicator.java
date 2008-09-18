@@ -65,7 +65,6 @@ public interface TopcatCommunicator {
     Transmitter createSubsetTransmitter( TopcatModel tcModel,
                                          SubsetWindow subsetWindow );
 
-
     /**
      * Returns an object which can be used to send messages drawing attention
      * to particular sky positions.
@@ -81,6 +80,15 @@ public interface TopcatCommunicator {
      * @return   new activity object
      */
     RowActivity createRowActivity();
+
+    /**
+     * Returns an object which can be used to display images.
+     * Note this may include options apart from interop-type ones
+     * (display in local viewers).
+     *
+     * @return  new activity object
+     */
+    ImageActivity createImageActivity();
 
     /**
      * Attempts to start a messaging hub suitable for use with this object.
