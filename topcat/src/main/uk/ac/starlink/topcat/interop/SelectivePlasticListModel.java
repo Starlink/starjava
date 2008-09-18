@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.net.URI;
 import java.util.ArrayList;

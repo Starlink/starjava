@@ -1,10 +1,11 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.net.URI;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.plastic.PlasticTransmitter;
+import uk.ac.starlink.topcat.ResourceIcon;
 
 /**
  * Extends PlasticTransmitter for TOPCAT use, 

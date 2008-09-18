@@ -72,10 +72,10 @@ public class HistogramWindow extends GraphicsWindow {
     private final RoundingSpinner.RoundingSpinnerModel linearBinModel_;
     private final RoundingSpinner.RoundingSpinnerModel logBinModel_;
 
-    private double autoYMax_;
-    private double autoYMaxCum_;
-    private double autoYMaxNorm_;
-    private double autoYMaxCumNorm_;
+    private Range autoYRange_;
+    private Range autoYRangeCum_;
+    private Range autoYRangeNorm_;
+    private Range autoYRangeCumNorm_;
     private double autoLinearBinWidth_;
     private double autoLogBinWidth_;
 
@@ -92,14 +92,6 @@ public class HistogramWindow extends GraphicsWindow {
                parent );
         final Histogram plot = (Histogram) getPlot();
         plot.setPreferredSize( new Dimension( 500, 300 ) );
-
-        /* Being a histogram, there's no point zooming in such a way 
-         * that the Y axis goes below zero, so block that. */
-        plot.setSurface( new PtPlotSurface() {
-            public void _setYRange( double min, double max ) {
-                super._setYRange( Math.max( getMinYValue(), min ), max );
-            }
-        } );
 
         /* Zooming. */
         plot.addPlotListener( new PlotListener() {
@@ -439,25 +431,36 @@ public class HistogramWindow extends GraphicsWindow {
             /* Calculate the Y data range based on the autosized range
              * calculated last time calculateMaxCount was called and on
              * the current state (bin width and cumuluative flag). */
-            double autoYMax = isNormalised() ? autoYMaxNorm_ : autoYMax_;
-            double autoYMaxCumulative = isNormalised() ? autoYMaxCumNorm_
-                                                       : autoYMaxCum_;
-            double yMax = cumulativeModel_.isSelected()
-                ? autoYMaxCumulative
-                : ( state.getLogFlags()[ 0 ]
-                        ? autoYMax * Math.log( bw )
-                                   / Math.log( autoLogBinWidth_ )
-                        : autoYMax * bw / autoLinearBinWidth_ );
-            Range yRange = new Range( 0.0, yMax );
+            boolean isNorm = isNormalised();
+            boolean ylog = yLogModel_.isSelected();
+            Range yRange;
+            if ( cumulativeModel_.isSelected() ) {
+                yRange = new Range( isNorm ? autoYRangeCumNorm_
+                                           : autoYRangeCum_ );
+            }
+            else {
+                yRange = new Range( isNorm ? autoYRangeNorm_
+                                           : autoYRange_ );
+                double factor = state.getLogFlags()[ 0 ]
+                              ? Math.log( bw ) / Math.log( autoLogBinWidth_ )
+                              : bw / autoLinearBinWidth_;
+                double[] bnds = yRange.getFiniteBounds( ylog );
+                yRange = new Range( bnds[ 0 ] * factor, bnds[ 1 ] * factor );
+            }
+            yRange.pad( getPadRatio() );
             yRange.limit( getViewRanges()[ 1 ] );
+            double[] yBounds = yRange.getFiniteBounds( ylog );
+            if ( ! ylog ) {
+                yBounds[ 0 ] = 0.0;
+            }
             state.setRanges( new double[][] {
                 state.getRanges()[ 0 ],
-                yRange.getFiniteBounds( yLogModel_.isSelected() )
+                yBounds,
             } );
 
             /* Configure weighting and normalisation. */
             state.setWeighted( hasWeights() );
-            state.setNormalised( isNormalised() );
+            state.setNormalised( isNorm );
         }
 
         /* Configure some actions to be enabled/disabled according to 
@@ -587,65 +590,45 @@ public class HistogramWindow extends GraphicsWindow {
         }
         pseq.close();
 
-        /* Find the highest bin count. */
-        double[] ymaxes = new double[ nset ];
-        double[] ytots = new double[ nset ];
-        for ( Iterator binIt = binned.getBinIterator( false );
-              binIt.hasNext(); ) {
-            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
-            for ( int is = 0; is < nset; is++ ) {
-                double s = bin.getWeightedCount( is );
-                ytots[ is ] += s;
-                ymaxes[ is ] = Math.max( ymaxes[ is ], s );
+        /* Find the bin count ranges. */
+        Range yRange = new Range();
+        Range yRangeCum = new Range();
+        {
+            double[] ytots = new double[ nset ];
+            for ( Iterator binIt = binned.getBinIterator( false );
+                  binIt.hasNext(); ) {
+                BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                for ( int is = 0; is < nset; is++ ) {
+                    double s = bin.getWeightedCount( is );
+                    ytots[ is ] += s;
+                    yRange.submit( s );
+                    yRangeCum.submit( ytots[ is ] );
+                }
             }
         }
-        double yMax = 0;
-        double yMaxTot = 0;
-        for ( int is = 0; is < nset; is++ ) {
-            yMax = Math.max( yMax, ymaxes[ is ] );
-            yMaxTot = Math.max( yMaxTot, ytots[ is ] );
+        Range yRangeNorm = new Range();
+        Range yRangeCumNorm = new Range();
+        {
+            double[] yntots = new double[ nset ];
+            for ( Iterator binIt = binnedNorm.getBinIterator( false );
+                  binIt.hasNext(); ) {
+                BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                for ( int is = 0; is < nset; is++ ) {
+                    double s = bin.getWeightedCount( is );
+                    yntots[ is ] += s;
+                    yRangeNorm.submit( s );
+                    yRangeCumNorm.submit( yntots[ is ] );
+                }
+            }
         }
 
-        /* Do the same for the case of normalised histograms. */
-        double[] ynmaxes = new double[ nset ];
-        double[] yntots = new double[ nset ];
-        for ( Iterator binIt = binnedNorm.getBinIterator( false );
-              binIt.hasNext(); ) {
-            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
-            for ( int is = 0; is < nset; is++ ) {
-                double s = bin.getWeightedCount( is );
-                yntots[ is ] += s;
-                ynmaxes[ is ] = Math.max( ynmaxes[ is ], s );
-            }
-        }
-        double yMaxNorm = 0;
-        double yMaxTotNorm = 0;
-        for ( int is = 0; is < nset; is++ ) {
-            yMaxNorm = Math.max( yMaxNorm, ynmaxes[ is ] );
-            yMaxTotNorm = Math.max( yMaxTotNorm, yntots[ is ] );
-        }
-  
         /* Store results for later calculations. */
         autoLinearBinWidth_ = bwLinear;
         autoLogBinWidth_ = bwLog;
-        autoYMax_ = yMax * ( 1 + getPadRatio() );
-        autoYMaxNorm_ = yMaxNorm * ( 1 + getPadRatio() );
-        autoYMaxCum_ = yMaxTot * ( 1 + getPadRatio() );
-        autoYMaxCumNorm_ = yMaxTotNorm * ( 1 + getPadRatio() );
-    }
-
-    /**
-     * Returns the minimum sensible value for the Y axis.
-     * Being a histogram, there's no point in going below the value 
-     * which represents zero counts.
-     *
-     * @return   minimum Y value
-     */
-    private double getMinYValue() {
-
-        /* The value used for logarithmic axes here is a bit arbitrary,
-         * but something a bit below zero makes sense. */
-        return yLogModel_.isSelected() ? -1. : 0.;
+        autoYRange_ = yRange;
+        autoYRangeNorm_ = yRangeNorm;
+        autoYRangeCum_ = yRangeCum;
+        autoYRangeCumNorm_ = yRangeCumNorm;
     }
 
     /**

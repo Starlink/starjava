@@ -27,9 +27,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import uk.ac.starlink.plastic.ApplicationItem;
-import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
+import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -159,17 +159,19 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                     "Create new subset containing the last " +
                                     "N rows" );
 
-        /* Transmitter for broadcasting subset via PLASTIC. */
-        final PlasticTransmitter subsetTransmitter = 
-            ControlWindow.getInstance().getPlasticServer()
-                         .createSubsetTransmitter( tcModel, this );
+        /* Transmitter for broadcasting subset. */
+        TopcatCommunicator communicator =
+            ControlWindow.getInstance().getCommunicator();
+        String proto = communicator.getProtocolName();
+        final Transmitter subsetTransmitter = 
+            communicator.createSubsetTransmitter( tcModel, this );
         subsetTransmitter.getBroadcastAction()
                          .putValue( Action.SHORT_DESCRIPTION,
                                     "Select rows in other registered " +
-                                    "applications using PLASTIC" );
+                                    "applications using " + proto );
         JMenu sendMenu = subsetTransmitter.createSendMenu();
         sendMenu.setToolTipText( "Select rows in a single other registered " +
-                                 "application using PLASTIC" );
+                                 "application using " + proto );
 
         /* Add a selection listener to ensure that the right actions 
          * are enabled/disabled. */

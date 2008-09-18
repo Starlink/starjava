@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.interop;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -31,6 +31,11 @@ import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.topcat.BitsRowSubset;
+import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.SubsetWindow;
+import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.DataFormat;
@@ -170,17 +175,14 @@ public class TopcatPlasticListener extends HubManager {
      * Returns a new PlasticTransmitter which will transmit tables to
      * one or more listeners.
      *
-     * @param  control  ControlWindow which supplies the currently selected
-     *                  table ({@link ControlWindow#getCurrentModel})
      * @return  new table transmitter
      */
-    public PlasticTransmitter createTableTransmitter( final 
-                                                      ControlWindow control ) {
+    public PlasticTransmitter createTableTransmitter() {
         return new TopcatTransmitter( this, MessageId.VOT_LOADURL, "table" ) {
             protected void transmit( PlasticHubListener hub, URI clientId,
                                      ApplicationItem app )
                     throws IOException {
-                TopcatModel tcModel = control.getCurrentModel();
+                TopcatModel tcModel = controlWindow_.getCurrentModel();
                 if ( tcModel != null ) {
                     URI[] recipients = app == null
                                      ? null

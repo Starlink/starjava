@@ -45,6 +45,10 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Spectrum;
+import uk.ac.starlink.topcat.interop.ImageActivity;
+import uk.ac.starlink.topcat.interop.RowActivity;
+import uk.ac.starlink.topcat.interop.SkyPointActivity;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 
 /**
@@ -58,6 +62,7 @@ public class ActivationQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
     private ActivatorFactory activeFactory_;
+    private final TopcatCommunicator communicator_;
 
     /**
      * Constructs a new window.
@@ -68,6 +73,7 @@ public class ActivationQueryWindow extends QueryWindow {
     public ActivationQueryWindow( TopcatModel tcModel, Component parent ) {
         super( "Set Activation Action", parent );
         tcModel_ = tcModel;
+        communicator_ = ControlWindow.getInstance().getCommunicator();
 
         /* Set up the different types of activator. */
         ActivatorFactory[] factories = new ActivatorFactory[] {
@@ -76,8 +82,8 @@ public class ActivationQueryWindow extends QueryWindow {
             new ImageActivatorFactory(),
             new SpectrumActivatorFactory(),
             new BrowserActivatorFactory(),
-            new PlasticHighlightActivatorFactory(),
-            new PlasticPointAtActivatorFactory(),
+            new InteropHighlightActivatorFactory(),
+            new InteropPointAtActivatorFactory(),
             new JELActivatorFactory(),
         };
 
@@ -384,15 +390,16 @@ public class ActivationQueryWindow extends QueryWindow {
      * Factory implementation for selecting a cutout service.
      */
     private class CutoutActivatorFactory extends ActivatorFactory {
-        CutoutSelector cutter_;
+        final CutoutSelector cutter_;
 
         CutoutActivatorFactory() {
             super( "Display Cutout Image" );
             cutter_ = new CutoutSelector( tcModel_ );
-            Box box = Box.createHorizontalBox();
-            box.add( cutter_ );
-            box.add( Box.createHorizontalGlue() );
-            queryPanel_.add( box );
+            Box cutterBox = Box.createHorizontalBox();
+            cutterBox.add( cutter_ );
+            cutterBox.add( Box.createHorizontalGlue() );
+
+            queryPanel_.add( cutterBox );
             enablables_ = new Component[] { cutter_, };
         }
 
@@ -402,46 +409,33 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
-     * Factory implementation for sending a PLASTIC highlightObject message.
+     * Factory implementation for sending a PLASTIC/SAMP highlight row
+     * message.
      */
-    private class PlasticHighlightActivatorFactory extends ActivatorFactory {
-        JComboBox appSelector_;
+    private class InteropHighlightActivatorFactory extends ActivatorFactory {
+        final RowActivity rowPointer_;
 
-        PlasticHighlightActivatorFactory() {
+        InteropHighlightActivatorFactory() {
             super( "Transmit Row" );
-            TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
-            ComboBoxModel appModel =
-                ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( MessageId.VOT_HIGHLIGHTOBJECT );
-            appSelector_ = new JComboBox( appModel );
+            rowPointer_ = communicator_.createRowActivity();
+            JComboBox appSelector =
+                new JComboBox( rowPointer_.getTargetSelector() );
             LabelledComponentStack stack = new LabelledComponentStack();
-            stack.addLine( "Target Application", appSelector_ );
+            stack.addLine( "Target Application", appSelector );
             queryPanel_.add( stack );
             JLabel[] labels = stack.getLabels();
             enablables_ = new Component[] {
-                appSelector_,
+                appSelector,
                 labels[ 0 ],
             };
         }
 
         Activator makeActivator() {
-            Object app = appSelector_.getSelectedItem();
-            final URI[] recipients = app instanceof ApplicationItem
-                        ? new URI[] { ((ApplicationItem) app).getId() }
-                        : null;
-            final TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
             return new Activator() {
                 public String activateRow( long lrow ) {
                     try {
-                        if ( pserv.highlightRow( tcModel_, lrow,
-                                                 recipients ) ) {
-                            return tcModel_ + "(" + lrow + ")";
-                        }
-                        else {
-                            return "no send (" + lrow + ")";
-                        }
+                        rowPointer_.highlightRow( tcModel_, lrow );
+                        return tcModel_ + "(" + lrow + ")";
                     }
                     catch ( IOException e ) {
                         return "send (" + lrow + ") failed - " + e;
@@ -455,33 +449,31 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
-     * Factory implementation for transmitting a PointAt message over PLASTIC.
+     * Factory implementation for transmitting a PointAt message over 
+     * PLASTIC or SAMP.
      */
-    private class PlasticPointAtActivatorFactory extends ActivatorFactory {
-        ColumnSelector raSelector_;
-        ColumnSelector decSelector_;
-        JComboBox appSelector_;
+    private class InteropPointAtActivatorFactory extends ActivatorFactory {
+        final SkyPointActivity skyPointer_;
+        final ColumnSelector raSelector_;
+        final ColumnSelector decSelector_;
 
-        PlasticPointAtActivatorFactory() {
+        InteropPointAtActivatorFactory() {
             super( "Transmit Coordinates" );
+            skyPointer_ = communicator_.createSkyPointActivity();
             raSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.RA_INFO ), false );
             decSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.DEC_INFO ), false );
-            TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
-            ComboBoxModel appModel =
-                ControlWindow.getInstance().getPlasticServer()
-               .createPlasticComboBoxModel( MessageId.SKY_POINT );
-            appSelector_ = new JComboBox( appModel );
+            JComboBox appSelector =
+                new JComboBox( skyPointer_.getTargetSelector() );
             LabelledComponentStack stack = new LabelledComponentStack();
             stack.addLine( "RA Column", raSelector_ );
             stack.addLine( "Dec Column", decSelector_ );
-            stack.addLine( "Target Application", appSelector_ );
+            stack.addLine( "Target Application", appSelector );
             queryPanel_.add( stack );
             JLabel[] labels = stack.getLabels();
             enablables_ = new Component[] {
-                raSelector_, decSelector_, appSelector_,
+                raSelector_, decSelector_, appSelector,
                 labels[ 0 ], labels[ 1 ], labels[ 2 ],
             };
         }
@@ -496,12 +488,6 @@ public class ActivationQueryWindow extends QueryWindow {
                                                JOptionPane.ERROR_MESSAGE );
                 return null;
             }
-            Object app = appSelector_.getSelectedItem();
-            final URI[] recipients = app instanceof ApplicationItem
-                        ? new URI[] { ((ApplicationItem) app).getId() }
-                        : null;
-            final TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
             return new Activator() {
                 public String activateRow( long lrow ) {
                     Object raObj;
@@ -521,15 +507,15 @@ public class ActivationQueryWindow extends QueryWindow {
                             ra = Math.toDegrees( ra );
                             dec = Math.toDegrees( dec );
                             try {
-                                pserv.pointAt( ra, dec, recipients );
+                                skyPointer_.pointAtSky( ra, dec );
                                 return "(" + ra + ", " + dec + ")";
                             }
                             catch ( IOException e ) {
-                                return "point failed";
+                                return "point failed: " + e;
                             }
                         }
                         else {
-                            return "No position at (" + raObj + ", " 
+                            return "No position at (" + raObj + ", "
                                  + decObj + ")";
                         }
                     }
@@ -588,6 +574,10 @@ public class ActivationQueryWindow extends QueryWindow {
                 return makeActivator( tcol );
             }
             else {
+                JOptionPane.showMessageDialog( ActivationQueryWindow.this,
+                                               "Must supply location column",
+                                               "No Action Defined",
+                                               JOptionPane.ERROR_MESSAGE );
                 return null;
             }
         }
@@ -619,34 +609,45 @@ public class ActivationQueryWindow extends QueryWindow {
      * in a viewer.
      */
     private class ImageActivatorFactory extends ColumnActivatorFactory {
-        private final ImageViewerComboBoxModel viewerModel_;
+        final ImageActivity imageSender_;
+
         ImageActivatorFactory() {
             super( "Image" );
+            imageSender_ = communicator_.createImageActivity();
 
             /* If this is the result of a SIAP query, select the acref 
              * field for display by default. */
             selectColumnByUCD( "VOX:Image_AccessReference" );
 
-            /* Set up a selector for the image viewer. */
-            TopcatPlasticListener pserv =
-                ControlWindow.getInstance().getPlasticServer();
-            viewerModel_ =
-                new ImageViewerComboBoxModel( pserv );
-            JComboBox viewerSelector = new JComboBox( viewerModel_ );
-            JLabel viewerLabel = new JLabel( "Image Viewer: " );
+            /* Set up a selector for the image format. */
             List eList = new ArrayList( Arrays.asList( enablables_ ) );
+            JComboBox formatSelector = imageSender_.getFormatSelector();
+            JLabel formatLabel = new JLabel( "Image Format: " );
+            eList.add( formatLabel );
+            eList.add( formatSelector );
+            Box formatBox = Box.createHorizontalBox();
+            formatBox.add( formatLabel );
+            formatBox.add( formatSelector );
+            queryPanel_.add( Box.createVerticalStrut( 5 ) );
+            queryPanel_.add( formatBox );
+
+            /* Set up a selector for the image viewer. */
+            JComboBox viewerSelector =
+                new JComboBox( imageSender_.getTargetSelector() );
+            JLabel viewerLabel = new JLabel( "Image Viewer: " );
             eList.add( viewerLabel );
             eList.add( viewerSelector );
-            enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
             Box viewerBox = Box.createHorizontalBox();
             viewerBox.add( viewerLabel );
             viewerBox.add( viewerSelector );
             queryPanel_.add( Box.createVerticalStrut( 5 ) );
             queryPanel_.add( viewerBox );
+
+            enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
         }
 
         Activator makeActivator( final TableColumn tcol ) {
-            final ImageViewer viewer = viewerModel_.getSelectedViewer();
+            final String label = getWindowLabel( tcol );
             return new ColumnActivator( "image", tcol ) {
                 String activateValue( Object val ) {
                     String loc = val.toString();
@@ -654,11 +655,13 @@ public class ActivationQueryWindow extends QueryWindow {
                         return null;
                     }
                     else {
-                        boolean status =
-                            viewer.viewImage( getWindowLabel( tcol ), loc );
-                        return "view(" + loc + ")"
-                             + ( status ? ""
-                                        : " - failed" );
+                        try {
+                            imageSender_.displayImage( loc, label );
+                            return "view(" + loc + ")";
+                        }
+                        catch ( IOException e ) {
+                            return "view(" + loc + ") - failed " + e;
+                        }
                     }
                 }
             };

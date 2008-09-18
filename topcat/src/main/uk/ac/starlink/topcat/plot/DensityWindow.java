@@ -38,11 +38,7 @@ import javax.swing.filechooser.FileFilter;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
-import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.fits.FitsConstants;
-import uk.ac.starlink.plastic.ApplicationItem;
-import uk.ac.starlink.plastic.MessageId;
-import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BasicAction;
@@ -50,9 +46,8 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
-import uk.ac.starlink.topcat.TopcatPlasticListener;
-import uk.ac.starlink.topcat.TopcatTransmitter;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.ttools.plot.BinGrid;
 import uk.ac.starlink.ttools.plot.DensityPlot;
 import uk.ac.starlink.ttools.plot.DensityPlotEvent;
@@ -272,19 +267,10 @@ public class DensityWindow extends GraphicsWindow {
             }
         };
 
-        /* PLASTIC transmitter for transmitting image as FITS. */
-        PlasticTransmitter imageTransmitter =
-                new TopcatTransmitter( ControlWindow.getInstance()
-                                                    .getPlasticServer(),
-                                       MessageId.FITS_LOADIMAGE,
-                                       "FITS image" ) {
-            protected void transmit( PlasticHubListener hub, URI clientId,
-                                     ApplicationItem app )
-                    throws IOException {
-                transmitFits( hub, clientId,
-                              app == null ? null : new URI[] { app.getId() } );
-            }
-        };
+        /* Transmitter for transmitting image as FITS. */
+        Transmitter imageTransmitter =
+            ControlWindow.getInstance().getCommunicator()
+                                       .createImageTransmitter( this );
 
         /* Update export menu. */
         getExportMenu().add( fitsAction_ );
@@ -378,7 +364,7 @@ public class DensityWindow extends GraphicsWindow {
         subsetMenu.add( fromVisibleAction );
         getJMenuBar().add( subsetMenu );
 
-        /* PLASTIC interoperability menu. */
+        /* Interoperability menu. */
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
         interopMenu.add( imageTransmitter.getBroadcastAction() );
@@ -543,64 +529,12 @@ public class DensityWindow extends GraphicsWindow {
     }
 
     /**
-     * Transmits the currently plotted image as a FITS file to PLASTIC
-     * listeners.
-     *
-     * @param  hub  hub object
-     * @param  plasticId  registration ID for this applicaition
-     * @param  recipients  list of targets PLASTIC ids for this message;
-     *         if null broadcast to all
-     */
-    private void transmitFits( final PlasticHubListener hub,
-                               final URI plasticId,
-                               final URI[] recipients ) throws IOException {
-
-        /* Write the data as a FITS image to a temporary file preparatory
-         * to broadcast. */
-        final File tmpfile = File.createTempFile( "plastic", ".fits" );
-        final String tmpUrl = URLUtils.makeFileURL( tmpfile ).toString();
-        tmpfile.deleteOnExit();
-        OutputStream ostrm = 
-            new BufferedOutputStream( new FileOutputStream( tmpfile ) );
-        try {
-            exportFits( ostrm );
-        }
-        catch ( IOException e ) {
-            tmpfile.delete();
-            throw e;
-        }
-        catch ( FitsException e ) {
-            tmpfile.delete();
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
-        finally {
-            ostrm.close();
-        }
-
-        /* Do the broadcast, synchronously so that we don't delete the
-         * temporary file to early, but in another thread so we don't block
-         * the GUI. */
-        new Thread( "FITS broadcast" ) {
-            public void run() {
-                List argList = Arrays.asList( new Object[] { tmpUrl, tmpUrl } );
-                URI msgId = MessageId.FITS_LOADIMAGE;
-                Map responses = recipients == null
-                    ? hub.request( plasticId, msgId, argList )
-                    : hub.requestToSubset( plasticId, msgId, argList,
-                                           Arrays.asList( recipients ) );
-                tmpfile.delete();
-            }
-        }.start();
-    }
-
-    /**
      * Exports the grids currently displayed in the plot as a FITS image
      * (primary HDU).
      *
      * @param   ostrm   output stream
      */
-    private void exportFits( OutputStream ostrm )
+    public void exportFits( OutputStream ostrm )
             throws IOException, FitsException {
         final DataOutputStream out = new DataOutputStream( ostrm );
 

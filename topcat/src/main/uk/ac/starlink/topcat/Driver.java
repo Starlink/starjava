@@ -29,6 +29,7 @@ import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.soap.TopcatSOAPServer;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -225,7 +226,7 @@ public class Driver {
         String usage = 
               pre + " [-help] [-version] [-stilts <stilts-args>]\n"
             + pad + " [-verbose] [-demo] [-disk]\n"
-            + pad + " [-hub] [-exthub] [-[no]plastic] [-[no]soap] [-noserv]\n"
+            + pad + " [-hub] [-exthub] [-plastic] [-samp] [-soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
                   + " [-registry] [-siap]\n"
             + pad + " [[-f <format>] table ...]";
@@ -239,7 +240,7 @@ public class Driver {
         boolean demo = false;
         int verbosity = 0;
         boolean soapServe = false;
-        boolean plasticServe = true;
+        boolean interopServe = true;
         boolean internalHub = false;
         boolean externalHub = false;
         boolean stiltsMode = false;
@@ -286,13 +287,19 @@ public class Driver {
                 it.remove();
                 externalHub = true;
             }
+            else if ( arg.equals( "-samp" ) ) {
+                it.remove();
+                interopServe = true;
+                ControlWindow.interopType_ = "samp";
+            }
             else if ( arg.equals( "-plastic" ) ) {
                 it.remove();
-                plasticServe = true;
+                interopServe = true;
+                ControlWindow.interopType_ = "plastic";
             }
-            else if ( arg.equals( "-noplastic" ) ) {
+            else if ( arg.equals( "-noplastic" ) ) { // deprecated
                 it.remove();
-                plasticServe = false;
+                interopServe = false;
             }
             else if ( arg.equals( "-soap" ) ) {
                 it.remove();
@@ -305,7 +312,7 @@ public class Driver {
             else if ( arg.startsWith( "-noserv" ) ) {
                 it.remove();
                 soapServe = false;
-                plasticServe = false;
+                interopServe = false;
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
@@ -460,31 +467,30 @@ public class Driver {
                 logger.warning( "No SOAP server: " + e );
             }
         }
-        if ( internalHub ) {
+        if ( internalHub || externalHub ) {
+            TopcatCommunicator communicator =
+                getControlWindow().getCommunicator();
+            boolean isExternal = externalHub;
             try {
-                PlasticHub.startHub( null, null );
+                communicator.startHub( isExternal );
             }
             catch ( IOException e ) {
-                logger.warning( "Can't start PLASTIC hub: " + e );
+                logger.warning( "Can't start " + communicator.getProtocolName()
+                              + " hub: " + e );
             }
         }
-        else if ( externalHub ) {
-            try {
-                PlasticUtils.startExternalHub( true );
+        if ( interopServe ) {
+            TopcatCommunicator communicator =
+                getControlWindow().getCommunicator();
+            boolean isReg = communicator.setActive();
+            if ( isReg ) {
+                logger.info( "Registered as " + communicator.getProtocolName()
+                           + " client" );
             }
-            catch ( IOException e ) {
-                logger.warning( "Can't start PLASTIC hub: " + e );
+            else {
+                logger.info( communicator.getProtocolName()
+                           + " registration atttempt failed" );
             }
-        }
-        if ( plasticServe ) {
-            try {
-                getControlWindow().getPlasticServer().register();
-                logger.info( "Registered as PLASTIC listener" );
-            }
-            catch ( Throwable e ) {
-                logger.info( "PLASTIC registration failed: " + e );
-            }
-            getControlWindow().getPlasticServer().setAutoRegister( 2000 );
         }
     }
 
@@ -657,10 +663,11 @@ public class Driver {
                                          + "large tables" ) 
            .append( p2 + "-hub           run internal PLASTIC hub" )
            .append( p2 + "-exthub        run external PLASTIC hub" )
-           .append( p2 + "-[no]plastic   do [not] connect to running " 
-                                         + "PLASTIC hub" )
-           .append( p2 + "-[no]soap      do [not] start SOAP services" )
-           .append( p2 + "-noserv        don't run any services" )
+           .append( p2 + "-plastic       connect to running PLASTIC hub" )
+           .append( p2 + "-samp          connect to running SAMP hub" )
+           .append( p2 + "-soap          start SOAP services" )
+           .append( p2 + "-noserv        don't run any services"
+                                         + " (PLASTIC, SAMP or SOAP)" )
            .append( p2 + "-stilts <args> run STILTS not TOPCAT" );
 
         /* Load dialogues. */
