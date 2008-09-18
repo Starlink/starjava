@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="3.3"/>
+  <property name="version" value="3.3+"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -506,6 +506,7 @@
       <arg value="-x"/><arg value="vo.jar"/>
       <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="-x"/><arg value="srb.jar"/>
+      <arg value="-x"/><arg value="xmlrpc-1.2-b1.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
