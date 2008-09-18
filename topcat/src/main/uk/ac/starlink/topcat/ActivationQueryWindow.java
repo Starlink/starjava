@@ -574,6 +574,10 @@ public class ActivationQueryWindow extends QueryWindow {
                 return makeActivator( tcol );
             }
             else {
+                JOptionPane.showMessageDialog( ActivationQueryWindow.this,
+                                               "Must supply location column",
+                                               "No Action Defined",
+                                               JOptionPane.ERROR_MESSAGE );
                 return null;
             }
         }
