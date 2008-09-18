@@ -141,6 +141,9 @@
     <echo message="Executing PLASTIC target: ${what}"/>
     <ant dir="./plastic" target="${what}"/>
 
+    <echo message="Executing JSAMP target: ${what}"/>
+    <ant dir="./jsamp" target="${what}"/>
+
     <echo message="Executing Task target: ${what}"/>
     <ant dir="./task" target="${what}"/>
 
