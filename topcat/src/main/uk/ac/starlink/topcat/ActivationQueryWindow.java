@@ -48,6 +48,7 @@ import uk.ac.starlink.topcat.func.Spectrum;
 import uk.ac.starlink.topcat.interop.ImageActivity;
 import uk.ac.starlink.topcat.interop.RowActivity;
 import uk.ac.starlink.topcat.interop.SkyPointActivity;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 
 /**
@@ -61,6 +62,7 @@ public class ActivationQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel_;
     private ActivatorFactory activeFactory_;
+    private final TopcatCommunicator communicator_;
 
     /**
      * Constructs a new window.
@@ -71,6 +73,7 @@ public class ActivationQueryWindow extends QueryWindow {
     public ActivationQueryWindow( TopcatModel tcModel, Component parent ) {
         super( "Set Activation Action", parent );
         tcModel_ = tcModel;
+        communicator_ = ControlWindow.getInstance().getCommunicator();
 
         /* Set up the different types of activator. */
         ActivatorFactory[] factories = new ActivatorFactory[] {
@@ -414,8 +417,7 @@ public class ActivationQueryWindow extends QueryWindow {
 
         InteropHighlightActivatorFactory() {
             super( "Transmit Row" );
-            rowPointer_ = ControlWindow.getInstance().getCommunicator()
-                         .createRowActivity();
+            rowPointer_ = communicator_.createRowActivity();
             JComboBox appSelector =
                 new JComboBox( rowPointer_.getTargetSelector() );
             LabelledComponentStack stack = new LabelledComponentStack();
@@ -457,8 +459,7 @@ public class ActivationQueryWindow extends QueryWindow {
 
         InteropPointAtActivatorFactory() {
             super( "Transmit Coordinates" );
-            skyPointer_ = ControlWindow.getInstance().getCommunicator()
-                         .createSkyPointActivity();
+            skyPointer_ = communicator_.createSkyPointActivity();
             raSelector_ = new ColumnSelector(
                 tcModel_.getColumnSelectorModel( Tables.RA_INFO ), false );
             decSelector_ = new ColumnSelector(
@@ -608,8 +609,7 @@ public class ActivationQueryWindow extends QueryWindow {
 
         ImageActivatorFactory() {
             super( "Image" );
-            imageSender_ = ControlWindow.getInstance().getCommunicator()
-                          .createImageActivity();
+            imageSender_ = communicator_.createImageActivity();
 
             /* If this is the result of a SIAP query, select the acref 
              * field for display by default. */

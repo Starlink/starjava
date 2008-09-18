@@ -16,7 +16,6 @@ import javax.swing.JComboBox;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.MessageId;
-import uk.ac.starlink.topcat.TopcatPlasticListener;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Sog;

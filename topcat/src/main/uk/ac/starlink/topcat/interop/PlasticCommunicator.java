@@ -32,8 +32,6 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TopcatPlasticListener;
-import uk.ac.starlink.topcat.TopcatTransmitter;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.util.URLUtils;
 
