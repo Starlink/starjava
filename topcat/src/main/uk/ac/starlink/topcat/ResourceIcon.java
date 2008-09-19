@@ -36,6 +36,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
+import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
@@ -71,6 +72,7 @@ public class ResourceIcon implements Icon {
         STARLINK = makeIcon( "starlinklogo3.gif" ),
         TABLE = makeIcon( "browser1.gif" ),
         TOPCAT_LOGO = makeIcon( "tc3.gif" ),
+        TOPCAT_LOGO_SMALL = makeIcon( "tc3_24.gif" ),
         STAR_LOGO = makeIcon( "starlink48.gif" ),
         ASTROGRID_LOGO = makeIcon( "ag48.gif" ),
         BRISTOL_LOGO = makeIcon( "bris48.gif" ),
@@ -91,6 +93,7 @@ public class ResourceIcon implements Icon {
         SUBTRACT = makeIcon( "Minus1.gif" ),
         DELETE = makeIcon( "trash2.gif" ),
         HELP = makeIcon( "Help3.gif" ),
+        HELP_BROWSER = makeIcon( "Help3b.gif" ),
         DEMO = makeIcon( "demo.gif" ),
         HIDE = makeIcon( "false.gif" ),
         REVEAL = makeIcon( "true.gif" ),
@@ -180,6 +183,7 @@ public class ResourceIcon implements Icon {
         BACKWARD = makeIcon( "Back24.gif" ),
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
         MANUAL = makeIcon( "book1.gif" ),
+        MANUAL_BROWSER = makeIcon( "book1b.gif" ),
         LEGEND = makeIcon( "legend3.gif" ),
         LABEL = makeIcon( "label2.gif" ),
         RADIAL = makeIcon( "clock1.gif" ),
@@ -246,12 +250,27 @@ public class ResourceIcon implements Icon {
 
     /**
      * Returns the URL for the image that forms this icon; it is called
-     * PREFIX + location relative to this class.
+     * PREFIX + location relative to this class.  This will probably be
+     * a jar: protocol URL and only useful to Java applications (possibly
+     * only within this JVM).
      *
      * @return  the icon URL
      */
     public URL getURL() {
         return getClass().getResource( PREFIX + location );
+    }
+
+    /**
+     * Returns a URL from which this icon can be retrieved by external
+     * applications.  This is served from TOPCAT's internal HTTP server,
+     * and so is only availabe as long as this instance of the program
+     * is running.
+     *
+     * @return  url
+     */
+    public URL getExternalURL() throws IOException {
+        return new URL( TopcatServer.getInstance().getTopcatPackageUrl(),
+                        PREFIX + location );
     }
 
     /**
