@@ -64,11 +64,21 @@ public class TopcatSampConnector extends HubConnector {
 
         /* Declare metadata. */
         Metadata meta = new Metadata();
+        TopcatServer tcServer = TopcatServer.getInstance();
+        URL tcPkgUrl = tcServer.getTopcatPackageUrl();
+        String homepage = "http://www.starlink.ac.uk/topcat/";
         meta.setName( "topcat" );
         meta.setDescriptionText( "Tool for OPerations "
                                + "on Catalogues And Tables" );
-        meta.setDocumentationUrl( "http://www.starlink.ac.uk/topcat/" );
-        meta.setIconUrl( "http://www.starlink.ac.uk/topcat/tc3.gif" );
+        URL docUrl = new URL( tcPkgUrl, "sun253/index.html" );
+        meta.setDocumentationUrl( tcServer.isFound( docUrl )
+                                  ? docUrl.toString()
+                                  : homepage );
+        URL logoUrl = new URL( tcPkgUrl, "images/tc3.gif" );
+        meta.setIconUrl( tcServer.isFound( logoUrl )
+                             ? logoUrl.toString()
+                             : homepage + "images/tc3.gif" );
+        meta.put( "home.page", homepage );
         meta.put( "author.name", "Mark Taylor" );
         meta.put( "author.affiliation",
                   "Astrophysics Group, Bristol University" );
