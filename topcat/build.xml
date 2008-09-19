@@ -506,7 +506,6 @@
       <arg value="-x"/><arg value="vo.jar"/>
       <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="-x"/><arg value="srb.jar"/>
-      <arg value="-x"/><arg value="xmlrpc-1.2-b1.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
@@ -1357,6 +1356,12 @@
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>
+
+    <!-- Copy same into the classes directory so that it ends up in the
+     !   jar file.  -->
+    <copy todir="${build.classes}/uk/ac/starlink/topcat/${user.doc}">
+      <fileset dir="${build.docs}/${user.doc}"/>
+    </copy>
 
     <!-- Transform the user document from XML to JavaHelp form. -->
     <java classpathref="classpath"
