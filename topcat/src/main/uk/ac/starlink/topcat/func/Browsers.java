@@ -5,6 +5,9 @@
 
 package uk.ac.starlink.topcat.func;
 
+import edu.stanford.ejalbert.BrowserLauncher;
+import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
+import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -20,6 +23,7 @@ import uk.ac.starlink.topcat.HtmlWindow;
 public class Browsers {
 
     private static HtmlWindow htmlWindow_;
+    private static BrowserLauncher browserLauncher_;
 
     /**
      * Private constructor prevents instantiation.
@@ -82,10 +86,21 @@ public class Browsers {
      */
     public static String systemBrowser( String url ) {
         try {
-            BrowserLauncher.openURL( url );
+            if ( browserLauncher_ == null ) {
+                browserLauncher_ = new BrowserLauncher();
+                browserLauncher_.setNewWindowPolicy( false );
+            }
+            browserLauncher_.openURLinBrowser( url );
             return url;
         }
-        catch ( IOException e ) {
+        catch ( UnsupportedOperatingSystemException e ) {
+            String msg = e.getMessage();
+            if ( e == null ) {
+                msg = e.toString();
+            }
+            return msg + ": " + url;
+        }
+        catch ( BrowserLaunchingInitializingException e ) {
             String msg = e.getMessage();
             if ( e == null ) {
                 msg = e.toString();
