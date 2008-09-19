@@ -1,9 +1,12 @@
 package uk.ac.starlink.topcat.interop;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -33,10 +36,12 @@ public class TopcatServer {
     private final SampXmlRpcServerFactory xServerFactory_;
     private final SampXmlRpcClientFactory xClientFactory_;
     private final ClientProfile profile_;
+    private final URL tcPkgUrl_;
     private boolean started_;
     private static TopcatServer instance_;
     private static Logger logger_ =
         Logger.getLogger( TopcatServer.class.getName() );
+    private static final int BUFSIZ = 16 * 1024;
 
     /**
      * Private constructor constructs sole instance.
@@ -44,9 +49,18 @@ public class TopcatServer {
     private TopcatServer() throws IOException {
         httpServer_ = new HttpServer();
         httpServer_.setDaemon( true );
+
+        /* Set up handler for custom resource serving. */
         resourceHandler_ = new ResourceHandler( httpServer_, "/dynamic" );
         httpServer_.addHandler( resourceHandler_ );
 
+        /* Set up handler to serve TOPCAT documentation. */
+        URL docResource = getClass().getResource( "/uk/ac/starlink/topcat/" );
+        httpServer_.addHandler( new ClassLoaderHandler( docResource,
+                                "/doc/" ) );
+        tcPkgUrl_ = new URL( httpServer_.getBaseUrl(), "doc/" );
+
+        /* Set up handler for XML-RPC. */
         xClientFactory_ = new InternalClientFactory();
         final SampXmlRpcServer xServer =
             new InternalServer( httpServer_, "/xmlrpc" );
@@ -110,6 +124,54 @@ public class TopcatServer {
      */
     public void expireResource( URL url ) {
         resourceHandler_.expireResource( url );
+    }
+
+    /**
+     * Returns the URL corresponding to the classpath for the package
+     * uk.ac.starlink.topcat.
+     *
+     * @return   documentation URL
+     */
+    public URL getTopcatPackageUrl() {
+        return tcPkgUrl_;
+    }
+
+    /**
+     * Indicates whether this server can serve the resource with a given URL.
+     *
+     * @param   url  URL to enquire about
+     * @return   true if a request for <code>url</code> will complete with
+     *           non-error status
+     */
+    public boolean isFound( URL url ) {
+        checkStarted();
+        try {
+            URLConnection connection = url.openConnection();
+            if ( connection instanceof HttpURLConnection ) {
+                HttpURLConnection hconn = (HttpURLConnection) connection;
+                hconn.setRequestMethod( "HEAD" );
+                hconn.setDoOutput( false );
+                hconn.connect();
+                InputStream in = connection.getInputStream();
+                byte[] buf = new byte[ BUFSIZ ];
+                while ( in.read( buf ) >= 0 ) {
+                }
+                in.close();
+                return hconn.getResponseCode() == 200;
+            }
+            else {
+                connection.connect();
+                InputStream in = connection.getInputStream();
+                byte[] buf = new byte[ BUFSIZ ];
+                while( in.read( buf ) >= 0 ) {
+                }
+                in.close();
+                return true;
+            }
+        }
+        catch ( IOException e ) {
+            return false;
+        }
     }
 
     /**
@@ -262,6 +324,94 @@ public class TopcatServer {
             }
             else {
                 return HttpServer.createErrorResponse( 404, "Not found" );
+            }
+        }
+    }
+
+    /**
+     * Handler implementation for serving resources which are available
+     * from the class loader.
+     */
+    private static class ClassLoaderHandler implements HttpServer.Handler {
+        private final URL baseResource_;
+        private final String basePath_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseResource   URL of the base resource available from the
+         *                        class loader
+         * @param  basePath   path relative to the server at which the
+         *                    resources will be available
+         */
+        ClassLoaderHandler( URL baseResource, String basePath ) {
+            baseResource_ = baseResource;
+            basePath_ = basePath;
+        }
+
+        public HttpServer.Response serveRequest( HttpServer.Request request ) {
+            String path = request.getUrl();
+            if ( ! path.startsWith( basePath_ ) ) {
+                return null;
+            }
+            String method = request.getMethod();
+            String relPath = path.substring( basePath_.length() );
+            final URLConnection conn;
+            try {
+                URL resource = new URL( baseResource_, relPath );
+                conn = resource.openConnection();
+                conn.connect();
+            }
+            catch ( IOException e ) {
+                return HttpServer.createErrorResponse( 404, "Not found", e );
+            }
+            try {
+                Map hdrMap = new HashMap();
+                String contentType = conn.getContentType();
+                if ( contentType != null ) {
+                    hdrMap.put( "Content-Type", contentType );
+                }
+                int contentLength = conn.getContentLength();
+                if ( contentLength >= 0 ) {
+                    hdrMap.put( "Content-Length",
+                                Integer.toString( contentLength ) );
+                }
+                String contentEncoding = conn.getContentEncoding();
+                if ( contentEncoding != null ) {
+                    hdrMap.put( "Content-Encoding", contentEncoding );
+                }
+                if ( "GET".equals( method ) ) {
+                    return new HttpServer.Response( 200, "OK", hdrMap ) {
+                        protected void writeBody( OutputStream out )
+                                throws IOException {
+                            InputStream in = conn.getInputStream();
+                            byte[] buf = new byte[ BUFSIZ ];
+                            try {
+                                for ( int nb; ( nb = in.read( buf ) ) >= 0; ) {
+                                    out.write( buf, 0, nb );
+                                }
+                                out.flush();
+                            }
+                            finally {
+                                in.close();
+                            }
+                        }
+                    };
+                }
+                else if ( "HEAD".equals( method ) ) {
+                    return new HttpServer.Response( 200, "OK", hdrMap ) {
+                        protected void writeBody( OutputStream out ) {
+                        }
+                    };
+                }
+                else {
+                    return HttpServer
+                          .createErrorResponse( 405, "Unsupported method" );
+                }
+            }
+            catch ( Exception e ) {
+                return HttpServer
+                      .createErrorResponse( 500, "Internal server error", e );
             }
         }
     }
