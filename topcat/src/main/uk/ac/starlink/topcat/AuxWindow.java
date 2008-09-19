@@ -191,12 +191,15 @@ public class AuxWindow extends JFrame {
         /* Add one or two items to the help menu. */
         if ( helpID != null ) {
             helpMenu.add( new HelpAction( null, this ) );
+            helpMenu.add( new BrowserHelpAction( null, this ) );
         }
         helpMenu.add( helpAct );
+        helpMenu.add( new BrowserHelpAction( helpID, this ) );
         helpMenu.addSeparator();
 
         /* Add an About action. */
-        aboutAct = new AuxAction( "About TOPCAT", null, null );
+        aboutAct = new AuxAction( "About TOPCAT",
+                                  ResourceIcon.TOPCAT_LOGO_SMALL, null );
         helpMenu.add( aboutAct );
 
         /* Add a close button. */
