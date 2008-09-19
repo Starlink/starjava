@@ -18,6 +18,7 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.internal.HttpServer;
 import org.astrogrid.samp.xmlrpc.internal.InternalClientFactory;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
+import uk.ac.starlink.topcat.Driver;
 
 /**
  * Provides HTTP server functionality for TOPCAT.
@@ -55,7 +56,7 @@ public class TopcatServer {
         httpServer_.addHandler( resourceHandler_ );
 
         /* Set up handler to serve TOPCAT documentation. */
-        URL docResource = getClass().getResource( "/uk/ac/starlink/topcat/" );
+        URL docResource = getDocResource();
         httpServer_.addHandler( new ClassLoaderHandler( docResource,
                                 "/doc/" ) );
         tcPkgUrl_ = new URL( httpServer_.getBaseUrl(), "doc/" );
@@ -187,6 +188,32 @@ public class TopcatServer {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the URL corresponding to the classpath directory 
+     * "uk.ac.starlink.topcat".
+     *
+     * @return  internal URL
+     */
+    private static URL getDocResource() throws MalformedURLException {
+
+        /* Start with a class which is in the classpath package we need. */
+        Class clazz = Driver.class;
+
+        /* Get the relative resource name of this class. */
+        String cname = clazz.getName().replaceFirst( ".*\\.", "" ) + ".class";
+
+        /* Turn it into a URL. */
+        URL cUrl = clazz.getResource( cname );
+
+        /* Then strip the name of the class file itself, leaving just the
+         * directory. */
+        String cRes = cUrl.toString();
+        cRes = cRes.substring( 0, cRes.length() - cname.length() );
+
+        /* Return the result as a URL. */
+        return new URL( cRes );
     }
 
     /**
