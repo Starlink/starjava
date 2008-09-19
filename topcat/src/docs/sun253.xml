@@ -3916,17 +3916,28 @@ may provide some other less-commonly-required actions too.
     The following options are available:
     <dl>
 
-    <dt>Help</dt>
+    <dt>&IMG.MANUAL; Help</dt>
     <dd><p>Pops up the <ref id="HelpWindow">Help Window</ref>.
         </p></dd>
 
-    <dt>&IMG.HELP; Help For Window</dt>
+    <dt>&IMG.MANUAL_BROWSER; Help in Browser</dt>
+    <dd><p>Attempts to show the application help in a web browser.
+        This is somewhat system dependent and is not guaranteed to work.
+        </p></dd>
+
+    <dt>&IMG.HELP; Help for window</dt>
     <dd><p>Pops up the <ref id="HelpWindow">Help Window</ref>;
         the window will display help information relevant to the window in
         which the menu appears.
         </p></dd>
 
-    <dt>About TOPCAT</dt>
+    <dt>&IMG.HELP_BROWSER; Help for window in Browser</dt>
+    <dd><p>Attempts to show the help page relevant to the window in which
+        the menu appears in a web browser.
+        This is somewhat system dependent and is not guaranteed to work.
+        </p></dd>
+
+    <dt>&IMG.TOPCAT_LOGO_SMALL; About TOPCAT</dt>
     <dd><p>Pops up a little window giving information on the version and
         authorship of the program.
         It also reports on availability of some optional components.
@@ -9862,8 +9873,8 @@ functionality:
 <li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/"
             >IVOA FITS Package</webref>
     (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
-<li><webref url="http://browserlauncher.sourceforge.net/"
-            >BrowserLauncher</webref> for launching default web browser</li>
+<li><webref url="http://browserlaunch2.sourceforge.net/"
+            >BrowserLauncher2</webref> for launching default web browser</li>
 </ul>
 </p>
 
@@ -11174,6 +11185,8 @@ introduced since the last version:
     <li>Fix stacktrace error in 3D plots when no data is available.</li>
     <li>Can now use SAMP as an alternative to PLASTIC for 
         tool interoperability.</li>
+    <li>Add items to <label>Help</label> menu for viewing help in a web
+        browser.</li>
     </ul>
     </p></dd>
 
