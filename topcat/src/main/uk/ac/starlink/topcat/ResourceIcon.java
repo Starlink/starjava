@@ -184,6 +184,7 @@ public class ResourceIcon implements Icon {
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
         MANUAL = makeIcon( "book1.gif" ),
         MANUAL_BROWSER = makeIcon( "book1b.gif" ),
+        MANUAL1_BROWSER = makeIcon( "scroll1b.gif" ),
         LEGEND = makeIcon( "legend3.gif" ),
         LABEL = makeIcon( "label2.gif" ),
         RADIAL = makeIcon( "clock1.gif" ),
