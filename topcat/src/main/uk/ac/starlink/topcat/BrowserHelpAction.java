@@ -90,7 +90,7 @@ public class BrowserHelpAction extends AbstractAction {
     public static Action createManualAction( Component parent ) {
         Action action =
             new BrowserHelpAction( getHelpUrl( "index.html" ), parent );
-        action.putValue( NAME, "Help for Application in Browser" );
+        action.putValue( NAME, "Help in Browser" );
         action.putValue( SMALL_ICON, ResourceIcon.MANUAL_BROWSER );
         action.putValue( SHORT_DESCRIPTION,
                          "Attempt to display help for the application"
@@ -109,7 +109,7 @@ public class BrowserHelpAction extends AbstractAction {
         Action action =
             new BrowserHelpAction( getHelpUrl( "sun253.html" ), parent );
         action.putValue( NAME,
-                         "Help for Application in Browser (single page)" );
+                         "Help in Browser (single page)" );
         action.putValue( SMALL_ICON, ResourceIcon.MANUAL1_BROWSER );
         action.putValue( SHORT_DESCRIPTION,
                          "Attempt to display help for the application"

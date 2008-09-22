@@ -37,7 +37,7 @@ public class HelpAction extends AbstractAction {
     public HelpAction( String helpID, Component parent ) {
         helpID_ = helpID;
         parent_ = parent;
-        putValue( NAME, helpID == null ? "Help for Application"
+        putValue( NAME, helpID == null ? "Help"
                                        : "Help for Window" );
         putValue( SMALL_ICON, helpID == null ? ResourceIcon.MANUAL
                                              : ResourceIcon.HELP );

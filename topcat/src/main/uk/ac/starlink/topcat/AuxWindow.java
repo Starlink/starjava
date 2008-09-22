@@ -189,13 +189,15 @@ public class AuxWindow extends JFrame {
         toolBar.add( helpAct );
 
         /* Add items to the help menu. */
+        helpMenu.add( new HelpAction( null, this ) );
         if ( helpID != null ) {
             helpMenu.add( helpAct );
-            helpMenu.add( BrowserHelpAction.createIdAction( helpID, this ) );
         }
-        helpMenu.add( new HelpAction( null, this ) );
         helpMenu.add( BrowserHelpAction.createManualAction( this ) );
         helpMenu.add( BrowserHelpAction.createManual1Action( this ) );
+        if ( helpID != null ) {
+            helpMenu.add( BrowserHelpAction.createIdAction( helpID, this ) );
+        }
         helpMenu.addSeparator();
 
         /* Add an About action. */
