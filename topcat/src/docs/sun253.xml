@@ -3920,18 +3920,25 @@ may provide some other less-commonly-required actions too.
     <dd><p>Pops up the <ref id="HelpWindow">Help Window</ref>.
         </p></dd>
 
-    <dt>&IMG.MANUAL_BROWSER; Help in Browser</dt>
-    <dd><p>Attempts to show the application help in a web browser.
-        This is somewhat system dependent and is not guaranteed to work.
-        </p></dd>
-
-    <dt>&IMG.HELP; Help for window</dt>
+    <dt>&IMG.HELP; Help for Window</dt>
     <dd><p>Pops up the <ref id="HelpWindow">Help Window</ref>;
         the window will display help information relevant to the window in
         which the menu appears.
         </p></dd>
 
-    <dt>&IMG.HELP_BROWSER; Help for window in Browser</dt>
+    <dt>&IMG.MANUAL_BROWSER; Help in Browser</dt>
+    <dd><p>Attempts to show the application help in a web browser.
+        This is somewhat system dependent and is not guaranteed to work.
+        </p></dd>
+
+    <dt>&IMG.MANUAL1_BROWSER; Help in Browser (single page)</dt>
+    <dd><p>Attempts to show the application help in a web browser as a single
+        (long page).  This can be useful if you want to search for a given
+        word or string in the text.
+        This is somewhat system dependent and is not guaranteed to work.
+        </p></dd>
+
+    <dt>&IMG.HELP_BROWSER; Help for Window in Browser</dt>
     <dd><p>Attempts to show the help page relevant to the window in which
         the menu appears in a web browser.
         This is somewhat system dependent and is not guaranteed to work.
