@@ -188,13 +188,14 @@ public class AuxWindow extends JFrame {
         Action helpAct = new HelpAction( helpID, this );
         toolBar.add( helpAct );
 
-        /* Add one or two items to the help menu. */
+        /* Add items to the help menu. */
         if ( helpID != null ) {
-            helpMenu.add( new HelpAction( null, this ) );
-            helpMenu.add( new BrowserHelpAction( null, this ) );
+            helpMenu.add( helpAct );
+            helpMenu.add( BrowserHelpAction.createIdAction( helpID, this ) );
         }
-        helpMenu.add( helpAct );
-        helpMenu.add( new BrowserHelpAction( helpID, this ) );
+        helpMenu.add( new HelpAction( null, this ) );
+        helpMenu.add( BrowserHelpAction.createManualAction( this ) );
+        helpMenu.add( BrowserHelpAction.createManual1Action( this ) );
         helpMenu.addSeparator();
 
         /* Add an About action. */
