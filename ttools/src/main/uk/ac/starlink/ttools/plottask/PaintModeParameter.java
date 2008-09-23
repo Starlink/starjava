@@ -32,12 +32,15 @@ public class PaintModeParameter extends ChoiceParameter {
 
     private static final String OUTPARAM_NAME = "out";
     private static final String FORMATPARAM_NAME = "ofmt";
+    private static final PaintMode SWING_MODE;
+    private static final PaintMode OUTPUT_MODE;
     private static final PaintMode DEFAULT_MODE;
     private static final PaintMode[] MODES = new PaintMode[] {
-        DEFAULT_MODE = new SwingPaintMode(),
-        new OutputPaintMode(),
+        SWING_MODE = new SwingPaintMode(),
+        OUTPUT_MODE = new OutputPaintMode(),
         new CgiPaintMode(),
         new DiscardPaintMode(),
+        DEFAULT_MODE = new AutoPaintMode(),
     };
     private static final GraphicExporter[] EXPORTERS = new GraphicExporter[] {
         GraphicExporter.EPS,
@@ -340,6 +343,37 @@ public class PaintModeParameter extends ChoiceParameter {
                     g2.dispose();
                 }
             };
+        }
+    }
+
+    /**
+     * Automatic paint mode.  Works like OutputPaintMode if output file is
+     * given, else works like SwingPaintMode.
+     */
+    private static class AutoPaintMode extends PaintMode {
+        protected AutoPaintMode() {
+            super( "auto" );
+        }
+
+        public String getDescription() {
+            return "Behaves as "
+                 + "<code>" + SWING_MODE + "</code> or "
+                 + "<code>" + OUTPUT_MODE + "</code> mode"
+                 + " depending on presence of "
+                 + "<code>" + OUTPARAM_NAME + "</code> parameter";
+        }
+
+        public Painter createPainter( Environment env,
+                                      PaintModeParameter param )
+                throws TaskException {
+            param.outParam_.setNullPermitted( true );
+            param.formatParam_.setNullPermitted( true );
+            if ( param.outParam_.stringValue( env ) == null ) {
+                return SWING_MODE.createPainter( env, param );
+            }
+            else {
+                return OUTPUT_MODE.createPainter( env, param );
+            }
         }
     }
 }
