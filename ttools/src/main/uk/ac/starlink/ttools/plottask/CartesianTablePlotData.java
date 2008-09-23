@@ -272,8 +272,10 @@ public class CartesianTablePlotData extends TablePlotData {
         final CompiledExpression[] coordCompexs =
             new CompiledExpression[ ndim_ ];
         for ( int idim = 0; idim < ndim_; idim++ ) {
-            coordCompexs[ idim ] =
-                Evaluator.compile( coordExprs_[ idim ], lib, double.class );
+            String expr = coordExprs_[ idim ];
+            coordCompexs[ idim ] = expr == null 
+                                 ? null
+                                 : Evaluator.compile( expr, lib, double.class );
         }
         final double[] coords = new double[ ndim_ ];
 
