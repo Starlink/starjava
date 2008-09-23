@@ -246,7 +246,7 @@ public class PlotStateFactory {
             for ( int idim = 0; idim < allNdim; idim++ ) {
                 Parameter coordParam =
                     axParamSets[ idim ].createCoordParameter( tlabel );
-                if ( idim > mainNdim ) {
+                if ( idim >= mainNdim ) {
                     coordParam.setNullPermitted( true );
                 }
                 coordExprs[ idim ] = coordParam.stringValue( env );
