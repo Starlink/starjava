@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
@@ -62,6 +63,7 @@ public class MarkStyleFactory extends StyleFactory {
         paramList.add( createShapeParameter( stSuffix ) );
         paramList.add( createSizeParameter( stSuffix ) );
         paramList.add( createTransparencyParameter( stSuffix ) );
+        paramList.add( createHidePointsParameter( stSuffix ) );
         if ( errNdim_ > 0 ) {
             paramList.add( createErrorRendererParameter( stSuffix ) );
         }
@@ -101,6 +103,11 @@ public class MarkStyleFactory extends StyleFactory {
             createTransparencyParameter( stSuffix );
         transparParam.setDefault( Integer.toString( style0.getOpaqueLimit() ) );
         style.setOpaqueLimit( transparParam.intValue( env ) );
+
+        /* Configure point hide flag. */
+        BooleanParameter hideParam = createHidePointsParameter( stSuffix );
+        hideParam.setDefault( style0.getHidePoints() ? "true" : "false" );
+        style.setHidePoints( hideParam.booleanValue( env ) );
 
         /* Configure error renderer if appropriate. */
         if ( errNdim_ > 0 ) {
@@ -241,6 +248,28 @@ public class MarkStyleFactory extends StyleFactory {
             "plotted on top of each other.",
             "</p>",
             "<p>The minimum value is 1, which means opaque markers.",
+            "</p>",
+        } );
+        return param;
+    }
+
+    /**
+     * Constructs a parameter for determining the point hide flag.
+     *
+     * @param  stSuffix  label identifying dataset
+     * @return   parameter returning hide point flag
+     */
+    private BooleanParameter createHidePointsParameter( String stSuffix ) {
+        BooleanParameter param =
+            new BooleanParameter( paramName( "hide", stSuffix ) );
+        param.setDefault( "false" );
+        param.setPrompt( "Hide point markers for data set " + stSuffix + "?" );
+        param.setDescription( new String[] {
+            "<p>Indicates whether the actual markers plotted for each point",
+            "should be hidden.",
+            "Normally this is false, but you may want to set it to true",
+            "if the point positions are being revealed in some other way,",
+            "for instance by error markers or lines drawn between them.",
             "</p>",
         } );
         return param;
