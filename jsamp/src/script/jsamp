@@ -1,3 +1,5 @@
 #!/bin/sh
 bindir=`dirname $0`
-java -jar $bindir/../lib/jsamp/jsamp.jar "$@"
+libdir=${bindir}/../lib/jsamp
+java -classpath ${libdir}/jsamp.jar:${libdir}/xmlrpc-1.2-b1.jar \
+     org.astrogrid.samp.JSamp "$@"
