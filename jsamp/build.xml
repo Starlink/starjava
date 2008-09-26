@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="JSAMP"/>
   <property name="name" value="jsamp"/>
-  <property name="version" value="0.2-"/>
+  <property name="version" value="0.2-1"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -89,6 +89,9 @@
 
   <!-- Directory containing any unmodified jars of this package -->
   <property name="src.jars.dir" value="${src.dir}/lib"/>
+
+  <!-- Directory containing any script required to execute or setup package-->
+  <property name="script.dir" value="${src.dir}/script"/>
 
   <!-- Distribution directories, these are the actual state of this
    !   package at all times -->
@@ -235,12 +238,14 @@
    !   =============================
    !   Create the local distribution
    !   =============================
-   !
-   !  Nothing to do, this package is permanently in this condition.
    !-->
   <target name="dist"
           depends="jars,webstart"
           description="-> make package ready for distribution">
+    <mkdir dir="${dist.bin}"/>
+    <copy todir="${dist.bin}">
+      <fileset dir="${script.dir}"/>
+    </copy>
   </target>
 
   <!--
@@ -371,10 +376,12 @@
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.docs" value="${star.install}/docs"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+    <property name="star.bin" value="${star.install}/bin"/>
 
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.lib.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
+    <mkdir dir="${star.bin}"/>
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
@@ -393,6 +400,18 @@
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
+
+    <loggedcopy todir="${star.bin}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.bin}"/>
+    </loggedcopy>
+    <chmod perm="ugo+rx" failonerror="${chmod.fail}">
+      <fileset dir="${star.bin}">
+        <present targetdir="${dist.bin}" present="both"/>
+      </fileset>
+    </chmod>
 
   </target>
 
