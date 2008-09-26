@@ -354,6 +354,7 @@
           description="-> removes local copies">
 
     <delete dir="${dist.lib}"/>
+    <delete dir="${dist.bin}"/>
 
   </target>
 
