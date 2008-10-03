@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     14-FEB-2001 (Peter W. Draper):
@@ -52,7 +53,7 @@ import uk.ac.starlink.splat.util.Utilities;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class SimpleBinaryMaths 
+public class SimpleBinaryMaths
     extends JFrame
 {
     /**
@@ -181,9 +182,9 @@ public class SimpleBinaryMaths
         addButton.setAction( addAction );
         opsMenu.add( addAction ).setMnemonic( KeyEvent.VK_D );
 
-        image = 
+        image =
             new ImageIcon( ImageHolder.class.getResource( "minus24.gif" ) );
-        LocalAction subAction = 
+        LocalAction subAction =
             new LocalAction ( "Subtract", image,
                               "Subtract left from right selected spectra",
                               "control S" );
@@ -200,7 +201,7 @@ public class SimpleBinaryMaths
 
         image =
             new ImageIcon( ImageHolder.class.getResource( "divide.gif" ) );
-        LocalAction divAction = 
+        LocalAction divAction =
             new LocalAction ( "Divide", image,
                               "Divide left by right selected spectra",
                               "control I" );
@@ -226,12 +227,12 @@ public class SimpleBinaryMaths
         // and action bar).
         image =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
-        LocalAction closeAction = new LocalAction( "Close", image, 
+        LocalAction closeAction = new LocalAction( "Close", image,
                                                    "Close window",
                                                    "control W" );
         fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
         closeButton = new JButton( closeAction );
-        
+
         windowActionBar.setLayout( new BoxLayout( windowActionBar,
                                                   BoxLayout.X_AXIS ) );
         windowActionBar.setBorder( BorderFactory.createEmptyBorder(3,3,3,3) );
@@ -317,15 +318,15 @@ public class SimpleBinaryMaths
                case DIVIDE:
                    newData = divideData( oneData, twoData );
                    operation = "Ratio: ";
-                   operator = String.valueOf( '\u00f7' ); // unicode divide.
+                   operator = String.valueOf( '/' );
                    break;
                case MULTIPLY:
                    newData = multiplyData( oneData, twoData );
                    operation = "Product: ";
-                   operator = String.valueOf( '\u00d7' ); //  unicode multiply
+                   operator = String.valueOf( '*' );
                    break;
             }
-            String name = operation + " (" + one.getShortName() + ") " + 
+            String name = operation + " (" + one.getShortName() + ") " +
                           operator + " (" + two.getShortName() + ") ";
             createNewSpectrum( name, one, newData );
         }
@@ -389,8 +390,8 @@ public class SimpleBinaryMaths
     {
         double[] result = new double[one.length];
         for ( int i = 0; i < one.length; i++ ) {
-            if ( one[i] != SpecData.BAD && 
-                 two[i] != SpecData.BAD && 
+            if ( one[i] != SpecData.BAD &&
+                 two[i] != SpecData.BAD &&
                  two[i] != 0.0 ) {
                 result[i] = one[i] / two[i];
             }
@@ -403,9 +404,9 @@ public class SimpleBinaryMaths
 
     /**
      * Create a new spectrum that is a clone of an existing spectrum, but with
-     * a new data array and add it to the global list. 
+     * a new data array and add it to the global list.
      */
-    protected void createNewSpectrum( String name, SpecData spec, 
+    protected void createNewSpectrum( String name, SpecData spec,
                                       double[] data )
     {
         try {
@@ -421,7 +422,7 @@ public class SimpleBinaryMaths
             //  Spectral lines create here are red.
             globalList.setKnownNumberProperty( newSpec, SpecData.LINE_COLOUR,
                                                new Integer(Color.red.getRGB()));
-        } 
+        }
         catch (Exception e) {
             //  Do nothing (could pop up dialog).
             e.printStackTrace();
@@ -448,7 +449,7 @@ public class SimpleBinaryMaths
             putValue( SHORT_DESCRIPTION, shortHelp );
         }
 
-        public LocalAction( String name, Icon icon, String shortHelp, 
+        public LocalAction( String name, Icon icon, String shortHelp,
                             String accel )
         {
             this( name, icon, shortHelp );

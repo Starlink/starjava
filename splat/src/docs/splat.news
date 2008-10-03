@@ -11,6 +11,9 @@
    
    MIME types from SSAP queries may now include trailing attributes.
 
+   Saving the result spectrum of binary maths operations to FITS format
+   should now work. Previously an invalid FITS file was created.
+
    3.8-7
    =====
 
