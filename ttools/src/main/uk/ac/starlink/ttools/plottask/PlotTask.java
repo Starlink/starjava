@@ -108,8 +108,8 @@ public abstract class PlotTask implements Task {
 
         painterParam_ = new PaintModeParameter( "omode" );
         paramList_.add( painterParam_ );
-        paramList_.addAll( Arrays.asList( painterParam_
-                                         .getAssociatedParameters() ) );
+        paramList_.add( painterParam_.getOutputParameter() );
+        paramList_.add( painterParam_.getFormatParameter() );
 
         paramList_.addAll( Arrays.asList( stateFactory_.getParameters() ) );
     }

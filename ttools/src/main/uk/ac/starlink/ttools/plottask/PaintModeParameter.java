@@ -106,12 +106,24 @@ public class PaintModeParameter extends ChoiceParameter {
     }
 
     /**
-     * Returns parameters associated with this one.
+     * Returns the parameter determining the output stream (if any) 
+     * to use for the graphics output.
+     * Not relevant for all modes.
      *
-     * @return  parameter array
+     * @return   output parameter
      */
-    public Parameter[] getAssociatedParameters() {
-        return new Parameter[] { outParam_, formatParam_ };
+    public OutputStreamParameter getOutputParameter() {
+        return outParam_;
+    }
+
+    /**
+     * Returns the parameter giving the graphics format to use.
+     * Not relevant for all modes.
+     *
+     * @return  format parameter
+     */
+    public ChoiceParameter getFormatParameter() {
+        return formatParam_;
     }
 
     public void setValueFromString( Environment env, String stringVal )
@@ -119,6 +131,17 @@ public class PaintModeParameter extends ChoiceParameter {
         super.setValueFromString( env, stringVal );
         PaintMode mode = (PaintMode) objectValue( env );
         painterValue_ = mode.createPainter( env, this );
+    }
+
+    /**
+     * Sets the value for this parameter directly from a painter object.
+     *
+     * @param  painter  value for parameter
+     */
+    public void setValueFromPainter( Painter painter ) {
+        painterValue_ = painter;
+        setStringValue( painter.toString() );
+        setGotValue( true );
     }
 
     /**
