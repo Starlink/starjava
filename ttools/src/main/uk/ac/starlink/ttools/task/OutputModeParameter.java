@@ -169,6 +169,7 @@ public class OutputModeParameter extends Parameter
      */
     public void setValueFromConsumer( TableConsumer consumer ) {
         consumer_ = consumer;
+        setStringValue( consumer.toString() );
         setGotValue( true );
     }
 }
