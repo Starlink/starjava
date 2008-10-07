@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -208,6 +209,26 @@ public class ServletEnvironment implements TableEnvironment {
 
     public void setStrictVotable( boolean strictVot ) {
         strictVot_ = strictVot;
+    }
+
+    /**
+     * Returns true if the parameters passed into this environment reprsent
+     * a request for help.
+     *
+     * @return   true for help request
+     */
+    public boolean isHelp() {
+        if ( paramMap_.isEmpty() ) {
+            return true;
+        }
+        for ( Iterator it = paramMap_.keySet().iterator(); it.hasNext(); ) {
+            String key = (String) it.next();
+            if ( key.equalsIgnoreCase( "help" ) ||
+                 key.equalsIgnoreCase( "-help" ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
