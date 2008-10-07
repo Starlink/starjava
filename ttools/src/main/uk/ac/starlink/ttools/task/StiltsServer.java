@@ -50,6 +50,7 @@ public class StiltsServer implements Task {
             "should be directed to the URL",
             "<code>http://host:portnum" + baseDefault + "/plot2d" 
                 + "?name=value&amp;name=value..." + "</code>",
+            "</p>",
         } );
         baseParam_.setDefault( baseDefault );
     }
