@@ -81,6 +81,7 @@ public class ServletEnvironment implements TableEnvironment {
         if ( isDefault && param instanceof OutputTableParameter ) {
             OutputTableParameter outParam = (OutputTableParameter) param;
             OutputFormatParameter formatParam = outParam.getFormatParameter();
+            formatParam.setDefault( "votable" );
             String format = formatParam.stringValue( this );
             StarTableWriter writer;
             try {
@@ -117,6 +118,7 @@ public class ServletEnvironment implements TableEnvironment {
         else if ( isDefault && param instanceof PaintModeParameter ) {
             PaintModeParameter pmParam = (PaintModeParameter) param;
             ChoiceParameter formatParam = pmParam.getFormatParameter();
+            formatParam.setDefault( "png" );
             GraphicExporter exporter =
                 (GraphicExporter) formatParam.objectValue( this );
             pmParam.setValueFromPainter( new ServletPainter( exporter ) );
