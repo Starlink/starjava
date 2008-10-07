@@ -61,6 +61,7 @@ public class StiltsServer implements Task {
     public Parameter[] getParameters() {
         return new Parameter[] {
             portParam_,
+            baseParam_,
         };
     }
 
@@ -81,7 +82,7 @@ public class StiltsServer implements Task {
                     server.start();
                     String url = "http://"
                                + InetAddress.getLocalHost().getHostName()
-                               + ":" + port + base;
+                               + ":" + port + base + "/";
                     out.println( "Server running at " + url );
                 }
                 catch ( IOException e ) {
