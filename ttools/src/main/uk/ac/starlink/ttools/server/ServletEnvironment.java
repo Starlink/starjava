@@ -129,9 +129,13 @@ public class ServletEnvironment implements TableEnvironment {
         else {
             final String stringVal;
             String[] valueArray = (String[]) paramMap_.get( param.getName() );
+
+            /* No value supplied: use parameter default. */
             if ( isDefault ) {
                 stringVal = param.getDefault();
             }
+
+            /* Multiple-valued parameter: concatenate different values. */
             else if ( param instanceof MultiParameter ) {
                 char sep = ((MultiParameter) param).getValueSeparator();
                 StringBuffer sbuf = new StringBuffer();
@@ -143,15 +147,40 @@ public class ServletEnvironment implements TableEnvironment {
                 }
                 stringVal = sbuf.toString();
             }
+
+            /* Single-valued parameter: be lenient here, and permit multiple
+             * values if only one of them is non-null; this may facilitate
+             * form processing in some cases (SELECT or TEXT form element). */
             else {
                 if ( valueArray.length > 1 ) {
-                    throw new ParameterValueException(
-                        param,
-                        "Multiple values supplied for " +
-                        "single-valued  parameter" );
+                    int nv = 0;
+                    String val = null;
+                    for ( int iv = 0; iv < valueArray.length; iv++ ) {
+                        String value = valueArray[ iv ];
+                        if ( value != null && value.length() > 0 ) {
+                            nv++;
+                            val = value;
+                        }
+                    }
+                    if ( nv == 0 ) {
+                        stringVal = null;
+                    }
+                    else if ( nv == 1 ) {
+                        stringVal = val;
+                    }
+                    else {
+                        throw new ParameterValueException(
+                            param,
+                            "Multiple values supplied for " +
+                            "single-valued  parameter" );
+                    }
                 }
-                stringVal = valueArray[ 0 ];
+                else {
+                    stringVal = valueArray[ 0 ];
+                }
             }
+
+            /* We have the string value, now process it. */
             if ( stringVal == null || stringVal.length() == 0 ) {
                 if ( param.isNullPermitted() ) {
                     param.setValueFromString( this, null );
