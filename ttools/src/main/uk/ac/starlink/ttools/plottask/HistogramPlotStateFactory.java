@@ -229,9 +229,10 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
 
     protected void configureFromBounds( PlotState pstate, DataBounds bounds ) {
         HistogramPlotState state = (HistogramPlotState) pstate;
+        boolean xlog = state.getLogFlags()[ 0 ];
 
         double[] stateXrange = state.getRanges()[ 0 ];
-        double[] calcXrange = bounds.getRanges()[ 0 ].getBounds();
+        double[] calcXrange = bounds.getRanges()[ 0 ].getFiniteBounds( xlog );
 
         /* Work out if we need to calculate X range. */
         boolean xloCalc = Double.isNaN( stateXrange[ 0 ] );
@@ -242,7 +243,6 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         double xhi = xhiCalc ? calcXrange[ 1 ] : stateXrange[ 1 ];
 
         /* Calculate and set the bin width if necessary. */
-        boolean xlog = state.getLogFlags()[ 0 ];
         double binBase = state.getBinBase();
         if ( ! ( state.getBinWidth() > 0 ) ) {
             state.setBinWidth( getDefaultBinWidth( xlo, xhi, xlog ) );
