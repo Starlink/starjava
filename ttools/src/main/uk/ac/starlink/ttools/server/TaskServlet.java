@@ -32,7 +32,7 @@ import uk.ac.starlink.util.ObjectFactory;
  * @author   Mark Taylor
  * @since    6 Oct 2008
  */
-public class StiltsServlet extends HttpServlet {
+public class TaskServlet extends HttpServlet {
 
     private ObjectFactory taskFactory_;
     private StarTableFactory tableFactory_;
