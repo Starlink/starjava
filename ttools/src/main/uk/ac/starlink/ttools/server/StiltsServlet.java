@@ -59,13 +59,25 @@ public class StiltsServlet extends HttpServlet {
     protected void doGet( HttpServletRequest request,
                           HttpServletResponse response )
             throws IOException, ServletException {
-        process( request, response );
+        try {
+            process( request, response );
+        }
+        catch ( Throwable e ) {
+            e.printStackTrace( System.err );
+            replyError( response, 400, e );
+        }
     }
 
     protected void doPost( HttpServletRequest request,
                            HttpServletResponse response )
             throws IOException, ServletException {
-        process( request, response );
+        try {
+            process( request, response );
+        }
+        catch ( Throwable e ) {
+            e.printStackTrace( System.err );
+            replyError( response, 400, e );
+        }
     }
 
     /**
@@ -74,8 +86,8 @@ public class StiltsServlet extends HttpServlet {
      * @param  request  request
      * @param  response  response
      */
-    private void process( HttpServletRequest request,
-                          HttpServletResponse response )
+    protected void process( HttpServletRequest request,
+                            HttpServletResponse response )
             throws IOException, ServletException {
         response.setHeader( "STILTS-Version", Stilts.getVersion() );
         ServletEnvironment env =
