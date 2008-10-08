@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import org.mortbay.http.HttpContext;
 import org.mortbay.http.HttpRequest;
@@ -17,15 +19,23 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.server.FormServlet;
 import uk.ac.starlink.ttools.server.ServletEnvironment;
 import uk.ac.starlink.ttools.server.TaskServlet;
+import uk.ac.starlink.util.ObjectFactory;
 
 /**
  * Runs STILTS in server mode.
+ *
+ * <p>Things that should be possible but currently are not:
+ * <ul>
+ * <li>Restrict the tasks which are provided</li>
+ * <li>Provide pluggable table factory</li>
+ * </ul>
  *
  * @author   Mark Taylor
  * @since    6 Oct 2008
@@ -34,6 +44,7 @@ public class StiltsServer implements Task {
 
     private final IntegerParameter portParam_;
     private final Parameter baseParam_;
+    private final Parameter tasksParam_;
     public static final String TASKBASE_PARAM = "stiltsTaskBase";
 
     /**
@@ -62,6 +73,37 @@ public class StiltsServer implements Task {
         } );
         baseParam_.setNullPermitted( true );
         baseParam_.setDefault( baseDefault );
+
+        tasksParam_ = new Parameter( "tasks" );
+        tasksParam_.setPrompt( "List of tasks provided" );
+        tasksParam_.setNullPermitted( true );
+        tasksParam_.setDescription( new String[] {
+            "<p>Gives a space-separated list of tasks which will be provided",
+            "by the running server.",
+            "If the value is <code>null</code> then all tasks will be",
+            "available.  However, some tasks don't make a lot of sense",
+            "to run from the server, so the default value is a somewhat",
+            "restricted list.",
+            "If the server is being exposed to external users, you might",
+            "also want to reduce the list for security reasons.",
+            "</p>",
+        } );
+        ObjectFactory taskFactory = Stilts.getTaskFactory();
+        List taskList =
+            new ArrayList( Arrays.asList( taskFactory.getNickNames() ) );
+        taskList.removeAll( Arrays.asList( new String[] {
+            "server", "funcs",
+        } ) );
+        StringBuffer taskBuf = new StringBuffer();
+        for ( Iterator it = taskList.iterator(); it.hasNext(); ) {
+            taskBuf.append( (String) it.next() );
+            if ( it.hasNext() ) {
+                taskBuf.append( ' ' );
+            }
+        }
+        String tasksDefault = taskBuf.toString();
+        TaskServlet.getTaskNames( taskFactory, tasksDefault );  // test no error
+        tasksParam_.setDefault( tasksDefault );
     }
 
     public String getPurpose() {
@@ -72,6 +114,7 @@ public class StiltsServer implements Task {
         return new Parameter[] {
             portParam_,
             baseParam_,
+            tasksParam_,
         };
     }
 
@@ -79,6 +122,13 @@ public class StiltsServer implements Task {
         final int port = portParam_.intValue( env );
         String basePath = baseParam_.stringValue( env );
         final String base = basePath == null ? "" : basePath;
+        final String tasks = tasksParam_.stringValue( env );
+        try {
+            TaskServlet.getTaskNames( Stilts.getTaskFactory(), tasks );
+        }
+        catch ( Exception e ) {
+            throw new ParameterValueException( tasksParam_, e.toString(), e );
+        }
         final PrintStream out = env.getOutputStream();
         return new Executable() {
             public void execute() throws IOException {
@@ -98,6 +148,7 @@ public class StiltsServer implements Task {
                 context.addHandler( new FallbackHandler( bases ) );
 
                 context.setInitParameter( TASKBASE_PARAM, base + "/task" );
+                context.setInitParameter( TaskServlet.TASKLIST_PARAM, tasks );
                 try {
                     server.start();
                     String url = "http://"

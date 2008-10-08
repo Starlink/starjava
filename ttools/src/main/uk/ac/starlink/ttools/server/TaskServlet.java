@@ -3,8 +3,12 @@ package uk.ac.starlink.ttools.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -38,6 +42,16 @@ public class TaskServlet extends HttpServlet {
     private StarTableFactory tableFactory_;
     private StarTableOutput tableOutput_;
     private JDBCAuthenticator jdbcAuth_;
+    private Collection taskNameSet_;
+
+    /**
+     * Name of the Servlet initialisation parameter which defines the 
+     * tasks which this servlet will provide over HTTP.
+     * The value of this parameter is a space-separated list of the
+     * tasks to provide.  If it is absent or empty, all tasks will be
+     * provided.
+     */
+    public static String TASKLIST_PARAM = "stiltsTasks";
 
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
@@ -45,6 +59,11 @@ public class TaskServlet extends HttpServlet {
         tableFactory_ = new StarTableFactory();
         tableOutput_ = new StarTableOutput();
         jdbcAuth_ = null;
+
+        /* Set up list of tasks which will be provided. */
+        String taskList = config.getServletContext()
+                                .getInitParameter( TASKLIST_PARAM );
+        taskNameSet_ = Arrays.asList( getTaskNames( taskFactory_, taskList ) );
     }
 
     public void destroy() {
@@ -95,7 +114,8 @@ public class TaskServlet extends HttpServlet {
                                     tableOutput_, jdbcAuth_ );
         String subpath = request.getPathInfo();
         String taskName = subpath.replaceAll( "^/*", "" );
-        if ( taskFactory_.isRegistered( taskName ) ) {
+        if ( taskNameSet_.contains( taskName ) ) {
+            assert taskFactory_.isRegistered( taskName );
             Task task;
             try { 
                 task = (Task) taskFactory_.createObject( taskName );
@@ -235,7 +255,7 @@ public class TaskServlet extends HttpServlet {
             throws IOException {
         out.println( "<p>Known tasks:</p>" );
         out.println( "<ul>" );
-        String[] taskNames = taskFactory_.getNickNames();
+        String[] taskNames = (String[]) taskNameSet_.toArray( new String[ 0 ] );
         for ( int i = 0; i < taskNames.length; i++ ) {
             String taskName = taskNames[ i ];
             out.print( "<li>" );
@@ -301,6 +321,40 @@ public class TaskServlet extends HttpServlet {
             out.println( "</dd>" );
         }
         out.println( "</dl>" );
+    }
+
+    /**
+     * Returns an array of the known tasks from a given task factory
+     * based on a space-separated list. 
+     * An exception will be thrown if unknown tasks appear.
+     *
+     * @apram  taskList   space-separated list of tasks to include
+     * @param  taskFactory  STILTS task factory
+     * @throws   IllegalArgumentException  if any unknown task name
+     *           is included in <code>taskList</code>
+     */
+    public static String[] getTaskNames( ObjectFactory taskFactory,
+                                         String taskList ) {
+        Collection knownTasks =
+            new HashSet( Arrays.asList( taskFactory.getNickNames() ) );
+        if ( taskList == null || taskList.trim().length() == 0 ) {
+            return (String[]) knownTasks.toArray( new String[ 0 ] );
+        }
+        else {
+            String[] taskNames = taskList.split( "\\s+" );
+            List okList = new ArrayList();
+            for ( int i = 0; i < taskNames.length; i++ ) {
+                String task = taskNames[ i ];
+                if ( knownTasks.contains( task ) ) {
+                    okList.add( task );
+                }
+                else {
+                    throw new IllegalArgumentException( "Unknown task "
+                                                      + task );
+                }
+            }
+            return (String[]) okList.toArray( new String[ 0 ] );
+        }
     }
 
     /**
