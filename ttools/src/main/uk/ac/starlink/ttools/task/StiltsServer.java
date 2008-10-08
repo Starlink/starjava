@@ -22,7 +22,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.server.FormServlet;
 import uk.ac.starlink.ttools.server.ServletEnvironment;
-import uk.ac.starlink.ttools.server.StiltsServlet;
+import uk.ac.starlink.ttools.server.TaskServlet;
 
 /**
  * Runs STILTS in server mode.
@@ -34,6 +34,7 @@ public class StiltsServer implements Task {
 
     private final IntegerParameter portParam_;
     private final Parameter baseParam_;
+    public static final String TASKBASE_PARAM = "stiltsTaskBase";
 
     /**
      * Constructor.
@@ -52,13 +53,14 @@ public class StiltsServer implements Task {
         String baseDefault = "/stilts";
         baseParam_.setDescription( new String[] {
             "<p>Base path on the server at which request URLs are rooted.",
-            "The default is <code>/stilts</code>, which means that",
+            "The default is <code>" + baseDefault + "</code>, which means that",
             "for instance requests to execute task <code>plot2d</code>",
             "should be directed to the URL",
-            "<code>http://host:portnum" + baseDefault + "/plot2d" 
+            "<code>http://host:portnum" + baseDefault + "/task/plot2d" 
                 + "?name=value&amp;name=value..." + "</code>",
             "</p>",
         } );
+        baseParam_.setNullPermitted( true );
         baseParam_.setDefault( baseDefault );
     }
 
@@ -75,7 +77,8 @@ public class StiltsServer implements Task {
 
     public Executable createExecutable( Environment env ) throws TaskException {
         final int port = portParam_.intValue( env );
-        final String base = baseParam_.stringValue( env );
+        String basePath = baseParam_.stringValue( env );
+        final String base = basePath == null ? "" : basePath;
         final PrintStream out = env.getOutputStream();
         return new Executable() {
             public void execute() throws IOException {
@@ -85,14 +88,16 @@ public class StiltsServer implements Task {
                 ServletHandler handler = new ServletHandler();
                 context.addHandler( handler );
                 List baseList = new ArrayList();
-                handler.addServlet( "STILTS", base + "/*",
-                                    StiltsServlet.class.getName() );
-                baseList.add( base + "/" );
-                handler.addServlet( "forms", "/forms/*",
+                handler.addServlet( "STILTS Tasks", base + "/task/*",
+                                    TaskServlet.class.getName() );
+                baseList.add( base + "/task/" );
+                handler.addServlet( "STILTS Forms", base + "/form/*",
                                     FormServlet.class.getName() );
-                baseList.add( "/forms/" );
+                baseList.add( base + "/form/" );
                 String[] bases = (String[]) baseList.toArray( new String[ 0 ] );
                 context.addHandler( new FallbackHandler( bases ) );
+
+                context.setInitParameter( TASKBASE_PARAM, base + "/task" );
                 try {
                     server.start();
                     String url = "http://"

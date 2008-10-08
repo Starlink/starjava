@@ -20,6 +20,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.ttools.task.StiltsServer;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
 
@@ -39,7 +40,8 @@ public class FormServlet extends HttpServlet {
 
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
-        taskBase_ = "/stilts";
+        taskBase_ = config.getServletContext()
+                          .getInitParameter( StiltsServer.TASKBASE_PARAM );
         taskFactory_ = Stilts.getTaskFactory();
         tableFactory_ = new StarTableFactory( false );
         Map fwmap = new HashMap();
