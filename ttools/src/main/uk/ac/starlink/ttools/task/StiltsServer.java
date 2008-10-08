@@ -33,7 +33,6 @@ import uk.ac.starlink.util.ObjectFactory;
  *
  * <p>Things that should be possible but currently are not:
  * <ul>
- * <li>Restrict the tasks which are provided</li>
  * <li>Provide pluggable table factory</li>
  * </ul>
  *
@@ -76,6 +75,7 @@ public class StiltsServer implements Task {
 
         tasksParam_ = new Parameter( "tasks" );
         tasksParam_.setPrompt( "List of tasks provided" );
+        tasksParam_.setUsage( "<task-name> ..." );
         tasksParam_.setNullPermitted( true );
         tasksParam_.setDescription( new String[] {
             "<p>Gives a space-separated list of tasks which will be provided",
