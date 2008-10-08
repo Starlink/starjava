@@ -43,10 +43,10 @@ public class PaintModeParameter extends ChoiceParameter {
         DEFAULT_MODE = new AutoPaintMode(),
     };
     private static final GraphicExporter[] EXPORTERS = new GraphicExporter[] {
-        GraphicExporter.EPS,
         GraphicExporter.PNG,
         GraphicExporter.GIF,
         GraphicExporter.JPEG,
+        GraphicExporter.EPS,
     };
 
     /**
