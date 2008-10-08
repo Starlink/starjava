@@ -63,6 +63,7 @@ public class MarkStyleFactory extends StyleFactory {
         paramList.add( createShapeParameter( stSuffix ) );
         paramList.add( createSizeParameter( stSuffix ) );
         paramList.add( createTransparencyParameter( stSuffix ) );
+        paramList.add( createLineParameter( stSuffix ) );
         paramList.add( createHidePointsParameter( stSuffix ) );
         if ( errNdim_ > 0 ) {
             paramList.add( createErrorRendererParameter( stSuffix ) );
@@ -103,6 +104,11 @@ public class MarkStyleFactory extends StyleFactory {
             createTransparencyParameter( stSuffix );
         transparParam.setDefault( Integer.toString( style0.getOpaqueLimit() ) );
         style.setOpaqueLimit( transparParam.intValue( env ) );
+
+        /* Configure line mode. */
+        ChoiceParameter lineParam = createLineParameter( stSuffix );
+        lineParam.setDefaultOption( style0.getLine() );
+        style.setLine( (MarkStyle.Line) lineParam.objectValue( env ) );
 
         /* Configure point hide flag. */
         BooleanParameter hideParam = createHidePointsParameter( stSuffix );
@@ -248,6 +254,41 @@ public class MarkStyleFactory extends StyleFactory {
             "plotted on top of each other.",
             "</p>",
             "<p>The minimum value is 1, which means opaque markers.",
+            "</p>",
+        } );
+        return param;
+    }
+
+    /**
+     * Constructs a parameter for determining the line mode.
+     *
+     * @param  stSuffix  label identifying dataset
+     * @return   parameter returning line mode
+     */
+    private ChoiceParameter createLineParameter( String stSuffix ) {
+        ChoiceParameter param =
+            new ChoiceParameter( paramName( "line", stSuffix ),
+                                 new MarkStyle.Line[] { MarkStyle.DOT_TO_DOT,
+                                                        MarkStyle.LINEAR, } );
+        param.setNullPermitted( true );
+        param.setPrompt( "Type of line, if any, to plot for data set "
+                       + stSuffix );
+        param.setDescription( new String[] {
+            "<p>Determines what line if any will be plotted along with the",
+            "data points.",
+            "The options are:",
+            "<ul>",
+            "<li><code>null</code>:",
+            "No line is plotted.</li>",
+            "<li><code>" + MarkStyle.DOT_TO_DOT.toString() + "</code>:",
+            "Each point is joined to the next one in sequence",
+            "by a straight line.</li>",
+            "<li><code>" + MarkStyle.LINEAR.toString() + "</code>:",
+            "A linear regression line is plotted based on all the points",
+            "which are visible in the plot.",
+            "Note that the regression coefficients take no account of",
+            "points out of the visible range.</li>",
+            "</ul>",
             "</p>",
         } );
         return param;
