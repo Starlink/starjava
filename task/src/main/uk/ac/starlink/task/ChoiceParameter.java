@@ -148,12 +148,23 @@ public class ChoiceParameter extends Parameter {
      * @param  option  default option
      */
     public void setDefaultOption( Object option ) {
-        int iopt = optionList_.indexOf( option );
-        if ( iopt >= 0 ) {
-            setDefault( (String) nameList_.get( iopt ) );
+        if ( option == null ) {
+            if ( isNullPermitted() ) {
+                setDefault( null );
+            }
+            else {
+                throw new IllegalArgumentException( "null value not allowed" );
+            }
         }
         else {
-            throw new IllegalArgumentException( "No such option: " + option );
+            int iopt = optionList_.indexOf( option );
+            if ( iopt >= 0 ) {
+                setDefault( (String) nameList_.get( iopt ) );
+            }
+            else {
+                throw new IllegalArgumentException( "No such option: "
+                                                  + option );
+            }
         }
     }
 
