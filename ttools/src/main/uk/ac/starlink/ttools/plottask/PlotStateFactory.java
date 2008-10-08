@@ -439,8 +439,10 @@ public class PlotStateFactory {
 
         /* Update plot state range limits as required. */
         for ( int idim = 0; idim < ndim; idim++ ) {
+            boolean logFlag = state.getLogFlags()[ idim ];
             double[] stateRange = state.getRanges()[ idim ];
-            double[] calcRange = bounds.getRanges()[ idim ].getBounds();
+            double[] calcRange = bounds.getRanges()[ idim ]
+                                       .getFiniteBounds( logFlag );
             boolean loCalc = Double.isNaN( stateRange[ 0 ] );
             boolean hiCalc = Double.isNaN( stateRange[ 1 ] );
             String dimName = idim < mainNdim ? mainDimNames_[ idim ] : "Aux";
@@ -488,7 +490,7 @@ public class PlotStateFactory {
              * for non-auxiliary axes only. */
             else {
                 if ( idim < mainNdim ) {
-                    if ( state.getLogFlags()[ idim ] ) {
+                    if ( logFlag ) {
                         double pad =
                             Math.pow( stateRange[ 1 ] / stateRange[ 0 ],
                                       PAD_RATIO );
