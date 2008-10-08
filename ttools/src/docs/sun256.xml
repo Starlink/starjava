@@ -36,6 +36,7 @@
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
   <!ENTITY plothist-summary SYSTEM 'plothist-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
+  <!ENTITY server-summary SYSTEM 'server-summary.xml'>
   <!ENTITY sqlclient-summary SYSTEM 'sqlclient-summary.xml'>
   <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
   <!ENTITY sqlupdate-summary SYSTEM 'sqlupdate-summary.xml'>
@@ -260,6 +261,8 @@ here are a few possibilities:
     to generate files as part of a web service (perhaps along the 
     lines of the <label>Format conversion</label> item above)
     or as configurable components in a server-based workflow system.
+    The <ref id="server"><code>server</code></ref> command may help,
+    but is not required, for use in these situations.
     </p></dd>
 
 <dt>Quick look</dt>
@@ -2876,6 +2879,52 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 </subsect>
 
+<subsect id="server" tocleaf="yes">
+<subhead><title><code>server</code>: &server-purpose;</title></subhead>
+
+<p><code>server</code> runs an HTTP server which makes some or all
+of the various STILTS <ref id="cmdUsage">tasks</ref> available to 
+local or remote clients posting HTTP requests rather than using the
+more usual command line interface.
+</p>
+
+<p>For more flexibility you can run STILTS in servlet mode.
+The <code>server</code> command is a fairly thin wrapper around this,
+which simply deploys the servlet in an embedded web application container
+(<webref url="http://jetty.mortbay.org/">Jetty</webref>).
+</p>
+
+&server-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>server</code>:
+<dl>
+
+<dt><verbatim>
+stilts server
+</verbatim></dt>
+<dd><p>Starts a server on the default port until it is interrupted.
+    Most tasks are available in server mode.
+    A message will be printed on standard output indicating the base URL
+    at which it may be accessed.
+    </p></dd>
+
+<dt><verbatim>
+stilts server port=2100 tasks="plot2d plothist"
+</verbatim></dt>
+<dd><p>Starts a server running on port 2100.
+    Only the named plotting tasks will be available to clients.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="sqlclient" tocleaf="yes">
 <subhead><title><code>sqlclient</code>:
                 &sqlclient-purpose;</title></subhead>
@@ -5272,6 +5321,7 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>Plotting!</li>
+    <li>Server mode!</li>
     <li>Efficiency improvements (~25%? in both CPU time and memory usage) 
         for HEALPix-based sky crossmatching 
         (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
