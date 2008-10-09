@@ -2884,14 +2884,72 @@ stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
 
 <p><code>server</code> runs an HTTP server which makes some or all
 of the various STILTS <ref id="cmdUsage">tasks</ref> available to 
-local or remote clients posting HTTP requests rather than using the
+local or remote clients making HTTP requests rather than using the
 more usual command line interface.
 </p>
 
+<p>When you run <code>server</code> it will start up a server which 
+runs until it is interrupted, and write to the screen the <em>base URL</em>
+at which it can be accessed, for instance
+"<code>http://localhost:2112/stilts/</code>".
+If you point your browser here you will see some examples (hyperlinks to
+server requests) of how to use the server.
+Currently there are two main sets of capabilities:
+<dl>
+<dt>Tasks (<em>baseURL</em><code>/task/</code><em>task-name</em></dt>
+<dd><p>There is a URL as above associated with each STILTS task provided
+    by the server.  The task parameters are passed in the usual
+    way for HTTP queries 
+    (<code>application/x-www-form-urlencoded</code> for HTTP GET - see e.g. the
+    <webref url="http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1"
+            >HTML FORM</webref> specification).
+    See the <ref id="server-client-examples">Client Examples</ref> subsection 
+    below for examples.
+    </p></dd>
+<dt>Forms (<em>baseURL</em><code>/form/</code>)</dt>
+<dd><p>There are a couple of example HTML Forms which can be used to
+    access the server tasks.  These by no means show all the capabilities
+    of the tasks that they use, they are just intended to be examples of
+    how forms can be used in this way.
+    </p></dd>
+</dl>
+In general if you request a URL which contains no useful information,
+an attempt will be made to direct you to a more useful starting point.
+</p>
+
+<p>You might want to run STILTS in server mode if you are providing
+a web service to external users which is able to access files residing
+on the server, for instance generating table plots or row selections
+on the fly.
+This can be done without the server mode, for instance by invoking
+the <code>stilts</code> script or java from a CGI script to serve
+each request, but using server mode has two advantages:
+first it provides correct HTTP headers such as Content-Types,
+and secondly it avoids the Java startup overheads for each invocation.
+Note however that in its current form no great attention has been paid
+to security, so it is possible for clients to read and write files
+and expend significant system resources by making some requests to the
+server.  Anyone exposing the STILTS HTTP server directly to external
+clients should bear this in mind.
+</p>
+
 <p>For more flexibility you can run STILTS in servlet mode.
+See the javadocs and sources of the 
+<code>uk.ac.starlink.ttools.server.TaskServlet</code> class.
 The <code>server</code> command is a fairly thin wrapper around this,
 which simply deploys the servlet in an embedded web application container
 (<webref url="http://jetty.mortbay.org/">Jetty</webref>).
+By using the servlet class in your own custom web application instead you
+can customise the way it is accessed, for instance providing improved
+security.
+</p>
+
+<p><strong>Note:</strong>
+The <code>server</code> command and associated servlet code are
+at time of writing (v2.0) experimental, and probably buggy and missing some 
+features which ought to be present.
+If you have requirements which are not currently provided, please
+contact the author for discussion.
 </p>
 
 &server-summary;
@@ -2899,7 +2957,7 @@ which simply deploys the servlet in an embedded web application container
 <subsubsect>
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of <code>server</code>:
+<p>Here are some examples of running the <code>server</code> command:
 <dl>
 
 <dt><verbatim>
@@ -2908,14 +2966,77 @@ stilts server
 <dd><p>Starts a server on the default port until it is interrupted.
     Most tasks are available in server mode.
     A message will be printed on standard output indicating the base URL
-    at which it may be accessed.
+    at which it may be accessed, for instance
+    "<code>http://localhost:2112/stilts/task/</code>".
     </p></dd>
 
 <dt><verbatim>
-stilts server port=2100 tasks="plot2d plothist"
+stilts server port=2100 basepath=tableserv
 </verbatim></dt>
-<dd><p>Starts a server running on port 2100.
-    Only the named plotting tasks will be available to clients.
+<dd><p>Starts a server running on port 2100 with a given URL.
+    The URL at which task <em>task-name</em> can be executed will be 
+    "<code>http://</code><em>host</em><code>:2100/tableserv/task/</code><em>task-name</em>"
+    </p></dd>
+
+<dt><verbatim>
+stilts server tasks="plot2d plothist"
+</verbatim></dt>
+<dd><p>Starts a server with a restricted list of tasks available.
+    Only the plotting tasks
+    <ref id="plot2d"><code>plot2d</code></ref> and
+    <ref id="plothist"><code>plothist</code></ref>
+    will be available for execution by clients.
+    </p></dd>
+</dl>
+</p>
+</subsubsect>
+
+<subsubsect id="server-client-examples">
+<subhead><title>Client Examples</title></subhead>
+
+<p>Here are some examples of URLs which can be retrieved from
+a server which is running at the base URL 
+<code>http://localhost:2112/stilts/</code>:
+<dl>
+
+<dt><verbatim>
+http://localhost:2112/stilts/
+</verbatim></dt>
+<dd><p>Returns an HTML page giving version information and some links to
+    example usages of the server.
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/tpipe
+</verbatim></dt>
+<dd><p>Returns an HTML page giving usage instructions for the 
+    <ref id="tpipe"><code>tpipe</code></ref> task.
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/calc?expression=21%2b2
+</verbatim></dt>
+<dd><p>Invokes the <ref id="calc"><code>calc</code></ref> task
+    to return a document containing the text "<code>23</code>".
+    Note that the plus ("<code>+</code>") sign in the expression has to be
+    encoded using the sequence "<code>%2b</code>" since "<code>+</code>"
+    has a special significance in query URLs - see for instance sec 2.2 of 
+    <webref url="http://www.ietf.org/rfc/rfc1738.txt">RFC 1738</webref>.
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/plot2d?in=/data/table1.vot&amp;xdata=RMAG&amp;ydata=BMAG
+</verbatim></dt>
+<dd><p>Invokes the <ref id="plot2d"><code>plot2d</code></ref> task 
+    to return a magnitude-magnitude diagram of the named local file as an image
+    (probably an <code>image/png</code>).
+    </p></dd>
+
+<dt><verbatim>
+http://localhost:2112/stilts/task/tcopy?in=/data/cat.fits&amp;ofmt=votable
+</verbatim></dt>
+<dd><p>Invokes the <ref id="tcopy"><code>tcopy</code></ref> task
+    to return a translation of the named local FITS file to VOTable format.
     </p></dd>
 
 </dl>
@@ -5320,8 +5441,9 @@ but my thanks are especially due to the following:
 <dt>Next version</dt>
 <dd><p>
     <ul>
-    <li>Plotting!</li>
-    <li>Server mode!</li>
+    <li>Plotting!: <ref id="plot2d"><code>plot2d</code></ref>, 
+                   <ref id="plothist"><code>plothist</code></ref></li>
+    <li>Server mode!: <ref id="server"><code>server</code></ref></li>
     <li>Efficiency improvements (~25%? in both CPU time and memory usage) 
         for HEALPix-based sky crossmatching 
         (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
