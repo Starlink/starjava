@@ -18,6 +18,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.plot.DataBounds;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
@@ -208,6 +209,9 @@ public class PlotStateFactory {
          * for obtaining other per-table parameter values. */
         String tPrefix = TABLE_PREFIX;
         String[] tableLabels = getSuffixes( paramNames, tPrefix );
+        if ( tableLabels.length == 0 ) {
+            tableLabels = new String[] { "" };
+        }
         Arrays.sort( tableLabels );
         int nTable = tableLabels.length;
 
