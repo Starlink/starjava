@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.build;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -135,7 +138,7 @@ public class PlotExample {
             out.println( comments_[ i ] );
         }
         out.println( "<p>The generated plot is "
-                   + "<a href='" + outFile_ + "'>here</a>.</p>" );
+                   + "<webref url='../" + outFile_ + "'>here</webref>.</p>" );
         out.println( "</dd>" );
     }
 
@@ -241,16 +244,34 @@ public class PlotExample {
         };
     }
 
+    /**
+     * Writes a given set of examples.
+     *
+     * @param  name   base name of output file
+     * @param  examples  array of examples to use
+     */
+    private static void writeExamples( String name, PlotExample[] examples )
+            throws Exception {
+        String filename = name + "-examples.xml";
+        System.out.println( filename + ":" );
+        OutputStream out = new FileOutputStream( filename );
+        PrintStream pout = new PrintStream( new BufferedOutputStream( out ) );
+        for ( int ie = 0; ie < examples.length; ie++ ) {
+            PlotExample examp = examples[ ie ];
+            examp.writeXml( pout );
+            String gfile = examp.writeImage();
+            System.out.println( "\t" + gfile );
+        }
+        pout.close();
+    }
+
+    /**
+     * Writes example files ready for incorporation into documentation.
+     */
     public static void main( String[] args ) throws Exception {
         Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.ttools.plot" )
               .setLevel( Level.SEVERE );
-        PlotExample[] examples = createPlot2dExamples();
-        for ( int ie = 0; ie < examples.length; ie++ ) {
-            PlotExample examp = examples[ ie ];
-            examp.writeXml( System.out );
-            examp.writeImage();
-            System.out.println( "\n     --------------\n" );
-        }
+        writeExamples( "plot2d", createPlot2dExamples() );
     }
 }
