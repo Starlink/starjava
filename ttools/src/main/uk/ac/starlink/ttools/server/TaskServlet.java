@@ -329,7 +329,7 @@ public class TaskServlet extends HttpServlet {
      * based on a space-separated list. 
      * An exception will be thrown if unknown tasks appear.
      *
-     * @apram  taskList   space-separated list of tasks to include
+     * @param  taskList   space-separated list of tasks to include
      * @param  taskFactory  STILTS task factory
      * @throws   IllegalArgumentException  if any unknown task name
      *           is included in <code>taskList</code>
