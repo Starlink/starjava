@@ -19,9 +19,6 @@ public class PaintModeParameter extends ChoiceParameter {
     private final ChoiceParameter formatParam_;
     private Painter painterValue_;
 
-    public static final String OUTPARAM_NAME = "out";
-    public static final String FORMATPARAM_NAME = "ofmt";
-
     /**
      * Constructor.
      *
@@ -29,32 +26,14 @@ public class PaintModeParameter extends ChoiceParameter {
      */
     public PaintModeParameter( String name ) {
         super( name, PaintMode.getKnownModes() );
-        PaintMode[] modes = PaintMode.getKnownModes();
-        StringBuffer modebuf = new StringBuffer()
-            .append( "<p>Determines how the drawn plot will be output.\n" )
-            .append( "<ul>\n" );
-        for ( int im = 0; im < modes.length; im++ ) {
-            PaintMode mode = modes[ im ];
-            modebuf.append( "<li><code>" )
-                   .append( mode.getName() )
-                   .append( "</code>:\n" )
-                   .append( mode.getDescription() )
-                   .append( "</li>" )
-                   .append( "\n" );
-        }
-        modebuf.append( "</ul>\n" )
-               .append( "</p>" );
-        setPrompt( "Mode for graphical output" );
-        setDescription( modebuf.toString() );
-        setDefault( PaintMode.DEFAULT_MODE.getName() );
 
-        outParam_ = new OutputStreamParameter( OUTPARAM_NAME );
+        outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPrompt( "Output file for graphics" );
         outParam_.setDefault( null );
         outParam_.setNullPermitted( false );
 
         GraphicExporter[] exporters = PaintMode.getKnownExporters();
-        formatParam_ = new ChoiceParameter( FORMATPARAM_NAME, exporters );
+        formatParam_ = new ChoiceParameter( "ofmt", exporters );
         formatParam_.setPrompt( "Graphics format for plot output" );
         StringBuffer fmtbuf = new StringBuffer()
             .append( "<p>Graphics format in which the plot is written to\n" )
@@ -80,10 +59,29 @@ public class PaintModeParameter extends ChoiceParameter {
               .append( "May default to a sensible value depending on the\n" )
               .append( "filename given by " )
               .append( "<code>" )
-              .append( OUTPARAM_NAME )
+              .append( outParam_.getName() )
               .append( "</code>.\n" )
               .append( "</p>" );
         formatParam_.setDescription( fmtbuf.toString() );
+
+        PaintMode[] modes = PaintMode.getKnownModes();
+        StringBuffer modebuf = new StringBuffer()
+            .append( "<p>Determines how the drawn plot will be output.\n" )
+            .append( "<ul>\n" );
+        for ( int im = 0; im < modes.length; im++ ) {
+            PaintMode mode = modes[ im ];
+            modebuf.append( "<li><code>" )
+                   .append( mode.getName() )
+                   .append( "</code>:\n" )
+                   .append( mode.getDescription( this ) )
+                   .append( "</li>" )
+                   .append( "\n" );
+        }
+        modebuf.append( "</ul>\n" )
+               .append( "</p>" );
+        setDescription( modebuf.toString() );
+        setPrompt( "Mode for graphical output" );
+        setDefault( PaintMode.DEFAULT_MODE.getName() );
     }
 
     /**
