@@ -139,7 +139,7 @@ public class PlotExample {
             out.println( comments_[ i ] );
         }
         out.println( "<p>The generated plot is "
-                   + "<webref url='../" + outFile_ + "'>here</webref>.</p>" );
+                   + "<webref url='" + outFile_ + "'>here</webref>.</p>" );
         out.println( "</dd>" );
     }
 
@@ -325,7 +325,7 @@ public class PlotExample {
         System.out.println( filename + ":" );
         OutputStream out = new FileOutputStream( filename );
         PrintStream pout = new PrintStream( new BufferedOutputStream( out ) );
-        String[] gfiles = new String[ examples.length + 1 ];
+        String[] gfiles = new String[ examples.length ];
         for ( int ie = 0; ie < examples.length; ie++ ) {
             PlotExample examp = examples[ ie ];
             examp.writeXml( pout );
@@ -334,7 +334,6 @@ public class PlotExample {
             gfiles[ ie ] = gfile;
         }
         pout.close();
-        gfiles[ examples.length ] = filename;
         return gfiles;
     }
 
