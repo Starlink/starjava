@@ -1,0 +1,28 @@
+<dt><verbatim>
+stilts plothist in=cat.xml xdata=RMAG-BMAG
+</verbatim></dt>
+<dd><p>Plots a histogram of the R-B colour.
+The plot is displayed directly on the screen.
+</p>
+<p>The generated plot is <webref url='hist0.png'>here</webref>.</p>
+</dd>
+<dt><verbatim>
+stilts plothist in=cat.xml xdata=RMAG-BMAG ofmt=eps out=hist.eps
+</verbatim></dt>
+<dd><p>Makes the same plot as the previous example,
+but writes it to a GIF file
+instead of displaying it on the screen.
+</p>
+<p>The generated plot is <webref url='hist.eps'>here</webref>.</p>
+</dd>
+<dt><verbatim>
+stilts plothist inJ=2mass_xsc.fits xdataJ=j_m_k20fe barstyleJ=tops
+                inH=2mass_xsc.fits xdataH=h_m_k20fe barstyleH=tops
+                inK=2mass_xsc.fits xdataK=k_m_k20fe barstyleK=tops
+                binwidth=0.1 xlo=12 xhi=16 xflip=true xlabel=Magnitude xpix=500
+                out=2mass.gif
+</verbatim></dt>
+<dd><p>
+</p>
+<p>The generated plot is <webref url='2mass.gif'>here</webref>.</p>
+</dd>

@@ -1,0 +1,6 @@
+xyplot.png
+xyplot2.png
+skyplot.png
+hist0.png
+hist.eps
+2mass.gif
