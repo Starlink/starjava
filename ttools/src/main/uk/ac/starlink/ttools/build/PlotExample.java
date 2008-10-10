@@ -282,11 +282,12 @@ public class PlotExample {
             ),
 
             new PlotExample( "hist0", "plothist", new String[] {
-                    "in=cat.xml", "xdata=RMAG-BMAG", "ofmt=eps", "out=hist.eps",
+                    "in=cat.xml", "xdata=RMAG-BMAG", "ofmt=eps-gzip",
+                    "out=hist.eps.gz",
                 },
                 new String[] {
                     "<p>Makes the same plot as the previous example,",
-                    "but writes it to a GIF file",
+                    "but writes it to a gzipped encapsulated postscript file",
                     "instead of displaying it on the screen.",
                     "</p>",
                 }
@@ -304,7 +305,19 @@ public class PlotExample {
                     "out=2mass.gif",
                 },
                 new String[] {
-                    "<p>",
+                    "<p>Overplots histograms of three different columns",
+                    "from the same input table.",
+                    "These are treated as three separate datasets which all",
+                    "happen to use the same input file.",
+                    "The different datasets are labelled",
+                    "\"<code>J</code>\",",
+                    "\"<code>H</code>\" and",
+                    "\"<code>K</code>\"",
+                    "so these suffixes appear on all the dataset-dependent",
+                    "parameters which are supplied.",
+                    "The binwidth and X range are specified explicitly",
+                    "rather than leaving them to be chosen automatically",
+                    "by examining the data.",
                     "</p>",
                 }
             ),
