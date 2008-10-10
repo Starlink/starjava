@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,12 +183,17 @@ public class PlotExample {
             throws TaskException, LoadException {
         return new PlotExample[] {
             new PlotExample( "xyplot", "plot2d", new String[] {
-                    "in=cat.xml", "xdata=RMAG-BMAG", "ydata=BMAG", null,
-                    "ofmt=eps", "out=xyplot.eps",
+                    "in=cat.xml", "xdata=RMAG-BMAG", "ydata=BMAG",
                 },
                 new String[] {
-                    "<p>Plots a colour-magnitude diagram",
-                    "writing the result to an Encapsulated Postscript file.",
+                    "<p>Plots a colour-magnitude diagram.",
+                    "Since no <code>omode</code> or <code>out</code> value",
+                    "has been specified, the plot is posted directly",
+                    "to the graphics display for inspection.",
+                    "By adding the parameter",
+                    "<code>out=xyplot.eps</code>",
+                    "the plot could be written to an",
+                    "Encapsulated Postscript file instead.",
                     "</p>",
                 }
             ),
@@ -198,13 +204,26 @@ public class PlotExample {
                            "shape1=open_circle", null,
                     "subset2=SGFLAG==2", "name2=star  ", "colour2=e010f0",
                            "shape2=x", "size2=3", null,
-                    "xpix=500", "ypix=250", "xlo=-1", "xhi=4.5",
-                           "ylo=10", "yhi=20", null,
+                    "xlo=-1", "xhi=4.5", "ylo=10", "yhi=20",
+                           "xpix=500", "ypix=250", null,
                     "out=xyplot2.png"
                 },
                 new String[] {
                     "<p>Plots a colour-magnitude diagram with multiple",
                     "subsets.",
+                    "The subsets are labelled",
+                    "\"<code>1</code>\" and \"<code>2</code>\"",
+                    "with separate sets of parameters applying to each.",
+                    "The selections for the sets are given by the",
+                    "<code>subset*</code> parameters;",
+                    "set 1 is those rows with the SGFLAG column equal to 1 and",
+                    "set 2 is those rows with the SGFLAG column equal to 2.",
+                    "The boundaries of the plot in data coordinates",
+                    "are set explicitly rather than being determined from",
+                    "the data (this is faster)",
+                    "and the plot size in pixels is also set explicitly",
+                    "rather than taking the default values.",
+                    "Output is to a PNG file.",
                     "</p>",
                 }
             ),
@@ -231,10 +250,10 @@ public class PlotExample {
                     "xlabel='Galactic Longitude'", "ylabel='Galactic Latitude'",
                           "title='The Sky'", null,
                     "legend=false", "grid=false",
-                          "fontsize=16", "fontstyle=bold-italic", null,
+                          "fontsize=12", "fontstyle=bold-italic", null,
                     "xlo=0", "xhi=360", "ylo=-90", "yhi=+90", 
-                          "xpix=800", "ypix=400", null,
-                    "out=skyplot.eps",
+                          "xpix=600", "ypix=300", null,
+                    "out=skyplot.eps.gz",
                 },
                 new String[] {
                     "<p>You can do quite complicated things.",
@@ -245,24 +264,78 @@ public class PlotExample {
     }
 
     /**
+     * Returns a list of examples for the plothist task.
+     *
+     * @return  example array
+     */
+    public static PlotExample[] createPlotHistExamples()
+            throws TaskException, LoadException {
+        return new PlotExample[] {
+            new PlotExample( "hist0", "plothist", new String[] {
+                    "in=cat.xml", "xdata=RMAG-BMAG",
+                },
+                new String[] {
+                    "<p>Plots a histogram of the R-B colour.",
+                    "The plot is displayed directly on the screen.",
+                    "</p>",
+                }
+            ),
+
+            new PlotExample( "hist0", "plothist", new String[] {
+                    "in=cat.xml", "xdata=RMAG-BMAG", "ofmt=gif", "out=hist.gif",
+                },
+                new String[] {
+                    "<p>Makes the same plot as the previous example,",
+                    "but writes it to a GIF file",
+                    "instead of displaying it on the screen.",
+                    "</p>",
+                }
+            ),
+
+            new PlotExample( "hist1", "plothist", new String[] {
+                    "inJ=2mass_xsc.fits", "xdataJ=j_m_k20fe", "barstyleJ=tops",
+                             null,
+                    "inH=2mass_xsc.fits", "xdataH=h_m_k20fe", "barstyleH=tops",
+                             null,
+                    "inK=2mass_xsc.fits", "xdataK=k_m_k20fe", "barstyleK=tops",
+                             null,
+                    "binwidth=0.1", "xlo=12", "xhi=16", "xflip=true",
+                             "xlabel=Magnitude", "xpix=500", null,
+                    "out=2mass.eps",
+                },
+                new String[] {
+                    "<p>",
+                    "</p>",
+                }
+            ),
+    
+        };
+    }
+
+    /**
      * Writes a given set of examples.
      *
      * @param  name   base name of output file
      * @param  examples  array of examples to use
+     * @return  array of graphics filenames which have been written
      */
-    private static void writeExamples( String name, PlotExample[] examples )
+    private static String[] writeExamples( String name, PlotExample[] examples )
             throws Exception {
         String filename = name + "-examples.xml";
         System.out.println( filename + ":" );
         OutputStream out = new FileOutputStream( filename );
         PrintStream pout = new PrintStream( new BufferedOutputStream( out ) );
+        String[] gfiles = new String[ examples.length + 1 ];
         for ( int ie = 0; ie < examples.length; ie++ ) {
             PlotExample examp = examples[ ie ];
             examp.writeXml( pout );
             String gfile = examp.writeImage();
             System.out.println( "\t" + gfile );
+            gfiles[ ie ] = gfile;
         }
         pout.close();
+        gfiles[ examples.length ] = filename;
+        return gfiles;
     }
 
     /**
@@ -272,6 +345,20 @@ public class PlotExample {
         Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.ttools.plot" )
               .setLevel( Level.SEVERE );
-        writeExamples( "plot2d", createPlot2dExamples() );
+        String[] plot2dFiles =
+            writeExamples( "plot2d", createPlot2dExamples() );
+        String[] histFiles =
+            writeExamples( "plothist", createPlotHistExamples() );
+        List gfileList = new ArrayList();
+        gfileList.addAll( Arrays.asList( plot2dFiles ) );
+        gfileList.addAll( Arrays.asList( histFiles ) );
+        String[] gfiles = (String[]) gfileList.toArray( new String[ 0 ] );
+        String gfName = "plot-example-files.txt";
+        System.out.println( gfName );
+        PrintStream gfOut = new PrintStream( new FileOutputStream( gfName ) );
+        for ( int i = 0; i < gfiles.length; i++ ) {
+            gfOut.println( gfiles[ i ] );
+        }
+        gfOut.close();
     }
 }
