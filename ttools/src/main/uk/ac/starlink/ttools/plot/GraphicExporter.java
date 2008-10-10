@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import org.jibble.epsgraphics.EpsGraphics2D;
@@ -77,6 +78,16 @@ public abstract class GraphicExporter {
      */
     public String getMimeType() {
         return mimeType_;
+    }
+
+    /**
+     * Returns the content encoding for the output used by this exporter.
+     * The default implementation returns null, meaning no special encoding.
+     *
+     * @return  content encoding
+     */
+    public String getContentEncoding() {
+        return null;
     }
 
     /**
@@ -230,6 +241,9 @@ public abstract class GraphicExporter {
         }
     };
 
+    /** Exports to gzipped Encapsulated PostScript. */
+    public static final GraphicExporter EPS_GZIP = new GzipExporter( EPS );
+
     /**
      * GraphicExporter implementation which uses the ImageIO framework.
      */
@@ -292,6 +306,43 @@ public abstract class GraphicExporter {
                 throw new IOException( "No handler for format " + formatName_ +
                                        " (surprising - thought there was)" );
             }
+        }
+    }
+
+    /**
+     * Exporter which wraps another one to provide gzip compression of output.
+     */
+    private static class GzipExporter extends GraphicExporter {
+        private final GraphicExporter baseExporter_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseExporter  exporter whose output is to be compressed
+         */
+        GzipExporter( GraphicExporter baseExporter ) {
+            super( baseExporter.getName() + "-gzip", baseExporter.getMimeType(),
+                   appendGzipSuffix( baseExporter.getFileSuffixes() ) );
+            baseExporter_ = baseExporter;
+        }
+
+        public void exportGraphic( JComponent comp, OutputStream out )
+                throws IOException {
+            GZIPOutputStream gzout = new GZIPOutputStream( out );
+            baseExporter_.exportGraphic( comp, gzout );
+            gzout.finish();
+        }
+
+        public String getContentEncoding() {
+            return "gzip";
+        }
+
+        private static String[] appendGzipSuffix( String[] names ) {
+            String[] sNames = new String[ names.length ];
+            for ( int i = 0; i < names.length; i++ ) {
+                sNames[ i ] = names[ i ] + ".gz";
+            }
+            return sNames;
         }
     }
 
