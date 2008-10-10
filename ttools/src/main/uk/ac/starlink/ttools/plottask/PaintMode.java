@@ -13,6 +13,7 @@ import javax.swing.KeyStroke;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.OutputStreamParameter;
+import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.util.Destination;
@@ -70,9 +71,20 @@ public abstract class PaintMode {
      * Returns a short XML description (no enclosing tag) of this mode's
      * behaviour.
      *
+     * @param    modeParam  mode parameter for context
      * @return   PCDATA
      */
-    public abstract String getDescription();
+    public abstract String getDescription( PaintModeParameter modeParam );
+
+    /**
+     * Returns a short text usage message describing usage of associated
+     * parameters, if any.  If no other parameters are referenced, 
+     * an empty string should be returned.
+     *
+     * @param   modeParam  mode parameter for context
+     * @param   plain text
+     */
+    public abstract String getModeUsage( PaintModeParameter modeParam );
 
     /**
      * Returns this mode's name.
@@ -113,8 +125,12 @@ public abstract class PaintMode {
             super( "swing" );
         }
 
-        public String getDescription() {
+        public String getDescription( PaintModeParameter modeParam ) {
             return "Plot will be displayed in a window on the screen.";
+        }
+
+        public String getModeUsage( PaintModeParameter modeParam ) {
+            return "";
         }
 
         public Painter createPainter( Environment env,
@@ -154,11 +170,20 @@ public abstract class PaintMode {
             super( "out" );
         }
 
-        public String getDescription() {
+        public String getDescription( PaintModeParameter modeParam ) {
             return "Plot will be written to a file given by "
-                 + "<code>" + PaintModeParameter.OUTPARAM_NAME + "</code> "
+                 + "<code>" + modeParam.getOutputParameter().getName()
+                 + "</code> "
                  + "using the graphics format given by "
-                 + "<code>" + PaintModeParameter.FORMATPARAM_NAME + "</code>.";
+                 + "<code>" + modeParam.getFormatParameter().getName()
+                 + "</code>.";
+        }
+
+        public String getModeUsage( PaintModeParameter modeParam ) {
+            Parameter outParam = modeParam.getOutputParameter();
+            Parameter formatParam = modeParam.getFormatParameter();
+            return " " + outParam.getName() + "=" + outParam.getUsage()
+                 + " " + formatParam.getName() + "=" + formatParam.getUsage();
         }
 
         public Painter createPainter( Environment env,
@@ -215,12 +240,18 @@ public abstract class PaintMode {
             super( "cgi" );
         }
 
-        public String getDescription() {
+        public String getDescription( PaintModeParameter modeParam ) {
             return "Plot will be written in a way suitable for CGI use "
                  + "direct from a web server.\n"
                  + "The output is in the graphics format given by "
-                 + "<code>" + PaintModeParameter.FORMATPARAM_NAME + "</code>,\n"
+                 + "<code>" + modeParam.getFormatParameter().getName()
+                 + "</code>,\n"
                  + "preceded by a suitable \"Content-type\" declaration.";
+        }
+
+        public String getModeUsage( PaintModeParameter modeParam ) {
+            Parameter formatParam = modeParam.getFormatParameter();
+            return " " + formatParam.getName() + "=" + formatParam.getUsage();
         }
 
         public Painter createPainter( Environment env,
@@ -259,8 +290,12 @@ public abstract class PaintMode {
             super( "discard" );
         }
 
-        public String getDescription() {
+        public String getDescription( PaintModeParameter modeParam ) {
             return "Plot is drawn, but discarded.  There is no output.";
+        }
+
+        public String getModeUsage( PaintModeParameter modeParam ) {
+            return "";
         }
 
         public Painter createPainter( Environment env,
@@ -290,13 +325,20 @@ public abstract class PaintMode {
             super( "auto" );
         }
 
-        public String getDescription() {
+        public String getDescription( PaintModeParameter modeParam ) {
             return "Behaves as "
                  + "<code>" + SWING_MODE + "</code> or "
                  + "<code>" + OUTPUT_MODE + "</code> mode"
                  + " depending on presence of "
-                 + "<code>" + PaintModeParameter.OUTPARAM_NAME
+                 + "<code>" + modeParam.getOutputParameter().getName()
                             + "</code> parameter";
+        }
+
+        public String getModeUsage( PaintModeParameter modeParam ) {
+            Parameter outParam = modeParam.getOutputParameter();
+            return " " + "["
+                       + outParam.getName() + "=" + outParam.getUsage()
+                       + "]";
         }
 
         public Painter createPainter( Environment env,
