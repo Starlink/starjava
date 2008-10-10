@@ -108,6 +108,7 @@
 
   <!-- Directory containing miscellaneous docs -->
   <property name="src.docs" value="${src.dir}/docs"/>
+  <property name="src.docs.examp" value="${src.docs}/examp"/>
   <property name="user.doc" value="sun256"/>
   <property name="coverimage" value="ttools.gif"/>
   <property name="xdoc.etc" value="${star.dir}/etc/xdoc"/>
@@ -128,7 +129,8 @@
 
   <!-- File types that should not be passed through a filterchain when
    !   copying -->
-  <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.ico"/>
+  <property name="unfiltered.files"
+            value="**/*.gif,**/*.jpg,**/*.jpeg,**/*.ico,**/*.png,**/*.eps*"/>
 
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
@@ -1015,7 +1017,7 @@
 
   </target>
 
-   <!--
+  <!--
    !   =================================================
    !   Creates additional documentation from XML sources
    !   =================================================
@@ -1036,6 +1038,11 @@
       <fileset dir="${src.docs}" includes="${user.doc}.xml"/>
       <fileset dir="${xdoc.etc}" includes="docs.dtd"/>
       <fileset dir="${src.docs}" includes="README.*"/>
+      <fileset dir="${src.docs.examp}" includes="*.xml"/>
+    </copy>
+    <copy todir="${build.docs}/${user.doc}">
+      <fileset dir="${src.docs.examp}"
+               includesfile="${src.docs.examp}/plot-example-files.txt"/>
     </copy>
 
     <!-- Construct XML documentation for the JEL-accessible classes.
@@ -1189,6 +1196,32 @@
     <uptodate property="docs.notrequired"
               srcfile="${src.docs}/${user.doc}.xml"
               targetfile="${build.docs}/${user.doc}/${user.doc}.html"/>
+  </target>
+
+  <!--
+   !   =======================
+   !   Generates example plots
+   !   =======================
+   !
+   !   This target is not called by any of the standard targets, but may
+   !   be invoked by hand to write example plot files and associated
+   !   descriptions into the source tree.  This approach may be changed
+   !   at a later date, but for now it's more convenient than generating
+   !   these plots at build time, since (a) the plotting is somewhat
+   !   time-consuming and (b) some input datasets are large (not ideal for 
+   !   checking into source archive).
+   !-->
+  <target name="plot-examples"
+          description="-> generate example text and graphics for plot commands "
+          depends="build">
+    <echo message="Writing plot example files to source dir ${src.docs.examp}"/>
+    <java classpathref="classpath"
+          dir="${src.docs.examp}"
+          classname="uk.ac.starlink.ttools.build.PlotExample"
+          failonerror="yes"
+          fork="yes">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
   </target>
 
 
