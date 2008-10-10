@@ -253,7 +253,7 @@ public class PlotExample {
                           "fontsize=12", "fontstyle=bold-italic", null,
                     "xlo=0", "xhi=360", "ylo=-90", "yhi=+90", 
                           "xpix=600", "ypix=300", null,
-                    "out=skyplot.eps.gz",
+                    "out=skyplot.png",
                 },
                 new String[] {
                     "<p>You can do quite complicated things.",
@@ -282,7 +282,7 @@ public class PlotExample {
             ),
 
             new PlotExample( "hist0", "plothist", new String[] {
-                    "in=cat.xml", "xdata=RMAG-BMAG", "ofmt=gif", "out=hist.gif",
+                    "in=cat.xml", "xdata=RMAG-BMAG", "ofmt=eps", "out=hist.eps",
                 },
                 new String[] {
                     "<p>Makes the same plot as the previous example,",
@@ -301,7 +301,7 @@ public class PlotExample {
                              null,
                     "binwidth=0.1", "xlo=12", "xhi=16", "xflip=true",
                              "xlabel=Magnitude", "xpix=500", null,
-                    "out=2mass.eps",
+                    "out=2mass.gif",
                 },
                 new String[] {
                     "<p>",
