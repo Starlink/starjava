@@ -11194,6 +11194,7 @@ introduced since the last version:
         tool interoperability.</li>
     <li>Add items to <label>Help</label> menu for viewing help in a web
         browser.</li>
+    <li>Add plot output option for gzipped PostScript.</li>
     </ul>
     </p></dd>
 
