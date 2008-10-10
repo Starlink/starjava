@@ -2088,7 +2088,8 @@ specific to STILTS graphical output as discussed below.
 
 <p>The intention is in future releases to provide all the plot types
 and facilities available from 
-<webref url="http://www.starlink.ac.uk/">TOPCAT</webref> in STILTS as well.
+<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref> 
+in STILTS as well.
 STILTS may additionally offer more detailed options for
 controlling plot appearance, for instance of
 font and colour selection and tick mark placement.
