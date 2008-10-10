@@ -7,13 +7,13 @@ The plot is displayed directly on the screen.
 <p>The generated plot is <webref url='hist0.png'>here</webref>.</p>
 </dd>
 <dt><verbatim>
-stilts plothist in=cat.xml xdata=RMAG-BMAG ofmt=eps out=hist.eps
+stilts plothist in=cat.xml xdata=RMAG-BMAG ofmt=eps-gzip out=hist.eps.gz
 </verbatim></dt>
 <dd><p>Makes the same plot as the previous example,
-but writes it to a GIF file
+but writes it to a gzipped encapsulated postscript file
 instead of displaying it on the screen.
 </p>
-<p>The generated plot is <webref url='hist.eps'>here</webref>.</p>
+<p>The generated plot is <webref url='hist.eps.gz'>here</webref>.</p>
 </dd>
 <dt><verbatim>
 stilts plothist inJ=2mass_xsc.fits xdataJ=j_m_k20fe barstyleJ=tops
@@ -22,7 +22,19 @@ stilts plothist inJ=2mass_xsc.fits xdataJ=j_m_k20fe barstyleJ=tops
                 binwidth=0.1 xlo=12 xhi=16 xflip=true xlabel=Magnitude xpix=500
                 out=2mass.gif
 </verbatim></dt>
-<dd><p>
+<dd><p>Overplots histograms of three different columns
+from the same input table.
+These are treated as three separate datasets which all
+happen to use the same input file.
+The different datasets are labelled
+"<code>J</code>",
+"<code>H</code>" and
+"<code>K</code>"
+so these suffixes appear on all the dataset-dependent
+parameters which are supplied.
+The binwidth and X range are specified explicitly
+rather than leaving them to be chosen automatically
+by examining the data.
 </p>
 <p>The generated plot is <webref url='2mass.gif'>here</webref>.</p>
 </dd>
