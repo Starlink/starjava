@@ -67,6 +67,10 @@
   <!ENTITY matcher-2d-usage SYSTEM 'matcher-2d-usage.xml'>
   <!ENTITY matcher-2d_anis-usage SYSTEM 'matcher-2d_anisotropic-usage.xml'>
   <!ENTITY matcher-sky.1d-usage SYSTEM 'matcher-sky.1d-usage.xml'>
+
+  <!-- Automatically generated plot example text. -->
+  <!ENTITY plot2d-examples SYSTEM 'plot2d-examples.xml'>
+  <!ENTITY plothist-examples SYSTEM 'plothist-examples.xml'>
 ]>
 
 <sun>
@@ -1943,6 +1947,16 @@ in multi-object match contexts.
 
 </sect>
 
+<sect id="plot">
+<subhead><title>Plotting</title></subhead>
+
+<subsect>
+<subhead><title>Output Formats</title></subhead>
+</subsect>
+
+
+</sect>
+
 
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
@@ -2798,14 +2812,56 @@ There are no parameters.
 <subsect id="plot2d" tocleaf="yes">
 <subhead><title><code>plot2d</code>: &plot2d-purpose;</title></subhead>
 
+<p><code>plot2d</code> performs two-dimensional scatter plots,
+sending the output to a graphical display or writing it to a file
+in some vector or bitmapped graphics format.
+You need to supply it with values for one or more X and Y datasets,
+in terms of table columns, and it will generate a plot with a point
+for each one.
+There are many options available to configure the detailed appearance
+of the plot, but in its simplest form invocation is quite straightforward.
+</p>
+
 &plot2d-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>plot2d</code> in use:
+<dl>
+&plot2d-examples;
+</dl>
+</p>
+</subsubsect>
 
 </subsect>
 
 <subsect id="plothist" tocleaf="yes">
 <subhead><title><code>plothist</code>: &plothist-purpose;</title></subhead>
 
+<p><code>plothist</code> performs histogram plots,
+sending the output to a graphical display or writing it to a file
+in some vector or bitmapped graphics format.
+You need to supply it with values for one or more sets of X values,
+in terms of table columns, and it will bin the data and draw bars
+appropriately.
+Plot bounds, bin widths etc may be supplied expliicitly, but will be
+calculated from the data and set from defaults as appropriate otherwise.
+There are many options available to configure the detailed appearance
+of the plot, but in its simplest form invocation is quite straightforward.
+</p>
+
 &plothist-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>plothist</code> in use:
+<dl>
+&plothist-examples;
+</dl>
+</p>
+</subsubsect>
 
 </subsect>
 
@@ -2899,12 +2955,17 @@ Currently there are two main sets of capabilities:
 <dt>Tasks (<em>baseURL</em><code>/task/</code><em>task-name</em></dt>
 <dd><p>There is a URL as above associated with each STILTS task provided
     by the server.  The task parameters are passed in the usual
-    way for HTTP queries 
-    (<code>application/x-www-form-urlencoded</code> for HTTP GET - see e.g. the
+    way for HTTP queries, using
+    <code>application/x-www-form-urlencoded</code> (see e.g. the
     <webref url="http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.1"
             >HTML FORM</webref> specification).
-    See the <ref id="server-client-examples">Client Examples</ref> subsection 
-    below for examples.
+    Some examples are given in the 
+    <ref id="server-client-examples">Client Examples</ref> subsection below.
+    Either HTTP GET or POST methods may be used;
+    since the task invocations will normally be idempotent, GET is more
+    respectable, but long URLs can cause trouble in some circumstances
+    (MS IE apparently imposes a limit of about 2000 characters) 
+    so POST may be preferable for lengthy invocations.
     </p></dd>
 <dt>Forms (<em>baseURL</em><code>/form/</code>)</dt>
 <dd><p>There are a couple of example HTML Forms which can be used to
@@ -2996,7 +3057,9 @@ stilts server tasks="plot2d plothist"
 
 <p>Here are some examples of URLs which can be retrieved from
 a server which is running at the base URL 
-<code>http://localhost:2112/stilts/</code>:
+<code>http://localhost:2112/stilts/</code>.
+All these use the HTTP GET form of request; the POST form could be
+used instead with the same effect.
 <dl>
 
 <dt><verbatim>
