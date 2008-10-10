@@ -238,7 +238,7 @@ public class FormServlet extends HttpServlet {
                                String tableName )
                 throws IOException {
             out.println( "<form action='" + taskBase_ + "/" + taskName_ + "'"
-                       + " method='GET'" + ">" );
+                       + " method='GET'" + ">" );  // could use POST
             out.println( "<input type='hidden' name='in'"
                        + " value='" + tableName + "'/>" );
             writeControls( out, table );

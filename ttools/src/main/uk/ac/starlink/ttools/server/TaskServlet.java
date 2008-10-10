@@ -32,6 +32,7 @@ import uk.ac.starlink.util.ObjectFactory;
 /**
  * Servlet implementation which allows STILTS commands to be executed
  * server-side.
+ * Both GET and POST methods are accepted.
  *
  * @author   Mark Taylor
  * @since    6 Oct 2008
