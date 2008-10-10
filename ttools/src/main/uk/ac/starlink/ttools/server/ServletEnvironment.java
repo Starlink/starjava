@@ -312,6 +312,12 @@ public class ServletEnvironment implements TableEnvironment {
 
         public void paintPlot( JComponent plot ) throws IOException {
             response_.setContentType( exporter_.getMimeType() );
+            String encoding = exporter_.getContentEncoding();
+            if ( encoding != null &&
+                 response_ instanceof HttpServletResponse ) {
+                ((HttpServletResponse) response_)
+                     .setHeader( "Content-Encoding", encoding );
+            }
             if ( response_ instanceof HttpServletResponse ) {
                 HttpServletResponse hr = (HttpServletResponse) response_;
                 hr.setStatus( hr.SC_OK );
