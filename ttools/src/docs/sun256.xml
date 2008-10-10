@@ -1953,7 +1953,7 @@ in multi-object match contexts.
 <sect id="plotting">
 <subhead><title>Plotting</title></subhead>
 
-<p>Since Version 2.0, STILTS offers table plotting commands.
+<p>Since Version 2.0 (October 2008), STILTS offers table plotting commands.
 These acquire a data point from each line of an input table
 and generate some kind of graphical plot from the result.
 At time of writing, the following plot types are available:
@@ -1966,7 +1966,7 @@ N-dimensional histograms as FITS files.
 It is hoped to add more plot types in future releases.
 </p>
 
-<subsect>
+<subsect id="paintmode">
 <subhead><title>Output Modes</title></subhead>
 
 <p>The plots generated the plotting commands can be used in various
@@ -1981,6 +1981,88 @@ They are all listed in the following subsections.
 </p>
 
 &paintmode-docs;
+
+</subsect>
+
+<subsect>
+<subhead><title>Output Formats</title></subhead>
+
+<p>Several of the plot output <ref id="paintmode">modes</ref>
+write the plot in some graphics format or other.
+When selecting an output format it is important to understand the 
+distinction between <em>bitmapped</em> and <em>vector</em> formats;
+basically bitmapped formats represent the image as a grid of finite-sized
+pixels while vector formats notionally draw smooth lines.
+Bitmapped formats are fine for a computer screen, but for high quality
+paper printouts you will want a vector format.
+You can convert from vector to bitmapped but not (usefully) in the
+other direction.  There are a couple of subtleties to this distinction
+specific to STILTS graphical output as discussed below.
+</p>
+
+<p>The following formats are the available values for the
+<code>ofmt</code> parameter of the various plot commands:
+<dl>
+<dt><code>png</code></dt>
+<dd><p>PNG format.
+    This is a flexible bitmapped format providing transparency 
+    and an unlimited number of colours with good compression.
+    It is fairly widely supported by browsers and other image viewers,
+    but perhaps not as widely as GIF.
+    </p></dd>
+
+<dt><code>gif</code></dt>
+<dd><p>GIF format.
+    This is a very widely-supported bitmapped format providing transparency.
+    The number of colours is limited to 255 however, so if you are using
+    auxiliary axes (colour variation to represent higher dimensionality)
+    or other plot features which use a wide range of colours you may see
+    image degradation.
+    </p></dd>
+
+<dt><code>jpeg</code></dt>
+<dd><p>JPEG format.
+    This is a bitmapped format intended primarily for photographs.
+    Transparency is not supported, and although there is no limit on the
+    maximum number of colours, its lossiness means that plots generated
+    using it generally look a bit smudged.
+    </p></dd>
+
+<dt><code>eps</code></dt>
+<dd><p>Encapsulated Postscript.
+    This is a vector format which is suitable for printing at high resolution
+    either standalone or imported into some other presentation format
+    (you may need to convert it via PDF depending on the intended destination).
+    However, there are a couple of caveats when it comes to using it with
+    STILTS plots.
+    <ol>
+    <li>Unfortunately the postscript driver used by STILTS is not very 
+        efficient and can result in large, sometimes very large, postscript
+        output files.  This is likely to be a problem for plots with a large
+        number of non-transparent points.  See <code>eps-gzip</code>.
+        </li>
+    <li>Postscript has no support for partial transparency, so if plots 
+        are drawn with partially transparent points (common for very large
+        data sets) the only way they can be rendered is by drawing the body
+        of the plot as a bitmap rather than as vector graphics.
+        This is probably a blessing in disguise since with very large numbers
+        of points a vector postscript file would likely be unmanageably 
+        large in any case.
+        So if there is any transparency in the plot, the interior of the
+        plot will be pixellated.  The axes and annotations outside of the
+        plot will still be drawn in vector format however.
+        </li>
+    </ol>
+    </p></dd>
+
+<dt><code>eps-gzip</code></dt>
+<dd><p>Just like the <code>eps</code> format above except that the output
+    is automatically compressed using the GZIP format as it is written.
+    Postscript compresses well (typically a factory of 5-10).
+    </p></dd>
+
+</dl>
+</p>
 
 </subsect>
 
@@ -2009,11 +2091,6 @@ so a plot can be made representing an unlimited number of rows
 without large memory requirements.
 </p>
 
-</subsect>
-
-
-<subsect>
-<subhead><title>Output Formats</title></subhead>
 </subsect>
 
 
