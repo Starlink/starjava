@@ -47,6 +47,7 @@ public class PaintModeParameter extends ChoiceParameter {
         GraphicExporter.GIF,
         GraphicExporter.JPEG,
         GraphicExporter.EPS,
+        GraphicExporter.EPS_GZIP,
     };
 
     /**
@@ -91,8 +92,14 @@ public class PaintModeParameter extends ChoiceParameter {
             fmtbuf.append( "<li><code>" )
                   .append( exporter.getName() )
                   .append( "</code>: " )
-                  .append( exporter.getMimeType() )
-                  .append( " format</li>" )
+                  .append( exporter.getMimeType() );
+            String enc = exporter.getContentEncoding();
+            if ( enc != null ) {
+                fmtbuf.append( " (" )
+                      .append( enc )
+                      .append( ")" );
+            }
+            fmtbuf.append( " format</li>" )
                   .append( "\n" );
         }
         fmtbuf.append( "</ul>\n" )
@@ -327,10 +334,18 @@ public class PaintModeParameter extends ChoiceParameter {
             return new Painter() {
                 public void paintPlot( JComponent plot ) throws IOException {
                     BufferedOutputStream bout = new BufferedOutputStream( out );
-                    String header = "Content-type: "
-                                  + exporter.getMimeType()
-                                  + "\n\n";
-                    bout.write( header.getBytes( "UTF-8" ) );
+                    StringBuffer hbuf = new StringBuffer();
+                    hbuf.append( "Content-Type: " )
+                        .append( exporter.getMimeType() )
+                        .append( '\n' );
+                    String encoding = exporter.getContentEncoding();
+                    if ( encoding != null ) {
+                        hbuf.append( "Content-Encoding: " )
+                            .append( encoding )
+                            .append( '\n' );
+                    }
+                    hbuf.append( '\n' );
+                    bout.write( hbuf.toString().getBytes( "UTF-8" ) );
                     exporter.exportGraphic( plot, bout );
                     bout.flush();
                 }

@@ -472,6 +472,11 @@ public abstract class GraphicsWindow extends AuxWindow {
         Action epsAction =
             new GraphicExportAction( GraphicExporter.EPS, ResourceIcon.PRINT,
                                      "Export to Encapsulated Postscript file" );
+        Action epsgzAction =
+            new GraphicExportAction( GraphicExporter.EPS_GZIP,
+                                     ResourceIcon.PRINT,
+                                     "Export to Gzipped Encapsulated Postscript"
+                                   + " file" );
         Action jpegAction =
             new GraphicExportAction( GraphicExporter.JPEG, ResourceIcon.JPEG,
                                      "Save plot as a JPEG file" );
@@ -481,6 +486,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
         exportMenu_.add( epsAction );
+        exportMenu_.add( epsgzAction );
         exportMenu_.add( gifAction );
         exportMenu_.add( jpegAction );
         exportMenu_.add( pngAction );
