@@ -1117,6 +1117,11 @@
           output="${build.docs}/mode-docs.xml"
           logerror="yes"
           classpathref="classpath"/>
+    <java classname="uk.ac.starlink.ttools.build.PaintModeDoc"
+          failonerror="yes"
+          output="${build.docs}/paintmode-docs.xml"
+          logerror="yes"
+          classpathref="classpath"/>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->
