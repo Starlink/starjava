@@ -29,6 +29,9 @@
   <!-- Description of output modes. -->
   <!ENTITY mode-docs SYSTEM 'mode-docs.xml'>
 
+  <!-- Description of graphical output modes. -->
+  <!ENTITY paintmode-docs SYSTEM 'paintmode-docs.xml'>
+
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
@@ -1947,8 +1950,67 @@ in multi-object match contexts.
 
 </sect>
 
-<sect id="plot">
+<sect id="plotting">
 <subhead><title>Plotting</title></subhead>
+
+<p>Since Version 2.0, STILTS offers table plotting commands.
+These acquire a data point from each line of an input table
+and generate some kind of graphical plot from the result.
+At time of writing, the following plot types are available:
+<ul>
+<li><ref id="plot2d"><code>plot2d</code></ref>: &plot2d-purpose;</li>
+<li><ref id="plothist"><code>plothist</code></ref>: &plothist-purpose;</li>
+</ul>
+but see also <ref id="tcube"><code>tcube</code></ref> for generating
+N-dimensional histograms as FITS files.
+It is hoped to add more plot types in future releases.
+</p>
+
+<subsect>
+<subhead><title>Output Modes</title></subhead>
+
+<p>The plots generated the plotting commands can be used in various
+different ways.  One thing you might want to do is to write the
+output to a file in a given graphics format 
+(<ref id="paintmode-out"><code>out</code></ref>);
+another is to preview it directly on the screen
+(<ref id="paintmode-swing"><code>swing</code></ref>).
+By default one or other of these will happen depending on whether you
+specify an output file.  However there are other possibilities.
+They are all listed in the following subsections.
+</p>
+
+&paintmode-docs;
+
+</subsect>
+
+<subsect>
+<subhead><title>Comparison with TOPCAT plotting</title></subhead>
+
+<p>The intention is in future releases to provide all the plot types
+and facilities available from 
+<webref url="http://www.starlink.ac.uk/">TOPCAT</webref> in STILTS as well.
+STILTS may additionally offer more detailed options for
+controlling plot appearance, for instance of
+font and colour selection and tick mark placement.
+At time of writing however, only the 
+<ref id="plot2d">2d scatter plot</ref> and 
+<ref id="plothist">histogram</ref> plot types are available,
+though these are the most useful plot types and the most of the 
+options from TOPCAT for these plot types are available from STILTS too.
+</p>
+
+<p>As well as the advantage (in some contexts) of being able to generate
+plots in a scriptable fashion rather than from a graphical interactive
+interface, STILTS allows plots to be made from datasets of unlimited size.
+While TOPCAT has an effective limit of a few million rows,
+STILTS can streamed data from tables to do its plotting,
+so a plot can be made representing an unlimited number of rows
+without large memory requirements.
+</p>
+
+</subsect>
+
 
 <subsect>
 <subhead><title>Output Formats</title></subhead>
