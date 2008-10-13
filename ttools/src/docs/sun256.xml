@@ -848,6 +848,13 @@ on the command line is equivalent to having the following in your
 <p>The following system properties have special significance to STILTS:
 <dl>
 
+<dt><code>java.awt.headless</code></dt>
+<dd><p>May need to be set to "<code>true</code>" if running the 
+    plotting tasks on a headless server.  
+    You only need to worry about this if you see error messages
+    complaining about headlessness.
+    </p></dd>
+
 <dt><code>java.io.tmpdir</code></dt>
 <dd><p>The directory in which STILTS will write any temporary files it needs.
     This is usually only done if the <code>-disk</code> flag has been
@@ -1970,8 +1977,9 @@ in multi-object match contexts.
 <sect id="plotting">
 <subhead><title>Plotting</title></subhead>
 
-<p>Since Version 2.0 (October 2008), STILTS offers table plotting commands.
-These acquire a data point from each line of an input table
+<p>As of Version 2.0 (October 2008), STILTS offers table plotting commands.
+These acquire a data point from each line of an input table,
+perhaps influenced by the pipelining operations described in <ref id="pipes"/>,
 and generate some kind of graphical plot from the result.
 At time of writing, the following plot types are available:
 <ul>
@@ -1983,7 +1991,182 @@ N-dimensional histograms as FITS files.
 It is hoped to add more plot types in future releases.
 </p>
 
-<subsect id="paintmode">
+<p>The plotting commands offer considerable control over what is plotted
+and how it is represented, and thus unavoidably have rather a large
+number of parameters.  When looking at the command documentation in
+<ref id="cmdUsage"/>
+the <ref id="plot2d-usage">Usage</ref> sections may look rather daunting.
+However, the discussion below and the 
+<ref id="plot2d-examples">Examples</ref> sections should help.
+Generating a simple plot is straightforward and need only use
+three or four parameters; if you have more complicated
+requirements for data selection or specific preferences for
+appearance then you can consult the documentation for the additional options.
+</p>
+
+<p>As a simple example, 
+if a file "cat.fits" contains the columns RMAG and BMAG for red and 
+blue magnitudes,
+you can draw a two-dimensional colour-magnitude scatter plot with
+the command:
+<verbatim>
+   stilts plot2d in=cat.fits xdata=RMAG ydata=BMAG-RMAG
+</verbatim>
+Since an output file is not specified, the plot is shown on the screen for
+convenience.  To send the output to a PNG file, do instead:
+<verbatim>
+   stilts plot2d in=cat.fits xdata=RMAG ydata=BMAG out=plot.png ofmt=png
+</verbatim>
+in some cases (including the above), the <code>ofmt</code> parameter is not
+required since STILTS may be able to guess the format from the output
+file name.
+Various other options for output and graphics formats are described in 
+<ref id="paintMode"/> and <ref id="graphicExporter"/>
+</p>
+
+<p>Some of the parameters use suffixes to define data sets and 
+therefore behave a bit differently
+from the parameters elsewhere in STILTS - a discussion of these
+is given in <ref id="plotSuffixes">the following subsection</ref>.
+Some other plotting-specific topics are also discussed below.
+</p>
+
+<subsect id="plotSuffixes">
+<subhead><title>Parameter Suffixes</title></subhead>
+
+<p>Some of the parameters for the plotting tasks behave a little bit
+differently to other parameters in STILTS, in order to accommodate
+related sets of values.  If you look at the usage of one of the 
+plotting commands, for instance in <ref id="plot2d-usage"/>,
+you will see that a number of the parameters have the 
+suffixes "<code>N</code>" or "<code>NS</code>".
+These suffixes can be substituted with any convenient string to identify 
+parameters which relate to the same tables or subsets.
+Specifically:
+<dl>
+<dt>Suffix <code>N</code>:</dt>
+<dd><p>Denotes an input dataset.  At least the <code>inN</code> parameter
+    must be given to identify the source of the data; any other parameters
+    with the same value of the <code>N</code> suffix relate to that dataset.
+    A <em>dataset</em> here refers to a particular set of plot data from a
+    table; in most cases each input table corresponds to a different dataset,
+    though two datasets may correspond to different sets of columns from
+    the same table.
+    </p></dd>
+<dt>Suffix <code>NS</code>:</dt>
+<dd><p>Denotes a particular subset of the rows in dataset <code>N</code>.
+    At least the <code>subsetNS</code> parameter must be given to 
+    identify the expression by which the subset is defined;
+    any other parameters with the ame value of the <code>NS</code> suffix
+    relate to that subset.
+    </p></dd>
+</dl>
+</p>
+
+<p>Some examples should help here.
+The following will generate a Cartesian plot of catalogue position
+from a single dataset:
+<verbatim>
+   stilts plot2d in=gals.fits xdata=RA ydata=DEC
+</verbatim>
+In this case the <code>N</code> suffix is present on each of the parameters
+<code>in</code>, <code>xdata</code> and <code>ydata</code>, but is
+equal to the empty string, hence invisible.  This is perfectly legal,
+and convenient when only a single table is in use.
+If we wish to overplot two datasets however, the dataset suffixes 
+(or one of them at least) have to be made explicit so that different ones 
+can be used, for instance:
+<verbatim>
+   stilts plot2d in1=gals.fits  xdata1=RAJ2000 ydata1=DEJ2000
+                 in2=stars.fits xdata1=RA      ydata2=DEC
+</verbatim>
+The suffix values "<code>1</code>" and "<code>2</code>" are quite arbitrary
+and can be chosen as convenient, so the following would have the identical
+meaning:
+<verbatim>
+   stilts plot2d in_GAL=gals.fits   xdata_GAL=RAJ2000 ydata_GAL=DEJ2000
+                 in_STAR=stars.fits xdata_STAR=RA     ydata_STAR=DEC
+</verbatim>
+The other parameters which have the <code>N</code> suffix apply only
+to the matching dataset, so for instance the following:
+<verbatim>
+   stilts plot2d in1=gals.fits  xdata1=RAJ2000 ydata1=DEJ2000 txtlabel1=NGC_ID
+                 in2=stars.fits xdata2=RA      ydata2=DEC     
+</verbatim>
+would draw text labels adjacent to the points from the gals.fits file only
+giving the contents of its NGC_ID column.
+</p>
+
+<p>The <code>NS</code> suffix labels distinct <em>row subsets</em> 
+within the same or different datasets.  A subset ise defined by supplying
+a boolean inclusion expression (each row is included only if the
+expression evaluates true for it) as the value of a 
+<code>subsetNS</code> parameter.
+If no <code>subsetNS</code> parameter is supplied for a given dataset 
+<code>N</code> (this is the case for all the examples we have seen so far), 
+it is treated as a special case, as if a single subset, with a name
+equal to the empty string (S="") containing all rows has been specified.  
+So our earlier simple example:
+<verbatim>
+   stilts plot2d in=gals.fits xdata=RA ydata=DEC
+</verbatim>
+is equivalent to
+<verbatim>
+   stilts plot2d in=gals.fits xdata=RA ydata=DEC subset=true
+</verbatim>
+If we wish to split the plotted points into two sets based on their 
+R-B colours, we can write something like:
+<verbatim>
+   stilts plot2d in=gals.fits xdata=RA ydata=DEC
+                 subsetX='RMAG-BMAG&gt;0' subsetY='RMAG-BMAG&lt;=0'
+</verbatim>
+This will generate a plot in which the colours and symbols for each subset
+are selected automatically.  More control over the appearance can be
+exercised by setting values for some of the other parameters with
+NS suffixes, for instance
+<verbatim>
+   stilts plot2d in=gals.fits xdata=RA ydata=DEC
+                              subset_A='RMAG-BMAG&gt;0'  colour_A=blue
+                              subset_B='RMAG-BMAG&lt;=0' colour_B=red
+</verbatim>
+Again, the suffix strings can be chosen to have any value as convenient.
+</p>
+
+<p>The dataset- and subset-specific parameters must be put
+together if there are multiple datasets with multiple subsets to plot
+simultaneously, for instance:
+<verbatim>
+   stilts plot2d in_1=gals.fits  xdata_1=RA ydata_1=DEC
+                                 subset_1_A='RMAG-BMAG&gt;0'  colour_1_A=blue
+                                 subset_1_B='RMAG-BMAG&lt;=0' colour_1_B=red
+                 in_2=stars.fits xdata_2=RAJ2000 ydata_2=DEJ2000
+                                 colour_2=green
+</verbatim>
+</p>
+
+<p>Finally, it's not quite true that the suffixes chosen have no effect
+on the plot; they may influence which set is plotted first.
+Markers drawn for sets plotted earlier may be obscured by the markers
+drawn for sets plotted later, so this can affect the appearance of the plot.
+If you want to control this, use the <code>sequence</code> parameter.
+For instance, to ensure that stars appear on top of galaxies in the plot,
+do the following:
+<verbatim>
+   stilts plot2d in_GAL=gals.fits   xdata_GAL=RAJ2000 ydata_GAL=DEJ2000
+                 in_STAR=stars.fits xdata_STAR=RA     ydata_STAR=DEC
+                 sequence=_GAL,_STAR
+</verbatim>
+</p>
+
+<p>More examples can be found in the <label>Examples</label>
+subsections of the individual plotting command descriptions in
+<ref id="cmdUsage"/>.
+</p>
+
+</subsect>
+
+
+<subsect id="paintMode">
 <subhead><title>Output Modes</title></subhead>
 
 <p>The plots generated the plotting commands can be used in various
@@ -1993,18 +2176,27 @@ output to a file in a given graphics format
 another is to preview it directly on the screen
 (<ref id="paintmode-swing"><code>swing</code></ref>).
 By default one or other of these will happen depending on whether you
-specify an output file.  However there are other possibilities.
-They are all listed in the following subsections.
+specify an output file.  However there are other possibilities;
+these are listed in the following subsections.
+</p>
+
+<p>Except for plotting to the screen, these modes should work happily
+on a headless machine (one with no graphics display, as may be the case
+for a web server).
+When running headless, you may find it necessary to 
+set the java system property
+"<code>java.awt.headless</code>" to <code>true</code>
+- see <ref id="sysProperties"/>.
 </p>
 
 &paintmode-docs;
 
 </subsect>
 
-<subsect>
+<subsect id="graphicExporter">
 <subhead><title>Output Formats</title></subhead>
 
-<p>Several of the plot output <ref id="paintmode">modes</ref>
+<p>Several of the plot output <ref id="paintMode">modes</ref>
 write the plot in some graphics format or other.
 When selecting an output format it is important to understand the 
 distinction between <em>bitmapped</em> and <em>vector</em> formats;
@@ -2110,7 +2302,6 @@ without large memory requirements.
 </p>
 
 </subsect>
-
 
 </sect>
 
@@ -2977,11 +3168,12 @@ in terms of table columns, and it will generate a plot with a point
 for each one.
 There are many options available to configure the detailed appearance
 of the plot, but in its simplest form invocation is quite straightforward.
+See <ref id="plotting"/> for more discussion on use of the plotting commands.
 </p>
 
 &plot2d-summary;
 
-<subsubsect>
+<subsubsect id="plot2d-examples">
 <subhead><title>Examples</title></subhead>
 
 <p>Here are some examples of <code>plot2d</code> in use:
@@ -3006,6 +3198,7 @@ Plot bounds, bin widths etc may be supplied expliicitly, but will be
 calculated from the data and set from defaults as appropriate otherwise.
 There are many options available to configure the detailed appearance
 of the plot, but in its simplest form invocation is quite straightforward.
+See <ref id="plotting"/> for more discussion on use of the plotting commands.
 </p>
 
 &plothist-summary;
