@@ -37,7 +37,7 @@ public class UsageWriter {
 
     private void writeXml() throws IOException {
         String prefix = "   stilts <stilts-flags> " + taskName_;
-        outln( "<subsubsect>" );
+        outln( "<subsubsect id=\"" + taskName_ + "-usage\">" );
         outln( "<subhead><title>Usage</title></subhead>" );
         outln( "<p>The usage of <code>" + taskName_ + "</code> is" );
         outln( "<verbatim><![CDATA[" );
