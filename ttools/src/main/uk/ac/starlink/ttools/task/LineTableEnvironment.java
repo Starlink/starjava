@@ -117,8 +117,8 @@ public class LineTableEnvironment extends LineEnvironment
      * Uses {@link #toCanonicalParamName}.
      */
     public boolean paramNameMatches( String envName, Parameter param ) {
-        boolean matches = normaliseName( envName )
-                         .equals( normaliseName( param.getName() ) );
+        boolean matches = normaliseName( param.getName() )
+                         .equals( normaliseName( envName ) );
 
         /* This ought to match anything matched by the superclass 
          * implementation and then some. */
@@ -129,11 +129,16 @@ public class LineTableEnvironment extends LineEnvironment
     /**
      * Normalises a given name.
      * This folds to lower case, and may modify spelling.
+     *
+     * @param   name   input name
+     * @return  normalised name
      */
-    public static String normaliseName( String paramName ) {
-        paramName = paramName.toLowerCase();
-        paramName = paramName.replaceFirst( "color", "colour" );
-        return paramName;
+    public static String normaliseName( String name ) {
+        if ( name != null ) {
+            name = name.toLowerCase();
+            name = name.replaceFirst( "color", "colour" );
+        }
+        return name;
     }
 
     /**
