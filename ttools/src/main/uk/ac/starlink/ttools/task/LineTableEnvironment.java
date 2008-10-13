@@ -114,7 +114,7 @@ public class LineTableEnvironment extends LineEnvironment
     }
 
     /**
-     * Uses {@link #toCanonicalParamName}.
+     * Uses {@link #normaliseName}.
      */
     public boolean paramNameMatches( String envName, Parameter param ) {
         boolean matches = normaliseName( param.getName() )

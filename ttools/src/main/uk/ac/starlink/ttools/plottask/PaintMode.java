@@ -82,7 +82,7 @@ public abstract class PaintMode {
      * an empty string should be returned.
      *
      * @param   modeParam  mode parameter for context
-     * @param   plain text
+     * @return   plain text
      */
     public abstract String getModeUsage( PaintModeParameter modeParam );
 
