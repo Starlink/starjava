@@ -124,6 +124,7 @@ public class PlotStateFactory {
             "(probably alphabetic by suffix).",
             "</p>",
         } );
+        seqParam_.setNullPermitted( true );
     }
 
     /**
@@ -348,7 +349,7 @@ public class PlotStateFactory {
         String seqDefault = seqbuf.toString();
         seqParam_.setDefault( seqDefault );
         String seqString = seqParam_.stringValue( env );
-        if ( ! seqDefault.equals( seqString ) ) {
+        if ( seqString != null && ! seqString.equals( seqDefault ) ) {
             String[] setLabels = seqParam_.stringValue( env )
                                 .split( "\\Q" + seqParam_.getValueSeparator()
                                       + "\\E" );
