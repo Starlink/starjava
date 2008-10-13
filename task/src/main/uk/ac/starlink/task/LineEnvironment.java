@@ -125,8 +125,7 @@ public class LineEnvironment implements Environment {
             for ( Iterator it = paramSet.iterator();
                   ! found && it.hasNext(); ) {
                 Parameter param = (Parameter) it.next();
-                if ( ! found &&
-                     param.getName().equalsIgnoreCase( word.getName() ) ) {
+                if ( ! found && paramNameMatches( word.getName(), param ) ) {
                     found = true;
                     if ( ! ( param instanceof MultiParameter ) ) {
                         it.remove();
@@ -226,7 +225,7 @@ public class LineEnvironment implements Environment {
             for ( int i = 0; i < arguments_.length; i++ ) {
                 Argument arg = arguments_[ i ];
                 LineWord word = arg.word_;
-                if ( param.getName().equals( word.getName() ) ||
+                if ( paramNameMatches( word.getName(), param ) ||
                      ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) ) {
                     arg.used_ = true;
                     valueList.add( word.getValue() );
@@ -273,7 +272,7 @@ public class LineEnvironment implements Environment {
             for ( int i = 0; i < arguments_.length; i++ ) {
                 Argument arg = arguments_[ i ];
                 LineWord word = arg.word_;
-                if ( param.getName().equals( word.getName() ) ||
+                if ( paramNameMatches( word.getName(), param ) ||
                      ( arg.pos_ > 0 && param.getPosition() == arg.pos_ ) ) {
                     arg.used_ = true;
                     return word.getValue();
@@ -505,6 +504,24 @@ public class LineEnvironment implements Environment {
      */
     public String[] getAssignments() {
         return (String[]) acquiredValues_.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Indicates whether a parameter name supplied from the environment
+     * is a reference to a given parameter.
+     *
+     * <p>The implementation in the <code>LineEnvironment</code> class
+     * performs case-insensitive matching against the 
+     * <code>param.getName()</code>.  This behaviour may be overridden
+     * by subclasses to change the environment's behaviour.
+     *
+     * @param  envName  parameter name from environment
+     * @param  param  parameter
+     * @return   true iff <code>envName</code> is considered to name 
+     *           <code>param</code>
+     */
+    public boolean paramNameMatches( String envName, Parameter param ) {
+        return param.getName().equalsIgnoreCase( envName );
     }
 
     /**
