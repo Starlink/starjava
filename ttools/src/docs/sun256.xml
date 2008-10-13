@@ -1998,7 +1998,7 @@ number of parameters.  When looking at the command documentation in
 the <ref id="plot2d-usage">Usage</ref> sections may look rather daunting.
 However, the discussion below and the 
 <ref id="plot2d-examples">Examples</ref> sections should help.
-Generating a simple plot is straightforward and need only use
+Generating a simple plot is straightforward and can be done with only
 three or four parameters; if you have more complicated
 requirements for data selection or specific preferences for
 appearance then you can consult the documentation for the additional options.
@@ -2041,10 +2041,10 @@ plotting commands, for instance in <ref id="plot2d-usage"/>,
 you will see that a number of the parameters have the 
 suffixes "<code>N</code>" or "<code>NS</code>".
 These suffixes can be substituted with any convenient string to identify 
-parameters which relate to the same tables or subsets.
+parameters which relate to the same input datasets or subsets.
 Specifically:
 <dl>
-<dt>Suffix <code>N</code>:</dt>
+<dt>Suffix "<code>N</code>":</dt>
 <dd><p>Denotes an input dataset.  At least the <code>inN</code> parameter
     must be given to identify the source of the data; any other parameters
     with the same value of the <code>N</code> suffix relate to that dataset.
@@ -2053,17 +2053,17 @@ Specifically:
     though two datasets may correspond to different sets of columns from
     the same table.
     </p></dd>
-<dt>Suffix <code>NS</code>:</dt>
+<dt>Suffix "<code>NS</code>":</dt>
 <dd><p>Denotes a particular subset of the rows in dataset <code>N</code>.
     At least the <code>subsetNS</code> parameter must be given to 
     identify the expression by which the subset is defined;
-    any other parameters with the ame value of the <code>NS</code> suffix
+    any other parameters with the same value of the <code>NS</code> suffix
     relate to that subset.
     </p></dd>
 </dl>
 </p>
 
-<p>Some examples should help here.
+<p>Some examples will help to illustrate.
 The following will generate a Cartesian plot of catalogue position
 from a single dataset:
 <verbatim>
@@ -2077,35 +2077,37 @@ If we wish to overplot two datasets however, the dataset suffixes
 (or one of them at least) have to be made explicit so that different ones 
 can be used, for instance:
 <verbatim>
-   stilts plot2d in1=gals.fits  xdata1=RAJ2000 ydata1=DEJ2000
-                 in2=stars.fits xdata1=RA      ydata2=DEC
+   stilts plot2d in1=gals.fits  xdata1=RA      ydata1=DEC
+                 in2=stars.fits xdata1=RAJ2000 ydata2=DEJ2000
 </verbatim>
 The suffix values "<code>1</code>" and "<code>2</code>" are quite arbitrary
-and can be chosen as convenient, so the following would have the identical
+and can be chosen as convenient, so the following would do exactly the
+same as the previous example:
 meaning:
 <verbatim>
-   stilts plot2d in_GAL=gals.fits   xdata_GAL=RAJ2000 ydata_GAL=DEJ2000
-                 in_STAR=stars.fits xdata_STAR=RA     ydata_STAR=DEC
+   stilts plot2d in_GAL=gals.fits   xdata_GAL=RA       ydata_GAL=DEC
+                 in_STAR=stars.fits xdata_STAR=RAJ2000 ydata_STAR=DEJ2000
 </verbatim>
 The other parameters which have the <code>N</code> suffix apply only
 to the matching dataset, so for instance the following:
 <verbatim>
-   stilts plot2d in1=gals.fits  xdata1=RAJ2000 ydata1=DEJ2000 txtlabel1=NGC_ID
-                 in2=stars.fits xdata2=RA      ydata2=DEC     
+   stilts plot2d in1=gals.fits  xdata1=RA      ydata1=DEC     txtlabel1=NGC_ID
+                 in2=stars.fits xdata2=RAJ2000 ydata2=DEJ2000
 </verbatim>
-would draw text labels adjacent to the points from the gals.fits file only
+would draw text labels adjacent to the points from only the gals.fits file
 giving the contents of its NGC_ID column.
 </p>
 
-<p>The <code>NS</code> suffix labels distinct <em>row subsets</em> 
-within the same or different datasets.  A subset ise defined by supplying
+<p>The <code>NS</code> suffix identifies distinct <em>row subsets</em> 
+within the same or different datasets.  A subset is defined by supplying
 a boolean inclusion expression (each row is included only if the
 expression evaluates true for it) as the value of a 
 <code>subsetNS</code> parameter.
-If no <code>subsetNS</code> parameter is supplied for a given dataset 
-<code>N</code> (this is the case for all the examples we have seen so far), 
-it is treated as a special case, as if a single subset, with a name
-equal to the empty string (S="") containing all rows has been specified.  
+If, as for all the examples we have seen so far, 
+no <code>subsetNS</code> parameter is supplied for a given dataset,
+it is treated as a special case, as if a single subset with a name
+equal to the empty string (<code>S=""</code>) 
+containing all rows has been specified.  
 So our earlier simple example:
 <verbatim>
    stilts plot2d in=gals.fits xdata=RA ydata=DEC
@@ -2120,10 +2122,11 @@ R-B colours, we can write something like:
    stilts plot2d in=gals.fits xdata=RA ydata=DEC
                  subsetX='RMAG-BMAG&gt;0' subsetY='RMAG-BMAG&lt;=0'
 </verbatim>
-This will generate a plot in which the colours and symbols for each subset
+This will generate a plot with two subsets shown using different colours
+and/or plotting symbols.  These colours and symbols
 are selected automatically.  More control over the appearance can be
 exercised by setting values for some of the other parameters with
-NS suffixes, for instance
+<code>NS</code> suffixes, for instance
 <verbatim>
    stilts plot2d in=gals.fits xdata=RA ydata=DEC
                               subset_A='RMAG-BMAG&gt;0'  colour_A=blue
@@ -2145,15 +2148,15 @@ simultaneously, for instance:
 </p>
 
 <p>Finally, it's not quite true that the suffixes chosen have no effect
-on the plot; they may influence which set is plotted first.
+on the plot; they may influence the order in which sets are plotted.
 Markers drawn for sets plotted earlier may be obscured by the markers
 drawn for sets plotted later, so this can affect the appearance of the plot.
 If you want to control this, use the <code>sequence</code> parameter.
-For instance, to ensure that stars appear on top of galaxies in the plot,
-do the following:
+For instance, to ensure that star data appears on top of galaxy data 
+in the plot, do the following:
 <verbatim>
-   stilts plot2d in_GAL=gals.fits   xdata_GAL=RAJ2000 ydata_GAL=DEJ2000
-                 in_STAR=stars.fits xdata_STAR=RA     ydata_STAR=DEC
+   stilts plot2d in_GAL=gals.fits   xdata_GAL=RA       ydata_GAL=DEC
+                 in_STAR=stars.fits xdata_STAR=RAJ2000 ydata_STAR=DEJ2000
                  sequence=_GAL,_STAR
 </verbatim>
 </p>
@@ -2180,7 +2183,7 @@ specify an output file.  However there are other possibilities;
 these are listed in the following subsections.
 </p>
 
-<p>Except for plotting to the screen, these modes should work happily
+<p>Except for display to the screen, these modes should work happily
 on a headless machine (one with no graphics display, as may be the case
 for a web server).
 When running headless, you may find it necessary to 
@@ -2267,7 +2270,7 @@ specific to STILTS graphical output as discussed below.
 <dt><code>eps-gzip</code></dt>
 <dd><p>Just like the <code>eps</code> format above except that the output
     is automatically compressed using the GZIP format as it is written.
-    Postscript compresses well (typically a factory of 5-10).
+    Postscript compresses well (typically a factor of 5-10).
     </p></dd>
 
 </dl>
