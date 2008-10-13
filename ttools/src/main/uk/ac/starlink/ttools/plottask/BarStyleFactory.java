@@ -93,6 +93,9 @@ public class BarStyleFactory extends StyleFactory {
             stSuffix + ".",
             param.getFormatDescription(),
             "</p>",
+            "<p>For most purposes, either the American or the British spelling",
+            "is accepted for this parameter name.",
+            "</p>",
         } );
         return param;
     }

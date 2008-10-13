@@ -14,6 +14,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.InvokeUtils;
+import uk.ac.starlink.task.LineEnvironment;
 import uk.ac.starlink.task.LineFormatter;
 import uk.ac.starlink.task.LineWord;
 import uk.ac.starlink.task.Parameter;
@@ -23,6 +24,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.ttools.plottask.PlotStateFactory;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
@@ -388,7 +390,7 @@ public class LineInvoker {
      * @param   taskArgs  argument list for task (not including task name)
      * @return  help text, or null
      */
-    private String helpMessage( TableEnvironment env, Task task,
+    private String helpMessage( LineTableEnvironment env, Task task,
                                 String taskName, String[] taskArgs ) {
         for ( int i = 0; i < taskArgs.length; i++ ) {
             String arg = taskArgs[ i ];
@@ -417,10 +419,38 @@ public class LineInvoker {
                 return sbuf.toString();
             }
             else if ( helpFor != null ) {
+
+                /* Look for an exact (case-insensitive) match of the requested
+                 * name with one of the task's parameters. */
                 Parameter[] params = task.getParameters();
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
-                    if ( helpFor.equalsIgnoreCase( param.getName() ) ) {
+                    if ( env.paramNameMatches( helpFor, param ) ) {
+                        return getParamHelp( env, taskName, param );
+                    }
+                }
+
+                /* If that fails, treat the special case of plotting parameters
+                 * which have per-table or per-subset suffixes.
+                 * This allows you to get help for parameter xdata without
+                 * giving the symbolic suffix (xdataN). */
+                String stripper = new StringBuffer()
+                    .append( '(' )
+                    .append( PlotStateFactory.TABLE_VARIABLE )
+                    .append( '|' )
+                    .append( PlotStateFactory.SUBSET_VARIABLE )
+                    .append( '|' )
+                    .append( PlotStateFactory.AUX_VARIABLE )
+                    .append( ')' )
+                    .append( '*' )
+                    .append( '$' )
+                    .toString();
+                for ( int j = 0; j < params.length; j++ ) {
+                    Parameter param = params[ j ];
+                    String pname = param.getName().replaceFirst( stripper, "" );
+                    if ( LineTableEnvironment.normaliseName( helpFor )
+                        .equals( LineTableEnvironment
+                                .normaliseName( pname ) ) ) {
                         return getParamHelp( env, taskName, param );
                     }
                 }

@@ -47,14 +47,22 @@ import uk.ac.starlink.ttools.task.TableProducer;
  */
 public class PlotStateFactory {
 
+    /** Symbolic suffix representing a table in per-table parameter names. */
+    public static final String TABLE_VARIABLE = "N";
+
+    /** Symbolic suffix representing a subset in per-subset parameter names. */
+    public static final String SUBSET_VARIABLE = "S";
+
+    /** Symbolic suffix representing an auxiliary axis in per-aux 
+     * parameter names.  Currently blank, as only one auxiliary axis is
+     * provided for. */
+    public static final String AUX_VARIABLE = "";
+
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
     private static final String SUBSET_PREFIX = "subset";
     private static final String AUX_PREFIX = "aux";
     private static final String STYLE_PREFIX = "";
-    public static final String TABLE_VARIABLE = "N";
-    private static final String SUBSET_VARIABLE = "S";
-    private static final String AUX_VARIABLE = "";
     private static final double PAD_RATIO = 0.02;
 
     private final String[] mainDimNames_;

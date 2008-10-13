@@ -114,6 +114,29 @@ public class LineTableEnvironment extends LineEnvironment
     }
 
     /**
+     * Uses {@link #toCanonicalParamName}.
+     */
+    public boolean paramNameMatches( String envName, Parameter param ) {
+        boolean matches = normaliseName( envName )
+                         .equals( normaliseName( param.getName() ) );
+
+        /* This ought to match anything matched by the superclass 
+         * implementation and then some. */
+        assert matches || ! super.paramNameMatches( envName, param );
+        return matches;
+    }
+
+    /**
+     * Normalises a given name.
+     * This folds to lower case, and may modify spelling.
+     */
+    public static String normaliseName( String paramName ) {
+        paramName = paramName.toLowerCase();
+        paramName = paramName.replaceFirst( "color", "colour" );
+        return paramName;
+    }
+
+    /**
      * Returns a suitable table factory for a given environment.
      * If <code>env</code> is a TableEnvironement then <code>env</code>'s
      * factory is returned, otherwise a default one is returned.

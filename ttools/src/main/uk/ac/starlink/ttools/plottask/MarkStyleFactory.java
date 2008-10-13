@@ -142,6 +142,9 @@ public class MarkStyleFactory extends StyleFactory {
             "<p>Defines the colour of markers plotted.",
             param.getFormatDescription(),
             "</p>",
+            "<p>For most purposes, either the American or the British spelling",
+            "is accepted for this parameter name.",
+            "</p>",
         } );
         return param;
     }

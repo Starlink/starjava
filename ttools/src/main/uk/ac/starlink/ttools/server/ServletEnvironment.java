@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
+import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputModeParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
@@ -69,12 +70,20 @@ public class ServletEnvironment implements TableEnvironment {
         tableFactory_ = tableFactory;
         tableOutput_ = tableOutput;
         jdbcAuth_ = jdbcAuth;
-        paramMap_ = new HashMap( request.getParameterMap() );
+        paramMap_ = new HashMap();
+        for ( Iterator it = request.getParameterMap().entrySet().iterator();
+              it.hasNext(); ) { 
+            Map.Entry entry = (Map.Entry) it.next();
+            paramMap_.put( LineTableEnvironment
+                          .normaliseName( (String) entry.getKey() ),
+                           entry.getValue() );
+        }
         outStream_ = new PrintStream( response.getOutputStream() );
     }
 
     public void acquireValue( Parameter param ) throws TaskException {
-        final String pname = param.getName();
+        final String pname =
+            LineTableEnvironment.normaliseName( param.getName() );
 
         /* Configure output tables to get written to servlet response. */
         boolean isDefault = ! paramMap_.containsKey( pname );
@@ -128,7 +137,7 @@ public class ServletEnvironment implements TableEnvironment {
          * supplied by form or the query part of the URL. */
         else {
             final String stringVal;
-            String[] valueArray = (String[]) paramMap_.get( param.getName() );
+            String[] valueArray = (String[]) paramMap_.get( pname );
 
             /* No value supplied: use parameter default. */
             if ( isDefault ) {
@@ -198,7 +207,8 @@ public class ServletEnvironment implements TableEnvironment {
 
     public void clearValue( Parameter param ) {
         synchronized ( paramMap_ ) {
-            paramMap_.remove( param.getName() );
+            paramMap_.remove( LineTableEnvironment
+                             .normaliseName( param.getName() ) );
         }
     }
 
