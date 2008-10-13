@@ -17,6 +17,7 @@ import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.plot.DataBounds;
@@ -28,9 +29,11 @@ import uk.ac.starlink.ttools.plot.PlotData;
 import uk.ac.starlink.ttools.plot.PlotState;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot.SubsetSelectionPlotData;
 import uk.ac.starlink.ttools.plot.TablePlot;
 import uk.ac.starlink.ttools.plot.WrapperPlotData;
 import uk.ac.starlink.ttools.task.ConsumerTask;
+import uk.ac.starlink.ttools.task.DefaultMultiParameter;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -70,6 +73,7 @@ public class PlotStateFactory {
     private final boolean useLabel_;
     private final int errNdim_;
     private final BooleanParameter gridParam_;
+    private final DefaultMultiParameter seqParam_;
 
     /**
      * Constructor.
@@ -94,6 +98,32 @@ public class PlotStateFactory {
             "</p>",
         } );
         gridParam_.setDefault( true );
+
+        seqParam_ = new DefaultMultiParameter( "sequence", ',' );
+        seqParam_.setPrompt( "Defines plot order of subsets" );
+        seqParam_.setUsage( "<suffix>,<suffix>,..." );
+        seqParam_.setDescription( new String[] {
+            "<p>Can be used to control the sequence in which different",
+            "datasets and subsets are plotted.",
+            "This will affect which symbols are plotted on top of,",
+            "and so potentially obscure,",
+            "which other ones.",
+            "The value of this parameter is a comma-separated list of the",
+            "\"<code>" + TABLE_VARIABLE + SUBSET_VARIABLE + "</code>\"",
+            "suffixes which appear on the",
+            "parameters which apply to subsets.",
+            "The sets which are named",
+            "will be plotted in order, so the first-named one will be",
+            "at the bottom (most likely to be obscured).",
+            "Note that if this parameter is supplied, then only those sets",
+            "which are named will be plotted,",
+            "so this parameter may also be used to restrict which plots appear",
+            "(though it may not be the most efficient way of doing this).",
+            "If no explicit value is supplied for this parameter,",
+            "sets will be plotted in some sequence decided by STILTS",
+            "(probably alphabetic by suffix).",
+            "</p>",
+        } );
     }
 
     /**
@@ -171,6 +201,7 @@ public class PlotStateFactory {
         paramList.addAll( Arrays.asList( createStyleFactory( STYLE_PREFIX )
                                         .getParameters( stSuffix ) ) );
         paramList.add( gridParam_ );
+        paramList.add( seqParam_ );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
 
@@ -251,6 +282,7 @@ public class PlotStateFactory {
         PlotData[] datas = new PlotData[ nTable ];
         String[] coordExprs0 = null;
         StyleFactory styleFactory = createStyleFactory( STYLE_PREFIX );
+        List setLabelList = new ArrayList();
         for ( int itab = 0; itab < nTable; itab++ ) {
             String tlabel = tableLabels[ itab ];
             StarTable table = getInputTable( env, tlabel );
@@ -280,6 +312,7 @@ public class PlotStateFactory {
             Style[] setStyles = new Style[ nset ];
             for ( int is = 0; is < nset; is++ ) {
                 SubsetDef sdef = subsetDefs[ is ];
+                setLabelList.add( sdef.label_ );
                 setExprs[ is ] = sdef.expression_;
                 setNames[ is ] = sdef.name_;
                 setStyles[ is ] = sdef.style_;
@@ -300,9 +333,44 @@ public class PlotStateFactory {
             }
         }
 
-        /* Set the plot data object of the plot state as an aggregation of
-         * the data objects from all the input tables. */
-        state.setPlotData( new MultiPlotData( datas ) );
+        /* Set up a plot data object which is an aggregation of the data
+         * objects from all the input tables. */
+        PlotData plotData = new MultiPlotData( datas );
+
+        /* Rearrange the set plot order if required. */
+        StringBuffer seqbuf = new StringBuffer();
+        for ( Iterator it = setLabelList.iterator(); it.hasNext(); ) {
+            seqbuf.append( it.next() );
+            if ( it.hasNext() ) {
+                seqbuf.append( seqParam_.getValueSeparator() );
+            }
+        }
+        String seqDefault = seqbuf.toString();
+        seqParam_.setDefault( seqDefault );
+        String seqString = seqParam_.stringValue( env );
+        if ( ! seqDefault.equals( seqString ) ) {
+            String[] setLabels = seqParam_.stringValue( env )
+                                .split( "\\Q" + seqParam_.getValueSeparator()
+                                      + "\\E" );
+            int nset = setLabels.length;
+            for ( int is = 0; is < nset; is++ ) {
+                setLabels[ is ] = setLabels[ is ].trim();
+            }
+            int[] isets = new int[ nset ];
+            for ( int is = 0; is < nset; is++ ) {
+                String label = setLabels[ is ];
+                isets[ is ] = setLabelList.indexOf( label );
+                if ( isets[ is ] < 0 ) {
+                    String msg = "Unknown set identifier \"" + label + "\"; "
+                               + "known labels are " + setLabelList;
+                    throw new ParameterValueException( seqParam_, msg );
+                }
+            }
+            plotData = new SubsetSelectionPlotData( plotData, isets );
+        }
+
+        /* Store the calculated plot data object in the plot state. */
+        state.setPlotData( plotData );
 
         /* Configure other per-axis properties. */
         boolean[] logFlags = new boolean[ allNdim ];
@@ -688,7 +756,7 @@ public class PlotStateFactory {
             nameParam.setDefault( tlabel );
             String name = nameParam.stringValue( env );
             return new SubsetDef[] {
-                new SubsetDef( "true", name,
+                new SubsetDef( tlabel, "true", name,
                                styleFactory.getStyle( env, tlabel ) ),
             };
         }
@@ -705,7 +773,7 @@ public class PlotStateFactory {
                 nameParam.setDefault( expr );
                 String name = nameParam.stringValue( env );
                 sdefs[ is ] =
-                    new SubsetDef( expr, name,
+                    new SubsetDef( stLabel, expr, name,
                                    styleFactory.getStyle( env, stLabel ) );
             }
             return sdefs;
@@ -763,6 +831,7 @@ public class PlotStateFactory {
             "<li><code>null</code>: no errors</li>",
             "</ul>",
             "The expression in each case is a numeric algebraic expression",
+            "based on column names",
             "as described in <ref id='jel'/>.",
             "</p>",
         } );
@@ -980,6 +1049,9 @@ public class PlotStateFactory {
             param.setDescription( new String[] {
                 "<p>Gives a column name or expression for the " + axName_,
                 "axis data for table " + tlabel + ".",
+                "The expression is a numeric algebraic expression",
+                "based on column names",
+                "as described in <ref id=\"jel\"/>",
                 "</p>",
             } );
             return param;
@@ -1059,6 +1131,7 @@ public class PlotStateFactory {
      * Utility class which aggregates information about a Row Subset.
      */
     private static class SubsetDef {
+        final String label_;
         final String expression_;
         final String name_;
         final Style style_;
@@ -1066,11 +1139,14 @@ public class PlotStateFactory {
         /**
          * Constructor.
          *
+         * @param  label    label defined from parameter suffix
          * @param  expression   boolean JEL expression defining inclusion
          * @param  name     subset name
          * @param  style    subset style
          */
-        SubsetDef( String expression, String name, Style style ) {
+        SubsetDef( String label, String expression, String name,
+                   Style style ) {
+            label_ = label;
             expression_ = expression;
             name_ = name;
             style_ = style;
