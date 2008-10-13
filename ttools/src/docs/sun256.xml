@@ -92,7 +92,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>26 March 2008</docdate>
+<docdate>23 October 2008</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -120,6 +120,7 @@ format validation,
 column calculation and rearrangement, 
 row selection,
 sorting,
+plotting,
 statistical calculations
 and metadata display.
 Calculations on cell data can be performed using a powerful and 
@@ -160,96 +161,56 @@ same ground as the STIL and TOPCAT user documents
 (<docxref doc="sun252"/> and <docxref doc="sun253"/> respectively).
 </p>
 
-<p>Currently, this package consists of the following commands for generic
-table manipulation:
-<ul>
-<li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
-    &tcopy-purpose;
-    </li>
-<li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
-    &tpipe-purpose;
-    </li>
-
-<li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
-    &tcat-purpose;
-    </li>
-<li><ref id="tcatn" plaintextref="yes"><code>tcatn</code></ref>:
-    &tcatn-purpose;
-    </li>
-<li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
-    &tjoin-purpose;
-    </li>
-<li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
-    &tcube-purpose;
-    </li>
-</ul>
-the following commands for crossmatching between local tables:
-<ul>
-<li><ref id="tmatch1" plaintextref="yes"><code>tmatch1</code></ref>:
-    &tmatch1-purpose;
-    </li>
-<li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
-    &tmatch2-purpose;
-    </li>
-<li><ref id="tmatchn" plaintextref="yes"><code>tmatchn</code></ref>:
-    &tmatchn-purpose;
-    </li>
-<li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
-    &tskymatch2-purpose;
-    </li>
-</ul>
-the following commands for plotting data from tables:
-<ul>
-<li><ref id="plot2d" plaintextref="yes"><code>plot2d</code></ref>:
-    &plot2d-purpose;
-    </li>
-<li><ref id="plothist" plaintextref="yes"><code>plothist</code></ref>:
-    &plothist-purpose;
-    </li>
-</ul>
-the following commands specifically for operating on VOTable files:
-<ul>
-<li><ref id="votcopy" plaintextref="yes"><code>votcopy</code></ref>:
-    &votcopy-purpose;
-    </li>
-<li><ref id="votlint" plaintextref="yes"><code>votlint</code></ref>:
-    &votlint-purpose;
-    </li>
-</ul>
-the following commands for accessing Virtual Observatory services:
-<ul>
-<li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
-    &regquery-purpose;
-    </li>
-<li><ref id="coneskymatch" plaintextref="yes"><code>coneskymatch</code></ref>:
-    &coneskymatch-purpose;
-    </li>
-</ul>
-the following commands for direct interaction with a SQL database:
-<ul>
-<li><ref id="sqlclient" plaintextref="yes"><code>sqlclient</code></ref>:
-    &sqlclient-purpose;
-    </li>
-<li><ref id="sqlupdate" plaintextref="yes"><code>sqlupdate</code></ref>:
-    &sqlupdate-purpose;
-    </li>
-<li><ref id="sqlskymatch" plaintextref="yes"><code>sqlskymatch</code></ref>:
-    &sqlskymatch-purpose;
-    </li>
-</ul>
-and the following miscllaneous utilities:
-<ul>
-<li><ref id="calc" plaintextref="yes"><code>calc</code></ref>:
-    &calc-purpose;
-    </li>
-<li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
-    &funcs-purpose;
-    </li>
-<li><ref id="server" plaintextref="yes"><code>server</code></ref>:
-    &server-purpose;
-    </li>
-</ul>
-More tools may be introduced in the future.
+<p>Currently, this package consists of commands in the following categories:
+<dl>
+<dt>Generic table manipulation</dt>
+<dd><p>
+    <ref id="tcopy"><code>tcopy</code></ref>,
+    <ref id="tpipe"><code>tpipe</code></ref>,
+    <ref id="tcat"><code>tcat</code></ref>,
+    <ref id="tcatn"><code>tcatn</code></ref>,
+    <ref id="tjoin"><code>tjoin</code></ref> and
+    <ref id="tcube"><code>tcube</code></ref>
+    (see <ref id="pipes" plaintextref="yes"/>).
+    </p></dd>
+<dt>Crossmatching</dt>
+<dd><p>
+    <ref id="tmatch1"><code>tmatch1</code></ref>,
+    <ref id="tmatch2"><code>tmatch2</code></ref>,
+    <ref id="tmatchn"><code>tmatchn</code></ref> and
+    <ref id="tskymatch2"><code>tskymatch2</code></ref>
+    (see <ref id="match" plaintextref="yes"/>).
+    </p></dd>
+<dt>Plotting</dt>
+<dd><p>
+    <ref id="plot2d"><code>plot2d</code></ref> and
+    <ref id="plothist"><code>plothist</code></ref>
+    (see <ref id="plot" plaintextref="yes"/>).
+    </p></dd>
+<dt>VOTable</dt>
+<dd><p>
+    <ref id="votcopy"><code>votcopy</code></ref> and
+    <ref id="votlint"><code>votlint</code></ref>.
+    </p></dd>
+<dt>Virtual Observatory access</dt>
+<dd><p>
+    <ref id="regquery"><code>regquery</code></ref> and
+    <ref id="coneskymatch"><code>coneskymatch</code></ref>.
+    </p></dd>
+<dt>SQL databases</dt>
+<dd><p>
+    <ref id="sqlclient"><code>sqlclient</code></ref>,
+    <ref id="sqlupdate"><code>sqlupdate</code></ref> and
+    <ref id="sqlskymatch"><code>sqlskymatch</code></ref>.
+    </p></dd>
+<dt>Miscellaneous</dt>
+<dd><p>
+    <ref id="calc" plaintextref="yes"><code>calc</code></ref>,
+    <ref id="funcs" plaintextref="yes"><code>funcs</code></ref> and
+    <ref id="server" plaintextref="yes"><code>server</code></ref>.
+    </p></dd>
+</dl>
+See <ref id="classified"/> for an expanded version of this list.
 </p>
 
 <p>There are many ways you might want to use these tools;
@@ -995,7 +956,7 @@ then you could avoid having to give the <code>-classpath</code> and
 </sect>
 
 
-<sect>
+<sect id="io">
 <subhead><title>Table I/O</title></subhead>
 
 <p>Most of the tools in this package either read one or more tables as input, 
@@ -1974,7 +1935,7 @@ in multi-object match contexts.
 
 </sect>
 
-<sect id="plotting">
+<sect id="plot">
 <subhead><title>Plotting</title></subhead>
 
 <p>As of Version 2.0 (October 2008), STILTS offers table plotting commands.
@@ -2896,6 +2857,153 @@ but it might involve doing something like the following:
 
 <appendices>
 
+<sect id="classified">
+<subhead><title>Commands By Category</title></subhead>
+
+<p>This section lists the commands available broken down by the
+category of function they provide.  Some commands appear in more than
+one category.
+Detailed descriptions and examples for each command can be found in
+<ref id="cmdUsage"/>.
+<dl>
+
+<dt>Format conversion:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
+        &tcopy-purpose;
+        </li>
+    <li><ref id="votcopy" plaintextref="yes"><code>votcopy</code></ref>:
+        &votcopy-purpose;
+        </li>
+    </ul>
+    See also <ref id="io" plaintextref="yes"/>.
+    </p></dd>
+
+<dt>Generic table manipulation:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="tcopy" plaintextref="yes"><code>tcopy</code></ref>:
+        &tcopy-purpose;
+        </li>
+    <li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
+        &tpipe-purpose;
+        </li>
+    <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
+        &tcat-purpose;
+        </li>
+    <li><ref id="tcatn" plaintextref="yes"><code>tcatn</code></ref>:
+        &tcatn-purpose;
+        </li>
+    <li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
+        &tjoin-purpose;
+        </li>
+    <li><ref id="tcube" plaintextref="yes"><code>tcube</code></ref>:
+        &tcube-purpose;
+        </li>
+    </ul>
+    See also <ref id="pipes" plaintextref="yes"/>.
+    </p></dd>
+
+<dt>Crossmatching:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="tmatch1" plaintextref="yes"><code>tmatch1</code></ref>:
+        &tmatch1-purpose;
+        </li>
+    <li><ref id="tmatch2" plaintextref="yes"><code>tmatch2</code></ref>:
+        &tmatch2-purpose;
+        </li>
+    <li><ref id="tmatchn" plaintextref="yes"><code>tmatchn</code></ref>:
+        &tmatchn-purpose;
+        </li>
+    <li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
+        &tskymatch2-purpose;
+        </li>
+    <li><ref id="coneskymatch"
+             plaintextref="yes"><code>coneskymatch</code></ref>:
+        &coneskymatch-purpose;
+        </li>
+    <li><ref id="sqlskymatch" plaintextref="yes"><code>sqlskymatch</code></ref>:
+        &sqlskymatch-purpose;
+        </li>
+    </ul>
+    See also <ref id="match" plaintextref="yes"/>.
+    </p></dd>
+
+<dt>Plotting:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="plot2d" plaintextref="yes"><code>plot2d</code></ref>:
+        &plot2d-purpose;
+        </li>
+    <li><ref id="plothist" plaintextref="yes"><code>plothist</code></ref>:
+        &plothist-purpose;
+        </li>
+    </ul>
+    See also <ref id="plot" plaintextref="yes"/>.
+    </p></dd>
+
+<dt>VOTables:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="votcopy" plaintextref="yes"><code>votcopy</code></ref>:
+        &votcopy-purpose;
+        </li>
+    <li><ref id="votlint" plaintextref="yes"><code>votlint</code></ref>:
+        &votlint-purpose;
+        </li>
+    </ul>
+    </p></dd>
+
+<dt>Virtual Observatory service access:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
+        &regquery-purpose;
+        </li>
+    <li><ref id="coneskymatch"
+             plaintextref="yes"><code>coneskymatch</code></ref>:
+        &coneskymatch-purpose;
+        </li>
+    </ul>
+    </p></dd>
+
+<dt>SQL Database access:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="sqlclient" plaintextref="yes"><code>sqlclient</code></ref>:
+        &sqlclient-purpose;
+        </li>
+    <li><ref id="sqlupdate" plaintextref="yes"><code>sqlupdate</code></ref>:
+        &sqlupdate-purpose;
+        </li>
+    <li><ref id="sqlskymatch" plaintextref="yes"><code>sqlskymatch</code></ref>:
+        &sqlskymatch-purpose;
+        </li>
+    </ul>
+    </p></dd>
+
+<dt>Miscellaneous:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="server" plaintextref="yes"><code>server</code></ref>:
+        &server-purpose;
+        </li>
+    <li><ref id="calc" plaintextref="yes"><code>calc</code></ref>:
+        &calc-purpose;
+        </li>
+    <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
+        &funcs-purpose;
+        </li>
+    </ul>
+    </p></dd>
+
+</dl>
+</p>
+
+</sect>
+
 <sect id="cmdUsage">
 <subhead><title>Command Reference</title></subhead>
 
@@ -3171,7 +3279,7 @@ in terms of table columns, and it will generate a plot with a point
 for each one.
 There are many options available to configure the detailed appearance
 of the plot, but in its simplest form invocation is quite straightforward.
-See <ref id="plotting"/> for more discussion on use of the plotting commands.
+See <ref id="plot"/> for more discussion on use of the plotting commands.
 </p>
 
 &plot2d-summary;
@@ -3201,7 +3309,7 @@ Plot bounds, bin widths etc may be supplied expliicitly, but will be
 calculated from the data and set from defaults as appropriate otherwise.
 There are many options available to configure the detailed appearance
 of the plot, but in its simplest form invocation is quite straightforward.
-See <ref id="plotting"/> for more discussion on use of the plotting commands.
+See <ref id="plot"/> for more discussion on use of the plotting commands.
 </p>
 
 &plothist-summary;
@@ -5159,6 +5267,7 @@ When fed this version, <code>votlint</code> gives no warnings.
 
 </sect>
 
+
 <sect>
 <subhead><title>Release Notes</title></subhead>
 
@@ -5854,30 +5963,58 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
-<dd><p>
-    <ul>
-    <li>Plotting!: new <ref id="plotting"/> and commands
-        <ref id="plot2d"><code>plot2d</code></ref>, 
-        <ref id="plothist"><code>plothist</code></ref></li>
-    <li>Server mode!: <ref id="server"><code>server</code></ref></li>
-    <li>Efficiency improvements (~25%? in both CPU time and memory usage) 
-        for HEALPix-based sky crossmatching 
-        (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
-        the PixTools library).</li>
-    <li>Minor CEA fixes.</li>
-    <li>Add <code>minReal</code> and <code>maxReal</code> functions 
-        (max/min ignoring blank values) in class
-        <ref id="uk.ac.starlink.ttools.func.Arithmetic">Arithmetic</ref>.</li>
-    <li>Fix bug in use of <code>tcat</code> <code>loccol</code> parameter.</li>
-    <li>Sexagesimal field identification for ASCII input files less stringent
-        (now permits minutes or seconds equal to 60).</li>
-    <li>HEALPix bug fix
-        (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
-                 >PixTools</webref> bug fix update).</li>
-    <li>New class <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> 
-        added to algebraic functions.</li>
-    </ul>
+<dt>Version 2.0b</dt>
+<dd><p>This version contains two new major items, plotting and server mode.
+    Both work, but are missing desirable features and have not had extensive
+    testing in the field, so should be considered experimental at this stage.
+    <dl>
+    <dt>Plotting</dt>
+    <dd><p>Two table plotting commands are now provided:
+        <ul>
+        <li><ref id="plot2d"><code>plot2d</code></ref>:
+            &plot2d-purpose;</li>
+        <li><ref id="plothist"><code>plothist</code></ref>:
+            &plothist-purpose;</li>
+        </ul>
+        See also the new <ref id="plot" plaintextref="yes">Plotting</ref>
+        section in the manual.
+        </p></dd>
+    <dt>Server Mode</dt>
+    <dd><p>A new command <ref id="server"><code>server</code></ref> is
+        provided which allows STILTS commands to be executed via HTTP.
+        One purpose of this is to facilitate server-side use of the 
+        plotting commands co-located with data to generate on-the-fly 
+        graphical summaries of server-held datasets.
+        </p></dd>
+    <dt>Smaller enhancements and bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Efficiency improvements (~25%? in both CPU time and memory usage) 
+            for HEALPix-based sky crossmatching 
+            (thanks to Nikolay Kouropatkine at Fermilab for a new version of 
+            the PixTools library).</li>
+        <li>New class <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> 
+            added to algebraic functions.</li>
+        <li>New Appendix <ref id="classified" plaintextref="yes"
+                              >Commands by Category</ref>
+            added to manual.
+            </li>
+        <li>Add <code>minReal</code> and <code>maxReal</code> functions 
+            (max/min ignoring blank values) in class
+            <ref id="uk.ac.starlink.ttools.func.Arithmetic">Arithmetic</ref>.
+            </li>
+        <li>Sexagesimal field identification for ASCII input files 
+            is less stringent
+            (now permits minutes or seconds equal to 60).</li>
+        <li>Minor CEA fixes.</li>
+        <li>HEALPix bug fix
+            (<webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
+                     >PixTools</webref> bug fix update).</li>
+        <li>Fix bug in use of <code>tcat</code>'s
+            <code>loccol</code> parameter.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
