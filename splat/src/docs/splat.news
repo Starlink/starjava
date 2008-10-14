@@ -14,6 +14,9 @@
    Saving the result spectrum of binary maths operations to FITS format
    should now work. Previously an invalid FITS file was created.
 
+   The query SSAP server dialog now offers "select all" and "remove
+   unselected" option.
+
    3.8-7
    =====
 

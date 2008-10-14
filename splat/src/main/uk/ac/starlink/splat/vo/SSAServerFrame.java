@@ -165,7 +165,7 @@ public class SSAServerFrame
     {
         setTitle( Utilities.getTitle( "Select SSAP Servers" ));
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 550, 500 ) );
+        setSize( new Dimension( 700, 500 ) );
         setVisible( true );
     }
 
@@ -243,7 +243,7 @@ public class SSAServerFrame
         JButton newButton = new JButton( newAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( newButton );
-        closeButton.setToolTipText( "Query registry for new SSAP servers" );
+        newButton.setToolTipText( "Query registry for new SSAP servers" );
 
         //  Remove selected servers from table.
         RemoveAction removeAction = new RemoveAction( "Remove selected" );
@@ -251,8 +251,26 @@ public class SSAServerFrame
         JButton removeButton = new JButton( removeAction );
         topActionBar.add( Box.createGlue() );
         topActionBar.add( removeButton );
-        closeButton.setToolTipText
+        removeButton.setToolTipText
             ( "Remove selected servers from current list" );
+
+        //  Remove all but the selected servers from table.
+        RemoveUnAction removeUnAction = 
+          new RemoveUnAction( "Remove unselected" );
+        optionsMenu.add( removeUnAction );
+        JButton removeUnButton = new JButton( removeUnAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( removeUnButton );
+        removeUnButton.setToolTipText
+            ( "Remove unselected servers from current list" );
+
+        //  Add action to select all servers.
+        SelectAllAction selectAllAction = new SelectAllAction( "Select all" );
+        optionsMenu.add( selectAllAction );
+        JButton selectAllButton = new JButton( selectAllAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( selectAllButton );
+        selectAllButton.setToolTipText( "Select all servers" );
 
         //  Add action to just delete all servers.
         DeleteAction deleteAction = new DeleteAction( "Delete all" );
@@ -331,6 +349,15 @@ public class SSAServerFrame
     }
 
     /**
+     *  Select all servers.
+     */
+    protected void selectAllServers()
+    {
+        System.out.println( "selectAllServers" );
+        registryTable.selectAll();
+    }
+
+    /**
      *  Remove selected servers.
      */
     protected void removeSelectedServers()
@@ -343,6 +370,25 @@ public class SSAServerFrame
             SimpleResource[] res = registryTable.getData();
             for ( int i = 0; i < selected.length; i++ ) {
                 serverList.removeServer( res[selected[i]] );
+            }
+            updateTable();
+        }
+    }
+
+    /**
+     *  Remove unselected servers.
+     */
+    protected void removeUnSelectedServers()
+    {
+        //  Get selected indices.
+        int[] selected = registryTable.getSelectedRows();
+        if ( selected != null && selected.length > 0 ) {
+
+            //  Clear the list and re-add the selected servers.
+            SimpleResource[] res = registryTable.getData();
+            serverList.clear();
+            for ( int i = 0; i < selected.length; i++ ) {
+                serverList.addServer( res[selected[i]] );
             }
             updateTable();
         }
@@ -500,6 +546,38 @@ public class SSAServerFrame
         public void actionPerformed( ActionEvent ae )
         {
             removeSelectedServers();
+        }
+    }
+
+    /**
+     * Inner class defining action for removing unselected servers.
+     */
+    protected class RemoveUnAction
+        extends AbstractAction
+    {
+        public RemoveUnAction( String name )
+        {
+            super( name );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            removeUnSelectedServers();
+        }
+    }
+
+    /**
+     * Inner class defining action for selecting all known servers.
+     */
+    protected class SelectAllAction
+        extends AbstractAction
+    {
+        public SelectAllAction( String name )
+        {
+            super( name );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            selectAllServers();
         }
     }
 
