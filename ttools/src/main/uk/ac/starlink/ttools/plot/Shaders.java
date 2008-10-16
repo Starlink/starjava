@@ -169,7 +169,7 @@ public class Shaders {
     };
 
     /** Base directory for locating binary colour map lookup table resources. */
-    private final static String LUT_BASE = "/uk/ac/starlink/topcat/colormaps/";
+    private final static String LUT_BASE = "/uk/ac/starlink/ttools/colormaps/";
 
     private static Shader[] customShaders_;
 
