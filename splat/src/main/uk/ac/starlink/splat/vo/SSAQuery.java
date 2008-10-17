@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2008 Science and Technology Facilities Council
  *
  *  History:
  *     10-NOV-2004 (Peter W. Draper):
@@ -29,9 +30,6 @@ import uk.ac.starlink.table.ValueInfo;
  * The form of the query follows the Simple Spectral Access Protocol
  * standard developed by the IVOA.
  * <p>
- * Still to do: the optional query parameters, band, verb, TemporalCoverage &
- * SpatialResolution. Are these the right names, that's not clear from the
- * IVOA poster-v-standard.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -59,11 +57,23 @@ public class SSAQuery
     /** The format of any returned spectra, we ask for this. */
     private String queryFormat = null;
 
+    /** The wavelength calibration option. */
+    private String waveCalib = null;
+
+    /** The flux calibration option. */
+    private String fluxCalib = null;
+
     /** Upper spectral wavelength in metres */
     private String queryBandUpper = null;
 
     /** Lower spectral wavelength in metres */
     private String queryBandLower = null;
+
+    /** Upper time coverage in ISO 8601 format */
+    private String queryTimeUpper = null;
+
+    /** Lower time coveragre in ISO 8601 format */
+    private String queryTimeLower = null;
     
     /** The StarTable formed from the results of the query */
     private StarTable starTable = null;
@@ -128,6 +138,22 @@ public class SSAQuery
     }
 
     /**
+     * Set the type of wavelength calibration required.
+     */
+    public void setWaveCalib( String waveCalib )
+    {
+        this.waveCalib = waveCalib;
+    }
+
+    /**
+     * Set the type of flux calibration required.
+     */
+    public void setFluxCalib( String fluxCalib )
+    {
+        this.fluxCalib = fluxCalib;
+    }
+
+    /**
      * Set the description of the service, just some human readable format
      * String.
      */
@@ -159,6 +185,15 @@ public class SSAQuery
     {
         queryBandLower = lower;
         queryBandUpper = upper;
+    }
+
+    /**
+     * Set the query time coverage. The strings must be in ISO 8601 format.
+     */
+    public void setTime( String lower, String upper )
+    {
+        queryTimeLower = lower;
+        queryTimeUpper = upper;
     }
 
     /**
@@ -214,17 +249,35 @@ public class SSAQuery
         }
         buffer.append( "&SIZE=" + queryRadius );
 
-        //  The spectral bandpass. Assume "lower/upper" range, bounded
-        //  from above "/upper" or includes value "lower".
+        //  The spectral bandpass. SSAP spec allows "lower/upper" range,
+        //  or includes value "lower".
         if ( queryBandUpper != null && queryBandLower != null ) {
             buffer.append( "&BAND=" + queryBandLower + "/" + queryBandUpper );
-        }
-        else if ( queryBandUpper != null ) {
-            buffer.append( "&BAND=" + "/" + queryBandUpper );
         }
         else if ( queryBandLower != null ) {
             buffer.append( "&BAND=" + queryBandLower );
         }
+
+        //  The time coverage. Assume "lower/upper" range, bounded
+        //  from above "/upper" or includes value "lower".
+        if ( queryTimeUpper != null && queryTimeLower != null ) {
+            buffer.append( "&TIME=" + queryTimeLower + "/" + queryTimeUpper );
+        }
+        else if ( queryTimeUpper != null ) {
+            buffer.append( "&TIME=" + "/" + queryTimeUpper );
+        }
+        else if ( queryTimeLower != null ) {
+            buffer.append( "&TIME=" + queryTimeLower );
+        }
+
+        //  Wavelength and flux calibrations.
+        if ( waveCalib != null ) {
+            buffer.append( "&WAVECALIB=" + waveCalib );
+        }
+        if ( fluxCalib != null ) {
+            buffer.append( "&FLUXCALIB=" + fluxCalib );
+        }
+
         return new URL( buffer.toString() );
     }
 }

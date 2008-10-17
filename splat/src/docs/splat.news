@@ -11,11 +11,14 @@
    
    MIME types from SSAP queries may now include trailing attributes.
 
+   The SSAP query options have been extended to include TIME, FLUXCALIB
+   and WAVECALIB.
+
    Saving the result spectrum of binary maths operations to FITS format
    should now work. Previously an invalid FITS file was created.
 
    The query SSAP server dialog now offers "select all" and "remove
-   unselected" option.
+   unselected" options.
 
    3.8-7
    =====

@@ -165,8 +165,20 @@ public class SSAQueryBrowser
     /** Upper limits for BAND */
     protected JTextField upperBandField = null;
 
+    /** Lower limit for TIME */
+    protected JTextField lowerTimeField = null;
+
+    /** Upper limits for TIME */
+    protected JTextField upperTimeField = null;
+
     /** ButtonGroup for the format selection */
     protected ButtonGroup formatGroup = null;
+
+    /** ButtonGroup for the FLUXCALIB selection */
+    protected ButtonGroup fluxCalibGroup = null;
+
+    /** ButtonGroup for the WAVECALIB selection */
+    protected ButtonGroup waveCalibGroup = null;
 
     /** Tabbed pane showing the query results tables */
     protected JTabbedPane resultsPane = null;
@@ -300,9 +312,12 @@ public class SSAQueryBrowser
         optionsMenu.add( serverAction );
         toolBar.add( serverAction );
 
-        //  SSAP version 1 format control.
+        //  SSAP version 1 format control, wavelength calibation and 
+        //  flux calibration options.
         initFormatOptions( optionsMenu );
-
+        initWaveCalibOptions( optionsMenu );
+        initFluxCalibOptions( optionsMenu );
+        
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
@@ -422,11 +437,29 @@ public class SSAQueryBrowser
         layouter.add( bandLabel, false );
         layouter.add( lowerBandField, false );
         layouter.add( upperBandField, false );
-        layouter.eatLine();
         lowerBandField.setToolTipText( "Lower limit, or single include " +
                                        "value, for spectral band, in meters" );
         upperBandField.setToolTipText
             ( "Upper limit for spectral band, in meters" );
+
+        //  Time fields, note this shares a line with the band fields.
+        JLabel timeLabel = new JLabel( "Time:" );
+        lowerTimeField = new JTextField( 15 );
+        upperTimeField = new JTextField( 15 );
+        layouter.add( timeLabel, false );
+        layouter.add( lowerTimeField, false );
+        layouter.add( upperTimeField, true );
+        layouter.eatLine();
+        lowerTimeField.setToolTipText( "Lower limit, or single include " +
+                                       "value for time coverage, " + 
+                                       "ISO 8601 format " + 
+                                       "(e.g 2008-10-15T20:48Z)" );
+        upperTimeField.setToolTipText( "Upper limit for time coverage, " +
+                                       "in ISO 8601 format " +
+                                       "(e.g 2008-10-15T20:48Z)" );
+
+        //  At Petr Skoda's request. FLUXCALIB and WAVECALIB.
+        
 
         //  Do the search.
         goButton = new JButton( "Go" );
@@ -491,6 +524,52 @@ public class SSAQueryBrowser
             formatMenu.add( item );
         }
         optionsMenu.add( formatMenu );
+    }
+
+    /**
+     * Initialise the SSAP version 1 wavecalib formats. Don't want 
+     * one of these by default.
+     */
+    protected void initWaveCalibOptions( JMenu optionsMenu )
+    {
+        JMenu calibMenu = new JMenu( "Wavelength calibration" );
+        String[] names = 
+            { "None", "any", "absolute", "relative" };
+        JRadioButtonMenuItem item;
+        waveCalibGroup = new ButtonGroup();
+        for ( int i = 0; i < names.length; i++ ) {
+            item = new JRadioButtonMenuItem( names[i] );
+            if ( i == 0 ) {
+                item.setSelected( true );
+            }
+            item.setActionCommand( names[i] );
+            waveCalibGroup.add( item );
+            calibMenu.add( item );
+        }
+        optionsMenu.add( calibMenu );
+    }
+
+    /**
+     * Initialise the SSAP version 1 fluxcalib formats. Don't want 
+     * one of these by default.
+     */
+    protected void initFluxCalibOptions( JMenu optionsMenu )
+    {
+        JMenu calibMenu = new JMenu( "Flux calibration" );
+        String[] names = 
+            { "None", "any", "absolute", "relative", "normalized" };
+        JRadioButtonMenuItem item;
+        fluxCalibGroup = new ButtonGroup();
+        for ( int i = 0; i < names.length; i++ ) {
+            item = new JRadioButtonMenuItem( names[i] );
+            if ( i == 0 ) {
+                item.setSelected( true );
+            }
+            item.setActionCommand( names[i] );
+            fluxCalibGroup.add( item );
+            calibMenu.add( item );
+        }
+        optionsMenu.add( calibMenu );
     }
 
     /**
@@ -602,19 +681,39 @@ public class SSAQueryBrowser
 
         //  Spectral bandpass. These should be in meters. XXX allow other
         //  units and do the conversion.
-        String lower = lowerBandField.getText();
-        if ( "".equals( lower ) ) {
-            lower = null;
+        String lowerBand = lowerBandField.getText();
+        if ( "".equals( lowerBand ) ) {
+            lowerBand = null;
         }
-        String upper = upperBandField.getText();
-        if ( "".equals( upper ) ) {
-            upper = null;
+        String upperBand = upperBandField.getText();
+        if ( "".equals( upperBand ) ) {
+            upperBand = null;
+        }
+
+        //  Time coverage.
+        String lowerTime = lowerTimeField.getText();
+        if ( "".equals( lowerTime ) ) {
+            lowerTime = null;
+        }
+        String upperTime = upperTimeField.getText();
+        if ( "".equals( upperTime ) ) {
+            upperTime = null;
         }
 
         //  See if there's a data format choice.
         String format = formatGroup.getSelection().getActionCommand();
         if ( format.equals( "None" ) ) {
             format = null;
+        }
+
+        //  See if there are wavelength and flux calibration options.
+        String waveCalib = waveCalibGroup.getSelection().getActionCommand();
+        if ( waveCalib.equals( "None" ) ) {
+            waveCalib = null;
+        }
+        String fluxCalib = fluxCalibGroup.getSelection().getActionCommand();
+        if ( fluxCalib.equals( "None" ) ) {
+            fluxCalib = null;
         }
 
         //  Create a stack of all queries to perform.
@@ -626,8 +725,11 @@ public class SSAQueryBrowser
             SSAQuery ssaQuery = new SSAQuery( server );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
-            ssaQuery.setBand( lower, upper );
+            ssaQuery.setBand( lowerBand, upperBand );
+            ssaQuery.setTime( lowerTime, upperTime );
             ssaQuery.setFormat( format );
+            ssaQuery.setWaveCalib( waveCalib );
+            ssaQuery.setFluxCalib( fluxCalib );
             queryList.add( ssaQuery );
         }
 
@@ -640,7 +742,6 @@ public class SSAQueryBrowser
             JOptionPane.showMessageDialog( this,
                "There are no SSA servers currently selected",
                "No SSA servers", JOptionPane.ERROR_MESSAGE );
-
         }
     }
 
