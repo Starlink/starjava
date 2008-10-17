@@ -370,7 +370,7 @@ public class SSAQueryBrowser
     {
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 550, 500 ) );
+        setSize( new Dimension( 600, 500 ) );
         Utilities.setFrameLocation( this, defaultWindowLocation, prefs, 
                                     "SSAQueryBrowser" );
         setVisible( true );
@@ -395,15 +395,15 @@ public class SSAQueryBrowser
         JLabel nameLabel = new JLabel( "Object:" );
         nameField = new JTextField( 15 );
         nameField.setToolTipText( "Enter the name of an object " +
-                                  "and press return to get coordinates" );
+                                  " -- press return to get coordinates" );
         nameField.addActionListener( this );
         layouter.add( nameLabel, false );
         layouter.add( nameField, false );
 
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
-        layouter.add( nameLookup, true );
-
+        layouter.add( nameLookup, false );
+        layouter.eatLine();
 
         //  RA and Dec fields. We're free-formatting on these (decimal degrees
         //  not required).
@@ -449,7 +449,7 @@ public class SSAQueryBrowser
         layouter.add( timeLabel, false );
         layouter.add( lowerTimeField, false );
         layouter.add( upperTimeField, true );
-        layouter.eatLine();
+        //layouter.eatLine();
         lowerTimeField.setToolTipText( "Lower limit, or single include " +
                                        "value for time coverage, " + 
                                        "ISO 8601 format " + 
@@ -655,15 +655,26 @@ public class SSAQueryBrowser
      */
     public void doQuery()
     {
-        //  Get the position.
+        //  Get the position. Allow the object name to be passed using 
+        //  TARGETNAME, useful for solar system objects.
         String ra = raField.getText();
         String dec = decField.getText();
+        String objectName = nameField.getText().trim();
         if ( ra == null || ra.length() == 0 ||
              dec == null || dec.length() == 0 ) {
-            JOptionPane.showMessageDialog( this,
-               "You have not supplied a search centre",
-               "No RA or Dec", JOptionPane.ERROR_MESSAGE );
-            return;
+            
+            //  Check for an object name. Need one or the other.
+            if ( objectName != null && objectName.length() > 0 ) {
+                ra = null;
+                dec = null;
+            } 
+            else {
+              JOptionPane.showMessageDialog( this, "You have not supplied "+
+                                             "a search centre or object name",
+                                             "No RA or Dec", 
+                                             JOptionPane.ERROR_MESSAGE );
+              return;
+            }
         }
 
         //  And the radius.
@@ -674,7 +685,8 @@ public class SSAQueryBrowser
                 radius = Double.parseDouble( radiusText );
             }
             catch (NumberFormatException e) {
-                ErrorDialog.showError(this, "Cannot understand radius value", e);
+                ErrorDialog.showError( this, "Cannot understand radius value", 
+                                       e );
                 return;
             }
         }
@@ -723,6 +735,7 @@ public class SSAQueryBrowser
         while( i.hasNext() ) {
             server = (SimpleResource) i.next();
             SSAQuery ssaQuery = new SSAQuery( server );
+            ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
             ssaQuery.setBand( lowerBand, upperBand );

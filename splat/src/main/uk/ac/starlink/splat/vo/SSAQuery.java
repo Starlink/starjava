@@ -51,6 +51,9 @@ public class SSAQuery
     /** Dec of the query */
     private double queryDec = 0.0;
 
+    /** name of the target object, used if RA or Dec are null */
+    private String targetName = null;
+
     /** Radius of the query */
     private double queryRadius = 0.0;
 
@@ -97,7 +100,8 @@ public class SSAQuery
 
     /**
      * Set the position used for the query. The values are in degrees and must
-     * be in ICRS (FK5/J2000 will do if accuracy isn't a problem).
+     * be in ICRS (FK5/J2000 will do if accuracy isn't a problem). To not
+     * use a position (and use a target name), set queryRA to -1.
      */
     public void setPosition( double queryRA, double queryDec )
     {
@@ -111,9 +115,24 @@ public class SSAQuery
      */
     public void setPosition( String queryRA, String queryDec )
     {
-        HMS hms = new HMS( queryRA );
-        DMS dms = new DMS( queryDec );
-        setPosition( hms.getVal() * 15.0, dms.getVal() );
+        if ( queryRA != null ) {
+            HMS hms = new HMS( queryRA );
+            DMS dms = new DMS( queryDec );
+            setPosition( hms.getVal() * 15.0, dms.getVal() );
+        }
+        else {
+            //  Null values, must be using targetName.
+            setPosition( -1.0, -91.0 );
+        }
+    }
+
+    /**
+     *  Set the name of the target object. Only used if RA and Dec are not
+     *  set.
+     */
+    public void setTargetName( String targetName )
+    {
+        this.targetName = targetName;
     }
 
     /**
@@ -242,29 +261,34 @@ public class SSAQuery
         //  Start with "VERSION=1.0&REQUEST=queryData".
         buffer.append( SSAPVERSION + "&REQUEST=queryData" );
 
-        //  Add basic search parameters, POS, FORMAT and SIZE.
-        buffer.append( "&POS=" + queryRA + "," + queryDec );
+        //  Add basic search parameters, POS or TARGETNAME, FORMAT and SIZE.
+        if ( queryRA >= 0.0 ) {
+            buffer.append( "&POS=" + queryRA + "," + queryDec );
+        }
+        else {
+            buffer.append( "&TARGETNAME=" + targetName );
+        }
         if ( queryFormat != null ) {
             buffer.append( "&FORMAT=" + queryFormat );
         }
         buffer.append( "&SIZE=" + queryRadius );
 
         //  The spectral bandpass. SSAP spec allows "lower/upper" range,
-        //  or includes value "lower".
+        //  or bounded from above or below.
         if ( queryBandUpper != null && queryBandLower != null ) {
             buffer.append( "&BAND=" + queryBandLower + "/" + queryBandUpper );
+        }
+        else if ( queryBandUpper != null ) {
+            buffer.append( "&BAND=" + "/" + queryBandUpper );
         }
         else if ( queryBandLower != null ) {
             buffer.append( "&BAND=" + queryBandLower );
         }
 
-        //  The time coverage. Assume "lower/upper" range, bounded
-        //  from above "/upper" or includes value "lower".
+        //  The time coverage. Assume "lower/upper" range or includes
+        //  a single value.
         if ( queryTimeUpper != null && queryTimeLower != null ) {
             buffer.append( "&TIME=" + queryTimeLower + "/" + queryTimeUpper );
-        }
-        else if ( queryTimeUpper != null ) {
-            buffer.append( "&TIME=" + "/" + queryTimeUpper );
         }
         else if ( queryTimeLower != null ) {
             buffer.append( "&TIME=" + queryTimeLower );
