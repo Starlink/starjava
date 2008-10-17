@@ -41,6 +41,16 @@ public class ObjectFactory {
     }
 
     /**
+     * Returns the class of which any object created by this factory 
+     * is guaranteed to be an instance.
+     *
+     * @return   clazz
+     */
+    public Class getFactoryClass() {
+        return superClass_;
+    }
+
+    /**
      * Registers a class with its nickname. 
      *
      * @param nickName  nickname
