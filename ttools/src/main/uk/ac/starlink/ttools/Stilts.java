@@ -80,6 +80,7 @@ public class Stilts {
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
         taskFactory_.register( "regquery", taskPkg + "RegQuery" );
         taskFactory_.register( "plot2d", taskPkg + "TablePlot2D" );
+        taskFactory_.register( "plot3d", taskPkg + "TablePlot3D" );
         taskFactory_.register( "plothist", taskPkg + "TableHistogram" );
         taskFactory_.register( "server", taskPkg + "StiltsServer" );
         taskFactory_.register( "sqlclient", taskPkg + "SqlClient" );
