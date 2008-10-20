@@ -166,6 +166,11 @@ public class ScatterPlot extends SurfacePlot {
                 lineGraphics.setStroke( style
                                        .getStroke( BasicStroke.CAP_BUTT,
                                                    BasicStroke.JOIN_MITER ) );
+                lineGraphics.setRenderingHint(
+                                 RenderingHints.KEY_ANTIALIASING,
+                                 state.getAntialias()
+                                     ? RenderingHints.VALUE_ANTIALIAS_ON
+                                     : RenderingHints.VALUE_ANTIALIAS_OFF );
                 int lastxp = 0;
                 int lastyp = 0;
                 boolean notFirst = false;
@@ -238,7 +243,9 @@ public class ScatterPlot extends SurfacePlot {
                 Object aaHint =
                     g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
                 g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                     RenderingHints.VALUE_ANTIALIAS_ON );
+                                     state.getAntialias()
+                                         ? RenderingHints.VALUE_ANTIALIAS_ON
+                                         : RenderingHints.VALUE_ANTIALIAS_OFF );
                 Color color = g2.getColor();
                 g2.setColor( style.getColor() );
                 Stroke stroke = g2.getStroke();
