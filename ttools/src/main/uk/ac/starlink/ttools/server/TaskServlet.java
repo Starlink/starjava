@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -45,29 +46,26 @@ public class TaskServlet extends HttpServlet {
     private JDBCAuthenticator jdbcAuth_;
     private Collection taskNameSet_;
 
-    /**
-     * Name of the Servlet initialisation parameter which defines the 
-     * tasks which this servlet will provide over HTTP.
-     * The value of this parameter is a space-separated list of the
-     * tasks to provide.  If it is absent or empty, all tasks will be
-     * provided.
-     */
-    public static String TASKLIST_PARAM = "stiltsTasks";
-
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
         taskFactory_ = Stilts.getTaskFactory();
-        tableFactory_ = new StarTableFactory();
         tableOutput_ = new StarTableOutput();
         jdbcAuth_ = null;
+        ServletContext context = config.getServletContext();
+        StiltsContext sContext = new StiltsContext( context );
 
         /* Set up list of tasks which will be provided. */
-        String taskList = config.getServletContext()
-                                .getInitParameter( TASKLIST_PARAM );
+        String taskList =
+            context.getInitParameter( StiltsContext.TASKLIST_PARAM );
         taskNameSet_ = Arrays.asList( getTaskNames( taskFactory_, taskList ) );
+
+        /* Set up table factory. */
+        tableFactory_ = sContext.getTableFactory();
     }
 
+
     public void destroy() {
+        tableFactory_ = null;
         super.destroy();
     }
 

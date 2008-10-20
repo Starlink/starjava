@@ -40,10 +40,12 @@ public class FormServlet extends HttpServlet {
 
     public void init( ServletConfig config ) throws ServletException {
         super.init( config );
-        taskBase_ = config.getServletContext()
-                          .getInitParameter( StiltsServer.TASKBASE_PARAM );
+        StiltsContext sContext =
+            new StiltsContext( config.getServletContext() );
+        taskBase_ = sContext.getTaskBase();
         taskFactory_ = Stilts.getTaskFactory();
-        tableFactory_ = new StarTableFactory( false );
+        tableFactory_ = sContext.getTableFactory();
+
         Map fwmap = new HashMap();
         FormWriter[] fwriters;
         try { 

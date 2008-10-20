@@ -25,7 +25,9 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.server.FormServlet;
 import uk.ac.starlink.ttools.server.ServletEnvironment;
+import uk.ac.starlink.ttools.server.StiltsContext;
 import uk.ac.starlink.ttools.server.TaskServlet;
+import uk.ac.starlink.ttools.task.TableFactoryParameter;
 import uk.ac.starlink.util.ObjectFactory;
 
 /**
@@ -44,7 +46,7 @@ public class StiltsServer implements Task {
     private final IntegerParameter portParam_;
     private final Parameter baseParam_;
     private final Parameter tasksParam_;
-    public static final String TASKBASE_PARAM = "stiltsTaskBase";
+    private final TableFactoryParameter tfactParam_;
 
     /**
      * Constructor.
@@ -104,6 +106,8 @@ public class StiltsServer implements Task {
         String tasksDefault = taskBuf.toString();
         TaskServlet.getTaskNames( taskFactory, tasksDefault );  // test no error
         tasksParam_.setDefault( tasksDefault );
+
+        tfactParam_ = new TableFactoryParameter( "tablefactory" );
     }
 
     public String getPurpose() {
@@ -115,6 +119,7 @@ public class StiltsServer implements Task {
             portParam_,
             baseParam_,
             tasksParam_,
+            tfactParam_,
         };
     }
 
@@ -123,6 +128,7 @@ public class StiltsServer implements Task {
         String basePath = baseParam_.stringValue( env );
         final String base = basePath == null ? "" : basePath;
         final String tasks = tasksParam_.stringValue( env );
+        final String factorySpec = tfactParam_.stringValue( env );
         try {
             TaskServlet.getTaskNames( Stilts.getTaskFactory(), tasks );
         }
@@ -147,8 +153,13 @@ public class StiltsServer implements Task {
                 String[] bases = (String[]) baseList.toArray( new String[ 0 ] );
                 context.addHandler( new FallbackHandler( bases ) );
 
-                context.setInitParameter( TASKBASE_PARAM, base + "/task" );
-                context.setInitParameter( TaskServlet.TASKLIST_PARAM, tasks );
+                context.setInitParameter( StiltsContext.TASKBASE_PARAM,
+                                          base + "/task" );
+                context.setInitParameter( StiltsContext.TASKLIST_PARAM, tasks );
+                if ( factorySpec != null ) {
+                    context.setInitParameter( StiltsContext.TABLEFACTORY_PARAM,
+                                              factorySpec );
+                }
                 try {
                     server.start();
                     String url = "http://"
