@@ -157,15 +157,22 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             false,
         } );
 
+        final double ylo;
         if ( ylog ) {
             yloParam_.setNullPermitted( true );
             yloParam_.setDefault( null );
+            ylo = yloParam_.doubleValue( env );
         }
         else {
-            yloParam_.setNullPermitted( false );
+
+            /* Really, null should not be permitted here.  But it's causing
+             * trouble with static parameter settings (e.g. from HTML forms).
+             * So work around it. */
+            yloParam_.setNullPermitted( true );
             yloParam_.setDefault( "0" );
+            double yl = yloParam_.doubleValue( env );
+            ylo = Double.isNaN( yl ) ? 0 : yl;
         }
-        double ylo = yloParam_.doubleValue( env );
         double yhi = yhiParam_.doubleValue( env );
 
         state.setRanges( new double[][] {
