@@ -74,6 +74,7 @@ public class PlotStateFactory {
     private final int errNdim_;
     private final BooleanParameter gridParam_;
     private final DefaultMultiParameter seqParam_;
+    private final BooleanParameter aaParam_;
 
     /**
      * Constructor.
@@ -125,6 +126,23 @@ public class PlotStateFactory {
             "</p>",
         } );
         seqParam_.setNullPermitted( true );
+
+        aaParam_ = new BooleanParameter( "antialias" );
+        aaParam_.setPrompt( "Use antialiasing for lines?" );
+        aaParam_.setDescription( new String[] {
+            "<p>Controls whether lines are drawn using antialiasing,",
+            "where applicable.",
+            "If lines are drawn to a bitmapped-type graphics output format",
+            "setting this parameter to true smooths the lines out by",
+            "using gradations of colour for diagonal lines, and setting it",
+            "false simply sets each pixel in the line to on or off.",
+            "For vector-type graphics output formats, or for cases in which",
+            "no diagonal lines are drawn, the setting of this parameter",
+            "has no effect.",
+            "Setting it true may slow the plot down slightly.",
+            "</p>",
+        } );
+        aaParam_.setDefault( true );
     }
 
     /**
@@ -202,6 +220,7 @@ public class PlotStateFactory {
         paramList.addAll( Arrays.asList( createStyleFactory( STYLE_PREFIX )
                                         .getParameters( stSuffix ) ) );
         paramList.add( gridParam_ );
+        paramList.add( aaParam_ );
         paramList.add( seqParam_ );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }
@@ -410,6 +429,7 @@ public class PlotStateFactory {
 
         /* Configure other properties. */
         state.setGrid( gridParam_.booleanValue( env ) );
+        state.setAntialias( aaParam_.booleanValue( env ) );
     }
 
     /**
