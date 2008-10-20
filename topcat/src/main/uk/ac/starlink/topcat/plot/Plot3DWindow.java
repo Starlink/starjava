@@ -74,9 +74,11 @@ public abstract class Plot3DWindow extends GraphicsWindow
     }
 
     private static final double[] INITIAL_ROTATION = 
-        rotateXY( rotateXY( new double[] { 1, 0, 0, 0, 1, 0, 0, 0, -1 },
-                            0.5, 0.5 * Math.PI ),
-                  0, -0.1 * Math.PI );
+        Plot3D.rotateXY( Plot3D.rotateXY( new double[] { 1, 0, 0,
+                                                         0, 1, 0,
+                                                         0, 0, -1 },
+                                          0.5, 0.5 * Math.PI ),
+                         0, -0.1 * Math.PI );
     private static final double CLICK_ZOOM_UNIT = 1.2;
     private static final boolean CAN_ZOOM = true;
 
@@ -272,7 +274,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
         if ( northModel_.isSelected() ) {
             double theta = Math.atan2( rot[ 2 ], rot[ 5 ] );
             double[] correction = 
-                rotate( rot, new double[] { 0., 0., 1., }, theta );
+                Plot3D.rotate( rot, new double[] { 0., 0., 1., }, theta );
             rot = Matrices.mmMult( rot, correction );
         }
         rotation_ = rot;
@@ -374,61 +376,6 @@ public abstract class Plot3DWindow extends GraphicsWindow
     private void doZoom( double zoom ) {
         zoom_ = Math.max( 1.0, zoom );
         replot();
-    }
-
-    /**
-     * Takes a view rotation matrix and adds to it the effect of rotations
-     * about X and Y directions.
-     *
-     * @param   base  9-element array giving initial view rotation matrix
-     * @param   phi   angle to rotate around Y axis
-     * @param   psi   angle to rotate around X axis
-     * @return  9-element array giving combined rotation matrix
-     */
-    private static double[] rotateXY( double[] base, double phi, double psi ) {
-        double[] rotX = rotate( base, new double[] { 0., 1., 0. }, phi );
-        double[] rotY = rotate( base, new double[] { 1., 0., 0. }, psi );
-        return Matrices.mmMult( Matrices.mmMult( base, rotX ), rotY );
-    }
-
-    /**
-     * Calculates a rotation matrix for rotating around a screen axis
-     * by a given angle.  Note this axis is in the view space, not the
-     * data space.
-     * 
-     * @param   base  rotation matrix defining the view orientation
-     *                (9-element array)
-     * @param   screenAxis  axis in view space about which rotation is required
-     *                      (3-element array)
-     * @param   theta   rotation angle in radians
-     */
-    private static double[] rotate( double[] base, double[] screenAxis,
-                                    double theta ) {
-
-        /* Calculate the unit vector in data space corresponding to the 
-         * given screen axis. */
-        double[] axis = Matrices.mvMult( Matrices.invert( base ), screenAxis );
-        double[] a = Matrices.normalise( axis );
-        double x = a[ 0 ];
-        double y = a[ 1 ];
-        double z = a[ 2 ];
-
-        /* Calculate and return the rotation matrix (Euler angles).
-         * This algebra copied from SLALIB DAV2M (Pal version). */
-        double s = Math.sin( theta );
-        double c = Math.cos( theta );
-        double w = 1.0 - c;
-        return new double[] {
-            x * x * w + c,
-            x * y * w + z * s,
-            x * z * w - y * s,
-            x * y * w - z * s,
-            y * y * w + c,
-            y * z * w + x * s,
-            x * z * w + y * s,
-            y * z * w - x * s,
-            z * z * w + c,
-        };
     }
 
     /**
@@ -543,7 +490,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
                  * respectively. */
                 double phi = xf * Math.PI / 2.;
                 double psi = yf * Math.PI / 2.;
-                setRotation( rotateXY( rotBase_, phi, psi ) );
+                setRotation( Plot3D.rotateXY( rotBase_, phi, psi ) );
                 replot();
             }
         }

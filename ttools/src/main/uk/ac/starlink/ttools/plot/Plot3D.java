@@ -635,6 +635,61 @@ public abstract class Plot3D extends TablePlot {
     }
 
     /**
+     * Takes a view rotation matrix and adds to it the effect of rotations
+     * about X and Y directions.
+     *
+     * @param   base  9-element array giving initial view rotation matrix
+     * @param   phi   angle to rotate around Y axis
+     * @param   psi   angle to rotate around X axis
+     * @return  9-element array giving combined rotation matrix
+     */
+    public static double[] rotateXY( double[] base, double phi, double psi ) {
+        double[] rotX = rotate( base, new double[] { 0., 1., 0. }, phi );
+        double[] rotY = rotate( base, new double[] { 1., 0., 0. }, psi );
+        return Matrices.mmMult( Matrices.mmMult( base, rotX ), rotY );
+    }
+
+    /**
+     * Calculates a rotation matrix for rotating around a screen axis
+     * by a given angle.  Note this axis is in the view space, not the
+     * data space.
+     *
+     * @param   base  rotation matrix defining the view orientation
+     *                (9-element array)
+     * @param   screenAxis  axis in view space about which rotation is required
+     *                      (3-element array)
+     * @param   theta   rotation angle in radians
+     */
+    public static double[] rotate( double[] base, double[] screenAxis,
+                                   double theta ) {
+
+        /* Calculate the unit vector in data space corresponding to the
+         * given screen axis. */
+        double[] axis = Matrices.mvMult( Matrices.invert( base ), screenAxis );
+        double[] a = Matrices.normalise( axis );
+        double x = a[ 0 ];
+        double y = a[ 1 ];
+        double z = a[ 2 ];
+
+        /* Calculate and return the rotation matrix (Euler angles).
+         * This algebra copied from SLALIB DAV2M (Pal version). */
+        double s = Math.sin( theta );
+        double c = Math.cos( theta );
+        double w = 1.0 - c;
+        return new double[] {
+            x * x * w + c,
+            x * y * w + z * s,
+            x * z * w - y * s,
+            x * y * w - z * s,
+            y * y * w + c,
+            y * z * w + x * s,
+            x * z * w + y * s,
+            y * z * w - x * s,
+            z * z * w + c,
+        };
+    }
+
+    /**
      * Hook for handling OutOfMemoryErrors which may be generated during
      * plotting.  May be called from the event dispatch thread.
      * The Plot3D implementation returns false.
