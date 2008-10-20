@@ -3413,7 +3413,7 @@ If you point your browser here you will see some examples (hyperlinks to
 server requests) of how to use the server.
 Currently there are two main sets of capabilities:
 <dl>
-<dt>Tasks (<em>baseURL</em><code>/task/</code><em>task-name</em></dt>
+<dt>Tasks (<em>baseURL</em><code>/task/</code><em>task-name</em>)</dt>
 <dd><p>There is a URL as above associated with each STILTS task provided
     by the server.  The task parameters are passed in the usual
     way for HTTP queries, using
@@ -3436,7 +3436,8 @@ Currently there are two main sets of capabilities:
     </p></dd>
 </dl>
 In general if you request a URL which contains no useful information,
-an attempt will be made to direct you to a more useful starting point.
+an attempt will be made to return an HTML page directing you to a 
+more useful starting point.
 </p>
 
 <p>You might want to run STILTS in server mode if you are providing
@@ -3449,9 +3450,9 @@ each request, but using server mode has two advantages:
 first it provides correct HTTP headers such as Content-Types,
 and secondly it avoids the Java startup overheads for each invocation.
 Note however that in its current form no great attention has been paid
-to security, so it is possible for clients to read and write files
-and expend significant system resources by making some requests to the
-server.  Anyone exposing the STILTS HTTP server directly to external
+to security, so it may be possible for clients to read and write files
+and expend significant system resources by making certain requests to the
+server.  Anyone exposing the STILTTS HTTP server directly to external
 clients should bear this in mind.
 </p>
 
