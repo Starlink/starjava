@@ -69,6 +69,7 @@ public class Plot3DStateFactory extends PlotStateFactory {
             "towards the viewer",
             "(i.e. about the horizontal axis of the viewing plane)",
             "prior to drawing.",
+            "</p>",
         } );
         thetaParam_.setDefault( new Double( 15. ).toString() );
     }
