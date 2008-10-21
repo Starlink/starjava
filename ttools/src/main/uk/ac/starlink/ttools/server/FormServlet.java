@@ -113,9 +113,13 @@ public class FormServlet extends HttpServlet {
             out.println( "<dd>" );
             writeSampleForm( baseUrl, out, "plothist" );
             out.println( "</dd>" );
-            out.println( "<dt><b>Scatter Plot</b></dt>" );
+            out.println( "<dt><b>2D Scatter Plot</b></dt>" );
             out.println( "<dd>" );
             writeSampleForm( baseUrl, out, "plot2d" );
+            out.println( "</dd>" );
+            out.println( "<dt><b>3D Scatter Plot</b></dt>" );
+            out.println( "<dd>" );
+            writeSampleForm( baseUrl, out, "plot3d" );
             out.println( "</dd>" );
             out.println( "</dl>" );
             out.println( "</body>" );
@@ -388,6 +392,7 @@ public class FormServlet extends HttpServlet {
     private FormWriter[] getFormWriters() throws LoadException {
         return new FormWriter[] {
             new Plot2dFormWriter(),
+            new Plot3dFormWriter(),
             new HistogramFormWriter(),
         };
     }
@@ -441,6 +446,63 @@ public class FormServlet extends HttpServlet {
             writeTextControl( out, "yhi", getParameter( "yhi" ) );
             writeBooleanControl( out, "ylog", getParameter( "ylog" ) );
             writeBooleanControl( out, "yflip", getParameter( "yflip" ) );
+            out.println( "</dl></dd>" );
+            out.println( "<dt><b>Image dimensions</b></dt>" );
+            out.println( "<dd><dl>" );
+            writeTextControl( out, "xpix", getParameter( "xpix" ) );
+            writeTextControl( out, "ypix", getParameter( "ypix" ) );
+            out.println( "</dl></dd>" );
+            out.println( "<dt><b>Output Format</b></dt>" );
+            out.println( "<dl><dd>" );
+            ChoiceParameter fmtParam = (ChoiceParameter) getParameter( "ofmt" );
+            fmtParam.setDefaultOption( fmtParam.getOptions()[ 0 ] );
+            writeOptionControl( out, "ofmt", fmtParam );
+            out.println( "</dd></dl>" );
+            out.println( "</dd>" );
+            out.println( "</dl>" );
+        }
+    }
+
+    /**
+     * FormWriter for plot3d task.
+     */
+    private class Plot3dFormWriter extends FormWriter {
+        public Plot3dFormWriter() throws LoadException {
+            super( "plot3d" );
+        }
+
+        public void writeControls( ServletOutputStream out, StarTable table )
+                throws IOException {
+            out.println( "<dl>" );
+
+            out.println( "<dt><b>X Axis</b></dt>" );
+            out.println( "<dd><dl>" );
+            writeColumnControl( out, "xdata", table, Number.class );
+            writeTextControl( out, "xlo", getParameter( "xlo" ) );
+            writeTextControl( out, "xhi", getParameter( "xhi" ) );
+            writeBooleanControl( out, "xlog", getParameter( "xlog" ) );
+            writeBooleanControl( out, "xflip", getParameter( "xflip" ) );
+            out.println( "</dl></dd>" );
+            out.println( "<dt><b>Y Axis</b></dt>" );
+            out.println( "<dd><dl>" );
+            writeColumnControl( out, "ydata", table, Number.class );
+            writeTextControl( out, "ylo", getParameter( "ylo" ) );
+            writeTextControl( out, "yhi", getParameter( "yhi" ) );
+            writeBooleanControl( out, "ylog", getParameter( "ylog" ) );
+            writeBooleanControl( out, "yflip", getParameter( "yflip" ) );
+            out.println( "</dl></dd>" );
+            out.println( "<dt><b>Z Axis</b></dt>" );
+            out.println( "<dd><dl>" );
+            writeColumnControl( out, "zdata", table, Number.class );
+            writeTextControl( out, "zlo", getParameter( "zlo" ) );
+            writeTextControl( out, "zhi", getParameter( "zhi" ) );
+            writeBooleanControl( out, "zlog", getParameter( "zlog" ) );
+            writeBooleanControl( out, "zflip", getParameter( "zflip" ) );
+            out.println( "</dl></dd>" );
+            out.println( "<dt><b>Image Rotation</b></dt>" );
+            out.println( "<dd><dl>" );
+            writeTextControl( out, "phi", getParameter( "phi" ) );
+            writeTextControl( out, "theta", getParameter( "theta" ) );
             out.println( "</dl></dd>" );
             out.println( "<dt><b>Image dimensions</b></dt>" );
             out.println( "<dd><dl>" );
