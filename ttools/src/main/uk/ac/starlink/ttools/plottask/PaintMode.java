@@ -347,7 +347,6 @@ public abstract class PaintMode {
             OutputStreamParameter outParam = param.getOutputParameter();
             ChoiceParameter formatParam = param.getFormatParameter();
             outParam.setNullPermitted( true );
-            formatParam.setNullPermitted( true );
             if ( outParam.stringValue( env ) == null ) {
                 return SWING_MODE.createPainter( env, param );
             }
