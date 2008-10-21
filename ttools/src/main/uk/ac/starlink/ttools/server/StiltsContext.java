@@ -58,7 +58,6 @@ public class StiltsContext {
      * Acquires a StarTableFactory suitable for use from a servlet
      * from the servlet context.
      *
-     * @param  context  context
      * @return  table factory
      */
     public StarTableFactory getTableFactory() throws ServletException {
