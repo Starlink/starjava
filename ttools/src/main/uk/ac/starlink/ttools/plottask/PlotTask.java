@@ -126,6 +126,24 @@ public abstract class PlotTask implements Task {
         return (Parameter[]) paramList_.toArray( new Parameter[ 0 ] );
     }
 
+    /**
+     * Returns the parameter used for setting plot output X dimension.
+     *
+     * @return  xpix parameter
+     */
+    public Parameter getXpixParameter() {
+        return xpixParam_;
+    }
+
+    /**
+     * Returns the parameter used for setting plot output Y dimension.
+     *
+     * @return  ypix parameter
+     */
+    public Parameter getYpixParameter() {
+        return ypixParam_;
+    }
+
     public Executable createExecutable( Environment env ) throws TaskException {
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
