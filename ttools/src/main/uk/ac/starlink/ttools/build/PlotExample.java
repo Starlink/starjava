@@ -171,6 +171,8 @@ public class PlotExample {
         map.put( "messier.xml",
                  "/mbt/starjava/java/source/topcat/src/etc/demo/votable/" 
                  + "messier.xml" );
+        map.put( "sim1.fits", "/mbt/data/table/gavo_g1.fits" );
+        map.put( "sim2.fits", "/mbt/data/table/gavo_g2.fits" );
         return map;
     }
 
@@ -289,6 +291,35 @@ public class PlotExample {
                     "</p>",
                 }
             ),
+
+            new PlotExample( "gavo2", "plot3d", new String[] {
+                    "in=sim1.fits", "xdata=x", "ydata=y", "zdata=z", null,
+                    "cmd='addcol vel \"sqrt(velx*velx+vely*vely+velz*velz)\"'",
+                    "auxdata=vel", "auxlog=true", null,
+                    "xpix=500", "ypix=400", "phi=50", "theta=10",
+                    "out=cube.jpeg",
+                },
+                new String[] {
+                    "<p>Plots the x, y, z positions of particles from a",
+                    "file containing the result of a simulation run.",
+                    "Here an auxiliary axis is used to colour-code the",
+                    "points according their velocity.",
+                    "This is done by introducing a new <code>vel</code>",
+                    "column to the table using the",
+                    "<ref id='addcol'><code>addcol</code></ref>",
+                    "filter command, so that the <code>vel</code> column",
+                    "can be used as the value for the <code>auxdata</code>",
+                    "parameter.",
+                    "Alternatively, the given expression for the velocity",
+                    "could have been used directly as the value of the",
+                    "<code>auxdata</code> parameter.",
+                    "</p>",
+                    "<p>Additionally, the <code>phi</code> and",
+                    "<code>theta</code> parameters are given",
+                    "to adjust the orientation of the cube.",
+                    "</p>",
+                }
+            ),
         };
     }
 
@@ -393,8 +424,8 @@ public class PlotExample {
         String[] histFiles =
             writeExamples( "plothist", createPlotHistExamples() );
         List gfileList = new ArrayList();
-        gfileList.addAll( Arrays.asList( plot2dFiles ) );
         gfileList.addAll( Arrays.asList( plot3dFiles ) );
+        gfileList.addAll( Arrays.asList( plot2dFiles ) );
         gfileList.addAll( Arrays.asList( histFiles ) );
         String[] gfiles = (String[]) gfileList.toArray( new String[ 0 ] );
         String gfName = "plot-example-files.txt";

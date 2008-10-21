@@ -14,3 +14,28 @@ Encapsulated Postscript file instead.
 </p>
 <p>The generated plot is <webref url='xyzplot.png'>here</webref>.</p>
 </dd>
+<dt><verbatim>
+stilts plot3d in=sim1.fits xdata=x ydata=y zdata=z
+              cmd='addcol vel "sqrt(velx*velx+vely*vely+velz*velz)"' auxdata=vel auxlog=true
+              xpix=500 ypix=400 phi=50 theta=10 out=cube.jpeg
+</verbatim></dt>
+<dd><p>Plots the x, y, z positions of particles from a
+file containing the result of a simulation run.
+Here an auxiliary axis is used to colour-code the
+points according their velocity.
+This is done by introducing a new <code>vel</code>
+column to the table using the
+<ref id='addcol'><code>addcol</code></ref>
+filter command, so that the <code>vel</code> column
+can be used as the value for the <code>auxdata</code>
+parameter.
+Alternatively, the given expression for the velocity
+could have been used directly as the value of the
+<code>auxdata</code> parameter.
+</p>
+<p>Additionally, the <code>phi</code> and
+<code>theta</code> parameters are given
+to adjust the orientation of the cube.
+</p>
+<p>The generated plot is <webref url='cube.jpeg'>here</webref>.</p>
+</dd>
