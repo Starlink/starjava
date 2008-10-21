@@ -264,6 +264,35 @@ public class PlotExample {
     }
 
     /**
+     * Returns a list of examples for the plot3d task.
+     *
+     * @return  example array
+     */
+    public static PlotExample[] createPlot3dExamples()
+            throws TaskException, LoadException {
+        return new PlotExample[] {
+            new PlotExample( "xyzplot", "plot3d", new String[] {
+                    "in=cat.xml", "xdata=RMAG", "ydata=BMAG", "zdata=VEL",
+                    "zlog=true",
+                },
+                new String[] {
+                    "<p>Plots a 3-d scatter plot of red magnitude vs.",
+                    "blue magnitude vs. velocity; the velocity is plotted",
+                    "on a logarithmic scale.",
+                    "Since no <code>omode</code> or <code>out</code> value",
+                    "has been specified, the plot is posted directly",
+                    "to the graphics display for inspection.",
+                    "By adding the parameter",
+                    "<code>out=xyplot.eps</code>",
+                    "the plot could be written to an",
+                    "Encapsulated Postscript file instead.",
+                    "</p>",
+                }
+            ),
+        };
+    }
+
+    /**
      * Returns a list of examples for the plothist task.
      *
      * @return  example array
@@ -359,10 +388,13 @@ public class PlotExample {
               .setLevel( Level.SEVERE );
         String[] plot2dFiles =
             writeExamples( "plot2d", createPlot2dExamples() );
+        String[] plot3dFiles =
+            writeExamples( "plot3d", createPlot3dExamples() );
         String[] histFiles =
             writeExamples( "plothist", createPlotHistExamples() );
         List gfileList = new ArrayList();
         gfileList.addAll( Arrays.asList( plot2dFiles ) );
+        gfileList.addAll( Arrays.asList( plot3dFiles ) );
         gfileList.addAll( Arrays.asList( histFiles ) );
         String[] gfiles = (String[]) gfileList.toArray( new String[ 0 ] );
         String gfName = "plot-example-files.txt";

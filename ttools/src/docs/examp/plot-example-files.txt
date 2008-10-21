@@ -1,6 +1,7 @@
 xyplot.png
 xyplot2.png
 skyplot.png
+xyzplot.png
 hist0.png
 hist.eps.gz
 2mass.gif

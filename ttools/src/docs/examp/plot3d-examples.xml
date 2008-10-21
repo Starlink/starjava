@@ -1,0 +1,16 @@
+<dt><verbatim>
+stilts plot3d in=cat.xml xdata=RMAG ydata=BMAG zdata=VEL zlog=true
+</verbatim></dt>
+<dd><p>Plots a 3-d scatter plot of red magnitude vs.
+blue magnitude vs. velocity; the velocity is plotted
+on a logarithmic scale.
+Since no <code>omode</code> or <code>out</code> value
+has been specified, the plot is posted directly
+to the graphics display for inspection.
+By adding the parameter
+<code>out=xyplot.eps</code>
+the plot could be written to an
+Encapsulated Postscript file instead.
+</p>
+<p>The generated plot is <webref url='xyzplot.png'>here</webref>.</p>
+</dd>

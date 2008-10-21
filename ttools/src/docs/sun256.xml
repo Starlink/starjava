@@ -37,6 +37,7 @@
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
+  <!ENTITY plot3d-summary SYSTEM 'plot3d-summary.xml'>
   <!ENTITY plothist-summary SYSTEM 'plothist-summary.xml'>
   <!ENTITY regquery-summary SYSTEM 'regquery-summary.xml'>
   <!ENTITY server-summary SYSTEM 'server-summary.xml'>
@@ -73,6 +74,7 @@
 
   <!-- Automatically generated plot example text. -->
   <!ENTITY plot2d-examples SYSTEM 'plot2d-examples.xml'>
+  <!ENTITY plot3d-examples SYSTEM 'plot3d-examples.xml'>
   <!ENTITY plothist-examples SYSTEM 'plothist-examples.xml'>
 ]>
 
@@ -183,7 +185,8 @@ same ground as the STIL and TOPCAT user documents
     </p></dd>
 <dt>Plotting</dt>
 <dd><p>
-    <ref id="plot2d"><code>plot2d</code></ref> and
+    <ref id="plot2d"><code>plot2d</code></ref>,
+    <ref id="plot3d"><code>plot3d</code></ref> and
     <ref id="plothist"><code>plothist</code></ref>
     (see <ref id="plot" plaintextref="yes"/>).
     </p></dd>
@@ -399,6 +402,7 @@ the available tasks are:
 <li><code>funcs</code></li>
 <li><code>coneskymatch</code></li>
 <li><code>plot2d</code></li>
+<li><code>plot3d</code></li>
 <li><code>plothist</code></li>
 <li><code>regquery</code></li>
 <li><code>server</code></li>
@@ -1068,6 +1072,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmatchn"><code>tmatchn</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="plot2d"><code>plot2d</code></ref>,
+           <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
            <ref id="coneskymatch"><code>coneskymatch</code></ref>,
            <ref id="sqlskymatch"><code>sqlskymatch</code></ref> and
@@ -1945,6 +1950,7 @@ and generate some kind of graphical plot from the result.
 At time of writing, the following plot types are available:
 <ul>
 <li><ref id="plot2d"><code>plot2d</code></ref>: &plot2d-purpose;</li>
+<li><ref id="plot3d"><code>plot3d</code></ref>: &plot3d-purpose;</li>
 <li><ref id="plothist"><code>plothist</code></ref>: &plothist-purpose;</li>
 </ul>
 but see also <ref id="tcube"><code>tcube</code></ref> for generating
@@ -2250,9 +2256,10 @@ STILTS may additionally offer more detailed options for
 controlling plot appearance, for instance of
 font and colour selection and tick mark placement.
 At time of writing however, only the 
-<ref id="plot2d">2d scatter plot</ref> and 
+<ref id="plot2d">2d scatter plot</ref>, 
+<ref id="plot3d">3d Cartesian scatter plot</ref> and
 <ref id="plothist">histogram</ref> plot types are available,
-though these are the most useful plot types and the most of the 
+though these include the most useful plot types and the most of the 
 options from TOPCAT for these plot types are available from STILTS too.
 </p>
 
@@ -2937,6 +2944,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="plot2d" plaintextref="yes"><code>plot2d</code></ref>:
         &plot2d-purpose;
         </li>
+    <li><ref id="plot3d" plaintextref="yes"><code>plot3d</code></ref>:
+        &plot3d-purpose;
+        </li>
     <li><ref id="plothist" plaintextref="yes"><code>plothist</code></ref>:
         &plothist-purpose;
         </li>
@@ -3276,7 +3286,7 @@ sending the output to a graphical display or writing it to a file
 in some vector or bitmapped graphics format.
 You need to supply it with values for one or more X and Y datasets,
 in terms of table columns, and it will generate a plot with a point
-for each one.
+for each row.
 There are many options available to configure the detailed appearance
 of the plot, but in its simplest form invocation is quite straightforward.
 See <ref id="plot"/> for more discussion on use of the plotting commands.
@@ -3290,6 +3300,34 @@ See <ref id="plot"/> for more discussion on use of the plotting commands.
 <p>Here are some examples of <code>plot2d</code> in use:
 <dl>
 &plot2d-examples;
+</dl>
+</p>
+</subsubsect>
+
+</subsect>
+
+<subsect id="plot3d" tocleaf="yes">
+<subhead><title><code>plot3d</code>: &plot3d-purpose;</title></subhead>
+
+<p><code>plot3d</code> performs three-dimensional scatter plots,
+sending the output to a graphical display or writing it to a file
+in some vector or bitmapped graphics format.
+You need to supply it with values for one or more X, Y and Z datasets,
+in terms of table columns, and it will generate a plot with a point
+for each row.
+There are many options available to configure the detailed appearance
+of the plot, but in its simplest form invocation is quite straightforward.
+See <ref id="plot"/> for more discussion on use of the plotting commands.
+</p>
+
+&plot3d-summary;
+
+<subsubsect id="plot3d-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>plot3d</code> in use:
+<dl>
+&plot3d-examples;
 </dl>
 </p>
 </subsubsect>
