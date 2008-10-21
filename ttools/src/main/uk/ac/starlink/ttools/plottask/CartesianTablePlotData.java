@@ -277,7 +277,6 @@ public class CartesianTablePlotData extends TablePlotData {
                                  ? null
                                  : Evaluator.compile( expr, lib, double.class );
         }
-        final double[] coords = new double[ ndim_ ];
 
         /* Prepare to generate error values. */
         List errReaderList = new ArrayList();
@@ -291,10 +290,15 @@ public class CartesianTablePlotData extends TablePlotData {
         final ErrorReader[] errorReaders =
             (ErrorReader[]) errReaderList.toArray( new ErrorReader[ 0 ] );
         assert errorReaders.length == nerrPairs_;
-        final double[][] errors = new double[ nerrPairs_ * 2 ][];
 
         /* Construct and return the point sequence. */
         return new TablePointSequence( rseq, labelExpr_, setExprs_ ) {
+            private final double[] coords_ = new double[ ndim_ ];
+            private final double[] coords1_ = new double[ ndim_ ];
+            private final double[][] errors_ = new double[ nerrPairs_ * 2 ][];
+            private final double[][] errors1_ = new double[ nerrPairs_ * 2 ][];
+            private final double[][] errors2_ =
+                new double[ nerrPairs_ * 2 ][ ndim_ ];
             private boolean hasPoint_;
             private boolean hasErrors_;
 
@@ -305,27 +309,70 @@ public class CartesianTablePlotData extends TablePlotData {
             }
 
             public double[] getPoint() {
-                if ( ! hasPoint_ ) {
-                    for ( int idim = 0; idim < ndim_; idim++ ) {
-                        coords[ idim ] = evaluateDouble( coordCompexs[ idim ] );
-                    }
-                    hasPoint_ = true;
+
+                /* Acquire the point data if necessary. */
+                ensureHasPoint();
+
+                /* Return a copy of it.  This is essential as the caller
+                 * may scribble on the returned array. */
+                for ( int idim = 0; idim < ndim_; idim++ ) {
+                    coords1_[ idim ] = coords_[ idim ];
                 }
-                return coords;
+                return coords1_;
             }
 
             public double[][] getErrors() {
+
+                /* Acquire the error data if necessary. */
+                ensureHasErrors();
+
+                /* Return a copy of it. */
+                for ( int ierr = 0; ierr < nerrPairs_ * 2; ierr++ ) {
+                    double[] err = errors_[ ierr ];
+                    final double[] err1;
+                    if ( err == null ) {
+                        err1 = null;
+                    }
+                    else {
+                        err1 = errors2_[ ierr ];
+                        for ( int idim = 0; idim < ndim_; idim++ ) {
+                            err1[ idim ] = err[ idim ];
+                        }
+                    }
+                    errors1_[ ierr ] = err1;
+                }
+                return errors1_;
+            }
+
+            /**
+             * Following this call, the coords_ array will be populated
+             * correctly for the current point.
+             */
+            private void ensureHasPoint() {
+                if ( ! hasPoint_ ) {
+                    for ( int idim = 0; idim < ndim_; idim++ ) {
+                        coords_[ idim ] =
+                            evaluateDouble( coordCompexs[ idim ] );
+                    }
+                    hasPoint_ = true;
+                }
+            }
+
+            /**
+             * Following this call, the errors_ array will be populated
+             * correctly for the current point.
+             */
+            private void ensureHasErrors() {
                 if ( ! hasErrors_ ) {
-                    double[] point = getPoint();
+                    ensureHasPoint();
                     for ( int ierr = 0; ierr < nerrPairs_; ierr++ ) {
                         double[][] errPair =
-                            errorReaders[ ierr ].readErrorPair( point );
-                        errors[ ierr * 2 + 0 ] = errPair[ 0 ];
-                        errors[ ierr * 2 + 1 ] = errPair[ 1 ];
+                            errorReaders[ ierr ].readErrorPair( coords_ );
+                        errors_[ ierr * 2 + 0 ] = errPair[ 0 ];
+                        errors_[ ierr * 2 + 1 ] = errPair[ 1 ];
                     }
                     hasErrors_ = true;
                 }
-                return errors;
             }
         };
     }
