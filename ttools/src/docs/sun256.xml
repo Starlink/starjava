@@ -2158,7 +2158,7 @@ set the java system property
 - see <ref id="sysProperties"/>.
 </p>
 
-<p>The default output mode is <ref id="paintmode=auto"><code>auto</code></ref>,
+<p>The default output mode is <ref id="paintmode-auto"><code>auto</code></ref>,
 which means that output is to a file if an output file is specified,
 or to the screen if it is not.  So often you don't need to specify the
 <code>omode</code> parameter explicitly.
