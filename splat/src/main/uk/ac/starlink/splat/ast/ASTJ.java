@@ -848,24 +848,15 @@ public class ASTJ
                 return picked;
             }
             else {
-                try {
-                    result.setC( "System", "Wave" );
+                result.setC( "System", "Wave" );
+                result.setC( "Unit", unit );
+                if ( ! checkSpecFrame( result ) ) {
+                    result.setC( "System", "Freq" );
                     result.setC( "Unit", unit );
-                    result.findFrame( simpleSpecFrame, "" );
-                }
-                catch (AstException e) {
-                    try {
-                        result.setC( "System", "Freq" );
+                    if ( ! checkSpecFrame( result ) ) {
+                        result.setC( "System", "Vopt" );
                         result.setC( "Unit", unit );
-                        result.findFrame( simpleSpecFrame, "" );
-                    }
-                    catch (AstException e1) {
-                        try {
-                            result.setC( "System", "Vopt" );
-                            result.setC( "Unit", unit );
-                            result.findFrame( simpleSpecFrame, "" );
-                        }
-                        catch (AstException e2) {
+                        if ( ! checkSpecFrame( result ) ) {
                             // Default is the original frame. User will have
                             // to set any SpecFrame attributes interactively.
                             return picked;
@@ -918,6 +909,25 @@ public class ASTJ
                              newFrame );
         }
         return result;
+    }
+
+    /**
+     *   Check if a SpecFrame is valid. Use when not sure if the system and
+     *   units are matched correctly.
+     */
+    public static boolean checkSpecFrame( SpecFrame specFrame )
+    {
+        boolean ok = false;
+        try {
+            SpecFrame copy = (SpecFrame) specFrame.copy();
+            copy.clear( "Unit" );
+            FrameSet fs = copy.convert( specFrame, "" );
+            ok = true;
+        }
+        catch (AstException e) {
+            ok = false;
+        }
+        return ok;
     }
 
 

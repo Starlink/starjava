@@ -25,6 +25,9 @@
    The query SSAP server dialog now offers "select all" and "remove
    unselected" options.
 
+   A problem with matching the spectral coordinate system to that of the 
+   units has been fixed. 
+
    3.8-7
    =====
 
