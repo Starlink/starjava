@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TTOOLS"/>
   <property name="name" value="ttools"/>
-  <property name="version" value="2.0-"/>
+  <property name="version" value="2.0b"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ttools"/>
@@ -110,7 +110,7 @@
   <property name="src.docs" value="${src.dir}/docs"/>
   <property name="src.docs.examp" value="${src.docs}/examp"/>
   <property name="user.doc" value="sun256"/>
-  <property name="coverimage" value="ttools.gif"/>
+  <property name="coverimage" value="ttools2.gif"/>
   <property name="xdoc.etc" value="${star.dir}/etc/xdoc"/>
 
   <!-- Directory containing any script required to execute or setup package-->

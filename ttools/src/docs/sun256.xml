@@ -6002,7 +6002,7 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Version 2.0b</dt>
+<dt>Version 2.0b (23 October 2008)</dt>
 <dd><p>This version contains two new major items, plotting and server mode.
     Both work, but are missing desirable features and have not had extensive
     testing in the field, so should be considered experimental at this stage.
@@ -6012,13 +6012,15 @@ but my thanks are especially due to the following:
         <ul>
         <li><ref id="plot2d"><code>plot2d</code></ref>:
             &plot2d-purpose;</li>
+        <li><ref id="plot3d"><code>plot3d</code></ref>:
+            &plot3d-purpose;</li>
         <li><ref id="plothist"><code>plothist</code></ref>:
             &plothist-purpose;</li>
         </ul>
         See also the new <ref id="plot" plaintextref="yes">Plotting</ref>
         section in the manual.
         </p></dd>
-    <dt>Server Mode</dt>
+    <dt>Server/Servlet Mode</dt>
     <dd><p>A new command <ref id="server"><code>server</code></ref> is
         provided which allows STILTS commands to be executed via HTTP.
         One purpose of this is to facilitate server-side use of the 
