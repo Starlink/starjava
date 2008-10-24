@@ -37,12 +37,12 @@
 
 #-
 
-if test "$1" == ""; then 
+if test "$1" = ""; then 
    echo "Usage: ./scripts/targetdeps package"
    exit
 fi
 
-if test "$2" == ""; then 
+if test "$2" = ""; then 
    target="export-runonly"
 else
    target="$2"
