@@ -10,6 +10,8 @@ package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -114,7 +116,7 @@ public class SSAQueryBrowser
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-        new Rectangle( 0, 0, 500, 550 );
+        new Rectangle( 0, 0, 600, 650 );
 
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
@@ -370,8 +372,7 @@ public class SSAQueryBrowser
     {
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 600, 500 ) );
-        Utilities.setFrameLocation( this, defaultWindowLocation, prefs, 
+        Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
                                     "SSAQueryBrowser" );
         setVisible( true );
     }
@@ -408,14 +409,14 @@ public class SSAQueryBrowser
         //  RA and Dec fields. We're free-formatting on these (decimal degrees
         //  not required).
         JLabel raLabel = new JLabel( "RA:" );
-        raField = new JTextField( 15 );
+        raField = new JTextField( 30 );
         layouter.add( raLabel, false );
         layouter.add( raField, true );
         raField.setToolTipText( "Enter the RA of field centre, " +
                                 "decimal degrees or hh:mm:ss.ss" );
 
         JLabel decLabel = new JLabel( "Dec:" );
-        decField = new JTextField( 15 );
+        decField = new JTextField( 30 );
         layouter.add( decLabel, false );
         layouter.add( decField, true );
         decField.setToolTipText( "Enter the Dec of field centre, " +
@@ -434,9 +435,24 @@ public class SSAQueryBrowser
         JLabel bandLabel = new JLabel( "Band:" );
         lowerBandField = new JTextField( 15 );
         upperBandField = new JTextField( 15 );
+
+        JPanel bandPanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( lowerBandField, gbc );
+
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        bandPanel.add( new JLabel( "/" ), gbc );
+
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( upperBandField, gbc );
+
         layouter.add( bandLabel, false );
-        layouter.add( lowerBandField, false );
-        layouter.add( upperBandField, false );
+        layouter.add( bandPanel, true );
         lowerBandField.setToolTipText( "Lower limit, or single include " +
                                        "value, for spectral band, in meters" );
         upperBandField.setToolTipText
@@ -446,10 +462,23 @@ public class SSAQueryBrowser
         JLabel timeLabel = new JLabel( "Time:" );
         lowerTimeField = new JTextField( 15 );
         upperTimeField = new JTextField( 15 );
+
+        JPanel timePanel = new JPanel( new GridBagLayout() );
+
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        timePanel.add( lowerTimeField, gbc );
+
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        timePanel.add( new JLabel( "/" ), gbc );
+
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        timePanel.add( upperTimeField, gbc );
+
         layouter.add( timeLabel, false );
-        layouter.add( lowerTimeField, false );
-        layouter.add( upperTimeField, true );
-        //layouter.eatLine();
+        layouter.add( timePanel, true );
         lowerTimeField.setToolTipText( "Lower limit, or single include " +
                                        "value for time coverage, " + 
                                        "ISO 8601 format " + 
@@ -457,9 +486,6 @@ public class SSAQueryBrowser
         upperTimeField.setToolTipText( "Upper limit for time coverage, " +
                                        "in ISO 8601 format " +
                                        "(e.g 2008-10-15T20:48Z)" );
-
-        //  At Petr Skoda's request. FLUXCALIB and WAVECALIB.
-        
 
         //  Do the search.
         goButton = new JButton( "Go" );
