@@ -39,25 +39,25 @@ typedef struct {
 } ChanInfo;
 
 typedef AstChannel *(*ChannelForFunc)( const char *(*)( void ),
-                                       char *(*)( const char *(*)( void ) ),
+                                       char *(*)( const char *(*)( void ), int *),
                                        void (*)( const char * ),
                                        void (*)( void (*)( const char * ),
-                                                 const char * ),
+                                                 const char *, int * ),
                                        const char *, ... );
 
 
 /* Static function prototypes. */
-static char *sourceWrap( const char *( *source )() ); 
-static void sinkWrap( void ( *sink )( const char * ), const char *line );
+static char *sourceWrap( const char *(* source )( void ), int * );
+static void sinkWrap( void (* sink )( const char * ), const char *, int * );
 static void initializeIDs( JNIEnv *env );
 static void fillChaninfo( JNIEnv *env, jobject this );
 static void constructFlavouredChannel( JNIEnv *env, jobject this, 
                                        ChannelForFunc func );
 static AstChannel *xmlChanFor( const char *(*)( void ),
-                               char *(*)( const char *(*)( void ) ),
+                               char *(*)( const char *(*)( void ), int * ),
                                void (*)( const char * ),
                                void (*)( void (*)( const char * ),
-                                         const char * ),
+                                         const char *, int * ),
                                const char *, ... );
 
 
@@ -249,10 +249,10 @@ static void constructFlavouredChannel( JNIEnv *env, jobject this,
 *-
 */
 static AstChannel *xmlChanFor( const char *(* source)( void ),
-                               char *(* source_wrap)( const char *(*)( void ) ),
+                               char *(* source_wrap)( const char *(*)( void ), int * ),
                                void (* sink)( const char * ),
                                void (* sink_wrap)( void (*)( const char * ),
-                                                   const char * ),
+                                                   const char *, int * ),
                                const char *options, ... ) {
     return (AstChannel *) astXmlChanFor( source, source_wrap, sink, sink_wrap,
                                          options );
@@ -345,7 +345,7 @@ static void fillChaninfo( JNIEnv *env, jobject this ) {
    }
 }
 
-static char *sourceWrap( const char *(*source)() ) {
+static char *sourceWrap( const char *(* source)( void ), int *status ) {
 /*
 *+
 *  Name:
@@ -364,6 +364,8 @@ static char *sourceWrap( const char *(*source)() ) {
 *        A pointer to the ChanInfo structure which contains information
 *        about the environment and object for which this function is
 *        called.  It has to be cast to the weird form above to fool AST.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Return value:
 *     A new dynamically allocated (using astMalloc()) buffer holding
@@ -426,7 +428,8 @@ static char *sourceWrap( const char *(*source)() ) {
    return retval;
 }
 
-static void sinkWrap( void (*sink)(const char *), const char *line ) {
+static void sinkWrap( void (* sink)( const char * ), const char *line, 
+                      int *status ) {
 /*
 *+
 *  Name:
@@ -445,6 +448,8 @@ static void sinkWrap( void (*sink)(const char *), const char *line ) {
 *        A pointer to the ChanInfo structure which contains information
 *        about the environment and object for which this function is
 *        called.  It has to be cast to the weird form above to fool AST.
+*     status
+*        Pointer to the inherited status.
 
 *  Notes:
 *     There is a subtlety here.  astWrite is contracted to call sinkWrap()
