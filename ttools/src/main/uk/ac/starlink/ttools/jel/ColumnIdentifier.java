@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Can identify columns of a table using string identifiers.
@@ -22,6 +23,7 @@ public class ColumnIdentifier {
     private final int ncol_;
     private final String[] colNames_;
     private final String[] colUcds_;
+    private final String[] colUtypes_;
     private boolean caseSensitive_;
 
     /**
@@ -34,6 +36,7 @@ public class ColumnIdentifier {
         ncol_ = table_.getColumnCount();
         colNames_ = new String[ ncol_ ];
         colUcds_ = new String[ ncol_ ];
+        colUtypes_ = new String[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnInfo info = table_.getColumnInfo( icol );
             String name = info.getName();
@@ -43,6 +46,10 @@ public class ColumnIdentifier {
             String ucd = info.getUCD();
             if ( ucd != null ) {
                 colUcds_[ icol ] = ucd.trim();
+            }
+            String utype = Tables.getUtype( info );
+            if ( utype != null ) {
+                colUtypes_[ icol ] = utype;
             }
         }
     }
@@ -117,9 +124,19 @@ public class ColumnIdentifier {
                 catch ( IllegalArgumentException e ) {
                     String ucdSpec = JELRowReader
                        .stripPrefix( colId, StarTableJELRowReader.UCD_PREFIX );
-                    String msg = ucdSpec == null
-                               ? ( "Not a column ID or wildcard: " + colId )
-                               : ( "No column with UCD matching " + ucdSpec );
+                    String utypeSpec = JELRowReader
+                       .stripPrefix( colId,
+                                     StarTableJELRowReader.UTYPE_PREFIX );
+                    final String msg;
+                    if ( ucdSpec != null ) {
+                        msg = "No column with UCD matching " + ucdSpec;
+                    }
+                    else if ( utypeSpec != null ) {
+                        msg = "No column with Utype matching " + utypeSpec;
+                    }
+                    else {
+                        msg = "Not a column ID or wildcard: " + colId;
+                    }
                     throw new IOException( msg );
                 }
                 for ( int j = 0; j < jcols.length; j++ ) {
@@ -197,6 +214,23 @@ public class ColumnIdentifier {
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 String ucd = colUcds_[ icol ];
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
+                    return icol;
+                }
+            }
+            return -1;
+        }
+        else if ( JELRowReader
+                 .stripPrefix( colid,
+                               StarTableJELRowReader.UTYPE_PREFIX ) != null ) {
+            Pattern utypeRegex =
+                StarTableJELRowReader
+               .getUtypeRegex( JELRowReader
+                              .stripPrefix( colid,
+                                            StarTableJELRowReader
+                                           .UTYPE_PREFIX ) );
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                String utype = colUtypes_[ icol ];
+                if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
                     return icol;
                 }
             }
