@@ -2,9 +2,11 @@ package uk.ac.starlink.ttools.jel;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -33,6 +35,14 @@ import uk.ac.starlink.table.Tables;
  *     then any UCD which starts as specified is considered to match.
  *     The first matching column, or if there is none the first matching
  *     parameter value is returned.  UCD matching is case-insensitive.
+ *
+ * <dt>Utype specifiers:
+ * <dd>The string {@link #UTYPE_PREFIX} followed by the text of a Utype
+ *     identifying the required value.  Any punctuation (such as ".", ":", "-")
+ *     in the Utype should be replaced with a "_" (since these symbols cannot
+ *     appear in identifiers).
+ *     The first matching column, or if there is none the first matching
+ *     parameter value is returned.  UType matching is case-insensitive.
  *
  * <dt>"RANDOM":
  * <dd>The special token "RANDOM" evaluates to a double-precision random
@@ -67,6 +77,13 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     public static final String UCD_PREFIX = "ucd$";
 
     /**
+     * A string to prefix to a Utype string to indicate the column/parameter
+     * with that Utype.  The first matching column, else the first matching
+     * parameter, is used.  Punctuation in the Utype name is all mapped to "_".
+     */
+    public static final String UTYPE_PREFIX = "utype$";
+
+    /**
      * Constructs a new row reader for a given StarTable.
      * Note that this reader cannot become aware of changes to the
      * columns of the table; in the event of
@@ -77,6 +94,15 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      */
     public StarTableJELRowReader( StarTable table ) {
         table_ = table;
+    }
+
+    /**
+     * Returns the table associated with this reader.
+     *
+     * @return  table
+     */
+    public StarTable getTable() {
+        return table_;
     }
 
     /**
@@ -111,23 +137,36 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     }
 
     protected int getColumnIndexByName( String name ) {
+        ColumnInfo[] colInfos = Tables.getColumnInfos( table_ );
+        int ncol = colInfos.length;
 
         /* Try it as a UCD specification. */
         String ucdSpec = stripPrefix( name, UCD_PREFIX );
         if ( ucdSpec != null ) {
             Pattern ucdRegex = getUcdRegex( ucdSpec );
-            for ( int icol = 0; icol < table_.getColumnCount(); icol++ ) {
-                String ucd = table_.getColumnInfo( icol ).getUCD();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                String ucd = colInfos[ icol ].getUCD();
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
                     return icol;
                 }
             }
         }
 
+        /* Try it as a Utype specification. */
+        String utypeSpec = stripPrefix( name, UTYPE_PREFIX );
+        if ( utypeSpec != null ) {
+            Pattern utypeRegex = getUtypeRegex( utypeSpec );
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                String utype = Tables.getUtype( colInfos[ icol ] );
+                if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
+                    return icol;
+                }
+            }
+        }
+
         /* Try the column name. */
-        for ( int icol = 0; icol < table_.getColumnCount(); icol++ ) {
-            if ( table_.getColumnInfo( icol ).getName()
-                       .equalsIgnoreCase( name ) ) {
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            if ( colInfos[ icol ].getName().equalsIgnoreCase( name ) ) {
                 return icol;
             }
         }
@@ -139,16 +178,17 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     /**
      * Understands table parameters identified case-insensitively
      * by name (using the {@link #PARAM_PREFIX} prefix) or
-     * by UCD (using the {@link #UCD_PREFIX} prefix).
+     * by UCD (using the {@link #UCD_PREFIX} prefix) or
+     * by Utype (using the {@link #UTYPE_PREFIX} prefix).
      */
     protected Constant getConstantByName( String name ) {
+        List paramList = table_.getParameters();
 
         /* Try it as a UCD specification. */
         String ucdSpec = stripPrefix( name, UCD_PREFIX );
         if ( ucdSpec != null ) {
             Pattern ucdRegex = getUcdRegex( ucdSpec );
-            for ( Iterator it = table_.getParameters().iterator();
-                  it.hasNext(); ) {
+            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
                 DescribedValue dval = (DescribedValue) it.next();
                 String ucd = dval.getInfo().getUCD();
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
@@ -158,11 +198,24 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             return null;
         }
 
+        /* Try it as a Utype specification. */
+        String utypeSpec = stripPrefix( name, UTYPE_PREFIX );
+        if ( utypeSpec != null ) {
+            Pattern utypeRegex = getUtypeRegex( utypeSpec );
+            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+                DescribedValue dval = (DescribedValue) it.next();
+                String utype = Tables.getUtype( dval.getInfo() );
+                if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
+                    return new DescribedValueConstant( dval );
+                }
+            }
+            return null;
+        }
+
         /* Try it as a named parameter. */
         String pname = stripPrefix( name, PARAM_PREFIX );
         if ( pname != null ) {
-            for ( Iterator it = table_.getParameters().iterator();
-                  it.hasNext(); ) {
+            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
                 DescribedValue dval = (DescribedValue) it.next();
                 if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
                     return new DescribedValueConstant( dval );
@@ -276,6 +329,20 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         }
         return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
     }
+
+    /**
+     * Takes a (non-prefixed) Utype specification and returns a Pattern
+     * actual Utypes should match if they represent the same thing.
+     * Punctuation is mapped to underscores, and the pattern is
+     * case-insensitive.
+     *
+     * @param  utype  utype specification
+     * @return  regular expression pattern which matches actual Utypes
+     */
+     public static Pattern getUtypeRegex( String utype ) {
+         String regex = utype.replaceAll( "_", "\\\\W" );
+         return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
+     }
 
     /**
      * Constant implementation based on a DescribedValue.
