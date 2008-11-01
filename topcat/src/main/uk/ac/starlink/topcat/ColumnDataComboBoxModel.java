@@ -26,6 +26,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.ttools.jel.CustomCompilationException;
 import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
 
 /**
@@ -169,11 +170,8 @@ public class ColumnDataComboBoxModel
             return cdata;
         }
         else {
-            throw new CompilationException( 1, new Object[ 0 ] ) {
-                public String getMessage() {
-                    return "Wrong data type for \"" + txt + "\"";
-                }
-            };
+            throw new CustomCompilationException( "Wrong data type for \""
+                                                + txt + "\"" );
         }
     }
 
