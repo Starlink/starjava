@@ -17,6 +17,7 @@
   <!ENTITY column.id.char '$'>
   <!ENTITY subset.id.char '_'>
   <!ENTITY ucd.prefix 'ucd$'>
+  <!ENTITY utype.prefix 'utype$'>
   <!ENTITY param.prefix 'param$'>
 
   <!-- Define illustrations -->
@@ -2013,6 +2014,28 @@ You can do this in three ways:
     the requested UCD, the column value will be used.
     </p></dd>
 
+<dt>By &utype.prefix; specifier</dt>
+<dd><p>If the column has a <label>Utype</label>
+    (this will usually only be the case for VOTable or possibly FITS format
+    tables) you can refer to it using an identifier of the form
+    "<code>&utype.prefix;&lt;utype-spec&gt;</code>".
+    Utypes can contain various punctuation marks such as colons and dots;
+    for the purpose of this syntax
+    these should all be represented as underscores ("<code>_</code>").
+    So to identify a column which has the Utype
+    "<code>ssa:Access.Format</code>",
+    you should use the identifier
+    "<code>&utype.prefix;ssa_Access_Format</code>".
+    Matching is not case-sensitive.
+    If multiple columns have Utypes which match the given identifier,
+    the first one will be used.
+    </p>
+    <p>Note that the same syntax can be used for referencing table
+    parameters (see <ref id="jelParams"/>);
+    columns take preference so if a column and a parameter both match
+    the requested Utype, the column value will be used.
+    </p></dd>
+
 </dl>
 </p>
 <p>There is a special column whose name is "Index" and whose 
@@ -2091,7 +2114,7 @@ as follows:
     </p></dd>
 
 <dt>&ucd.prefix;<em>ucd-spec</em></dt>
-<dd><p>If the column has a
+<dd><p>If the parameter has a
     <webref url="http://www.ivoa.net/Documents/latest/UCD.html"
             >Unified Content Descriptor</webref>
     it can be referenced by prefixing the UCD specifier with the
@@ -2100,6 +2123,15 @@ as follows:
     is interpreted as a wildcard.  See <ref id="jelCols"/> for 
     more discussion.
     </p></dd>
+
+<dt>&utype.prefix;<em>utype-spec</em></dt>
+<dd><p>If the parameter has a Utype,
+    it can be referenced by prefixing the Utype specifier with the
+    string <code>&utype.prefix;</code>.  Any punctuation marks in the
+    Utype should be replaced by underscores.  See <ref id="jelCols"/> for
+    more discussion.
+    </p></dd>
+
 </dl>
 Note that if a parameter has a name in an unsuitable form (e.g. containing
 spaces) and has no UCD then it cannot be referenced in an expression.
@@ -11195,6 +11227,8 @@ introduced since the last version:
     <li>Add items to <label>Help</label> menu for viewing help in a web
         browser.</li>
     <li>Add plot output option for gzipped PostScript.</li>
+    <li>Table columns and parameters can now be referenced by Utype using
+        &utype.prefix; syntax in a similar way to using UCDs.</li>
     </ul>
     </p></dd>
 
