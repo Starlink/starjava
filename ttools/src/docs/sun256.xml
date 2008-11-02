@@ -5,6 +5,7 @@
   <!ENTITY column.id.char '$'>
   <!ENTITY indirection.char '@'>
   <!ENTITY ucd.prefix 'ucd$'>
+  <!ENTITY utype.prefix 'utype$'>
   <!ENTITY param.prefix 'param$'>
 
   <!-- Define automatically generated text entities. -->
@@ -1447,7 +1448,7 @@ existing columns in a table.
             >Unified Content Descriptor</webref>
     (this will usually only be the case for VOTable or possibly FITS format
     tables) you can refer to it using an identifier of the form
-    "<code>ucd$&lt;ucd-spec&gt;</code>".  Depending on the version of
+    "<code>&ucd.prefix;&lt;ucd-spec&gt;</code>".  Depending on the version of
     UCD scheme used, UCDs can contain various punctuation marks such
     as underscores, semicolons and dots; for the purpose of this syntax
     these should all be represented as underscores ("<code>_</code>").
@@ -1455,9 +1456,26 @@ existing columns in a table.
     you should use the identifier "<code>ucd$phot_mag_em_opt_r</code>".
     Matching is not case-sensitive.  Futhermore, a trailing underscore
     acts as a wildcard, so that the above column could also be referenced
-    using the identifier "<code>ucd$phot_mag_</code>".  If multiple 
+    using the identifier "<code>&ucd.prefix;phot_mag_</code>".  If multiple 
     columns have UCDs which match the given identifer, the first one
     will be used.
+    </p></dd>
+
+<dt>Column &utype.prefix; specifier</dt>
+<dd><p>If the column has a <label>Utype</label>
+    (this will usually only be the case for VOTable or possibly FITS format
+    tables) you can refer to it using an identifier of the form
+    "<code>&utype.prefix;&lt;utype-spec&gt;</code>".
+    Utypes may contain various punctuation marks such as colons and dots;
+    for the purpose of this syntax these should all be represented as
+    underscores ("<code>_</code>").
+    So to identify a column which has the Utype 
+    "<code>ssa:Access.Format</code>",
+    you should use the identifier 
+    "<code>&utype.prefix;ssa_Access_format</code>".
+    Matching is not case-sensitive.
+    If multiple columns have Utypes which match the given identifier,
+    the first one will be used.
     </p></dd>
 </dl>
 </p>
@@ -2286,11 +2304,11 @@ issue something may be done about it.
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
 
-<p>The <code>tpipe</code> command allows you to use algebraic
-expressions when making row selections and defining new synthetic 
-columns.  They can also be used in defining the quantities to 
-match against in matching commands such as <code>tmatch2</code>.
-In both cases you are defining an expression which
+<p>Many of the STILTS commands 
+allow you to use algebraic expressions based on table columns when doing
+things like making row selections, defining new columns, selecting values
+to plot or match, and so on.
+In these cases you are defining an expression which
 has a value in each row as a function of the values in the existing
 columns in that row.
 This is a powerful feature which permits you to manipulate and select
@@ -2316,13 +2334,8 @@ for even a novice to write useful expressions.
 
 <p>The expressions that you can write are basically any function
 of all the column values which apply
-to a given row; the function result can then be used in 
-one of <code>tpipe</code>'s commands, 
-e.g.  to define the per-row value of a new column
-(<code>addcol</code>, <code>replacecol</code>)
-make a row selection
-(<code>select</code>),
-and some other places.
+to a given row; the function result can then be used where STILTS
+needs a per-row value, for instance to define a new column.
 If the built-in operators and functions are not sufficient,
 or it's unwieldy to express your function in one line of code,
 it is possible to add new functions by writing your own classes -
@@ -2354,10 +2367,15 @@ You can do this in three ways:
     the table has the same name) and if it has a suitable form.
     This means that it must have the form of a Java variable - basically
     starting with a letter and continuing with
-    letters or numbers.  In particular it cannot have any spaces in it.
-    The underscore and currency symbols count as
-    letters for this purpose.
-    Column names are treated case-insensitively.
+    letters, numbers, underscores and currency symbols.
+    In particular it cannot contain spaces, commas, parentheses etc.
+    </p>
+    <p>As a special case, if an expression contains just a single column name,
+    rather than some more complicated expression, 
+    then any column name may be used, even one containing non-alphanumeric
+    characters.
+    </p>
+    <p>Column names are treated case-insensitively.
     </p></dd>
 
 <dt>By &column.id.char;ID</dt>
@@ -2375,12 +2393,12 @@ You can do this in three ways:
             >Unified Content Descriptor</webref>
     (this will usually only be the case for VOTable or possibly FITS format
     tables) you can refer to it using an identifier of the form
-    "<code>ucd$&lt;ucd-spec&gt;</code>".  Depending on the version of
+    "<code>&ucd.prefix;&lt;ucd-spec&gt;</code>".  Depending on the version of
     UCD scheme used, UCDs can contain various punctuation marks such
     as underscores, semicolons and dots; for the purpose of this syntax
     these should all be represented as underscores ("<code>_</code>").
     So to identify a column which has the UCD "<code>phot.mag;em.opt.R</code>",
-    you should use the identifier "<code>ucd$phot_mag_em_opt_r</code>".
+    you should use the identifier "<code>&ucd.prefix;phot_mag_em_opt_r</code>".
     Matching is not case-sensitive.  Futhermore, a trailing underscore
     acts as a wildcard, so that the above column could also be referenced
     using the identifier "<code>ucd$phot_mag_</code>".  If multiple
@@ -2391,6 +2409,28 @@ You can do this in three ways:
     parameters (see the <ref id="jel-paramref">next section</ref>);
     columns take preference so if a column and a parameter both match
     the requested UCD, the column value will be used.
+    </p></dd>
+
+<dt>By &utype.prefix; specifier</dt>
+<dd><p>If the column has a <label>Utype</label>
+    (this will usually only be the case for VOTable or possibly FITS format
+    tables) you can refer to it using an identifier of the form
+    "<code>&utype.prefix;&lt;utype-spec&gt;</code>".
+    Utypes can contain various punctuation marks such as colons and dots;
+    for the purpose of this syntax
+    these should all be represented as underscores ("<code>_</code>").
+    So to identify a column which has the Utype 
+    "<code>ssa:Access.Format</code>",
+    you should use the identifier 
+    "<code>&utype.prefix;ssa_Access_Format</code>".
+    Matching is not case-sensitive.
+    If multiple columns have Utypes which match the given identifier,
+    the first one will be used.
+    </p>
+    <p>Note that the same syntax can be used for referencing table
+    parameters (see the <ref id="jel-paramref">next section</ref>);
+    columns take preference so if a column and a parameter both match
+    the requested Utype, the column value will be used.
     </p></dd>
 
 </dl>
@@ -2431,13 +2471,21 @@ in STILTS algebraic expressions as follows:
     </p></dd>
 
 <dt>&ucd.prefix;<em>ucd-spec</em></dt>
-<dd><p>If the column has a
+<dd><p>If the parameter has a
     <webref url="http://www.ivoa.net/Documents/latest/UCD.html"
             >Unified Content Descriptor</webref>
     it can be referenced by prefixing the UCD specifier with the
     string <code>&ucd.prefix;</code>.  Any punctuation marks in the
     UCD should be replaced by underscores, and a trailing underscore
     is interpreted as a wildcard.  See <ref id="jel-colref"/> for
+    more discussion.
+    </p></dd>
+
+<dt>&utype.prefix;<em>utype-spec</em></dt>
+<dd><p>If the parameter has a Utype,
+    it can be referenced by prefixing the Utype specifier with the 
+    string <code>&utype.prefix;</code>.  Any punctuation marks in the
+    Utype should be replaced by underscores.  See <ref id="jel-colref"/> for
     more discussion.
     </p></dd>
 </dl>
@@ -6063,6 +6111,19 @@ but my thanks are especially due to the following:
         </ul>
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Can reference columns/parameters by Utype by using 
+        <code>&utype.prefix;</code> notation
+        in expressions (<ref id="jel-colref"/>)
+        and as column identifiers (<ref id="col-id"/>).</li>
+    <li>Non-alphanumeric column names may now be used for algebraic expressions
+        in the special case that the expression is just the value of a
+        single column.</li>
+    </ul>
     </p></dd>
 
 </dl>
