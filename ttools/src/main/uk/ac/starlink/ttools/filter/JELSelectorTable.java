@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.filter;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +44,7 @@ public class JELSelectorTable extends WrapperStarTable {
 
         /* Check the expression. */
         Library lib = JELUtils.getLibrary( new DummyJELRowReader( baseTable ) );
-        JELUtils.checkExpressionType( lib, expr, boolean.class );
+        JELUtils.checkExpressionType( lib, baseTable, expr, boolean.class );
     }
 
     public boolean isRandom() {
@@ -61,8 +60,8 @@ public class JELSelectorTable extends WrapperStarTable {
             new SequentialJELRowReader( baseTable_ );
         final CompiledExpression compEx;
         try {
-            compEx = Evaluator.compile( expr_, JELUtils.getLibrary( jelSeq ),
-                                        boolean.class );
+            compEx = JELUtils.compile( JELUtils.getLibrary( jelSeq ),
+                                       baseTable_, expr_, boolean.class );
         }
         catch ( CompilationException e ) {
             // This shouldn't really happen since we already tried to

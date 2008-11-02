@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
+import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 
 /**
  * PlotData concrete subclass for Cartesian data.
@@ -55,7 +56,7 @@ public class CartesianTablePlotData extends TablePlotData {
         ndim_ = coordExprs.length;
         errExprs_ = (String[]) errExprs.clone();
         int nerr = 0;
-        JELRowReader dummyReader = new DummyJELRowReader( table );
+        StarTableJELRowReader dummyReader = new DummyJELRowReader( table );
         for ( int idim = 0; idim < errExprs.length; idim++ ) {
             if ( createErrorReader( idim, errExprs[ idim ], dummyReader )
                  != null ) {
@@ -89,8 +90,9 @@ public class CartesianTablePlotData extends TablePlotData {
      *                     evaluated
      * @return   error reader object
      */
-    private final ErrorReader createErrorReader( final int idim, String expr,
-                                                 final JELRowReader jelReader )
+    private final ErrorReader createErrorReader(
+                final int idim, String expr,
+                final StarTableJELRowReader jelReader )
             throws CompilationException {
 
         /* Return null for a blank expression. */
@@ -111,6 +113,7 @@ public class CartesianTablePlotData extends TablePlotData {
         Class[] dotClasses = new Class[ 0 ];
         Library lib =
             new Library( staticLib, dynamicLib, dotClasses, jelReader, null );
+        StarTable table = jelReader.getTable();
 
         /* Prepare static (well, closure) arrays for use with the newly 
          * created ErrorReader objects. */
@@ -122,7 +125,7 @@ public class CartesianTablePlotData extends TablePlotData {
         if ( expr.startsWith( "," ) ) {
             String hiExpr = expr.substring( 1 ).trim();
             final CompiledExpression hiCompex =
-                Evaluator.compile( hiExpr, lib, double.class );
+                JELUtils.compile( lib, table, hiExpr, double.class );
             return new ErrorReader( jelReader ) {
                 public double[][] readErrorPair( double[] point ) {
                     double off = evaluateDouble( hiCompex );
@@ -145,7 +148,7 @@ public class CartesianTablePlotData extends TablePlotData {
         else if ( expr.endsWith( "," ) ) {
             String loExpr = expr.substring( 0, expr.length() - 1 ).trim();
             final CompiledExpression loCompex =
-                Evaluator.compile( loExpr, lib, double.class );
+                JELUtils.compile( lib, table, loExpr, double.class );
             return new ErrorReader( jelReader ) {
                 public double[][] readErrorPair( double[] point ) {
                     double off = evaluateDouble( loCompex );
@@ -172,7 +175,7 @@ public class CartesianTablePlotData extends TablePlotData {
              * (symmetric error bounds). */
             try {
                 final CompiledExpression bothCompex =
-                    Evaluator.compile( expr, lib, double.class );
+                    JELUtils.compile( lib, table, expr, double.class );
                 return new ErrorReader( jelReader ) {
                     public double[][] readErrorPair( double[] point ) {
                         double off = evaluateDouble( bothCompex );
@@ -275,7 +278,8 @@ public class CartesianTablePlotData extends TablePlotData {
             String expr = coordExprs_[ idim ];
             coordCompexs[ idim ] = expr == null 
                                  ? null
-                                 : Evaluator.compile( expr, lib, double.class );
+                                 : JELUtils.compile( lib, rseq.getTable(),
+                                                     expr, double.class );
         }
 
         /* Prepare to generate error values. */

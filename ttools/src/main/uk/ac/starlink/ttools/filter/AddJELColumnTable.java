@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.filter;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
@@ -98,11 +97,11 @@ public class AddJELColumnTable extends WrapperStarTable {
         addInfos_ = new ColumnInfo[ nAdded_ ];
         for ( int i = 0; i < nAdded_; i++ ) {
             String expr = exprs_[ i ];
-            randomCompexs_[ i ] = Evaluator.compile( expr, lib );
+            randomCompexs_[ i ] = JELUtils.compile( lib, baseTable, expr );
 
             /* Set the content class for the new column to be that
              * returned by the expression. */
-            Class primType = JELUtils.getExpressionType( lib, expr );
+            Class primType = JELUtils.getExpressionType( lib, baseTable, expr );
             Class clazz = JELUtils.getWrapperType( primType );
             addInfos_[ i ] = cinfos[ i ];
             addInfos_[ i ].setContentClass( clazz );
@@ -146,7 +145,8 @@ public class AddJELColumnTable extends WrapperStarTable {
         Library lib = JELUtils.getLibrary( seqReader );
         for ( int i = 0; i < nAdded_; i++ ) {
             try {
-                seqCompexs[ i ] = Evaluator.compile( exprs_[ i ], lib );
+                seqCompexs[ i ] =
+                    JELUtils.compile( lib, baseTable_, exprs_[ i ] );
             }
             catch ( CompilationException e ) {
                 // This shouldn't really happen since we already tried to

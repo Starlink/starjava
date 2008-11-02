@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plottask;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
@@ -44,14 +43,15 @@ public abstract class TablePointSequence implements PointSequence {
             throws CompilationException {
         rseq_ = rseq;
         Library lib = JELUtils.getLibrary( rseq );
+        StarTable table = rseq.getTable();
         labelCompex_ = labelExpr == null
                      ? null
-                     : Evaluator.compile( labelExpr, lib );
+                     : JELUtils.compile( lib, table, labelExpr );
         nset_ = setExprs.length;
         setCompexs_ = new CompiledExpression[ nset_ ];
         for ( int is = 0; is < nset_; is++ ) {
             setCompexs_[ is ] =
-                Evaluator.compile( setExprs[ is ], lib, boolean.class );
+                JELUtils.compile( lib, table, setExprs[ is ], boolean.class );
         }
         isIncludeds_ = new boolean[ nset_ ];
     }

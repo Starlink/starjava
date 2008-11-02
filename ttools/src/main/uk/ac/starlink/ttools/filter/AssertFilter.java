@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.filter;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
@@ -97,8 +96,8 @@ public class AssertFilter extends BasicFilter {
             randomReader_ = new RandomJELRowReader( baseTable );
             Library lib =
                 JELUtils.getLibrary( new DummyJELRowReader( baseTable ) );
-            compEx_ = Evaluator.compile( expr, lib );
-            JELUtils.checkExpressionType( lib, expr, boolean.class );
+            compEx_ = JELUtils.compile( lib, baseTable, expr );
+            JELUtils.checkExpressionType( lib, baseTable, expr, boolean.class );
         }
 
         public Object getCell( long irow, int icol ) throws IOException {
@@ -140,7 +139,7 @@ public class AssertFilter extends BasicFilter {
             Library lib = JELUtils.getLibrary( seqReader );
             final CompiledExpression compEx;
             try {
-                compEx = Evaluator.compile( expr_, lib );
+                compEx = JELUtils.compile( lib, baseTable_, expr_ );
             }
             catch ( CompilationException e ) {
                 throw (IOException)

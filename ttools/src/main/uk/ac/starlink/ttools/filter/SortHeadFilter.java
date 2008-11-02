@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.filter;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
@@ -153,7 +152,8 @@ public class SortHeadFilter extends BasicFilter {
             CompiledExpression[] compExs = new CompiledExpression[ nkey ];
             try {
                 for ( int i = 0; i < nkey; i++ ) {
-                    compExs[ i ] = Evaluator.compile( keys_[ i ], lib );
+                    compExs[ i ] =
+                        JELUtils.compile( lib, baseTable, keys_[ i ] );
                 }
             }
             catch ( CompilationException e ) {

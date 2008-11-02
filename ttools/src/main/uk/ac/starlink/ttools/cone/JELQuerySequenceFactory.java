@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.cone;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
@@ -87,7 +86,8 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
         private CompiledExpression compileDouble( String sexpr )
                 throws IOException {
             try {
-                return Evaluator.compile( sexpr, lib_, double.class );
+                return JELUtils.compile( lib_, getTable(), sexpr,
+                                         double.class );
             }
             catch ( CompilationException e ) {
                 throw new IOException( "Bad numeric expression \"" + sexpr

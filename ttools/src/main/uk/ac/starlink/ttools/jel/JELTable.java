@@ -66,27 +66,20 @@ public class JELTable extends WrapperStarTable {
             final String expr = exprs_[ i ];
             ColumnInfo colInfo = colInfos_[ i ];
             try {
-                randomCompexs_[ i ] = Evaluator.compile( expr, lib );
+                randomCompexs_[ i ] = JELUtils.compile( lib, baseTable, expr );
             }
 
             /* If there's trouble, rethrow the exception to give more
              * information. */
             catch ( final CompilationException e ) {
-                throw new CompilationException( e.getType(),
-                                                e.getParameters() ) {
-                    public String getMessage() {
-                        return "Bad expression " + expr
-                             + ": " + e.getMessage();
-                    }
-                    public Throwable getCause() {
-                        return e;
-                    }
-                };
+                throw new CustomCompilationException( "Bad expression " + expr
+                                                    + ": " + e.getMessage(),
+                                                      e );
             }
 
             /* Check that the type of the compiled expression is compatible
              * with that specified in the ColInfos, if any. */
-            Class pClazz = JELUtils.getExpressionType( lib, expr );
+            Class pClazz = JELUtils.getExpressionType( lib, baseTable, expr );
             Class clazz = JELUtils.getWrapperType( pClazz );
             Class reqClazz = colInfos_[ i ].getContentClass();
             if ( reqClazz != null &&
@@ -149,7 +142,7 @@ public class JELTable extends WrapperStarTable {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             String expr = exprs_[ icol ];
             try {
-                seqCompexs[ icol ] = Evaluator.compile( expr, lib );
+                seqCompexs[ icol ] = JELUtils.compile( lib, baseTable, expr );
             }
             catch ( CompilationException e ) {
                 // This shouldn't really happen since we already tried to

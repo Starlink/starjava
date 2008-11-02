@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.jel;
 
 import gnu.jel.CompilationException;
+import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
+import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.Parser;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.func.Arithmetic;
 import uk.ac.starlink.ttools.func.Conversions;
 import uk.ac.starlink.ttools.func.Coords;
@@ -120,30 +123,108 @@ public class JELUtils {
      * This also has the effect of testing that an expression is legal.
      *
      * @param   lib   JEL library
+     * @param   table  context table
      * @param   expr  string representation of the expression
      * @return  class which evaluation of <tt>expr</tt> using <tt>lib</tt>
      *          will return
      * @throws  CompilationExpression  if <tt>expr</tt> cannot be compiled
      */
-    public static Class getExpressionType( Library lib, String expr )
+    public static Class getExpressionType( Library lib, StarTable table,
+                                           String expr )
              throws CompilationException {
-         return new Parser( expr, lib ).parse( null ).resType;
+        return new Parser( tweakExpression( table, expr ), lib )
+              .parse( null ).resType;
     }
 
     /**
      * Checks that an expression is legal and returns a particular class.
      *
      * @param  lib    JEL library
+     * @param  table  context table
      * @param  expr   string representation of the expression
      * @param  clazz  return type required from <tt>expr</tt>
      * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
      *          or will return a type other than <tt>clazz</tt> 
      *          (or one of its subtypes)
      */
-    public static void checkExpressionType( Library lib, String expr,
-                                            Class clazz )
+    public static void checkExpressionType( Library lib, StarTable table,
+                                            String expr, Class clazz )
              throws CompilationException {
-         new Parser( expr, lib ).parse( clazz );
+        new Parser( tweakExpression( table, expr ), lib ).parse( clazz );
+    }
+
+    /**
+     * Compiles an expression in the context of a given table with a 
+     * required type for the result.
+     * Additional to the behaviour of Evaluator.compile this also checks
+     * for expressions which exactly match table column names, even if they 
+     * are not syntactically legal identifiers.
+     *
+     * @param  lib   JEL library
+     * @param  table   context table
+     * @param  expr  expression string
+     * @param  clazz  required class of resulting expression
+     * @return  compiled expression
+     */
+    public static CompiledExpression compile( Library lib, StarTable table,
+                                              String expr, Class clazz )
+            throws CompilationException {
+        try {
+            return Evaluator.compile( tweakExpression( table, expr ),
+                                                       lib, clazz );
+        }
+        catch ( CompilationException e ) {
+            try {
+                Evaluator.compile( tweakExpression( table, expr ), lib );
+            }
+            catch ( CompilationException e2 ) {
+                throw e;
+            }
+            throw new CustomCompilationException( "Expression " + expr
+                                                + " has wrong type" 
+                                                + " (not " + clazz.getName()
+                                                + ")", e );
+        }
+    }
+
+    /**
+     * Compiles an expression in the context of a given table.
+     * Additional to the behaviour of Evaluator.compile this also checks
+     * for expressions which exactly match table column names, even if they 
+     * are not syntactically legal identifiers.
+     *
+     * @param  lib   JEL library
+     * @param  table   context table
+     * @param  expr  expression string
+     * @return  compiled expression
+     */
+    public static CompiledExpression compile( Library lib, StarTable table,
+                                              String expr )
+            throws CompilationException {
+        return Evaluator.compile( tweakExpression( table, expr ), lib );
+    }
+
+    /**
+     * Modifies an expression so that column names are turned into 
+     * numeric column references - works even for syntactically invalid 
+     * identifiers.
+     *
+     * @param   table  context table
+     * @param   expr  expression, either a legal JEL expression or an
+     *          exact match column name
+     * @return  expression which is a legal JEL expression
+     */
+    private static final String tweakExpression( StarTable table,
+                                                 String expr ) {
+        int ncol = table.getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            if ( table.getColumnInfo( icol ).getName()
+                      .equalsIgnoreCase( expr ) ) {
+                return JELRowReader.COLUMN_ID_CHAR
+                     + Integer.toString( icol + 1 );
+            }
+        }
+        return expr;
     }
 
     /**

@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.filter;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Arrays;
@@ -181,7 +180,7 @@ public class SortFilter extends BasicFilter {
             Library lib = JELUtils.getLibrary( rowReader_ );
             compExs_ = new CompiledExpression[ nexpr_ ];
             for ( int i = 0; i < nexpr_; i++ ) {
-                compExs_[ i ] = Evaluator.compile( keys[ i ], lib );
+                compExs_[ i ] = JELUtils.compile( lib, table, keys[ i ] );
             }
         }
 
