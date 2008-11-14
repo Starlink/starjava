@@ -46,6 +46,9 @@ public abstract class PaintMode {
         GraphicExporter.JPEG,
         GraphicExporter.EPS,
         GraphicExporter.EPS_GZIP,
+        // Note there is another option for postscript - net.sf.epsgraphics.
+        // On brief tests seems to work, may or may not produce more compact
+        // output than jibble implementation.  Requires J2SE5 though.
     };
 
     /**
