@@ -323,7 +323,7 @@ public abstract class ErrorRenderer {
          * into the coordinate list if it has been painted on (alpha is
          * non-zero). */
         Raster raster = im.getData();
-        Drawing drawing = new Drawing( raster.getBounds() );
+        Drawing drawing = new Drawing( bounds );
         for ( int ix = 0; ix < xdim; ix++ ) {
             for ( int iy = 0; iy < ydim; iy++ ) {
                 int alpha = raster.getSample( ix, iy, 3 );
