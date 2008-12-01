@@ -1,10 +1,8 @@
 package uk.ac.starlink.vo;
 
-import Sesame_pkg.Sesame;
-import Sesame_pkg.SesameServiceLocator;
-import java.io.ByteArrayInputStream;
-import java.rmi.RemoteException;
-import javax.xml.rpc.ServiceException;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Element;
@@ -20,14 +18,17 @@ import uk.ac.starlink.util.SourceReader;
  * 
  * @author  Mark Taylor (Starlink)
  * @since   4 Feb 2005
- * @see  <a href="http://cdsweb.u-strasbg.fr/cdsws/name_resolver.gml"
+ * @see  <a href="http://cdsweb.u-strasbg.fr/doc/sesame.htx"
  *          >Sesame Documentation</a>
  */
 public class ResolverInfo {
 
-    private static SesameServiceLocator locator_;
     private double raDegrees_;
     private double decDegrees_;
+
+    /** Base URL for HTTP-GET-based Sesame service. */
+    public static final String SESAME_URL =
+        "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-ox2?";
 
     /**
      * Constructs a new resolver from the &lt;Resolver&gt; XML element 
@@ -83,12 +84,10 @@ public class ResolverInfo {
      */
     public static ResolverInfo resolve( String name ) throws ResolverException {
         try {
-            String result = getService().sesame( name, "x" );
+            URL url = new URL( SESAME_URL
+                    + URLEncoder.encode( name, "UTF-8" ) );
             Element el = new SourceReader()
-                        .getElement( 
-                             new StreamSource(
-                                 new ByteArrayInputStream(
-                                     result.getBytes() ) ) );
+                        .getElement( new StreamSource( url.openStream() ) );
             String tag = getTagname( el );
             if ( "Sesame".equals( tag ) ) {
                 return interpretSesame( el );
@@ -98,10 +97,7 @@ public class ResolverInfo {
                                              "> from Sesame" );
             }
         }
-        catch ( RemoteException e ) {
-            throw new ResolverException( e.getMessage(), e );
-        }
-        catch ( ServiceException e ) {
+        catch ( IOException e ) {
             throw new ResolverException( e.getMessage(), e );
         }
         catch ( TransformerException e ) {
@@ -164,13 +160,6 @@ public class ResolverInfo {
         else {
             return s.trim();
         }
-    }
-
-    private static synchronized Sesame getService() throws ServiceException {
-        if ( locator_ == null ) {
-            locator_ = new SesameServiceLocator();
-        }
-        return locator_.getSesame();
     }
 
     public static void main( String[] args ) throws ResolverException {
