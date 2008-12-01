@@ -15,8 +15,6 @@ public class UpToDateTest extends TestCase {
 
     public static final String REG_WSDL = 
         "http://nvo.stsci.edu/voregistry/registry.asmx?WSDL";
-    public static final String SESAME_WSDL =
-        "http://cdsws.u-strasbg.fr/axis/services/Sesame?wsdl";
 
     public UpToDateTest( String name ) {
         super( name );
@@ -24,7 +22,6 @@ public class UpToDateTest extends TestCase {
 
     public void testWsdls() throws Exception {
         checkWsdl( "registry.wsdl", REG_WSDL );
-        checkWsdl( "sesame.wsdl", SESAME_WSDL );
     }
 
     public void checkWsdl( String localName, String remoteName)
