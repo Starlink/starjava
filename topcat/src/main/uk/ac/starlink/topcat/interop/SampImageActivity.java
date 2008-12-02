@@ -15,7 +15,7 @@ import javax.swing.ListModel;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.SubscribedClientListModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
@@ -30,7 +30,7 @@ import uk.ac.starlink.util.URLUtils;
  */
 public class SampImageActivity implements ImageActivity {
 
-    private final HubConnector connector_;
+    private final GuiHubConnector connector_;
     private final SubscribedClientListModel clientModel_;
     private final JComboBox formatSelector_;
     private final ViewerComboBoxModel viewerModel_;
@@ -41,7 +41,7 @@ public class SampImageActivity implements ImageActivity {
      *
      * @param  connector  SAMP connector
      */
-    public SampImageActivity( HubConnector connector ) {
+    public SampImageActivity( GuiHubConnector connector ) {
         connector_ = connector;
         formatSelector_ = new JComboBox( KNOWN_FORMATS );
         formatSelector_.addItemListener( new ItemListener() {

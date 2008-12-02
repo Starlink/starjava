@@ -43,8 +43,9 @@ import uk.ac.starlink.util.URLUtils;
  * @author   Mark Taylor
  * @since    29 Aug 2008
  */
-public class TopcatSampConnector extends HubConnector {
+public class TopcatSampControl {
 
+    private final HubConnector hubConnector_;
     private final ControlWindow controlWindow_;
     private final Map idMap_;
     private final Map highlightMap_;
@@ -55,9 +56,10 @@ public class TopcatSampConnector extends HubConnector {
      *
      * @param   controlWindow  TOPCAT top-level window
      */
-    public TopcatSampConnector( ControlWindow controlWindow )
+    public TopcatSampControl( HubConnector hubConnector,
+                              ControlWindow controlWindow )
             throws IOException {
-        super( TopcatServer.getInstance().getProfile() );
+        hubConnector_ = hubConnector;
         controlWindow_ = controlWindow;
         idMap_ = Collections.synchronizedMap( new HashMap() );
         highlightMap_ = Collections.synchronizedMap( new WeakHashMap() );
@@ -84,14 +86,15 @@ public class TopcatSampConnector extends HubConnector {
                   "Astrophysics Group, Bristol University" );
         meta.put( "author.email", "m.b.taylor@bristol.ac.uk" );
         meta.put( "topcat.version", TopcatUtils.getVersion() );
-        declareMetadata( meta );
+        hubConnector_.declareMetadata( meta );
 
         /* Add MType-specific handlers and declare subscriptions. */
         MessageHandler[] handlers = createMessageHandlers();
         for ( int ih = 0; ih < handlers.length; ih++ ) {
-            addMessageHandler( handlers[ ih ] );
+            hubConnector_.addMessageHandler( handlers[ ih ] );
         }
-        declareSubscriptions( computeSubscriptions() );
+        hubConnector_.declareSubscriptions( hubConnector_
+                                           .computeSubscriptions() );
     }
 
     /**
@@ -471,7 +474,7 @@ public class TopcatSampConnector extends HubConnector {
      * @return   client name if available, or failing that some other string
      */
     private String getClientName( String clientId ) {
-        Client client = (Client) getClientMap().get( clientId );
+        Client client = (Client) hubConnector_.getClientMap().get( clientId );
         if ( client != null ) {
             Metadata meta = client.getMetadata();
             if ( meta != null ) {

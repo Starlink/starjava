@@ -5,7 +5,8 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Map;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.gui.DefaultSendActionManager;
+import org.astrogrid.samp.gui.CallActionManager;
+import org.astrogrid.samp.gui.GuiHubConnector;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
@@ -19,34 +20,36 @@ import uk.ac.starlink.topcat.TopcatModel;
  * @author   Mark Taylor
  * @since    2 Sep 2008
  */
-public class TableSendActionManager extends DefaultSendActionManager {
+public class TableSendActionManager extends CallActionManager {
 
-    private final TopcatSampConnector connector_;
-    private final ControlWindow control_;
+    private final ControlWindow controlWindow_;
+    private final TopcatSampControl sampControl_;
     private final TableResourceFactory votResourceFactory_;
 
     /**
      * Constructor.
      *
      * @param   connector   hub connector
+     * @param   sampControl   TOPCAT SAMP control object
      */
-    public TableSendActionManager( TopcatSampConnector connector )
+    public TableSendActionManager( GuiHubConnector connector,
+                                   TopcatSampControl sampControl )
             throws IOException {
-        super( connector.getControlWindow(), connector, "table.load.votable",
+        super( sampControl.getControlWindow(), connector, "table.load.votable",
                "VOTable" );
-        connector_ = connector;
-        control_ = connector.getControlWindow();
-        StarTableOutput sto = control_.getTableOutput();
+        sampControl_ = sampControl;
+        controlWindow_ = sampControl.getControlWindow();
+        StarTableOutput sto = controlWindow_.getTableOutput();
         votResourceFactory_ =
             new TableResourceFactory( TopcatServer.getInstance(),
                                       sto.getHandler( "votable" ), ".xml" );
     }
 
     protected Map createMessage() throws IOException {
-        TopcatModel tcModel = control_.getCurrentModel();
+        TopcatModel tcModel = controlWindow_.getCurrentModel();
         if ( tcModel != null ) {
             URL turl = votResourceFactory_.addResource( tcModel );
-            String tid = connector_.getTableId( tcModel );
+            String tid = sampControl_.getTableId( tcModel );
             return new Message( "table.load.votable" )
                   .addParam( "url", turl.toString() )
                   .addParam( "table-id", tid );

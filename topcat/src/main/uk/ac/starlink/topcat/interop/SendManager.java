@@ -7,8 +7,8 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.SubscribedClientListModel;
 
 /**
@@ -22,7 +22,7 @@ import org.astrogrid.samp.gui.SubscribedClientListModel;
  */
 public class SendManager {
 
-    private final HubConnector connector_;
+    private final GuiHubConnector connector_;
     private final SendComboBoxModel comboBoxModel_;
     private static final Object BROADCAST = "All Clients";
 
@@ -32,7 +32,7 @@ public class SendManager {
      * @param   connector  hub connector
      * @param   mtype  MType to which all selectable clients must be subscribed
      */
-    public SendManager( HubConnector connector, String mtype ) {
+    public SendManager( GuiHubConnector connector, String mtype ) {
         connector_ = connector;
         comboBoxModel_ =
             new SendComboBoxModel( new SubscribedClientListModel( connector,
