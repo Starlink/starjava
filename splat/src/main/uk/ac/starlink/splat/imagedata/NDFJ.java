@@ -242,10 +242,10 @@ public class NDFJ
     public boolean open( String name )
     {
         if ( ident != 0 ) {
-	    close();     //  NDF already opened. So close it.
+            close();     //  NDF already opened. So close it.
         }
-	int id = nOpen( name );
-	if ( id != 0 ) {
+        int id = nOpen( name );
+        if ( id != 0 ) {
             initialize( id );
             return true;
         }
@@ -279,10 +279,10 @@ public class NDFJ
         if ( ident != 0 ) {
             nClose( ident );
             ident = 0;
-	}
+        }
         wcs = null;
-	type = FLOAT;
-	ndim = 0;
+        type = FLOAT;
+        ndim = 0;
         releaseFitsHeaders();
     }
 
@@ -839,10 +839,14 @@ public class NDFJ
     //  Native interface.
     //  =================
     //
-    //  Notes: these are all synchronized as NDF has loads of global
-    //  data areas that should not be accessed by different Threads.
+    //  Notes: these are all synchronized as NDF has global data areas that
+    //  should not be accessed by different threads. Ideally we would
+    //  synchronize on some global object so that all these calls block to the
+    //  same object, but that's not been needed yet (since threaded access to
+    //  NDFs is general still sequential, not true for FITS data accessed via
+    //  the VO interfaces).
 
-    /**
+    /*
      * One-off runtime initialisation of NDF library.
      */
     protected synchronized static native void nInit();

@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    10-JUN-2002 (Peter W. Draper):
-//       Original version.
-
+/*
+ *  Copyright (C) 2002 Central Laboratory of the Research Councils
+ * 
+ *  History:
+ *    10-JUN-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.imagedata;
 
 import uk.ac.starlink.ast.FrameSet;
@@ -40,5 +41,3 @@ class NDFJFrameSet extends FrameSet
         return pointer;
     }
 }
-
-
