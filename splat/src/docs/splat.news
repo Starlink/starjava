@@ -28,6 +28,9 @@
    A problem with matching the spectral coordinate system to that of the 
    units has been fixed. 
 
+   The data unit milliJansky has been added as a known unit for quick 
+   unit changes.
+
    3.8-7
    =====
 
