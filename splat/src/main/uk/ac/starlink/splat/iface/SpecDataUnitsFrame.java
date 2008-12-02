@@ -59,7 +59,7 @@ public class SpecDataUnitsFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    private static GlobalSpecPlotList globalList = 
+    private static GlobalSpecPlotList globalList =
         GlobalSpecPlotList.getInstance();
 
     /**
@@ -102,17 +102,18 @@ public class SpecDataUnitsFrame
         unitsVector = new Vector();
         Frame testFrame = new Frame( 1 );
         unitsVector.add( new Triple( "Jansky", "Jy", "Jy" ) );
+        unitsVector.add( new Triple( "milliJansky", "mJy", "mJy" ) );
         String[] canonicalUnits = { "W/m^2/Hz",
                                     "W/m^2/Angstrom",
                                     "W/cm^2/um",
                                     "erg/cm^2/s/Hz",
-                                    "erg/cm^2/s/Angstrom" 
+                                    "erg/cm^2/s/Angstrom"
         };
-        
+
         for ( int i = 0; i < canonicalUnits.length; i++ ) {
             testFrame.setUnit( 1, canonicalUnits[i] );
-            unitsVector.add( new Triple( canonicalUnits[i], 
-                                         canonicalUnits[i], 
+            unitsVector.add( new Triple( canonicalUnits[i],
+                                         canonicalUnits[i],
                                          testFrame.getC( "normunit" ) ) );
         }
         testFrame.annul();
@@ -361,7 +362,7 @@ public class SpecDataUnitsFrame
         // Do a full update to get the changes propagated throughout.
         try {
             spec.initialiseAst();
-            
+
             //  Check if the change has succeeded.
             if ( spec.getApparentDataUnits() == null ) {
                 throw new SplatException( "Cannot convert to new data units" );
@@ -375,7 +376,7 @@ public class SpecDataUnitsFrame
 
     /**
      * Set data units of a spectrum.
-     * 
+     *
      * @param spec the SpecData instance.
      * @param units the new units.
      */
@@ -445,7 +446,7 @@ public class SpecDataUnitsFrame
     /**
      * Inner class defining Action for closing window.
      */
-    protected class CloseAction 
+    protected class CloseAction
         extends AbstractAction
     {
         public CloseAction()
@@ -467,7 +468,7 @@ public class SpecDataUnitsFrame
      * Inner class defining Action for converting the AST framesets to
      * the current set of attributes.
      */
-    protected class ConvertAction 
+    protected class ConvertAction
         extends AbstractAction
     {
         public ConvertAction()
@@ -490,7 +491,7 @@ public class SpecDataUnitsFrame
      * Inner class defining Action for setting the AST framesets to
      * the current set of attributes.
      */
-    protected class SetAction 
+    protected class SetAction
         extends AbstractAction
     {
         public SetAction()

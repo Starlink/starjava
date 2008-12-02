@@ -59,7 +59,7 @@ import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
- 
+
 /**
  * Window for choosing a pre-defined set of spectral coordinates and data
  * units for application to the current spectrum of a PlotControl instance.
@@ -163,17 +163,18 @@ public class PlotUnitsFrame
         Frame testFrame = new Frame( 1 );
         dataUnitsVector.add( new Triple( UNKNOWN_LABEL, UNKNOWN, UNKNOWN ) );
         dataUnitsVector.add( new Triple( "Jansky", "Jy", "Jy" ) );
+        dataUnitsVector.add( new Triple( "milliJansky", "mJy", "mJy" ) );
         String[] canonicalUnits = { "W/m^2/Hz",
                                     "W/m^2/Angstrom",
                                     "W/cm^2/um",
                                     "erg/cm^2/s/Hz",
-                                    "erg/cm^2/s/Angstrom" 
+                                    "erg/cm^2/s/Angstrom"
         };
-        
+
         for ( int i = 0; i < canonicalUnits.length; i++ ) {
             testFrame.setUnit( 1, canonicalUnits[i] );
-            dataUnitsVector.add( new Triple( canonicalUnits[i], 
-                                             canonicalUnits[i], 
+            dataUnitsVector.add( new Triple( canonicalUnits[i],
+                                             canonicalUnits[i],
                                              testFrame.getC( "normunit" ) ) );
         }
         testFrame.annul();
