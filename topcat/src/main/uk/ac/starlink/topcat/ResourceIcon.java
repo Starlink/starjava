@@ -188,6 +188,8 @@ public class ResourceIcon implements Icon {
         LEGEND = makeIcon( "legend3.gif" ),
         LABEL = makeIcon( "label2.gif" ),
         RADIAL = makeIcon( "clock1.gif" ),
+        CONNECT = makeIcon( "connected-24.gif" ),
+        DISCONNECT = makeIcon( "disconnected-24.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
