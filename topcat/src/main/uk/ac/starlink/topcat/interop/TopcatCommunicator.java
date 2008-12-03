@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.interop;
 
 import java.io.IOException;
 import javax.swing.Action;
+import javax.swing.JComponent;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -97,4 +98,12 @@ public interface TopcatCommunicator {
      *                   false to run it in the current one
      */
     void startHub( boolean external ) throws IOException;
+
+    /**
+     * Optionally returns a panel which can be displayed in the control
+     * window to show communications status.
+     *
+     * @return   status component, or null if unimplemented
+     */
+    JComponent createInfoPanel();
 }

@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import cds.tools.ExtApp;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -205,15 +206,22 @@ public class ControlWindow extends AuxWindow
         activatorButton_.setText( "           " );
         info.fillIn();
 
+        /* Reduce size of unused control panel. */
+        JComponent controlPanel = getControlPanel();
+        controlPanel.setLayout( new BoxLayout( controlPanel,
+                                               BoxLayout.X_AXIS ) );
+
         /* Set up a split pane in the main panel. */
         JSplitPane splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         JScrollPane listScroller = new JScrollPane( tablesList_ );
         JScrollPane infoScroller = new JScrollPane( info );
+        JComponent infoPanel = new JPanel( new BorderLayout() );
+        infoPanel.add( infoScroller, BorderLayout.CENTER );
         listScroller.setBorder( makeTitledBorder( "Table List" ) );
         infoScroller.setBorder( makeTitledBorder( "Current Table " +
                                                   "Properties" ) );
         splitter.setLeftComponent( listScroller );
-        splitter.setRightComponent( infoScroller );
+        splitter.setRightComponent( infoPanel );
         splitter.setPreferredSize( new Dimension( 600, 250 ) );
         splitter.setDividerLocation( 192 );
         getMainArea().add( splitter );
@@ -224,6 +232,10 @@ public class ControlWindow extends AuxWindow
 
         /* SAMP/PLASTIC interoperability. */
         communicator_ = createCommunicator( this );
+        JComponent interopPanel = communicator_.createInfoPanel();
+        if ( interopPanel != null ) {
+            infoPanel.add( interopPanel, BorderLayout.SOUTH );
+        }
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -1439,7 +1451,7 @@ public class ControlWindow extends AuxWindow
 
         void fillIn() {
             c1.gridy++;
-            Component filler = new JPanel();
+            Component filler = Box.createHorizontalBox();
             c1.weighty = 1.0;
             layer.setConstraints( filler, c1 );
             add( filler );

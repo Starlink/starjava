@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
 import javax.swing.ComboBoxModel;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import nom.tam.fits.FitsException;
@@ -161,6 +162,10 @@ public class PlasticCommunicator implements TopcatCommunicator {
 
     public ImageActivity createImageActivity() {
         return new PlasticImageActivity( plasticServer_ );
+    }
+
+    public JComponent createInfoPanel() {
+        return null;
     }
 
     /**

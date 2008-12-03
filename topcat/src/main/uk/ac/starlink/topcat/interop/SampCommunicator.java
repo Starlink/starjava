@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.interop;
 
+import java.awt.BorderLayout;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,18 +11,29 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import nom.tam.fits.FitsException;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.gui.CallActionManager;
 import org.astrogrid.samp.gui.GuiHubConnector;
+import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SendActionManager;
 import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -51,7 +63,8 @@ public class SampCommunicator implements TopcatCommunicator {
      */
     public SampCommunicator( ControlWindow controlWindow ) throws IOException {
         hubConnector_ =
-            new GuiHubConnector( TopcatServer.getInstance().getProfile() );
+            new MessageTrackerHubConnector( TopcatServer.getInstance()
+                                                        .getProfile() );
         sampControl_ = new TopcatSampControl( hubConnector_, controlWindow );
         tableTransmitter_ =
             adaptTransmitter( new TableSendActionManager( hubConnector_,
@@ -127,11 +140,11 @@ public class SampCommunicator implements TopcatCommunicator {
 
     public Action[] getInteropActions() {
         return new Action[] {
-            hubConnector_.getRegisterAction(),
-            hubConnector_.getUnregisterAction(),
-            hubConnector_.getShowMonitorAction(),
-            hubConnector_.getHubAction( false, INTERNAL_HUB_MODE ),
-            hubConnector_.getHubAction( true, EXTERNAL_HUB_MODE ),
+            hubConnector_.createRegisterAction(),
+            hubConnector_.createUnregisterAction(),
+            hubConnector_.createShowMonitorAction(),
+            hubConnector_.createHubAction( false, INTERNAL_HUB_MODE ),
+            hubConnector_.createHubAction( true, EXTERNAL_HUB_MODE ),
         };
     }
 
@@ -246,5 +259,52 @@ public class SampCommunicator implements TopcatCommunicator {
                   .addParam( "url", iurl.toString() )
                   .addParam( "image-id", iid );
         }
+    }
+
+    public JComponent createInfoPanel() {
+        Box box = Box.createHorizontalBox();
+        box.add( Box.createHorizontalStrut( 5 ) );
+        int boxHeight = 20;
+
+        /* Add message tracker panel. */
+        if ( hubConnector_ instanceof MessageTrackerHubConnector ) {
+            JComponent mBox = ((MessageTrackerHubConnector) hubConnector_)
+                             .createMessageBox( boxHeight );
+            JLabel mLabel = new JLabel( "Messages: " );
+            mLabel.setLabelFor( mBox );
+            box.add( mLabel );
+            box.add( mBox );
+            box.add( Box.createHorizontalStrut( 10 ) );
+        }
+
+        /* Add client tracker panel. */
+        JComponent cBox = hubConnector_.createClientBox( false, boxHeight );
+        JLabel cLabel = new JLabel( "Clients: " );
+        cLabel.setLabelFor( cBox );
+        box.add( cLabel );
+        box.add( cBox );
+        box.add( Box.createHorizontalStrut( 10 ) );
+ 
+        /* Add reg/unreg button/indicator. */
+        final JButton regButton = new JButton( hubConnector_
+                                              .createToggleRegisterAction() );
+        hubConnector_.addConnectionListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                regButton.setText( null );
+                regButton.setIcon( hubConnector_.isConnected()
+                                       ? ResourceIcon.CONNECT
+                                       : ResourceIcon.DISCONNECT );
+            }
+        } );
+        regButton.setText( null );
+        regButton.setBorder( BorderFactory.createEmptyBorder() );
+        box.add( regButton );
+        box.add( Box.createHorizontalStrut( 5 ) );
+
+        /* Wrap and return. */
+        JComponent panel = new JPanel( new BorderLayout() );
+        panel.setBorder( AuxWindow.makeTitledBorder( getProtocolName() ) );
+        panel.add( box, BorderLayout.CENTER );
+        return panel;
     }
 }
