@@ -3,98 +3,179 @@ package uk.ac.starlink.topcat.interop;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
+import javax.swing.Action;
+import javax.swing.JMenu;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.gui.CallActionManager;
+import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.gui.GuiHubConnector;
+import org.astrogrid.samp.gui.IndividualCallActionManager;
+import org.astrogrid.samp.gui.SubscribedClientListModel;
+import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * SendActionManager which will transmit a table.
- * The table sent is the currently selected one in the control window.
+ * A selection of table formats (table.load.*) is available as required -
+ * currently only votable and fits are offered, but it is a one-liner
+ * to add other supported formats.
  *
  * @author   Mark Taylor
- * @since    2 Sep 2008
+ * @since    4 Dec 2008
  */
-public class TableSendActionManager extends CallActionManager {
+public class TableSendActionManager extends IndividualCallActionManager
+                                    implements Transmitter {
 
-    private final ControlWindow controlWindow_;
     private final TopcatSampControl sampControl_;
-    private final TableResourceFactory votResourceFactory_;
+    private final ControlWindow controlWindow_;
+
+    /** Supported table send formats. */
+    private static final Sender[] SENDERS = new Sender[] {
+        new Sender( "table.load.votable", new VOTableWriter(), ".vot" ),
+        new Sender( "table.load.fits", new FitsTableWriter(), ".fits" ),
+    };
 
     /**
      * Constructor.
      *
-     * @param   connector   hub connector
-     * @param   sampControl   TOPCAT SAMP control object
+     * @param   connector  hub connector
+     * @param   sampControl  TOPCAT SAMP control object
      */
     public TableSendActionManager( GuiHubConnector connector,
-                                   TopcatSampControl sampControl )
-            throws IOException {
-        super( sampControl.getControlWindow(), connector, "table.load.votable",
-               "VOTable" );
+                                   TopcatSampControl sampControl ) {
+        super( sampControl.getControlWindow(), connector,
+               new SubscribedClientListModel( connector, getSendMtypes() ) );
         sampControl_ = sampControl;
         controlWindow_ = sampControl.getControlWindow();
-        StarTableOutput sto = controlWindow_.getTableOutput();
-        votResourceFactory_ =
-            new TableResourceFactory( TopcatServer.getInstance(),
-                                      sto.getHandler( "votable" ), ".xml" );
     }
 
-    protected Map createMessage() throws IOException {
+    protected Map createMessage( Client client ) throws IOException {
+        Sender sender = getSender( client );
         TopcatModel tcModel = controlWindow_.getCurrentModel();
-        if ( tcModel != null ) {
-            URL turl = votResourceFactory_.addResource( tcModel );
-            String tid = sampControl_.getTableId( tcModel );
-            return new Message( "table.load.votable" )
-                  .addParam( "url", turl.toString() )
-                  .addParam( "table-id", tid );
+        if ( sender != null && tcModel != null ) {
+            StarTable table = tcModel.getApparentStarTable();
+            String label = Integer.toString( tcModel.getID() );
+            String sampId = sampControl_.getTableId( tcModel );
+            return sender.createMessage( table, label, sampId );
         }
         else {
-            throw new IllegalStateException( "No table selected" );
+            return null;
         }
+    }
+
+    public Action createBroadcastAction() {
+        Action action = super.createBroadcastAction();
+        action.putValue( Action.NAME, "Broadcast table" );
+        action.putValue( Action.SHORT_DESCRIPTION,
+                         "Transmit table to all applications using SAMP" );
+        action.putValue( Action.SMALL_ICON, ResourceIcon.BROADCAST );
+        return action;
+    }
+
+    public Action getSendAction( Client client ) {
+        Action action = super.getSendAction( client );
+        action.putValue( Action.SHORT_DESCRIPTION,
+                         "Send table to " + SampUtils.toString( client ) );
+        return action;
+    }
+
+    public JMenu createSendMenu() {
+        JMenu menu = super.createSendMenu( "Send table to..." );
+        menu.setToolTipText( "Send table to a single other registered client"
+                           + " using SAMP" );
+        menu.setIcon( ResourceIcon.SEND );
+        return menu;
     }
 
     /**
-     * Arranges to make tables available by URL.
+     * Returns a Sender object which can send a table to a given client.
+     *
+     * @param  client  target client
+     * @return   sender
      */
-    private static class TableResourceFactory {
-        private final TopcatServer server_;
+    private static Sender getSender( Client client ) {
+        Subscriptions subs = client.getSubscriptions();
+        for ( int i = 0; i < SENDERS.length; i++ ) {
+            Sender sender = SENDERS[ i ];
+            if ( subs.isSubscribed( sender.getMtype() ) ) {
+                return sender;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the array of MTypes which this sender can use to send tables.
+     *
+     * @return  mtype list
+     */
+    private static String[] getSendMtypes() {
+        String[] mtypes = new String[ SENDERS.length ];
+        for ( int i = 0; i < SENDERS.length; i++ ) {
+            mtypes[ i ] = SENDERS[ i ].getMtype();
+        }
+        return mtypes;
+    }
+
+    /**
+     * Encapsulates format-specific details of how a table is sent over SAMP.
+     */
+    private static class Sender {
+        private final String mtype_;
         private final StarTableWriter writer_;
         private final String extension_;
 
         /**
          * Constructor.
          *
-         * @param   server   HTTP server object capable of hosting resources
-         * @param   writer   StarTable output handler
-         * @param   extension  file extension used for cosmetic purposes
+         * @param   mtype   MType of table send message
+         * @param   writer  serializer for table
+         * @param   extension  suggested file extension (including dot) 
+         *                     for table URL
          */
-        TableResourceFactory( TopcatServer server, StarTableWriter writer,
-                              String extension ) {
-            server_ = server;
+        Sender( String mtype, StarTableWriter writer, String extension ) {
+            mtype_ = mtype;
             writer_ = writer;
             extension_ = extension;
         }
 
         /**
-         * Makes a table available to external processes via a URL.
+         * Returns the MType used by this sender.
          *
-         * @param  tcModel   table to publicise
-         * @return  URL location of table resource
+         * @return  MType
          */
-        public URL addResource( TopcatModel tcModel ) {
-            StarTable table = tcModel.getApparentStarTable();
-            String name = "t" + tcModel.getID() + extension_;
-            return server_.addResource( name, createResource( table ) );
+        public String getMtype() {
+            return mtype_;
         }
 
         /**
-         * Obtains a (somewhat) persistent resource object via which 
+         * Returns a message suitable for sending a table.
+         *
+         * @param   table  table to send
+         * @param   informative label (uniqueness not essential)
+         * @param   sampId  table ID, unique to relevant parts of table state
+         * @return  send message
+         */
+        public Message createMessage( StarTable table, String label,
+                                      String sampId ) throws IOException {
+            String name = "t" + label + extension_;
+            URL turl = TopcatServer.getInstance()
+                      .addResource( name, createResource( table ) );
+            return new Message( getMtype() )
+                          .addParam( "url", turl.toString() )
+                          .addParam( "table-id", sampId );
+        }
+
+        /**
+         * Obtains a (somewhat) persistent resource object via which
          * a table can be made available to external processes.
          *
          * @param   table  table
@@ -104,14 +185,18 @@ public class TableSendActionManager extends CallActionManager {
             return new ServerResource() {
                 public long getContentLength() {
                     return -1L;
-                } 
+                }
                 public String getContentType() {
                     return writer_.getMimeType();
-                } 
+                }
                 public void writeBody( OutputStream out ) throws IOException {
                     writer_.writeStarTable( table, out );
                 }
             };
+        }
+
+        public String toString() {
+            return mtype_;
         }
     }
 }

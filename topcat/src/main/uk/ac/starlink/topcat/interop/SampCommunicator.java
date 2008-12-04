@@ -24,7 +24,7 @@ import javax.swing.event.ChangeListener;
 import nom.tam.fits.FitsException;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.SampUtils;
-import org.astrogrid.samp.gui.CallActionManager;
+import org.astrogrid.samp.gui.UniformCallActionManager;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SendActionManager;
@@ -67,8 +67,7 @@ public class SampCommunicator implements TopcatCommunicator {
                                                         .getProfile() );
         sampControl_ = new TopcatSampControl( hubConnector_, controlWindow );
         tableTransmitter_ =
-            adaptTransmitter( new TableSendActionManager( hubConnector_,
-                                                          sampControl_ ) );
+            new TableSendActionManager( hubConnector_, sampControl_ );
     }
 
     public String getProtocolName() {
@@ -164,7 +163,7 @@ public class SampCommunicator implements TopcatCommunicator {
      * @return  Transmitter facade
      */
     private static Transmitter
-            adaptTransmitter( final CallActionManager sender ) {
+            adaptTransmitter( final UniformCallActionManager sender ) {
         return new Transmitter() {
             public Action getBroadcastAction() {
                 return sender.getBroadcastAction();
@@ -182,7 +181,7 @@ public class SampCommunicator implements TopcatCommunicator {
      * SendActionManager for sending subsets as row selections from the 
      * subset window.
      */
-    private class SubsetSendActionManager extends CallActionManager {
+    private class SubsetSendActionManager extends UniformCallActionManager {
         private final TopcatModel tcModel_;
         private final SubsetWindow subWin_;
 
@@ -208,7 +207,8 @@ public class SampCommunicator implements TopcatCommunicator {
     /**
      * SendActionManager for sending FITS images from the density plot window.
      */
-    private class DensityImageSendActionManager extends CallActionManager {
+    private class DensityImageSendActionManager
+                  extends UniformCallActionManager {
         private final DensityWindow densWin_;
 
         /**
