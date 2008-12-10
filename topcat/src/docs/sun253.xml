@@ -11231,6 +11231,9 @@ introduced since the last version:
         &utype.prefix; syntax in a similar way to using UCDs.</li>
     <li>Simbad name resolver fixed in cone search window
         (was using a no-longer-supported service format).</li>
+    <li>New SAMP window available from Control Window toolbar.</li>
+    <li>Broadcast Row checkbox near Activation Action selector in 
+        Control Window.</li>
     </ul>
     </p></dd>
 
