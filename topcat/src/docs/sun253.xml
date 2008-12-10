@@ -11229,6 +11229,8 @@ introduced since the last version:
     <li>Add plot output option for gzipped PostScript.</li>
     <li>Table columns and parameters can now be referenced by Utype using
         &utype.prefix; syntax in a similar way to using UCDs.</li>
+    <li>Simbad name resolver fixed in cone search window
+        (was using a no-longer-supported service format).</li>
     </ul>
     </p></dd>
 

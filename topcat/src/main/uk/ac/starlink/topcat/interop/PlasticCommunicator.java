@@ -19,6 +19,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
+import javax.swing.event.ChangeListener;
 import nom.tam.fits.FitsException;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
@@ -166,6 +167,18 @@ public class PlasticCommunicator implements TopcatCommunicator {
 
     public JComponent createInfoPanel() {
         return null;
+    }
+
+    public Action createWindowAction( Component parent ) {
+        return null;
+    }
+
+    public boolean isConnected() {
+        return plasticServer_.getRegisteredId() != null;
+    }
+
+    public void addConnectionListener( ChangeListener listener ) {
+        plasticServer_.getRegisterToggle().addChangeListener( listener );
     }
 
     /**

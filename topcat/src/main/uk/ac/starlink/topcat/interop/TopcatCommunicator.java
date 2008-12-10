@@ -1,8 +1,10 @@
 package uk.ac.starlink.topcat.interop;
 
+import java.awt.Component;
 import java.io.IOException;
 import javax.swing.Action;
 import javax.swing.JComponent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -106,4 +108,29 @@ public interface TopcatCommunicator {
      * @return   status component, or null if unimplemented
      */
     JComponent createInfoPanel();
+
+    /**
+     * Constructs an action which will display a control window for this
+     * communicator.
+     *
+     * @param   parent  parent component
+     * @return   communicator control window, or null if none is available
+     */
+    Action createWindowAction( Component parent );
+
+    /**
+     * Indicates (without attempting a connection) whether a hub connection is
+     * currently in force.
+     *
+     * @return   whether hub is connected
+     */
+    boolean isConnected();
+
+    /**
+     * Adds a listener which will be notified any time that connection status
+     * may have changed.
+     *
+     * @param   listener   listener to add
+     */
+    void addConnectionListener( ChangeListener listener );
 }

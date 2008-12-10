@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.interop;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
@@ -154,6 +157,28 @@ public class SampCommunicator implements TopcatCommunicator {
         else {
             HubRunner.runHub( INTERNAL_HUB_MODE, XmlRpcKit.INTERNAL );
         }
+    }
+
+    public Action createWindowAction( final Component parent ) {
+        return new BasicAction( "Control SAMP status", ResourceIcon.SAMP,
+                                "Show window displaying SAMP inter-tool "
+                              + "messaging status and configuration" ) {
+            private SampWindow sampWindow_;
+            public void actionPerformed( ActionEvent evt ) {
+                if ( sampWindow_ == null ) {
+                    sampWindow_ = new SampWindow( parent, hubConnector_ );
+                }
+                sampWindow_.makeVisible();
+            }
+        };
+    }
+
+    public boolean isConnected() {
+        return hubConnector_.isConnected();
+    }
+
+    public void addConnectionListener( ChangeListener listener ) {
+        hubConnector_.addConnectionListener( listener );
     }
 
     /**

@@ -47,6 +47,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.topcat.interop.RowActivity;
 
 /**
  * Defines all the state for the representation of a given table as
@@ -75,6 +76,7 @@ public class TopcatModel {
     private final ComboBoxModel sortSelectionModel_;
     private final ComboBoxModel subsetSelectionModel_;
     private final SortSenseModel sortSenseModel_;
+    private final ToggleButtonModel rowSendModel_;
     private final Collection listeners_;
     private final Map columnSelectorMap_;
     private final int id_;
@@ -96,6 +98,7 @@ public class TopcatModel {
         Logger.getLogger( "uk.ac.starlink.topcat" );
     private static int instanceCount = 0;
     private static StarTableColumn DUMMY_COLUMN;
+    private static RowActivity rowActivity_;
 
     /**
      * Constructs a new model from a given StarTable.
@@ -170,6 +173,12 @@ public class TopcatModel {
         /* Set up the current sort selector. */
         sortSelectionModel_ = new SortSelectionModel();
         sortSenseModel_ = new SortSenseModel();
+
+        /* Set up model for whether activated rows are broadcast. */
+        rowSendModel_ =
+            new ToggleButtonModel( "Broadcast Row", null,
+                                   "Whether to broadcast row index to other "
+                                 + "clients at at row activation" );
 
         /* Initialise subsets list. */
         subsets_ = new OptionsListModel();
@@ -521,6 +530,16 @@ public class TopcatModel {
     }
 
     /**
+     * Returns a toggle button model which determines whether a row 
+     * activation will automatically generate an interop row highlight message.
+     *
+     * @return   row send model
+     */
+    public ToggleButtonModel getRowSendModel() {
+        return rowSendModel_;
+    }
+
+    /**
      * Adds a listener to be notified of changes in this model.
      *
      * @param  listener  listener to add
@@ -567,7 +586,15 @@ public class TopcatModel {
                     System.out.println( msg );
                 }
             }
-            lastHighlight_ = lrow;
+            if ( rowSendModel_.isSelected() &&
+                 controlWindow_.getCommunicator().isConnected() ) {
+                try {
+                    getRowActivity().highlightRow( this, lrow );
+                }
+                catch ( IOException e ) {
+                    logger_.info( "Row send fail: " + e );
+                }
+            }
         }
     }
 
@@ -1078,6 +1105,18 @@ public class TopcatModel {
             colMap[ icol ] = columnModel_.getColumn( icol ).getModelIndex();
         }
         return new ColumnPermutedStarTable( viewModel_.getSnapshot(), colMap );
+    }
+
+    /**
+     * Returns a RowActivity object which can be used from this model.
+     *
+     * @return  lazily constructed row activity
+     */
+    private RowActivity getRowActivity() {
+        if ( rowActivity_ == null ) {
+            rowActivity_ = controlWindow_.getCommunicator().createRowActivity();
+        }
+        return rowActivity_;
     }
 
     /**

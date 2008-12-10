@@ -60,6 +60,7 @@ import javax.swing.ListModel;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -151,6 +152,7 @@ public class ControlWindow extends AuxWindow
     private final JComboBox sortSelector_ = new JComboBox();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JButton activatorButton_ = new JButton();
+    private final JCheckBox rowSendButton_ = new JCheckBox();
     private final TopcatCommunicator communicator_;
 
     private final Action readAct_;
@@ -202,8 +204,10 @@ public class ControlWindow extends AuxWindow
         info.addLine( "Sort Order", new Component[] { sortSenseButton_,
                                                       sortSelector_ } );
         info.addLine( "Row Subset", subsetSelector_ );
-        info.addLine( "Activation Action", activatorButton_ );
+        info.addLine( "Activation Action",
+                      new Component[] { activatorButton_, rowSendButton_ } );
         activatorButton_.setText( "           " );
+        rowSendButton_.setLabel( "Broadcast Row" );
         info.fillIn();
 
         /* Reduce size of unused control panel. */
@@ -236,6 +240,12 @@ public class ControlWindow extends AuxWindow
         if ( interopPanel != null ) {
             infoPanel.add( interopPanel, BorderLayout.SOUTH );
         }
+        communicator_.addConnectionListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                rowSendButton_.setEnabled( communicator_.isConnected() );
+            }
+        } );
+        rowSendButton_.setEnabled( communicator_.isConnected() );
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -326,6 +336,7 @@ public class ControlWindow extends AuxWindow
         interophelpAct.putValue( Action.SHORT_DESCRIPTION,
                                  "Show help on PLASTIC with details of "
                                + "supported messages" );
+        Action interopAct = communicator_.createWindowAction( this );
 
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
@@ -390,6 +401,9 @@ public class ControlWindow extends AuxWindow
 
         /* Add miscellaneous actions to the toolbar. */
         toolBar.add( MethodWindow.getWindowAction( this, true ) );
+        if ( interopAct != null ) {
+            toolBar.add( interopAct );
+        }
         toolBar.addSeparator();
 
         /* Add actions to the file menu. */
@@ -735,6 +749,7 @@ public class ControlWindow extends AuxWindow
             sortSenseButton_.setModel( tcModel.getSortSenseModel() );
             activatorButton_.setAction( tcModel.getActivationAction() );
             activatorButton_.setText( activator.toString() );
+            rowSendButton_.setModel( tcModel.getRowSendModel() );
         }
         else {
             idField_.setText( null );
@@ -748,7 +763,9 @@ public class ControlWindow extends AuxWindow
             subsetSelector_.setModel( dummyComboBoxModel_ );
             sortSenseButton_.setModel( dummyButtonModel_ );
             activatorButton_.setModel( dummyButtonModel_ );
+            rowSendButton_.setModel( dummyButtonModel_ );
         }
+        rowSendButton_.setEnabled( communicator_.isConnected() );
 
         /* Make sure that the actions which relate to a particular table model
          * are up to date. */
@@ -1429,19 +1446,14 @@ public class ControlWindow extends AuxWindow
         }
 
         void addLine( String name, Component[] comps ) {
-            c1.gridy++;
-            c2.gridy++;
-
-            addItem( new JLabel( name + ": " ), c1 );
-
-            GridBagConstraints c2c = (GridBagConstraints) c2.clone();
-            c2c.gridwidth = 1;
-            c2c.weightx = 0.0;
-            c2c.ipadx = 10;
+            Box compBox = Box.createHorizontalBox();
             for ( int i = 0; i < comps.length; i++ ) {
-                addItem( comps[ i ], c2c );
-                c2c.gridx++;
+                if ( i > 0 ) {
+                    compBox.add( Box.createHorizontalStrut( 5 ) );
+                }
+                compBox.add( comps[ i ] );
             }
+            addLine( name, compBox );
         }
 
         void addItem( Component comp, GridBagConstraints c ) {
