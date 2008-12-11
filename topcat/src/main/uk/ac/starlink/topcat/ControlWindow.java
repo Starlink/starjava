@@ -207,7 +207,7 @@ public class ControlWindow extends AuxWindow
         info.addLine( "Activation Action",
                       new Component[] { activatorButton_, rowSendButton_ } );
         activatorButton_.setText( "           " );
-        rowSendButton_.setLabel( "Broadcast Row" );
+        rowSendButton_.setText( "Broadcast Row" );
         info.fillIn();
 
         /* Reduce size of unused control panel. */
