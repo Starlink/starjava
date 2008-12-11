@@ -147,7 +147,7 @@ public class SampCommunicator implements TopcatCommunicator {
                     throws IOException {
                 Map msg = sampControl_.createSubsetMessage( tcModel, rset );
                 if ( msg != null ) {
-                    subsetSender.notify( msg );
+                    subsetSender.call( msg );
                 }
             }
         };
