@@ -78,11 +78,19 @@ public interface TopcatCommunicator {
 
     /**
      * Returns an object which can be used to send messages highlighting
-     * table rows.
+     * single table rows.
      *
      * @return   new activity object
      */
     RowActivity createRowActivity();
+
+    /**
+     * Returns an object which can be used to send messages selecting 
+     * table row subsets.
+     *
+     * @return   new activity object
+     */
+    SubsetActivity createSubsetActivity();
 
     /**
      * Returns an object which can be used to display images.

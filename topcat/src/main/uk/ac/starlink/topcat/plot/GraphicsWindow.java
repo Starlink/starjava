@@ -63,6 +63,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.SubsetConsumer;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -1547,9 +1548,9 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
   
         /* Get the name for the new subset(s). */
-        String name = getPointSelectors().getMainSelector().getTable()
-                     .enquireNewSubsetName( this );
-        if ( name == null ) {
+        SubsetConsumer consumer = getPointSelectors().getMainSelector()
+                                 .getTable().enquireNewSubsetConsumer( this );
+        if ( consumer == null ) {
             return;
         }
 
@@ -1567,7 +1568,7 @@ public abstract class GraphicsWindow extends AuxWindow {
 
             /* Try adding a new subset to the table. */
             if ( tmask.cardinality() > 0 ) {
-                tcModel.addSubset( new BitsRowSubset( name, tmask ) );
+                consumer.consumeSubset( tcModel, tmask );
             }
         }
     }

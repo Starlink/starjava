@@ -32,6 +32,7 @@ import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.plot.DensityWindow;
@@ -157,6 +158,26 @@ public class PlasticCommunicator implements TopcatCommunicator {
                          ? new URI[] { ((ApplicationItem) item).getId() }
                          : null;
                 plasticServer_.highlightRow( tcModel, lrow, recipients );
+            }
+        };
+    }
+
+    public SubsetActivity createSubsetActivity() {
+        final ComboBoxModel selector =
+            plasticServer_
+           .createPlasticComboBoxModel( MessageId.VOT_SHOWOBJECTS );
+        return new SubsetActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return selector;
+            }
+            public void selectSubset( TopcatModel tcModel, RowSubset rset )
+                    throws IOException {
+                Object item = selector.getSelectedItem();
+                final URI[] recipients =
+                   item instanceof ApplicationItem
+                        ? new URI[] { ((ApplicationItem) item).getId() }
+                        : null;
+                plasticServer_.transmitSubset( tcModel, rset, recipients );
             }
         };
     }

@@ -11234,6 +11234,9 @@ introduced since the last version:
     <li>New SAMP window available from Control Window toolbar.</li>
     <li>Broadcast Row checkbox near Activation Action selector in 
         Control Window.</li>
+    <li>When a new subset is created by whatever method, the user can now
+        elect to transmit it to other applications using SAMP/PLASTIC as
+        an alternative to adding a new subset to the table's subset list.</li>
     </ul>
     </p></dd>
 

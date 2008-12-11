@@ -28,6 +28,7 @@ import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.plastic.MessageId;
+import uk.ac.starlink.plastic.NoHubException;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -273,6 +274,32 @@ public class TopcatPlasticListener extends HubManager {
             }
         };
     }
+
+    /**
+     * Sends a row subset to a specific list of PLASTIC listeners.
+     * It uses the <code>ivo://votech.org/votable/showObjects</code> message.
+     *
+     * @param   tcModel  topcat model
+     * @param   rset   row subset within tcModel
+     * @param  recipients  listeners to receive it; null means do a broadcast
+     */
+    public void transmitSubset( TopcatModel tcModel, RowSubset rset,
+                                URI[] recipients ) throws IOException {
+
+        /* Get the hub and ID. */
+        register();
+        PlasticHubListener hub = getHub();
+        URI plasticId = getRegisteredId();
+
+        /* Do the work. */
+        if ( plasticId != null ) {
+            transmitSubset( tcModel, rset, hub, plasticId, recipients );
+        }
+        else {
+            throw new NoHubException( "No hub" );
+        }
+    }
+
 
     /**
      * Sends a row subset to a specific list of PLASTIC listeners.

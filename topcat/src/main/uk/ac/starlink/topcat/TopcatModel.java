@@ -79,6 +79,7 @@ public class TopcatModel {
     private final ToggleButtonModel rowSendModel_;
     private final Collection listeners_;
     private final Map columnSelectorMap_;
+    private SubsetConsumerDialog subsetConsumerDialog_;
     private final int id_;
     private final ControlWindow controlWindow_;
     private String location_;
@@ -813,71 +814,21 @@ public class TopcatModel {
     }
 
     /**
-     * Pops up a modal dialogue to ask the user the name for a new RowSubset.
-     * The user may either choose the name of one of the subsets in the
-     * existing list, or enter a new one.
+     * Pops up a dialogue to ask the user what to do with a newly created
+     * RowSubset.  The user may supply a new or old name which adds it to
+     * this model, or may elect to send it to another application via
+     * SAMP/PLASTIC.
      *
      * @param   parent  parent component
-     * @return  a new subset name entered by the user, or <code>null</code>
-     *          if s/he bailed out
+     * @return   subset consumer, or null if the user doesn't want to play
      */
-    public String enquireNewSubsetName( Component parent ) {
-
-        /* Set up a selector for a new subset name. */
-        final JComboBox nameSelector = createNewSubsetNameSelector();
-
-        /* Use this as the "message" part of a JOptionPane dialogue. */
-        JComponent inputBox = Box.createHorizontalBox();
-        inputBox.add( new JLabel( "New Subset Name: " ) );
-        inputBox.add( nameSelector );
-        final JOptionPane dialog =
-            new JOptionPane( inputBox, JOptionPane.QUESTION_MESSAGE,
-                             JOptionPane.OK_CANCEL_OPTION );
-
-        /* Arrange that hitting return on the editable part of the selector
-         * will cause the dialogue OK button to be triggered.  This is a
-         * bit involved and fragile; however certain more obvious ways
-         * don't seem to work. */
-        if ( nameSelector.getEditor().getEditorComponent()
-             instanceof JTextField ) {
-            final JTextField tfield =
-                (JTextField) nameSelector.getEditor().getEditorComponent();
-            tfield.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent evt ) {
-                    String text = tfield.getText();
-                    if ( text != null && text.trim().length() > 0 ) {
-                        nameSelector.setSelectedItem( text );
-                        dialog.setValue( new Integer( JOptionPane.OK_OPTION ) );
-                    }
-                }
-            } );
+    public SubsetConsumer enquireNewSubsetConsumer( Component parent ) {
+        if ( subsetConsumerDialog_ == null ) {
+            subsetConsumerDialog_ =
+                new SubsetConsumerDialog( this,
+                                          controlWindow_.getCommunicator() );
         }
-
-        /* Present the dialogue and wait for a synchronous result. */
-        dialog.createDialog( parent, "Enter Subset Name" ).show();
-
-        /* Analyse the selected content of the selector - it will either be
-         * a name or a RowSubset.  Either way, what we want is the string. */
-        if ( new Integer( JOptionPane.OK_OPTION )
-            .equals( dialog.getValue() ) ) {
-            Object item = nameSelector.getSelectedItem();
-            if ( item instanceof String ) {
-                String name = (String) item;
-                return name.trim().length() > 0 ? name : null;
-            }
-            else if ( item instanceof RowSubset ) {
-                return ((RowSubset) item).getName();
-            }
-            else {
-                assert item == null;
-                return null;
-            }
-        }
-
-        /* If the Cancel button was hit, return null. */
-        else {
-            return null;
-        }
+        return subsetConsumerDialog_.enquireConsumer( parent );
     }
 
     /**

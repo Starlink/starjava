@@ -615,14 +615,12 @@ public class TableViewerWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == includeAct || this == excludeAct ) {
                 boolean exclude = this == excludeAct;
-                String name =
-                    tcModel.enquireNewSubsetName( TableViewerWindow.this );
-                if ( name != null ) {
+                SubsetConsumer consumer =
+                    tcModel.enquireNewSubsetConsumer( TableViewerWindow.this );
+                if ( consumer != null ) {
                     BitSet bits = exclude ? getUnselectedRowFlags()
                                           : getSelectedRowFlags();
-                    RowSubset rset = new BitsRowSubset( name, bits );
-                    tcModel.addSubset( rset );
-                    tcModel.applySubset( rset );
+                    consumer.consumeSubset( tcModel, bits );
                 }
             }
             else {

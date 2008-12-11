@@ -136,6 +136,23 @@ public class SampCommunicator implements TopcatCommunicator {
         };
     }
 
+    public SubsetActivity createSubsetActivity() {
+        final SendManager subsetSender =
+            new SendManager( hubConnector_, "table.select.rowList" );
+        return new SubsetActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return subsetSender.getComboBoxModel();
+            }
+            public void selectSubset( TopcatModel tcModel, RowSubset rset )
+                    throws IOException {
+                Map msg = sampControl_.createSubsetMessage( tcModel, rset );
+                if ( msg != null ) {
+                    subsetSender.notify( msg );
+                }
+            }
+        };
+    }
+
     public ImageActivity createImageActivity() {
         return new SampImageActivity( hubConnector_ );
     }
