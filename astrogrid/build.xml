@@ -941,6 +941,7 @@
           depends="build"
           if="junit.present">
 
+  <!--
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -951,6 +952,7 @@
 
       <classpath refid="tests-classpath"/>
     </javac>
+   !-->
 
   </target>
 
