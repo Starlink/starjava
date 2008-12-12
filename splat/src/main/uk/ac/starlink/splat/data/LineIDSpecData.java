@@ -285,11 +285,35 @@ public class LineIDSpecData
     }
 
     //
-    // Draw the "spectrum". In this case it means draw the line id
-    // strings.
+    // Draw the "spectrum". Override the default implementation to call the
+    // local one that has additional params.
     //
     public void drawSpec( Grf grf, Plot plot, double[] clipLimits,
                           boolean physical, double[] fullLimits )
+    {
+        drawSpec( grf, plot, clipLimits, physical, fullLimits, null,
+                  getLineColour() );
+    }
+
+   /**
+     * Draw the line identifiers onto the given widget using a suitable 
+     * AST GRF object.
+     *
+     * @param grf Grf object that can be drawn into using AST primitives.
+     * @param plot reference to Plot defining transformation from physical
+     *             coordinates into graphics coordinates.
+     * @param clipLimits limits of the region to draw used to clip graphics.
+     *                   These can be in physical or graphics coordinates.
+     * @param physical whether limits are physical or graphical.
+     * @param fullLimits full limits of drawing area in graphics coordinates.
+     *                   May be used for positioning when clipping limits are
+     *                   not used.
+     * @param postfix a string that will be postfixed to the labels.
+     * @param colour a colour for labels etc.
+     */
+    public void drawSpec( Grf grf, Plot plot, double[] clipLimits,
+                          boolean physical, double[] fullLimits,
+                          String postfix, int colour )
     {
         //  Set up clip region if needed.
         Rectangle cliprect = null;
@@ -335,15 +359,17 @@ public class LineIDSpecData
         //  Guess a length for the lines.
         double lineLength = yshift;
 
-        //  Need to generate positions for placing the labels. The
-        //  various schemes for this are use any positions read from
-        //  the implementation, use the positions from a SpecData and
-        //  finally put them along the given limits.
+        //  Need to generate positions for placing the labels. The various 
+        //  schemes for this are use any positions read from the 
+        //  implementation, use the positions from a SpecData and finally 
+        //  put them along the top or bottom of the given limits.
         double[] xypos = new double[xPos.length * 2];
         double[] ypos = yPos;
         if ( specData != null ) {
             ypos = specData.getYData();
         }
+        double defaultPos = clipLimits[1] + yshift;
+
         if ( ypos != null ) {
 
             if ( specData == null ) {
@@ -351,7 +377,7 @@ public class LineIDSpecData
                 for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                     xypos[i] = xPos[j];
                     if ( ypos[j] == BAD ) {
-                        xypos[i + 1] = clipLimits[1] + yshift;
+                        xypos[i + 1] = defaultPos;
                     }
                     else {
                         xypos[i + 1] = ypos[j] + yshift;
@@ -370,7 +396,7 @@ public class LineIDSpecData
 
                     //  Record data position.
                     if ( ypos[bound[0]] == BAD ) {
-                        xypos[i + 1] = clipLimits[1] + yshift;
+                        xypos[i + 1] = defaultPos;
                     }
                     else {
                         xypos[i + 1] = ypos[bound[0]] + yshift;
@@ -404,7 +430,7 @@ public class LineIDSpecData
                     //  Record position of label.
                     xypos[i] = xPos[j];
                     if ( tmp[1][0] == BAD ) {
-                        xypos[i + 1] = clipLimits[1] + yshift;
+                        xypos[i + 1] = defaultPos;
                     }
                     else {
                         xypos[i + 1] = tmp[1][0] + yshift;
@@ -416,7 +442,7 @@ public class LineIDSpecData
             // Generate data positions relative to the limits.
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
-                xypos[i + 1] = clipLimits[1] + yshift; // or clipLimits[3]?
+                xypos[i + 1] = defaultPos;
             }
         }
 
@@ -430,19 +456,34 @@ public class LineIDSpecData
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, false );
         defaultGrf.setClipRegion( cliprect );
 
+        //  Apply the given line colour, may not be the default one.
+        defaultGrf.attribute( Grf.GRF__COLOUR, colour, Grf.GRF__LINE );
+
         double[] pos = new double[2];
 
-        if ( prefixShortName ) {
-            if ( prefixName == null ) {
-                setShortName( shortName );
+        if ( prefixShortName || postfix != null ) {
+
+            //  Have  prefix or postfix string to add. Maybe not both.
+            if ( prefixShortName ) {
+                if ( prefixName == null || "".equals( prefixName ) ) {
+                    setShortName( shortName );
+                }
+                if ( postfix == null ) {
+                    postfix = "";
+                }
             }
+            else {
+                // Just adding a postfix, which cannot be null.
+                prefixName = "";
+            }
+
             String label = null;
             double hshift = 0.2 * yshift; //  Offset when horizontal
             double shift = hshift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
-                label = prefixName + labels[i];
+                label = prefixName + labels[i] + postfix;
                 plot.text( label, pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
                     if ( ! horizontal ) {

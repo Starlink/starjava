@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2008 Science and Technology Facilities Council
  *
  *  History:
  *    12-SEP-1999 (Peter W. Draper):
@@ -261,6 +261,12 @@ public class DivaPlot
     protected boolean trackFreely = false;
 
     /**
+     * Whether to draw line identifiers aligned to both systems of a DSB
+     * spectrum or not.
+     */
+    private boolean doubleDSBLineIds = true;
+
+    /**
      * Plot a series of spectra.
      *
      * @param spectra reference to spectra.
@@ -423,6 +429,22 @@ public class DivaPlot
     public boolean isTrackFreely()
     {
         return trackFreely;
+    }
+
+    /**
+     * Set whether to draw line identifiers for both DSB axes.
+     */
+    public void setDoubleDSBLineIds( boolean doubleDSBLineIds )
+    {
+        this.doubleDSBLineIds = doubleDSBLineIds;
+    }
+
+    /**
+     * Get whether we are drawing line identifiers for both axes.
+     */
+    public boolean isDoubleDSBLineIds()
+    {
+        return doubleDSBLineIds;
     }
 
     /**
@@ -840,6 +862,33 @@ public class DivaPlot
         repaint();
     }
 
+
+    /**
+     * Draw the line identifiers aligned to the other sideband when 
+     * spectrum is dualside.
+     *
+     * @param postfix some string to add to the labels so that these are
+     *                clearly aligned to the current sideband, which shouldn't
+     *                be the default sideband ("(USB)" or "(LSB)" as
+     *                appropriate).
+     */
+    protected void drawDoubleDSBLineIdentifiers( String postfix )
+        throws SplatException
+    {
+        //  Note no clipping limits apply for ids.
+        if ( spectra.count() > 0 && doubleDSBLineIds ) {
+
+            //  Regenerate the mappings to match the current sideband of the
+            //  current spectrum.
+            spectra.regenerate();
+
+            //  Draw these in red. Usual default is blue.
+            spectra.drawLineIdentifiers( mainGrf, mainPlot, null, baseBox, 
+                                         postfix, Color.red.getRGB() );
+            spectra.regenerate();
+        }
+    }
+
     /**
      * Draw the spectra. This should use the current plotting attributes and
      * style.
@@ -932,7 +981,7 @@ public class DivaPlot
         //  unless the graphics are clipped, in which case we have no choice.
         //  When clipped we avoid drawing the graphics overlay, unless the
         //  plot has been scaled (not doing so causes a re-draw runaway as the
-        //  figure seems to be permanently dirty).
+        //  figure is permanently dirty).
         try {
             if ( xyScaled || visibleOnly ) {
                 boolean scaleFigures = true;
@@ -1017,6 +1066,7 @@ public class DivaPlot
 
                 //  If DSBSpecFrame, want to also draw the other side band
                 //  coordinates along the unused X axis (usually top).
+                Plot dsbPlot = null;
                 if ( isDSB ) {
 
                     //  Create a new mainPlot that uses the world coordinates
@@ -1032,22 +1082,26 @@ public class DivaPlot
                                 graphicsEdges.getYTop(),
                                 graphicsEdges.getYBottom(),
                                 plotConfig.getAst( false ) );
+                    dsbPlot = mainPlot;
                     astref.setBase( base );
                     unsetSideBandBaseBox();
 
                     //  Switch the sideband and draw the grid.
+                    String currentSideBand = " (USB)";
                     if ( "USB".equals( sideband ) ) {
                         astref.setC( "SideBand", "LSB" );
+                        currentSideBand = " (LSB)";
                     }
                     else {
                         astref.setC( "SideBand", "USB" );
                     }
 
                     //  This Plot shares the mainGrf with the real mainPlot.
-                    mainPlot.setGrf( mainGrf );
-                    mainPlot.grid();
+                    dsbPlot.setGrf( mainGrf );
+                    dsbPlot.grid();
 
-                    //  Restore the original mainPlot and continue.
+                    //  Restore the original mainPlot and sideband and
+                    //  continue.
                     mainPlot = mainMainPlot;
                     astref.setC( "SideBand", sideband );
                 }
@@ -1062,6 +1116,32 @@ public class DivaPlot
                         redrawOverlay( oldAstPlot );
                     }
 
+                    //  If any line identifiers are to be redrawn matched
+                    //  against the other sideband, then do that now (this
+                    //  avoids problems with overwrites of the labels by
+                    //  spectra).
+                    if ( isDSB ) {
+                        
+                        //  Switch current spectral coordinates to other sideband.
+                        String currentSideBand = " (USB)";
+                        if ( "USB".equals( sideband ) ) {
+                            astref.setC( "SideBand", "LSB" );
+                            currentSideBand = " (LSB)";
+                        }
+                        else {
+                            astref.setC( "SideBand", "USB" );
+                        }
+
+                        //  Draw the line identifiers.
+                        Plot mainMainPlot = mainPlot;
+                        mainPlot = dsbPlot;
+                        drawDoubleDSBLineIdentifiers( currentSideBand );
+
+                        //  Restore the sideband and plot.
+                        mainPlot = mainMainPlot;
+                        astref.setC( "SideBand", sideband );
+                    }
+
                     //  Inform any listeners that the Plot has been scaled.
                     if ( xyScaled ) {
                         fireScaled();
@@ -1069,7 +1149,6 @@ public class DivaPlot
                         //  Drawn at least once, so OK to track mouse events.
                         readyToTrack = true;
                     }
-
                 }
                 mainGrf.establishContext( mainGrf.DEFAULT );
 

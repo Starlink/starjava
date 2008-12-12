@@ -63,12 +63,6 @@ $cached_env_img{$key} = q|<IMG
 class SpecDataFactory}
 }}">|; 
 
-$key = q/nomath_inline}fboxExamplesetcolournomath_inline};MSF=1.5;LFS=11;AAT/;
-$cached_env_img{$key} = q|<IMG
- WIDTH="150" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
- SRC="|."$dir".q|img3.gif"
- ALT="\fbox{Example set colour}">|; 
-
 $key = q/nomath_inline}fboxparboxtextwidthtextitpublicclassSpectralFileFilterimplementsjava.io.FileFilternomath_inline};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
  WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
@@ -86,6 +80,12 @@ $cached_env_img{$key} = q|<IMG
 \textit{public
 class SpecDataFactory}
 }}">|; 
+
+$key = q/nomath_inline}fboxExamplesetcolournomath_inline};MSF=1.5;LFS=11;AAT/;
+$cached_env_img{$key} = q|<IMG
+ WIDTH="150" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="|."$dir".q|img3.gif"
+ ALT="\fbox{Example set colour}">|; 
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassPlotControlextendsjavax.swing.JPanelimpeListener,PlotScaledListener,java.awt.event.ActionListener}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG

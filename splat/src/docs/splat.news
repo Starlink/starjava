@@ -1,15 +1,20 @@
-
 1 Starlink SPLAT news.
+
+   3.8-9
+   =====
+
+   When displaying dual sideband spectra, line identifiers can now be drawn
+   for both sidebands, not just the current one.
 
    3.8-8
    =====
 
    The line profile fits now include error estimates for the fitting
-   parameters. 
+   parameters.
 
    An error in the derivates used when fitting the Voigt profile has been
    corrected. This should give closer fits in some cases.
-   
+
    MIME types from SSAP queries may now include trailing attributes.
 
    The SSAP query options have been extended to include TIME, FLUXCALIB
@@ -25,10 +30,10 @@
    The query SSAP server dialog now offers "select all" and "remove
    unselected" options.
 
-   A problem with matching the spectral coordinate system to that of the 
-   units has been fixed. 
+   A problem with matching the spectral coordinate system to that of the
+   units has been fixed.
 
-   The data unit milliJansky has been added as a known unit for quick 
+   The data unit milliJansky has been added as a known unit for quick
    unit changes.
 
    3.8-7
@@ -52,7 +57,7 @@
 
    A new command-line option --debuglevel to control the messages output on
    the terminal has been introduced. By default fewer messages will now
-   be seen (especially from the browser window), more can be seen by 
+   be seen (especially from the browser window), more can be seen by
    setting a level greater than zero, but that should only be required when
    helping to diagnose a problem.
 
@@ -118,13 +123,13 @@
    have sufficient precision so that adjacent values can be distinguished.
 
    Problems displaying spectra sent from GAIA when the plot synopsis is
-   enabled (which came out at the wrong size and with the synopsis misplaced) 
+   enabled (which came out at the wrong size and with the synopsis misplaced)
    should be resolved.
 
-   The synopsis should now be placed at the top-left hand corner of the 
+   The synopsis should now be placed at the top-left hand corner of the
    axis for all plot aspect ratios.
 
-   Data units which dimensionally match one of the preset flux values 
+   Data units which dimensionally match one of the preset flux values
    will now be identified and shown as the preset value in the data units
    and plot units toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now
    be recognised as "erg/cm^2/s/Angstrom".
@@ -132,14 +137,14 @@
    3.8-0
    =====
 
-   Controls have been added to the statistics toolbox so that the TSYS related 
+   Controls have been added to the statistics toolbox so that the TSYS related
    parameters can be set and inspected.
 
    3.7-2
    =====
 
-   The FITS headers of all selected spectra can now be viewed and 
-   printed using actions available in the main window. Only NDFs 
+   The FITS headers of all selected spectra can now be viewed and
+   printed using actions available in the main window. Only NDFs
    and 1D FITS spectra (not tables) can currently have FITS headers.
 
    The builtin sub-millimetre line identifiers have been updated to match
@@ -156,7 +161,7 @@
    3.6-9
    =====
 
-   A new rest frequency can now be selecting using the plot units 
+   A new rest frequency can now be selecting using the plot units
    toolbox. The new frequency can be selected by clicking on a position
    in the plot, or a line identifier.
 
@@ -173,7 +178,7 @@
 
    FITS headers are now preserved when creating derived spectra.
 
-   Simple range, mean and standard deviation estimates can now be 
+   Simple range, mean and standard deviation estimates can now be
    shown for any variance or error values.
 
    3.6-7
@@ -185,7 +190,7 @@
    A TSYS value can now be reported by the statistics toolbox. This
    will only work for JCMT ACSIS data. This is the same value as reported in
    the spectral synopsis, but uses the the variance from a region, not the
-   whole spectrum. 
+   whole spectrum.
 
    3.6-6
    =====
@@ -193,7 +198,7 @@
    All the line fitting functions now also report a FWHM value.
 
    The line identifiers should now correctly take account of velocity
-   changes in the rest frame of the observer. The display of line 
+   changes in the rest frame of the observer. The display of line
    identifiers has been changed to remove the _lines postfix and
    to replace all underscores with blanks when also displaying the
    shortname as part of the labels.
@@ -221,7 +226,7 @@
    are now positive, previously these were negative.
 
    It is now possible to define source velocities as optical or radio
-   velocities, as well as as a beta factor. Support continues for 
+   velocities, as well as as a beta factor. Support continues for
    relativistic velocities and redshifts.
 
    3.6-3
@@ -229,7 +234,7 @@
 
    An optional synopsis figure has been added to each plot. This shows
    some details of the current spectrum, such as it's name, the telescope,
-   instrument, object, position of extraction (when used together with GAIA), 
+   instrument, object, position of extraction (when used together with GAIA),
    etc.
 
    The SSAP query has been remodelled so that all queries are performed
@@ -243,7 +248,7 @@
    3.6-1
    =====
 
-   The statistics toolbox had an off-by-one difference between the 
+   The statistics toolbox had an off-by-one difference between the
    selected stats and the individual region stats, giving slightly different
    results. That has been fixed.
 

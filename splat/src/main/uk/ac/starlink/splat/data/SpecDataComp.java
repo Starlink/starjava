@@ -1103,6 +1103,95 @@ public class SpecDataComp
     }
 
     /**
+     *  Draw just the line identifiers spectra using the graphics context 
+     *  provided. This is used when drawing DSB spectra and both sets of
+     *  coordinates require labelling.
+     *
+     *  @param grf AST graphics context
+     *  @param plot AST plot
+     *  @param clipLimits limits of area being drawn in world coordinates,
+     *                    when clipping is required. Set to null when no
+     *                    clipping applies.
+     *  @param fullLimits limits of the whole graphics component in world
+     *                    coordinates.
+     *  @param postfix a string used to trail the identifiers (USB/LSB).
+     *  @param newcolour a colour for the labels, requires an RGB int.
+     */
+    public void drawLineIdentifiers( Grf grf, Plot plot, double[] clipLimits,
+                                     double[] fullLimits, String postfix,
+                                     int newcolour )
+        throws SplatException
+    {
+        if ( spectra.size() == 0 ) {
+            return;
+        }
+        Plot localPlot = plot;
+
+        //  Transform limits into graphics coordinates, if possible. These
+        //  apply to all spectra.
+        boolean physical = false;
+        double[] localClipLimits = transformLimits( plot, clipLimits, false );
+        if ( localClipLimits == null ) {
+            //  No graphics limits, assume given limits are valid and physical.
+            localClipLimits = clipLimits;
+            physical = true;
+        }
+
+        //  Also transform fullLimits into graphics coordinates.
+        double[] localFullLimits = transformLimits( plot, fullLimits, false );
+
+        SpecData spectrum = null;
+        FrameSet mapping = null;
+
+        regenerateMappings();
+
+        for ( int i = 0; i < spectra.size(); i++ ) {
+            spectrum = (SpecData)spectra.get( i );
+            if ( spectrum instanceof LineIDSpecData ) {
+                if ( coordinateMatching ) {
+                    if ( ! spectrum.equals( currentSpec ) ) {
+                        //  The coordinates systems and, optionally, data
+                        //  units of the spectra need to be matched so that
+                        //  they are drawn to the correct scale on the Plot of
+                        //  the current spectrum.
+                        mapping = (FrameSet) mappings.get( spectrum );
+                        localPlot = alignPlots( plot, mapping );
+                    }
+                    else {
+                        localPlot = plot;
+                    }
+                }
+                LineIDSpecData lineSpec = (LineIDSpecData) spectrum;
+                if ( trackerLineIDs ) {
+                    lineSpec.setSpecData( currentSpec, mapping );
+                }
+                else {
+                    lineSpec.setSpecData( null, null );
+                }
+                lineSpec.setPrefixShortName( prefixLineIDs );
+                lineSpec.setShowVerticalMarks( showVerticalMarks );
+                lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
+
+                //  Swap data and errors if needed.
+                if ( plotErrorsAsData ) {
+                    lineSpec.swapDataAndErrors();
+                }
+                try {
+                    //  Draw the line identifiers, using the new colour.
+                    lineSpec.drawSpec( grf, localPlot, localClipLimits, 
+                                       physical, localFullLimits, postfix,
+                                       newcolour );
+                }
+                finally {
+                    if ( plotErrorsAsData ) {
+                        spectrum.swapDataAndErrors();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      *  Draw all spectra using the graphics context provided.
      *
      *  @param grf AST graphics context

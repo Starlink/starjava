@@ -148,19 +148,20 @@ public class PlotControlFrame
      *  Main menubar and various menus.
      */
     protected JCheckBoxMenuItem autoFitPercentiles = null;
+    protected JCheckBoxMenuItem baseSystemMatching = null;
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
-    protected JCheckBoxMenuItem sidebandMatching = null;
-    protected JCheckBoxMenuItem offsetMatching = null;
-    protected JCheckBoxMenuItem baseSystemMatching = null;
-    protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem displayErrorsAsData = null;
+    protected JCheckBoxMenuItem doubleDSBLineIDs = null;
+    protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem horizontalLineIDs = null;
+    protected JCheckBoxMenuItem offsetMatching = null;
     protected JCheckBoxMenuItem prefixLineIDs = null;
-    protected JCheckBoxMenuItem showVerticalMarks = null;
     protected JCheckBoxMenuItem showShortNames = null;
     protected JCheckBoxMenuItem showSynopsis = null;
+    protected JCheckBoxMenuItem showVerticalMarks = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
+    protected JCheckBoxMenuItem sidebandMatching = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
     protected JMenu analysisMenu = new JMenu();
     protected JMenu editMenu = new JMenu();
@@ -758,6 +759,13 @@ public class PlotControlFrame
         horizontalLineIDs.addItemListener( this );
         state = prefs.getBoolean("PlotControlFrame_horizontallineids", false);
         horizontalLineIDs.setSelected( state );
+
+        //  Display labels for both axes of a DSB spectrum.
+        doubleDSBLineIDs = new JCheckBoxMenuItem("Show dual sideband labels");
+        lineOptionsMenu.add( doubleDSBLineIDs );
+        doubleDSBLineIDs.addItemListener( this );
+        state = prefs.getBoolean("PlotControlFrame_doubledsblineids", true );
+        doubleDSBLineIDs.setSelected( state );
     }
 
     /**
@@ -1954,6 +1962,14 @@ public class PlotControlFrame
             boolean state = horizontalLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_horizontallineids", state );
             plot.getSpecDataComp().setDrawHorizontalLineIDs( state );
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( doubleDSBLineIDs ) ) {
+            boolean state = doubleDSBLineIDs.isSelected();
+            prefs.putBoolean( "PlotControlFrame_doubledsblineids", state );
+            plot.getPlot().setDoubleDSBLineIds( state );
             plot.updatePlot();
             return;
         }
