@@ -33,6 +33,8 @@ public class SplatMain
     {
         //  Options that must be established before the UI is started.
         Loader.tweakGuiForMac();
+	System.setProperty( "com.apple.mrj.application.apple.menu.about.name",
+                            Utilities.getReleaseName() );
 
         //  Create and populate the SplashWindow.
         Frame splashFrame = null;
