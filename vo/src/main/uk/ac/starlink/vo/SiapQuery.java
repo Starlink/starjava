@@ -3,7 +3,6 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Logger;
-import org.us_vo.www.SimpleResource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -36,18 +35,20 @@ public class SiapQuery {
      * Constructs a SIAP query based on a resource from a registry.
      *
      * @param  resource  resource describing the SIAP service
+     * @param  capability  SIAP capability from resource
      * @param  raPos     right ascension of ROI center in degrees
      * @param  decPos    declination of ROI center in degrees
      * @param  raSize    ROI extent in right ascension in degrees
      * @param  decSize   ROI extent in declination in degrees
      */
-    public SiapQuery( SimpleResource resource, double raPos, double decPos, 
+    public SiapQuery( RegResource resource, RegCapabilityInterface capability,
+                      double raPos, double decPos,
                       double raSize, double decSize ) {
-        this( resource.getServiceURL(), raPos, decPos, raSize, decSize );
-        if ( ! resource.getServiceType().toUpperCase().startsWith( "SIAP" ) ) {
-            throw new IllegalArgumentException( 
-                "Resource " + resource.getShortName() + 
-                " is not labelled as a SIAP service" );
+        this( capability.getAccessUrl(), raPos, decPos, raSize, decSize );
+        if ( ! RegCapabilityInterface.SIA_STDID
+              .equals( capability.getStandardId() ) ) {
+            logger_.warning( capability.getAccessUrl()
+                           + " doesn't look like a SIAP service" );
         }
         String id = null;
         if ( id == null ) {

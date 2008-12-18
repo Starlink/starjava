@@ -15,7 +15,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import org.us_vo.www.SimpleResource;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -44,7 +43,8 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
     public ConeSearchDialog() {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
-               "serviceType like 'CONE'" );
+               "capability/@standardID = '" + RegCapabilityInterface.CONE_STDID
+                                            + "'", true );
 
         /* Add name resolution field. */
         Box resolveBox = Box.createHorizontalBox();
@@ -87,19 +87,31 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
         srField_.setEnabled( enabled );
     }
 
+    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
+        RegCapabilityInterface[] caps = super.getCapabilities( resource );
+        List cscapList = new ArrayList();
+        for ( int i = 0; i < caps.length; i++ ) {
+            if ( RegCapabilityInterface.CONE_STDID
+                .equals( caps[ i ].getStandardId() ) ) {
+                cscapList.add( caps[ i ] );
+            }
+        }
+        return (RegCapabilityInterface[])
+               cscapList.toArray( new RegCapabilityInterface[ 0 ] );
+    }
+
     protected TableSupplier getTableSupplier() {
-        SimpleResource[] resources = getRegistryPanel().getSelectedResources();
-        if ( resources.length != 1 ) {
+        RegResource[] resources =
+            getRegistryPanel().getSelectedResources();
+        RegCapabilityInterface[] capabilities =
+            getRegistryPanel().getSelectedCapabilities();
+        if ( resources.length != 1 || capabilities.length != 1 ) {
             throw new IllegalStateException( "No cone search service " +
                                              "selected" );
         }
-        SimpleResource resource = resources[ 0 ];
-        String stype = resource.getServiceType();
-        if ( ! "CONE".equalsIgnoreCase( stype ) ) {
-            logger_.warning( "ServiceType \"" + stype
-                           + "\" should be \"CONE\"" );
-        }
-        final ConeSearch coner = new ConeSearch( resource );
+        RegResource resource = resources[ 0 ];
+        RegCapabilityInterface capability = capabilities[ 0 ];
+        final ConeSearch coner = new ConeSearch( resource, capability );
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
@@ -110,7 +122,8 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
             decField_.getDescribedValue(),
             srField_.getDescribedValue(),
         } ) );
-        metadata.addAll( Arrays.asList( ConeSearch.getMetadata( resource ) ) );
+        metadata.addAll( Arrays.asList( ConeSearch
+                                       .getMetadata( resource, capability ) ) );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,
                                        String format ) throws IOException {

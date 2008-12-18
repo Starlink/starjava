@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
+import net.ivoa.registry.search.RegistrySearchClient;
 
 /**
  * Component which allows the user to select a registry to interrogate
@@ -27,7 +28,8 @@ public class RegistryQueryPanel extends JPanel {
 
     /** Known registry URLs.  */
     public static String[] KNOWN_REGISTRIES = new String[] {
-        RegistryInterrogator.DEFAULT_URL.toString(),
+        RegistryQuery.AG_REG,
+        RegistryQuery.NVO_REG,
     };
 
     /**
@@ -45,6 +47,7 @@ public class RegistryQueryPanel extends JPanel {
                 return getPreferredSize();
             }
         };
+        urlSelector_.setEditable( true );
         urlSelector_.setSelectedIndex( 0 );
         urlLine.add( new JLabel( "Registry: " ) );
         urlLine.add( urlSelector_ );
@@ -129,7 +132,14 @@ public class RegistryQueryPanel extends JPanel {
                 ((MutableComboBoxModel) qModel).addElement( query );
             }
         }
-        return new RegistryQuery( regURL, query );
+        final URL regURL1 = regURL;
+        RegistrySearchClient client = new RegistrySearchClient( regURL );
+        client.setRecordBufferSize( 100 );
+        return new RegistryQuery( client, query ) {
+            public URL getRegistry() {
+                return regURL1;
+            }
+        };
     }
 
     public void setEnabled( boolean enabled ) {

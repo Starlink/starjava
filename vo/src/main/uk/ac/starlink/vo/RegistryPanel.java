@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -16,11 +17,15 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import org.us_vo.www.SimpleResource;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -41,8 +46,10 @@ public class RegistryPanel extends JPanel {
     private Thread queryWorker_;
     protected Action submitQueryAction_;
     protected Action cancelQueryAction_;
-    protected JScrollPane scroller_;
+    protected JScrollPane resScroller_;
     protected RegistryTable regTable_;
+    protected final JTable capTable_;
+    private final CapabilityTableModel capTableModel_;
     private final RegistryQueryPanel queryPanel_;
     private final JComponent qBox_;
     private JComponent workingPanel_;
@@ -50,10 +57,17 @@ public class RegistryPanel extends JPanel {
     private List activeItems_;
     private String workingMessage_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
+
     /**
      * Constructs a RegistryPanel.
+     *
+     * @param  showCapabilities  true to display a selectable table of 
+     *         {@link RegCapabilityInterface}s below the table of
+     *         {@link RegResource}s
      */
-    public RegistryPanel() {
+    public RegistryPanel( boolean showCapabilities ) {
         super( new BorderLayout() );
         activeItems_ = new ArrayList();
 
@@ -89,8 +103,7 @@ public class RegistryPanel extends JPanel {
         /* Scroll pane which will hold the main data component. 
          * At any point this will hold either workingPanel_ or dataPanel_,
          * according to whether a query is currently in progress. */
-        scroller_ = new JScrollPane();
-        scroller_.setBorder( BorderFactory.createEtchedBorder() );
+        resScroller_ = new JScrollPane();
 
         /* Create the working panel (it will be populated when shown). */
         workingPanel_ = new JPanel( new BorderLayout() );
@@ -101,10 +114,48 @@ public class RegistryPanel extends JPanel {
         regTable_.setRowSelectionAllowed( true );
         dataPanel_ = regTable_;
         setWorking( null );
-        
+
+        /* Create the table for display of per-resource capabilities
+         * if required. */
+        if ( showCapabilities ) {
+            capTableModel_ = new CapabilityTableModel();
+            capTable_ = new JTable( capTableModel_ );
+            capTable_.setColumnSelectionAllowed( false );
+            capTable_.setRowSelectionAllowed( true );
+            final ListSelectionModel regSelModel =
+                regTable_.getSelectionModel();
+            regSelModel.addListSelectionListener( new ListSelectionListener() {
+                public void valueChanged( ListSelectionEvent evt ) {
+                    RegResource[] resources = getSelectedResources();
+                    if ( resources.length == 1 ) {
+                        RegCapabilityInterface[] caps =
+                            getCapabilities( resources[ 0 ] );
+                        capTableModel_.setCapabilities( caps );
+                        if ( caps.length > 0 ) {
+                            capTable_.setRowSelectionInterval( 0, 0 );
+                        }
+                    }
+                }
+            } );
+        }
+        else {
+            capTable_ = null;
+            capTableModel_ = null;
+        }
+
         /* Place components. */
         add( qBox_, BorderLayout.NORTH );
-        add( scroller_, BorderLayout.CENTER );
+        if ( showCapabilities ) {
+            JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+            splitter.setTopComponent( resScroller_ );
+            splitter.setBottomComponent( new JScrollPane( capTable_ ) );
+            splitter.setResizeWeight( 0.8 );
+            add( splitter, BorderLayout.CENTER );
+        }
+        else {
+            resScroller_.setBorder( BorderFactory.createEtchedBorder() );
+            add( resScroller_, BorderLayout.CENTER );
+        }
     }
 
     /**
@@ -140,7 +191,7 @@ public class RegistryPanel extends JPanel {
      * @param  resources   non-empty array of resources returned from a
      *                     successful query
      */
-    protected void gotData( SimpleResource[] resources ) {
+    protected void gotData( RegResource[] resources ) {
     }
 
     /**
@@ -149,8 +200,18 @@ public class RegistryPanel extends JPanel {
      *
      * @return   list of query results
      */
-    public SimpleResource[] getResources() {
+    public RegResource[] getResources() {
         return regTable_.getData();
+    }
+
+    /**
+     * Returns an array of all the relevant capabilities of a given resource.
+     *
+     * @param  resource
+     * @return   capability list
+     */
+    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
+        return resource.getCapabilities();
     }
 
     /**
@@ -159,17 +220,40 @@ public class RegistryPanel extends JPanel {
      *
      * @return   list of any selected query results
      */
-    public SimpleResource[] getSelectedResources() {
+    public RegResource[] getSelectedResources() {
         ListSelectionModel smodel = getResourceSelectionModel();
         List sres = new ArrayList();
-        SimpleResource[] data = getResources();
+        RegResource[] data = getResources();
         for ( int i = smodel.getMinSelectionIndex();
               i <= smodel.getMaxSelectionIndex(); i++ ) {
             if ( smodel.isSelectedIndex( i ) ) {
                 sres.add( data[ i ] );
             }
         }
-        return (SimpleResource[]) sres.toArray( new SimpleResource[ 0 ] );
+        return (RegResource[]) sres.toArray( new RegResource[ 0 ] );
+    }
+
+    /**
+     * Returns an array of all the capabilities associated with the 
+     * currently selected resource which are themselves currently selected.
+     *
+     * @return   capability list
+     */
+    public RegCapabilityInterface[] getSelectedCapabilities() {
+        if ( capTable_ == null ) {
+            return null;
+        }
+        ListSelectionModel smodel = capTable_.getSelectionModel();
+        RegCapabilityInterface[] allCaps = capTableModel_.getCapabilities();
+        List capList = new ArrayList();
+        for ( int i = smodel.getMinSelectionIndex();
+              i <= smodel.getMaxSelectionIndex(); i++ ) {
+            if ( smodel.isSelectedIndex( i ) ) {
+                capList.add( allCaps[ i ] );
+            }
+        }
+        return (RegCapabilityInterface[])
+               capList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     /**
@@ -191,34 +275,47 @@ public class RegistryPanel extends JPanel {
         /* Begin an asynchronous query on the registry. */
         setWorking( workingMessage_ );
         Thread worker = new Thread( "Registry query" ) {
-            SimpleResource[] data;
+            List resourceList = new ArrayList();
             String errmsg;
             Thread wk = this;
             public void run() {
                 Throwable error = null;
                 try {
-                    SimpleResource[] dat = query.performQuery();
-                    if ( dat == null || dat.length == 0 ) {
+                    for ( Iterator it = query.queryIterator(); it.hasNext(); ) {
+                        resourceList.add( (RegResource) it.next() );
+                    }
+                    logger_.info( "Records found: " + resourceList.size() );
+                    if ( resourceList.isEmpty() ) {
                         errmsg = "No resources found for query";
                     }
-                    else {
-                        data = dat;
-                    }
                 }
-                catch ( Throwable th ) {
-                    error = th;
+                catch ( RegistryQueryException e ) {
+                    error = e.getCause() == null ? e : e.getCause();
+                }
+                catch ( Throwable e ) {
+                    error = e;
                 }
                 final Throwable error1 = error;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         if ( queryWorker_ == wk ) {
-                            if ( error1 != null ) {
+                            if ( errmsg != null ) {
+                                JOptionPane
+                               .showMessageDialog( RegistryPanel.this, errmsg,
+                                                   "Query Failed",
+                                                   JOptionPane.ERROR_MESSAGE );
+                            }
+                            else if ( error1 != null ) {
                                 ErrorDialog.showError( RegistryPanel.this,
                                                        "Query Error", error1 );
                             }
                             else {
-                                regTable_.setData( data );
-                                gotData( data );
+                                RegResource[] resources =
+                                    (RegResource[])
+                                    resourceList
+                                   .toArray( new RegResource[ 0 ] );
+                                regTable_.setData( resources );
+                                gotData( resources );
                             }
                             setWorking( null );
                         }
@@ -246,7 +343,7 @@ public class RegistryPanel extends JPanel {
      * Returns the selection model used by the user to select resource items
      * from a completed query.
      *
-     * @return   selection model (each item will be a <tt>SimpleResource</tt>)
+     * @return   selection model (each item will be a {@link RegResource}
      */
     public ListSelectionModel getResourceSelectionModel() {
         return regTable_.getSelectionModel();
@@ -287,7 +384,7 @@ public class RegistryPanel extends JPanel {
     private void setWorking( String message ) {
         boolean working = message != null;
         if ( ! working ) {
-            scroller_.setViewportView( dataPanel_ );
+            resScroller_.setViewportView( dataPanel_ );
         }
         else {
             JComponent msgLine = Box.createHorizontalBox();
@@ -311,7 +408,7 @@ public class RegistryPanel extends JPanel {
 
             workingPanel_.removeAll();
             workingPanel_.add( workBox );
-            scroller_.setViewportView( workingPanel_ );
+            resScroller_.setViewportView( workingPanel_ );
         }
         setEnabled( ! working );
         cancelQueryAction_.setEnabled( working );

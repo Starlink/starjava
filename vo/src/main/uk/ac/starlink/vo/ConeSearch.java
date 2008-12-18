@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.us_vo.www.SimpleResource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -39,7 +38,7 @@ public class ConeSearch {
     private final String serviceUrl_;
     private String label_;
 
-    private final static Logger logger_ =
+    private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
@@ -58,10 +57,17 @@ public class ConeSearch {
      * Constructs a new ConeSearch from a CONE-type resource.
      *
      * @param   resource  resource from registry
+     * @param   capability   cone search capability interface
      * @throws  IllegalArgumentType if the service URL is unsuitable
      */
-    public ConeSearch( SimpleResource resource ) {
-        this( resource.getServiceURL() );
+    public ConeSearch( RegResource resource,
+                       RegCapabilityInterface capability ) {
+        this( capability.getAccessUrl() );
+        if ( ! RegCapabilityInterface
+              .CONE_STDID.equals( capability.getStandardId() ) ) {
+            logger_.warning( capability.getAccessUrl()
+                           + " doesn't look like a cone search" );
+        }
         String label = null;
         if ( label == null ) {
             label = resource.getShortName();
@@ -70,7 +76,7 @@ public class ConeSearch {
             label = resource.getTitle();
         }
         if ( label == null ) {
-            label = resource.getServiceURL().toString();
+            label = resource.getIdentifier();
         }
         label_ = label;
     }
@@ -190,12 +196,19 @@ public class ConeSearch {
     }
 
     /**
-     * Returns a list of described values for the <code>SimpleResource</code>
+     * Returns a list of described values for the resource
      * object representing a cone search.
      *
      * @param   resource   cone search resource
+     * @param   cap   cone search capability interface
      */
-    public static DescribedValue[] getMetadata( SimpleResource resource ) {
+    public static DescribedValue[] getMetadata( RegResource resource,
+                                                RegCapabilityInterface cap ) {
+        if ( ! RegCapabilityInterface
+              .CONE_STDID.equals( cap.getStandardId() ) ) {
+            logger_.warning( cap.getAccessUrl()
+                           + " doesn't look like a cone search" );
+        }
         List metadata = new ArrayList();
         addMetadatum( metadata, resource.getShortName(),
                       "Service short name",
@@ -203,18 +216,18 @@ public class ConeSearch {
         addMetadatum( metadata, resource.getTitle(),
                       "Service title",
                       "Cone search service title" );
-        addMetadatum( metadata, resource.getDescription(),
-                      "Service description",
-                      "Description of cone search service" );
-        addMetadatum( metadata, resource.getReferenceURL(),
-                      "Service reference URL",
-                      "Descriptive URL for cone search service" );
+        addMetadatum( metadata, resource.getIdentifier(),
+                      "Identifier",
+                      "Unique resource registry identifier" );
         addMetadatum( metadata, resource.getPublisher(),
                       "Service publisher",
                       "Publisher for cone search service" );
-        addMetadatum( metadata, resource.getServiceURL(),
-                      "Service endpoint",
-                      "Base URL for cone search service" );
+        addMetadatum( metadata, resource.getReferenceUrl(),
+                      "Service reference URL",
+                      "Descriptive URL for search resource" );
+        addMetadatum( metadata, resource.getContact(),
+                      "Contact person",
+                      "Individual to contact about this service" );
         return (DescribedValue[]) metadata.toArray( new DescribedValue[ 0 ] );
     }
 

@@ -1,10 +1,10 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Action;
-import org.us_vo.www.SimpleResource;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -28,7 +28,8 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
     public SiapTableLoadDialog() {
         super( "SIAP Query",
                "Get results of a Simple Image Access Protocol query",
-               "serviceType like 'SIAP'" );
+               "capability/@standardID = '" + RegCapabilityInterface.SIA_STDID
+                                            + "'", false );
 
         /* Add fields for entering SIAP query parameters. */
         Action okAction = getOkAction();
@@ -63,15 +64,20 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
     }
 
     public TableSupplier getTableSupplier() {
-        SimpleResource[] resources = getRegistryPanel().getSelectedResources();
-        if ( resources.length != 1 ) {
+        RegResource[] resources =
+            getRegistryPanel().getSelectedResources();
+        RegCapabilityInterface[] capabilities =
+            getRegistryPanel().getSelectedCapabilities();
+        if ( resources.length != 1 || capabilities.length != 1 ) {
             throw new IllegalStateException( "No SIAP service selected" );
         }
+        RegResource resource = resources[ 0 ];
+        RegCapabilityInterface capability = capabilities[ 0 ];
         double ra = raField_.getValue();
         double dec = decField_.getValue();
         double size = sizeField_.getValue();
         final SiapQuery query =
-            new SiapQuery( resources[ 0 ], ra, dec, size, size );
+            new SiapQuery( resource, capability, ra, dec, size, size );
         final List metadata = Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
             decField_.getDescribedValue(),
@@ -88,6 +94,19 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
                 return query.toString();
             }
         };
+    }
+
+    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
+        RegCapabilityInterface[] caps = super.getCapabilities( resource );
+        List siapcapList = new ArrayList();
+        for ( int i = 0; i < caps.length; i++ ) {
+            if ( RegCapabilityInterface.SIA_STDID
+                .equals( caps[ i ].getStandardId() ) ) {
+                siapcapList.add( caps[ i ] );
+            }
+        }
+        return (RegCapabilityInterface[])
+               siapcapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
 }

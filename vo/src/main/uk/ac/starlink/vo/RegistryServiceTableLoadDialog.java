@@ -40,8 +40,8 @@ public abstract class RegistryServiceTableLoadDialog
     private final RegistryPanel regPanel_;
     private final String queryString_;
     private final String name_;
+    private final boolean interactive_;
     private boolean setup_;
-    private static Boolean available_;
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -51,19 +51,29 @@ public abstract class RegistryServiceTableLoadDialog
      * @param  name  dialogue name
      * @param  description  dialogue description
      * @param  queryString  text of registry query
+     * @param  interactive  true to make the registry query panel visible and
+     *         under the user's control; false to make it invisible and 
+     *         invoked automatically
      */
     public RegistryServiceTableLoadDialog( String name, String description,
-                                           String queryString ) {
+                                           String queryString,
+                                           boolean interactive ) {
         super( name, description );
         name_ = name;
         queryString_ = queryString;
+        interactive_ = interactive;
         final Action okAction = getOkAction();
         okAction.setEnabled( false );
         setLayout( new BorderLayout() );
 
         /* Construct and configure a panel which knows how to query the
          * registry and display the result. */
-        regPanel_ = new RegistryPanel();
+        regPanel_ = new RegistryPanel( true ) {
+            public RegCapabilityInterface[] getCapabilities( RegResource res ) {
+                return RegistryServiceTableLoadDialog.this
+                      .getCapabilities( res );
+            }
+        };
         regPanel_.getResourceSelectionModel()
                  .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         regPanel_.getResourceSelectionModel()
@@ -96,19 +106,7 @@ public abstract class RegistryServiceTableLoadDialog
     }
 
     public boolean isAvailable() {
-        if ( available_ == null ) {
-            try {
-                Class c = this.getClass();
-                c.forName( "net.ivoa.www.xml.VORegistry.v0_3.Registry" );
-                c.forName( "org.us_vo.www.Registry" );
-                available_ = Boolean.TRUE;
-            }
-            catch ( Throwable th ) {
-                logger_.info( "WSDL classes unavailable" + " (" + th + ")" );
-                available_ = Boolean.FALSE;
-            }
-        }
-        return available_.booleanValue();
+        return true;
     }
 
     /**
@@ -130,20 +128,26 @@ public abstract class RegistryServiceTableLoadDialog
         return regPanel_;
     }
 
+    /**
+     * Returns the capabilities associated with a given resource.
+     * This determines those capabilities which will be displayed and
+     * selecatable for each resource.  The default implementation is to
+     * include all capabilities; this may however be overridded in a more
+     * selective way by subclasses.
+     *
+     * @param  resource  registry resource
+     * @return   relevant capabilities from that resource
+     */
+    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
+        return resource.getCapabilities();
+    }
+
     protected JDialog createDialog( Component parent ) {
 
         /* Do one-time setup.  Doing it in the constructor is too early. */
         if ( ! setup_ ) {
             setup_ = true;
-
-            /* There's code here to either allow the user to specify the
-             * registry search or do it automatically.  It's more confusing for
-             * the user to have to do it, so for now hardwire in the automatic
-             * option.  Could get more fussy about this, but these classes are
-             * likely to get overhauled in the near future in any case, so
-             * this will do for now. */
-            boolean interactive = false;
-            if ( interactive ) {
+            if ( interactive_ ) {
                 regPanel_.getQueryPanel()
                          .setPresetQueries( new String[] { queryString_ } );
             }

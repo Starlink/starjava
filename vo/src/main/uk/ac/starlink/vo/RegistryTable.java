@@ -1,8 +1,6 @@
 package uk.ac.starlink.vo;
 
 import java.awt.Component;
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JTable;
@@ -15,12 +13,11 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-import org.us_vo.www.SimpleResource;
 import uk.ac.starlink.table.gui.StarJTable;
 
 /**
  * Specialised JTable for displaying the results of a registry query 
- * (<tt>SimpleResource</tt> elements).
+ * (<tt>RegResource</tt> elements).
  * It installs specialised <tt>TableModel</tt> and <tt>TableColumnModel</tt>,
  * so these should not be reset.
  * It provides a number of convenience features for making sure that
@@ -31,9 +28,8 @@ import uk.ac.starlink.table.gui.StarJTable;
  */
 public class RegistryTable extends JTable {
 
-    private final BeanTableModel tModel_;
+    private final ResourceTableModel tModel_;
     private final MetaColumnModel colModel_;
-    private SimpleResource[] resources_;
     private static String[] DEFAULT_COLUMNS = new String[] {
         "shortName",
         "title",
@@ -43,21 +39,7 @@ public class RegistryTable extends JTable {
      * Constructs a new table.
      */
     public RegistryTable() {
-
-        /* Set the TableModel to a new BeanTableModel (this will adapt to 
-         * changes in the SimpleResource class caused by changes to the
-         * registry web service definition). */
-        try {
-            tModel_ = new BeanTableModel( SimpleResource.class ) {
-                public boolean isCellEditable( int irow, int icol ) {
-                    return false;
-                }
-            };
-        }
-        catch ( IntrospectionException e ) {
-            // Not very likely I don't think
-            throw new RuntimeException( e.getMessage(), e );
-        }
+        tModel_ = new ResourceTableModel();
         setModel( tModel_ );
 
         /* Set the TableColumnModel to one which allows for columns to
@@ -84,24 +66,23 @@ public class RegistryTable extends JTable {
     }
 
     /**
-     * Sets the list of SimpleResources displayed by this table.
+     * Sets the list of resources displayed by this table.
      *
      * @param  data table data
      */
-    public void setData( SimpleResource[] data ) {
-        Arrays.sort( data, tModel_.propertySorter( DEFAULT_COLUMNS[ 0 ] ) );
-        tModel_.setData( data );
+    public void setData( RegResource[] data ) {
+        tModel_.setResources( data );
         colModel_.purgeEmptyColumns();
         StarJTable.configureColumnWidths( this, 1000, 10000 );
     }
 
     /**
-     * Returns the list of SimpleResources displayed by this table.
+     * Returns the list of resources displayed by this table.
      *
      * @return  table data
      */
-    public SimpleResource[] getData() {
-        return (SimpleResource[]) tModel_.getData();
+    public RegResource[] getData() {
+        return tModel_.getResources();
     }
 
     /**
@@ -167,5 +148,4 @@ public class RegistryTable extends JTable {
         }
         return mcmodel;
     }
-
 }
