@@ -166,6 +166,11 @@ public class SpecDataComp
     private boolean drawHorizontalLineIDs = false;
 
     /**
+     * Whether to apply the YOffsets when drawing spectra.
+     */
+    private boolean applyYOffsets = false;
+
+    /**
      *  Create a SpecDataComp instance.
      */
     public SpecDataComp()
@@ -1262,9 +1267,12 @@ public class SpecDataComp
                 spectrum.swapDataAndErrors();
             }
             try {
-                //  Draw the spectrum!
+                //  Draw the spectrum, offset by some amount in graphics
+                //  coordinates, if requested.
+                spectrum.setApplyYOffset( applyYOffsets );
                 spectrum.drawSpec( grf, localPlot, localClipLimits, physical,
                                    localFullLimits );
+                spectrum.setApplyYOffset( false );
             }
             finally {
                 if ( plotErrorsAsData ) {
@@ -1272,6 +1280,22 @@ public class SpecDataComp
                 }
             }
         }
+    }
+
+    /**
+     * Set whether to use the yoffsets when drawing the spectra.
+     */
+    public void setApplyYOffsets( boolean applyYOffsets )
+    {
+        this.applyYOffsets = applyYOffsets;
+    }
+
+    /**
+     * Get whether we're using the yoffsets when drawing the spectra.
+     */
+    public boolean isApplyYOffsets()
+    {
+        return applyYOffsets;
     }
 
     /**

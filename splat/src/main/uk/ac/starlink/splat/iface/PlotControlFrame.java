@@ -133,6 +133,11 @@ public class PlotControlFrame
     protected StatsFrame statsFrame = null;
 
     /**
+     * The spectra stacker frame.
+     */
+    protected PlotStackerFrame stackerFrame = null;
+
+    /**
      *  The global list of spectra and plots.
      */
     private static GlobalSpecPlotList globalList =
@@ -502,6 +507,8 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
+        ImageIcon stackerImage =
+            new ImageIcon( ImageHolder.class.getResource( "stacker.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -575,6 +582,11 @@ public class PlotControlFrame
                              "Get statistics on regions of spectrum" );
         analysisMenu.add( statsAction ).setMnemonic( KeyEvent.VK_S );
         toolBar.add( statsAction );
+
+        StackerAction stackerAction =
+            new StackerAction( "Stack display spectra", stackerImage,
+                    "Display spectra in an ordered stack arrangement" );
+        toolBar.add( stackerAction );
     }
 
     /**
@@ -586,7 +598,7 @@ public class PlotControlFrame
         editMenu.setMnemonic( KeyEvent.VK_E );
         menuBar.add( editMenu );
 
-	// Remove the current spectrum.
+        // Remove the current spectrum.
         removeCurrent = new JMenuItem( "Remove current spectrum" );
         editMenu.add( removeCurrent );
         removeCurrent.addActionListener( this );
@@ -1369,7 +1381,7 @@ public class PlotControlFrame
                     }
                 });
         }
-	else {
+        else {
             Utilities.raiseFrame( statsFrame );
         }
     }
@@ -1391,6 +1403,45 @@ public class PlotControlFrame
         if ( statsFrame != null ) {
             statsFrame.dispose();
             statsFrame = null;
+        }
+    }
+
+    /**
+     *  Activate the stacker window.
+     */
+    public void showStacker()
+    {
+        if ( stackerFrame == null ) {
+            stackerFrame = new PlotStackerFrame( getPlot() );
+            //  We'd like to know if the window is closed.
+            stackerFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        stackerClosed();
+                    }
+                });
+        }
+        else {
+            Utilities.raiseFrame( stackerFrame );
+        }
+    }
+
+    /**
+     * Stacker window is closed.
+     */
+    protected void stackerClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // stackerFrame = null;
+    }
+
+    /**
+     *  Close the stacker window.
+     */
+    protected void closeStacker()
+    {
+        if ( stackerFrame != null ) {
+            stackerFrame.dispose();
+            stackerFrame = null;
         }
     }
 
@@ -1432,6 +1483,7 @@ public class PlotControlFrame
         closeUnits();
         closeFlip();
         closeStats();
+        closeStacker();
         plot.release();
     }
 
@@ -1735,6 +1787,23 @@ public class PlotControlFrame
         public void actionPerformed( ActionEvent ae )
         {
             showStats();
+        }
+    }
+
+    /**
+     *  Inner class defining plot stacker action.
+     */
+    protected class StackerAction extends AbstractAction
+    {
+        public StackerAction( String name, Icon icon, String help )
+        {
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, help );
+            //putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control S" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showStacker();
         }
     }
 

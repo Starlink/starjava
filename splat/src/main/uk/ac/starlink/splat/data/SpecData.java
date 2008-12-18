@@ -156,7 +156,7 @@ public class SpecData
     }
 
     /**
-     * Set the {@link SpecDataImpl} instance.
+     * Set the {@link SpecDataImpl} instance. This is the constructor.
      *
      * @param impl a concrete implementation of a SpecDataImpl class that
      *             will be used for spectral data in of some format.
@@ -389,8 +389,7 @@ public class SpecData
     protected static boolean simplifyShortNames = false;
 
     /**
-     * The range of coordinates spanned (min/max values in xPos and
-     * yPos).
+     * The range of coordinates spanned (min/max values in xPos and yPos).
      */
     protected double[] range = new double[4];
 
@@ -544,6 +543,17 @@ public class SpecData
      */
     protected static boolean searchForSpecFrames = true;
 
+    /**
+     * An offset to apply to the Y physical coordinates so that spectra
+     * can be displayed offset from one another.
+     */
+    private double yoffset = 0.0;
+
+    /**
+     * Whether the Y offsets to coordinates should be applied.
+     */
+    private boolean applyYOffset = false;
+
     //  ==============
     //  Public methods
     //  ==============
@@ -664,12 +674,12 @@ public class SpecData
 
     /**
      * Swap the data and the data errors, so that the spectral data are the
-     * errors. This can be used to plot the errors as a line rather than as 
+     * errors. This can be used to plot the errors as a line rather than as
      * errorbars. Does nothing there are no errors. Call again to undo the
      * effect. Note does not affect the underlying implementation, so
      * refreshing from that will also reset this.
      */
-    public void swapDataAndErrors() 
+    public void swapDataAndErrors()
     {
         if ( yErr != null ) {
             double tmp[] = yPos;
@@ -758,6 +768,39 @@ public class SpecData
     public String getApparentDataUnits()
     {
         return apparentDataUnits;
+    }
+
+    /**
+     * Set the offset used to stack this spectra. A number in the physical
+     * coordinates.
+     */
+    public void setYOffset( double yoffset )
+    {
+        this.yoffset = yoffset;
+    }
+
+    /**
+     * Get stacking offset.
+     */
+    public double getYOffset()
+    {
+        return yoffset;
+    }
+
+    /**
+     * Set whether to use the stacking offset.
+     */
+    public void setApplyYOffset( boolean applyYOffset  )
+    {
+        this.applyYOffset = applyYOffset;
+    }
+
+    /**
+     * Get whether we're using the stacking offset.
+     */
+    public boolean isApplyYOffset()
+    {
+        return applyYOffset;
     }
 
     /**
@@ -1078,7 +1121,7 @@ public class SpecData
                 y[0] = yPos[lower[j]];
                 y[1] = yPos[upper[j]];
                 interp = new LinearInterp( x, y );
-                
+
                 for ( ; i <= upper[j]; i++ ) {
                     newData[i] = interp.interpolate( xPos[i] );
                 }
@@ -1126,7 +1169,7 @@ public class SpecData
 
     /**
      * Copy some rendering properties so that another spectrum seems to
-     * inherit this one. 
+     * inherit this one.
      */
     public void applyRenderingProperties( SpecData newSpec )
     {
@@ -1820,8 +1863,8 @@ public class SpecData
             double dvalue = xPos[first] - xPos[first-1];
             double value = Math.abs( dvalue );
             double deltapower = Math.log( value ) / Math.log( 10.0 );
-            int ideltapower = (int) deltapower; 
-            
+            int ideltapower = (int) deltapower;
+
             //  2nd figure in fractional precision.
             if ( ideltapower <= 0 ) {
                 ideltapower -= 2;
@@ -2103,11 +2146,15 @@ public class SpecData
         //  Note BAD value is same for graphics (AST, Grf) and data,
         //  so tests can be missed (should only be in yPos).
         double[] xypos = null;
+        double yoffset = 0.0;
+        if ( applyYOffset ) {
+            yoffset = this.yoffset;
+        }
         if ( plotStyle == POLYLINE || plotStyle == POINT ) {
             xypos = new double[xPos.length * 2];
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
-                xypos[i + 1] = yPos[j];
+                xypos[i + 1] = yPos[j] + yoffset;
             }
         }
         else {
@@ -2134,8 +2181,8 @@ public class SpecData
             fwidth = ( xPos[j + 1] - xPos[j] ) * 0.5;
             xypos[i] = xPos[j] - fwidth;
             xypos[i + 2] = xPos[j] + fwidth;
-            xypos[i + 1] = yPos[j];
-            xypos[i + 3] = yPos[j];
+            xypos[i + 1] = yPos[j] + yoffset;
+            xypos[i + 3] = yPos[j] + yoffset;
             j++;
             i += 4;
 
@@ -2145,8 +2192,8 @@ public class SpecData
                 bwidth = ( xPos[j] - xPos[j - 1] ) * 0.5;
                 xypos[i] = xPos[j] - bwidth;
                 xypos[i + 2] = xPos[j] + fwidth;
-                xypos[i + 1] = yPos[j];
-                xypos[i + 3] = yPos[j];
+                xypos[i + 1] = yPos[j] + yoffset;
+                xypos[i + 3] = yPos[j] + yoffset;
             }
 
             //  Until final final point which is also unpaired forward
@@ -2154,8 +2201,8 @@ public class SpecData
             bwidth = ( xPos[j] - xPos[j - 1] ) * 0.5;
             xypos[i] = xPos[j] - bwidth;
             xypos[i + 2] = xPos[j] + bwidth;
-            xypos[i + 1] = yPos[j];
-            xypos[i + 3] = yPos[j];
+            xypos[i + 1] = yPos[j] + yoffset;
+            xypos[i + 3] = yPos[j] + yoffset;
         }
 
         //  Transform positions into graphics coordinates.

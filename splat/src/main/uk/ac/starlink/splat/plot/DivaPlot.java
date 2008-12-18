@@ -267,6 +267,17 @@ public class DivaPlot
     private boolean doubleDSBLineIds = true;
 
     /**
+     * Stacker to control the stacking of spectra when a shift is to be
+     * applied so that they can be viewed.
+     */
+    protected PlotStacker stacker = new PlotStacker( this, null, 0.0 );
+
+    /**
+     * Whether the PlotStacker facility should be used.
+     */
+    private boolean usePlotStacker = false;
+
+    /**
      * Plot a series of spectra.
      *
      * @param spectra reference to spectra.
@@ -615,6 +626,14 @@ public class DivaPlot
         //  Set the data limits for plotting. Throws a SplatException.
         setDataLimits();
 
+        //  If stacking then we need to make room for the additional
+        //  spectra. The fractional space needed for that is
+        //  calculated now.
+        if ( usePlotStacker ) {
+            double additional = ( spectra.count() - 1 ) * stacker.getShift();
+            yMax = yMax + additional;
+        }
+
         //  Define the size of the box used to draw the spectra
         //  (physical coordinates, i.e. the current frame).
         if ( dataLimits.isXFlipped() ) {
@@ -633,6 +652,7 @@ public class DivaPlot
             baseBox[1] = yMin;
             baseBox[3] = yMax;
         }
+
 
         //  Set the values that define what a unit scale in either axes means.
         if ( init ) {
@@ -729,8 +749,8 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed width. Follow this with a setScale( 1, x ),
-     * to update the display.
+     * Fit spectrum to the displayed width. Follow this with a 
+     * setScale( 1, x ), to update the display.
      */
     public void fitToWidth()
     {
@@ -739,8 +759,8 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed height. Follow this with a setScale( x, 1 ),
-     * to update the display.
+     * Fit spectrum to the displayed height. Follow this with a 
+     * setScale( x, 1 ), to update the display.
      */
     public void fitToHeight()
     {
@@ -864,7 +884,7 @@ public class DivaPlot
 
 
     /**
-     * Draw the line identifiers aligned to the other sideband when 
+     * Draw the line identifiers aligned to the other sideband when
      * spectrum is dualside.
      *
      * @param postfix some string to add to the labels so that these are
@@ -883,7 +903,7 @@ public class DivaPlot
             spectra.regenerate();
 
             //  Draw these in red. Usual default is blue.
-            spectra.drawLineIdentifiers( mainGrf, mainPlot, null, baseBox, 
+            spectra.drawLineIdentifiers( mainGrf, mainPlot, null, baseBox,
                                          postfix, Color.red.getRGB() );
             spectra.regenerate();
         }
@@ -939,6 +959,14 @@ public class DivaPlot
             }
         }
         if ( spectra.count() > 0 ) {
+            if ( usePlotStacker ) {
+                try {
+                    stacker.reorder();
+                }
+                catch (SplatException e) {
+                    logger.info("Failed to stack spectra: " + e.getMessage());
+                }
+            }
             spectra.drawSpec( mainGrf, mainPlot, limits, baseBox );
         }
     }
@@ -953,6 +981,31 @@ public class DivaPlot
     public void setParent( Component parent )
     {
         this.parent = parent;
+    }
+
+    /**
+     * Get the PlotStacker instance in use.
+     */
+    public PlotStacker getPlotStacker()
+    {
+        return stacker;
+    }
+
+    /**
+     * Set if the PlotStacker facility should be used.
+     */
+    public void setUsePlotStacker( boolean usePlotStacker )
+    {
+        this.usePlotStacker = usePlotStacker;
+        spectra.setApplyYOffsets( usePlotStacker );
+    }
+
+    /**
+     * Return if the PlotStacker facility is being used.
+     */
+    public boolean isUsePlotStacker()
+    {
+        return usePlotStacker;
     }
 
     /**
@@ -1121,8 +1174,9 @@ public class DivaPlot
                     //  avoids problems with overwrites of the labels by
                     //  spectra).
                     if ( isDSB ) {
-                        
-                        //  Switch current spectral coordinates to other sideband.
+
+                        //  Switch current spectral coordinates to other
+                        //  sideband.
                         String currentSideBand = " (USB)";
                         if ( "USB".equals( sideband ) ) {
                             astref.setC( "SideBand", "LSB" );
