@@ -51,12 +51,16 @@ public abstract class RegistryServiceTableLoadDialog
      * @param  name  dialogue name
      * @param  description  dialogue description
      * @param  queryString  text of registry query
+     * @param  showCapabilities  true to display the capabilities JTable as
+     *         well as the Resource one; sensible if resource:capabilities
+     *         relationship may not be 1:1
      * @param  interactive  true to make the registry query panel visible and
      *         under the user's control; false to make it invisible and 
      *         invoked automatically
      */
     public RegistryServiceTableLoadDialog( String name, String description,
                                            String queryString,
+                                           boolean showCapabilities,
                                            boolean interactive ) {
         super( name, description );
         name_ = name;
@@ -68,7 +72,7 @@ public abstract class RegistryServiceTableLoadDialog
 
         /* Construct and configure a panel which knows how to query the
          * registry and display the result. */
-        regPanel_ = new RegistryPanel( true ) {
+        regPanel_ = new RegistryPanel( showCapabilities ) {
             public RegCapabilityInterface[] getCapabilities( RegResource res ) {
                 return RegistryServiceTableLoadDialog.this
                       .getCapabilities( res );
