@@ -10,6 +10,8 @@ package uk.ac.starlink.splat.data;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RandomStarTable;
@@ -28,7 +30,8 @@ import nom.tam.fits.HeaderCard;
  * on the table meta-data to determine things like an offset when drawing
  * stacked spectra. Having the properties as the table columns (instead of the
  * table parameters) avoids the need to prefix the property names with
- * "param$".
+ * "param$". Names that have characters not allowed in a Java identifier 
+ * will have the characters replaced with underscores.
  *
  * @author Peter W. Draper
  * @version $Id:$
@@ -44,6 +47,9 @@ public class PropertyTable
 
     /** Column infos. */
     private ArrayList colInfo = null;
+
+    /** Compiled pattern for matching non-word characters. */
+    private Pattern pattern = null;
 
     /**
      * Construct an instance wrapping the given {@link SpecData}.
@@ -126,6 +132,9 @@ public class PropertyTable
                 continue;
             }
 
+            //  Make key conformant.
+            key = cleanKey( key );
+
             if ( card.isStringValue() ) {
                 colInfo.add ( new ColumnInfo( key, String.class, comment ) );
                 row.add( svalue );
@@ -141,5 +150,18 @@ public class PropertyTable
                 }
             }
         }
+    }
+
+    /**
+     * Clean a FITS key of any characters not allowed in an identifier.
+     */
+    private String cleanKey( String key )
+    {
+        //  Replace all non-word characters with underscore.
+        if ( pattern == null ) {
+            pattern = Pattern.compile( "\\W" );
+        }
+        Matcher matcher = pattern.matcher( key );
+        return matcher.replaceAll( "_" );
     }
 }

@@ -28,9 +28,9 @@ Copyright \copyright\ 2007-2008 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.35}
+\newcommand{\stardocnumber}    {243.36}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {12 December 2008}
+\newcommand{\stardocdate}      {19 December 2008}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.8-9}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -1113,6 +1113,10 @@ the display area.\\
 
   \item[\inline{sigma}] Show the toolbox for determining statistics (mean,
   standard deviation, \etc) of the whole or parts of the current spectrum.
+
+  \item[\inline{stacker}] Show the toolbox for apply an offsets to the
+  displayed spectra so they can be viewed more easily or shown in some order, 
+  for instance time of observation.
 
  \end{itemize}
 
@@ -3330,6 +3334,43 @@ button.
 \item \labelitem{Shift-F1} Display help on window.
 \end{itemize}
 
+\newpage
+\subsection{Display stacked spectra}
+
+\mainfigure{stackerwindow}
+
+Using this window you can change the display of multiple spectra so that an
+offset in data value is artificially applied so that the spectra can be viewed
+stacked one above the other. It can also be useful when comparing spectra from
+different times, as the stacking order can be defined as an algrebraic
+expression that can include time and dates.
+
+The offset is a value in the data units of the spectra, which must all be the
+same, no flux matching is supported. The order expression should evaluate to a
+number for each spectrum, higher values having their associated spectra placed
+above lower valued ones. The values of any properties associated with the
+spectra are available for use as part of the expression, usually these are the
+values of the FITS headers and the keywords should be used. 
+
+The expressions are the same as used in the TOPCAT application, so include all
+the special functions it provides, for instance \labelitem{isoToMjd} will
+convert an ISO 8601 date into an MJD, which is suitable as a order value. As
+an example the expression \labelitem{isoToMjd(DATE\_OBS)} will convert the 
+\labelitem{DATE-OBS} value into an MJD, provided the \labelitem{DATE-OBS}
+value is in ISO 8601 format. Note that the minus sign in \labelitem{DATE-OBS}
+has been changed into an underscore, that is deliberate. Any character in a
+keyword that cannot be a Java identifier will be converted into an underscore
+(allowed characters are any alpha-numeric, plus the underscore).
+
+\subheading{Accelerator keys}
+
+\begin{itemize}
+\item \labelitem{Control-a} Apply the current values.
+ 
+\item \labelitem{Control-w} Close the window.
+\item \labelitem{F1} Display help on \SPLAT.     
+\item \labelitem{Shift-F1} Display help on window.
+\end{itemize}
 
 \newpage
 \section{Supported data formats\xlabel{data_formats}}

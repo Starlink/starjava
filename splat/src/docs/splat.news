@@ -6,6 +6,12 @@
    When displaying dual sideband spectra, line identifiers can now be drawn
    for both sidebands, not just the current one.
 
+   Series of spectra displayed in a single plot can now be offset from 
+   each other using artificial baselines for easier inspections. The 
+   ordering of the offsets can be determined by evaluating an expression
+   based on the FITS card values in the spectra. This can include the
+   evaluation of dates and times.
+
    3.8-8
    =====
 
