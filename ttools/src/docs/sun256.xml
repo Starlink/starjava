@@ -3284,7 +3284,13 @@ so this is where you should look.
 
 <p>There are various ways you can interrogate the registry; the
 easiest is probably to use a graphical registry search tool such
-as AstroGrid's <label>VOExplorer</label>.
+as <webref url="http://www.astrogrid.org/">AstroGrid</webref>'s 
+<label>VOExplorer</label>;
+the NVO offers the command-line tools
+<webref url="http://iraf-nvo.noao.edu/vo-cli/">VO-CLI</webref> and
+<webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
+        >IVOARegistry</webref>;
+there may be others.
 </p>
 
 <p>It is also possible to interrogate the registry using STILTS's
@@ -3293,12 +3299,13 @@ command.  See that section of the manual for details, but for
 instance to locate registered Cone Search services which have
 something to do with SDSS data, you could execute the following:
 <verbatim>
-    stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
-           ocmd="keepcols 'shortName serviceUrl'" \
+    stilts regquery query="capability/@standardID = 'ivo://ivoa.net/std/ConeSearch' and title like '%SDSS%'" \
+           ocmd="keepcols 'shortName AccessUrl'" \
            ofmt=ascii
 </verbatim>
-Writing just <code>query="serviceType = 'CONE'"</code> with no
-further qualification would give you <em>all</em> 
+Writing just 
+<code>query="capability/@standardID = 'ivo://ivoa.net/std/ConeSearch'"</code>
+with no further qualification would give you <em>all</em> 
 registered cone search services.
 </p>
 
@@ -3426,12 +3433,23 @@ See <ref id="plot"/> for more discussion on use of the plotting commands.
 and returns the result as a table containing all the records which 
 match the condition specified.  The resulting table can be written out 
 in any of the supported formats or otherwise processed in the usual ways.
-Currently the registry used by default is the SOAP service offered
-by the US NVO registry at 
-<webref url="http://voservices.net/registry/registry.asmx"/>.
-Because VO registries generally harvest from each other, the content of
-this one can be expected to be similar to that stored in registries
-maintained by other organisations.
+</p>
+
+<p>It is important to note that the results of this command give a
+very much flattened and incomplete view of the results of a full 
+registry query.  That is because the contents of an IVOA Registry
+(see the IVOA 
+<webref url="http://www.ivoa.net/Documents/latest/RM.html"
+        >Resource Metadata</webref>
+and
+<webref url="http://www.ivoa.net/Documents/latest/VOResource.html"
+        >VOResource</webref>
+documents for more detail)
+are hierarchical and cannot be faithfully represented in a simple
+tabular structure.
+Other superior registry search clients exist;
+this command is just useful for viewing the results in a rather
+simplified way which can be represented as a table.
 </p>
 
 &regquery-summary;
@@ -5415,6 +5433,8 @@ functionality:
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
+<li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
+            >IVOARegistry</webref> (NVO) for IVOA registry access</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
     (Acme) for GIF output</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
@@ -6123,6 +6143,10 @@ but my thanks are especially due to the following:
     <li>Non-alphanumeric column names may now be used for algebraic expressions
         in the special case that the expression is just the value of a
         single column.</li>
+    <li><code>regquery</code> command has changed in implementation,
+        data access, and output format.  It now queries VOResource1.0 
+        registries rather than the very out of date registry protocol which
+        was used in earlier versions.</li>
     </ul>
     </p></dd>
 

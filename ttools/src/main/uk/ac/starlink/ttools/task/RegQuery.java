@@ -10,7 +10,6 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.vo.RegistryInterrogator;
 import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryStarTable;
 
@@ -36,38 +35,42 @@ public class RegQuery extends ConsumerTask {
         queryParam_ = new Parameter( "query" );
         queryParam_.setPrompt( "Text of registry query" );
         queryParam_.setDescription( new String[] {
-            "<p>Text of an SQL WHERE clause defining which resource records",
+            "<p>Text of an ADQL WHERE clause targeted at the",
+            "<webref url='http://www.ivoa.net/Documents/cover/"
+                       + "VOResource-20080222.html'>VOResource 1.0</webref>",
+            "schema defining which resource records",
             "you wish to retrieve from the registry.",
             "Some examples are:",
             "<ul>",
-            "<li><code>serviceType='CONE'</code></li>",
-            "<li><code>title like '%2MASS%'</code></li>",
-            "<li><code>publisher like 'CDS%' and title like "
-                    + "'%galax%'</code></li>",
+            "<li><code>@xsi:type like '%Organisation%'</code></li>",
+            "<li><code>capability/@standardID = 'ivo://ivoa.net/std/ConeSearch'"
+                    + " and title like '%SDSS%'</code></li>",
+            "<li><code>curation/publisher like 'CDS%'"
+                    + " and title like '%galax%'</code></li>",
             "</ul>",
-            "The special value \"ALL\" will attempt to retrieve all the",
-            "records in the registry",
-            "(though this is not necessarily a sensible thing to do).",
             "</p>",
-            "<p>A full description of SQL syntax is beyond the scope of this",
+            "<p>A full description of ADQL syntax and of the VOResource schema",
+            "is well beyond the scope of this",
             "documentation, but in general you want to use",
-            "<code>&lt;field-name&gt; like '&lt;value&gt;</code>",
+            "<code>&lt;field-name&gt; like '&lt;value&gt;'</code>",
             "where '<code>%</code>' is a wildcard character.",
             "Logical operators <code>and</code> and <code>or</code> and",
             "parentheses can be used to group and combine expressions.",
-            "You can find the various <code>&lt;field-name&gt;</code>s",
-            "by executing one of the queries above and looking at the",
-            "column names in the returned table.",
+            "To work out the various <code>&lt;field-name&gt;</code>s",
+            "you need to look at the VOResource 1.0 schema;",
+            "you can find some more discussion in the documentation of the",
+            "NVO <webref url='http://trac.us-vo.org/project/nvo/wiki/"
+                           + "IVOARegistry'>IVOARegistry</webref> package.",
             "</p>",
         } );
         paramList.add( queryParam_ );
 
         urlParam_ = new Parameter( "regurl" );
         urlParam_.setPrompt( "URL of registry service" );
-        urlParam_.setDefault( RegistryInterrogator.DEFAULT_URL.toString() );
+        urlParam_.setDefault( RegistryQuery.AG_REG );
         urlParam_.setDescription( new String[] {
-            "<p>The URL of a SOAP endpoint which provides suitable",
-            "registry query services.",
+            "<p>The URL of a SOAP endpoint which provides",
+            "a VOResource1.0 IVOA registry service.",
             "</p>",
         } );
         paramList.add( urlParam_ );
@@ -91,7 +94,8 @@ public class RegQuery extends ConsumerTask {
             throw new ParameterValueException( urlParam_, "Bad URL: " + urlText,
                                                e );
         }
-        final RegistryQuery query = new RegistryQuery( regURL, queryText );
+        final RegistryQuery query =
+            new RegistryQuery( regURL.toString(), queryText );
         return new TableProducer() {
             public StarTable getTable() throws TaskException {
                 try {
