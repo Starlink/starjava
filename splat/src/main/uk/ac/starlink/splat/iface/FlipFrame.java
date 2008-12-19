@@ -124,9 +124,11 @@ public class FlipFrame
     /** Menu item retaining state of SPEFO changes */
     protected JCheckBoxMenuItem spefoBox = null;
 
-    /** Simple text area for SPEFO values. */
+    /** Simple text area for SPEFO values. Also keep values for log. */
     protected JTextArea spefoArea = null;
     protected JTextArea spefoNotes = null;
+    protected double spefoOffset = 0.0;
+    protected double spefoRV = 0.0;
 
     /** LineVisitor for stepping between lines */
     LineVisitor visitor = null;
@@ -144,6 +146,8 @@ public class FlipFrame
     {
         contentPane = (JPanel) getContentPane();
         contentPane.setLayout( new BorderLayout() );
+        this.plot = plot;    //  Forward declaration still need the fuller
+                             //  update.
         initUI();
         initFrame();
         setPlot( plot );
@@ -279,9 +283,18 @@ public class FlipFrame
         gbl2.add( incrLabel, false );
 
         scientificFormat = new ScientificFormat();
+
+        //  Default increment. If available and not redshifting, use the
+        //  spectral channel spacing.
         double incr = 10.0;
         if ( redshift ) {
             incr = 0.001;
+        }
+        else {
+            SpecData specData = plot.getCurrentSpectrum();
+            if ( specData != null ) {
+                incr = specData.channelSpacing( "" );
+            }
         }
         incrementSpinner = new DecimalField( incr, 5, scientificFormat );
         incrementSpinner.addActionListener( this );
@@ -723,13 +736,18 @@ public class FlipFrame
 
             // Display the SPEFO values. For flipped spectrum the
             // offset is halved and we'd like an RV measurement. Note this
-            // assumes coordinates are wavelength...
+            // assumes coordinates are wavelength... RV is in km/s.
             offset *= 0.5;
             spefoArea.append( "  Corrected offset = " + offset + "\n" );
+            spefoOffset = offset;
             double centre = flipCentre.getDoubleValue();
             if ( centre != 0.0 ) {
-                double rv = PhysicalConstants.SPEED_OF_LIGHT * offset / centre;
-                spefoArea.append( "  RV = " + rv + "\n" );
+                double spefoRV = 0.001 * 
+                    PhysicalConstants.SPEED_OF_LIGHT * offset / centre;
+
+                ScientificFormat sf = 
+                    new ScientificFormat( "#0.####;-#0.####" );
+                spefoArea.append( "  RV = " + sf.format( spefoRV ) + "\n" );
             }
         }
     }
@@ -861,6 +879,7 @@ public class FlipFrame
 
     /**
      * Append the contents of the SPEFO areas to the file SPEFO.log.
+     * In a compressed format requested by Petr.
      */
     protected void spefoSave()
     {
@@ -869,12 +888,11 @@ public class FlipFrame
             writer = new BufferedWriter( new FileWriter( "SPEFO.log", true ) );
             SpecData spec = plot.getCurrentSpectrum();
 
-            writer.write( "Spectrum: " + spec.getShortName() + "\n" );
-            writer.write( "  Centre = " + flipCentre.getDoubleValue() + "\n" );
-            spefoArea.write( writer );
-            writer.write( "\n" );
-            writer.write( "  Notes: " + "\n" );
-            spefoNotes.write( writer );
+            writer.write( spec.getShortName() + " | ");
+            writer.write( spefoOffset + "| " );
+            writer.write( flipCentre.getDoubleValue() + "| " );
+            writer.write( spefoRV + "| " );
+            writer.write( spefoNotes.getText() );
             writer.write( "\n" );
             writer.close();
         }
