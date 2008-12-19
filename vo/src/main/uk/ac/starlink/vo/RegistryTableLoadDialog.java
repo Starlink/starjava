@@ -6,7 +6,7 @@ import java.rmi.RemoteException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.xml.rpc.ServiceException;
-import org.us_vo.www.SimpleResource;
+import net.ivoa.registry.RegistryAccessException;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -29,10 +29,9 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
 
     /** List of preset queries available by default. */
     public static String[] defaultQueries_ = new String[] {
-        RegistryQuery.ALL_RECORDS,
-        "serviceType like 'CONE'",
-        "serviceType like 'SIAP'",
-        "serviceType like 'SSAP'",
+        "capability/@standardID = '" + RegCapabilityInterface.CONE_STDID + "'",
+        "capability/@standardID = '" + RegCapabilityInterface.SIA_STDID + "'",
+        "capability/@standardID = '" + RegCapabilityInterface.SSA_STDID + "'",
     };
 
     /**
@@ -44,7 +43,6 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQueries_ );
         add( rqPanel_ );
-        rqPanel_.getQuerySelector().addActionListener( getOkAction() );
     }
 
     public String getName() {
@@ -57,16 +55,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
     }
 
     public boolean isAvailable() {
-        if ( available_ == null ) {
-            try {
-                available_ = Boolean.valueOf( RegistryInterrogator
-                                             .isAvailable() );
-            }
-            catch ( Throwable th ) {
-                available_ = Boolean.FALSE;
-            }
-        }
-        return available_.booleanValue();
+        return true;
     }
 
     public void setEnabled( boolean enabled ) {
@@ -84,13 +73,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
                     try {
                         return new RegistryStarTable( query );
                     }
-                    catch ( RemoteException e ) {
-                        throw asIOException( e );
-                    }
-                    catch ( ServiceException e ) {
-                        throw asIOException( e );
-                    }
-                    catch ( IntrospectionException e ) {
+                    catch ( RegistryAccessException e ) {
                         throw asIOException( e );
                     }
                 }
