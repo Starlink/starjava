@@ -68,6 +68,7 @@ public class RegistryQuery {
      */
     public RegistryQuery( String endpoint, String text ) {
         this( new RegistrySearchClient( toUrl( endpoint ) ), text );
+        searchClient_.setRecordBufferSize( 100 );
         endpoint_ = toUrl( endpoint );
     }
 
