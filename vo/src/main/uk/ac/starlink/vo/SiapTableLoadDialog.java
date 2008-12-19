@@ -28,8 +28,8 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
     public SiapTableLoadDialog() {
         super( "SIAP Query",
                "Get results of a Simple Image Access Protocol query",
-               "capability/@standardID = '" + RegCapabilityInterface.SIA_STDID
-                                            + "'", false, false );
+               new FixedServiceQueryFactory( RegCapabilityInterface.SIA_STDID ),
+               false );
 
         /* Add fields for entering SIAP query parameters. */
         Action okAction = getOkAction();

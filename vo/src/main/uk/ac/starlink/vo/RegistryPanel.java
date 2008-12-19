@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -50,8 +51,7 @@ public class RegistryPanel extends JPanel {
     protected RegistryTable regTable_;
     protected final JTable capTable_;
     private final CapabilityTableModel capTableModel_;
-    private final RegistryQueryPanel queryPanel_;
-    private final JComponent qBox_;
+    private final RegistryQueryFactory queryFactory_;
     private JComponent workingPanel_;
     private JComponent dataPanel_;
     private List activeItems_;
@@ -63,12 +63,17 @@ public class RegistryPanel extends JPanel {
     /**
      * Constructs a RegistryPanel.
      *
+     * @param  queryFactory  object which supplies the query details;
+     *         if it has a graphical component, that will be displayed 
+     *         for the user to interact with
      * @param  showCapabilities  true to display a selectable table of 
      *         {@link RegCapabilityInterface}s below the table of
      *         {@link RegResource}s
      */
-    public RegistryPanel( boolean showCapabilities ) {
+    public RegistryPanel( RegistryQueryFactory queryFactory,
+                          boolean showCapabilities ) {
         super( new BorderLayout() );
+        queryFactory_ = queryFactory;
         activeItems_ = new ArrayList();
 
         /* Define actions for submit/cancel registry query. */
@@ -85,20 +90,23 @@ public class RegistryPanel extends JPanel {
         activeItems_.add( submitQueryAction_ );
 
         /* Create the component which will hold the query parameters. */
-        qBox_ = Box.createVerticalBox();
-        queryPanel_ = new RegistryQueryPanel();
-        activeItems_.add( queryPanel_ );
-        qBox_.add( queryPanel_ );
-        qBox_.add( Box.createVerticalStrut( 5 ) );
+        JComponent queryComponent = queryFactory.getComponent();
+        if ( queryComponent != null ) {
+            JComponent qBox = Box.createVerticalBox();
+            activeItems_.add( queryComponent );
+            qBox.add( queryComponent );
+            qBox.add( Box.createVerticalStrut( 5 ) );
 
-        /* Component to hold submit/cancel buttons. */
-        JComponent controlLine = Box.createHorizontalBox();
-        controlLine.add( Box.createHorizontalGlue() );
-        controlLine.add( new JButton( cancelQueryAction_ ) );
-        controlLine.add( Box.createHorizontalStrut( 5 ) );
-        controlLine.add( new JButton( submitQueryAction_ ) );
-        qBox_.add( controlLine );
-        qBox_.add( Box.createVerticalStrut( 5 ) );
+            /* Component to hold submit/cancel buttons. */
+            JComponent controlLine = Box.createHorizontalBox();
+            controlLine.add( Box.createHorizontalGlue() );
+            controlLine.add( new JButton( cancelQueryAction_ ) );
+            controlLine.add( Box.createHorizontalStrut( 5 ) );
+            controlLine.add( new JButton( submitQueryAction_ ) );
+            qBox.add( controlLine );
+            qBox.add( Box.createVerticalStrut( 5 ) );
+            add( qBox, BorderLayout.NORTH );
+        }
         
         /* Scroll pane which will hold the main data component. 
          * At any point this will hold either workingPanel_ or dataPanel_,
@@ -144,7 +152,6 @@ public class RegistryPanel extends JPanel {
         }
 
         /* Place components. */
-        add( qBox_, BorderLayout.NORTH );
         if ( showCapabilities ) {
             JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
             splitter.setTopComponent( resScroller_ );
@@ -159,27 +166,15 @@ public class RegistryPanel extends JPanel {
     }
 
     /**
-     * Returns the panel which controls the registry query.
-     *
-     * @return  registry query panel
-     */
-    public RegistryQueryPanel getQueryPanel() {
-        return queryPanel_;
-    }
-
-    /**
      * Invoking this method withdraws the parts of the GUI which permit the
      * user to specify a registry query, and peforms a fixed query without
      * further ado.  This effect cannot be reversed.
      *
-     * @param  query  text of registry query
      * @param  workingMsg  message to display near progress bar while 
      *         query is ongoing
      */
-    public void performAutoQuery( String query, String workingMsg ) {
+    public void performAutoQuery( String workingMsg ) {
         workingMessage_ = workingMsg;
-        queryPanel_.getQuerySelector().setSelectedItem( query );
-        remove( qBox_ );
         submitQuery();
     }
 
@@ -265,10 +260,17 @@ public class RegistryPanel extends JPanel {
         /* Get the query specification object. */
         final RegistryQuery query;
         try {
-            query = queryPanel_.getRegistryQuery();
+            query = queryFactory_.getQuery();
         }
-        catch ( MalformedURLException e ) {
+        catch ( Exception e ) {
             ErrorDialog.showError( this, "Query Error", e ); 
+            return;
+        }
+        if ( query == null || query.getText() == null
+                           || query.getText().trim() == null ) {
+            JOptionPane.showMessageDialog( this, "No query selected",
+                                           "No Query",
+                                           JOptionPane.ERROR_MESSAGE );
             return;
         }
 

@@ -38,9 +38,8 @@ public abstract class RegistryServiceTableLoadDialog
 
     private final JComponent controlBox_;
     private final RegistryPanel regPanel_;
-    private final String queryString_;
     private final String name_;
-    private final boolean interactive_;
+    private final RegistryQueryFactory queryFactory_;
     private boolean setup_;
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -50,29 +49,24 @@ public abstract class RegistryServiceTableLoadDialog
      *
      * @param  name  dialogue name
      * @param  description  dialogue description
-     * @param  queryString  text of registry query
+     * @param  queryFactory  source of registry query definition
      * @param  showCapabilities  true to display the capabilities JTable as
      *         well as the Resource one; sensible if resource:capabilities
      *         relationship may not be 1:1
-     * @param  interactive  true to make the registry query panel visible and
-     *         under the user's control; false to make it invisible and 
-     *         invoked automatically
      */
     public RegistryServiceTableLoadDialog( String name, String description,
-                                           String queryString,
-                                           boolean showCapabilities,
-                                           boolean interactive ) {
+                                           RegistryQueryFactory queryFactory,
+                                           boolean showCapabilities ) {
         super( name, description );
         name_ = name;
-        queryString_ = queryString;
-        interactive_ = interactive;
+        queryFactory_ = queryFactory;
         final Action okAction = getOkAction();
         okAction.setEnabled( false );
         setLayout( new BorderLayout() );
 
         /* Construct and configure a panel which knows how to query the
          * registry and display the result. */
-        regPanel_ = new RegistryPanel( showCapabilities ) {
+        regPanel_ = new RegistryPanel( queryFactory, showCapabilities ) {
             public RegCapabilityInterface[] getCapabilities( RegResource res ) {
                 return RegistryServiceTableLoadDialog.this
                       .getCapabilities( res );
@@ -151,13 +145,9 @@ public abstract class RegistryServiceTableLoadDialog
         /* Do one-time setup.  Doing it in the constructor is too early. */
         if ( ! setup_ ) {
             setup_ = true;
-            if ( interactive_ ) {
-                regPanel_.getQueryPanel()
-                         .setPresetQueries( new String[] { queryString_ } );
-            }
-            else {
+            if ( queryFactory_.getComponent() == null ) {
                 String msg = "Searching registry for " + name_ + " services";
-                regPanel_.performAutoQuery( queryString_, msg );
+                regPanel_.performAutoQuery( msg );
             }
         }
 
