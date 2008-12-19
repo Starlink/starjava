@@ -1000,9 +1000,8 @@
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
-           source="${source.version}"
            deprecation="${deprecation}" >
-      <compilerarg value="-proc:none" compiler="javac1.6.0"/>
+      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
 
     </javac>
