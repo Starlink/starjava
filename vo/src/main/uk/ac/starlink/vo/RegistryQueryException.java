@@ -8,7 +8,7 @@ import net.ivoa.registry.RegistryAccessException;
  *
  * @author   Mark Taylor
  * @since    18 Dec 2008
- * @see   RegistryQuery#queryIterator
+ * @see   RegistryQuery#getQueryIterator
  */
 public class RegistryQueryException extends RuntimeException {
 
