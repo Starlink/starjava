@@ -9900,6 +9900,8 @@ functionality:
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+<li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
+            >IVOARegistry</webref> (NVO) for IVOA registry access</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within TOPCAT)</li>
@@ -11237,6 +11239,11 @@ introduced since the last version:
     <li>When a new subset is created by whatever method, the user can now
         elect to transmit it to other applications using SAMP/PLASTIC as
         an alternative to adding a new subset to the table's subset list.</li>
+    <li>Registry access updated to VOResource 1.0;
+        Cone Search and SIAP load dialogues improved so you can select
+        your registry and narrow service searches down by keyword.</li>
+    <li><code>-version</code> command line flag now reports subversion
+        revision as well as symbolic version number.</li>
     </ul>
     </p></dd>
 
