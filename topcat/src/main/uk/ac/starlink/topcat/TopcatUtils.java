@@ -267,11 +267,12 @@ public class TopcatUtils {
                 "",
                 "TOPCAT Version " + getVersion(),
                 "STIL Version " + getSTILVersion(),
+                "Starjava build: " + getRevision(),
                 "JVM: " + InvokeUtils.getJavaVM(),
                 "SPLAT: " + ( canSplat() ? "available" : "absent" ),
                 "SoG: " + ( canSog() ? "available" : "absent" ),
                 "",
-                "Authors: Mark Taylor (Bristol University)",
+                "Author: Mark Taylor (Bristol University)",
                 "WWW: http://www.starlink.ac.uk/topcat/",
             };
         }
@@ -441,6 +442,16 @@ public class TopcatUtils {
      */
     public static String getVersion() {
         return IOUtils.getResourceContents( AuxWindow.class, VERSION_RESOURCE );
+    }
+
+    /**
+     * Returns the subversion revision number for TOPCAT and its dependencies.
+     *
+     * @return   svn revision
+     */
+    public static String getRevision() {
+        return IOUtils.getResourceContents( AuxWindow.class,
+                                            "revision-string" );
     }
 
     /**

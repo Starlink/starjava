@@ -483,9 +483,17 @@
 
     <!-- Build temporary zip file containing things not in the input jars
      !   which ought to be included in the standalone jars. -->
+    <exec output="${build.classes}/uk/ac/starlink/topcat/revision-string"
+          logerror="true"
+          executable="svnversion"
+          dir="basedir/..">
+      <arg value="."/>
+    </exec>
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
       <fileset dir="${star.dir}/source/src/etc" includes="LICENCE.txt"/>
+      <fileset dir="${build.classes}"
+               includes="uk/ac/starlink/topcat/revision-string"/>
     </zip>
 
     <!-- Build topcat-lite.jar - minimal standalone which does basic things. -->
