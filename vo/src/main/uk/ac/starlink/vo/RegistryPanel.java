@@ -84,6 +84,7 @@ public class RegistryPanel extends JPanel {
         };
         submitQueryAction_ = new AbstractAction( "Submit Query" ) {
             public void actionPerformed( ActionEvent evt ) {
+                workingMessage_ = "Searching registry";
                 submitQuery();
             }
         };
@@ -284,7 +285,7 @@ public class RegistryPanel extends JPanel {
                 Throwable error = null;
                 try {
                     for ( Iterator it = query.getQueryIterator();
-                          it.hasNext(); ) {
+                          it.hasNext() && ! isInterrupted() ; ) {
                         resourceList.add( (RegResource) it.next() );
                     }
                     logger_.info( "Records found: " + resourceList.size() );
@@ -326,6 +327,10 @@ public class RegistryPanel extends JPanel {
                 } );
             }
         };
+        Thread oldWorker = queryWorker_;
+        if ( oldWorker != null ) {
+            oldWorker.interrupt();
+        }
         queryWorker_ = worker;
         worker.start();
     }
@@ -373,6 +378,9 @@ public class RegistryPanel extends JPanel {
             else if ( item instanceof Component ) {
                 ((Component) item).setEnabled( enabled );
             }
+            else {
+                assert false;
+            }
         }
     }
 
@@ -390,6 +398,11 @@ public class RegistryPanel extends JPanel {
             resScroller_.setViewportView( dataPanel_ );
         }
         else {
+            regTable_.setData( new RegResource[ 0 ] );
+            if ( capTableModel_ != null ) {
+                capTableModel_
+                    .setCapabilities( new RegCapabilityInterface[ 0 ] );
+            }
             JComponent msgLine = Box.createHorizontalBox();
             msgLine.add( Box.createHorizontalGlue() );
             msgLine.add( new JLabel( message ) );

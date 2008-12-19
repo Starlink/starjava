@@ -43,8 +43,9 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
     public ConeSearchDialog() {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
-               new FixedServiceQueryFactory( RegCapabilityInterface
-                                            .CONE_STDID ), true );
+               new KeywordServiceQueryFactory( RegCapabilityInterface
+                                              .CONE_STDID ),
+               true );
 
         /* Add name resolution field. */
         Box resolveBox = Box.createHorizontalBox();

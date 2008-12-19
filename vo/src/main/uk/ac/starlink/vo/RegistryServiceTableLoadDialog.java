@@ -100,7 +100,14 @@ public abstract class RegistryServiceTableLoadDialog
                 BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
                 name + " Parameters" ) );
         setBorder( gapBorder );
-        setPreferredSize( new Dimension( 600, 450 ) );
+        Dimension prefSize = new Dimension( 600, 400 );
+        if ( showCapabilities ) {
+            prefSize.height += 70;
+        }
+        if ( queryFactory.getComponent() != null ) {
+            prefSize.height += 100;
+        }
+        setPreferredSize( prefSize );
     }
 
     public boolean isAvailable() {
