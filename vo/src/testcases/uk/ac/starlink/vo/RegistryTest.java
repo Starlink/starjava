@@ -20,7 +20,7 @@ public class RegistryTest extends TestCase {
                              + RegCapabilityInterface.SSA_STDID + "'" );
         int nres = 0;
         int ncap = 0;
-        for ( Iterator it = query.queryIterator(); it.hasNext(); ) {
+        for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {
             RegResource res = (RegResource) it.next();
             nres++;
             RegCapabilityInterface[] caps = res.getCapabilities();

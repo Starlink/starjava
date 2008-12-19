@@ -2,7 +2,9 @@ package uk.ac.starlink.vo;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 import net.ivoa.registry.RegistryAccessException;
@@ -89,7 +91,7 @@ public class RegistryQuery {
      *
      * @return  iterator over {@link RegResource}s
      */
-    public Iterator queryIterator() throws RegistryAccessException {
+    public Iterator getQueryIterator() throws RegistryAccessException {
         final Records records = performQuery();
         return new Iterator() {
             private RegResource next_ = getNext();
@@ -123,6 +125,24 @@ public class RegistryQuery {
                                     : new VORegResource( next );
             }
         };
+    }
+
+    /**
+     * Executes the query described by this object and returns the result as
+     * an array of {@link RegResource}s.
+     *
+     * @return   resource list
+     */
+    public RegResource[] getQueryResources() throws RegistryAccessException {
+        List resList = new ArrayList();
+        Records records = performQuery();
+        while ( records.hasNext() ) {
+            VOResource vores = records.next();
+            if ( vores != null ) {
+                resList.add( new VORegResource( vores ) );
+            }
+        }
+        return (VORegResource[]) resList.toArray( new VORegResource[ 0 ] );
     }
 
     /**
