@@ -15,12 +15,13 @@ import java.net.MalformedURLException;
 import jsky.coords.DMS;
 import jsky.coords.HMS;
 
-import org.us_vo.www.SimpleResource;
-
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+
+import uk.ac.starlink.vo.RegCapabilityInterface;
+import uk.ac.starlink.vo.RegResource;
 
 /**
  * Construct a URL query for contacting an SSA server. Also hold various
@@ -77,7 +78,7 @@ public class SSAQuery
 
     /** Lower time coveragre in ISO 8601 format */
     private String queryTimeLower = null;
-    
+
     /** The StarTable formed from the results of the query */
     private StarTable starTable = null;
 
@@ -92,9 +93,11 @@ public class SSAQuery
     /**
      * Create an instance with the given SSA service.
      */
-    public SSAQuery( SimpleResource server )
+    public SSAQuery( RegResource server )
     {
-        this.baseURL = server.getServiceURL();
+        RegCapabilityInterface[] rci = server.getCapabilities();
+        this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per
+                                               //  interface. 
         this.description = server.getShortName();
     }
 
@@ -227,7 +230,8 @@ public class SSAQuery
         ValueInfo shortNameInfo =
             new DefaultValueInfo( "ShortName", String.class,
                                   "Short description of the SSAP service" );
-        starTable.setParameter( new DescribedValue( shortNameInfo, getDescription() ) );
+        starTable.setParameter( new DescribedValue( shortNameInfo, 
+                                                    getDescription() ) );
     }
 
     /**

@@ -62,8 +62,6 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 
-import org.us_vo.www.SimpleResource;
-
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
@@ -89,6 +87,7 @@ import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
+import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
@@ -757,9 +756,9 @@ public class SSAQueryBrowser
         //  Create a stack of all queries to perform.
         ArrayList queryList = new ArrayList();
         Iterator i = serverList.getIterator();
-        SimpleResource server = null;
+        RegResource server = null;
         while( i.hasNext() ) {
-            server = (SimpleResource) i.next();
+            server = (RegResource) i.next();
             SSAQuery ssaQuery = new SSAQuery( server );
             ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );

@@ -18,17 +18,17 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.xml.rpc.ServiceException;
 
-import org.us_vo.www.SimpleResource;
-
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 import uk.ac.starlink.table.gui.BasicTableConsumer;
-import uk.ac.starlink.vo.RegistryInterrogator;
+import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryQueryPanel;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
+
+import net.ivoa.registry.RegistryAccessException;
 
 /**
  * Dialog for performing a simple query on a registry for its SSAP servers.
@@ -40,7 +40,7 @@ import uk.ac.starlink.vo.RegistryQueryPanel;
  * @version $Id$
  */
 public class SSARegistryQueryDialog
-    extends BasicTableLoadDialog
+    extends RegistryTableLoadDialog
 {
     private final RegistryQueryPanel rqPanel_;
     private static Boolean available_;
@@ -49,7 +49,7 @@ public class SSARegistryQueryDialog
     /** The SSAP query. */
     public static String[] defaultQuery_ = new String[]
         {
-            "serviceType like 'SSAP'"
+            "capability/@standardID = 'ivo://ivoa.net/std/SSA'"
         };
 
     /**
@@ -57,8 +57,6 @@ public class SSARegistryQueryDialog
      */
     public SSARegistryQueryDialog()
     {
-        super( "SSAP Registry Query",
-               "Query a registry for all known SSAP services" );
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQuery_ );
         add( rqPanel_ );
@@ -73,20 +71,6 @@ public class SSARegistryQueryDialog
     public String getDescription()
     {
         return "Query a registry for all known SSAP services";
-    }
-
-    public boolean isAvailable()
-    {
-        if ( available_ == null ) {
-            try {
-                available_ = Boolean.valueOf
-                    ( RegistryInterrogator.isAvailable() );
-            }
-            catch ( Throwable th ) {
-                available_ = Boolean.FALSE;
-            }
-        }
-        return available_.booleanValue();
     }
 
     public void setEnabled( boolean enabled )
@@ -112,19 +96,16 @@ public class SSARegistryQueryDialog
                                                String format )
                         throws IOException
                     {
-                        SimpleResource[] resources;
+                        RegResource[] resources;
                         try {
-                            resources = query.performQuery();
+                            resources = query.getQueryResources();
                         }
-                        catch ( RemoteException e ) {
-                            throw asIOException( e );
-                        }
-                        catch ( ServiceException e ) {
+                        catch ( RegistryAccessException e ) {
                             throw asIOException( e );
                         }
                         BeanStarTable st;
                         try {
-                            st = new BeanStarTable( SimpleResource.class );
+                            st = new BeanStarTable( RegResource.class );
                         }
                         catch ( IntrospectionException e ) {
                             throw asIOException( e );
@@ -161,7 +142,7 @@ public class SSARegistryQueryDialog
     }
 
     /**
-     * Return the StarTable containing the SimpleResource objects supplied by
+     * Return the StarTable containing the RegResource objects supplied by
      * the registry.
      */
     public StarTable getStarTable()

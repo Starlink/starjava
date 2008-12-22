@@ -20,17 +20,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.us_vo.www.SimpleResource;
-
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-
 import uk.ac.starlink.table.BeanStarTable;
+import uk.ac.starlink.vo.RegResource;
 
 /**
  * Container for a list of possible Simple Spectral Access Protocol (SSAP)
  * servers that can be used. Each server is represented by a
- * {@link SimpleResource}. The primary source of these should be a query to a
+ * {@link RegResource}. The primary source of these should be a query to a
  * VO registry.
  *
  * @author Peter W. Draper
@@ -39,7 +37,7 @@ import uk.ac.starlink.table.BeanStarTable;
 public class SSAServerList
 {
     private HashMap serverList = new HashMap();
-    private static String configFile = "SSAPServerListV2.xml";
+    private static String configFile = "SSAPServerListV3.xml";
     private static String defaultFile = "serverlist.xml";
 
     public SSAServerList()
@@ -51,40 +49,9 @@ public class SSAServerList
     /**
      * Add an SSA server to the known list.
      *
-     * @param description a human readable description of the service.
-     * @param baseURL the URL for accessing the service (including trailing ?).
-     *
-     * @throws MalFormedURLException is the URL is invalid.
+     * @param server an instance of RegResource.
      */
-    public void addServer( String description, String baseURL )
-    {
-        addServer( description, baseURL, true );
-    }
-
-    /**
-     * Add an SSA server to the known list.
-     *
-     * @param description a human readable description of the service.
-     * @param baseURL the URL for accessing the service (including trailing ?).
-     * @param save if true then the backing store of servers should be updated.
-     *
-     * @throws MalFormedURLException is the URL is invalid.
-     */
-    protected void addServer( String description, String baseURL,
-                              boolean save )
-    {
-        SimpleResource sr = new SimpleResource();
-        sr.setShortName( description );
-        sr.setServiceURL( baseURL );
-        addServer( sr, save );
-    }
-
-    /**
-     * Add an SSA server to the known list.
-     *
-     * @param server an instance of SimpleResource.
-     */
-    public void addServer( SimpleResource server )
+    public void addServer( RegResource server )
     {
         addServer( server, true );
     }
@@ -92,10 +59,10 @@ public class SSAServerList
     /**
      * Add an SSA server resource to the known list.
      *
-     * @param server an instance of SimpleResource.
+     * @param server an instance of RegResource.
      * @param save if true then the backing store of servers should be updated.
      */
-    protected void addServer( SimpleResource server, boolean save )
+    protected void addServer( RegResource server, boolean save )
     {
         serverList.put( server.getShortName(), server );
         if ( save ) {
@@ -111,18 +78,17 @@ public class SSAServerList
     /**
      * Remove an SSA server from the known list, if already present.
      *
-     * @param server an instance of SimpleResource.
+     * @param server an instance of RegResource.
      */
-    public void removeServer( SimpleResource server )
+    public void removeServer( RegResource server )
     {
         serverList.remove( server.getShortName() );
     }
 
 
-
     /**
      * Return an Iterator over the known servers. The objects iterated over
-     * are instances of {@link SimpleResource}.
+     * are instances of {@link RegResource}.
      */
     public Iterator getIterator()
     {
@@ -138,7 +104,7 @@ public class SSAServerList
     }
 
     /**
-     * Return the list as an array of {@link SimpleResource} in instance of
+     * Return the list as an array of {@link RegResource} in instance of
      * {@link BeanStarTable}. This can be used to populate a
      * {@link StarJTable}. Note once obtained no further modifications of the
      * table will be made, so the caller should arrange to synchronize as
@@ -148,7 +114,7 @@ public class SSAServerList
     {
         BeanStarTable table = null;
         try {
-            table = new BeanStarTable( SimpleResource.class );
+            table = new BeanStarTable( RegResource.class );
             table.setData( getData() );
         }
         catch ( java.beans.IntrospectionException e ) {
@@ -158,20 +124,20 @@ public class SSAServerList
     }
 
     /**
-     * Return an array of {@link SimpleResource} instances that describe the
+     * Return an array of {@link RegResource} instances that describe the
      * current list of servers.
      */
-    public SimpleResource[] getData()
+    public RegResource[] getData()
     {
-        SimpleResource[] sra = new SimpleResource[serverList.size()];
-        sra = (SimpleResource[]) serverList.values().toArray( sra );
-        return sra;
+        RegResource[] rra = new RegResource[serverList.size()];
+        rra = (RegResource[]) serverList.values().toArray( rra );
+        return rra;
     }
 
     /**
      * Initialise the known servers which are kept in a resource file along
      * with SPLAT. The format of this file is determined by the
-     * {@link XMLEncode} form produced for a {@link SimpleResource}.
+     * {@link XMLEncode} form produced for an {@link SSAPRegResource}.
      */
     protected void restoreKnownServers()
         throws SplatException
@@ -207,9 +173,11 @@ public class SSAServerList
         if ( ! restored ) {
             inputStream = SSAServerList.class.getResourceAsStream(defaultFile);
             if ( inputStream == null ) {
-                // That's bad. Need to complain.
-                throw new SplatException( "Internal error: Failed to find" +
-                                          " the builtin SSAP server listing" );
+                // That's bad. Need to complain, unless this is an update
+                /// of the format. In which case skip this section.
+                //throw new SplatException( "Internal error: Failed to find" +
+                //                          " the builtin SSAP server listing" );
+                return;
             }
             needSave = true;
             restoreServers( inputStream );
@@ -270,11 +238,11 @@ public class SSAServerList
         throws SplatException
     {
         XMLDecoder decoder = new XMLDecoder( inputStream );
-        SimpleResource server = null;
         boolean ok = true;
+        SSAPRegResource server = null;
         while ( true ) {
             try {
-                server = (SimpleResource) decoder.readObject();
+                server = (SSAPRegResource) decoder.readObject();
                 serverList.put( server.getShortName(), server );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
@@ -333,10 +301,20 @@ public class SSAServerList
     {
         XMLEncoder encoder = new XMLEncoder( outputStream );
         Iterator i = serverList.values().iterator();
-        SimpleResource server = null;
+        
+        //  Note these have to be SSAPRegResource instances, not RegResource.
+        //  So that they can be serialised as beans.
+        RegResource server = null;
+        SSAPRegResource resource = null;
         while ( i.hasNext() ) {
-            server = (SimpleResource) i.next();
-            encoder.writeObject( server );
+            server = (RegResource) i.next();
+            try {
+                resource = new SSAPRegResource( server );
+                encoder.writeObject( resource );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         encoder.close();
     }

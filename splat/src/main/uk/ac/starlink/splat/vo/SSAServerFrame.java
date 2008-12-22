@@ -30,8 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 
-import org.us_vo.www.SimpleResource;
-
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
@@ -47,7 +45,9 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.vo.MetaColumnModel;
 import uk.ac.starlink.vo.RegistryTable;
+import uk.ac.starlink.vo.RegResource;
 
+import net.ivoa.registry.search.VOResource;
 
 /**
  * Class for interactively managing the list of SSAP servers. Allows the
@@ -133,7 +133,7 @@ public class SSAServerFrame
             if ( table instanceof BeanStarTable ) {
                 Object[] resources = ((BeanStarTable)table).getData();
                 for ( int i = 0; i < resources.length; i++ ) {
-                    serverList.addServer( (SimpleResource)resources[i] );
+                    serverList.addServer( (RegResource)resources[i] );
                 }
             }
             updateTable();
@@ -353,7 +353,6 @@ public class SSAServerFrame
      */
     protected void selectAllServers()
     {
-        System.out.println( "selectAllServers" );
         registryTable.selectAll();
     }
 
@@ -367,7 +366,7 @@ public class SSAServerFrame
         if ( selected != null && selected.length > 0 ) {
 
             //  And remove these from the server list.
-            SimpleResource[] res = registryTable.getData();
+            RegResource[] res = registryTable.getData();
             for ( int i = 0; i < selected.length; i++ ) {
                 serverList.removeServer( res[selected[i]] );
             }
@@ -385,7 +384,7 @@ public class SSAServerFrame
         if ( selected != null && selected.length > 0 ) {
 
             //  Clear the list and re-add the selected servers.
-            SimpleResource[] res = registryTable.getData();
+            RegResource[] res = registryTable.getData();
             serverList.clear();
             for ( int i = 0; i < selected.length; i++ ) {
                 serverList.addServer( res[selected[i]] );
