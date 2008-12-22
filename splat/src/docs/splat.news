@@ -12,6 +12,10 @@
    based on the FITS card values in the spectra. This can include the
    evaluation of dates and times.
 
+   The VO registry interface has been updated to use version 1 access.
+   Note that any existing saved lists of SSAP registries will no longer
+   be compatible and must be regenerated.
+
    3.8-8
    =====
 
