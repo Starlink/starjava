@@ -226,7 +226,7 @@ public class Driver {
         String usage = 
               pre + " [-help] [-version] [-stilts <stilts-args>]\n"
             + pad + " [-verbose] [-demo] [-disk]\n"
-            + pad + " [-hub] [-exthub] [-plastic] [-samp] [-soap] [-noserv]\n"
+            + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
                   + " [-registry] [-siap]\n"
             + pad + " [[-f <format>] table ...]";
@@ -661,10 +661,11 @@ public class Driver {
            .append( p2 + "-demo          start with demo data" )
            .append( p2 + "-disk          use disk backing store for "
                                          + "large tables" ) 
-           .append( p2 + "-hub           run internal PLASTIC hub" )
-           .append( p2 + "-exthub        run external PLASTIC hub" )
-           .append( p2 + "-plastic       connect to running PLASTIC hub" )
-           .append( p2 + "-samp          connect to running SAMP hub" )
+           .append( p2 + "-samp          use SAMP for tool interoperability" )
+           .append( p2 + "-plastic       use PLASTIC for "
+                                         + "tool interoperability" )
+           .append( p2 + "-hub           run internal SAMP/PLASTIC hub" )
+           .append( p2 + "-exthub        run external SAMP/PLASTIC hub" )
            .append( p2 + "-soap          start SOAP services" )
            .append( p2 + "-noserv        don't run any services"
                                          + " (PLASTIC, SAMP or SOAP)" )
