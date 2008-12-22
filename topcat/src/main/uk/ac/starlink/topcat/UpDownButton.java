@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
@@ -19,6 +20,7 @@ public class UpDownButton extends JRadioButton {
     UpDownButton() {
         setIcon( ResourceIcon.DOWN_TRIM );
         setSelectedIcon( ResourceIcon.UP_TRIM );
+        setBorder( BorderFactory.createEmptyBorder() );
         setSelected( true );
     }
 
