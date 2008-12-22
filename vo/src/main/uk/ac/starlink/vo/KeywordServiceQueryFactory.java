@@ -88,6 +88,8 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                 return prefSize_;
             }
         };
+        andButton_.setToolTipText( "Toggles whether keywords are combined "
+                                 + "using AND or OR for registry search" );
         andButton_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 or_ = ! or_;
