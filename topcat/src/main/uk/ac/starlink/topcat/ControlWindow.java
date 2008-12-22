@@ -245,6 +245,10 @@ public class ControlWindow extends AuxWindow
                 rowSendButton_.setEnabled( communicator_.isConnected() );
             }
         } );
+        rowSendButton_.setToolTipText( "On Row Activation send a "
+                                     +  communicator_.getProtocolName()
+                                     + " highlight row message"
+                                     + " to all registered applications" );
         rowSendButton_.setEnabled( communicator_.isConnected() );
 
         /* Set up actions. */
@@ -331,11 +335,6 @@ public class ControlWindow extends AuxWindow
         };
 
         Transmitter tableTransmitter = communicator_.getTableTransmitter();
-        Action interophelpAct = new HelpAction( "interop", this );
-        interophelpAct.putValue( Action.NAME, "Help on interoperability" );
-        interophelpAct.putValue( Action.SHORT_DESCRIPTION,
-                                 "Show help on PLASTIC with details of "
-                               + "supported messages" );
         Action interopAct = communicator_.createWindowAction( this );
 
         /* Configure the list to try to load a table when you paste 
@@ -378,7 +377,7 @@ public class ControlWindow extends AuxWindow
         toolBar.setFloatable( true );
         toolBar.add( readButton );
         configureExportSource( toolBar.add( writeAct_ ) );
-        configureExportSource( toolBar.add( dupAct_ ) );
+        toolBar.add( tableTransmitter.getBroadcastAction() );
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
@@ -400,20 +399,20 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
-        toolBar.add( MethodWindow.getWindowAction( this, true ) );
         if ( interopAct != null ) {
             toolBar.add( interopAct );
         }
+        toolBar.add( MethodWindow.getWindowAction( this, false ) );
         toolBar.addSeparator();
 
         /* Add actions to the file menu. */
         JMenu fileMenu = getFileMenu();
         int fileMenuPos = 0;
         fileMenu.insert( readAct_, fileMenuPos++ );
-        fileMenu.insert( removeAct_, fileMenuPos++ );
-        fileMenu.insertSeparator( fileMenuPos++ );
         fileMenu.insert( writeAct_, fileMenuPos++ );
         fileMenu.insert( dupAct_, fileMenuPos++ );
+        fileMenu.insert( removeAct_, fileMenuPos++ );
+        fileMenu.insertSeparator( fileMenuPos++ );
         fileMenu.insert( tableTransmitter.getBroadcastAction(), fileMenuPos++ );
         fileMenu.insert( tableTransmitter.createSendMenu(), fileMenuPos++ );
         if ( MirageHandler.isMirageAvailable() ) {
@@ -459,24 +458,28 @@ public class ControlWindow extends AuxWindow
 
         /* Add a menu for tool interop. */
         JMenu interopMenu =
-            new JMenu( "Interop(" + communicator_.getProtocolName() + ")" );
-        interopMenu.setMnemonic( KeyEvent.VK_I );
-        Action[] commActions = communicator_.getInteropActions();
-        for ( int ia = 0; ia < commActions.length; ia++ ) {
-            interopMenu.add( commActions[ ia ] );
-        }
-        interopMenu.addSeparator();
-        interopMenu.add( tableTransmitter.getBroadcastAction() );
-        interopMenu.add( tableTransmitter.createSendMenu() );
-        interopMenu.addSeparator();
-        interopMenu.add( interophelpAct );
-        getJMenuBar().add( interopMenu );
+            new JMenu( "Interop" );
+            interopMenu.setMnemonic( KeyEvent.VK_I );
+            if ( interopAct != null ) {
+                interopMenu.add( interopAct );
+            }
+            Action[] commActions = communicator_.getInteropActions();
+            for ( int ia = 0; ia < commActions.length; ia++ ) {
+                interopMenu.add( commActions[ ia ] );
+            }
+            interopMenu.add( tableTransmitter.getBroadcastAction() );
+            interopMenu.add( tableTransmitter.createSendMenu() );
+            getJMenuBar().add( interopMenu );
 
         /* Mark this window as top-level. */
         setCloseIsExit();
 
         /* Add help information. */
         addHelp( "ControlWindow" );
+        JMenu helpMenu = getHelpMenu();
+        int ihPos = helpMenu.getItemCount() - 1;
+        helpMenu.insert( MethodWindow.getWindowAction( this, false ), ihPos++ );
+        helpMenu.insertSeparator( ihPos++ );
 
         /* Make closing this window equivalent to closing the application,
          * since without it the application can't be controlled. */

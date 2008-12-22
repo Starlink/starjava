@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -11,12 +12,15 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.xmlrpc.HubMode;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.ResourceIcon;
 
 /**
  * Window for display of SAMP operations.
@@ -41,12 +45,20 @@ public class SampWindow extends AuxWindow {
         main.setLayout( new BorderLayout() );
         main.add( hubConnector.createMonitorPanel(), BorderLayout.CENTER );
 
-        JComponent buttonBox = Box.createVerticalBox();
-        buttonBox.add( Box.createVerticalStrut( 5 ) );
-        JComponent regLine = Box.createHorizontalBox();
-        main.add( new JButton( hubConnector
-                              .createRegisterOrHubAction( this, null ) ),
-                  BorderLayout.SOUTH );
+        /* Set up window-specific actions. */
+        Action connectAct =
+            hubConnector.createRegisterOrHubAction( this, null );
+        connectAct.putValue( Action.SMALL_ICON, ResourceIcon.CONNECT );
+
+        /* Connection menu. */
+        JMenu connectMenu = new JMenu( "Connect" );
+        connectMenu.setMnemonic( KeyEvent.VK_C );
+        connectMenu.add( connectAct );
+        getJMenuBar().add( connectMenu );
+
+        /* Toolbar. */
+        getToolBar().add( connectAct );
+        getToolBar().addSeparator();
 
         addHelp( "SampWindow" );
     }

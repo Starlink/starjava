@@ -32,6 +32,7 @@ import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.HelpAction;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -80,12 +81,18 @@ public class PlasticCommunicator implements TopcatCommunicator {
     }
 
     public Action[] getInteropActions() {
+        Action helpAct = new HelpAction( "interop", control_ );
+        helpAct.putValue( Action.NAME, "Help on interoperability" );
+        helpAct.putValue( Action.SHORT_DESCRIPTION,
+                          "Show help on PLASTIC with details of "
+                        + "supported messages" );
         return new Action[] {
             plasticServer_.getRegisterAction( true ),
             plasticServer_.getRegisterAction( false ),
             new HubWatchAction( control_, plasticServer_ ),
             plasticServer_.getHubStartAction( true ),
             plasticServer_.getHubStartAction( false ),
+            helpAct,
         };
     }
 

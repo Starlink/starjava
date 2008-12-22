@@ -158,13 +158,7 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     public Action[] getInteropActions() {
-        return new Action[] {
-            hubConnector_.createRegisterAction(),
-            hubConnector_.createUnregisterAction(),
-            hubConnector_.createShowMonitorAction(),
-            hubConnector_.createHubAction( false, INTERNAL_HUB_MODE ),
-            hubConnector_.createHubAction( true, EXTERNAL_HUB_MODE ),
-        };
+        return new Action[ 0 ];
     }
 
     public void startHub( boolean external ) throws IOException {
@@ -177,7 +171,7 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     public Action createWindowAction( final Component parent ) {
-        return new BasicAction( "Control SAMP status", ResourceIcon.SAMP,
+        return new BasicAction( "SAMP Status", ResourceIcon.SAMP,
                                 "Show window displaying SAMP inter-tool "
                               + "messaging status and configuration" ) {
             private SampWindow sampWindow_;
