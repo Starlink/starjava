@@ -72,6 +72,9 @@
   <!ENTITY FIG.Cartesian3DWindow_aux '&figs;Cartesian3DWindow_aux.gif'>
   <!ENTITY FIG.PlotWindow_err '&figs;PlotWindow_err.gif'>
   <!ENTITY FIG.SphereWindow_labels '&figs;SphereWindow_labels.gif'>
+  <!ENTITY FIG.sampPanel '&figs;sampPanel.gif'>
+  <!ENTITY FIG.SampWindow_clients '&figs;SampWindow_clients.gif'>
+  <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -95,7 +98,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>19 August 2008</docdate>
+<docdate>23 December 2008</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -306,9 +309,14 @@ open up new windows.  These fall into a few groups:
 
 The <label>Help</label> (&IMG.HELP;) button appears in most windows -
 if you click it a help browser will be displayed showing an appropriate 
-part of this manual.  As well as the tool bar there are a number of 
+part of this manual.
+As well as the tool bar there are a number of 
 menus along the top - most of the options just repeat those appearing on the
 toolbar, but a few less common ones may be available as well.
+The <label>Help</label> menu gives you a few 
+more options along the same lines, including displaying the help 
+information in your usual web browser rather than in TOPCAT's (somewhat
+scrappy) help viewer.
 All the windows follow roughly this pattern.  For some of the toolbar
 buttons you can probably guess what they do from their icons, 
 for others probably not - to find out
@@ -2658,46 +2666,132 @@ available within TOPCAT from the
 <sect id="interop">
 <subhead><title>Tool Interoperability</title></subhead>
 
-<p>TOPCAT makes use of a tool interoperability protocol called
-<webref url="http://plastic.sourceforge.net/">PLASTIC</webref> 
-(PLatform for AStronomical InterConnection).
-This can be used to exchange messages between TOPCAT and other
-PLASTIC-aware tools such as 
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
-<webref url="http://visivo.cineca.it/">VisIVO</webref> and 
-<webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>.  
-The messages which are relevant to TOPCAT are things like 
-"load this table" or "highlight this set of rows".
+<p>TOPCAT is able to communicate with other tools using one or other of two
+messaging protocols:
+<ul>
+<li><webref url="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP</webref>
+    (Simple Applications Messaging Protocol)</li>
+<li><webref url="http://plastic.sourceforge.net/">PLASTIC</webref>
+    (PLatform for AStronomical InterConnection</li>
+</ul>
+An example of the kind of thing which can be done might be:
+<ol>
+<li>TOPCAT sends a catalogue to an image display tool</li>
+<li>The image display tool shows the catalogue entries as markers
+    placed appropriately on a displayed image</li>
+<li>User actions which highlight one of the points in one tool can then
+    automatically highlight the same point in the other</li>
+</ol>
+Examples of the kind of tool which TOPCAT can interoperate with in this
+way are 
+image analysis tools
+(<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+ <webref url="http://www.starlink.ac.uk/gaia/">GAIA</webref>,
+ [<webref url="http://hea-www.harvard.edu/RD/ds9/">DS9</webref> expected soon])
+table analysis tools
+(<webref url="http://visivo.cineca.it/">VisIVO</webref>,
+ <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>,
+ other instances of TOPCAT itself),
+spectrum analysis tools
+(<webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref>,
+ <webref url="http://esavo.esa.int/vospec/">VOSpec</webref>)
+scripting languages
+(<webref url="http://cosmos.iasf-milano.inaf.it/luigi/projects/vo/samp/latest/"
+         >SAMPy</webref>,
+ <webref url="http://www.babilim.co.uk/software/">Perl SAMP</webref>)
+and others.
 </p>
 
-<p>The communication works by all tools communicating with a 
-central 'hub' process, so a hub must be running in order for the
-messaging to operate.  If a hub is running when TOPCAT starts, it
-will connect to it automatically, listening for messages sent by 
-other tools.  If not, you can start a hub from the
-<label>Interop</label> menu in the 
-<ref id="ControlWindow">Control Window</ref> or start one
-externally.
-Other tools will have their own policy for connecting to the hub,
-but in general it's best to start a hub first before starting up
-the tools which you want to talk to it.
+<p>SAMP and PLASTIC do much the same job as each other, and work in much
+the same way.  SAMP is an evolution of PLASTIC with a number of
+technical improvements, and so PLASTIC is somewhat deprecated in favour
+of SAMP.  At time of writing (December 2008) more tools speak PLASTIC
+than SAMP, but it is hoped that this will change over the next few months,
+and that SAMP will come to replace PLASTIC across the astronomical toolbase.
+It is not necessary for users to understand the differences between the two, 
+but in general a tool using SAMP can communicate with other tools using SAMP,
+and the same with PLASTIC, but in most cases interoperation between
+PLASTIC and SAMP tools will not work.
 </p>
 
-<p>The interoperability has two aspects to it: on the one hand TOPCAT
-can send messages to other applications which cause them to do
-things, and on the other hand TOPCAT can receive and act on such
-messages sent by other applications.
-These are described separately in the subsections below.
-There is also a section on the <code>Interop</code> menu in the 
-Control Window used to control hub operations.
+<p>The communication architecture of the two protocols is basically the same:
+all tools communicate with a central "Hub" process,
+so a hub must be running in order for the messaging to operate.
+If a hub is running when TOPCAT starts,
+or if one starts up while TOPCAT is in operation,
+it will connect to it automatically.
+A hub can be started from within TOPCAT if required - details of how to
+do this are given in the <ref id="sampControl">SAMP</ref> and 
+<ref id="plasticControl">PLASTIC</ref> sections below.
+Other tools will have their own policies for connecting to the hub,
+but in general it is a good idea to start a hub first
+before starting up the tools which you want to talk to it.
 </p>
 
-<p>The PLASTIC protocol itself is still under development and may 
-undergo changes in the future.  It is therefore possible that 
-there may be version compatibility issues which arise between TOPCAT
-and other PLASTIC-compliant tools and services, so these facilities
-should probably be regarded as experimental at present.
+<p>TOPCAT can work in either SAMP or PLASTIC mode, but not both at once.
+It determines which mode to use at startup:
+if the <code>-samp</code> or <code>-plastic</code> flag is supplied
+on the command line the corresponding mode will be used;
+otherwise if a running SAMP or PLASTIC hub can be found,
+the corresponding mode is used, otherwise it defaults to SAMP.
+It is easy to tell which mode is being used by looking at the 
+<ref id="ControlWindow">Control Window</ref>;
+in SAMP mode the <ref id="sampPanel">SAMP panel</ref> displaying connection
+and message status is visible at the bottom of the right hand panel
+(there are a few other changes to the GUI as well).
+Facilities for communications monitoring are considerably better in
+SAMP than in PLASTIC mode.
 </p>
+
+<p>This communication has two aspects to it: on the one hand
+TOPCAT can send messages to other applications which causes them
+to do things, and on the other hand TOPCAT can receive and act on
+such messages sent by other applications.
+The 
+<ref id="interopSend">sent</ref> and 
+<ref id="interopReceive">received</ref> 
+messages are described separately in the subsections below.
+There are also sections on the, somewhat different, 
+ways to control and monitor messaging operatiion
+for the cases of SAMP and PLASTIC.
+</p>
+
+<subsect id="sampControl">
+<subhead><title>SAMP control</title></subhead>
+
+<p>When running in SAMP mode, the <ref id="ControlWindow">Control Window</ref>
+features several ways to view and control SAMP status.
+<dl>
+
+<dt>SAMP Status button (&IMG.SAMP;)</dt>
+<dd><p>Pops up the <ref id="SampWindow">SAMP Window</ref> which shows a 
+    detailed view of the status of SAMP communications,
+    and allows you to register or unregister with the hub,
+    and to start a hub if required.
+    </p></dd>
+
+<dt>SAMP Status panel</dt>
+<dd><p>The bottom part of the right hand panel has an 
+    area labelled <label>SAMP</label>.
+    This gives a summary view of registration status,
+    other connected applications, and messages recently sent and received.
+    It is described in more detail in <ref id="sampPanel"/>.
+    </p></dd>
+
+<dt>Table Broadcast (&IMG.BROADCAST;) and Table Send (&IMG.SEND;)
+    menu options</dt>
+<dd><p>The <label>Interop</label> menu provides these options which allow
+    you to send the currently selected table to one or all connected clients.
+    Note they will only be enabled if the hub is running, and there is at 
+    least one connected client which knows how to receive a table.
+    The <label>Broadcast</label> option is also available on the toolbar.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsect>
+
 
 <subsect id="plasticControl">
 <subhead><title>PLASTIC control</title></subhead>
@@ -2715,6 +2809,12 @@ It contains the following options:
 <dd><p>If currently registered with a PLASTIC hub, unregisters with it.
     </p></dd>
 
+<dt>Show registered applications</dt>
+<dd><p>Pops up a small window which displays what applications are currently
+    registered with any PLASTIC hub with which TOPCAT is registered.
+    This will be kept up to date as applications register and unregister.
+    </p></dd>
+
 <dt>Start internal PLASTIC hub</dt>
 <dd><p>Starts a PLASTIC hub as part of the process within which TOPCAT is
     running.  This will only work if a hub is not already running.
@@ -2730,10 +2830,8 @@ It contains the following options:
     work, especially in non-Unix environments.
     </p></dd>
 
-<dt>Show registered applications</dt>
-<dd><p>Pops up a small window which displays what applications are currently
-    registered with any PLASTIC hub with which TOPCAT is registered.
-    This will be kept up to date as applications register and unregister.
+<dt>&IMG.HELP; Help on interoperability</dt>
+<dd><p>Opens an appropriate help section in the help browser.
     </p></dd>
 
 <dt>&IMG.BROADCAST; Broadcast Table</dt>
@@ -2748,22 +2846,19 @@ It contains the following options:
 </dl>
 </p>
 
-<p>The <label>Interop</label> menu may be replaced by a PLASTIC window
-in a future release.
-</p>
-
 </subsect>
 
-<subsect id="plasticSend">
+<subsect id="interopSend">
 <subhead><title>Messages Transmitted</title></subhead>
 
 <p>This section describes the messages which TOPCAT can transmit to other 
-tools which understand the PLASTIC protocol, and how to cause them
-to be sent.
+tools which understand the SAMP or PLASTIC protocol, and how to cause them
+to be sent.  Approximately the same behaviour results for either
+SAMP or PLASTIC, except as noted.
 </p>
 
-<p>In most cases you can choose two ways to transmit a PLASTIC message
-within TOPCAT:
+<p>In most cases you can choose two ways to transmit a message
+from TOPCAT:
 <dl>
 <dt>&IMG.BROADCAST; Broadcast</dt>
 <dd><p>Broadcasts the message to all other applications currently registered
@@ -2788,8 +2883,9 @@ not registered with a hub, or if there are no applications listening
 which claim to support the relevant message.
 </p>
 
-<p>Below is a list of places you can cause TOPCAT to transmit PLASTIC messages.
-The PLASTIC message IDs are listed along with the descriptions;
+<p>Below is a list of places you can cause TOPCAT to transmit messages.
+The SAMP <em>MTypes</em> and PLASTIC <em>message IDs</em> 
+are listed along with the descriptions;
 unless you are a tool developer you can probably ignore these.
 
 <dl>
@@ -2801,9 +2897,14 @@ unless you are a tool developer you can probably ignore these.
     to other listening applications.  
     They are invited to load the table in its current 
     ("<ref id="apparent">apparent</ref>") form.
+    The <label>Broadcast</label> action is also available in the toolbar.
     </p>
-    <p>Message ID: <code>ivo://votech.org/votable/load</code>
-                or <code>ivo://votech.org/votable/loadFromURL</code>
+    <p>SAMP MTypes:
+          <code>table.load.votable</code> or
+          <code>table.load.fits</code>;
+       PLASTIC Message IDs:
+          <code>ivo://votech.org/votable/load</code> or
+          <code>ivo://votech.org/votable/loadFromURL</code>
     </p></dd>
 
 <dt>Transmit Subset</dt>
@@ -2821,23 +2922,38 @@ unless you are a tool developer you can probably ignore these.
     (1) the table has been loaded from the same URL/filename by the 
     other tool(s) or
     (2) the other tool(s) have acquired the table because it has 
-    already been broadcast using PLASTIC.
+    already been broadcast using SAMP/PLASTIC.
     </p>
-    <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
+    <p>Also, whenever a new subset is created, for instance by entering an
+    algebraic expression or tracing out a region on a plot
+    (see <ref id="subsetDef"/>),
+    you have the option of transmitting the subset directly to one or all 
+    listening applications as an alternative to adding the new subset to
+    the table's subset list.
+    </p>
+    <p>SAMP MType: <code>table.select.rowList</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
 
 <dt>Transmit Row</dt>
-<dd><p>One of the
-    <ref id="activation" plaintextref="yes">Activation Actions</ref>
-    you can choose is <label>Transmit Row</label>.
-    If this is chosen, then every time you activate a row
+<dd><p>The <ref id="ControlWindow">ControlWindow</ref> has a
+    <label>Broadcast Row</label> checkbox by the 
+    <label>Activation Action</label> selector.
+    If this is selected, then any time you activate a row
     (e.g. by clicking on the corresponding point in a plot)
     other applications who are looking at the same table are invited
     to highlight that row in their copy of the table.
     As for <label>Transmit Subset</label> above, this will only have an
     effect if the other application(s) are displaying the same table.
     </p>
-    <p>Message ID: <code>ivo://votech.org/votable/highlightObject</code>
+    <p>A similar facility is available as the <label>Transmit Row</label>
+    option in the 
+    <ref id="activation" plaintextref="yes">Activation Actions</ref>
+    window itself - the checkbox is just a convenience for a commonly-used
+    option.
+    </p>
+    <p>SAMP MType: <code>table.highlight.row</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
     </p></dd>
 
 <dt>Transmit Coordinates</dt>
@@ -2852,7 +2968,8 @@ unless you are a tool developer you can probably ignore these.
     The table columns which correspond to Right Ascension and Declination
     must be selected for this to work.
     </p>
-    <p>Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
+    <p>SAMP MType: <code>coord.pointAt.sky</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
     </p></dd>
 
 <dt>Transmit Image</dt>
@@ -2866,19 +2983,20 @@ unless you are a tool developer you can probably ignore these.
     window, since it doesn't have very sophisticated image display
     features (variable colour maps, contour plots etc).
     </p>
-    <p>Message ID: <code>ivo://votech.org/fits/image/loadFromURL</code>
+    <p>SAMP MType: <code>image.load.fits</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/fits/image/loadFromURL</code>
     </p></dd>
 </dl>
 </p>
 
 </subsect>
 
-<subsect id="plasticReceive">
+<subsect id="interopReceive">
 <subhead><title>Messages Received</title></subhead>
 
 <p>This section describes the messages which TOPCAT will respond to 
-when it receives them from other applications via the PLASTIC hub.
-The PLASTIC message IDs are listed along with the descriptions;
+when it receives them from other applications via the SAMP/PLASTIC hub.
+The SAMP MTypes and PLASTIC message IDs are listed along with the descriptions;
 unless you are a tool developer you can probably ignore these.
 
 <dl>
@@ -2887,8 +3005,12 @@ unless you are a tool developer you can probably ignore these.
     It is added to the list of tables in the
     <ref id="ControlWindow">Control Window</ref>.
     </p>
-    <p>Message ID: <code>ivo://votech.org/votable/load</code>
-                or <code>ivo://votech.org/votable/loadFromURL</code>
+    <p>SAMP MType:
+       <code>table.load.votable</code> or
+       <code>table.load.fits</code>;
+       PLASTIC Message ID:
+       <code>ivo://votech.org/votable/load</code> or
+       <code>ivo://votech.org/votable/loadFromURL</code>
     </p></dd>
 
 <dt>New Subset</dt>
@@ -2906,10 +3028,13 @@ unless you are a tool developer you can probably ignore these.
     data from the table in question to show the points from the 
     new subset.
     </p>
-    <p><em>Note: this behaviour differs from the behaviour in TOPCAT versions
-    prior to v3.0.</em>
+    <p>Note: this behaviour differs from the behaviour in TOPCAT versions
+    prior to v3.0.
+    Different options for handling exactly how a received row selection is
+    treated may be made available in future versions.
     </p>
-    <p>Message ID: <code>ivo://votech.org/votable/showObjects</code>
+    <p>SAMP MType: <code>table.select.rowList</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
 
 <dt>Highlight Row</dt>
@@ -2921,13 +3046,25 @@ unless you are a tool developer you can probably ignore these.
     as well as performing any additional actions you have configured
     in the <ref id="ActivationQueryWindow">Activation Window</ref>.
     </p>
-    <p>Message ID: <code>ivo://votech.org/votable/highlightObject</code>
+    <p>SAMP MType: <code>table.highlight.row</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
     </p></dd>
 
 </dl>
 </p>
 
-<p>The following system-level messages are also responded to:
+<p>System-level messages are also responded to.
+For SAMP these are:
+<ul>
+<li><code>samp.hub.disconnect</code></li>
+<li><code>samp.hub.event.shutdown</code></li>
+<li><code>samp.hub.event.register</code></li>
+<li><code>samp.hub.event.unregister</code></li>
+<li><code>samp.hub.event.metadata</code></li>
+<li><code>samp.hub.event.subscriptions</code></li>
+<li><code>samp.app.ping</code></li>
+</ul>
+and for PLASTIC:
 <ul>
 <li><code>ivo://votech.org/test/echo</code></li>
 <li><code>ivo://votech.org/info/getName</code></li>
@@ -3072,6 +3209,17 @@ The meaning of the flags is as follows:
     its components, and exit straight away.
     </p></dd>
 
+<dt>-verbose</dt>
+<dd><p>The <code>-verbose</code> (or <code>-v</code>) flag increases 
+    the level of verbosity of messages which TOPCAT writes to standard
+    output (the console).
+    It may be repeated to increase the verbosity further.
+    The messages it controls are currently those written through
+    java's standard logging system - see the description of the 
+    <ref id="LogWindow" plaintextref="yes">Log Window</ref> for more
+    information about this.
+    </p></dd>
+
 <dt>-demo</dt>
 <dd><p>The <code>-demo</code> flag causes the program to start up with
     a few demonstration tables loaded in.  You can use these to play
@@ -3098,31 +3246,28 @@ The meaning of the flags is as follows:
     so the <code>-disk</code> flag may not make much difference with FITS.
     </p></dd>
 
-<dt>-verbose</dt>
-<dd><p>The <code>-verbose</code> (or <code>-v</code>) flag increases 
-    the level of verbosity of messages which TOPCAT writes to standard
-    output (the console).
-    It may be repeated to increase the verbosity further.
-    The messages it controls are currently those written through
-    java's standard logging system - see the description of the 
-    <ref id="LogWindow" plaintextref="yes">Log Window</ref> for more
-    information about this.
+<dt>-samp</dt>
+<dd><p>Forces TOPCAT to use SAMP for tool interoperability
+    (see <ref id="interop"/>).  This is the default, but PLASTIC mode 
+    instead of SAMP will otherwise be chosen if a PLASTIC hub but no SAMP
+    hub is running on startup.
     </p></dd>
 
-<dt>-[no]plastic</dt>
-<dd><p>Controls whether TOPCAT will attempt to connect to a running
-    PLASTIC hub.  Currently, the default is that it does connect 
-    if a hub is running.  See <ref id="interop"/>.
+<dt>-plastic</dt>
+<dd><p>Forces TOPCAT to use PLASTIC instead of SAMP for tool
+    interoperability (see <ref id="interop"/>).
     </p></dd>
 
 <dt>-hub</dt>
-<dd><p>Causes TOPCAT to run an internal PLASTIC hub, if no hub is already
+<dd><p>Causes TOPCAT to run an internal SAMP or PLASTIC hub
+    (SAMP by default), if no hub is already
     running.  The hub will terminate when TOPCAT does.
     See <ref id="interop"/>.
     </p></dd>
 
 <dt>-exthub</dt>
-<dd><p>Causes TOPCAT to attempt to run an external PLASTIC hub, if no hub
+<dd><p>Causes TOPCAT to attempt to run an external SAMP or PLASTIC hub,
+    if no hub
     is already running.  The hub will show up in its own window, and can
     be stopped by closing the window.  The hub will continue to run 
     after TOPCAT terminates.
@@ -3131,7 +3276,7 @@ The meaning of the flags is as follows:
     See <ref id="interop"/>.
     </p></dd>
 
-<dt>-[no]soap</dt>
+<dt>-soap</dt>
 <dd><p>Controls whether TOPCAT will start up a SOAP server which can 
     accept requests using the SOAP protocol to display tables from 
     other applications.  Currently, the default is that it does not
@@ -3140,7 +3285,7 @@ The meaning of the flags is as follows:
 
 <dt>-noserv</dt>
 <dd><p>Prevents TOPCAT from running any services.  Currently the services
-    which it may run are SOAP and PLASTIC (see above).
+    which it may run are SAMP, PLASTIC and SOAP (see above).
     </p></dd>
 
 <dt>-stilts &lt;stilts-args&gt;</dt>
@@ -4113,7 +4258,13 @@ Additionally, many of the buttons in the toolbar relate to the
 currently selected table.
 </p>
 
-<p>The Table List, Current Table Properties panel, and
+<p>Additionally there is a toolbar and some menus at the top which
+display windows and perform other actions, and there may, depending on
+how TOPCAT was invoked, be a panel labelled <label>SAMP</label> 
+at the bottom of the right hand panel.
+</p>
+
+<p>The Table List, Current Table Properties panel, SAMP panel, and
 actions available from the Control Window's toolbar and menus 
 are described in the following subsections.
 </p>
@@ -4228,10 +4379,71 @@ Here is what the individual items mean:
     <ref plaintextref="yes" id="activation">Activation Action</ref>.
     The action can be changed by clicking on this button to display
     the <ref id="ActivationQueryWindow">Activation Window</ref>.
+    </p>
+    <p>The <label>Broadcast Row</label> checkbox to the right is a shortcut
+    for one useful activation action; it corresponds to the
+    Activation Window's option <label>Transmit Row</label> to All Listeners - 
+    that is it means that any other tools talking to TOPCAT using SAMP 
+    or PLASTIC will be informed about a row activation any time it happens.
+    This checkbox will be greyed out if no suitable 
+    messaging protocol is in use (see <ref id="interop"/>).
     </p></dd>
 
 </dl>
 </p>
+
+</subsubsect>
+
+
+<subsubsect id="sampPanel">
+<subhead><title>SAMP Panel</title></subhead>
+
+<figure>
+<caption><px>Control Window SAMP Panel</px></caption>
+<figureimage src="&FIG.sampPanel;"/>
+</figure>
+
+<p>Unless TOPCAT is running in PLASTIC mode,
+the SAMP panel at the bottom of the Control Window gives a quick view
+of the current status of SAMP communications.
+For a discussion of the whats and whys of SAMP, see
+<ref id="interop"/>.
+</p>
+
+<p>The panel is made up of the following main parts:
+<dl>
+<dt>Message View</dt>
+<dd><p>This shows a graphical representation of any messages which have
+    been recently sent to or received from other applications by TOPCAT.
+    Triangles to the left of the central circle represent incoming messages
+    and triangles to the right represent outgoing ones. 
+    A filled triangle represents a message which is still waiting for an
+    answer, and an open one represents a message which either is not 
+    expecting an answer or has already received one.  Colour coding is
+    used to indicate success or failure.
+    The triangles disappear from the display shortly after they are no longer
+    waiting for a reply.
+    </p></dd>
+
+<dt>Client View</dt>
+<dd><p>An icon is shown in this panel for each application currently registered
+    with the SAMP hub, including TOPCAT itself.  If no icon is available
+    for a registered application, a generic grey square is used.
+    </p></dd>
+
+<dt>Connection Indicator</dt>
+<dd><p>An icon at the right may be visible to indicate whether or not 
+    TOPCAT is currently registered with the hub.
+    </p></dd>
+</dl>
+When TOPCAT is not connected to a SAMP hub (most likely because none
+is running) these panels will be greyed out.
+</p>
+
+<p>More detail and control for the information presented in this panel
+is available in the <ref id="SampWindow">SAMP Window</ref>.
+</p>
+
 
 </subsubsect>
 
@@ -4271,13 +4483,13 @@ functions.  They are grouped as follows:
 
     <dt>&IMG.BROADCAST; Broadcast Table</dt>
     <dd><p>Broadcasts the current <label>Apparent Table</label> to any
-        applications registered using the PLASTIC protocol.
+        applications registered using the SAMP or PLASTIC protocol.
         See <ref id="interop"/>.
         </p></dd>
 
     <dt>&IMG.SEND; Send Table</dt>
     <dd><p>Sends the current <label>Apparent Table</label> to a single
-        selected application registered using the PLASTIC protocol.
+        selected application registered using the SAMP or PLASTIC protocol.
         See <ref id="interop"/>.
         </p></dd>
 
@@ -4378,6 +4590,13 @@ functions.  They are grouped as follows:
 <dd><p>
     <dl>
 
+    <dt>&IMG.SAMP; <ref id="SampWindow">SAMP Window</ref></dt>
+    <dd><p>Displays a window which displays detail about the current
+        status, and allows configuration, of SAMP messaging
+        (see <ref id="interop"/>).  Note this button will not be
+        visible if TOPCAT is running in PLASTIC mode.
+        </p></dd>
+
     <dt>&IMG.FUNCTION; <ref id="MethodWindow">Available Functions</ref></dt>
     <dd><p>Displays a window containing all the functions which can be used 
         for writing algebraic expressions (see <ref id="jel"/>).
@@ -4449,8 +4668,8 @@ These are all provided as toolbar buttons as well.
 
 <p>The <label>Interop</label> menu
 contains options concerned with
-interoperating with other tools using the PLASTIC protocol.
-It is described in <ref id="plasticControl"/>.
+interoperating with other tools using the SAMP or PLASTIC protocol.
+See <ref id="interop"/> for more detail.
 </p>
 
 <p>The <label>Windows</label> menu contains actions for controlling which
@@ -5117,13 +5336,13 @@ can be edited by double-clicking on them in the normal way.
     </p></dd>
 
 <dt>&IMG.BROADCAST; Broadcast Subset</dt>
-<dd><p>Causes the selected subset to be broadcast using PLASTIC to other
+<dd><p>Causes the selected subset to be broadcast using SAMP or PLASTIC to other
     listening applications.  Any other listening application which is
     displaying the same table is then invited to highlight the selection
     of rows corresonding to the selected subset.
     This option and the corresponding <label>Send Subset to ...</label>
     option are also available from the <label>Interop</label> menu.
-    See <ref id="interop"/> for more information about PLASTIC tool
+    See <ref id="interop"/> for more information about tool
     interoperability.
     </p></dd>
 
@@ -7655,11 +7874,11 @@ or manually as described in <ref id="axisConfig"/>.
 displayed image for external viewing or analysis.
 As well as options to export as GIF, JPEG, EPS and FITS,
 there is also the option to transmit the FITS image to one or
-all applications listening using the PLASTIC tool interoperability 
+all applications listening using the SAMP or PLASTIC tool interoperability 
 protocol which will receive images.
-In this way you can transmit the image directly to PLASTIC-aware
+In this way you can transmit the image directly to SAMP/PLASTIC-aware
 image manipulation tools such as GAIA or Aladin.
-See <ref id="interop"/> for more information about PLASTIC.
+See <ref id="interop"/> for more information about tool interoperability.
 </p>
 
 <p>How to set the colour channel corresponding to each dataset is
@@ -8074,15 +8293,37 @@ number of external web services for a catalogue of objects
 known in a given region of the sky.
 </p>
 
-<p>When first displayed, this dialogue window will ask an external
-services registry for all the cone search services on the net 
-which have advertised their existence.  When it has got the result,
-you will see a list of their names and titles in a table.
+<p>There are a lot of cone search services out there,
+so the first thing is to decide which one you want to query.
+When this dialogue first appears you must fill in the 
+<label>Registry</label> and <label>Keywords</label>
+fields at the top of the window.
+The Registry value defaults to the AstroGrid registry, but you can choose
+another if you prefer.  In general, since the various registries
+harvest resources from each other, they can be expected to have similar
+content, but there will be exceptions.
+The Keywords value is a space-separated list with no wildcarding.
+Each keyword is matched against the title, description, identifier,
+shortname and some other attributes to find matching services.
+By default a resource must match all of these to be selected,
+but you can toggle it to match any of them by clicking the 
+<label>And/Or</label> button to the right of the selector.
+</p>
+
+<p>Once these fields are filled in, hit the <label>Submit</label>
+button, and TOPCAT will query the selected registry for a list
+of the services which contain the chosen keywords.
+The services found will be displayed in the table.
 For more information about each one, use the
 <label>Columns</label> menu to select what information, such as
 publisher, reference URL etc is displayed in the table.
 You can scroll up and down this table and select the one which you
 want to query by clicking on it.
+The lower table lists the actual cone search services associated with
+each registry resource found.  In most cases there is exactly one
+cone search service per resource, but if there is more than one you
+will need to select the one you want by clicking on it
+(it defaults to the first in the list).
 </p>
 
 <p>Having selected one of the cone search services from the table,
@@ -9131,8 +9372,8 @@ in the control window will indicate the action you have configured.
     row will pop up an image viewer to display it.
     The <label>Image Viewer</label> selector allows you to choose one 
     of the options in <ref id="imageViewers"/> or, if you are registered
-    with a PLASTIC hub, any PLASTIC image viewer which is also registered -
-    see <ref id="interop"/>.
+    with a SAMP or PLASTIC hub, any SAMP/PLASTIC image viewer 
+    which is also registered - see <ref id="interop"/>.
     Unfortunately you cannot currently select image or spectrum viewers
     for the other options in this window at present.
     </p></dd>
@@ -9158,19 +9399,32 @@ in the control window will indicate the action you have configured.
     See <ref id="documentViewers"/> for more information about browsers.
     </p></dd>
 
+<dt>Transmit Row</dt>
+<dd><p>This option causes the row number of an activated row
+    to be transmitted to one or more other applications using an
+    appropriate SAMP or PLASTIC message.
+    This will only work if TOPCAT is registered with a SAMP/PLASTIC hub, and
+    so are one or more other applications which understand that message,
+    and the other application(s) know about the table in question,
+    for instance because it has previously been sent to/from TOPCAT.
+    You may specify that either a single application, or all appropriate ones,
+    will receive the messages.
+    See <ref id="interop"/> for more explanation.
+    </p></dd>
+
 <dt>Transmit Coordinates</dt>
 <dd><p>This option causes the sky position of an activated row 
     to be transmitted to 
-    one or more other applications using the PLASTIC 
-    message <code>ivo://votech.org/sky/pointAtCoords</code>.
-    This will only work if TOPCAT is registered with a PLASTIC hub, and
+    one or more other applications using an appropriate SAMP or PLASTIC 
+    message.
+    This will only work if TOPCAT is registered with a SAMP/PLASTIC hub, and
     so are one or more other applications which understand that message.
     An example might be a sky viewing application such as Aladin which 
     can point to a particular region of sky whenever you activate a point.
     You need to specify the columns which represent (J2000) 
     Right Ascension and Declination, and optionally a particular listener
     to receive the messages (otherwise all registered ones will).
-    See <ref id="interop"/> for more explanation about PLASTIC.
+    See <ref id="interop"/> for more explanation.
     </p></dd>
 
 <dt>Execute Custom Code</dt>
@@ -9321,6 +9575,92 @@ display many types of document (perhaps using plugins) as well as HTML.
 </subsubsubsect>
 
 </subsubsect>
+
+
+<subsubsect id="SampWindow">
+<subhead><title>SAMP Window</title></subhead>
+
+<p>The SAMP Window displays the status of SAMP messaging and allows some
+control over its configuration.  SAMP is a messaging protocol which
+allows TOPCAT to exchange information with other desktop applications -
+see <ref id="interop"/> for details.
+</p>
+
+<p>The main part of the window is a tabbed panel which displays the
+status of the SAMP connection in detail.
+</p>
+
+<p>The first tab is labelled <label>Clients</label>:
+</p>
+<figure>
+<caption><px>SAMP Window Clients tab</px></caption>
+<figureimage src="&FIG.SampWindow_clients;"/>
+</figure>
+<p>This displays details of all applications (including TOPCAT itself)
+which are currently registered with the hub.
+If you select a client in the list on the left hand side of the panel,
+you will see its details on the right hand side.
+This includes its <label>Metadata</label>
+(which may include things like its name, author, documentation URL etc) 
+and its <label>Subscriptions</label> which describes what types of messages
+(MTypes) it will respond to.
+Also in the list on the left is for each application a graphical 
+indication of messages recently received by/sent from it,
+in which TOPCAT is the other partner.
+These are represented by little arrows before/after the little circle
+following the application name.
+In the figure, a message is currently in progress from TOPCAT to Aladin.
+More detail on this is shown in the other tabs.
+</p>
+
+<p>The other two tabs are labelled <label>Received Messages</label>
+and <label>Sent Messages</label>.  They look very similar to each other:
+</p>
+<figure>
+<caption><px>SAMP Window Sent Messages tab</px></caption>
+<figureimage src="&FIG.SampWindow_msgs;"/>
+</figure>
+<p>They display details of SAMP messages recently sent from or received by
+TOPCAT.
+A table near the top contains one row for each message.
+Shown in different columns are the message's MType (which describes the message 
+semantics), the application receiving/sending it from/to TOPCAT, 
+and a summary of its status.  If you click on the row, 
+all the details of the message, including its content and that of the 
+response if one has been received, are visible in the lower panel.
+Messages remain in this table for a few seconds after they have completed,
+but are eventually removed to avoid clutter.
+</p>
+
+<p>The following toolbar button is available:
+<dl>
+
+<dt>&IMG.CONNECT; Connect/Disconnect</dt>
+<dd><p>This button controls connection to the SAMP hub; without a connection
+    no SAMP commmunication can take place.
+    If a hub is running, clicking this button toggles whether TOPCAT is
+    connected or not.
+    </p>
+    <p>If no hub is running, clicking this button will pop up a dialogue box 
+    which allows you to start a hub.  You are given the option to start either
+    an <label>internal</label> or an <label>external</label> hub.
+    An internal one runs in the same Java Virtual Machine as TOPCAT itself,
+    and an external one runs in a separate process.
+    The main important difference is that an internal hub will shut down
+    when TOPCAT does, while an external hub will keep running until it is
+    shut down explicitly.  If an external hub is started, a window which
+    shows its status is displayed on the screen; closing this window 
+    (which does not belong to TOPCAT) will shut down the hub.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>More facilities may be introduced into this window in future releases.
+</p>
+
+</subsubsect>
+
 
 <subsubsect id="HelpWindow">
 <subhead><title>Help Window</title></subhead>
@@ -10805,8 +11145,7 @@ introduced since the last version:
 <dd><p>Bug fixes and some minor enhancements.
     <ul>
     <li>Implements send and receive of PLASTIC 
-        <code>ivo://votech.org/votable/highlightObject</code> message,
-        see <ref id="plasticSend"/> and <ref id="plasticReceive"/>.</li>
+        <code>ivo://votech.org/votable/highlightObject</code> message.</li>
     <li>Added new <code>csv-noheader</code> output format.</li>
     <li>Added skew and kurtosis calculations to 
         <ref id="StatsWindow">Statistics Window</ref>.</li>
@@ -11218,33 +11557,71 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.4 (23 December 2008)</dt>
 <dd><p>
-    <ul>
-    <li>Fixed histogram bug (blank plot) for small values when using 
-        logarithmic Y axis.</li>
-    <li>Fix stacktrace error in 3D plots when no data is available.</li>
-    <li>Can now use SAMP as an alternative to PLASTIC for 
-        tool interoperability.</li>
-    <li>Add items to <label>Help</label> menu for viewing help in a web
-        browser.</li>
-    <li>Add plot output option for gzipped PostScript.</li>
-    <li>Table columns and parameters can now be referenced by Utype using
-        &utype.prefix; syntax in a similar way to using UCDs.</li>
-    <li>Simbad name resolver fixed in cone search window
-        (was using a no-longer-supported service format).</li>
-    <li>New SAMP window available from Control Window toolbar.</li>
-    <li>Broadcast Row checkbox near Activation Action selector in 
-        Control Window.</li>
-    <li>When a new subset is created by whatever method, the user can now
-        elect to transmit it to other applications using SAMP/PLASTIC as
-        an alternative to adding a new subset to the table's subset list.</li>
-    <li>Registry access updated to VOResource 1.0;
-        Cone Search and SIAP load dialogues improved so you can select
-        your registry and narrow service searches down by keyword.</li>
-    <li><code>-version</code> command line flag now reports subversion
-        revision as well as symbolic version number.</li>
-    </ul>
+    <dl>
+    <dt>SAMP</dt>
+    <dd><p>TOPCAT now uses 
+        <webref url="http://www.ivoa.net/Documents/latest/SAMP.html"
+                >SAMP</webref>
+        as a (preferred) alternative to PLASTIC for inter-tool
+        interoperability.  SAMP is now usually the default; the old behaviour
+        can be recovered using the <code>-plastic</code> command-line flag.
+        Although much of the messaging behaviour remains the same,
+        various improvements to the GUI accompany this change:
+        <ul>
+        <li>New <ref id="sampPanel">SAMP Panel</ref> at the bottom of the
+            Control Window summarising status</li>
+        <li>New <label>SAMP Status</label> (&IMG.SAMP;) toolbar button in
+            Control Window, which pops up new
+            <ref id="SampWindow">SAMP Window</ref></li>
+        <li>Other slight rerrangements of toolbar buttons and menu items
+            in Control Window</li>
+        <li><label>Broadcast Row</label> checkbox added near Activation Action
+            in Control Window</li>
+        </ul>
+        For more discussion see <ref id="interop"/>.
+        </p></dd>
+    <dt>Registry Access</dt>
+    <dd><p>TOPCAT's registry access has finally been updated to use 
+        VOResource 1.03 and the Registry Interface 1.01
+        (it was previously using very out of date protocols).
+        This means that the Cone Search dialogue
+        (as well as the semi-supported SIAP and Registry dialogues) 
+        will now pick up a much more up to date set of services.
+        Additionally, you can choose your own registry service, and
+        the registry searches in those dialogues now feature keyword searches
+        rather than picking up all known cone/SIAP services.
+        See <ref id="ConeSearchDialog"/>.
+        </p></dd>
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Table columns and parameters can now be referenced by Utype using
+            &utype.prefix; syntax in a similar way to using UCDs -
+            see <ref id="jelCols"/>.</li>
+        <li>When a new subset is created by whatever method, the user
+            can now elect to transmit it to other applications using
+            SAMP/PLASTIC as an alternative to adding a new subset
+            to the table's subset list.</li>
+        <li>Add items to <label>Help</label> menu for viewing help in the
+            default web browser rather than TOPCAT's help browser.</li>
+        <li>Add a plot output format option to write gzipped PostScript.</li>
+        <li><code>-version</code> command line flag now reports subversion
+            revision as well as symbolic version number.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed histogram bug (blank plot) for small values when using 
+            logarithmic Y axis.</li>
+        <li>Fix stacktrace error in 3D plots when no data is available.</li>
+        <li>The SIMBAD name resolver is fixed in the cone search window
+            (it was using a no-longer-supported service format).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
