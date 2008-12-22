@@ -59,6 +59,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public class AuxWindow extends JFrame {
 
     private JMenu fileMenu;
+    private JMenu helpMenu;
     private JToolBar toolBar;
     private JLabel headingLabel;
     private JPanel mainArea;
@@ -180,7 +181,7 @@ public class AuxWindow extends JFrame {
     protected void addHelp( String helpID ) {
 
         /* Add a new help menu. */
-        JMenu helpMenu = new JMenu( "Help" );
+        helpMenu = new JMenu( "Help" );
         helpMenu.setMnemonic( KeyEvent.VK_H );
         menuBar.add( helpMenu );
 
@@ -306,6 +307,15 @@ public class AuxWindow extends JFrame {
      */
     public JMenu getFileMenu() {
         return fileMenu;
+    }
+
+    /**
+     * Returns this window's "Help" menu.
+     *
+     * @return  the help menu
+     */
+    public JMenu getHelpMenu() {
+        return helpMenu;
     }
 
     /**
