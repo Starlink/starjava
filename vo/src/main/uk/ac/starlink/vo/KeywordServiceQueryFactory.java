@@ -66,6 +66,8 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         urlSelector_ = new JComboBox( KNOWN_REGISTRIES );
         urlSelector_.setEditable( true );
         urlSelector_.setSelectedIndex( 0 );
+        urlSelector_.setToolTipText( "Endpoint of VOResource 1.0"
+                                   + " registry service" );
         urlLine.add( new JLabel( "Registry: " ) );
         urlLine.add( urlSelector_ );
         queryPanel_.add( urlLine );
@@ -99,6 +101,9 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         /* Keywords selector. */
         JComponent keywordLine = Box.createHorizontalBox();
         keywordField_ = new JTextField();
+        keywordField_.setToolTipText( "Space-separated list of keywords"
+                                    + " to match in resource title,"
+                                    + " description, IVORN, etc" );
         keywordLine.add( new JLabel( "Keywords: " ) );
         keywordLine.add( keywordField_ );
         keywordLine.add( Box.createHorizontalStrut( 5 ) );
