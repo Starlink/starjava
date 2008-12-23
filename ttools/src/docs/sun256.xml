@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>23 October 2008</docdate>
+<docdate>23 December 2008</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -3433,6 +3433,9 @@ See <ref id="plot"/> for more discussion on use of the plotting commands.
 and returns the result as a table containing all the records which 
 match the condition specified.  The resulting table can be written out 
 in any of the supported formats or otherwise processed in the usual ways.
+Making use of this command requires an understanding of the
+<webref url="http://www.ivoa.net/Documents/latest/VOResource.html"
+        >VOResource</webref> schema.
 </p>
 
 <p>It is important to note that the results of this command give a
@@ -3461,44 +3464,41 @@ simplified way which can be represented as a table.
 <dl>
 
 <dt><verbatim>
-stilts regquery query="identifier like '%astrogrid%'" out=ag.xml
+stilts regquery query="title like '%IRAS%'" ofmt=ascii out=iras.txt
 </verbatim></dt>
-<dd><p>Retrieves all the records in the registry whose 
-    <code>identifier</code> field contain the string 
-    "<code>astrogrid</code>".  The '<code>%</code>' characters function
-    as wildcards for the <code>like</code> operator.
-    The output is written to a local VOTable file which can be examined
-    or further processed later.
+<dd><p>Retrieves all the records in the registry whose
+    <code>title</code> field contain the string "IRAS".
+    The '<code>%</code>' characters function
+    as wildcards for the ADQL <code>like</code> operator.
+    The output is written to a local ASCII table which can be examined
+    later.
     </p></dd>
 
 <dt><verbatim>
-stilts regquery query="serviceType = 'SSAP'" omode=count
+stilts regquery query="capability/@standardID = 'ivo://ivoa.net/std/ConeSearch'
+                       and curation/@publisher like '%astrogrid%'"
+                omode=count
 </verbatim></dt>
-<dd><p>Queries the registry for all the records whose
-       <code>serviceType</code> fields equal the string <code>SSAP</code>
-       (this identifies services which support the Simple Spectral Access
-       Protocol).  These records are not stored, but the 
-       <code>omode=count</code> output mode counts the rows.
-       This therefore tells you how many SSAP servers are registered.
-       </p></dd>
+<dd><p>Searches for all resources which offer a cone search service and
+    are published by AstroGrid.
+    In this case the records are not stored, but the <code>omode=count</code>
+    output mode counts the rows.
+    This therefore tells you how many AstroGrid cone search services are
+    in the registry.
+    </p></dd>
 
 <dt><verbatim>
-stilts regquery query="serviceType = 'CONE' and title like '%Sloan%'" \
-                ocmd="keepcols 'shortName serviceUrl'" \
+stilts regquery query="capability/@standardID = 'ivo://ivoa.net/std/SSA'"
+                ocmd="keepcols 'identifier accessUrl'"
                 ofmt=ascii out=-
 </verbatim></dt>
-<dd><p>Queries the registry for all
-       <webref url="http://us-vo.org/pubs/files/conesearch.html"
-               plaintextref="yes"
-               >cone search services</webref>
-       whose title contains the term "Sloan".
+<dd><p>Queries the registry for all Simple Spectral Access services.
        The <code>keepcols</code> filter takes the result and throws away
-       all the columns except for <code>shortName</code> and
-       <code>serviceUrl</code>, and these are written to the terminal
-       in ASCII format.  This may be useful to find the service URL
-       for a cone search service with particular data for use with
-       the <ref id="coneskymatch"><code>coneskymatch</code></ref> command.
+       all the columns except for <code>identifier</code> and 
+       <code>accessUrl</code>, and these are written to the terminal
+       int ASCII format.
        </p></dd>
+
 </dl>
 </p>
 
@@ -6133,7 +6133,7 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.0-1 (23 December 2008)</dt>
 <dd><p>
     <ul>
     <li>Can reference columns/parameters by Utype by using 
