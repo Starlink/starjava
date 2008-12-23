@@ -171,19 +171,19 @@
    !  Packages whose jar files are not already signed (by the
    !  originator) should be signed here.
    !-->
-  <target name="jars"
-          description="-> does nothing">
+  <target name="jars" depends="build">
 
     <!-- Add the manifest to the jar file, just an update -->
-<!--
-    <jar destfile="${dist.lib.pkg}/{package.jar}" basedir="${dist.dir}"
+ <!--
+    <mkdir dir="${dist.lib.pkg}"/>
+    <jar destfile="${dist.lib.pkg}/${name}.jar" basedir="${dist.dir}"
          update="true" excludes="**">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
- -->
+  -->
 
     <!-- Sign all jar files -->
     <signjar alias="${webstart.alias}"
