@@ -26,8 +26,8 @@ public class RegistryTest extends TestCase {
             RegCapabilityInterface[] caps = res.getCapabilities();
             ncap += caps.length;
             for ( int ic = 0; ic < caps.length; ic++ ) {
-                assert RegCapabilityInterface.SSA_STDID
-                      .equals( caps[ ic ].getStandardId() );
+                assertEquals( RegCapabilityInterface.SSA_STDID,
+                              caps[ ic ].getStandardId() );
             }
         }
         assertTrue( nres > 10 );
