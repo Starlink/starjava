@@ -23,6 +23,12 @@ package uk.ac.starlink.splat.util;
  *    Communications of the Association for Computing Machinery,
  *    Volume 5, page 96, 1962.
  * </pre>
+ * The error analysis for AVINT can be found in:
+ * <pre>
+ *    http://www.ece.unm.edu/summa/notes/Mathematics/0015.pdf
+ * </pre>
+ * which says that a typical error is O(h^3), where h is the spacing.
+ *
  * @author Peter W. Draper
  * @version $Id$
  */
@@ -89,7 +95,7 @@ public class NumericIntegrator
     public double getIntegral()
     {
         //  Check that setData has been called.
-        if ( xtab == null || ytab == null ) { 
+        if ( xtab == null || ytab == null ) {
             return 0.0;
         }
 
