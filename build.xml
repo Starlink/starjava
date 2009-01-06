@@ -573,26 +573,7 @@
           depends="deinstall,clean"
           description="--> exports monolithic source archive">
 
-    <!-- Export an archive of the whole source tree including all the
-     !   package structure and build machinery -->
-    <!-- Since the move to subversion, this step takes an inordinate amount 
-     !   of time and memory (tried <exclude name="**/.svn"/> but that
-     !   didn't do the trick).  Since I'm not sure that the resulting
-     !   100Mb archive is that useful given public svn access, I have
-     !   commented it out for now (mbt). -->
- <!--
-  ! <zip destfile="${star.archive.dir}/${archive.name}-sources.zip">
-  !   <zipfileset dir="${star.dir}" prefix="${archive.top}">
-  !     <exclude name="docs/**"/>
-  !     <exclude name="**/.svn"/>
-  !   </zipfileset>
-  !   <zipfileset dir="${support.etc}" prefix="${archive.top}">
-  !     <include name="${licence.file}"/>
-  !   </zipfileset>
-  ! </zip>
-  !-->
-
-    <!-- Also export a tree consisting of all and only the java source files
+    <!-- Export a tree consisting of all and only the java source files
      !   in the namespace uk.ac.starlink.*, in a single zip file of the
      !   corresponding structure.  For casual browsing or building,
      !   this is more digestible than the full tree of packages and build
