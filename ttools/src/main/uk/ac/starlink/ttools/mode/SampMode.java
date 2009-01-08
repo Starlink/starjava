@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.mode;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,7 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -106,6 +106,7 @@ public class SampMode implements ProcessingMode {
         final String[] formats = formatsParam_.stringsValue( env );
         final StarTableWriter[] writers = new StarTableWriter[ formats.length ];
         StarTableOutput sto = LineTableEnvironment.getTableOutput( env );
+        final PrintStream out = env.getOutputStream();
         for ( int i = 0; i < formats.length; i++ ) {
             try {
                 writers[ i ] = sto.getHandler( formats[ i ] );
@@ -121,7 +122,7 @@ public class SampMode implements ProcessingMode {
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 TableTransmitter transmitter =
-                    new TableTransmitter( formats, writers, table );
+                    new TableTransmitter( formats, writers, table, out );
                 transmitter.run();
                 transmitter.close();
             }
@@ -136,6 +137,7 @@ public class SampMode implements ProcessingMode {
         private final String[] formats_;
         private final StarTableWriter[] writers_;
         private final StarTable table_;
+        private final PrintStream out_;
         private final HubConnection connection_;
         private final HttpServer httpd_;
         private final ResponseCollector responseCollector_;
@@ -148,9 +150,11 @@ public class SampMode implements ProcessingMode {
          *                    (last atom of "table.load.*" MType)
          * @param   writers   array of table output handlers corresponding
          *                    to <code>formats</code> (must be same length)
+         * @param   table     table to send
+         * @param   out       output stream for logging
          */
         TableTransmitter( String[] formats, StarTableWriter[] writers,
-                          StarTable table )
+                          StarTable table, PrintStream out )
                 throws IOException {
             if ( formats.length != writers.length ) {
                 throw new IllegalArgumentException();
@@ -158,6 +162,7 @@ public class SampMode implements ProcessingMode {
             formats_ = formats;
             writers_ = writers;
             table_ = table;
+            out_ = out;
             nameMap_ = new HashMap();
 
             /* Bail out early if no hub is running. */
@@ -230,21 +235,19 @@ public class SampMode implements ProcessingMode {
                                        resourceHandler );
                 Map recipientMap = connection_.callAll( msgTag, msg );
                 recipientList = recipientMap.keySet();
-                if ( logger_.isLoggable( Level.INFO ) ) {
-                    StringBuffer sbuf = new StringBuffer()
-                        .append( "Broadcast " )
-                        .append( msg.getMType() )
-                        .append( " to " );
-                    for ( Iterator it = recipientList.iterator();
-                          it.hasNext(); ) {
-                        String clientId = (String) it.next();
-                        sbuf.append( formatId( clientId ) );
-                        if ( it.hasNext() ) {
-                            sbuf.append( ", " );
-                        }
+                StringBuffer sbuf = new StringBuffer()
+                    .append( "Broadcast " )
+                    .append( msg.getMType() )
+                    .append( " to " );
+                for ( Iterator it = recipientList.iterator();
+                      it.hasNext(); ) {
+                    String clientId = (String) it.next();
+                    sbuf.append( formatId( clientId ) );
+                    if ( it.hasNext() ) {
+                        sbuf.append( ", " );
                     }
-                    logger_.info( sbuf.toString() );
                 }
+                out_.println( sbuf.toString() );
             }
 
             /* If there are multiple formats however, we need to be more
@@ -265,10 +268,8 @@ public class SampMode implements ProcessingMode {
                         if ( ! recipientList.contains( clientId ) ) {
                             connection_.call( clientId, msgTag, msg );
                             recipientList.add( clientId );
-                            if ( logger_.isLoggable( Level.INFO ) ) {
-                                logger_.info( "Send " + msg.getMType() + " to "
-                                            + formatId( clientId ) );
-                            }
+                            out_.println( "Send " + msg.getMType() + " to "
+                                       + formatId( clientId ) );
                         }
                     }
                 }
@@ -447,10 +448,14 @@ public class SampMode implements ProcessingMode {
                                                   Response response ) {
             if ( msgTag.equals( getTag() ) ) {
                 responseMap_.put( responderId, response );
-                if ( logger_.isLoggable( Level.INFO ) ) {
-                    logger_.info( "Response " + response.getStatus()
-                                + " from "
-                                + transmitter_.formatId( responderId ) );
+                String responderString = transmitter_.formatId( responderId );
+                transmitter_.out_
+                            .println( "Response " + response.getStatus()
+                                    + " from " + responderString );
+                if ( ! response.isOK() ) {
+                    logger_.info( responderString + " error info:\n"
+                                + SampUtils.formatObject( response.getErrInfo(),
+                                                          2 ) );
                 }
                 notifyAll();
             }
