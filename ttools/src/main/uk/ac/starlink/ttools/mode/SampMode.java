@@ -6,6 +6,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.httpd.HttpServer;
@@ -47,6 +49,7 @@ import uk.ac.starlink.ttools.task.LineTableEnvironment;
 public class SampMode implements ProcessingMode {
 
     private final DefaultMultiParameter formatsParam_;
+    private final Parameter clientParam_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.mode" );
 
@@ -82,6 +85,22 @@ public class SampMode implements ProcessingMode {
             "</p>",
         } );
         formatsParam_.setDefault( "votable fits" );
+
+        clientParam_ = new Parameter( "client" );
+        clientParam_.setDescription( new String[] {
+            "<p>Identifies a registered SAMP client which is to",
+            "receive the table.",
+            "Either the client ID or the (case-insensitive) application name",
+            "may be used.",
+            "If a non-null value is given, then the table will be sent to",
+            "only the first client with the given name or ID.",
+            "If no value is supplied the table will be sent to",
+            "all suitably subscribed clients.",
+            "</p>",
+        } );
+        clientParam_.setNullPermitted( true );
+        clientParam_.setPrompt( "Recipient client name or ID" );
+        clientParam_.setUsage( "<name-or-id>" );
     }
 
     public String getDescription() {
@@ -98,6 +117,7 @@ public class SampMode implements ProcessingMode {
     public Parameter[] getAssociatedParameters() {
         return new Parameter[] {
             formatsParam_,
+            clientParam_,
         };
     }
 
@@ -105,6 +125,7 @@ public class SampMode implements ProcessingMode {
             throws TaskException {
         final String[] formats = formatsParam_.stringsValue( env );
         final StarTableWriter[] writers = new StarTableWriter[ formats.length ];
+        final String targetClient = clientParam_.stringValue( env );
         StarTableOutput sto = LineTableEnvironment.getTableOutput( env );
         final PrintStream out = env.getOutputStream();
         for ( int i = 0; i < formats.length; i++ ) {
@@ -122,7 +143,8 @@ public class SampMode implements ProcessingMode {
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 TableTransmitter transmitter =
-                    new TableTransmitter( formats, writers, table, out );
+                    new TableTransmitter( formats, writers, table,
+                                          targetClient, out );
                 transmitter.run();
                 transmitter.close();
             }
@@ -133,10 +155,11 @@ public class SampMode implements ProcessingMode {
      * Object which can transmit a table to subscribed clients as appropriate
      * using SAMP.
      */
-    private static class TableTransmitter {
+    static class TableTransmitter {
         private final String[] formats_;
         private final StarTableWriter[] writers_;
         private final StarTable table_;
+        private final String targetClient_;
         private final PrintStream out_;
         private final HubConnection connection_;
         private final HttpServer httpd_;
@@ -151,10 +174,12 @@ public class SampMode implements ProcessingMode {
          * @param   writers   array of table output handlers corresponding
          *                    to <code>formats</code> (must be same length)
          * @param   table     table to send
-         * @param   out       output stream for logging
+         * @param   targetClient  target client name, or null for all
+         * @param   out       output stream for logging; may be null
          */
         TableTransmitter( String[] formats, StarTableWriter[] writers,
-                          StarTable table, PrintStream out )
+                          StarTable table, String targetClient,
+                          PrintStream out )
                 throws IOException {
             if ( formats.length != writers.length ) {
                 throw new IllegalArgumentException();
@@ -162,6 +187,7 @@ public class SampMode implements ProcessingMode {
             formats_ = formats;
             writers_ = writers;
             table_ = table;
+            targetClient_ = targetClient;
             out_ = out;
             nameMap_ = new HashMap();
 
@@ -227,9 +253,48 @@ public class SampMode implements ProcessingMode {
             String msgTag = responseCollector_.getTag();
             Collection recipientList;
 
+            /* If we are targetting a single client, locate the target,
+             * then go one format at a time until we find an acceptable one. */
+            if ( targetClient_ != null ) {
+                String[] clientIds = connection_.getRegisteredClients();
+                String targetId = null;
+                for ( int ic = 0; ic < clientIds.length && targetId == null;
+                      ic++ ) {
+                    String clientId = clientIds[ ic ];
+                    if ( targetClient_.equals( clientId ) ||
+                         targetClient_
+                        .equalsIgnoreCase( getClientName( clientId ) ) ) {
+                        targetId = clientId;
+                    }
+                }
+                if ( targetId == null ) {
+                    throw new IOException( "No registered client with "
+                                         + "name or ID " + targetClient_ );
+                }
+                Subscriptions subs = connection_.getSubscriptions( targetId );
+                boolean sent = false;
+                for ( int i = 0; i < formats_.length && ! sent; i++ ) {
+                    Message msg =
+                        createSendMessage( table_, formats_[ i ], writers_[ i ],
+                                           resourceHandler );
+                    if ( subs.isSubscribed( msg.getMType() ) ) {
+                        connection_.call( targetId, msgTag, msg );
+                        println( "Send " + msg.getMType() + " to "
+                               + formatId( targetId ) );
+                        sent = true;
+                    }
+                }
+                if ( ! sent ) {
+                    throw new IOException( "Client " + formatId( targetId )
+                                         + " not subscribed to any suitable"
+                                         + " MType" );
+                }
+                recipientList = Collections.singleton( targetId );
+            }
+
             /* If there's only one format, a broadcast (send to all) is the
              * cleanest way to do it. */
-            if ( formats_.length == 1 ) {
+            else if ( formats_.length == 1 ) {
                 Message msg =
                     createSendMessage( table_, formats_[ 0 ], writers_[ 0 ],
                                        resourceHandler );
@@ -247,7 +312,7 @@ public class SampMode implements ProcessingMode {
                         sbuf.append( ", " );
                     }
                 }
-                out_.println( sbuf.toString() );
+                println( sbuf.toString() );
             }
 
             /* If there are multiple formats however, we need to be more
@@ -268,8 +333,8 @@ public class SampMode implements ProcessingMode {
                         if ( ! recipientList.contains( clientId ) ) {
                             connection_.call( clientId, msgTag, msg );
                             recipientList.add( clientId );
-                            out_.println( "Send " + msg.getMType() + " to "
-                                       + formatId( clientId ) );
+                            println( "Send " + msg.getMType() + " to "
+                                   + formatId( clientId ) );
                         }
                     }
                 }
@@ -297,6 +362,17 @@ public class SampMode implements ProcessingMode {
         public void close() throws IOException {
             httpd_.stop();
             connection_.unregister();
+        }
+
+        /**
+         * Writes a line of informative text about operations.
+         *
+         * @param  line  text
+         */
+        private void println( String line ) {
+            if ( out_ != null ) {
+                out_.println( line );
+            }
         }
 
         /**
@@ -372,6 +448,9 @@ public class SampMode implements ProcessingMode {
                                                      tableResource )
                                        .toString() );
         String name = table.getName();
+        if ( name == null ) {
+            name = "(stilts)";
+        }
         if ( name != null && name.length() > 0 ) {
             msg.addParam( "name", name );
         }
@@ -449,8 +528,7 @@ public class SampMode implements ProcessingMode {
             if ( msgTag.equals( getTag() ) ) {
                 responseMap_.put( responderId, response );
                 String responderString = transmitter_.formatId( responderId );
-                transmitter_.out_
-                            .println( "Response " + response.getStatus()
+                transmitter_.println( "Response " + response.getStatus()
                                     + " from " + responderString );
                 if ( ! response.isOK() ) {
                     logger_.info( responderString + " error info:\n"
