@@ -3745,6 +3745,14 @@ with the following RDBMSs and corresponding JDBC drivers:
     but your mileage may vary.
     </p></dd>
 
+<dt><webref url="http://www.sybase.com/products/databasemanagement/adaptiveserverenterprise"
+            >Sybase ASE</webref></dt>
+<dd><p>There has been a successful use of Sybase 12.5.2 and jConnect 
+    (jconn3.jar) using a JDBC URL like
+    "<code>jdbc:sybase:Tds:hostname:port/dbname?user=XXX&amp;password=XXX#SELECT...</code>".
+    An earlier attempt using Sybase ASE 11.9.2 failed.
+    </p></dd>
+
 </dl>
 Other RDBMSs and drivers may or may not work - please let us know the
 results of any experiments you carry out.
@@ -11622,6 +11630,13 @@ introduced since the last version:
         </ul>
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Note Sybase ASE works (documentation edit only)</li>
+    </ul>
     </p></dd>
 
 </dl>
