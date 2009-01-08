@@ -30,6 +30,7 @@ import org.astrogrid.samp.gui.UniformCallActionManager;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SendActionManager;
+import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
@@ -285,7 +286,7 @@ public class SampCommunicator implements TopcatCommunicator {
             final URL iurl = server.addResource( "density.fits", resource );
             new Timer( true ).schedule( new TimerTask() {
                 public void run() {
-                    server.expireResource( iurl );
+                    server.removeResource( iurl );
                 }
             }, 60000 );
 

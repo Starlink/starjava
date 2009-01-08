@@ -14,6 +14,7 @@ import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.IndividualCallActionManager;
 import org.astrogrid.samp.gui.SubscribedClientListModel;
+import org.astrogrid.samp.httpd.ServerResource;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;

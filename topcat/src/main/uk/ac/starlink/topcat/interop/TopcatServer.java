@@ -2,20 +2,19 @@ package uk.ac.starlink.topcat.interop;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.httpd.URLMapperHandler;
+import org.astrogrid.samp.httpd.HttpServer;
+import org.astrogrid.samp.httpd.ResourceHandler;
+import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.internal.HttpServer;
 import org.astrogrid.samp.xmlrpc.internal.InternalClientFactory;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 import uk.ac.starlink.topcat.Driver;
@@ -40,8 +39,6 @@ public class TopcatServer {
     private final URL tcPkgUrl_;
     private boolean started_;
     private static TopcatServer instance_;
-    private static Logger logger_ =
-        Logger.getLogger( TopcatServer.class.getName() );
     private static final int BUFSIZ = 16 * 1024;
 
     /**
@@ -57,9 +54,10 @@ public class TopcatServer {
 
         /* Set up handler to serve TOPCAT documentation. */
         URL docResource = getDocResource();
-        httpServer_.addHandler( new ClassLoaderHandler( docResource,
-                                "/doc/" ) );
-        tcPkgUrl_ = new URL( httpServer_.getBaseUrl(), "doc/" );
+        URLMapperHandler docHandler =
+            new URLMapperHandler( httpServer_, "/doc", docResource, true );
+        httpServer_.addHandler( docHandler );
+        tcPkgUrl_ = docHandler.getBaseUrl();
 
         /* Set up handler for XML-RPC. */
         xClientFactory_ = new InternalClientFactory();
@@ -123,8 +121,8 @@ public class TopcatServer {
      *
      * @param  url  URL returned by a previous addResource call
      */
-    public void expireResource( URL url ) {
-        resourceHandler_.expireResource( url );
+    public void removeResource( URL url ) {
+        resourceHandler_.removeResource( url );
     }
 
     /**
@@ -226,220 +224,5 @@ public class TopcatServer {
             instance_ = new TopcatServer();
         }
         return instance_;
-    }
-
-    /**
-     * HttpServer.Handler implementation which implements dynamic resource
-     * provision.
-     */
-    private static class ResourceHandler implements HttpServer.Handler {
-        private final String basePath_;
-        private final URL serverUrl_;
-        private final Map resourceMap_;
-        private int iRes_;
-
-        /** Dummy resource indicating a withdrawn item. */
-        private static final ServerResource EXPIRED = new ServerResource() {
-            public String getContentType() {
-                throw new AssertionError();
-            }
-            public long getContentLength() {
-                throw new AssertionError();
-            }
-            public void writeBody( OutputStream out ) {
-                throw new AssertionError();
-            }
-        };
-
-        /**
-         * Constructor.
-         *
-         * @param   server   HTTP server
-         * @param   basePath   from server root beneath which all resources
-         *                     provided by this handler will appear
-         */
-        public ResourceHandler( HttpServer server, String basePath ) {
-            if ( ! basePath.startsWith( "/" ) ) {
-                basePath = "/" + basePath;
-            }
-            if ( ! basePath.endsWith( "/" ) ) {
-                basePath = basePath + "/";
-            }
-            basePath_ = basePath;
-            serverUrl_ = server.getBaseUrl();
-            resourceMap_ = new HashMap();
-        }
-
-        /**
-         * Adds a resource to this server.
-         *
-         * @param   name   resource name, for cosmetic purposes only
-         * @param   resource  resource to make available
-         * @return   URL at which resource can be found
-         */
-        public synchronized URL addResource( String name,
-                                             ServerResource resource ) {
-            String path = basePath_ + Integer.toString( ++iRes_ ) + "/";
-            if ( name != null ) {
-                path += name;
-            }
-            resourceMap_.put( path, resource );
-            try {
-                URL url = new URL( serverUrl_, path );
-                logger_.info( "Resource added: " + url );
-                return new URL( serverUrl_, path );
-            }
-            catch ( MalformedURLException e ) {
-                throw new AssertionError( "Unknown protocol http??" );
-            }
-        }
-
-        /**
-         * Removes a resource from this server.
-         *
-         * @param  url  URL returned by a previous addResource call
-         */
-        public synchronized void expireResource( URL url ) {
-            String path = url.getPath();
-            if ( resourceMap_.containsKey( path ) ) {
-                logger_.info( "Resource expired: " + url );
-                resourceMap_.put( path, EXPIRED );
-            } 
-            else {
-                throw new IllegalArgumentException( "Unknown URL to expire: "
-                                                  + url );
-            }
-        }
-
-        public HttpServer.Response serveRequest( HttpServer.Request request ) {
-            String path = request.getUrl();
-            if ( ! path.startsWith( basePath_ ) ) {
-                return null;
-            }
-            final ServerResource resource =
-                (ServerResource) resourceMap_.get( path );
-            if ( resource == EXPIRED ) {
-                return HttpServer.createErrorResponse( 410, "Gone" );
-            }
-            else if ( resource != null ) {
-                Map hdrMap = new HashMap();
-                hdrMap.put( "Content-Type", resource.getContentType() );
-                long contentLength = resource.getContentLength();
-                if ( contentLength >= 0 ) {
-                    hdrMap.put( "Content-Length",
-                                Long.toString( contentLength ) );
-                }
-                String method = request.getMethod();
-                if ( method.equals( "HEAD" ) ) {
-                    return new HttpServer.Response( 200, "OK", hdrMap ) {
-                        protected void writeBody( OutputStream out ) {
-                        }
-                    };
-                }
-                else if ( method.equals( "GET" ) ) {
-                    return new HttpServer.Response( 200, "OK", hdrMap ) {
-                        public void writeBody( OutputStream out )
-                                throws IOException {
-                            resource.writeBody( out );
-                        }
-                    };
-                }
-                else {
-                    return HttpServer
-                          .createErrorResponse( 405, "Unsupported method" );
-                }
-            }
-            else {
-                return HttpServer.createErrorResponse( 404, "Not found" );
-            }
-        }
-    }
-
-    /**
-     * Handler implementation for serving resources which are available
-     * from the class loader.
-     */
-    private static class ClassLoaderHandler implements HttpServer.Handler {
-        private final URL baseResource_;
-        private final String basePath_;
-
-        /**
-         * Constructor.
-         *
-         * @param  baseResource   URL of the base resource available from the
-         *                        class loader
-         * @param  basePath   path relative to the server at which the
-         *                    resources will be available
-         */
-        ClassLoaderHandler( URL baseResource, String basePath ) {
-            baseResource_ = baseResource;
-            basePath_ = basePath;
-        }
-
-        public HttpServer.Response serveRequest( HttpServer.Request request ) {
-            String path = request.getUrl();
-            if ( ! path.startsWith( basePath_ ) ) {
-                return null;
-            }
-            String method = request.getMethod();
-            String relPath = path.substring( basePath_.length() );
-            final URLConnection conn;
-            try {
-                URL resource = new URL( baseResource_, relPath );
-                conn = resource.openConnection();
-                conn.connect();
-            }
-            catch ( IOException e ) {
-                return HttpServer.createErrorResponse( 404, "Not found", e );
-            }
-            try {
-                Map hdrMap = new HashMap();
-                String contentType = conn.getContentType();
-                if ( contentType != null ) {
-                    hdrMap.put( "Content-Type", contentType );
-                }
-                int contentLength = conn.getContentLength();
-                if ( contentLength >= 0 ) {
-                    hdrMap.put( "Content-Length",
-                                Integer.toString( contentLength ) );
-                }
-                String contentEncoding = conn.getContentEncoding();
-                if ( contentEncoding != null ) {
-                    hdrMap.put( "Content-Encoding", contentEncoding );
-                }
-                if ( "GET".equals( method ) ) {
-                    return new HttpServer.Response( 200, "OK", hdrMap ) {
-                        protected void writeBody( OutputStream out )
-                                throws IOException {
-                            InputStream in = conn.getInputStream();
-                            byte[] buf = new byte[ BUFSIZ ];
-                            try {
-                                for ( int nb; ( nb = in.read( buf ) ) >= 0; ) {
-                                    out.write( buf, 0, nb );
-                                }
-                                out.flush();
-                            }
-                            finally {
-                                in.close();
-                            }
-                        }
-                    };
-                }
-                else if ( "HEAD".equals( method ) ) {
-                    return new HttpServer.Response( 200, "OK", hdrMap ) {
-                        protected void writeBody( OutputStream out ) {
-                        }
-                    };
-                }
-                else {
-                    return HttpServer
-                          .createErrorResponse( 405, "Unsupported method" );
-                }
-            }
-            catch ( Exception e ) {
-                return HttpServer
-                      .createErrorResponse( 500, "Internal server error", e );
-            }
-        }
     }
 }
