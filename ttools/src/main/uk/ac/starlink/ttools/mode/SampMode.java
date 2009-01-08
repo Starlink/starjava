@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -138,6 +139,7 @@ public class SampMode implements ProcessingMode {
         private final HubConnection connection_;
         private final HttpServer httpd_;
         private final ResponseCollector responseCollector_;
+        private final Map nameMap_;
 
         /**
          * Constructor.
@@ -156,6 +158,7 @@ public class SampMode implements ProcessingMode {
             formats_ = formats;
             writers_ = writers;
             table_ = table;
+            nameMap_ = new HashMap();
 
             /* Bail out early if no hub is running. */
             if ( ! SampUtils.getLockFile().exists() ) {
@@ -192,10 +195,14 @@ public class SampMode implements ProcessingMode {
                 httpd_.addHandler( iconHandler );
                 meta.setIconUrl( iconHandler.getBaseUrl().toString() );
             }
+            meta.put( "author.name", "Mark Taylor" );
+            meta.put( "author.affiliation",
+                      "Astrophysics Group, Bristol University, UK" );
+            meta.put( "author.email", "m.b.taylor@bristol.ac.uk" );
             connection_.declareMetadata( meta );
 
             /* Get ready to receive responses from asynchronous calls. */
-            responseCollector_ = new ResponseCollector();
+            responseCollector_ = new ResponseCollector( this );
             connection_.setCallable( responseCollector_ );
         }
 
@@ -223,8 +230,21 @@ public class SampMode implements ProcessingMode {
                                        resourceHandler );
                 Map recipientMap = connection_.callAll( msgTag, msg );
                 recipientList = recipientMap.keySet();
-                logger_.info( "Broadcast " + msg.getMType() + " to "
-                            + recipientList );
+                if ( logger_.isLoggable( Level.INFO ) ) {
+                    StringBuffer sbuf = new StringBuffer()
+                        .append( "Broadcast " )
+                        .append( msg.getMType() )
+                        .append( " to " );
+                    for ( Iterator it = recipientList.iterator();
+                          it.hasNext(); ) {
+                        String clientId = (String) it.next();
+                        sbuf.append( formatId( clientId ) );
+                        if ( it.hasNext() ) {
+                            sbuf.append( ", " );
+                        }
+                    }
+                    logger_.info( sbuf.toString() );
+                }
             }
 
             /* If there are multiple formats however, we need to be more
@@ -245,8 +265,10 @@ public class SampMode implements ProcessingMode {
                         if ( ! recipientList.contains( clientId ) ) {
                             connection_.call( clientId, msgTag, msg );
                             recipientList.add( clientId );
-                            logger_.info( "Send " + msg.getMType() + " to "
-                                        + clientId );
+                            if ( logger_.isLoggable( Level.INFO ) ) {
+                                logger_.info( "Send " + msg.getMType() + " to "
+                                            + formatId( clientId ) );
+                            }
                         }
                     }
                 }
@@ -274,6 +296,48 @@ public class SampMode implements ProcessingMode {
         public void close() throws IOException {
             httpd_.stop();
             connection_.unregister();
+        }
+
+        /**
+         * Returns the human-readable name of a client application, if one
+         * is available.
+         *
+         * @param  clientId   client public ID
+         * @return  client name, or null
+         */
+        private String getClientName( String clientId ) {
+            if ( ! nameMap_.containsKey( clientId ) ) {
+                String name = null;
+                try {
+                    Metadata meta = connection_.getMetadata( clientId );
+                    if ( meta != null ) {
+                        name = meta.getName();
+                    }
+                }
+                catch ( IOException e ) {
+                }
+                nameMap_.put( clientId, name );
+            }
+            return (String) nameMap_.get( clientId );
+        }
+
+        /**
+         * Turns a client's public ID into a string suitable for presenting
+         * to the user.
+         *
+         * @param  clientId  client public ID
+         * @return  formatted id/name
+         */
+        private String formatId( String clientId ) {
+            StringBuffer sbuf = new StringBuffer()
+                .append( clientId );
+            String name = getClientName( clientId );
+            if ( name != null && name.length() > 0 ) {
+                sbuf.append( " (" )
+                    .append( name )
+                    .append( ')' );
+            }
+            return sbuf.toString();
         }
     }
 
@@ -319,6 +383,7 @@ public class SampMode implements ProcessingMode {
      */
     private static class ResponseCollector implements CallableClient {
 
+        private final TableTransmitter transmitter_;
         private String[] recipientIds_;
         private final Map responseMap_;
         private boolean interrupted_;
@@ -326,7 +391,8 @@ public class SampMode implements ProcessingMode {
         /**
          * Constructor.
          */
-        ResponseCollector() {
+        ResponseCollector( TableTransmitter transmitter ) {
+            transmitter_ = transmitter;
             responseMap_ = new HashMap();
         }
 
@@ -381,8 +447,11 @@ public class SampMode implements ProcessingMode {
                                                   Response response ) {
             if ( msgTag.equals( getTag() ) ) {
                 responseMap_.put( responderId, response );
-                logger_.info( "Response " + response.getStatus()
-                            + " from " + responderId );
+                if ( logger_.isLoggable( Level.INFO ) ) {
+                    logger_.info( "Response " + response.getStatus()
+                                + " from "
+                                + transmitter_.formatId( responderId ) );
+                }
                 notifyAll();
             }
             else {
