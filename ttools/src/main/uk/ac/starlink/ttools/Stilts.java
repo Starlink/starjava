@@ -108,6 +108,7 @@ public class Stilts {
         modeFactory_.register( "cgi", modePkg + "CgiMode" );
         modeFactory_.register( "discard", modePkg + "NullMode" );
         modeFactory_.register( "topcat", modePkg + "TopcatMode" );
+        modeFactory_.register( "samp", modePkg + "SampMode" );
         modeFactory_.register( "plastic", modePkg + "PlasticMode" );
         modeFactory_.register( "tosql", modePkg + "JdbcMode" );
     }
