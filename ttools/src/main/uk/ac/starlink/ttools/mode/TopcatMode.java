@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.mode;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
@@ -18,6 +19,7 @@ import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.soap.util.RemoteUtilities;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.Environment;
@@ -25,6 +27,8 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableWriter;
 import uk.ac.starlink.votable.soap.VOTableSerialization;
 
 /**
@@ -36,11 +40,10 @@ import uk.ac.starlink.votable.soap.VOTableSerialization;
  * @author   Mark Taylor (Starlink)
  * @since    24 Mar 2005
  */
-public class TopcatMode implements ProcessingMode, TableConsumer {
+public class TopcatMode implements ProcessingMode {
 
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.tttools.mode" );
-    private StoragePolicy policy_;
 
     /**
      * Fail with an undeclared throwable at load time if this class isn't
@@ -75,11 +78,25 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
     }
 
     public TableConsumer createConsumer( Environment env ) {
-        policy_ = LineTableEnvironment.getStoragePolicy( env );
-        return this;
+        final StoragePolicy policy =
+            LineTableEnvironment.getStoragePolicy( env );
+        final PrintStream out = env.getOutputStream();
+        return new TableConsumer() {
+            public void consume( StarTable table ) throws IOException {
+                toTopcat( table, policy, out );
+            }
+        };
     }
 
-    public void consume( StarTable table ) throws IOException {
+    /**
+     * Attempts to load a table into TOPCAT.
+     *
+     * @param   table   table to display
+     * @param   policy  storage policy
+     * @param   out   output stream for logging messages
+     */
+    private void toTopcat( StarTable table, StoragePolicy policy,
+                           PrintStream out ) throws IOException {
         String srcName = table.getName();
         if ( srcName == null || srcName.trim().length() == 0 ) {
             srcName = "(stilts)";
@@ -88,8 +105,20 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
         boolean done = false;
         if ( ! done ) {
             try {
+                logger_.info( "Trying SAMP ..." );
+                sampDisplay( table );
+                logger_.info( "... sent via SAMP" );
+                done = true;
+            }
+            catch ( IOException e ) {
+                logger_.info( "... SAMP broadcast failed " + e );
+            }
+        }
+
+        if ( ! done ) {
+            try {
                 logger_.info( "Trying PLASTIC ..." );
-                plasticDisplay( table, srcName );
+                plasticDisplay( table, policy );
                 logger_.info( "... sent via PLASTIC" );
                 done = true;
             }
@@ -118,11 +147,20 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
         }
 
         if ( ! done ) {
-            logger_.info( "Trying local JVM using reflection ..." );
-            table = Tables.randomTable( table );
-            internalDisplay( table, srcName );
-            logger_.info( "... loaded in local JVM" );
-            done = true;
+            try {
+                logger_.info( "Trying local JVM using reflection ..." );
+                table = Tables.randomTable( table );
+                internalDisplay( table, srcName );
+                logger_.info( "... loaded in local JVM" );
+                done = true;
+            }
+            catch ( IOException e ) {
+                logger_.info( "... TOPCAT startup failed " + e );
+            }
+        }
+
+        if ( ! done ) {
+            out.println( "Couldn't contact or start TOPCAT" );
         }
     }
 
@@ -131,14 +169,31 @@ public class TopcatMode implements ProcessingMode, TableConsumer {
      * a running PLASTIC hub.
      *
      * @param  table  table to display
-     * @param  srcName   label for the table's source
+     * @param  policy   storage policy
      */
-    private void plasticDisplay( StarTable table, String srcName ) 
+    private void plasticDisplay( StarTable table, StoragePolicy policy )
             throws IOException {
         PlasticHubListener hub = PlasticUtils.getLocalHub();
         URI plasticId = hub.registerNoCallBack( "stilts" );
         PlasticMode.broadcast( table, PlasticMode.MSG_BYURL, hub, plasticId,
-                               policy_, "topcat", null );
+                               policy, "topcat", null );
+    }
+
+    /**
+     * Attempts to display a table in a TOPCAT which is registered with
+     * a running SAMP hub.
+     *
+     * @param  table  table to display
+     */
+    private void sampDisplay( StarTable table ) throws IOException {
+        StarTableWriter vowriter =
+            new VOTableWriter( DataFormat.BINARY, true );
+        SampMode.TableTransmitter transmitter =
+            new SampMode.TableTransmitter( new String[] { "votable" },
+                                           new StarTableWriter[] { vowriter },
+                                           table, "topcat", null );
+        transmitter.run();
+        transmitter.close();
     }
 
     /**
