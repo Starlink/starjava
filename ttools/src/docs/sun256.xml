@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>23 December 2008</docdate>
+<docdate>9 January 2008</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6150,7 +6150,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.0-2 (9 January 2009)</dt>
 <dd><p>
     <ul>
     <li>Added new <ref id="mode-samp">samp</ref> output mode which passes
