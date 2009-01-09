@@ -6157,6 +6157,8 @@ but my thanks are especially due to the following:
         the generated table to clients using the SAMP protocol.</li>
     <li>Updated the <ref id="mode-topcat">topcat</ref> output mode to use
         SAMP as one way of communicating with a running TOPCAT.</li>
+    <li><code>-version</code> flag now reports starjava subversion revision
+        as well as other items.</li>
     </ul>
     </p></dd>
 

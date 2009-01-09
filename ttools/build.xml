@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TTOOLS"/>
   <property name="name" value="ttools"/>
-  <property name="version" value="2.0-1"/>
+  <property name="version" value="2.0-1+"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ttools"/>
@@ -471,10 +471,23 @@
   </target>
 
   <target name="build-standalone" depends="install">
+
+    <!-- Build temporary zip file containing things not in the input jars
+     !   which ought to be included in the standalone jars. -->
+    <exec output="${build.classes}/uk/ac/starlink/ttools/revision-string"
+          logerror="true"
+          executable="svnversion"
+          dir="${basedir}/..">
+      <arg value="."/>
+    </exec>
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="stilts"/>
       <fileset dir="${star.docs.pkg}" includes="README.*"/>
+      <fileset dir="${build.classes}"
+               includes="uk/ac/starlink/ttools/revision-string"/>
     </zip>
+    <delete file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
+
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
       <arg value="-o"/><arg value="${dist.lib.pkg}/stilts.jar"/>
