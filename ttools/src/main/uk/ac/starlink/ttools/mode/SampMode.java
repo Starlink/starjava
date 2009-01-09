@@ -213,12 +213,8 @@ public class SampMode implements ProcessingMode {
             httpd_.start();
 
             /* Inform hub of metadata. */
-            Metadata meta = new Metadata();
-            meta.setName( "STILTS" );
-            meta.setDescriptionText( "STIL Tool Set"
-                                   + " - table manipulation suite" );
-            meta.setDocumentationUrl( "http://www.starlink.ac.uk/stilts/" );
             URL iconUrl = Stilts.class.getResource( "images/stilts_icon.gif" );
+            Metadata meta = getStiltsMetadata();
             if ( iconUrl != null ) {
                 URLMapperHandler iconHandler =
                     new URLMapperHandler( httpd_, "stilts_icon.gif", iconUrl,
@@ -226,10 +222,6 @@ public class SampMode implements ProcessingMode {
                 httpd_.addHandler( iconHandler );
                 meta.setIconUrl( iconHandler.getBaseUrl().toString() );
             }
-            meta.put( "author.name", "Mark Taylor" );
-            meta.put( "author.affiliation",
-                      "Astrophysics Group, Bristol University, UK" );
-            meta.put( "author.email", "m.b.taylor@bristol.ac.uk" );
             connection_.declareMetadata( meta );
 
             /* Get ready to receive responses from asynchronous calls. */
@@ -419,6 +411,24 @@ public class SampMode implements ProcessingMode {
     }
 
     /**
+     * Returns metadata describing the STILTS application as a SAMP client.
+     *
+     * @return  metadata
+     */
+    public static Metadata getStiltsMetadata() {
+        Metadata meta = new Metadata();
+        meta.setName( "STILTS" );
+        meta.setDescriptionText( "STIL Tool Set"
+                               + " - table manipulation suite" );
+        meta.setDocumentationUrl( "http://www.starlink.ac.uk/stilts/" );
+        meta.put( "author.name", "Mark Taylor" );
+        meta.put( "author.affiliation",
+                  "Astrophysics Group, Bristol University, UK" );
+        meta.put( "author.email", "m.b.taylor@bristol.ac.uk" );
+            return meta;
+    }
+
+    /**
      * Constructs a SAMP message which can be used to send this object's
      * table in a given table format.
      *
@@ -428,10 +438,9 @@ public class SampMode implements ProcessingMode {
      * @param  resHandler  resource handler which can host dynamic resources
      * @return  message suitable for transmission
      */
-    private static Message createSendMessage( final StarTable table,
-                                              String format,
-                                              final StarTableWriter writer,
-                                              ResourceHandler resHandler ) {
+    static Message createSendMessage( final StarTable table, String format,
+                                      final StarTableWriter writer,
+                                      ResourceHandler resHandler ) {
         Message msg = new Message( "table.load." + format );
         ServerResource tableResource = new ServerResource() {
             public long getContentLength() {

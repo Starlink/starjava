@@ -8,6 +8,7 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.rmi.RemoteException;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.xml.rpc.ParameterMode;
@@ -15,6 +16,17 @@ import javax.xml.rpc.ServiceException;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.encoding.XMLType;
+import org.astrogrid.samp.Message;
+import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.Response;
+import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.httpd.HttpServer;
+import org.astrogrid.samp.httpd.ResourceHandler;
+import org.astrogrid.samp.hub.BasicHubService;
+import org.astrogrid.samp.xmlrpc.HubRunner;
+import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.soap.util.RemoteUtilities;
@@ -25,6 +37,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.DocUtils;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.votable.DataFormat;
@@ -59,20 +72,33 @@ public class TopcatMode implements ProcessingMode {
 
     public String getDescription() {
         return DocUtils.join( new String[] {
-            "<p>Displays the output table directly in",
+            "<p>Attempts to display the output table directly in",
             "<webref url='http://www.starlink.ac.uk/topcat/'>TOPCAT</webref>.",
-            "If a TOPCAT instance (version 1.6 or later) is already",
-            "running on the local host, the table will be opened in that,",
-            "otherwise a new TOPCAT instance will be launched for display.",
-            "The latter mode only works if the TOPCAT classes are",
-            "on the class path.",
+            "If a TOPCAT instance is already",
+            "running on the local host, an attempt will be made to open",
+            "the table in that.",
+            "A variety of mechanisms are used to attempt communication",
+            "with an existing TOPCAT instance.  In order:",
+            "<ol>",
+            "<li>SAMP using existing hub",
+                 " (TOPCAT v3.4+ only, requires SAMP hub to be running)</li>",
+            "<li>PLASTIC using existing hub",
+                 " (requires PLASTIC hub to be running)</li>",
+            "<li>SOAP",
+                 " (requires TOPCAT to run with somewhat deprecated",
+                 " <code>-soap</code> flag,",
+                 " may be limitations on table size)</li>",
+            "<li>SAMP using internal, short-lived hub",
+                 " (TOPCAT v3.4+ only, running hub not required,",
+                 " but may be slow.  It's better to start an external hub,",
+                 " e.g. <code>topcat -exthub</code>)</li>",
+            "</ol>",
+            "Failing that, an attempt will be made to launch",
+            "a new TOPCAT instance for display.",
+            "This only works if the TOPCAT classes are on the class path.",
             "</p>",
-            "<p>A variety of mechanisms (e.g. PLASTIC and SOAP) are attempted",
-            "to transfer the table, depending on what running instances",
-            "of TOPCAT can be found.",
-            "Depending on the transport mechanism used, there may be limits",
-            "to the size of table which can be transmitted to the application",
-            "in this way.",
+            "<p>If large tables are involved, starting TOPCAT with the",
+            "<code>-disk</code> flag is probably a good idea.",
             "</p>",
         } );
     }
@@ -148,6 +174,20 @@ public class TopcatMode implements ProcessingMode {
 
         if ( ! done ) {
             try {
+                logger_.info( "Trying SAMP with short-lived internal hub ..." );
+                sampHubDisplay( table );
+                logger_.info( "... sent via SAMP with internal hub" );
+                logger_.warning( "This would be more efficient "
+                               + "with an external SAMP hub running." );
+                done = true;
+            }
+            catch ( IOException e ) {
+                logger_.info( "... SAMP with internal hub failed " + e );
+            }
+        }
+
+        if ( ! done ) {
+            try {
                 logger_.info( "Trying local JVM using reflection ..." );
                 table = Tables.randomTable( table );
                 internalDisplay( table, srcName );
@@ -194,6 +234,65 @@ public class TopcatMode implements ProcessingMode {
                                            table, "topcat", null );
         transmitter.run();
         transmitter.close();
+    }
+
+    /**
+     * Attempts to display a table in a running TOPCAT by starting a 
+     * short-lived internal SAMP hub, waiting for a TOPCAT to connect to it,
+     * and sending the message, before shutting the hub down again.
+     *
+     * @param  table  table to display
+     */
+    private void sampHubDisplay( StarTable table ) throws IOException {
+
+        /* Start a hub. */
+        XmlRpcKit xmlrpc = XmlRpcKit.getInstance();
+        HubRunner runner =
+            new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
+                           new BasicHubService( new Random() ),
+                           SampUtils.getLockFile() );
+        runner.start();
+
+        /* Register with it. */
+        HubConnection connection =
+            new StandardClientProfile( xmlrpc ).register();
+        Metadata meta = SampMode.getStiltsMetadata();
+        meta.setIconUrl( Stilts.class.getResource( "images/stilts_icon.gif" )
+                                     .toString() );
+        connection.declareMetadata( meta );
+        ClientRegWatcher tcWatcher = new ClientRegWatcher( connection );
+        connection.setCallable( tcWatcher );
+        connection.declareSubscriptions( tcWatcher.getSubscriptions() );
+
+        /* Wait for a few seconds to see if a TOPCAT connects automatically
+         * to the hub.  Normally it checks for a new hub every couple of
+         *  seconds. */
+        String tcId = tcWatcher.waitForIdFromName( "topcat", 5000 );
+        if ( tcId == null ) {
+            throw new IOException( "No TOPCAT found" );
+        }
+
+        /* If we have a TOPCAT, prepare to serve the table. */
+        HttpServer httpd = new HttpServer();
+        httpd.setDaemon( true );
+        ResourceHandler resHandler = new ResourceHandler( httpd, "table" );
+        httpd.addHandler( resHandler );
+        Message msg =
+           SampMode.createSendMessage( table, "votable",
+                                       new VOTableWriter( DataFormat.BINARY,
+                                                          true ),
+                                       resHandler );
+        httpd.start();
+
+        /* Send the table load message and wait for the response. */
+        String msgTag = "table-send";
+        connection.call( tcId, msgTag, msg );
+        Response response = tcWatcher.waitForResponse( msgTag );
+
+        /* Tidy up. */
+        connection.unregister();
+        runner.shutdown();
+        httpd.stop();
     }
 
     /**
