@@ -267,7 +267,7 @@ public class TopcatUtils {
                 "",
                 "TOPCAT Version " + getVersion(),
                 "STIL Version " + getSTILVersion(),
-                "Starjava build: " + getRevision(),
+                "Starjava revision: " + getRevision(),
                 "JVM: " + InvokeUtils.getJavaVM(),
                 "SPLAT: " + ( canSplat() ? "available" : "absent" ),
                 "SoG: " + ( canSog() ? "available" : "absent" ),

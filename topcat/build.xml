@@ -486,7 +486,7 @@
     <exec output="${build.classes}/uk/ac/starlink/topcat/revision-string"
           logerror="true"
           executable="svnversion"
-          dir="basedir/..">
+          dir="${basedir}/..">
       <arg value="."/>
     </exec>
     <zip destfile="${dist.lib.pkg}/extras.zip">
