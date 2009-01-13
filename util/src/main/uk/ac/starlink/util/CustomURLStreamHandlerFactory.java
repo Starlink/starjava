@@ -35,7 +35,7 @@ public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
      * Constructs a handler factory initialised with a given 
      * protocol-&gt;classname map.
      *
-     * @param   handler class map
+     * @param  classMap  handler class map
      */
     public CustomURLStreamHandlerFactory( Map classMap ) {
         classMap_ = classMap;
