@@ -88,6 +88,40 @@ public class FitsPlusTableBuilder implements TableBuilder {
                 throw new TableFormatException( "No BINTABLE HDU found" );
             }
 
+            /* Check that the FIELD elements look consistent with the
+             * FITS data.  If not, the FITS file has probably been 
+             * messed about with somehow, and attempting to interpret this
+             * file as FITS-plus is probably a bad idea. */
+            /* The implementation of this test is a bit desperate. 
+             * It is doing some of the same work as the consistency 
+             * adjustment below, but trying to be more stringent.  
+             * It tries to avoid the issue noted below concerning strings 
+             * and characters - but I don't remember the details of what 
+             * that was :-(.  This part was written later. */
+            FieldElement[] fields = tabel.getFields();
+            if ( fields.length != starTable.getColumnCount() ) {
+                throw new TableFormatException( "FITS/VOTable metadata mismatch"
+                                              + " - column counts differ" );
+            }
+            for ( int ic = 0; ic < fields.length; ic++ ) {
+                Class fclazz = starTable.getColumnInfo( ic ).getContentClass();
+                Class vclazz = fields[ ic ].getDecoder().getContentClass();
+                if ( fclazz.equals( vclazz )
+                     || ( ( fclazz.equals( String.class ) ||
+                            fclazz.equals( Character.class ) ||
+                            fclazz.equals( char[].class ) )
+                       && ( vclazz.equals( String.class ) ||
+                            vclazz.equals( Character.class ) ||
+                            vclazz.equals( char[].class ) ) ) ) {
+                    // ok
+                }
+                else {
+                    throw new TableFormatException( "FITS/VOTable metadata "
+                                                  + "mismatch"
+                                                  + " - column types differ" );
+                }
+            }
+
             /* Turn it into a TabularData element associated it with its
              * TABLE DOM element as if the DOM builder had found the table
              * data in a DATA element within the TABLE element. */
