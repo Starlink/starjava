@@ -914,6 +914,7 @@ public class Pal {
  */
 
 /*  Latest Revision: 21 November 2001 (RTP)
+ *                   15 January 2009 (PWD)
  *
  *  Given:
  *     utc      double      UTC date as a modified JD (JD-2400000.5)
@@ -943,6 +944,12 @@ public class Pal {
 /* leap second is announced, and also update */
 /* the preamble comments appropriately.      */
 /* - - - - - - - - - - - - - - - - - - - - - */
+
+/* 2009 January 1 */
+        if ( utc >= 54832.0 ) return 34.0;
+
+/* 2006 January 1 */
+        if ( utc >= 53736.0 ) return 33.0;
 
 /* 1999 January 1 */
         if ( utc >= 51179.0 ) return 32.0;
