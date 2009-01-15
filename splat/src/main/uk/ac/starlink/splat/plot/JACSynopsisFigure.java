@@ -204,7 +204,7 @@ public class JACSynopsisFigure
                 double mjd = pal.Epj2d( epoch );
 
                 //  TAI to UTC (leap seconds).
-                mjd -= pal.Dat( mjd );
+                mjd -= ( pal.Dat( mjd ) / ( 60.0 * 60.0 * 24.0 * 365.25 ) );
 
                 try {
                     mjDate date = pal.Djcl( mjd );

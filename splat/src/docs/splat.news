@@ -16,6 +16,9 @@
    Note that any existing saved lists of SSAP registries will no longer
    be compatible and must be regenerated.
 
+   A bug calculating UTC from TDB for the epoch of observation in the 
+   JAC synopsis has been fixed.
+
    3.8-8
    =====
 
