@@ -34,6 +34,7 @@ import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.SpecFrame;
+import uk.ac.starlink.ast.TimeFrame;
 import uk.ac.starlink.diva.DrawLabelFigure;
 import uk.ac.starlink.diva.DrawRectangleFigure;
 import uk.ac.starlink.pal.Pal;
@@ -195,17 +196,45 @@ public class JACSynopsisFigure
                 //  Use Epoch value, that's decimal years (TDB), so convert
                 //  into human readable form in UTC.
 
-                //  Get epoch in TAI (==TT) from TDB.
-                double epoch = specAxis.getEpoch() -
-                    ( 32.184 / ( 60.0 * 60.0 * 24.0 * 365.25 ) );
-
-                //  To MJD.
+                //  Method using AST to convert timescales.
+                //  XXX Requires up to date JNIAST with latest leap second.
+//                 TimeFrame tf = new TimeFrame();
+//                 tf.set( "TimeScale=TDB" );
+//                 Pal pp = new Pal();
+//                 double ep = pp.Epj2d( specAxis.getEpoch() );
+//                 tf.set( "TimeOrigin= MJD" + ep );
+//                 tf.set( "TimeScale=UTC" );
+                
+//                 String testprop = null;
+//                 try {
+//                     Pal pal = new Pal();
+//                     mjDate date = pal.Djcl( tf.getTimeOrigin() );
+//                     palTime dayfrac = pal.Dd2tf( date.getFraction() );
+//                     testprop =
+//                         date.getYear() + "-" + date.getMonth() + "-" +
+//                         date.getDay() + "T" + dayfrac.toString();
+//                 }
+//                 catch (Exception e) {
+//                     //  Formatting or domain error.
+//                     testprop = e.getMessage();
+//                 }
+//                 b.append( "Date-obs: " + testprop + "\n" );
+                
+                //  Without AST method.
+                //  Get epoch in TDB.
+                double epoch = specAxis.getEpoch();
+                
+                //  To an MJD.
                 Pal pal = new Pal();
                 double mjd = pal.Epj2d( epoch );
 
-                //  TAI to UTC (leap seconds).
+                //  To TAI (-32.184 seconds).
+                mjd -= ( 32.184 / ( 60.0 * 60.0 * 24.0 ) );
+                
+                //  To UTC (subtract leap seconds );
                 mjd -= ( pal.Dat( mjd ) / ( 60.0 * 60.0 * 24.0 ) );
 
+                //  Format as FITS date.
                 try {
                     mjDate date = pal.Djcl( mjd );
                     palTime dayfrac = pal.Dd2tf( date.getFraction() );
