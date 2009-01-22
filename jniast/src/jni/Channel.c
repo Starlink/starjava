@@ -110,8 +110,8 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Channel_read(
    jobject this          /* Instance object */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   AstPointer newpointer;
-   jobject newobj = NULL;
+   AstObject *readObj;
+   jobject jReadObj = NULL;
    int needchan;
 
    /* Store necessary pointers in the chaninfo structure, where
@@ -123,23 +123,23 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Channel_read(
     * sourceWrap() which will invoke the (non-native) source instance 
     * method. */
    ASTCALL(
-      newpointer.Channel = astRead( pointer.Channel );
+      readObj = astRead( pointer.Channel );
    )
 
    /* Make a java object out of the AST object. */
    if ( ! (*env)->ExceptionCheck( env ) ) {
-      newobj = jniastMakeObject( env, newpointer.AstObject );
+      jReadObj = jniastMakeObject( env, readObj );
    }
 
    /* Do any further necessary object-specific initialization. */
-   if ( newobj ) {
-      needchan = ( (*env)->IsInstanceOf( env, newobj, NeedsChannelizingClass )
+   if ( jReadObj ) {
+      needchan = ( (*env)->IsInstanceOf( env, jReadObj, NeedsChannelizingClass )
                    == JNI_TRUE );
       if ( needchan ) {
-         (*env)->CallVoidMethod( env, newobj, UnChannelizeMethodID );
+         (*env)->CallVoidMethod( env, jReadObj, UnChannelizeMethodID );
       }
    }
-   return newobj;
+   return jReadObj;
 }
 
 
