@@ -43,7 +43,7 @@ topcat_jars="\
 
 # If we're on a Mac, look for the jar in the resource bundle.
 if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
-   topcat_jars="$topcat_jars ../TOPCAT.app/Contents/Resources/Java/topcat-full.jar"
+   topcat_jars="$topcat_jars ../Contents/Resources/Java/topcat-full.jar ../TOPCAT.app/Contents/Resources/Java/topcat-full.jar"
 fi
 
 #  Find where this script is located.
