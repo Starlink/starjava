@@ -524,8 +524,8 @@
        <resources>
          <j2se version="1.4+"/>
 
-         <!-- Define the main library jar file -->
-         <jar href="${name}/${name}.jar"/>
+         <!-- Define the library jar files -->
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
 
          <!-- Name any extension packages we directly depend on -->
          <extension name="AXIS" href="axis.jnlp"/>
