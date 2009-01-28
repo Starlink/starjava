@@ -847,7 +847,7 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([2-9])\\.([0-9]+)-([0-9]+); "+
-                                           "JNIAST native V4\\.0-1; " +
+                                           "JNIAST native V5\\.0-0; " +
                                            "JNIAST java V4\\.0-1" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
