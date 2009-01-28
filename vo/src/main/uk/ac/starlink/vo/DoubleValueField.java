@@ -132,7 +132,14 @@ public class DoubleValueField {
      */
     public double getValue() {
         ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
-        return vc.convertValue( getEntryField().getText() );
+        try {
+            return vc.convertValue( getEntryField().getText() );
+        }
+        catch ( RuntimeException e ) {
+            String msg = "Invalid value for " + info_.getName() + " field";
+            throw (IllegalArgumentException)
+                  new IllegalArgumentException( msg ).initCause( e );
+        }
     }
 
     /**
