@@ -11636,6 +11636,7 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Note Sybase ASE works (documentation edit only)</li>
+    <li>Fixed bug which caused SIAP queries to fail every time.</li>
     </ul>
     </p></dd>
 

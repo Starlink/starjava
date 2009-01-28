@@ -69,7 +69,7 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
             getRegistryPanel().getSelectedResources();
         RegCapabilityInterface[] capabilities =
             getRegistryPanel().getSelectedCapabilities();
-        if ( resources.length != 1 || capabilities.length != 1 ) {
+        if ( resources.length != 1 || capabilities.length < 1 ) {
             throw new IllegalStateException( "No SIAP service selected" );
         }
         RegResource resource = resources[ 0 ];

@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -232,24 +233,40 @@ public class RegistryPanel extends JPanel {
     /**
      * Returns an array of all the capabilities associated with the 
      * currently selected resource which are themselves currently selected.
+     * In the case that there is no capabilities table displayed, it's
+     * assumed that all capabilities of the selected resource are selected.
      *
      * @return   capability list
      */
     public RegCapabilityInterface[] getSelectedCapabilities() {
         if ( capTable_ == null ) {
-            return null;
-        }
-        ListSelectionModel smodel = capTable_.getSelectionModel();
-        RegCapabilityInterface[] allCaps = capTableModel_.getCapabilities();
-        List capList = new ArrayList();
-        for ( int i = smodel.getMinSelectionIndex();
-              i <= smodel.getMaxSelectionIndex(); i++ ) {
-            if ( smodel.isSelectedIndex( i ) ) {
-                capList.add( allCaps[ i ] );
+            RegResource[] resources = getSelectedResources();
+            List capList = new ArrayList();
+            if ( resources != null ) {
+                for ( int ir = 0; ir < resources.length; ir++ ) {
+                    RegCapabilityInterface[] caps =
+                        getCapabilities( resources[ ir ] );
+                    if ( caps != null ) {
+                        capList.addAll( Arrays.asList( caps ) );
+                    }
+                }
             }
+            return (RegCapabilityInterface[])
+                   capList.toArray( new RegCapabilityInterface[ 0 ] );
         }
-        return (RegCapabilityInterface[])
-               capList.toArray( new RegCapabilityInterface[ 0 ] );
+        else {
+            ListSelectionModel smodel = capTable_.getSelectionModel();
+            RegCapabilityInterface[] allCaps = capTableModel_.getCapabilities();
+            List capList = new ArrayList();
+            for ( int i = smodel.getMinSelectionIndex();
+                  i <= smodel.getMaxSelectionIndex(); i++ ) {
+                if ( smodel.isSelectedIndex( i ) ) {
+                    capList.add( allCaps[ i ] );
+                }
+            }
+            return (RegCapabilityInterface[])
+                   capList.toArray( new RegCapabilityInterface[ 0 ] );
+        }
     }
 
     /**
