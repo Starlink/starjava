@@ -40,7 +40,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_construct(
    ASTCALL(
       pointer.SpecMap = astSpecMap( (int) nin, (int) flags, "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_specAdd(
@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecMap_specAdd(
       args = jniastCopyDoubleArray( env, jArgs, SPECADD_MAX_ARGS );
 
       /* Call the AST function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astSpecAdd( pointer.SpecMap, cvt, args );
       )
 

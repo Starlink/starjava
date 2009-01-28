@@ -127,7 +127,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_decompose(
 
    if ( ( jSeries == NULL || jniastCheckArrayLength( env, jSeries, 1 ) ) &&
         ( jInverts == NULL || jniastCheckArrayLength( env, jInverts, 2 ) ) ) {
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astDecompose( pointer.Mapping, &mapptrs[ 0 ], &mapptrs[ 1 ], &series,
                        &inverts[ 0 ], &inverts[ 1 ] );
       )
@@ -164,7 +164,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Mapping_simplify(
    AstMapping *map;
    jobject newobj;
    
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       map = astSimplify( pointer.Mapping );
    )
    return jniastMakeObject( env, (AstObject *) map );
@@ -193,7 +193,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_mapBox(
    ENSURE_SAME_TYPE(double,jdouble)
 
    /* Validate parameters. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       if ( forward == JNI_TRUE ) {
          nin = astGetI( pointer.Frame, "Nin" );
          nout = astGetI( pointer.Frame, "Nout" );
@@ -225,7 +225,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_mapBox(
          : (double *) (*env)->GetDoubleArrayElements( env, jXu, NULL );
 
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astMapBox( pointer.Mapping, lbnd_in, ubnd_in, forward == JNI_TRUE,
                     (int) coord_out, &result[ 0 ], &result[ 1 ], xl, xu );
       )
@@ -283,7 +283,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tran1(
       ( xin = (*env)->GetDoubleArrayElements( env, jXin, NULL ) );
    
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astTran1( pointer.Mapping, npoint, xin, forward == JNI_TRUE, xout );
       )
 
@@ -340,7 +340,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranN(
       ( out = (*env)->GetDoubleArrayElements( env, jOut, NULL ) );
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astTranN( pointer.Mapping, npoint, ncoord_in, indim, in,
                    forward == JNI_TRUE, ncoord_out, outdim, out );
       )
@@ -404,7 +404,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tran2(
       ( yout = (*env)->GetDoubleArrayElements( env, jYout, NULL ) );
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astTran2( pointer.Mapping, npoint, xin, yin, forward == JNI_TRUE,
                    xout, yout );
       )
@@ -490,7 +490,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranP(
    }
 
    /* Call the AST routine to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astTranP( pointer.Mapping, npoint, ncoord_in, ptr_in, 
                 forward == JNI_TRUE, ncoord_out, ptr_out );
    )
@@ -535,7 +535,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
    ENSURE_SAME_TYPE(double,jdouble)
 
    /* Validate parameters. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       nin = astGetI( pointer.Frame, "Nin" );
    )
 
@@ -545,7 +545,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
       at = (*env)->GetDoubleArrayElements( env, jAt, NULL );
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          rate = astRate( pointer.Mapping, at, (int) ax1, (int) ax2 );
       )
 
@@ -580,7 +580,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_linearApprox(
    ENSURE_SAME_TYPE(double,jdouble)
 
    /* Get mapping characteristics. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       nin = astGetI( pointer.Frame, "Nin" );
       nout = astGetI( pointer.Frame, "Nout" );
    )
@@ -598,7 +598,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_linearApprox(
       fit = (double *) (*env)->GetDoubleArrayElements( env, jFit, NULL );
 
       /* Call AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          success = astLinearApprox( pointer.Mapping, lbnd, ubnd, tol, fit );
       )
 
@@ -827,7 +827,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
    } \
  \
    /* Call the AST routine to do the work. */ \
-   ASTCALL( \
+   THASTCALL( jniastList( 1, pointer.AstObject ), \
       nbad = astResample##Xletter( pointer.Mapping, ndim_in, lbnd_in, \
                                    ubnd_in, in, in_var, interp, finterp, \
                                    params, flags, tol, maxpix, badval, \
@@ -1240,7 +1240,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Mapping_rebin##Xletter( \
    flags = ( usebad == JNI_TRUE ) ? AST__USEBAD : 0; \
  \
    /* Call the AST routine to do the work. */ \
-   ASTCALL( \
+   THASTCALL( jniastList( 1, pointer.AstObject ), \
       astRebin##Xletter( pointer.Mapping, wlim, ndim_in, lbnd_in, ubnd_in, \
                          in, in_var, spread, params, flags, tol, maxpix, \
                          badval, ndim_out, lbnd_out, ubnd_out, lbnd, ubnd, \

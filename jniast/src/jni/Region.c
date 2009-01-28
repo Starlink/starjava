@@ -50,7 +50,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Region_getRegionBounds(
                                             DoubleArrayClass, NULL ) ) ) {
       (*env)->SetObjectArrayElement( env, jResult, 0, jLbnds );
       (*env)->SetObjectArrayElement( env, jResult, 1, jUbnds );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astGetRegionBounds( pointer.Region, lbnds, ubnds );
       )
       ALWAYS(
@@ -67,7 +67,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Region_getRegionFrame(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    AstFrame *frm;
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       frm = astGetRegionFrame( pointer.Region );
    )
    return jniastMakeObject( env, (AstObject *) frm );
@@ -80,7 +80,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Region_getUnc(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    AstRegion *unc;
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       unc = astGetUnc( pointer.Region, def == JNI_TRUE );
    )
    return jniastMakeObject( env, (AstObject *) unc );
@@ -93,14 +93,17 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Region_mapRegion(
    jobject jFrame        /* Frame */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
+   AstPointer map;
+   AstPointer frame;
    AstRegion *region;
    jobject jRegion = NULL;
 
    if ( jniastCheckNotNull( env, jMap ) && jniastCheckNotNull( env, jFrame ) ) {
-      ASTCALL(
-         region = astMapRegion( pointer.Region, 
-                                jniastGetPointerField( env, jMap ).Mapping,
-                                jniastGetPointerField( env, jFrame ).Frame );
+      map = jniastGetPointerField( env, jMap );
+      frame = jniastGetPointerField( env, jFrame );
+      THASTCALL( jniastList( 3, pointer.AstObject, map.AstObject,
+                                frame.AstObject ),
+         region = astMapRegion( pointer.Region, map.Mapping, frame.Frame );
       )
       jRegion = jniastMakeObject( env, (AstObject *) region );
    }
@@ -112,7 +115,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Region_negate(
    jobject this          /* Instance object */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astNegate( pointer.Region );
    )
 }
@@ -123,11 +126,12 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_overlap(
    jobject jOther        /* Comparison region */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
+   AstPointer other;
    int result;
    if ( jniastCheckNotNull( env, jOther ) ) {
-      ASTCALL(
-         result = astOverlap( pointer.Region,
-                              jniastGetPointerField( env, jOther ).Region );
+      other = jniastGetPointerField( env, jOther );
+      THASTCALL( jniastList( 2, pointer.AstObject, other.AstObject ),
+         result = astOverlap( pointer.Region, other.Region );
       )
    }
    return result;
@@ -139,11 +143,12 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Region_setUnc(
    jobject jUnc          /* Uncertainty region */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
+   AstPointer unc;
 
    if ( jniastCheckNotNull( env, jUnc ) ) {
-      ASTCALL(
-         astSetUnc( pointer.Region, 
-                    jniastGetPointerField( env, jUnc ).Region );
+      unc = jniastGetPointerField( env, jUnc );
+      THASTCALL( jniastList( 2, pointer.AstObject, unc.AstObject ),
+         astSetUnc( pointer.Region, unc.Region );
       )
    }
 }
@@ -186,7 +191,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
       if ( jniastCheckArrayLength( env, jIn, npix ) && \
            ( in = (Xtype *) \
                   (*env)->Get##XJtype##ArrayElements( env, jIn, NULL ) ) ) { \
-         ASTCALL( \
+         THASTCALL( jniastList( 2, pointer.AstObject, (AstObject *) map ),  \
             result = astMask##Xletter( pointer.Region, map, \
                                        inside == JNI_TRUE, (int) ndim, \
                                        lbnd, ubnd, in, (Xtype) val ); \

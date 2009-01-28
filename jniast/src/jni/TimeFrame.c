@@ -35,7 +35,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeFrame_construct(
    ASTCALL(
       pointer.TimeFrame = astTimeFrame( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_TimeFrame_currentTime(
@@ -45,7 +45,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_TimeFrame_currentTime(
    AstPointer pointer = jniastGetPointerField( env, this );
    double curtime;
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       curtime = astCurrentTime( pointer.TimeFrame );
    )
    return (jdouble) curtime;

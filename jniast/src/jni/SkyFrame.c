@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SkyFrame_construct(
    ASTCALL(
       pointer.SkyFrame = astSkyFrame( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 /* $Id$ */

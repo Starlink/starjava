@@ -37,9 +37,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_NullRegion_construct(
    unc = jUnc ? jniastGetPointerField( env, jUnc ).Region : NULL;
    if ( jniastCheckNotNull( env, jFrame ) ) {
       frame = jniastGetPointerField( env, jFrame ).Frame;
-      ASTCALL(
+      THASTCALL( jniastList( 2, frame, unc ),
          pointer.NullRegion = astNullRegion( frame, unc, "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

@@ -206,7 +206,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_IntraMap_construct(
 
          /* Set the pointer field of the java object to reference the 
           * AST IntraMap. */
-         jniastSetPointerField( env, this, pointer );
+         jniastInitObject( env, this, pointer );
       }
    }
 }
@@ -240,6 +240,7 @@ static void tranWrap( AstMapping *map, int npoint, int ncoord_in,
 *  Arguments:
 *     map
 *        Pointer to the Mapping to be applied.
+*        Must be locked on entry; will be locked on exit.
 *     npoint
 *        The number of points to be transformed.
 *     ncoord_in
@@ -357,6 +358,7 @@ static void setIntraInfo( JNIEnv *env, AstIntraMap *map, jobject trans ) {
 *        Pointer to the JNI environment.
 *     map = AstIntraMap *
 *        The AST IntraMap object in which to store the information.
+*        Must be locked on entry; will be locked on exit.
 *     trans = jobject
 *        The IntraMap's Transformer object.
 *-
@@ -396,6 +398,7 @@ static void getIntraInfo( AstIntraMap *map, JNIEnv **envp, jobject *transp,
 *  Arguments:
 *     map = AstIntraMap *
 *        The AST IntraMap object to retrieve information from.
+*        Must be locked on entry; will be locked on exit.
 *     envp = JNIEnv **
 *        The address of the variable to receive the JNI environment pointer.
 *     transp = jobject *
@@ -455,7 +458,7 @@ static void clearIntraInfo( JNIEnv *env, AstIntraMap *map ) {
 */
    IntraInfo *info;
    const char *ipc;
-   ASTCALL(
+   THASTCALL( jniastList( 1, map ),
       ipc = astGetC( map, "IntraFlag" );
    )
    if ( ! (*env)->ExceptionCheck( env ) && 

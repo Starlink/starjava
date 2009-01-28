@@ -39,7 +39,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_construct(
    ASTCALL(
       pointer.Frame = astFrame( (int) naxes, "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_angle(
@@ -70,7 +70,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_angle(
       c = (double *) (*env)->GetDoubleArrayElements( env, jC, NULL );
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          result = (jdouble) astAngle( pointer.Frame, a, b, c );
       )
 
@@ -120,7 +120,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axAngle(
       b = (double *) (*env)->GetDoubleArrayElements( env, jB, NULL );
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          result = (jdouble) astAxAngle( pointer.Frame, a, b, (int) axis );
       )
 
@@ -151,7 +151,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axOffset(
    AstPointer pointer = jniastGetPointerField( env, this );
    double result;
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       result = astAxOffset( pointer.Frame, 
                             (int) axis, (double) v1, (double) dist );
    )
@@ -168,7 +168,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axDistance(
    AstPointer pointer = jniastGetPointerField( env, this );
    double result;
  
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       result = astAxDistance( pointer.Frame, 
                               (int) axis, (double) v1, (double) v2 );
    )
@@ -195,7 +195,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_convert(
       domainlist = jniastGetUTF( env, jDomainlist );
 
       /* Call the AST function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 2, pointer.AstObject, to.AstObject ),
          newfs = astConvert( pointer.Frame, to.Frame, domainlist );
       )
    
@@ -231,7 +231,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_distance(
       point2 = (double *) (*env)->GetDoubleArrayElements( env, jPoint2, NULL );
 
       /* Call the AST function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          dist = (jdouble) astDistance( pointer.Frame, point1, point2 );
       )
 
@@ -269,7 +269,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_findFrame(
       domainlist = jniastGetUTF( env, jDomainlist );
 
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 2, pointer.AstObject, template.AstObject ),
          newfs = astFindFrame( pointer.Frame, template.Frame, domainlist );
       )
 
@@ -291,7 +291,7 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_Frame_format(
    const char *result;
 
    /* Call the C function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       result = astFormat( pointer.Frame, (int) axis, (double) value );
    )
 
@@ -308,7 +308,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_Frame_getActiveUnit(
    int result;
 
    /* Call the C function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       result = astGetActiveUnit( pointer.Frame );
    )
    return result ? JNI_TRUE : JNI_FALSE;
@@ -333,7 +333,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_norm(
       value = (double *) (*env)->GetDoubleArrayElements( env, jValue, NULL );
 
       /* Call the AST function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astNorm( pointer.Frame, value );
       )
 
@@ -379,7 +379,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_offset(
                  (*env)->GetDoubleArrayElements( env, jPoint3, NULL ) );
 
       /* Call the AST function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astOffset( pointer.Frame, point1, point2, (double) offset, point3 );
       )
 
@@ -429,7 +429,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_offset2(
       point2 = (double *) (*env)->GetDoubleArrayElements( env, jPoint2, NULL );
 
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          newangle = (jdouble) astOffset2( pointer.Frame, point1, 
                                           (double) angle, (double) offset,
                                           point2 );
@@ -471,7 +471,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_permAxes(
       perm = (int *) (*env)->GetIntArrayElements( env, jPerm, NULL );
 
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astPermAxes( pointer.Frame, perm );
       )
 
@@ -506,7 +506,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_pickAxes(
       axes = (int *) (*env)->GetIntArrayElements( env, jAxes, NULL );
       
       /* Call the C function to do the work. */
-      ASTCALL( 
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          newframe = astPickAxes( pointer.Frame, (int) naxes, axes, 
                                  ( jMapArr ? &map : NULL ) );
       )
@@ -567,7 +567,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_resolve(
       d = (*env)->GetDoubleArrayElements( env, jD, NULL );
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astResolve( pointer.Frame, point1, point2, point3, point4, 
                      &d[ 0 ], &d[ 1 ] );
       )
@@ -610,7 +610,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_setActiveUnit(
    value = ( jvalue != JNI_FALSE ) ? 1 : 0;
 
    /* Call the C function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astSetActiveUnit( pointer.Frame, value );
    )
 }
@@ -632,7 +632,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_unformat(
       string = jniastGetUTF( env, jString );
 
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astUnformat( pointer.Frame, (int) axis, string, &value );
       )
 

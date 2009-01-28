@@ -72,7 +72,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PointList_construct(
          (*env)->GetDoubleArrayRegion( env, jCoords, 0, npnt, 
                                        points + iaxis * npnt );
       }
-      ASTCALL(
+      THASTCALL( jniastList( 2, frame, unc ),
          pointer.PointList = astPointList( frame, npnt, naxes, npnt, 
                                            points, unc, 
                                            "" );
@@ -80,6 +80,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PointList_construct(
       ALWAYS(
          free( points );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

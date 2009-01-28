@@ -39,6 +39,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_ZoomMap_construct(
    ASTCALL(
       pointer.ZoomMap = astZoomMap( (int) ncoord, (double) zoom, "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 /* $Id$ */

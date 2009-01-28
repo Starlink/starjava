@@ -42,7 +42,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_WcsMap_construct(
       pointer.WcsMap = astWcsMap( (int) ncoord, (int) type, (int) lonax,
                                   (int) latax, "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 /* $Id$ */

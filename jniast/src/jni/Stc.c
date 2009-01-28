@@ -31,7 +31,7 @@ JNIEXPORT jobject Java_uk_ac_starlink_ast_Stc_getStcCoordKeyMap(
    AstPointer pointer = jniastGetPointerField( env, this );
    AstKeyMap *keymap;
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       keymap = astGetStcCoord( pointer.Stc, (int) index );
    )
    return jniastMakeObject( env, (AstObject *) keymap );
@@ -43,7 +43,7 @@ JNIEXPORT jobject Java_uk_ac_starlink_ast_Stc_getStcRegion(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    AstRegion *region;
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       region = astGetStcRegion( pointer.Stc );
    )
    return jniastMakeObject( env, (AstObject *) region );
@@ -55,7 +55,7 @@ JNIEXPORT jint Java_uk_ac_starlink_ast_Stc_getStcNCoord(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    int ncoord;
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       ncoord = astGetStcNCoord( pointer.Stc );
    )
    return ncoord;

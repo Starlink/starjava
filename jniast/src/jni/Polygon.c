@@ -53,13 +53,13 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Polygon_construct(
       }
       (*env)->GetDoubleArrayRegion( env, jXcoords, 0, npnt, points );
       (*env)->GetDoubleArrayRegion( env, jYcoords, 0, npnt, points + npnt );
-      ASTCALL(
+      THASTCALL( jniastList( 2, frame, unc ),
          pointer.Polygon = astPolygon( frame, (int) npnt, npnt, points, unc,
                                        "" );
       )
       ALWAYS(
          free( points );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

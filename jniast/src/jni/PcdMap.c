@@ -51,7 +51,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PcdMap_construct(
                                                 (jdouble *) pcdcen, JNI_ABORT );
          }
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 /* $Id$ */

@@ -35,5 +35,5 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_DSBSpecFrame_construct(
    ASTCALL(
       pointer.DSBSpecFrame = astDSBSpecFrame( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }

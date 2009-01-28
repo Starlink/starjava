@@ -48,6 +48,7 @@ static jmethodID SystemGcMethodID;
 
 
 /* Static functions. */
+static int ptrCmp( const void *, const void * );
 static void throwTypedThrowable( JNIEnv *env, jclass throwclass, 
                                  const char *fmt, va_list ap );
 
@@ -243,55 +244,69 @@ AstPointer jniastGetPointerField( JNIEnv *env, jobject object ) {
    return pointer;
 }
 
-void jniastSetPointerField( JNIEnv *env, jobject object, AstPointer pointer ) {
+void jniastInitObject( JNIEnv *env, jobject object, AstPointer pointer ) {
 /*
 *+
 *  Name:
-*     jniastSetPointerField
+*     jniastInitObject
 
 *  Purpose:
-*     Set the pointer field of the given AstObject.
+*     Prepares a Java AstObject for use.
 
 *  Description:
 *     This method sets the pointer field of a Java AstObject to the 
-*     given value.  If the previous value referenced a valid AST 
-*     object, that object is annulled, so that it does not constitute
-*     a resource leak.
+*     given value.  It also releases the AST thread lock.
+*
+*     If the previous value referenced a valid AST object, that object
+*     is annulled, so that it does not constitute a resource leak.
+*     Any such previous should not therefore be in use elsewhere.
+*     This will be the case if the pointer change is part of a 
+*     sequence of resets for subclass constructors - the only context
+*     in which pointer fields are expected to be reset.
 
 *  Arguments:
 *     env = JNIEnv *
 *        Pointer to the JNI interface
 *     object = jobject
 *        Reference to the AstObject whose pointer field is to be set.
+*        The object may be locked or unlocked on entry, and will be
+*        unlocked on exit.
 *     pointer = AstPointer
 *        An AstPointer union giving the value of the private pointer 
 *        field of object.
 *-
 */
    AstPointer old;
+
+   /* Annul the old pointer field value if any. */
    if ( ! (*env)->ExceptionCheck( env ) ) {
       old = jniastGetPointerField( env, object );
-
-      /* Annul the old object if one exists. */
       if ( old.ptr != NULL ) {
          ASTCALL(
             astAnnul( old.AstObject );
          )
 
-         /* This shouldn't have a problem, but warn, rather than throw,
+         /* This shouldn't cause a problem, but warn, rather than throw,
           * if it does (unless the new pointer is NULL, in which case
           * the caller is presumably aware of what's going on). */
          if ( (*env)->ExceptionCheck( env ) ) {
             (*env)->ExceptionClear( env );
             if ( pointer.ptr != NULL ) {
-               printf( "jniast warning: invalid contents %p of pointer field\n",
+               printf( "jniast warning: trouble annulling pointer %p\n",
                        old.ptr );
             }
          }
       }
+   }
+   if ( ! (*env)->ExceptionCheck( env ) ) {
 
-      /* Set the new value. */
+      /* Set the new pointer field value. */
       (*env)->SetLongField( env, object, AstPointerID, pointer.jlong );
+
+      /* Unlock ready for use by other threads. */
+      ASTCALL(
+         astUnlock( pointer.AstObject );
+      )
    }
 }
 
@@ -306,16 +321,18 @@ jobject jniastMakeObject( JNIEnv *env, AstObject *objptr ) {
 *  Description:
 *     Given a C pointer to a struct representing an object from the
 *     AST C library, this routine constructs and returns a Java
-*     object of a corresponding type.  If a java class corresponding
-*     to the actual type of the AST object cannot be found, an
-*     exception is thrown.  If the pointer passed in is NULL, a null
-*     return will be made.
+*     object of a corresponding type.  It also releases the AST thread
+*     lock.  If a java class corresponding to the actual type of the 
+*     AST object cannot be found, an exception is thrown.  If the 
+*     pointer passed in is NULL, a null return will be made.
 
 *  Arguments:
 *     env = JNIEnv *
 *        Pointer to the JNI interface.
 *     objptr = AstObject *
 *        Pointer to the C struct containing the AST object.
+*        The object may be locked or unlocked on entry, and will be
+*        unlocked on exit.
 
 *  Return value:
 *     A new AstObject of the most specific class known which is consistent
@@ -337,7 +354,7 @@ jobject jniastMakeObject( JNIEnv *env, AstObject *objptr ) {
    if ( objptr == NULL ) {
        return NULL;
    }
-   ASTCALL(
+   THASTCALL( jniastList( 1, objptr ),
       classname = astGetC( objptr, "class" );
    )
    if ( ! (*env)->ExceptionCheck( env ) ) {
@@ -377,13 +394,135 @@ jobject jniastMakeObject( JNIEnv *env, AstObject *objptr ) {
          /* Set the pointer instance variable to hold the address of the
           * AST struct. */
          pointer.AstObject = objptr;
-         jniastSetPointerField( env, newobj, pointer );
+         jniastInitObject( env, newobj, pointer );
       }
    }
    return newobj;
 #undef BUFLENG
 }
 
+void jniastLock( AstObject **ast_objs ) {
+/*+
+*  Name:
+*     jniastLock
+
+*  Purpose:
+*     Acquire AST thread locks on a list of AstObjects.
+
+*  Description:
+*     Acquires AST thread locks on each of a given list of AST objects.
+*     The locks are obtained in some determinate order.  This resource
+*     ordering is important to avoid deadlock in which different threads
+*     require the same resources.
+
+*  Arguments:
+*     ast_objs = AstObject **
+*        Pointer to a NULL-terminated list of AstObject pointers for which
+*        locks are required.  This list is sorted in place before the 
+*        locks are obtained.  As a special case, if NULL is supplied,
+*        no action will be taken.
+*-
+*/
+   AstObject **pos;
+   int count = 0;
+   if ( ast_objs ) {
+      for ( pos = ast_objs; *pos; pos++ ) {
+         count++;
+      }
+      qsort( ast_objs, count, sizeof( AstObject * ), ptrCmp );
+      for ( pos = ast_objs; *pos; pos++ ) {
+         astLock( *pos, 1 );
+      }
+   }
+}
+
+void jniastUnlock( AstObject **ast_objs ) {
+/*+
+*  Name:
+*     jniastUnlock
+
+*  Purpose:
+*     Relinquish AST thread locks on a list of AstObjects.
+
+*  Description:
+*     Relinquishes AST thread locks on each of a given list of AST objects.
+*     The locks are relinquished in the opposite order from that in which
+*     they appear in the list (I'm not sure if unlocking in order is critical
+*     for deadlock avoidance?).
+
+*  Arguments:
+*     ast_objs = AstObject **
+*        Pointer to NULL-terminated ordered list of AstObject pointers 
+*        which should be unlocked.  As a special case, if NULL is supplied,
+*        no action is taken.
+*-
+*/
+   AstObject **pos;
+   if ( ast_objs ) {
+      for ( pos = ast_objs; *pos; pos++ ) {
+      }
+      while ( --pos >= ast_objs ) {
+         astUnlock( *pos );
+      }
+   }
+}
+
+AstObject **jniastList( int count, ... ) {
+/*+
+*  Name:
+*     jniastList
+
+*  Purpose:
+*     Construct array in memory of pointer objects.
+
+*  Description:
+*     Given a varargs list and its size, this function stores the supplied
+*     pointer arguments in a newly malloc'd array in memory, followed
+*     by a terminating NULL.  NULL values are permitted in the input list;
+*     these will effectively be absent from the returned array.
+
+*  Arguments:
+*     count = int
+*        The number of arguments that follow.
+*     ... = AstObject *,
+*        Zero or more pointers to AstObjects.  NULL pointers are permitted.
+
+*  Return value:
+*     A pointer to a newly-allocated AstObject ** array containing an
+*     entry for each of the supplied pointers, followed by a terminating
+*     NULL.  It is the responsibility of the caller to free() this
+*     memory at a later date.
+*     If count is zero, then NULL may be returned instead.
+*-
+*/
+   va_list ap;
+   int i;
+   AstObject **ast_objs;
+   AstObject **pos;
+   AstObject *aobj;
+   if ( count > 0 ) {
+      ast_objs = (AstObject **) malloc( ( count + 1 ) * sizeof( AstObject * ) );
+      if ( ast_objs ) {
+         pos = ast_objs;
+         va_start( ap, count );
+         for ( i = 0; i < count; i++ ) {
+            aobj = va_arg( ap, AstObject * );
+            if ( aobj ) {
+               *(pos++) = aobj;
+            }
+         }
+         va_end( ap );
+         *pos = NULL;
+      }
+      else {
+         astSetStatus( AST__NOMEM );
+      }
+      return ast_objs;
+   }
+   else {
+      return NULL;
+   }
+}
 
 int jniastGetNaxes( JNIEnv *env, AstFrame *frame ) {
 /*
@@ -405,7 +544,7 @@ int jniastGetNaxes( JNIEnv *env, AstFrame *frame ) {
 *-
 */
    int naxes = 0;
-   ASTCALL(
+   THASTCALL( jniastList( 1, frame ),
       naxes = astGetI( frame, "Naxes" );
    )
    return naxes;
@@ -785,6 +924,7 @@ void jniastConstructStc( JNIEnv *env, jobject this, jobject jRegion,
    AstPointer pointer;
    AstRegion *region;
    AstKeyMap **coords;
+   AstObject **ptrs;
    int ncoords;
    int i;
    jobject jCoord;
@@ -813,10 +953,16 @@ void jniastConstructStc( JNIEnv *env, jobject this, jobject jRegion,
 
       /* Intialize the object pointer using the supplied specific
        * constructor function. */
-      ASTCALL(
+      ptrs = jniastMalloc( env, ( ncoords + 2 ) * sizeof( AstObject * ) );
+      for ( i = 0; i < ncoords; i++ ) {
+         ptrs[ i ] = (AstObject *) coords[ i ];
+      }
+      ptrs[ ncoords ] = (AstObject *) region;
+      ptrs[ ncoords + 1 ] = NULL;
+      THASTCALL( ptrs,    /* ptrs will get freed by macro */
          pointer.Stc = (*constructor)( region, ncoords, coords, "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
 
       /* Tidy up. */
       if ( coords ) {
@@ -885,6 +1031,36 @@ static void throwTypedThrowable( JNIEnv *env, jclass throwclass,
    }
 }
 
+static int ptrCmp( const void *p1, const void *p2 ) {
+/*+
+*  Name:
+*     ptrCmp
 
+*  Purpose:
+*     Comparison function for use with qsort.
+
+*  Description:
+*     Compares pointer values using some arbitrary but determinate ordering
+*     scheme.
+
+*  Arguments:
+*     p1 = void 
+*        Pointer to first AstObject * value.
+*     p2 = void *
+*        Pointer to second AstObject * value.
+
+*  Return value:
+*     Positive, zero or negative integer depending on whether the first
+*     value is lower than, equal to, or higher than the second.
+*-
+*/
+   AstObject *v1;
+   AstObject *v2;
+   v1 = *((AstObject **) p1);
+   v2 = *((AstObject **) p2);
+   return v1 < v2 ? -1 
+                  : ( v1 > v2 ? +1
+                              : 0 );
+}
 
 /* $Id$ */

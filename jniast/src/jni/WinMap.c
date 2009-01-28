@@ -87,7 +87,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_WinMap_construct(
       )
 
       /* Set the pointer field of the java object. */
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 

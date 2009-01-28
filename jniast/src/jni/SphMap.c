@@ -36,6 +36,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SphMap_construct(
    ASTCALL(
       pointer.SphMap = astSphMap( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 /* $Id$ */

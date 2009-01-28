@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_construct(
    ASTCALL(
       pointer.KeyMap = astKeyMap( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapRemove(
@@ -49,7 +49,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapRemove(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astMapRemove( pointer.KeyMap, key );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -62,7 +62,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_KeyMap_mapSize(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    int size = 0;
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       size = astMapSize( pointer.KeyMap );
    )
    return (jint) size;
@@ -79,7 +79,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_KeyMap_mapLength(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          leng = astMapLength( pointer.KeyMap, key );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -98,7 +98,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_KeyMap_mapHasKey(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          has = astMapHasKey( pointer.KeyMap, key );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -115,7 +115,7 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_KeyMap_mapKey(
    const char *key = NULL;
    jstring jKey = NULL;
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       key = astMapKey( pointer.KeyMap, (int) index );
    )
    if ( key != NULL && ! (*env)->ExceptionCheck( env ) ) {
@@ -135,7 +135,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_KeyMap_mapType(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          type = astMapType( pointer.KeyMap, key );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -161,7 +161,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut0##Xletter( \
       if ( jComment != NULL ) { \
          comment = jniastGetUTF( env, jComment ); \
       } \
-      ASTCALL( \
+      THASTCALL( jniastList( 1, pointer.AstObject ), \
          astMapPut0##Xletter( pointer.KeyMap, key, (Xtype) value, comment ); \
       ) \
       jniastReleaseUTF( env, jKey, key ); \
@@ -193,7 +193,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut0C(
       if ( jComment != NULL ) {
          comment = jniastGetUTF( env, jComment );
       }
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astMapPut0C( pointer.KeyMap, key, value, comment );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -223,7 +223,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut0A(
       if ( jComment != NULL ) {
           comment = jniastGetUTF( env, jComment );
       }
-      ASTCALL(
+      THASTCALL( jniastList( 2, pointer.AstObject, value.AstObject ),
           astMapPut0A( pointer.KeyMap, key, value.AstObject, comment );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -246,7 +246,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet0D(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          success = astMapGet0D( pointer.KeyMap, key, &value );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -272,7 +272,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet0I(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          success = astMapGet0I( pointer.KeyMap, key, &value );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -299,7 +299,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet0C(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          success = astMapGet0C( pointer.KeyMap, key, &value );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -324,7 +324,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet0A(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          success = astMapGet0A( pointer.KeyMap, key, &value );
       )
       jniastReleaseUTF( env, jKey, key );
@@ -364,7 +364,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut1##Xletter( \
       size = (int) (*env)->GetArrayLength( env, jValue ); \
       valEls = (Xtype *) (*env)->Get##XType##ArrayElements( env, jValue, \
                                                             NULL ); \
-      ASTCALL( \
+      THASTCALL( jniastList( 1, pointer.AstObject ), \
          astMapPut1##Xletter( pointer.KeyMap, key, size, valEls, comment ); \
       ) \
       ALWAYS( \
@@ -416,7 +416,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut1C(
                valEls[ i ] = BLANK;
             }
          }
-         ASTCALL(
+         THASTCALL( jniastList( 1, pointer.AstObject ),
             astMapPut1C( pointer.KeyMap, key, size, valEls, comment );
          )
          for ( i = 0; i < size; i++ ) {
@@ -446,6 +446,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut1A(
    const char *comment = NULL;
    jobject jValEl;
    AstObject **valEls = NULL;
+   AstObject **ptrs = NULL;
    AstPointer ptr;
    int size;
    int i;
@@ -469,7 +470,13 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_KeyMap_mapPut1A(
                valEls[ i ] = NULL;
             }
          }
-         ASTCALL(
+         ptrs = jniastMalloc( env, ( size + 2 ) * sizeof( AstObject * ) );
+         for ( i = 0; i < size; i++ ) {
+            ptrs[ i ] = valEls[ i ];
+         }
+         ptrs[ size ] = pointer.AstObject;
+         ptrs[ size + 1 ] = NULL;
+         THASTCALL( ptrs,     /* ptrs will get freed by macro */
             astMapPut1A( pointer.KeyMap, key, size, valEls, comment );
          )
          free( valEls );
@@ -499,7 +506,7 @@ JNIEXPORT Xjtype##Array JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1##Xletter(
  \
    if ( jniastCheckNotNull( env, jKey ) ) { \
       key = jniastGetUTF( env, jKey ); \
-      ASTCALL( \
+      THASTCALL( jniastList( 1, pointer.AstObject ), \
          size = astMapLength( pointer.KeyMap, key ); \
       ) \
       if ( ! (*env)->ExceptionCheck( env ) && \
@@ -507,7 +514,7 @@ JNIEXPORT Xjtype##Array JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1##Xletter(
            ( jResult = (*env)->New##XType##Array( env, (jsize) size ) ) && \
            ( result = (*env)->Get##XType##ArrayElements( env, jResult, \
                                                          NULL ) ) ) { \
-         ASTCALL( \
+         THASTCALL( jniastList( 1, pointer.AstObject ), \
             astMapGet1##Xletter( pointer.KeyMap, key, size, &nval, result ); \
          ) \
          ALWAYS( \
@@ -539,7 +546,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1C(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          size = astMapLength( pointer.KeyMap, key );
       )
       if ( ! (*env)->ExceptionCheck( env ) &&
@@ -547,7 +554,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1C(
            ( jResult = (*env)->NewObjectArray( env, size, 
                                                StringClass, NULL ) ) &&
            ( buffer = jniastMalloc( env, ( sleng + 1 ) * size ) ) ) {
-         ASTCALL(
+         THASTCALL( jniastList( 1, pointer.AstObject ),
             astMapGet1C( pointer.KeyMap, key, sleng + 1, size, &nval, buffer );
          )
          for ( i = 0; i < size; i++ ) {
@@ -581,7 +588,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1A(
 
    if ( jniastCheckNotNull( env, jKey ) ) {
       key = jniastGetUTF( env, jKey );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          size = astMapLength( pointer.KeyMap, key );
       )
       if ( ! (*env)->ExceptionCheck( env ) &&
@@ -589,7 +596,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_KeyMap_mapGet1A(
            ( jResult = (*env)->NewObjectArray( env, size, AstObjectClass, 
                                                NULL ) ) &&
            ( result = jniastMalloc( env, size * sizeof( AstObject * ) ) ) ) {
-         ASTCALL(
+         THASTCALL( jniastList( 1, pointer.AstObject ),
             astMapGet1A( pointer.KeyMap, key, size, &nval, result );
          )
          for ( i = 0; i < size; i++ ) {
