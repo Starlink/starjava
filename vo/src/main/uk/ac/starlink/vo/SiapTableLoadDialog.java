@@ -18,9 +18,7 @@ import uk.ac.starlink.table.StarTableFactory;
  */
 public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
 
-    private final DoubleValueField raField_;
-    private final DoubleValueField decField_;
-    private final DoubleValueField sizeField_;
+    private final SkyPositionEntry skyEntry_;
 
     /**
      * Constructor.
@@ -31,37 +29,14 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
                new KeywordServiceQueryFactory( RegCapabilityInterface
                                               .SIA_STDID ),
                false );
-
-        /* Add fields for entering SIAP query parameters. */
-        Action okAction = getOkAction();
-        raField_ = DoubleValueField.makeRADegreesField();
-        raField_.getEntryField().addActionListener( okAction );
-        raField_.setDescription( "Right Ascension of " +
-                                 "region of interest centre" );
-
-        decField_ = DoubleValueField.makeDecDegreesField();
-        decField_.getEntryField().addActionListener( okAction );
-        decField_.setDescription( "Declination of region of interest centre" );
-
-        sizeField_ = DoubleValueField.makeRadiusDegreesField();
-        sizeField_.getEntryField().addActionListener( okAction );
-        sizeField_.getValueInfo()
-                  .setName( "Size" );
-        sizeField_.setDescription( "Size along RA,Dec axes of desired image" );
-
-        /* Install these fields in the control panel. */
-        ValueFieldPanel qPanel = new ValueFieldPanel();
-        qPanel.addField( raField_ );
-        qPanel.addField( decField_ );
-        qPanel.addField( sizeField_ );
-        getControlBox().add( qPanel );
+        skyEntry_ = new SkyPositionEntry( "J2000" );
+        skyEntry_.addActionListener( getOkAction() );
+        getControlBox().add( skyEntry_ );
     }
 
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
-        raField_.setEnabled( enabled );
-        decField_.setEnabled( enabled );
-        sizeField_.setEnabled( enabled );
+        skyEntry_.setEnabled( enabled );
     }
 
     public TableSupplier getTableSupplier() {
@@ -74,16 +49,17 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
         }
         RegResource resource = resources[ 0 ];
         RegCapabilityInterface capability = capabilities[ 0 ];
-        double ra = raField_.getValue();
-        double dec = decField_.getValue();
-        double size = sizeField_.getValue();
+        double ra = skyEntry_.getRaDegreesField().getValue();
+        double dec = skyEntry_.getDecDegreesField().getValue();
+        double size = skyEntry_.getRadiusDegreesField().getValue();
         final SiapQuery query =
             new SiapQuery( resource, capability, ra, dec, size, size );
-        final List metadata = Arrays.asList( new DescribedValue[] {
-            raField_.getDescribedValue(),
-            decField_.getDescribedValue(),
-            sizeField_.getDescribedValue(),
-        } );
+        final List metadata = new ArrayList();
+        metadata.addAll( Arrays.asList( new DescribedValue[] {
+            skyEntry_.getRaDegreesField().getDescribedValue(),
+            skyEntry_.getDecDegreesField().getDescribedValue(),
+            skyEntry_.getRadiusDegreesField().getDescribedValue(),
+        } ) );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,
                                        String format ) throws IOException {
