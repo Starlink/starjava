@@ -149,4 +149,12 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     public JComponent getComponent() {
         return queryPanel_;
     }
+
+    public void addEntryListener( ActionListener listener ) {
+        keywordField_.addActionListener( listener );
+    }
+
+    public void removeEntryListener( ActionListener listener ) {
+        keywordField_.removeActionListener( listener );
+    }
 }

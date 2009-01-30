@@ -90,6 +90,7 @@ public class RegistryPanel extends JPanel {
             }
         };
         activeItems_.add( submitQueryAction_ );
+        queryFactory_.addEntryListener( submitQueryAction_ );
 
         /* Create the component which will hold the query parameters. */
         JComponent queryComponent = queryFactory.getComponent();

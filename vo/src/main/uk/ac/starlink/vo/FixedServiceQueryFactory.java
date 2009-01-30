@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.event.ActionListener;
 import javax.swing.JComponent;
 
 /**
@@ -30,5 +31,11 @@ public class FixedServiceQueryFactory implements RegistryQueryFactory {
 
     public JComponent getComponent() {
         return null;
+    }
+
+    public void addEntryListener( ActionListener listener ) {
+    }
+
+    public void removeEntryListener( ActionListener listener ) {
     }
 }

@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.swing.JComponent;
 
@@ -26,4 +27,19 @@ public interface RegistryQueryFactory {
      * @return   GUI component for query selection, or null
      */
     JComponent getComponent();
+
+    /**
+     * Adds a listener which will be notified when the user has entered
+     * a query.
+     *
+     * @param   listener  listener
+     */
+    void addEntryListener( ActionListener listener );
+
+    /**
+     * Removes a listener previously added by {@link #addEntryListener}.
+     *
+     * @return  listener  listener
+     */
+    void removeEntryListener( ActionListener listener );
 }
