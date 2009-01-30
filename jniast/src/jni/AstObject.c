@@ -263,10 +263,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_annul(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
 
-   /* This function should call astAnnul().  However, there are currently 
-    * issues with annul and threading in AST.  For now, simply don't annul.
-    * This will result in wholesale memory leaks.  Do something about it
-    * when AST behaviour has improved. */
+   astAnnul( pointer.AstObject );
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_delete(
