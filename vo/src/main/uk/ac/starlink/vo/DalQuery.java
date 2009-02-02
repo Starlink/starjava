@@ -18,38 +18,30 @@ import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
 
 /**
- * A particular query to a Simple Image Access Protocol service.
+ * Represents a particular query to a DAL-like service.
  *
  * @author   Mark Taylor (Starlink)
- * @since    5 Jan 2005
- * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
+ * @since    2 Feb 2009
  */
-public class SiapQuery {
+public class DalQuery {
 
     private final CgiQuery cgi_;
     private String name_;
-    private final static Logger logger_ =
+    private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
-     * Constructs a SIAP query based on a resource from a registry.
+     * Constructs a DAL query based on a resource from a registry.
      *
      * @param  resource  resource describing the SIAP service
      * @param  capability  SIAP capability from resource
      * @param  raPos     right ascension of ROI center in degrees
      * @param  decPos    declination of ROI center in degrees
-     * @param  raSize    ROI extent in right ascension in degrees
-     * @param  decSize   ROI extent in declination in degrees
+     * @param  size      ROI size in degrees
      */
-    public SiapQuery( RegResource resource, RegCapabilityInterface capability,
-                      double raPos, double decPos,
-                      double raSize, double decSize ) {
-        this( capability.getAccessUrl(), raPos, decPos, raSize, decSize );
-        if ( ! RegCapabilityInterface.SIA_STDID
-              .equals( capability.getStandardId() ) ) {
-            logger_.warning( capability.getAccessUrl()
-                           + " doesn't look like a SIAP service" );
-        }
+    public DalQuery( RegResource resource, RegCapabilityInterface capability,
+                     double raPos, double decPos, double size ) {
+        this( capability.getAccessUrl(), raPos, decPos, size );
         String id = null;
         if ( id == null ) {
             id = resource.getShortName();
@@ -63,22 +55,20 @@ public class SiapQuery {
     }
 
     /**
-     * Constructs a SIAP query based on a service URL.
+     * Constructs a DAL query based on a service URL.
      *
      * @param  baseURL   URL forming basis of CGI query for the SIAP service
      * @param  raPos     right ascension of ROI center in degrees
      * @param  decPos    declination of ROI center in degrees
-     * @param  raSize    ROI extent in right ascension in degrees
-     * @param  decSize   ROI extent in declination in degrees
+     * @param  size      size in degrees
      */
-    public SiapQuery( String baseURL, double raPos, double decPos, 
-                      double raSize, double decSize ) {
+    public DalQuery( String baseURL, double raPos, double decPos,
+                     double size ) {
         cgi_ = new CgiQuery( baseURL );
         name_ = baseURL;
-        addArgument( "POS", raPos + "," + decPos );
-        addArgument( "SIZE", ( raSize == decSize )
-                             ? Double.toString( raSize )
-                             : ( raSize + "," + decSize ) );
+        addArgument( "POS", doubleToString( raPos ) + "," 
+                          + doubleToString( decPos ) );
+        addArgument( "SIZE", doubleToString( size ) );
     }
 
     /**
@@ -93,12 +83,12 @@ public class SiapQuery {
     }
 
     /**
-     * Executes this query synchronously, returning a StarTable which 
-     * represents the results.  If the query resulted in a QUERY_STATUS 
+     * Executes this query synchronously, returning a StarTable which
+     * represents the results.  If the query resulted in a QUERY_STATUS
      * of ERROR, or if the returned VOTable document is not comprehensible
      * according to the SIAP specification, an IOException will be thrown.
-     * 
-     * @param    tfact   factory which may be used to influence how the 
+     *
+     * @param    tfact   factory which may be used to influence how the
      *           table is built
      * @throws   IOException  in absence of good data
      */
@@ -148,7 +138,7 @@ public class SiapQuery {
         /* Try to find the status info. */
         String status = null;
         String message = null;
-        for ( Node node = results.getFirstChild(); node != null; 
+        for ( Node node = results.getFirstChild(); node != null;
               node = node.getNextSibling() ) {
             if ( node instanceof Element ) {
                 Element el = (Element) node;
@@ -190,4 +180,16 @@ public class SiapQuery {
         return name_;
     }
 
+    /**
+     * Encodes a floating point value as a string for use in a DAL query.
+     * There ought to be a definition within the DAL protocols of how to
+     * do this.  At time of writing there is not, so the current implementation
+     * is simply <code>Double.toString(value)</code>.
+     *
+     * @param  value  numeric value
+     * @return   string equivalent
+     */
+    public static String doubleToString( double value ) {
+        return Double.toString( value );
+    }
 }
