@@ -11638,6 +11638,7 @@ introduced since the last version:
     <li>Note Sybase ASE works (documentation edit only)</li>
     <li>Fixed bug which caused SIAP queries to fail every time.</li>
     <li>SIAP load dialogue now has name resolution capability.</li>
+    <li>Added SSAP load dialogue.  Basic functionality only.</li>
     </ul>
     </p></dd>
 
