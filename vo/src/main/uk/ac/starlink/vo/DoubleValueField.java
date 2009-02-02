@@ -53,6 +53,10 @@ public class DoubleValueField {
         entryField_ = new JTextField( 12 );
         convSelector_ = new JComboBox( convs );
         convSelector_.setSelectedIndex( 0 );
+        String description = info.getDescription();
+        if ( description != null ) {
+            setDescription( description );
+        }
     }
 
     /**
@@ -188,15 +192,16 @@ public class DoubleValueField {
     }
 
     /**
-     * Returns an instance suitable for entering an angular radius,
+     * Returns an instance suitable for entering an angular size,
      * for which {@link #getValue} returns degrees.
      *
-     * @return  radius field
+     * @param   info   description of field content
+     * @return  angular size field
      */
-    public static DoubleValueField makeRadiusDegreesField() {
-        DefaultValueInfo info = new DefaultValueInfo( "Radius", Double.class,
-                                                      "Search radius" );
-        info.setUnitString( "Degrees" );
+    public static DoubleValueField makeSizeDegreesField( ValueInfo info ) {
+        if ( info instanceof DefaultValueInfo ) {
+            ((DefaultValueInfo) info).setUnitString( "Degrees" );
+        }
         return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
             new ValueConverter.UnitValueConverter( "arcmin", 1. / 60. ),
@@ -204,5 +209,4 @@ public class DoubleValueField {
             new ValueConverter.UnitValueConverter( "radians", 180. / Math.PI ),
         } );
     }
-
 }

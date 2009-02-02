@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Action;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Table load dialogue for retrieving the result of a SIAP query.
@@ -15,10 +17,18 @@ import uk.ac.starlink.table.StarTableFactory;
  *
  * @author   Mark Taylor (Starlink)
  * @since    5 Dec 2005
+ * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
  */
 public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
 
     private final SkyPositionEntry skyEntry_;
+    private final DoubleValueField raField_;
+    private final DoubleValueField decField_;
+    private final DoubleValueField sizeField_;
+    private static final ValueInfo SIZE_INFO =
+        new DefaultValueInfo( "Angular Size", Double.class,
+                              "Angular size of the search region"
+                            + " in RA and Dec" );
 
     /**
      * Constructor.
@@ -30,6 +40,10 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
                                               .SIA_STDID ),
                false );
         skyEntry_ = new SkyPositionEntry( "J2000" );
+        raField_ = skyEntry_.getRaDegreesField();
+        decField_ = skyEntry_.getDecDegreesField();
+        sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
+        skyEntry_.addField( sizeField_ );
         skyEntry_.addActionListener( getOkAction() );
         getControlBox().add( skyEntry_ );
     }
@@ -49,16 +63,16 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
         }
         RegResource resource = resources[ 0 ];
         RegCapabilityInterface capability = capabilities[ 0 ];
-        double ra = skyEntry_.getRaDegreesField().getValue();
-        double dec = skyEntry_.getDecDegreesField().getValue();
-        double size = skyEntry_.getRadiusDegreesField().getValue();
-        final SiapQuery query =
-            new SiapQuery( resource, capability, ra, dec, size, size );
+        double ra = raField_.getValue();
+        double dec = decField_.getValue();
+        double size = sizeField_.getValue();
+        final DalQuery query =
+            new DalQuery( resource, capability, ra, dec, size );
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
-            skyEntry_.getRaDegreesField().getDescribedValue(),
-            skyEntry_.getDecDegreesField().getDescribedValue(),
-            skyEntry_.getRadiusDegreesField().getDescribedValue(),
+            raField_.getDescribedValue(),
+            decField_.getDescribedValue(),
+            sizeField_.getDescribedValue(),
         } ) );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,

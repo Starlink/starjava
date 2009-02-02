@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -28,7 +31,8 @@ public class SkyPositionEntry extends JPanel {
     private final Action resolveAction_;
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
-    private final DoubleValueField srField_;
+    private final ValueFieldPanel qPanel_;
+    private final List fieldList_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -60,20 +64,35 @@ public class SkyPositionEntry extends JPanel {
         /* Add fields for entering query position and radius. */
         raField_ = DoubleValueField.makeRADegreesField();
         decField_ = DoubleValueField.makeDecDegreesField();
-        srField_ = DoubleValueField.makeRadiusDegreesField();
 
         /* Place these fields. */
         String sysLabel =
             ( coordSysLabel == null || coordSysLabel.trim().length() == 0 )
                 ? null
                 : "(" + coordSysLabel + ")";
-        ValueFieldPanel qPanel = new ValueFieldPanel();
-        qPanel.addField( raField_,
-                         sysLabel == null ? null : new JLabel( sysLabel ) );
-        qPanel.addField( decField_,
-                         sysLabel == null ? null : new JLabel( sysLabel ) );
-        qPanel.addField( srField_ );
-        box.add( qPanel );
+        qPanel_ = new ValueFieldPanel();
+        qPanel_.addField( raField_,
+                          sysLabel == null ? null : new JLabel( sysLabel ) );
+        qPanel_.addField( decField_,
+                          sysLabel == null ? null : new JLabel( sysLabel ) );
+        box.add( qPanel_ );
+
+        /* Set up list of fields. */
+        fieldList_ = new ArrayList();
+        fieldList_.add( raField_ );
+        fieldList_.add( decField_ );
+    }
+
+    /**
+     * Adds a field to the list of ones controlled by this component.
+     * The added field is placed in a tidy way, and its enable/disablement
+     * etc is handled alongside the basic positional fields.
+     *
+     * @param   field   field to add
+     */
+    public void addField( DoubleValueField field ) {
+        qPanel_.addField( field );
+        fieldList_.add( field );
     }
 
     /**
@@ -94,20 +113,11 @@ public class SkyPositionEntry extends JPanel {
         return decField_;
     }
 
-    /**
-     * Returns the field containing search radius in degrees.
-     *
-     * @return   radius field
-     */
-    public DoubleValueField getRadiusDegreesField() {
-        return srField_;
-    }
-
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
-        raField_.setEnabled( enabled );
-        decField_.setEnabled( enabled );
-        srField_.setEnabled( enabled );
+        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
+            ((DoubleValueField) it.next()).setEnabled( enabled );
+        }
     }
 
     /**
@@ -116,9 +126,10 @@ public class SkyPositionEntry extends JPanel {
      * @param   listener  listener to add
      */
     public void addActionListener( ActionListener listener ) {
-        raField_.getEntryField().addActionListener( listener );
-        decField_.getEntryField().addActionListener( listener );
-        srField_.getEntryField().addActionListener( listener );
+        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
+            ((DoubleValueField) it.next()).getEntryField()
+                                          .addActionListener( listener );
+        }
     }
 
     /**
@@ -127,9 +138,10 @@ public class SkyPositionEntry extends JPanel {
      * @param  listener  listener to remove
      */
     public void removeActionListener( ActionListener listener ) {
-        raField_.getEntryField().removeActionListener( listener );
-        decField_.getEntryField().removeActionListener( listener );
-        srField_.getEntryField().removeActionListener( listener );
+        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
+            ((DoubleValueField) it.next()).getEntryField()
+                                          .removeActionListener( listener );
+        }
     }
 
     /**
