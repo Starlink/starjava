@@ -75,6 +75,7 @@
   <!ENTITY FIG.sampPanel '&figs;sampPanel.gif'>
   <!ENTITY FIG.SampWindow_clients '&figs;SampWindow_clients.gif'>
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
+  <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -1656,7 +1657,7 @@ allowed:
         password.</p></dd>
     <dt><code>jdbc:</code></dt>
     <dd><p>Used for communicating with SQL-compliant relational databases.
-        These are a bit different to normal URLs - see sections
+        These are a bit different to normal URLs - see
         <ref id="inSql"/> and <ref id="outSql"/>.</p></dd>
 </dl>
 </p>
@@ -3346,15 +3347,25 @@ The load dialogue flags are:
     the Virgo Millennium run database.
     </p></dd>
 
+<dt>-siap</dt>
+<dd><p>Simple Image Access Protocol dialogue (<ref id="DalTableLoadDialog"/>),
+    used for obtaining the results of 
+    <webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIAP</webref>
+    queries on remote data servers
+    (not available with topcat-lite).</p></dd>
+
+<dt>-ssap</dt>
+<dd><p>Simple Spectral Access Protocol dialogue
+    (<ref id="DalTableLoadDialog"/>),
+    used for obtaining the results of 
+    <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSAP</webref>
+    queries on remote data servers
+    (not available with topcat-lite).</p></dd>
+
 <dt>-registry</dt>
 <dd><p>Registry query dialogue <em>(experimental)</em>,
     used for obtaining the results of a query on a VO resource registry
     as a table (not available with topcat-lite).</p></dd>
-
-<dt>-siap</dt>
-<dd><p>Simple Image Access Protocol dialogue <em>(experimental)</em>,
-    used for obtaining the results of SIAP queries on remote data 
-    servers (not available with topcat-lite).</p></dd>
 
 </dl>
 These flags in most circumstances do just the same as adding the
@@ -8361,6 +8372,78 @@ and will not be available if you have the topcat-lite configuration.
 
 </subsubsect>
 
+<subsubsect id="DalTableLoadDialog">
+<subhead><title>SIAP/SSAP Query</title></subhead>
+
+<figure>
+<caption><px>SIAP table import dialogue.
+The SSAP one looks very similar</px></caption>
+<figureimage src="&FIG.SiapTableLoadDialog;"/>
+</figure>
+
+<p>By selecting the <label>SIAP</label> or <label>SSAP</label> option from
+the Load Window's <label>DataSources</label> menu,
+you can obtain a dialogue which allows you to perform a
+<webref url="http://www.ivoa.net/Documents/latest/SIA.html"
+        >Simple Image Access Protocol</webref>
+or
+<webref url="http://www.ivoa.net/Documents/latest/SSA.html"
+        >Simple Spectral Access Protocol</webref>
+query to one of the servers on the network which supports the
+Virtual Observatory protocol in question.
+</p>
+
+<p>The purpose of these protocols is to allow you to locate 
+image or spectral data from virtual observatory servers.
+The basic idea is that you decide which server you want to query,
+specify constraints such as the region of sky in which you are interested,
+and then make the query.  The server responsds with a table 
+(a VOTable) which contains a row for each image/spectral data set
+matching the query.
+The load dialogues described here allow you to locate
+suitable servers, make simple queries along these lines, and
+view the returned tables in TOPCAT.
+This isn't the most sensible use of these protocols - typically
+they would be used by an image/spectrum viewer which would take care
+of acquiring the actual image/spectrum data described in the return
+table - so these dialogues are of somewhat limited use.
+Moreover, they only provide a subset of the options specified by the
+protocols (especially in the case of SSAP, which defines many possible
+constraints beyond sky position).
+However, they're here if you want to use them for whatever reason.
+</p>
+
+<p>Operation is quite similar to the 
+<ref id="ConeSearchDialog">Cone Search</ref> dialogue
+(see <ref id="ConeSearchDialog"/> for slightly more detail on this).
+First you need to select the server to use. 
+Fill in the <label>Registry</label> and <label>Keywords</label>
+fields at the top of the window to restrict which SIAP/SSAP servers
+you want to search for, and hit the <label>Submit Query</label> button.
+If you leave the <label>Keywords</label> field blank, all suitable
+servers will be listed; at the time of writing, there are not very 
+may SSAP servers in total, so it's not an unreasonable thing to do.
+Then select the server you want by clicking on its row in the table.
+</p>
+
+<p>Having selected the server, select the region of sky in which you
+are interested.  
+Either fill in the <label>RA</label> and <label>Dec</label> fields manually,
+or fill in the <label>Object Name</label> field to get it resolved to
+a position using Sesame.  Then enter the region size - 
+semantics of this differ slightly between protocols, see the tooltip
+for details.
+Finally, hit <label>OK</label> and the query will be performed,
+loading the result into TOPCAT as a new table.
+</p>
+
+<p>Note that this window requires certain optional
+components of the TOPCAT installation,
+and will not be available if you have the topcat-lite configuration.
+</p>
+
+</subsubsect>
+
 <subsubsect id="GavoTableLoadDialog">
 <subhead><title>GAVO Millennium Database Query</title></subhead>
 
@@ -11639,6 +11722,8 @@ introduced since the last version:
     <li>Fixed bug which caused SIAP queries to fail every time.</li>
     <li>SIAP load dialogue now has name resolution capability.</li>
     <li>Added SSAP load dialogue.  Basic functionality only.</li>
+    <li>Added documentation for previously-unadvertised
+        <ref id="DalTableLoadDialog">SIAP/SSAP</ref> load dialogues.</li>
     </ul>
     </p></dd>
 
