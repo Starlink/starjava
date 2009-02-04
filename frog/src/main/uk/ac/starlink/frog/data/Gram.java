@@ -1096,7 +1096,6 @@ public class Gram implements GramAccess, AnalyticSeries, Serializable
                 xMin = 0.0;
                 xMax = 0.0;
             }
-            AstUtilities.astAnnul( oned );
 
             //  Record data ranges.
             range[0] = xMin;

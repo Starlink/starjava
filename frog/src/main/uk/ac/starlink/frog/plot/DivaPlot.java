@@ -756,9 +756,6 @@ public class DivaPlot
             //  Keep reference to existing AstPlot so we know how
             //  graphics coordinates are already drawn.
             Plot oldAstPlot = astJ.getPlot();
-            if ( oldAstPlot != null ) {
-                oldAstPlot = (Plot) oldAstPlot.clone();
-            }
 
             //  Create an astPlot for the graphics, this is matched to
             //  the component size and is how we get an apparent
@@ -825,7 +822,6 @@ public class DivaPlot
             //  Resize overlay graphics.
             if ( oldAstPlot != null ) {
                 redrawOverlay( oldAstPlot );
-                oldAstPlot.annul();
             }
 
             //  Inform any listeners that the Plot has been scaled.

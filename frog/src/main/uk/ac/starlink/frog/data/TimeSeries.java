@@ -1220,7 +1220,6 @@ public class TimeSeries
                 xMin = 0.0;
                 xMax = 0.0;
             }
-            AstUtilities.astAnnul( oned );
 
             //  Record data ranges.
             range[0] = xMin;

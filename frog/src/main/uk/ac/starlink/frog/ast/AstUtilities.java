@@ -72,8 +72,6 @@ public class AstUtilities implements Serializable
     protected void finalize() throws Throwable
     {
         grfRef = null;
-        annulPlot();
-        annulRef();
         super.finalize();
     }
 
@@ -185,10 +183,7 @@ public class AstUtilities implements Serializable
      */
     protected void annulPlot()
     {
-        if ( astPlot != null ) {
-            astPlot.annul();
-            astPlot = null;
-        }
+        astPlot = null;
     }
 
     /**
@@ -197,7 +192,6 @@ public class AstUtilities implements Serializable
     protected void annulRef()
     {
         if ( manageAstRef && astRef != null ) {
-            astRef.annul();
             astRef = null;
         }
     }
@@ -507,31 +501,6 @@ public class AstUtilities implements Serializable
     }
 
     /**
-     *  Annul (i.e. free) an AST reference of some kind.
-     *
-     *  @deprecated Use direct ".annul()" method
-     */
-    public static void astAnnul( AstObject ref )
-    {
-        if ( ref != null ) {
-            ref.annul();
-        }
-    }
-
-    /**
-     *  Clone an AST reference of some kind.
-     *
-     *  @deprecated Use direct ".clone()" method
-     */
-    public static AstObject astClone( AstObject ref )
-    {
-        if ( ref != null ) {
-            return (AstObject) ref.clone();
-        }
-        return null;
-    }
-
-    /**
      *  Copy an AST reference of some kind.
      *
      *  @deprecated Use direct ".copy()" method
@@ -712,8 +681,6 @@ public class AstUtilities implements Serializable
             Mapping map1 = framecopy.getMapping( FrameSet.AST__BASE,
                                                  FrameSet.AST__CURRENT );
             Mapping map2 = map1.simplify();
-            framecopy.annul();
-            map1.annul();
             return map2;
         }
         catch (Exception e) {
@@ -780,7 +747,6 @@ public class AstUtilities implements Serializable
             Mapping map = astRef.getMapping( FrameSet.AST__BASE,
                                              FrameSet.AST__CURRENT );
             Mapping smap = map.simplify();
-            map.annul();
 
             // Save a pointer to the current frame
             Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
@@ -934,8 +900,6 @@ public class AstUtilities implements Serializable
             Frame tmpframe = framecopy.pickAxes( iaxis.length, iaxis, joined );
             framecopy.addFrame( FrameSet.AST__CURRENT, joined[0], tmpframe );
             framecopy.invert();
-            tmpframe.annul();
-            joined[0].annul();
         }
 
         // Select an axis in the current frame and tack this onto the
@@ -946,8 +910,6 @@ public class AstUtilities implements Serializable
             Mapping[] joined = new Mapping[1];
             Frame tmpframe = framecopy.pickAxes( iaxis.length, iaxis, joined );
             framecopy.addFrame( FrameSet.AST__CURRENT, joined[0], tmpframe );
-            tmpframe.annul();
-            joined[0].annul();
         }
         return framecopy;
     }

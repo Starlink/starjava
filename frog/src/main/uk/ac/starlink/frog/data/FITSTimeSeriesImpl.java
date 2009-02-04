@@ -260,9 +260,6 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
      */
     protected void finalize() throws Throwable
     {
-        if ( astref != null ) {
-            astref.annul();
-        }
         fitsref = null;
         hdurefs = null;
         shortName = null;
@@ -534,11 +531,6 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
         //  Now create a frameset and add all these to it.
         astref = new FrameSet( baseframe );
         astref.addFrame( 1, lutmap, currentframe );
-
-        //  Free intermediary products.
-        baseframe.annul();
-        currentframe.annul();
-        lutmap.annul();
     }
     
     /**

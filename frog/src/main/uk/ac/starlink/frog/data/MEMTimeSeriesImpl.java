@@ -185,9 +185,6 @@ public class MEMTimeSeriesImpl extends TimeSeriesImpl
      */
     protected void finalize() throws Throwable
     {
-        if ( astref != null ) {
-            astref.annul();
-        }
         coords = null;
         data = null;
         errors = null;
@@ -255,11 +252,6 @@ public class MEMTimeSeriesImpl extends TimeSeriesImpl
         //  Now create a frameset and add all these to it.
         astref = new FrameSet( baseframe );
         astref.addFrame( 1, lutmap, currentframe );
-
-        //  Free intermediary products.
-        baseframe.annul();
-        currentframe.annul();
-        lutmap.annul();
     }
 
     /**
