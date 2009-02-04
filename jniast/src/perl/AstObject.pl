@@ -91,11 +91,18 @@ print <<'__EOT__';
      * finalizers.
      */
     protected void finalize() throws Throwable {
-        if ( pointer != 0 ) {
-            annul();
+        try {
+            if ( pointer != 0 ) {
+                annul();
+            }
+            pointer = 0;
         }
-        pointer = 0;
-        super.finalize();
+        catch ( Throwable e ) {
+            logger.warning( "Annul error in finalization: " + e );
+        }
+        finally {
+            super.finalize();
+        }
     }
 
     /* Initializer for shared library. */
@@ -134,9 +141,13 @@ print <<'__EOT__';
     /**
      * Annul this object.  Associated resources in the underlying library
      * are reclaimed.  Following this call the object cannot be used.
-     * User code should not normally call this, but should dereference
-     * the object instead (the <code>finalize</code> method calls
-     * <code>annul</code>.
+     *
+     * <p>It is not normally necessary for application code to call
+     * this method, since it is called during object finalization.
+     * User code may however call it if there is worry about retaining 
+     * non-java heap memory longer than absolutely necessary, 
+     * but think carefully about whether the additional clutter in 
+     * user code makes this worthwhile.
      */
     public native void annul();
 
@@ -147,7 +158,8 @@ print <<'__EOT__';
      * <p>
      * Note that deletion is unconditional, regardless of other references
      * to this java object or to the underlying AST object.  This method
-     * should be used with caution.
+     * should be used with caution.  It is not normally necessary for
+     * application code to call it.
      */
     public native void delete();
 
