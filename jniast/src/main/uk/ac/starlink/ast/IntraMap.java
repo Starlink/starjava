@@ -171,12 +171,6 @@ public class IntraMap extends Mapping implements NeedsChannelizing {
         return copy;
     }
 
-    public Object clone() {
-        Object clone = super.clone();
-        ((IntraMap) clone).trans = this.trans;
-        return clone;
-    }
-
     /* Printable characters used for encoding and decoding. */
     private static final byte[] Chrs64 = new byte[] {
         0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48,  // ABCD EFGH
