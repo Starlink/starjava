@@ -84,7 +84,7 @@ public class AstTest extends TestCase {
         ff.setIdent( "1-2-3-4" );
         ff.setID( "9-8-7-6" );
 
-        Frame f = (Frame) grid.clone();
+        Frame f = grid;
         Frame fff = (Frame) ff.copy();
 
         assertEquals( f.getIdent(), ff.getIdent() );
@@ -104,7 +104,7 @@ public class AstTest extends TestCase {
 
         f.clear( "ID" );
         f.clear( "Ident" );
-        ff = (Frame) f.clone();
+        ff = f;
         fff = (Frame) f.copy();
         assertTrue( f.sameObject( ff ) );
         assertTrue( ! f.sameObject( fff ) );
