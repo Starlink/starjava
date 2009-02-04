@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 1999-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  * History:
  *    21-SEP-1999 (Peter W. Draper):
@@ -275,89 +275,6 @@ public class ASTJ
                              Mapping map, Frame frame )
     {
         frameset.addFrame( insert, map, frame );
-    }
-
-
-    /**
-     *  Clone an AST reference of some kind.
-     *
-     *  @deprecated Use direct ".clone()" method
-     */
-    public static AstObject astClone( AstObject ref )
-    {
-        if ( ref != null ) {
-            return (AstObject) ref.clone();
-        }
-        return null;
-    }
-
-    /**
-     *  Copy an AST reference of some kind.
-     *
-     *  @deprecated Use direct ".copy()" method
-     */
-    public static AstObject astCopy( AstObject ref )
-    {
-        if ( ref != null ) {
-            return ref.copy();
-        }
-        return null;
-    }
-
-    /**
-     *  Set the attributes of an AST object
-     *
-     *  @param astRef reference to AST object (such as an AstFrame,
-     *                AstPlot etc.)
-     *  @param settings the settings to apply.
-     *
-     *  @deprecated Use direct ".set" method
-     */
-    public static void astSet( AstObject astRef, String settings )
-    {
-        astRef.set( settings );
-    }
-
-    /**
-     *  Get an attribute of an AST object as String.
-     *
-     *  @param astRef reference to AST object (such as an AstFrame,
-     *                AstPlot etc.)
-     *  @param attrib the AST attribute to return.
-     *
-     *  @return value of attribute
-     *
-     *  @deprecated Use direct ".getC" method
-     */
-    public static String astGet( AstObject astRef, String attrib )
-    {
-        return astRef.getC( attrib );
-    }
-
-    /**
-     *  Get an attribute of an AST object as floating point value.
-     *
-     *  @param astRef reference to AST object (such as an AstFrame,
-     *                AstPlot etc.)
-     *  @param attrib the AST attribute to return.
-     *
-     *  @return value of attribute
-     *
-     *  @deprecated Use direct ".getD" method
-     */
-    public static double astGetD( AstObject astRef, String attrib )
-    {
-        return astRef.getD( attrib );
-    }
-
-    /**
-     *  Show an AST object on standard output (debugging).
-     *
-     *  @deprecated Use direct ".show()" method
-     */
-    public static void astShow( AstObject astRef )
-    {
-        astRef.show();
     }
 
     /**
