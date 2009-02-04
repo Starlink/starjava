@@ -835,7 +835,7 @@ void jniastThrowIllegalArgumentException( JNIEnv *env, const char *fmt, ... ) {
 *     Throws an IllegalArgumentException.
 
 *  Description:
-*     Throws an IllegalArgumentExceptoin, providing for a printf-like syntax.
+*     Throws an IllegalArgumentException, providing for a printf-like syntax.
 
 *  Arguments:
 *     env = JNIEnv *
