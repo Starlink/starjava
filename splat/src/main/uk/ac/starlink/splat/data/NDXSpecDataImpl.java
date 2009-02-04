@@ -536,7 +536,7 @@ public class NDXSpecDataImpl
     protected void saveToFile()
         throws SplatException
     {
-        //  Parse the name to extract the container file name. 
+        //  Parse the name to extract the container file name.
         PathParser namer = new PathParser( fullName );
         String container = namer.diskfile();
         if ( container.endsWith( ".sdf" ) ) {
@@ -560,7 +560,7 @@ public class NDXSpecDataImpl
             tmpNdx.setWCS( astref );
             if ( errors != null ) {
                 double[] vars = new double[errors.length];
-                for ( int i = 0; i < errors.length; i++ ) { 
+                for ( int i = 0; i < errors.length; i++ ) {
                     vars[i] = errors[i] * errors[i];
                 }
                 aai = new ArrayArrayImpl( vars, shape, bad );
@@ -576,18 +576,18 @@ public class NDXSpecDataImpl
             HDSObject hobj = href.getObject( "WRITE" );
             NDFNdxHandler handler = NDFNdxHandler.getInstance();
 
-            //  Full URL for HDS component is 
+            //  Full URL for HDS component is
             //  file://localhost/container.sdf#hds_path.
             URL url = null;
             if ( path == null || "".equals( path ) ) {
                 url = new URL( "file://localhost/" + container + ".sdf" );
             }
             else {
-                url = new URL( "file://localhost/" + container + ".sdf#" + 
+                url = new URL( "file://localhost/" + container + ".sdf#" +
                                path.substring( 1 ) );
             }
             Ndx newNdx = handler.makeNdx( hobj, url, AccessMode.WRITE );
-            
+
             //  No longer a memory clone, backing file is created.
             cloned = false;
             data = null;

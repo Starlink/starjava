@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     03-FEB-2003 (Peter W. Draper):
@@ -151,7 +152,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, false );
-        ((EditableSpecDataImpl)impl).setSimpleUnitData( frameSet, coords, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setSimpleUnitData( frameSet, coords, 
+                                                        dataUnits, data );
         readData();
     }
 
@@ -188,7 +190,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, true );
-        ((EditableSpecDataImpl)impl).setSimpleDataQuick( coords, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setSimpleDataQuick( coords, dataUnits, 
+                                                         data );
         readData();
     }
 
@@ -212,8 +215,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, null, true );
-        ((EditableSpecDataImpl)impl).setSimpleUnitDataQuick( frameSet, coords, dataUnits,
-                                             data );
+        ((EditableSpecDataImpl)impl).setSimpleUnitDataQuick( frameSet, coords,
+                                                             dataUnits, data );
         readData();
     }
 
@@ -230,7 +233,8 @@ public class EditableSpecData
         throws SplatException
     {
         constructColumnAndFrameSetUndo( dataUnits, data, null, true );
-        ((EditableSpecDataImpl)impl).setFullDataQuick( frameSet, dataUnits, data );
+        ((EditableSpecDataImpl)impl).setFullDataQuick( frameSet, dataUnits, 
+                                                       data );
         readData();
     }
 
@@ -253,7 +257,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, false );
-        ((EditableSpecDataImpl)impl).setSimpleData( coords, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setSimpleData( coords, dataUnits, data, 
+                                                    errors );
         readData();
     }
 
@@ -281,8 +286,9 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, false );
-        ((EditableSpecDataImpl)impl).setSimpleUnitData( frameSet, coords, dataUnits, data,
-                                        errors );
+        ((EditableSpecDataImpl)impl).setSimpleUnitData( frameSet, coords, 
+                                                        dataUnits, data,
+                                                        errors );
         readData();
     }
 
@@ -303,7 +309,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnAndFrameSetUndo( dataUnits, data, errors, false );
-        ((EditableSpecDataImpl)impl).setFullData( frameSet, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setFullData( frameSet, dataUnits, data, 
+                                                  errors );
         readData();
     }
 
@@ -325,7 +332,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, true );
-        ((EditableSpecDataImpl)impl).setSimpleDataQuick( coords, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setSimpleDataQuick( coords, dataUnits, 
+                                                         data, errors );
         readData();
     }
 
@@ -352,8 +360,9 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, dataUnits, data, errors, true );
-        ((EditableSpecDataImpl)impl).setSimpleUnitDataQuick( frameSet, coords, dataUnits,
-                                             data, errors );
+        ((EditableSpecDataImpl)impl).setSimpleUnitDataQuick( frameSet, coords,
+                                                             dataUnits,
+                                                             data, errors );
         readData();
     }
 
@@ -374,7 +383,8 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnAndFrameSetUndo( dataUnits, data, errors, true );
-        ((EditableSpecDataImpl)impl).setFullDataQuick( frameSet, dataUnits, data, errors );
+        ((EditableSpecDataImpl)impl).setFullDataQuick( frameSet, dataUnits, 
+                                                       data, errors );
         readData();
     }
 
@@ -550,11 +560,9 @@ public class EditableSpecData
                 }
             }
 
-            // Take clone of existing FrameSet so that we retain a full
-            // working copy regardless of other annuls. Note this is only used
-            // to keep the coordinate system properties. The actual mappings
-            // are not used.
-            this.frameSet = (FrameSet) specData.getFrameSet().clone();
+            // Take reference of existing FrameSet to keep the coordinate
+            // system properties. The actual mappings are not used.
+            this.frameSet = specData.getFrameSet();
 
             data = specData.getYData();
             dataUnits = specData.getCurrentDataUnits();
@@ -600,7 +608,7 @@ public class EditableSpecData
             coords = specData.getXData();
 
             FrameSet newFrameSet = frameSet;
-            frameSet = (FrameSet) specData.getFrameSet().clone();
+            frameSet = (FrameSet) specData.getFrameSet();
 
             String newDataUnits = dataUnits;
             dataUnits = specData.getCurrentDataUnits();
@@ -657,9 +665,7 @@ public class EditableSpecData
         {
             super();
             this.specData = specData;
-
-            // Take clone so that annuls elsewhere are OK.
-            this.frameSet = (FrameSet) specData.getFrameSet().clone();
+            this.frameSet = specData.getFrameSet();
         }
 
         public void undo()
@@ -684,7 +690,7 @@ public class EditableSpecData
         protected void switchFrameSet()
         {
             FrameSet targetFrameSet = frameSet;
-            frameSet = (FrameSet) specData.getFrameSet().clone();
+            frameSet = specData.getFrameSet();
             try {
                 specData.undoable = false;
                 specData.setFrameSet( targetFrameSet );
@@ -747,10 +753,7 @@ public class EditableSpecData
         {
             super();
             this.specData = specData;
-
-            // Take clone of existing FrameSet so that we retain a full
-            // working copy regardless of other annuls.
-            this.frameSet = (FrameSet) specData.getFrameSet().clone();
+            this.frameSet = specData.getFrameSet();
 
             data = specData.getYData();
             dataUnits = specData.getCurrentDataUnits();
@@ -802,7 +805,7 @@ public class EditableSpecData
             errors = specData.getYDataErrors();
 
             FrameSet targetFrameSet = frameSet;
-            frameSet = (FrameSet) specData.getFrameSet().clone();
+            frameSet = specData.getFrameSet();
 
             try {
                 specData.undoable = false;

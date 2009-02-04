@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1999-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     02-SEP-1999 (Peter W. Draper):
@@ -624,7 +625,7 @@ public class NDFJ
      */
     public void setAst( FrameSet newwcs )
     {
-        wcs = (FrameSet) newwcs.clone();
+        wcs = newwcs;
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007-2008 Science and Technology Facilties Council
+ * Copyright (C) 2007-2009 Science and Technology Facilties Council
  *
  *  History:
  *     18-APR-2005 (Peter W. Draper):
@@ -177,7 +177,6 @@ public class PlotUnitsFrame
                                              canonicalUnits[i],
                                              testFrame.getC( "normunit" ) ) );
         }
-        testFrame.annul();
     };
 
     /**

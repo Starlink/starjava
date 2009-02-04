@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     16-SEP-2004 (Peter W. Draper):
@@ -175,7 +176,6 @@ public final class SpecDims
                         break;
                     }
                 }
-                frame2.annul();
             }
         }
         if ( exclude ) {

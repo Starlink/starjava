@@ -33,13 +33,13 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.util.URLUtils;
 
 /**
- * Transmits spectra over PLASTIC.  This abstract class provides the 
+ * Transmits spectra over PLASTIC.  This abstract class provides the
  * common functionality for performing transmissions using different
  * data formats.  Static factory methods are provided to construct
  * instances for particular formats.
  *
  * <p>The implementation of this class is currently somewhat complicated
- * because it provides options for transmitting spectra using 
+ * because it provides options for transmitting spectra using
  * a number of different PLASTIC messages.  If it is decided that only
  * one of these is required, it would be possible to simplify the
  * implementation a bit.
@@ -71,10 +71,10 @@ public abstract class SpecTransmitter
      * Constructor.
      *
      * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   specList global list of spectra; the current selection 
+     * @param   specList global list of spectra; the current selection
      *          determines what spectrum is transmitted (transmission will
      *          only be enabled if there is a unique selection)
-     * @param   msgId  PLASTIC identifier for the message that this 
+     * @param   msgId  PLASTIC identifier for the message that this
      *          transmitter deals with
      * @param   sendType  short string representing the type of object
      *          which is transmitted
@@ -98,7 +98,7 @@ public abstract class SpecTransmitter
     {
 
         //  Check we have a uniquely selected spectrum.  This error shouldn't
-        //  happen in normal use because actions which call this method 
+        //  happen in normal use because actions which call this method
         //  should be enabled only if there is a single unique selection.
         if ( selectedIndex < 0 ) {
             throw new IllegalStateException( "No unique spectrum selected" );
@@ -147,14 +147,14 @@ public abstract class SpecTransmitter
     }
 
     /**
-     * Constructs and returns a SpecTransmitter which transmits spectra 
+     * Constructs and returns a SpecTransmitter which transmits spectra
      * using the format-neutral PLASTIC spectrum transmission message.
      *
      * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   specList global list of spectra; the current selection 
+     * @param   specList global list of spectra; the current selection
      *          determines what spectrum is transmitted (transmission will
      *          only be enabled if there is a unique selection)
-     * @return  new transmitter 
+     * @return  new transmitter
      */
     public static SpecTransmitter createSpectrumTransmitter( HubManager hubman,
                                                              JList specList )
@@ -163,11 +163,11 @@ public abstract class SpecTransmitter
     }
 
     /**
-     * Constructs and returns a SpecTransmitter which transmits spectra 
+     * Constructs and returns a SpecTransmitter which transmits spectra
      * as 1-d FITS files.
      *
      * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   specList global list of spectra; the current selection 
+     * @param   specList global list of spectra; the current selection
      *          determines what spectrum is transmitted (transmission will
      *          only be enabled if there is a unique selection)
      * @return  new transmitter using FITS
@@ -178,7 +178,7 @@ public abstract class SpecTransmitter
         return new TypedSpecTransmitter( hubman, specList,
                                          MessageId.FITS_LOADLINE, "FITS" ) {
 
-            protected String getTypedLocation( SpecData spec ) 
+            protected String getTypedLocation( SpecData spec )
             {
                 return "FITS".equals( spec.getDataFormat() )
                      ? spec.getFullName()
@@ -201,7 +201,7 @@ public abstract class SpecTransmitter
      * as VOTables.
      *
      * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   specList global list of spectra; the current selection 
+     * @param   specList global list of spectra; the current selection
      *          determines what spectrum is transmitted (transmission will
      *          only be enabled if there is a unique selection)
      * @return  new transmitter for using VOTable
@@ -232,10 +232,10 @@ public abstract class SpecTransmitter
     }
 
     /**
-     * Returns a URL corresponding to an existing resource given by a 
-     * location string, if possible.  If <code>loc</code> is an 
-     * <em>existing</em> file, a file-type URL is returned.  
-     * Otherwise, if <code>loc</code> can be parsed as a URL, 
+     * Returns a URL corresponding to an existing resource given by a
+     * location string, if possible.  If <code>loc</code> is an
+     * <em>existing</em> file, a file-type URL is returned.
+     * Otherwise, if <code>loc</code> can be parsed as a URL,
      * that is returned.  Otherwise, <code>null</code> is returned.
      *
      * @param   loc  string pointing to resource (URL or filename)
@@ -386,10 +386,10 @@ public abstract class SpecTransmitter
          * Constructor.
          *
          * @param   hubman   object controlling connection to a PLASTIC hub
-         * @param   specList global list of spectra; the current selection 
+         * @param   specList global list of spectra; the current selection
          *          determines what spectrum is transmitted (transmission will
          *          only be enabled if there is a unique selection)
-         * @param   msgId  PLASTIC identifier for the message that this 
+         * @param   msgId  PLASTIC identifier for the message that this
          *          transmitter deals with
          * @param   formatName   human-readable name for the spectrum
          *          transmission format (used in action names etc)
@@ -402,7 +402,7 @@ public abstract class SpecTransmitter
 
         /**
          * Returns the location (URL or filename) of existing storage for
-         * a given spectrum.  This must reference the data in a format 
+         * a given spectrum.  This must reference the data in a format
          * appropriate for the data type used by this transmitter.
          * If no such correctly-typed storage exists, null is returned.
          *
@@ -462,7 +462,7 @@ public abstract class SpecTransmitter
                 tmpFile = tf;
                 url = URLUtils.makeFileURL( tmpFile ).toString();
             }
-       
+
             //  Send the message to the hub.
             //  This is done in a separate thread so as not to block the GUI.
             new Thread( "PLASTIC spectrum transmitter" ) {

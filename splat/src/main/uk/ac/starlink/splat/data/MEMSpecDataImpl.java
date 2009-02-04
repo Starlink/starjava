@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     06-JAN-2001 (Peter W. Draper):
@@ -543,8 +544,7 @@ public class MEMSpecDataImpl
     }
 
     /**
-     * Accept a new FrameSet making a copy of it. The existing FrameSet is
-     * annulled, unless a reference to it is given. If the copy fails then a
+     * Accept a new FrameSet making a copy of it. If the copy fails then a
      * default FrameSet is created.
      */
     public void setAstCopy( FrameSet frameSet )

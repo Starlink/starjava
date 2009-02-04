@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
- * Copyright (C) 2007-2008 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
  *    12-SEP-1999 (Peter W. Draper):
@@ -1045,15 +1045,10 @@ public class DivaPlot
                     xyScaled = true;
                 }
 
-                //  If needed keep reference to existing AstPlot so we know
-                //  how graphics coordinates are already drawn and can rescale
-                //  any overlay graphics to the correct size.
+                //  Keep reference to existing AstPlot so we know how graphics
+                //  coordinates are already drawn and can rescale any overlay
+                //  graphics to the correct size.
                 Plot oldAstPlot = mainPlot;
-                if ( xyScaled && scaleFigures ) {
-                    if ( oldAstPlot != null ) {
-                        oldAstPlot = (Plot) oldAstPlot.clone();
-                    }
-                }
 
                 //  Get the AST FrameSet to use and check if this contains a
                 //  DSBSpecFrame, we handle those differently, unless the

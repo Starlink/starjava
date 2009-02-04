@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
- * Copyright (C) 2007-2008 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
  *     10-JAN-2005 (Peter W. Draper):
@@ -116,7 +116,6 @@ public class SpecDataUnitsFrame
                                          canonicalUnits[i],
                                          testFrame.getC( "normunit" ) ) );
         }
-        testFrame.annul();
     };
 
     /**
@@ -526,7 +525,6 @@ public class SpecDataUnitsFrame
                     Frame f = new Frame( 1 );
                     f.setUnit( 1, (String) selected );
                     String normunit = f.getC( "normunit" );
-                    f.annul();
 
                     Iterator i = unitsVector.iterator();
                     Triple t;
