@@ -262,8 +262,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_annul(
    jobject this          /* Instance object */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-
-   astAnnul( pointer.AstObject );
+   ASTCALL(
+      astAnnul( pointer.AstObject );
+   )
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_delete(
