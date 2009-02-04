@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=latex 2008.5.14)  12 DEC 2008 12:51
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=latex 2008.10.17)  4 FEB 2009 14:01
 entering extended mode
  %&-line parsing enabled.
 **./images.tex
@@ -25,9 +25,10 @@ File: size11.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
 \bibindent=\dimen102
 ) (/usr/share/texmf-texlive/tex/latex/base/ifthen.sty
 Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
-) (/home/pdraper/starjava_svn/source/splat/src/docs/programming_htx/html.sty)
-(/home/pdraper/starjava_svn/source/splat/src/docs/programming_htx/star2html.sty
-) (/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
+) (/loc/pwda/pdraper/starjava_svn/source/splat/src/docs/programming_htx/html.st
+y)
+(/loc/pwda/pdraper/starjava_svn/source/splat/src/docs/programming_htx/star2html
+.sty) (/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 (/usr/share/texmf-texlive/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
@@ -233,8 +234,8 @@ l2hSize :tex2html_wrap_inline5796:8.7125pt::8.7125pt::6.63087pt.
 ] (./images.aux) ) 
 Here is how much of TeX's memory you used:
  880 strings out of 95087
- 11523 string characters out of 1183278
- 54695 words of memory out of 1500000
+ 11543 string characters out of 1183277
+ 54703 words of memory out of 1500000
  4091 multiletter control sequences out of 10000+50000
  6725 words of font info for 24 fonts, out of 1200000 for 2000
  28 hyphenation exceptions out of 8191
