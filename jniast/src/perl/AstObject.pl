@@ -152,19 +152,6 @@ print <<'__EOT__';
     public native void delete();
 
     /**
-     * Clone an object.
-     * This method creates a new Object which is a reference to the 
-     * same underlying AST object.  This method calls the astClone
-     * function of the underlying AST library and makes a new AstObject
-     * referencing the result.
-     *
-     * @return  a new <code>AstObject</code> containing a reference to the 
-     *          underlying AST object referenced by this <code>AstObject</code>
-     * @see  AstObject#sameObject(Object) sameObject
-     */
-    public native Object clone();
-
-    /**
      * Determine whether two AstObjects are similar in all respects.
      * This method is implemented by writing both objects to a 
      * {@link Channel} and comparing the resulting textual representations.
