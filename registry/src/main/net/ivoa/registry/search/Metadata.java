@@ -66,7 +66,7 @@ public class Metadata {
             addLast(new Metadata(node, base + "/" + node.getNodeName()));
         }
 
-        public Metadata pop() { return (Metadata) removeFirst(); }
+        public Metadata popMetadata() { return (Metadata) removeFirst(); }
     }
 
     /**
@@ -99,7 +99,7 @@ public class Metadata {
 
             int len = matched.size();
             for(i=0; i < len; i++) {
-                Metadata candidate = matched.pop();
+                Metadata candidate = matched.popMetadata();
                 boolean findElements = true;
                 node = candidate.getDOMNode();
                 if (! tok.hasMoreTokens() && 
