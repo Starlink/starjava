@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007-2008 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
@@ -121,7 +121,7 @@ public class SplatBrowser
     extends JFrame
     implements ItemListener, ActionListener
 {
-    // Logger.
+    //  Logger.
     private static Logger logger =
         Logger.getLogger( "uk.ac.starlink.splat.iface.SplatBrowser" );
 
@@ -198,9 +198,6 @@ public class SplatBrowser
      */
     protected JCheckBoxMenuItem colourAsLoadedItem = null;
     protected boolean colourAsLoaded = true;
-
-    //  Number of colours available to sample.
-    protected static final float COLOUR_SAMPLE = 1024.0F;
 
     /**
      * Whether to show short or full names in the global list.
@@ -800,7 +797,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.REMOVE_PLOTS,
                              "Remove selected plots", removePlotImage,
                              "Close any plots selected in views list" );
-        editMenu.add( removePlotAction ).setMnemonic( KeyEvent.VK_R );
+        editMenu.add( removePlotAction ).setMnemonic( KeyEvent.VK_O );
 
         //  Add an action to select all plots.
         LocalAction selectPlotAction =
@@ -1335,7 +1332,7 @@ public class SplatBrowser
         int size = globalList.specCount();
         int rgb;
         for ( int i = 0; i < size; i++ ) {
-            rgb = MathUtils.getRandomRGB( COLOUR_SAMPLE );
+            rgb = MathUtils.getRandomRGB();
             globalList.setKnownNumberProperty(
                              (SpecData) globalList.getSpectrum( i ),
                              SpecData.LINE_COLOUR,
@@ -2011,18 +2008,12 @@ public class SplatBrowser
         if ( moreSpectra != null ) {
             //  Abandon the current spectrum and use these instead.
             for ( int i = 0; i < moreSpectra.length; i++ ) {
-                if ( colourAsLoaded ) {
-                    moreSpectra[i].setLineColour
-                        ( MathUtils.getRandomRGB( COLOUR_SAMPLE ) );
-                }
+                applyRenderingDefaults( moreSpectra[i] );
                 globalList.add( moreSpectra[i] );
             }
         }
         else {
-            if ( colourAsLoaded ) {
-                spectrum.setLineColour
-                    ( MathUtils.getRandomRGB( COLOUR_SAMPLE ) );
-            }
+            applyRenderingDefaults( spectrum );
             globalList.add( spectrum );
         }
 
@@ -2873,6 +2864,18 @@ public class SplatBrowser
     }
 
     /**
+     * Apply the defaults for rendering spectra, also set the colour if
+     * colourising automatically.
+     */
+    protected void applyRenderingDefaults( SpecData spectrum )
+    {
+        if ( colourAsLoaded ) {
+            spectrum.setLineColour( MathUtils.getRandomRGB() );
+        }
+        selectedProperties.applyRenderingProps( spectrum );
+    }
+
+    /**
      * A request to exit the application has been received. Only do
      * this if we're not embedded. In that case just make the window
      * iconized.
@@ -3196,6 +3199,5 @@ public class SplatBrowser
         {
             return key;
         }
-
     }
 }
