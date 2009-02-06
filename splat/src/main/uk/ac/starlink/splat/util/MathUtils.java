@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2005 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     29-APR-2005 (Peter W. Draper):
@@ -62,13 +63,9 @@ public class MathUtils
     private static Random generator = null;
 
     /**
-     *  Get a rainbow colour as an RGB integer from a set of a given
-     *  size.
-     *
-     *  @param res number of expected colours in rainbow (i.e. number
-     *             you want to select from).
+     *  Get a random colour as an RGB integer.
      */
-    public static int getRandomRGB( float res )
+    public static int getRandomRGB()
     {
         if ( generator == null ) {
             generator = new Random();
@@ -76,9 +73,12 @@ public class MathUtils
 
         //  Hue is an float between 0 and 1, which will be scaled to the range
         //  0 to 360 (so the fractional part determines the actual hue
-        //  used). So scale to res, quantise that and then rescale back to 0
-        //  to 1.
-        float h = ((float) Math.floor( generator.nextFloat() * res ) ) / res;
+        //  used). Skip the range of hues for yellows as these look poor 
+        //  against a white background.
+        float h = generator.nextFloat();
+        if ( h > 0.1f && h < 0.25f ) {
+            h -= 0.15f; // More reds, no yellows.
+        }
 
         //  Keep brightness down a little so that these are distinguishable
         //  from all the primary colours (which are used for overlay graphics).
@@ -87,17 +87,19 @@ public class MathUtils
 
     /**
      *  Get a random colour from a set of a given size.
-     *
-     *  @param res number of expected colours in rainbow (i.e. number
-     *             you want to select from).
      */
-    public static Color getRandomColour( float res )
+    public static Color getRandomColour()
     {
         //  Same ideas as getRandomRBG, just returns a Color.
         if ( generator == null ) {
             generator = new Random();
         }
-        float h = ((float) Math.floor( generator.nextFloat() * res ) ) / res;
+
+        float h = generator.nextFloat();
+        if ( h > 0.1f && h < 0.25f ) {
+            h -= 0.15f; // More reds, no yellows.
+        }
+
         return Color.getHSBColor( h, 1.0F, 0.9F );
     }
 }
