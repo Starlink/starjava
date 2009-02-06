@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import net.ivoa.registry.RegistryAccessException;
 import net.ivoa.registry.search.Records;
@@ -29,6 +31,13 @@ public class RegistryQuery {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
+    private static final String SEARCHABLE_REG_QUERY =
+        "capability/@standardID = '" + RegCapabilityInterface.REG_STDID + "'" +
+        " AND " +
+        "capability/@xsi:type LIKE '%:Search'" +
+        " AND " +
+        "full LIKE 'true'";
+        
     /** Description of metadata item describing registry location. */
     public final static ValueInfo REGISTRY_INFO = new DefaultValueInfo(
         "Registry Location", URL.class, "URL of registry queried"
@@ -40,13 +49,19 @@ public class RegistryQuery {
     );
 
     /** Endpoint for primary AstroGrid registry. */
-    public static final String AG_REG =
-        "http://registry.astrogrid.org/astrogrid-registry/services/" +
-        "RegistryQueryv1_0";
+    public static final String AG_REG;
 
     /** Endpoint for NVO registry. */
-    public static final String NVO_REG =
-        "http://nvo.stsci.edu/vor10/ristandardservice.asmx";
+    public static final String NVO_REG;
+
+    /** List of likely registries. */
+    public static final String[] REGISTRIES = new String[] {
+        AG_REG =
+        "http://registry.astrogrid.org/astrogrid-registry/services/"
+            + "RegistryQueryv1_0",
+        NVO_REG =
+        "http://nvo.stsci.edu/vor10/ristandardservice.asmx",
+    };
 
     /**
      * Constructs a new query object from a search client and a query.
@@ -184,6 +199,41 @@ public class RegistryQuery {
             new DescribedValue( REGISTRY_INFO, getRegistry() ),
             new DescribedValue( TEXT_INFO, getText() ),
         };
+    }
+
+    /**
+     * Searches the given registry access URL to find a list of full searchable
+     * registry access URLs.
+     *
+     * @param   regUrl   registry to start with
+     * @return   array of registries which can be searched
+     */
+    public static String[] getSearchableRegistries( String regUrl )
+            throws RegistryAccessException {
+        RegistryQuery regQuery = 
+            new RegistryQuery( regUrl, SEARCHABLE_REG_QUERY );
+        Set acurlSet = new TreeSet();
+        try {
+            for ( Iterator it = regQuery.getQueryIterator(); it.hasNext(); ) {
+                RegResource res = (RegResource) it.next();
+                RegCapabilityInterface[] caps = res.getCapabilities();
+                for ( int ic = 0; ic < caps.length; ic++ ) {
+                    RegCapabilityInterface cap = caps[ ic ];
+                    if ( RegCapabilityInterface.REG_STDID
+                        .equals( cap.getStandardId() ) ) {
+                        String acurl = cap.getAccessUrl();
+                        if ( acurl != null ) {
+                            acurlSet.add( acurl );
+                        }
+                    }
+                }
+            }
+            return (String[]) acurlSet.toArray( new String[ 0 ] );
+        }
+        catch ( RegistryQueryException e ) {
+            throw (RegistryAccessException) new RegistryAccessException()
+                                           .initCause( e );
+        }
     }
 
     /**
