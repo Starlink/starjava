@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:adql="http://www.ivoa.net/xml/ADQL/v1.0" 
+             xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" 
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+             xmlns:xs="http://www.w3.org/2001/XMLSchema"
+             xmlns:cvt="http://www.ivoa.net/wsdl/ADQLConvert/v1.0"
+             xmlns:tns="http://www.ivoa.net/wsdl/ADQLConvertService/v1.0"
+          targetNamespace="http://www.ivoa.net/wsdl/ADQLConvertService/v1.0">
+
+   <import namespace="http://www.ivoa.net/wsdl/ADQLConvert/v1.0"
+           location="ADQLConvert.wsdl"/>
+
+   <service name="ADQLConvertService">
+
+      <port name="ADQLConvertPort" binding="cvt:ADQLConvertSOAP">
+         <soap:address 
+               location="http://localhost:8080/axis/services/ADQLConvert/v1.0"/>
+      </port>
+
+   </service>
+</definitions>

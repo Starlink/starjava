@@ -1,0 +1,210 @@
+<html>
+<head>
+<title>2008 NVO Summer School</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<style type="text/css">
+p, td, li, blockquote {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+}
+h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14pt;
+    font-weight: bold;
+    color: #093772;
+}
+h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12pt;
+    font-weight: bolder;
+    color: #093772;
+}
+a {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    font-weight: bold;
+    color: #093772;
+}
+pre {
+    font-family: "Courier New", Courier, mono;
+    background-color: #FFFFCC;
+    font-size: 10pt;
+}
+h3 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    font-weight: bold;
+    color: #093772;
+}
+.style1 {font-size: xx-small}
+</style>
+</head>
+<body leftmargin="10" topmargin="10">
+
+
+        <table width="100%"  border="0">
+          <tr>
+            <td width="162"><img src="http://www.us-vo.org/images/NVO_150pixels.jpg" width="162" height="72"></td>
+            <td width="88%"><h1> 2008 Summer School </h1></td>
+          </tr>
+        </table>
+
+<!-- ============================================================= -->
+
+<h1>Search a Registry via the Standard Interface -- Exercises</h1>
+
+<p>
+The exercises presented here were prepared as part of the NVO Summer School.
+</p>
+
+<a name="pt1">
+<h1>Part 1:  Advanced Searching via the new Standard Search Interface</h1></a>
+
+<p>
+The <code>ivoaregistry</code> Java package provides a Java API and
+a rudimentary command-line tool for searching registries through the
+IVOA standard search interface.  To build the library and tool, change
+into the package directory and run ant:
+
+</p>
+
+<table width="100%" border="0" cellspacing="10">
+  <tr>
+    <td width="50%">
+       on Linux/MacOS:
+<pre>cd $NVOSS_HOME/java/src/ivoaregistry
+ant</pre>
+    </td>
+    <td>&nbsp;&nbsp;</td>
+    <td width="50%">
+       on Windows:
+<pre>cd %NVOSS_HOME%\java\src\ivoaregistry
+ant</pre>
+    </td>
+  <tr>
+</table>
+
+<a name="ex1">
+<h2>Exercise 1.  Sample Advanced Queries</h2></a>
+
+<p>
+<code>regsearch</code> is the command line tool for searching
+registries via the standard interface.  Currently, all the
+documentation is in-lined to the command script; thus, to view it,
+load <code>src/scripts/regsearch</code> into your favorite editor or
+browser.  
+</p>
+
+<p>
+To use the tool, it's helpful to store the registry endpoint into a
+variable.  Note that one of the points of the standard interface is that
+you can use it to search any IVOA-compliant registry.  In this exercise, we
+can use the NVO registry or the Astrogrid registry, so we'll set a variable
+for each: 
+</p>
+
+<table width="100%" border="0" cellspacing="10">
+  <tr>
+    <td width="50%">
+       on Linux/MacOS, csh:
+<pre>set nvoreg=http://nvo.stsci.edu/vor10/ristandardservice.asmx
+set agreg=http://msslxt.mssl.ucl.ac.uk:8080/astrogrid-regtest-1_0/services/RegistryQueryv1_0</pre>
+       on Linux/MacOS, sh:
+<pre>nvoreg=http://nvo.stsci.edu/vor10/ristandardservice.asmx
+agreg=http://msslxt.mssl.ucl.ac.uk:8080/astrogrid-regtest-1_0/services/RegistryQueryv1_0</pre>
+       on Windows:
+<pre>set nvoreg=http://nvo.stsci.edu/vor10/ristandardservice.asmx
+set agreg=http://msslxt.mssl.ucl.ac.uk:8080/astrogrid-regtest-1_0/services/RegistryQueryv1_0</pre>
+    </td>
+  <tr>
+</table>
+
+<p>
+In brief, the synopsis of this tool's usage is:
+</p>
+
+<blockquote>
+Usage:  regsearch -e url [ options ] command [ args ... ] 
+</blockquote>
+
+<p>
+where command is one of the following:
+</p>
+<blockquote>
+<table border="1" width="100%" cellpadding="0" cellspacing="0">
+  <tr><td width="25%">
+getidentity</td><td>return the description of the registry</td></tr><tr><td>
+getresource</td><td>return the description of the resource 
+                    specified by an identifier</td></tr><tr><td>
+searchbyadql</td><td>search for resources whose 
+                    descriptions match ADQL constraints</td></tr><tr><td>
+searchbykeywords</td><td>search for resources whose descriptions
+                    contain given keywords</td></tr><tr><td>
+idsbyadql</td><td>return just IDs of resources whose 
+                    descriptions match ADQL constraints</td></tr><tr><td>
+idsbykeywords</td><td>return just IDs of resources whose 
+                  descriptions contain given keywords</td></tr>
+</table>
+</blockquote>
+
+<p>
+In this exercise, we will use the searchbyadql command.  Let's try an example.  
+</p>
+
+<blockquote>
+Find all resource that mention quasars in its description:<br>
+<div class="prelike">
+regsearch -e $agreg searchbyadql "content/description like '%galaxy%'"
+</div>
+</blockquote>
+
+<p>
+Here some options you may find helpful or instructive:
+</p>
+
+<blockquote>
+<table border="1" width="100%" cellpadding="0" cellspacing="0">
+  <tr><td width="10%" valign="top">
+-s list</td><td>extract metadata from the returned records by listing their
+XPath identifiers in a comma-separated list; e.g. "identifier,title,capability/interface/accessURL"</td></tr><tr><td>
+-v</td><td>print out some extra messages about what's going on</td></tr><tr><td>
+-x</td><td>show the SOAP request and response messages</td></tr>
+</table>
+</blockquote>
+
+<p>
+Try some more examples:
+</p>
+
+<blockquote>
+Find all registered organisations:<br>
+<div class="prelike">
+regsearch -e $agreg searchbyadql "@xsi:type like '%Organisation%'"
+</div><br>
+
+Find all registered organisations that work in radio astronomy:<br>
+<div class="prelike">
+regsearch -e $agreg searchbyadql "@xsi:type like '%Organisation%' and content/subject like '%radio%'"
+</div><br>
+
+Find all cone search services:<br>
+<div class="prelike">
+regsearch -e $agreg searchbyadql "capability/@xsi:type like '%ConeSearch%'"
+</div>
+</blockquote>
+
+
+<!-- ============================================================= -->
+
+<p>&nbsp;</p>
+<hr align="left" width="100%" noshade>
+    <p align="center" class="style1"> The NVO Summer School is made possible through the support of the National Science Foundation. </p>
+    <table width="100" border="0" align="center">
+      <tr>
+        <td><div align="center"><img src="http://www.us-vo.org/images/nsflogo_64x.gif" width="64" height="64"></div></td>
+      </tr>
+    </table>
+    <p>&nbsp; </p>
+</body>
+</html>

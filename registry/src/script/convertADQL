@@ -1,0 +1,39 @@
+#!/bin/sh
+
+case "$1" in
+"-h")
+echo "convertADQL:  convert between ADQL/s and ADQL/x"
+echo "Usage: convertADQL -X|-S|-x xmlfile|-s sqlfile [-o outfile] [-t transformer]"
+echo "              [-c config] [sql...]"
+echo "Options:"
+echo "  -X              read and convert XML from standard input"
+echo "  -x xmlfile      read and convert XML from xmlfile"
+echo "  -S              read and convert SQL from command line or standard input"
+echo "  -s sqlfile      read and convert SQL from sqlfile"
+echo "  -o outfile      write results to output file; if not given, write to"
+echo "                     standard out"
+echo "  -v version      the ADQL version to assume (v0.7.4, v1.0; default: v1.0)"
+echo "  -t transformer  use named transformer (e.g. XSLx2s)"
+echo "  -c config       load customized config file"
+echo "Arguments:"
+echo "  sql             ADQL/s string to convert with -S; if not given, read from"
+echo "                      standard in"
+echo 
+;;
+*)
+prog=$0
+
+if [ -z $JAVA_HOME ]; then
+    bin=""
+else
+    bin="$JAVA_HOME/bin/"
+fi
+
+ADQL_HOME=@ADQL_HOME@
+APACHE_LIB=@APACHE_LIB@
+
+classpath=$APACHE_LIB/xalan.jar:$APACHE_LIB/xercesImpl.jar:$APACHE_LIB/xml-apis.jar:${CLASSPATH}:$ADQL_HOME/lib/@adql_jar@
+
+exec ${bin}java -cp $classpath net.ivoa.adql.app.ConvertADQL $*
+;;
+esac

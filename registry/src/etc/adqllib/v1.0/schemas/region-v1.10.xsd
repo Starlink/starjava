@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2005 sp1 U (http://www.xmlspy.com) by Arnold Rots (Smithsonian Observatory) -->
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by Arnold Rots (Smithsonian Observatory) -->
+<!-- $Id: region-v1.10.xsd,v 1.1 2006/07/17 16:48:28 rplante Exp $ -->
+<!-- Schema Definition for Regions -->
+<!--Change Log:
+$Log: region-v1.10.xsd,v $
+Revision 1.1  2006/07/17 16:48:28  rplante
+initial version
+
+Revision 2.4  2005/01/05 14:22:11  arots
+Release Verion 1.10
+Added AllSky
+
+Revision 2.3  2004/07/23 21:17:50  arots
+Modified ivoa schema locations; changed URN from nvo- to vo-
+
+Revision 2.2  2004/07/16 22:37:53  arots
+Release version v1.0.
+
+revision 2.1    
+date: 2004/07/07 16:16:22;  author: arots;  state: Exp;  lines: +78 -7
+Completed conversion to substitution groups.
+This version is ready for review.
+
+revision 2.0
+date: 2004/05/21 21:10:41;  author: arots;  state: Exp;  lines: +8 -8
+Reworking with substitution groups and generalized CoordSys & Coords.
+
+revision 1.9
+date: 2004/03/31 21:20:30;  author: arots;  state: Exp;  lines: +13 -9
+changed choice groups to substitution groups.
+
+revision 1.8
+date: 2003/05/15 10:04:23;  author: arots;  state: Exp;  lines: +0 -0
+Comment fixup
+
+revision 1.7
+date: 2003/05/02 19:01:37;  author: arots;  state: Exp;  lines: +21 -4
+Added annotation.
+
+revision 1.6
+date: 2003/04/30 13:27:12;  author: arots;  state: Exp;  lines: +16 -2
+Fixed up change log, changed schema locations.
+
+revision 1.5
+date: 2003/04/29 20:56:40;  author: arots;  state: Exp;  lines: +11 -8
+Completed new astronTimeType and proper handling of units.
+
+revision 1.4
+date: 2003/04/28 16:25:34;  author: arots;  state: Exp;  lines: +141 -56
+Reworking of region.xsd based on discussions with Wil and Alex.
+
+revision 1.3
+date: 2003/04/17 19:05:41;  author: arots;  state: Exp;  lines: +120 -86
+Major re-write:
+Use of substitution groups
+Inclusion of convexes cs.
+
+revision 1.2
+date: 2002/07/11 11:44:01;  author: arots;  state: Exp;  lines: +4 -4
+Corrected smallcircle vertex.
+
+revision 1.1
+date: 2002/07/11 08:58:25;  author: arots;  state: Exp;
+Initial revision
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:reg="http://www.ivoa.net/xml/STC/STCregion/v1.10" xmlns:crd="http://www.ivoa.net/xml/STC/STCcoords/v1.10" targetNamespace="http://www.ivoa.net/xml/STC/STCregion/v1.10" elementFormDefault="qualified">
+	<xs:import namespace="http://www.ivoa.net/xml/STC/STCcoords/v1.10"/>
+	<!--Coords and CoordSystem are needed from STC (coords.xsd)-->
+	<!--Shape definitions; Circle, Polygon, and Sector are derived from Shape; Ellipse is derived from Circle; Polygon includes also Vertex and SmallCircle-->
+	<xs:annotation>
+		<xs:documentation>Region is the base type for everything</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="regionType" abstract="false">
+		<xs:annotation>
+			<xs:documentation>Abstract region type</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="fill_factor" use="optional" default="1.0">
+			<xs:annotation>
+				<xs:documentation>The fill_factor (value between 0 and 1) indicates the fraction of the region that is actually included; possible application: large scale resource coverage areas</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:double">
+					<xs:minInclusive value="0.0"/>
+					<xs:maxInclusive value="1.0"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="note" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:annotation>
+		<xs:documentation>Shape is the abstract type that is the building block of regions; in real life it needs to be replaced by a concrete shape</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="shapeType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Abstract Shape type</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:regionType">
+				<xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+				<xs:attribute name="unit" type="crd:posUnitType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="circleType">
+		<xs:annotation>
+			<xs:documentation>Circle shape: center and radius</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:shapeType">
+				<xs:sequence>
+					<xs:element name="Center" type="crd:double2Type">
+						<xs:annotation>
+							<xs:documentation>The coordinates of the circle's center</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Radius" type="xs:double">
+						<xs:annotation>
+							<xs:documentation>The radius of the circle</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ellipseType">
+		<xs:annotation>
+			<xs:documentation>Ellipse shape: adds semi-minor axis and position angle to circleType</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:circleType">
+				<xs:sequence>
+					<xs:element name="MinorRadius" type="xs:double">
+						<xs:annotation>
+							<xs:documentation>Half the minor axis of the ellipse, in radius_unit</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="PosAngle" type="xs:double">
+						<xs:annotation>
+							<xs:documentation>Position angle of major axis (Radius), counter-clockwise from north in pos_angle_unit</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="pos_angle_unit" type="crd:angleUnitType" default="deg"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- smallCircleType is used in vertices to indicate that the polygon side associated with the vertex is to be a small circle rather than the default great circle -->
+	<xs:complexType name="smallCircleType">
+		<xs:annotation>
+			<xs:documentation>smallCircleType indicates in polygons that side is along small circle; with optional pole</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Pole" type="crd:double2Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="vertexType">
+		<xs:annotation>
+			<xs:documentation>Vertex is a position with optional SmallCircle element</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Position" type="crd:double2Type"/>
+			<xs:element name="SmallCircle" type="reg:smallCircleType" nillable="true" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="polygonType">
+		<xs:annotation>
+			<xs:documentation>Polygon: one or more vertices; counter-clockwise encircled area is enclosed; cyclical coordinates may exceed 0 and 360 limits if necessary</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:shapeType">
+				<xs:sequence>
+					<xs:element name="Vertex" type="reg:vertexType" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>In order to form polygons, vertices are to be connected with straight line segments. In the case of spherical coordinates: greatcircle segments; if a smallCircle element si present, the vertex and its predecessor are to be connected with a smallcircle, by default in the CoordSys that is referenced; optionally, a pole may be specified (other than the CoordSys pole) that defines the smallcircle system</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="sectorType">
+		<xs:annotation>
+			<xs:documentation>A sector is the counter-clockwise area between two half-lines</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:shapeType">
+				<xs:sequence>
+					<xs:element name="Position" type="crd:double2Type">
+						<xs:annotation>
+							<xs:documentation>The vertex position of the sector</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="PosAngle1" type="xs:double">
+						<xs:annotation>
+							<xs:documentation>The area ccw from this position angle is included</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="PosAngle2" type="xs:double">
+						<xs:annotation>
+							<xs:documentation>The area cw from this position angle is included</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="pos_angle_unit" type="crd:posUnitType" default="deg"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="constraintType">
+		<xs:annotation>
+			<xs:documentation>An area on the unit sphere defined by the intersection with a plane</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Vector" type="crd:double3Type">
+				<xs:annotation>
+					<xs:documentation>This needs to be a spherical coordinate vector; it is the unit vector that is normal to the plane that forms a constraint for a convex</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Offset" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>The distance along the normal vector where the constraint plane intersects that vector; if positive, the spherical sector on the far side (seen from the center) is selected; if negative, the point of intersection is in the opposite direction of the vector, resulting in more than a hemisphere</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="convexType">
+		<xs:annotation>
+			<xs:documentation>A convex polygon defined by one or more Constraints</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:shapeType">
+				<xs:sequence>
+					<xs:element name="Constraint" type="reg:constraintType" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="convexHullType">
+		<xs:annotation>
+			<xs:documentation>A convex hull</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:shapeType">
+				<xs:sequence>
+					<xs:element name="Point" type="crd:double3Type" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--A generic sky indexing type-->
+	<xs:complexType name="skyIndexType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>This is a hook for regions defined in sky indexing schemes</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:shapeType"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--Boolean operations on regions-->
+	<xs:complexType name="unionType">
+		<xs:annotation>
+			<xs:documentation>The union of two or more regions is a region</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:regionType">
+				<xs:sequence>
+					<xs:element name="Region" type="reg:regionType" minOccurs="2" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="intersectionType">
+		<xs:annotation>
+			<xs:documentation>The intersection of two or more regions is a region</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:regionType">
+				<xs:sequence>
+					<xs:element name="Region" type="reg:regionType" minOccurs="2" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="negationType">
+		<xs:annotation>
+			<xs:documentation>The negation of a region is a region</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="reg:regionType">
+				<xs:sequence>
+					<xs:element name="Region" type="reg:regionType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Region itself; it's either a Shape or a the result of a Boolean operation-->
+	<xs:element name="Region" type="reg:regionType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Head element of the Region substitution group</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!--The three operators (Intersection, Union, Negation) can be substituted for Region-->
+	<xs:element name="Intersection" type="reg:intersectionType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>The intersection of two or more regions is a region</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Union" type="reg:unionType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>The union of two or more regions is a region</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Negation" type="reg:negationType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>The negation of a region is a region</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!--Here are element definitions so Circle, Ellipse, Polygon, and Sector can be substituted for Shape-->
+	<xs:element name="AllSky" type="reg:regionType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>AllSky is just a convenience, meaning no bounds</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Circle" type="reg:circleType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>The circle is defined by a center and a radius</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Ellipse" type="reg:ellipseType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>Ellipse is an extension of the circle shape, with a minor axis radius and position angle</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Polygon" type="reg:polygonType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>A polygon is a shape delineated by a list of vertices connected with lines, great circles, or small circles; the inside of the polygon is circumscribed counter-clockwise by the list of vertices; the polygon may be concave but not self-intersecting; the last vertex in the list is the predecessor of the first.  For celestial coordinates it is assumed that we are looking at the sphere from the inside, with Right Ascension increasing to the left.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Sector" type="reg:sectorType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>A sector selects the area between two half great circles or half lines meeting in a specified point</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Convex" type="reg:convexType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>A convex is defined as the intersection of one or more half-plane constraints with the unit sphere; this may also be described as the union of one or more convex polygons bounded by one or more constraint planes</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="ConvexHull" type="reg:convexHullType" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>A convex hull is the convex polygon that contains all of the specified positions; the points have to be constrained to lie in one hemisphere</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="SkyIndex" type="reg:skyIndexType" abstract="true" substitutionGroup="reg:Region">
+		<xs:annotation>
+			<xs:documentation>A shape defined through a sky indexing scheme; this is really a substitutino group for concrete implementations</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!--Change log 
+$Log: region-v1.10.xsd,v $
+Revision 1.1  2006/07/17 16:48:28  rplante
+initial version
+
+Revision 2.4  2005/01/05 14:22:11  arots
+Release Verion 1.10
+Added AllSky
+
+Revision 2.3  2004/07/23 21:17:50  arots
+Modified ivoa schema locations; changed URN from nvo- to vo-
+
+Revision 2.2  2004/07/16 22:37:53  arots
+Release version v1.0.
+
+Revision 1.8  2003/05/15 10:04:23  arots
+Comment fixup
+
+Revision 1.6  2003/04/30 13:27:12  arots
+Fixed up change log, changed schema locations.
+
+Revision 1.5  2003/04/29 20:56:40  arots
+Completed new astronTimeType and proper handling of units.
+
+Revision 1.4  2003/04/28 16:25:34  arots
+Reworking of region.xsd based on discussions with Wil and Alex.
+
+Revision 1.3  2003/04/17 19:05:41  arots
+Major re-write:
+Use of substitution groups
+Inclusion of convexes cs.
+
+Revision 1.2  2002/07/11 11:44:01  arots
+Corrected smallcircle vertex.
+
+Revision 1.1  2002/07/11 08:58:25  arots
+Initial revision
+-->
+</xs:schema>

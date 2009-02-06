@@ -1,0 +1,32 @@
+#!/bin/sh
+case "$1" in 
+"-h")
+echo 
+echo "Usage: xalan -in input_xml -xsl stylesheet [-out outputfile] [other_options]"
+echo 
+echo "This is a shell wrapper around the Xalan XSLT processing application."  
+echo "For a full explanation of all supported command line options, consult"
+echo "http://xml.apache.org/xalan-j/commandline.html"
+echo 
+;;
+*)
+prog=$0
+
+if [ -z $ANT_HOME ]; then
+    echo "$prog: Warning: NVOSS software apparently not setup"
+fi
+if [ -z $JAVA_HOME ]; then
+    bin=""
+else
+    bin="$JAVA_HOME/bin/"
+fi
+
+ADQL_HOME=$NVOSS_HOME/java/src/adqllib
+
+classpath=$ADQL_HOME/lib/xalan.jar:$CLASSPATH
+
+parser=org.apache.xalan.xslt.Process
+
+exec ${bin}java -cp $classpath $parser $*
+;;
+esac

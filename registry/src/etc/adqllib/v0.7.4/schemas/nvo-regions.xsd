@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by William O'Mullane (The Johns Hopkins University) -->
+<xs:schema targetNamespace="urn:nvo-region" xmlns:q9="urn:nvo-coords" xmlns:q8="urn:nvo-coords" xmlns:q7="urn:nvo-coords" xmlns:q6="urn:nvo-coords" xmlns:q5="urn:nvo-coords" xmlns:q4="urn:nvo-coords" xmlns:q3="urn:nvo-coords" xmlns:q2="urn:nvo-coords" xmlns:q1="urn:nvo-coords" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:nvo-region" elementFormDefault="qualified">
+	<xs:import namespace="urn:nvo-coords" schemaLocation="nvo-coords.xsd"/>
+	<xs:complexType name="regionType" abstract="true">
+		<xs:attribute name="fill_factor" type="xs:double" use="optional" default="1"/>
+		<xs:attribute name="note" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="unionType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:regionType">
+				<xs:sequence>
+					<xs:element name="Region" type="tns:regionType" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="intersectionType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:regionType">
+				<xs:sequence>
+					<xs:element name="Region" type="tns:regionType" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="shapeType" abstract="true" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:regionType">
+				<xs:attribute name="coord_system_id" type="xs:IDREF"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="circleType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:shapeType">
+				<xs:sequence>
+					<xs:element name="Center" type="q1:coordsType" minOccurs="0"/>
+					<xs:element name="Radius" type="xs:double"/>
+				</xs:sequence>
+				<xs:attribute name="radius_unit" type="q2:posUnitType" use="optional" default="deg"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ellipseType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:circleType">
+				<xs:sequence>
+					<xs:element name="MinorRadius" type="xs:double"/>
+					<xs:element name="PosAngle" type="xs:double"/>
+				</xs:sequence>
+				<xs:attribute name="pos_angle_unit" type="q3:angleUnitType" use="optional" default="deg"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="polygonType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:shapeType">
+				<xs:sequence>
+					<xs:element name="Vertex" type="tns:vertexType" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="vertexType">
+		<xs:sequence>
+			<xs:element name="Position" type="q4:coordsType" minOccurs="0"/>
+			<xs:element name="SmallCircle" type="tns:smallCircleType" nillable="true"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="smallCircleType">
+		<xs:sequence>
+			<xs:element name="Pole" type="q5:coordsType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="convexType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:shapeType">
+				<xs:sequence>
+					<xs:element name="Constraint" type="tns:constraintType" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="constraintType">
+		<xs:sequence>
+			<xs:element name="Vector" type="q6:coordsType" minOccurs="0"/>
+			<xs:element name="Offset" type="xs:double"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="sectorType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:shapeType">
+				<xs:sequence>
+					<xs:element name="Position" type="q7:coordsType" minOccurs="0"/>
+					<xs:element name="PosAngle1" type="xs:double"/>
+					<xs:element name="PosAngle2" type="xs:double"/>
+				</xs:sequence>
+				<xs:attribute name="pos_angle_unit" type="q8:posUnitType" use="optional" default="deg"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="convexHullType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:shapeType">
+				<xs:sequence>
+					<xs:element name="Point" type="q9:coordsType" minOccurs="0" maxOccurs="unbounded"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="negationType" mixed="false">
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:regionType">
+				<xs:sequence>
+					<xs:element name="Region" type="tns:regionType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="Intersection" type="tns:intersectionType"/>
+	<xs:element name="Negation" type="tns:negationType"/>
+	<xs:element name="Union" type="tns:unionType"/>
+	<xs:element name="ConvexHull" type="tns:convexHullType"/>
+	<xs:element name="Convex" type="tns:convexType"/>
+	<xs:element name="Sector" type="tns:sectorType"/>
+	<xs:element name="Polygon" type="tns:polygonType"/>
+	<xs:element name="Circle" type="tns:circleType"/>
+	<xs:element name="Ellipse" type="tns:ellipseType"/>
+
+</xs:schema>

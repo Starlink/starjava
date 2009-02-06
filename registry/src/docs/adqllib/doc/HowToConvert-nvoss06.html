@@ -1,0 +1,227 @@
+<html>
+<head>
+<title>ADQL - 2006 Summer School</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<style type="text/css">
+p {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+}
+h1 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14pt;
+	font-weight: bold;
+	color: #093772;
+}
+h2 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12pt;
+	font-weight: bolder;
+	color: #093772;
+}
+a {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-weight: bold;
+	color: #093772;
+}
+pre {
+	font-family: "Courier New", Courier, mono;
+	background-color: #FFFFCC;
+	font-size: 10pt;
+}
+code {
+	font-family: "Courier New", Courier, mono;
+	background-color: #FFFFCC;
+	font-size: 10pt;
+}
+h3 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-weight: bold;
+	color: #093772;
+}
+.style1 {font-size: xx-small}
+.label { font-family: Arial, Helvetica, sans-serif;
+	 color: #093772 }
+li {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+}
+</style>
+</head>
+<body leftmargin="10" topmargin="10">
+
+<table width="100%"  border="0">
+  <tr>
+    <td width="162"><img src="http://www.us-vo.org/images/NVO_150pixels.jpg"
+        width="162" height="72"></td>
+    <td width="88%"><h1>Science With the Virtual Observatory<br>
+                    2006 Summer School </h1></td>
+  </tr>
+</table>
+
+<!-- ============================================================= -->
+
+<h1>ADQL -- Examples and Exercises</h1>
+
+<p>
+The exercises presented here are companions to the presentation
+<em>ADQL</em>
+(PDF, <a href="adql.ppt">PPT</a>).
+</p>
+
+<p>
+In this presentation, we'll look at the tools from the ADQL library
+that comes with in your summer school software package.  If you sat
+through the <a href="xmltech.html">Advanced XML Technologies</a> and
+followed the exercises, then <strong><em>you do not have to rebuild
+the library.</em></strong>  If you missed that session, then building
+is easy; just change into the adqllib package directory and run
+<code>ant</code>: 
+</p>
+
+<table width="100%" border="0" cellspacing="10">
+  <tr>
+    <td width="50%">
+       on Linux/MacOS:
+<pre>cd $NVOSS_HOME/java/src/adqllib
+ant</pre>
+    </td>
+    <td>&nbsp;&nbsp;</td>
+    <td width="50%">
+       on Windows:
+<pre>cd %NVOSS_HOME%\java\src\adqllib
+ant</pre>
+    </td>
+  <tr>
+</table>
+
+<p>
+25 seconds or so later, you should see ant print "BUILD SUCCESSFUL" to
+the screen.  If you are Linux or MacOS, you might want to type
+<code>rehash</code> to ensure the new tools are available to you.  
+</p>
+
+
+<h2>Exercise 1:  Sample ADQL Queries</h2>
+
+<p>
+Through the slide talk we're going to look at various ADQL examples on
+the <a href="http://openskyquery.net/Sky/skysite/browse/Browse.aspx">
+OpenSkyPortal query interface</a>.   In this light exercise, we're
+going to look at and discuss a few of the examples shown in the
+right-hand list.
+</p>
+
+<ol>
+  <li> <p>
+       <strong>Single Node Join</strong>:  notice how this query does
+       the inner join between two tables at the same node.  These two
+       tables share a common column in <code>specobjid</code>.
+       </p> </li>
+
+  <li> <p>
+       <strong>XMatch/Region</strong>:  Here we do a simple
+       cross-match restricted over a region.
+       </p> </li>
+
+  <li> <p>
+       <strong>XMatch/Region 2</strong>:  This query incorporates
+       additional constraints into the cross match.  In particular, it
+       sets a color constraint formed across the databases.
+       </p> </li>
+
+  <li> <p>
+       <strong>Three Node Match</strong>:  This includes a third
+       database, USNO-B, that we don't want the source to appear in.  
+       </p> </li>
+</ol>
+
+<h2>Exercise 2.  Converting between ADQL/s and ADQL/x</h2>
+
+<p>
+We'll now have a look at the adillib tools.  If you haven't already,
+change into the <code>java/src/adqllib</code> directory.  There you
+will see a <code>samples</code> directory.  Change into the
+<code>samples/v0.7.4</code>: 
+</p>
+
+<table width="100%" border="0" cellspacing="10">
+  <tr>
+    <td width="50%">
+       on Linux/MacOS:
+<pre>cd samples/v0.7.4</pre>
+    </td>
+    <td>&nbsp;&nbsp;</td>
+    <td width="50%">
+       on Windows:
+<pre>cd samples\v0.7.4</pre>
+    </td>
+  <tr>
+</table>
+
+This directory contains a set of sample files containing ADQL/x and ADQL/s
+queries.  You can use the <code>convertADQL</code> tool to convert
+them to the other format.  
+
+<ol>
+
+  <li> <p>
+       To get the flavor of what ADQL/x looks like, open one of the
+       files in this directory.  Don't worry if this looks like
+       nonsense to you.  
+       </p> </li>
+
+  <li> <p>
+       To convert one of our samples to ADQL/s, type the following:
+       </p>
+
+       <pre>convertADQL -v v0.7.4 -x adql-circle.xml</pre>
+
+       <p>
+       If you wish, you can save the output to a file with the <code>-o</code>
+       option; then you can go the other way with the <code>-s</code>
+       option.  
+       </p> </li>
+
+  <li> <p>
+       Try converting an ADQL/s query to ADQL/x:
+
+       <pre>convertADQL -v v0.7.4 -s adql-simple.sql</pre>
+
+       or
+
+       <pre>convertADQL -v v0.7.4 -S "SELECT a.* FROM Tab a"</pre>
+       </p>
+
+  <li> <p>
+       Try composing your own ADQL/s queries and convert them using
+       the above command-line pattern. 
+       </p>
+</p>
+</ol>
+
+
+<!-- ============================================================= -->
+
+<hr align="left" width="100%" noshade>
+
+<p align="center" class="style1"> The NVO Summer School is made
+possible through the support of the National Science Foundation and
+the National Aeronautics and Space Administration. </p>  
+
+<table width="100" border="0" align="center">
+  <tr>
+    <td><img src="http://www.us-vo.org/images/nsflogo_64x.gif"
+             width="64" height="64"></td>
+    <td><img src="http://www.us-vo.org/summer-school/2005/nasa_logo_sm.gif"
+             width="50" height="47"></td>
+  </tr>
+</table>
+
+<p>&nbsp; </p>
+
+</body>
+</html>

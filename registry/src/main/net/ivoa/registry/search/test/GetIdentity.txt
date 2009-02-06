@@ -1,0 +1,117 @@
+REQUEST:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <soapenv:Body>
+  <rs:GetIdentity xmlns:rs="http://www.ivoa.net/wsdl/RegistrySearch/v1.0"/>
+ </soapenv:Body>
+</soapenv:Envelope>
+RESPONSE:
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <soapenv:Body>
+  <ResolveResponse xmlns="http://www.ivoa.net/wsdl/RegistrySearch/v1.0">
+   <Resource created="2000-01-01T09:00:00" updated="2000-01-01T09:00:00" xmlns="" xmlns:vg="http://www.ivoa.net/xml/VORegistry/v1.0" xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOResource/v1.0                                VOResource-v1.0.xsd                               http://www.ivoa.net/xml/VORegistry/v1.0                               VORegistry-v1.0.xsd" xsi:type="vg:Registry">
+
+       <title>NCSA NVO Publishing Registry</title>
+
+       <shortName>RAI registry</shortName>
+
+       <identifier>ivo://nvo.ncsa/registry</identifier>
+
+
+       <curation>
+         <publisher ivo-id="ivo://rai.ncsa/RAI">
+         NCSA Radio Astronomy Imaging
+      </publisher>
+
+         <creator>
+           <name>Ramon Williamson</name>
+
+           <logo>http://rai.ncsa.uiuc.edu/rai.jpg</logo>
+
+      </creator>
+
+         <date>2003-01-01</date>
+
+         <contact>
+           <name>Ramon Williamson</name>
+
+	   <email>rai@ncsa.uiuc.edu</email>
+
+      </contact>
+
+    </curation>
+
+
+       <content>
+         <subject>data repositories</subject>
+
+         <subject>digital libraries</subject>
+
+         <description>
+         This registry provides a simple interface for data providers
+         who wish to register a handful of resources. 
+      </description>
+
+         <referenceURL>http://nvo.ncsa.uiuc.edu/nvoregistration.html</referenceURL>
+
+         <type>Registry</type>
+
+         <contentLevel>Research</contentLevel>
+
+    </content>
+
+
+       <capability standardID="ivo://ivoa.net/std/Registry" xsi:type="vg:Harvest">
+
+          <interface role="std" xsi:type="vg:OAIHTTPGet">
+             <accessURL> http://nvo.ncsa.uiuc.edu/cgi-bin/nvo/oai.pl </accessURL>
+
+       </interface>
+
+
+          <maxRecords>0</maxRecords>
+
+
+    </capability>
+
+
+       <capability standardID="ivo://ivoa.net/std/Registry" xsi:type="vg:Search">
+
+          <interface role="std" xsi:type="vr:WebService">
+            <accessURL> http://nvo.ncsa.uiuc.edu/cgi-bin/nvo/search.pl </accessURL>
+
+       </interface>
+
+
+          <optionalProtocol>XQuery</optionalProtocol>
+
+          <maxRecords>0</maxRecords>
+
+
+    </capability>
+
+
+       <full>false</full>
+
+
+       <managedAuthority>ausvo</managedAuthority>
+
+       <managedAuthority>irsa.ipac</managedAuthority>
+
+       <managedAuthority>ned.ipac</managedAuthority>
+
+       <managedAuthority>rai.ncsa</managedAuthority>
+
+       <managedAuthority>nvo.ncsa</managedAuthority>
+
+       <managedAuthority>adil.ncsa</managedAuthority>
+
+
+</Resource>
+  </ResolveResponse>
+ </soapenv:Body>
+</soapenv:Envelope>
+------
+  identifier: ivo://nvo.ncsa/registry
+  title: NCSA NVO Publishing Registry
+  capability/interface/accessURL: http://nvo.ncsa.uiuc.edu/cgi-bin/nvo/oai.pl
+  capability/interface/accessURL: http://nvo.ncsa.uiuc.edu/cgi-bin/nvo/search.pl

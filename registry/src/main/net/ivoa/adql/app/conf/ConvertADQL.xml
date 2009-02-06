@@ -1,0 +1,43 @@
+<ConvertADQL>
+
+   <!-- the ADQL/x-to-s transformer to use -->
+   <defaultX2S>XSLx2s</defaultX2S>
+
+   <!-- the ADQL/s-to-x transformer to use -->
+   <defaultS2X>DOMParser2XML</defaultS2X>
+
+   <XSLx2s version="v1.0">
+      <!-- the stylesheet to convert from ADQL/x to ADQL/s -->
+      <stylesheet>net/ivoa/adql/app/conf/ADQLx2s-v1.0.xsl</stylesheet>
+   </XSLx2s>
+
+   <XSLx2s version="v0.7.4">
+      <!-- the stylesheet to convert from ADQL/x to ADQL/s -->
+      <stylesheet>net/ivoa/adql/app/conf/ADQLx2s-v0.7.4.xsl</stylesheet>
+   </XSLx2s>
+
+   <DOMParser2XML version="v1.0">
+      <!-- the indentation to use; disable indentation by setting to < 0 -->
+      <prettyIndent>2</prettyIndent>
+
+      <!-- 
+        -  the mode for indicating namespaces in output XML.  Allowed values:
+        -    default_ns    use xmlns= to minimize the use of element prefixes
+        -    always_qualified    qualify every element with a prefix
+        -->
+      <nsMode>default_ns</nsMode>
+   </DOMParser2XML>
+
+   <DOMParser2XML version="v0.7.4">
+      <!-- the indentation to use; disable indentation by setting to < 0 -->
+      <prettyIndent>2</prettyIndent>
+
+      <!-- 
+        -  the mode for indicating namespaces in output XML.  Allowed values:
+        -    default_ns    use xmlns= to minimize the use of element prefixes
+        -    always_qualified    qualify every element with a prefix
+        -->
+      <nsMode>default_ns</nsMode>
+   </DOMParser2XML>
+
+</ConvertADQL>

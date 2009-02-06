@@ -1,0 +1,1253 @@
+/*  JavaCC Parser for ADQL/s producing DOM objects ready for
+ *  conversion to ADQL/x (v1.0).
+ *
+ *  Adapted from ADQL to Axis objects parsers developed by
+ *  by Ramon Williamson and R. Plante (NCSA, 2004),
+ *  by T. McGlynnn (NASA/GSFC, February 2005), and 
+ *  by R. Plante (NCSA, August 2005)
+ *
+ *  To do: 
+ *   - more use of [ ]
+ *   - IN/NOT IN
+ *   - user defined functions
+ *   - JOIN
+ */
+ 
+
+options{
+    FORCE_LA_CHECK=true;
+    STATIC=false;
+    IGNORE_CASE=true;
+//  DEBUG_LOOKAHEAD= true;
+}
+
+PARSER_BEGIN(ADQLParser)
+
+package net.ivoa.adql.convert.parser.v1_0;
+
+import net.ivoa.adql.convert.ADQLs2DOMParser;
+
+import java.io.* ;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+
+import javax.xml.transform.TransformerException;
+import javax.xml.parsers.DocumentBuilder; 
+import javax.xml.parsers.DocumentBuilderFactory;  
+import javax.xml.parsers.FactoryConfigurationError;  
+import javax.xml.parsers.ParserConfigurationException;
+ 
+public class ADQLParser extends ADQLs2DOMParser {
+
+    public static void main( String args[] )
+        throws TransformerException
+    {
+
+        ADQLParser p = null ;
+        if ( args.length < 1  ) {
+            p = new ADQLParser(System.in) ;
+        }
+        else {
+            try {
+                p = new ADQLParser(new DataInputStream(
+                                new FileInputStream(args[0]))) ;
+            }
+            catch (FileNotFoundException e) {
+                p = new ADQLParser(System.in) ;
+            }
+        } // else ends here
+
+        p.parseSelect() ;
+        System.out.println("Parse Successful") ;
+
+    } // main ends here
+
+    private boolean defineSTCR = false;
+    private boolean defineSTCC = false;
+
+    public final static String ADQL_NS = "http://www.ivoa.net/xml/ADQL/v1.0";
+    public final static String ADQL_PREFIX = "ad";
+    public final static String STCR_NS = 
+                                "http://www.ivoa.net/xml/STC/STCregion/v1.10";
+    public final static String STCR_PREFIX = "reg";
+    public final static String STCC_NS = 
+                                "http://www.ivoa.net/xml/STC/STCcoords/v1.10";
+    public final static String STCC_PREFIX = "stc";
+
+    public ADQLParser() {
+        super();
+    }
+
+    protected Element createADQLElement(String name) {
+        if (nsmode == MODE_ALWAYS_QUALIFIED) name = ADQL_PREFIX + ":" + name;
+        return doc.createElementNS(ADQL_NS, name);
+    }
+
+    private Element createSTCRElement(String name) {
+        defineSTCR = true;
+//        if (nsmode == MODE_ALWAYS_QUALIFIED) name = STCR_PREFIX + ":" + name;
+        name = STCR_PREFIX + ":" + name;
+        return doc.createElementNS(STCR_NS, name);
+    }
+
+    private Element createSTCCElement(String name) {
+        defineSTCC = true;
+        if (nsmode == MODE_ALWAYS_QUALIFIED) name = STCC_PREFIX + ":" + name;
+        return doc.createElementNS(STCC_NS, name);
+    }
+
+    private Element createRootElement(String name) {
+        Element root = createADQLElement(name);
+        root.setAttribute("xmlns:ad", ADQL_NS);
+        if (defineSTCR) root.setAttribute("xmlns:" + STCR_PREFIX, STCR_NS);
+        if (defineSTCC) root.setAttribute("xmlns:" + STCC_PREFIX, STCC_NS);
+        root.setAttribute("xmlns:xsi", XSI_NS);
+        if (nsmode == MODE_DEFAULT_NS) root.setAttribute("xmlns", ADQL_NS);
+        parent.appendChild(root);
+        return root;
+    }
+
+    private Element getBinaryExpr(String name, boolean setXSIType,
+                                  Element arg1, Element arg2, String op) 
+    {
+        Element out = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(out, "binaryExprType");
+        out.setAttribute("Oper", op);
+        // doc.renameNode(arg1, ADQL_NS, ADQL_PREFIX + ":Arg");
+        // doc.renameNode(arg2, ADQL_NS, ADQL_PREFIX + ":Arg");
+        out.appendChild(arg1);
+        out.appendChild(arg2);
+        return out;
+    }
+
+    private static void setXSITypeAttr(Element on, String type) {
+        on.setAttributeNS(XSI_NS, "xsi:type", ADQL_PREFIX + ':' + type);
+    }
+
+    public Element parseSelect() throws TransformerException {
+        try {
+            return Select(null);
+        }
+        catch (ParseException ex) {
+            throw new TransformerException(ex);
+        }
+    }
+
+    public Element parseWhere() throws TransformerException {
+        try {
+            return Where("Where");
+        }
+        catch (ParseException ex) {
+            throw new TransformerException(ex);
+        }
+    }
+
+} // class ADQL ends here
+
+PARSER_END(ADQLParser)
+
+
+SKIP:
+{
+    " "
+|   "\t"
+|   "\r"
+|   "\n"
+}
+
+/* Prefix      Meaning
+    -------------------
+    K_          Keyword
+    O_          Operator
+    S_          Substitutes
+*/
+
+TOKEN: /* SQL and ADQL Keywords. prefixed with K_ to avoid name clashes */
+{
+    <K_ALL:       "ALL">
+|   <K_AND:       "AND">
+|   <K_ANY:       "ANY">
+|   <K_AS:        "AS">
+|   <K_ASC:       "ASC">
+|   <K_BETWEEN:   "BETWEEN">
+|   <K_BY:        "BY">
+|   <K_DESC:      "DESC">
+|   <K_DISTINCT:  "DISTINCT">
+|   <K_EXISTS:    "EXISTS">
+|   <K_FROM:      "FROM">
+|   <K_GROUP:     "GROUP">
+|   <K_HAVING:    "HAVING">
+|   <K_IN:        "IN">
+|   <K_INTO:      "INTO">
+|   <K_IS:        "IS">
+|   <K_LIKE:      "LIKE">
+|   <K_NOT:       "NOT">
+|   <K_NOWAIT:    "NOWAIT">
+|   <K_OR:        "OR">
+|   <K_ORDER:     "ORDER">
+|   <K_SELECT:    "SELECT">
+|   <K_TOP:       "TOP">
+|   <K_UNION:     "UNION">
+|   <K_WHERE:     "WHERE">
+
+|   <K_AVG:       "AVG">
+|   <K_COUNT:     "COUNT">
+|   <K_MAX:       "MAX">
+|   <K_MIN:       "MIN">
+|   <K_SUM:       "SUM">
+
+|   <K_asin:      "asin">
+|   <K_acos:      "acos">
+|   <K_atan:      "atan">
+|   <K_atan2:     "atan2">
+|   <K_cos:       "cos">
+|   <K_sin:       "sin">
+|   <K_tan:       "tan">
+
+|   <K_abs:       "abs">
+|   <K_ceiling:   "ceiling">
+|   <K_degrees:   "degrees">
+|   <K_exp:       "exp">
+|   <K_floor:     "floor">
+|   <K_log:       "log">
+|   <K_log10:     "log10">
+|   <K_pi:        "pi">
+|   <K_power:     "power">
+|   <K_radians:   "radians">
+|   <K_rand:      "rand">
+|   <K_round:     "round">
+|   <K_square:    "square">
+|   <K_sqrt:      "sqrt">
+|   <K_truncate:  "truncate">
+
+|   <K_REGION:    "REGION">
+|   <K_XMATCH:    "XMATCH">
+}
+
+TOKEN : /* Numeric Constants */
+{
+	< S_REAL: <FLOAT>
+	    | <FLOAT> ( ["e","E"] ([ "-","+"])? <INTEGER> )?
+    	>
+/* Don't allow singed integers because that gives the
+   grammar problems with things like: (a.a+3)
+ */
+  |     < S_INTEGER: <INTEGER> >
+  | 	< #FLOAT: 
+	      <INTEGER> "." <INTEGER> 
+	    | "." <INTEGER>
+    	>
+  | 	< #INTEGER: ( <DIGIT> )+ >
+  | 	< #DIGIT: ["0" - "9"] >
+  
+}
+
+SPECIAL_TOKEN:
+{
+   <LINE_COMMENT:       "--"(~["\r","\n"])*>
+|  <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+
+TOKEN:
+{
+    < S_TABLE_IDENTIFIER:  <S_IDENTIFIER> ":" <S_IDENTIFIER> >
+|   < S_IDENTIFIER:        ( <LETTER> )+ ( <DIGIT> | <LETTER> |<SPECIAL_CHARS>)* >
+|   < S_PROTECTED:         "[" (~["]"])+ "]" >
+|   < #LETTER:             ["a"-"z", "A"-"Z"] >
+|   < #SPECIAL_CHARS:      "$" | "_">
+|   < S_CHAR_LITERAL:      "'" (~["'"])* "'" ("'" (~["'"])* "'")*>
+|   < S_QUOTED_IDENTIFIER: "\"" (~["\n","\r","\""])* "\"" >
+}
+
+String MathFunctionName(): 
+{}
+{
+  ( <K_abs>    | <K_ceiling> | <K_degrees> | <K_exp>   | <K_floor> 
+  | <K_log10>  | <K_log>     | <K_pi>      | <K_rand>  | <K_round>
+  | <K_square> | <K_sqrt>    | <K_truncate>)
+    {
+	return token.image.toUpperCase();
+    }
+}
+
+String AggregateFunctionName():
+{}
+{
+    ( <K_AVG> | <K_COUNT> | <K_MAX> | <K_MIN> | <K_SUM> )
+    {
+	return token.image.toUpperCase();
+    }
+}
+
+String TrigonometricFunctionName():
+{}
+{
+    ( <K_asin> | <K_acos> | <K_atan> | <K_atan2>| <K_cos>  | <K_sin> | <K_tan> )
+    {
+	return token.image.toUpperCase();
+    }
+}
+
+Element FunctionOfOneVar(String name, boolean setXSIType):
+{   
+    boolean isMath=false; 
+    boolean isAgg=false; 
+    boolean isTrig=false;
+    Element arg;  
+    String  fname;
+}
+{
+       (  fname = MathFunctionName()           {isMath =true;} 
+        | fname = AggregateFunctionName()      {isAgg  =true;}
+        | fname = TrigonometricFunctionName()  {isTrig =true;}
+       ) 
+         "(" arg = ScalarExpression("Arg") ")"
+       {
+           Element f = null;
+           f  = createADQLElement(name);
+           if (setXSIType) {
+               if (isMath) {
+                   setXSITypeAttr(f, "mathFunctionType");
+	       } else if (isAgg) {
+                   setXSITypeAttr(f, "aggregateFunctionType");
+ 	       } else if (isTrig) {
+                   setXSITypeAttr(f, "trigonometricFunctionType");
+               }
+           }
+           f.setAttribute("Name", fname);
+           f.appendChild(arg);
+           return f;
+       }
+}
+
+
+Element AliasSelectionItem(String name, boolean setXSIType):
+{   
+    Element exp;  // ScalarExpressionType 
+    String as = null;
+}
+{
+    exp = ScalarExpression(name) 
+          [<K_AS> <S_IDENTIFIER> 
+             {as = token.image;} 
+	  ]
+    {
+        if (as != null) {
+            Element a = createADQLElement(name);
+            if (setXSIType) setXSITypeAttr(a, "aliasSelectionItemType");
+            exp = renameADQLElement(exp, "Expression", null);
+            a.appendChild(exp);
+            a.setAttribute("As", as);
+            exp = a;
+        }
+	return exp;
+    }
+}
+
+
+Attr AllOrDistinct(String name):
+{}
+{
+    ( <K_ALL> | <K_DISTINCT> )
+    {
+        // Note the inconsistent use of case here
+        Attr out = doc.createAttribute(name);
+        if (token.image.toUpperCase().equals("ALL")) {
+	    out.setValue("All");
+	} else {
+	    out.setValue("DISTINCT");
+	}
+        return out;
+    }
+}
+
+
+Element AllSelectionItem(String name, boolean setXSIType):
+{  Element all;
+}
+{
+    "*"
+    {
+        all = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(all, "allSelectionItemType");
+        return all;
+    }
+}
+
+
+Element ArchiveTable(String name, boolean setXSIType):
+{   String archive=null, table=null, alias=null;
+}
+{
+    <S_IDENTIFIER> {archive=token.image;} 
+    ":" 
+    <S_IDENTIFIER> {table=token.image;}
+    [ <S_IDENTIFIER> {alias=token.image;} ]
+    
+    {
+        Element a = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(a, "archiveTableType");
+        a.setAttribute("Archive", archive);
+        a.setAttribute("Name", table);
+        if (alias != null) a.setAttribute("Alias", alias);
+	return a;
+    }
+    
+}
+
+
+Element Atom(String name, boolean setXSIType):
+{   Element l, u=null;  }
+{
+    l = Literal("Literal", true)
+    [ u = Unit("Unit") ]
+    {
+        Element a = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(a, "atomType");
+        a.appendChild(l);
+        if (u != null) a.appendChild(u);
+	return a;
+    }
+}
+
+Element Unit(String name):
+{  String unit = null; }
+{ (<S_IDENTIFIER> { unit = token.image; }
+   | <S_PROTECTED> 
+     { unit = token.image.substring(1,token.image.length()-1).trim(); } )
+  {
+      Element u = createADQLElement(name);
+      Node txt = doc.createTextNode(unit);
+      u.appendChild(txt);
+      return u;
+  }
+}
+
+Element BetweenPred(String name, boolean setXSIType):
+{    boolean not=false;
+     Element arg0, arg1,arg2;
+}
+{
+    arg0=ScalarExpression("Arg")
+    [<K_NOT> {not=true;}]
+    <K_BETWEEN> arg1=ScalarExpression("Arg") 
+    <K_AND> arg2=ScalarExpression("Arg")
+      {
+        Element b = createADQLElement(name);
+        if (not) {
+            if (setXSIType) setXSITypeAttr(b, "notBetweenPredType");
+	} else {
+            if (setXSIType) setXSITypeAttr(b, "betweenPredType");
+	}
+        b.appendChild(arg0);
+        b.appendChild(arg1);
+        b.appendChild(arg2);
+	return b;
+      }
+}
+
+Element ClosedExpr(String name, boolean setXSIType):
+{    Element arg;
+}
+{
+    "(" arg=ScalarExpression("Arg") ")"
+    {
+        Element c = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(c, "closedExprType");
+	c.appendChild(arg);
+	return c;
+    }
+}
+
+
+Element ClosedSearch(String name, boolean setXSIType):
+{   Element s;
+}
+{
+    "(" s=Search(name) ")"
+    {
+        Element c = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(c, "closedSearchType");
+	c.appendChild(s);
+	return c;
+    }
+}
+
+
+Element ColumnReference(String name, boolean setXSIType):
+{   Element col; }
+{
+   (LOOKAHEAD(ActualColumnReference(name, setXSIType))
+       col = ActualColumnReference(name, setXSIType)
+     | col = XPathReference(name, setXSIType)
+   )
+   { 
+     return col;
+   }
+}
+
+Element ActualColumnReference(String name, boolean setXSIType):
+{   String table;
+    String cname;}
+{
+    <S_IDENTIFIER> {table=token.image;}
+    "." 
+    (<S_IDENTIFIER> | "*") {cname=token.image;}
+    {
+        Element c = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(c, "columnReferenceType");
+        c.setAttribute("Table", table);
+        c.setAttribute("Name", cname);
+	return c;
+    }
+}
+
+Element XPathReference(String name, boolean setXSIType):
+{   String table;
+    String cname;
+    StringBuffer sb = new StringBuffer();
+}
+{
+    [ "/" { sb.append(token.image); } ] RelativeXPath(sb)
+    {
+        cname = sb.toString();
+        Element c = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(c, "columnReferenceType");
+        c.setAttribute("Table", "");
+        c.setAttribute("xpathName", cname);
+        int s = cname.lastIndexOf("/");
+        if (s < 0) 
+           c.setAttribute("name", cname);
+        else 
+           c.setAttribute("name", cname.substring(s+1));
+
+	return c;
+    }
+}
+
+void RelativeXPath(StringBuffer sb):
+{ }
+{
+    [ "@" {sb.append(token.image);} ] 
+    <S_IDENTIFIER> {sb.append(token.image);}
+    (LOOKAHEAD(2)
+      [ "/" {sb.append(token.image);} RelativeXPath(sb) ]
+    )
+    { }
+}
+
+Element ComparisonPred(String name, boolean setXSIType):
+{   String divider;
+    Element last;
+    Element arg1, arg2;
+} 
+{ 
+   arg1=ScalarExpression("Arg") divider=ComparisonDivider() 
+   arg2=ScalarExpression("Arg")
+     {
+         Element c = createADQLElement(name);
+         Matcher like = 
+             Pattern.compile(".*LIKE", 
+                             Pattern.CASE_INSENSITIVE).matcher(divider);
+         Matcher not = 
+           Pattern.compile("NOT.*", Pattern.CASE_INSENSITIVE).matcher(divider);
+	 if (like.matches()) {
+             arg2 = renameADQLElement(arg2, "Pattern", null);  
+             if (setXSIType) {     
+	         if (not.matches()) {
+   	             setXSITypeAttr(c, "notLikePredType");
+	         } else {
+   	             setXSITypeAttr(c, "likePredType");
+	         }
+             }
+	 } else {
+	     if (setXSIType) setXSITypeAttr(c, "comparisonPredType");
+             c.setAttribute("Comparison", divider);
+	 }
+         c.appendChild(arg1);
+         c.appendChild(arg2);
+         return c;
+     }
+}
+
+String ComparisonDivider(): 
+{   String value="";} 
+{ 
+  (  value=Comparison()                    
+|   [<K_NOT> {value = "NOT ";}] <K_LIKE> {value += token.image;}
+  )
+      {
+          return value;
+      }
+}
+
+
+String Comparison():
+{}
+{
+   ( ">" | "<" | "=" | "!=" | ">="  | "<=" | "<>" )
+        {
+	    return token.image;
+	}
+}
+
+
+
+Element DropTable(String name, boolean setXSIType):
+{}
+{
+    <S_IDENTIFIER>
+    {
+        Element dt = createADQLElement(name);
+        if (setXSIType) setXSITypeAttr(dt, "dropTableType");
+        dt.setAttribute("Name", token.image);
+	return dt;
+    }
+}
+
+
+Element From(String name):
+{    ArrayList list = new ArrayList();
+     Element got;
+}
+{
+    <K_FROM>   got=FromTable("Table", true)   {list.add(got);} 
+       ( ","   got=FromTable("Table", true)   {list.add(got);}
+       )*
+       {
+           Element f = createADQLElement(name);
+           for(int i=0; i < list.size(); i++) {
+              f.appendChild((Element) list.get(i));
+           }
+           return f;
+       }
+}
+
+
+Element FromTable(String name, boolean setXSIType):
+{   Element ft;
+}
+{   
+  (LOOKAHEAD(2)
+    ft = ArchiveTable(name, setXSIType)
+|   ft = Table(name, setXSIType)
+  )
+
+     {
+         return ft;
+     }
+     
+}
+
+
+Element GroupBy(String name):
+{    ArrayList list = new ArrayList();
+     Element cr;
+}
+{
+    <K_GROUP> <K_BY> 
+      cr=ColumnReference("Column", false) { list.add(cr);}
+     ("," cr=ColumnReference("Column", false) { list.add(cr);} )*
+      {
+          Element gb = createADQLElement(name);
+          for(int i=0; i < list.size(); i++) {
+              gb.appendChild((Element) list.get(i));
+          }
+	  return gb;
+      }
+}
+
+
+Element Having(String name):
+{    Element st; 
+}
+{
+    <K_HAVING> st=Search("Condition")
+      {
+           Element h = createADQLElement(name);
+           h.appendChild(st);
+	   return h;
+       }
+}
+
+Element IncludeTable(String name, boolean setXSIType):
+{}
+{
+     <S_IDENTIFIER>
+     {
+         Element it = createADQLElement(name);
+         if (setXSIType) setXSITypeAttr(it, "includeTableType");
+         it.setAttribute("Name", token.image);
+	 return it;
+     }
+}
+
+
+Element IntersectionSearch(String name, boolean setXSIType):
+{
+    Element arg1, arg2;
+}
+{
+    arg1=IntersectionElement(name, true) 
+   (LOOKAHEAD(2)
+    <K_AND> arg2=IntersectionElement("Condition", true)
+      {
+          arg1 = renameADQLElement(arg1, "Condition", null);
+//          doc.renameNode(arg1, ADQL_NS, ADQL_PREFIX + ":Condition");
+          Element is = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(is, "intersectionSearchType");
+          is.appendChild(arg1);
+          is.appendChild(arg2);
+	  arg1 = is;
+      }
+   )*
+       {
+           return arg1;
+       }
+   
+}
+
+Element IntersectionElement(String name, boolean setXSIType):
+{
+    Element s;
+}
+{
+  ( 
+   LOOKAHEAD(ClosedSearch(name, true))
+    s=ClosedSearch(name, true)
+|   
+   LOOKAHEAD(BetweenPred(name, true))
+    s=BetweenPred(name, true)
+|   s=InverseSearch(name, true)
+|   s=ComparisonPred(name, true)
+|   s=RegionSearch(name, true)
+|   s=XMatch(name, true)
+  )
+      { 
+          return s;
+      }
+}
+
+Element InverseSearch(String name, boolean setXSIType):
+{   Element s;
+}
+{
+    <K_NOT> s=Search("Condition")
+      {
+          Element is = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(is, "inverseSearchType");
+	  is.appendChild(s);
+	  return is;
+      }
+}
+
+Element Literal(String name, boolean setXSIType):
+{   Element l;
+}
+{
+  
+  ( l= Number(name, true)
+|   l= XString(name, true)
+  )
+      {
+          return l;
+      }
+}
+
+Element Number(String name, boolean setXSIType):
+{  Element num = null;
+}
+{
+       <S_REAL> 
+       { 
+          num = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(num, "realType");
+          num.setAttribute("Value", token.image);
+          return num;
+       }
+     | <S_INTEGER> 
+       { 
+          num = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(num, "integerType");
+          num.setAttribute("Value", token.image);
+          return num;
+       }
+}
+
+
+String OrderDirection():
+{}
+{
+    ( <K_ASC> | <K_DESC> ) { return token.image; }
+}
+
+Element OrderExpression(String name):
+{    ArrayList list = new ArrayList();
+     Element o;
+}
+{
+    <K_ORDER> <K_BY> 
+      o=Order("Item")          {list.add(o);}
+    ( "," o=Order("Item")          {list.add(o);}
+    )*
+      {
+          Element oe = createADQLElement(name);
+          for(int i=0; i < list.size(); i++) {
+              oe.appendChild((Element) list.get(i));
+          }
+          return oe;
+      }
+}
+
+
+Element Order(String name):
+{
+    Element s  = null;
+    Element oo = null;
+}
+{
+    s = ScalarExpression("Expression")  [ oo=OrderOption("Order") ]
+      {
+          Element o = createADQLElement(name);
+          o.appendChild(s);
+          if (oo != null) o.appendChild(oo);
+	  return o;
+      }
+}
+
+Element OrderOption(String name):
+{   String od;
+}
+{
+    od=OrderDirection()
+      {
+          Element oo = createADQLElement(name);
+          oo.setAttribute("Direction", od);
+          return oo;
+      }
+}
+
+Element RegionSearch(String name, boolean setXSIType):
+{   String literal;
+}
+{
+    <K_REGION> 
+    "(" 
+    (<S_CHAR_LITERAL>|<S_QUOTED_IDENTIFIER>) {literal = token.image;}
+    ")"
+      {
+          // Get rid of quotes
+          literal = literal.substring(1, literal.length()-1);
+          Pattern p = Pattern.compile(" ");
+	  String[] flds = p.split(literal);
+	  if (flds.length != 5) {
+	      throw new ParseException("Error parsing region literal:"+literal);
+	  }
+	  
+	  if (! flds[0].toUpperCase().equals("CIRCLE")  ||
+	      ! flds[1].toUpperCase().equals("J2000")) {
+	      throw new ParseException("Unsupported region type, or coordinate system.  Only CIRCLE J2000 supported. "+flds[0]+":"+flds[1]);
+	  }
+
+          Element rs = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(rs, "regionSearchType");
+
+          Element ct = createADQLElement("Region");
+          ct.setAttribute("unit", "deg");
+          ct.setAttributeNS(XSI_NS, "xsi:type", STCR_PREFIX + ":circleType");
+          rs.appendChild(ct);
+
+          Element cen = createSTCRElement("Center");
+          Node txt = doc.createTextNode(flds[2] + " " + flds[3]);
+          cen.appendChild(txt);
+          ct.appendChild(cen);
+
+	  double radius;
+	  if (flds[4].endsWith("\"")) {
+            radius = 
+              Double.parseDouble(flds[4].substring(0, flds[4].length()-1))/3660;
+            flds[4] = Double.toString(radius);
+	  } else if (flds[4].endsWith("'")) {
+	    radius = 
+              Double.parseDouble(flds[4].substring(0, flds[4].length()-1))/60;
+            flds[4] = Double.toString(radius);
+	  } else {
+	      radius = Double.parseDouble(flds[4]);
+	  }
+          Element rad = createSTCRElement("Radius");
+          txt = doc.createTextNode(flds[4]);
+          rad.appendChild(txt);
+          ct.appendChild(rad);
+
+	  return rs;
+      }
+}
+
+Element SelectionItem(String name):
+{   Element s;
+}
+{  
+  (  s = AliasSelectionItem(name, true) 
+|    s = AllSelectionItem(name, true)
+  )
+      {
+          return s;
+      }
+}
+
+Element SelectionLimit(String name):
+{}
+{
+     <K_TOP> <S_INTEGER>
+         {
+	     int x = Integer.parseInt(token.image);
+	     if (x < 0) {
+	         throw new ParseException("Requested row limit is negative");
+	     }
+	     Element sl = createADQLElement(name);
+             sl.setAttribute("Top", Integer.toString(x));
+	     return sl;
+	 }
+	 
+}
+
+Element SelectionList(String name):
+{   ArrayList list = new ArrayList();
+    Element si;
+}
+{
+    si = SelectionItem("Item")     {list.add(si);}
+    ("," 
+      si = SelectionItem("Item")        {list.add(si);}
+    )* 
+      {
+          Element sl = createADQLElement(name);
+          for(int i=0; i < list.size(); i++) {
+              sl.appendChild((Element) list.get(i));
+          }
+	  return sl;
+      }
+}
+ 
+Element SelectionOption(String name):
+{    Attr allordistinct;
+}
+{
+     allordistinct=AllOrDistinct("Option")
+       {
+           Element so = createADQLElement(name);
+	   so.setAttributeNode(allordistinct);
+           return so;
+       }
+}
+
+Element Into(String name): 
+{ Node s = null; 
+  Element t = null; 
+  Element e = null; 
+  String i = null;}
+{
+     <K_INTO> 
+     (<S_IDENTIFIER> { i=token.image; }
+     | <S_TABLE_IDENTIFIER> { i=token.image; } )
+     {
+        e = createADQLElement("InTo");
+        t = createADQLElement("TableName");
+        s = doc.createTextNode(i);
+        t.appendChild(s);
+        e.appendChild(t);
+        return e;
+     }
+}
+
+Element Select(String name):
+{
+    Element allow    = null;
+    Element restrict = null;
+    Element sel      = null;
+    Element into     = null;
+    Element from     = null;
+    Element where    = null;
+    Element group    = null;
+    Element having   = null;
+    Element order    = null;
+}
+{
+    <K_SELECT> 
+       [allow=SelectionOption("Allow")] 
+       [restrict=SelectionLimit("Restrict")]  
+       sel=SelectionList("SelectionList")
+       [into=Into("Into")]
+       from=From("From") 
+       [where=Where("Where")]    
+       [group=GroupBy("GroupBy")] 
+       [having=Having("Having")] 
+       [order=OrderExpression("OrderBy")]
+     (";" | <EOF>)
+       {
+           Element s = (name == null) ? createRootElement("Select") 
+                                      : createADQLElement(name);
+           if (allow != null) s.appendChild(allow);
+           if (restrict != null) s.appendChild(restrict);
+           if (sel != null) s.appendChild(sel);
+           if (into != null) s.appendChild(into);
+           if (from != null) s.appendChild(from);
+           if (where != null) s.appendChild(where);
+           if (group != null) s.appendChild(group);
+           if (having != null) s.appendChild(having);
+           if (order != null) s.appendChild(order);
+           return s;
+       }
+}
+
+Element ScalarExpression(String name):
+{    Element s;
+}
+{
+    s = PlusExpr(name)
+      {
+          return s;
+      }
+}
+
+Element PlusExpr(String name):
+{    Element arg1, arg2;
+     String op;
+}
+{  
+   (
+      arg1=MultExpr(name, true) 
+         (LOOKAHEAD(2) ("+" | "-") {op = token.image;}
+      arg2=MultExpr("Arg", true)
+         {
+              arg1 = renameADQLElement(arg1, "Arg", null);
+	      Element be = getBinaryExpr(name, true, arg1, arg2, op);
+	      arg1 = be;
+         }
+   )*
+      {
+          return arg1;
+      }
+   |  
+      ("+" | "-")                  {op = token.image;}
+      arg1 = MultExpr(name, true)
+        {
+          // Handle unary +/- for numeric constants.
+	  if (matchesXSIType(arg1, ADQL_PREFIX + ":AtomType")) {
+              Element lit = getChildByTag(arg1, "Literal");
+	      if (lit != null && 
+                  (matchesXSIType(lit,ADQL_PREFIX + ":IntegerType") || 
+                   matchesXSIType(lit,ADQL_PREFIX + ":RealType")) ) 
+              {
+	          if (op.equals("-")) {
+                      String val = arg1.getAttribute("Value");
+                      if (val != null) {
+                          if (val.trim().startsWith("-")) {
+                              val = val.trim().substring(1);
+                          } else if (val.trim().startsWith("+")) {
+                              val = "-" + val.trim().substring(1);
+                          } else {
+                              val = "-" + val.trim();
+                          }
+  	                  arg1.setAttribute("Value", val);
+                      }
+	          }
+	      }
+	  } else {
+	     
+              Element un = createADQLElement(name);
+              setXSITypeAttr(un, "unaryType");
+              un.setAttribute("Oper", op);
+              un.appendChild(arg1);
+	      arg1 =  un;
+	  }
+       }
+         (
+	 LOOKAHEAD(2) 
+	   ("+" | "-")     {op = token.image;}
+           arg2=MultExpr("Arg", true)
+             {
+                  arg1 = renameADQLElement(arg1, "Arg", null);
+//                  doc.renameNode(arg1, ADQL_NS, ADQL_PREFIX + ":Arg");
+	          Element be = getBinaryExpr(name, true, arg1, arg2, op);
+	          arg1 = be;
+             }
+         )*
+      {
+          return arg1;
+      }
+      
+   )
+}
+
+Element MultExpr(String name, boolean setXSIType):
+{    Element arg1, arg2;
+     String op;
+}
+{
+    arg1=UnitExpr(name, true) 
+         ( LOOKAHEAD(2) ("*" | "/")   {op = token.image;}
+    arg2=UnitExpr("Arg", true) 
+      {
+          arg1 = renameADQLElement(arg1, "Arg", null);
+	  Element be = getBinaryExpr(name, true, arg1, arg2, op);
+	  arg1 = be;
+      }
+    )*
+      {
+          return arg1;
+      }
+}
+
+Element UnitExpr(String name, boolean setXSIType):
+{    Element s;
+}
+{
+  ( s=Atom(name, true) 
+|   s=ClosedExpr(name, true)
+|   s=ColumnReference(name, true)
+|   s=FunctionOfOneVar(name, true)
+  )
+      {
+          return s;
+      }
+}
+
+Element Search(String name):
+{   Element s;
+}
+{
+    s=UnionSearch(name, true)
+      {
+          return s;
+      }
+}
+
+Element XString(String name, boolean setXSIType):
+{}
+{
+    <S_CHAR_LITERAL>
+      { 
+          Element lit = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(lit, "stringType");
+
+          String val = token.image;
+          val = val.substring(1,val.length()-1);
+          Matcher m = Pattern.compile("''").matcher(val);
+          val = m.replaceAll("'");
+
+          lit.setAttribute("Value", val);
+          return lit;
+      }
+}
+
+Element Table(String name, boolean setXSIType):
+{   String table, alias;
+    String temp="";
+}
+{
+    ["#" {temp="#";}] <S_IDENTIFIER> {table=token.image;} <S_IDENTIFIER> {alias=token.image;}
+      {
+         Element t = createADQLElement(name);
+         if (setXSIType) setXSITypeAttr(t, "tableType");
+         t.setAttribute("Name", table);
+         t.setAttribute("Alias", alias);
+	 return t;
+     }
+}
+
+Element UnionSearch(String name, boolean setXSIType):
+{   Element arg1, arg2;}
+{
+    arg1=IntersectionSearch(name, true) 
+        (LOOKAHEAD(2)
+         <K_OR> arg2=IntersectionSearch("Condition", true)
+	      {
+                  arg1 = renameADQLElement(arg1, "Condition", null);
+//                  doc.renameNode(arg1, ADQL_NS, ADQL_PREFIX + ":Condition");
+	          Element us = createADQLElement(name);
+                  if (setXSIType) setXSITypeAttr(us, "unionSearchType");
+                  us.appendChild(arg1);
+                  us.appendChild(arg2);
+		  arg1 = us;
+	      }
+	)*
+      {
+          return arg1;
+      }
+}
+
+
+Element Where(String name):
+{    Element cond;
+}
+{
+    <K_WHERE> cond=Search("Condition")
+       {
+           Element w = (name == null) ? createRootElement("Where") 
+                                      : createADQLElement(name);
+	   w.appendChild(cond);
+           return w;
+       }
+}
+
+Element XMatch(String name, boolean setXSIType):
+{    
+     ArrayList list;
+     String    c;
+     Element   n;
+}
+{
+    <K_XMATCH> "(" list=XMatchList("Table") ")" c=Comparison() 
+    n=Number("Sigma",true)
+      {
+          Element x = createADQLElement(name);
+          if (setXSIType) setXSITypeAttr(x, "XMatchType");
+          for(int i=0; i < list.size(); i++) {
+             x.appendChild((Element) list.get(i));
+          }
+
+          Node txt = doc.createTextNode(c);
+          Element nature = createADQLElement("Nature");
+          nature.appendChild(txt);
+          x.appendChild(nature);
+
+          x.appendChild(n);
+
+          return x;
+      }
+}
+
+ArrayList XMatchList(String name):
+{    ArrayList list = new ArrayList();
+     Element x;
+}
+{
+     x=XMatchTableAlias(name)           {list.add(x);}
+     ( ","   x=XMatchTableAlias(name)   {list.add(x);}
+     )*
+     {   
+         return list;
+     }
+}
+     
+
+Element XMatchTableAlias(String name):
+{   Element x;
+}
+{
+  ( "!" x=DropTable(name, true)
+|   x=IncludeTable(name, true)
+  )
+      {
+          return x;
+      }
+}

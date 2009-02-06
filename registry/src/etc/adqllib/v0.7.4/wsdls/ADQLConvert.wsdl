@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:adql="http://www.ivoa.net/xml/ADQL/v0.7.4" 
+             xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" 
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+             xmlns:xs="http://www.w3.org/2001/XMLSchema"
+             xmlns:tns="http://www.ivoa.net/wsdl/ADQLConvert/v0.7.4"
+             targetNamespace="http://www.ivoa.net/wsdl/ADQLConvert/v0.7.4">
+  <types>
+
+    <xs:schema elementFormDefault="qualified" 
+               targetNamespace="http://www.ivoa.net/wsdl/ADQLConvert/v0.7.4">
+      <xs:import namespace="http://www.ivoa.net/xml/ADQL/v0.7.4"
+                 schemaLocation="ADQL-0.7.4.xsd"/>
+    </xs:schema>
+
+  </types>
+
+  <message name="ADQLs">
+     <part name="ADQLString" type="xs:string"/>
+  </message>
+
+  <message name="ADQLx">
+     <part name="ADQLXML" type="adql:selectType"/>
+  </message>
+
+  <portType name="ADQLConvert">
+
+     <operation name="s2x">
+        <input message="tns:ADQLs"/>
+        <output message="tns:ADQLx"/>
+     </operation>
+
+     
+     <operation name="x2s">
+        <input message="tns:ADQLx"/>
+        <output message="tns:ADQLs"/>
+     </operation>
+  </portType>
+
+  <binding name="ADQLConvertSOAP" type="tns:ADQLConvert">
+      <soap:binding style="document" 
+                    transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <operation name="x2s">
+         <soap:operation style="document" 
+               soapAction="http://www.ivoa.net/wsdl/ADQLConvert/v0.7.4#x2s" />
+         <input>
+            <soap:body use="literal" />
+         </input>
+         <output>
+            <soap:body use="literal" />
+         </output>
+      </operation>
+
+      <operation name="s2x">
+         <soap:operation style="document" 
+               soapAction="http://www.ivoa.net/wsdl/ADQLConvert/v0.7.4#s2x" />
+         <input>
+            <soap:body use="literal" />
+         </input>
+         <output>
+            <soap:body use="literal" />
+         </output>
+      </operation>
+
+  </binding>
+
+</definitions>

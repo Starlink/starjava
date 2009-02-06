@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="urn:nvo-coords" elementFormDefault="qualified" targetNamespace="urn:nvo-coords" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="coordsType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="0" maxOccurs="1" name="VelScalar" type="tns:velScalarType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Vel3Vector" type="tns:vel3VectorType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Spectrum" type="tns:coordSpectralType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="CoordFile" type="xs:anyURI" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Time" type="tns:coordTimeType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Vel2Vector" type="tns:vel2VectorType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Pos2Vector" type="tns:pos2VectorType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="PosScalar" type="tns:posScalarType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Pos3Vector" type="tns:pos3VectorType" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Redshift" type="tns:velScalarType" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="ID" type="xs:ID" />
+    <xs:attribute name="coord_system_id" type="xs:IDREF" />
+  </xs:complexType>
+  <xs:complexType name="velScalarType">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:velCoordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coordValueType" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velCoordType" abstract="true">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+    </xs:sequence>
+    <xs:attribute default="s" name="vel_time_unit" type="tns:velTimeUnitType" use="optional" />
+  </xs:complexType>
+  <xs:simpleType name="velTimeUnitType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="s" />
+      <xs:enumeration value="h" />
+      <xs:enumeration value="d" />
+      <xs:enumeration value="a" />
+      <xs:enumeration value="yr" />
+      <xs:enumeration value="century" />
+      <xs:enumeration value="" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="vel2VectorType">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:velCoordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coord2ValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coord2SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coord2SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coord2SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coord2SizeType" />
+        </xs:sequence>
+        <xs:attribute default="deg" name="pos_ang_unit" type="tns:angleUnitType" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coord2ValueType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="0" maxOccurs="1" name="Value" type="tns:ArrayOfDouble" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Value60" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREFS" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute default="deg" name="pos1_unit" type="tns:posUnitType" use="optional" />
+    <xs:attribute default="deg" name="pos2_unit" type="tns:posUnitType" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="ArrayOfDouble">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="double" type="xs:double" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="posUnitType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="deg" />
+      <xs:enumeration value="rad" />
+      <xs:enumeration value="h" />
+      <xs:enumeration value="arcmin" />
+      <xs:enumeration value="arcsec" />
+      <xs:enumeration value="m" />
+      <xs:enumeration value="km" />
+      <xs:enumeration value="mm" />
+      <xs:enumeration value="au" />
+      <xs:enumeration value="pc" />
+      <xs:enumeration value="kpc" />
+      <xs:enumeration value="Mpc" />
+      <xs:enumeration value="lyr" />
+      <xs:enumeration value="" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="coord2SizeType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="0" maxOccurs="1" name="Value" type="tns:ArrayOfDouble" />
+        <xs:element minOccurs="0" maxOccurs="1" name="PosAngleRef" type="xs:IDREF" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREFS" />
+        <xs:element minOccurs="1" maxOccurs="1" name="PosAngle" type="xs:double" />
+        <xs:element minOccurs="1" maxOccurs="1" name="Matrix" type="xs:double" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute default="deg" name="pos1_unit" type="tns:posUnitType" use="optional" />
+    <xs:attribute default="deg" name="pos2_unit" type="tns:posUnitType" use="optional" />
+  </xs:complexType>
+  <xs:simpleType name="angleUnitType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="deg" />
+      <xs:enumeration value="rad" />
+      <xs:enumeration value="h" />
+      <xs:enumeration value="arcmin" />
+      <xs:enumeration value="arcsec" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="vel3VectorType">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:velCoordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coord3ValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coord3SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coord3SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coord3SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coord3SizeType" />
+        </xs:sequence>
+        <xs:attribute default="deg" name="pos_ang_unit" type="tns:angleUnitType" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coord3ValueType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="0" maxOccurs="1" name="Value" type="tns:ArrayOfDouble" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREFS" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="pos1_unit" type="tns:posUnitType" />
+    <xs:attribute name="pos2_unit" type="tns:posUnitType" />
+    <xs:attribute name="pos3_unit" type="tns:posUnitType" />
+  </xs:complexType>
+  <xs:complexType name="coord3SizeType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="0" maxOccurs="1" name="PosAngleRef" type="xs:IDREFS" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Value" type="tns:ArrayOfDouble" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Matrix" type="tns:ArrayOfDouble" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREFS" />
+        <xs:element minOccurs="0" maxOccurs="1" name="PosAngle" type="tns:ArrayOfDouble" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute name="pos1_unit" type="tns:posUnitType" />
+    <xs:attribute name="pos2_unit" type="tns:posUnitType" />
+    <xs:attribute name="pos3_unit" type="tns:posUnitType" />
+  </xs:complexType>
+  <xs:complexType name="coordValueType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="0" maxOccurs="1" name="Value" type="tns:ArrayOfDouble" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Value60" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREF" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute default="deg" name="pos_unit" type="tns:posUnitType" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="coordSpectralType">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coordSpectralValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coordSpectralValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coordSpectralValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coordSpectralValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coordSpectralValueType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="coordSpectralValueType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="1" maxOccurs="1" name="Value" type="xs:double" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREF" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute default="Hz" name="spectral_unit" type="tns:spectralUnitType" use="optional" />
+  </xs:complexType>
+  <xs:simpleType name="spectralUnitType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Hz" />
+      <xs:enumeration value="kHz" />
+      <xs:enumeration value="MHz" />
+      <xs:enumeration value="GHz" />
+      <xs:enumeration value="m" />
+      <xs:enumeration value="mm" />
+      <xs:enumeration value="micron" />
+      <xs:enumeration value="nm" />
+      <xs:enumeration value="A" />
+      <xs:enumeration value="eV" />
+      <xs:enumeration value="keV" />
+      <xs:enumeration value="MeV" />
+      <xs:enumeration value="GeV" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="coordTimeType">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:astronTimeType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coordTimeValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coordTimeValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coordTimeValueType" />
+      <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coordTimeValueType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="astronTimeType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="1" maxOccurs="1" name="MJDRefTime" type="xs:decimal" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="tns:astronTimeTypeReference" />
+        <xs:element minOccurs="1" maxOccurs="1" name="ISORefTime" type="xs:dateTime" />
+        <xs:element minOccurs="1" maxOccurs="1" name="ISOTime" type="xs:dateTime" />
+        <xs:element minOccurs="0" maxOccurs="1" name="RelativeTime" type="tns:astronTimeTypeRelativeTime" />
+        <xs:element minOccurs="1" maxOccurs="1" name="JDTime" type="xs:decimal" />
+        <xs:element minOccurs="1" maxOccurs="1" name="MJDTime" type="xs:decimal" />
+        <xs:element minOccurs="1" maxOccurs="1" name="JDRefTime" type="xs:decimal" />
+      </xs:choice>
+      <xs:element minOccurs="1" maxOccurs="1" name="TimeScale" type="tns:timeScaleType" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="astronTimeTypeReference">
+    <xs:simpleContent>
+      <xs:extension base="xs:IDREF">
+        <xs:attribute default="ISO8601" name="time_base" type="tns:astronTimeTypeReferenceTime_base" use="optional" />
+        <xs:attribute default="s" name="unit" type="tns:astronTimeTypeReferenceUnit" use="optional" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="astronTimeTypeReferenceTime_base">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ISO8601" />
+      <xs:enumeration value="JD" />
+      <xs:enumeration value="MJD" />
+      <xs:enumeration value="relative" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="astronTimeTypeReferenceUnit">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="s" />
+      <xs:enumeration value="d" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="astronTimeTypeRelativeTime">
+    <xs:simpleContent>
+      <xs:extension base="xs:double">
+        <xs:attribute default="s" name="unit" type="tns:astronTimeTypeRelativeTimeUnit" use="optional" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="astronTimeTypeRelativeTimeUnit">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="s" />
+      <xs:enumeration value="d" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="timeScaleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="TT" />
+      <xs:enumeration value="TDT" />
+      <xs:enumeration value="ET" />
+      <xs:enumeration value="TDB" />
+      <xs:enumeration value="TCG" />
+      <xs:enumeration value="TCB" />
+      <xs:enumeration value="TAI" />
+      <xs:enumeration value="IAT" />
+      <xs:enumeration value="UTC" />
+      <xs:enumeration value="LST" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="coordTimeValueType">
+    <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1">
+        <xs:element minOccurs="1" maxOccurs="1" name="Value" type="xs:double" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Reference" type="xs:IDREF" />
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute default="s" name="time_unit" type="tns:velTimeUnitType" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="pos2VectorType">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:posCoordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coord2ValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coord2SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coord2SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coord2SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coord2SizeType" />
+        </xs:sequence>
+        <xs:attribute default="deg" name="pos_ang_unit" type="tns:angleUnitType" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="posCoordType" abstract="true">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="posScalarType">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:posCoordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coordValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coordValueType" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pos3VectorType">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:posCoordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordValue" type="tns:coord3ValueType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordError" type="tns:coord3SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordResolution" type="tns:coord3SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordSize" type="tns:coord3SizeType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="CoordPixsize" type="tns:coord3SizeType" />
+        </xs:sequence>
+        <xs:attribute default="deg" name="pos_ang_unit" type="tns:angleUnitType" use="optional" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by William O'Mullane (The Johns Hopkins University) -->
+<xs:schema targetNamespace="http://www.ivoa.net/xml/ADQL/v0.7.4" xmlns:reg="urn:nvo-region" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.ivoa.net/xml/ADQL/v0.7.4" elementFormDefault="qualified">
+	<xs:import namespace="urn:nvo-region" schemaLocation="nvo-regions.xsd"/>
+	<xs:complexType name="selectionItemType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>The base type for any of items to be selected in a query</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="scalarExpressionType" abstract="true" mixed="false">
+		<xs:annotation>
+			<xs:documentation>The base type for a scalar expression</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:selectionItemType"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="closedExprType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents an expression inside a bracket</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:scalarExpressionType">
+				<xs:sequence>
+					<xs:element name="Arg" type="tns:scalarExpressionType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="binaryExprType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a binary expression such as a+b</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:scalarExpressionType">
+				<xs:sequence>
+					<xs:element name="Arg" type="tns:scalarExpressionType" minOccurs="2" maxOccurs="2"/>
+				</xs:sequence>
+				<xs:attribute name="Oper" type="tns:binaryOperatorType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="binaryOperatorType">
+		<xs:annotation>
+			<xs:documentation>Used for expressing operations like A+B</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="+"/>
+			<xs:enumeration value="-"/>
+			<xs:enumeration value="*"/>
+			<xs:enumeration value="/"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="unaryExprType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents an unary expression such as -(a.ra)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:scalarExpressionType">
+				<xs:sequence>
+					<xs:element name="Arg" type="tns:scalarExpressionType"/>
+				</xs:sequence>
+				<xs:attribute name="Oper" type="tns:unaryOperatorType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="unaryOperatorType">
+		<xs:annotation>
+			<xs:documentation>Operators for expressing a single element operation</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="+"/>
+			<xs:enumeration value="-"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="columnReferenceType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a column</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:scalarExpressionType">
+				<xs:attribute name="Table" type="xs:string" use="required"/>
+				<xs:attribute name="Name" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="atomType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Encapsulates basic literals such as Strings, Integers and Real numbers</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:scalarExpressionType">
+				<xs:sequence>
+					<xs:element name="Literal" type="tns:literalType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="literalType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>The base type for all literals</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="numberType" abstract="true" mixed="false">
+		<xs:annotation>
+			<xs:documentation>The base type for all numbers</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:literalType"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="realType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a real number</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:numberType">
+				<xs:attribute name="Value" type="xs:double" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="integerType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents an integer</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:numberType">
+				<xs:attribute name="Value" type="xs:long" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="stringType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a string literal</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:literalType">
+				<xs:attribute name="Value" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="functionType" abstract="true" mixed="false">
+		<xs:annotation>
+			<xs:documentation>The base type for a function</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:scalarExpressionType">
+				<xs:sequence>
+					<xs:element name="Allow" type="tns:selectionOptionType" minOccurs="0"/>
+					<xs:element name="Arg" type="tns:selectionItemType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="selectionOptionType">
+		<xs:annotation>
+			<xs:documentation>Option of selecting all or distinct elements in a query</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Option" type="tns:allOrDistinctType" use="required"/>
+	</xs:complexType>
+	<xs:simpleType name="allOrDistinctType">
+		<xs:annotation>
+			<xs:documentation>Enumeration for All and Distinct options</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="All"/>
+			<xs:enumeration value="DISTINCT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="trigonometricFunctionType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a trigonometric function</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:functionType">
+				<xs:attribute name="Name" type="tns:trigonometricFunctionNameType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="trigonometricFunctionNameType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of allowed trigonometric functions</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="SIN"/>
+			<xs:enumeration value="COS"/>
+			<xs:enumeration value="TAN"/>
+			<xs:enumeration value="COT"/>
+			<xs:enumeration value="ASIN"/>
+			<xs:enumeration value="ACOS"/>
+			<xs:enumeration value="ATAN"/>
+			<xs:enumeration value="ATAN2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="mathFunctionType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a math function</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:functionType">
+				<xs:attribute name="Name" type="tns:mathFunctionNameType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="mathFunctionNameType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of allowed math functions</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ABS"/>
+			<xs:enumeration value="CEILING"/>
+			<xs:enumeration value="DEGREES"/>
+			<xs:enumeration value="EXP"/>
+			<xs:enumeration value="FLOOR"/>
+			<xs:enumeration value="LOG"/>
+			<xs:enumeration value="PI"/>
+			<xs:enumeration value="POWER"/>
+			<xs:enumeration value="RADIANS"/>
+			<xs:enumeration value="SQRT"/>
+			<xs:enumeration value="SQUARE"/>
+			<xs:enumeration value="LOG10"/>
+			<xs:enumeration value="RAND"/>
+			<xs:enumeration value="ROUND"/>
+			<xs:enumeration value="TRUNCATE"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="aggregateFunctionType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents an aggregate function</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:functionType">
+				<xs:attribute name="Name" type="tns:aggregateFunctionNameType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="aggregateFunctionNameType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of allowed aggregate functions</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="AVG"/>
+			<xs:enumeration value="MIN"/>
+			<xs:enumeration value="MAX"/>
+			<xs:enumeration value="SUM"/>
+			<xs:enumeration value="COUNT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="aliasSelectionItemType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Used to select an expression as a new alias column</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:selectionItemType">
+				<xs:sequence>
+					<xs:element name="Expression" type="tns:scalarExpressionType"/>
+				</xs:sequence>
+				<xs:attribute name="As" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="allSelectionItemType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represent all columns as in Select * query</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:selectionItemType"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="comparisonType">
+		<xs:annotation>
+			<xs:documentation>The Comparison operators such as Less-than or More-than, etc</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="="/>
+			<xs:enumeration value="&lt;&gt;"/>
+			<xs:enumeration value="&gt;"/>
+			<xs:enumeration value="&gt;="/>
+			<xs:enumeration value="&lt;"/>
+			<xs:enumeration value="&lt;="/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="fromTableType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>The base type for all tables used in the From clause of the query</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="archiveTableType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Same as a tableType with an additional archive name</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:fromTableType">
+				<xs:attribute name="Archive" type="xs:string" use="required"/>
+				<xs:attribute name="Name" type="xs:string" use="required"/>
+				<xs:attribute name="Alias" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tableType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents a table with its name and its alias name</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:fromTableType">
+				<xs:attribute name="Name" type="xs:string" use="required"/>
+				<xs:attribute name="Alias" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="xMatchTableAliasType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>The base type for all table inclusion or drop types used in a cross match expression</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="includeTableType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Used for adding a table for the Xmatch operation</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:xMatchTableAliasType">
+				<xs:attribute name="Name" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="dropTableType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Used for avoiding a table in Xmatch</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:xMatchTableAliasType">
+				<xs:attribute name="Name" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="searchType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>The base type for searches in Where and Having clauses of the query</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="intersectionSearchType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents expressions like A And B</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Condition" type="tns:searchType" minOccurs="2" maxOccurs="2"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="unionSearchType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents expressions like A Or B</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Condition" type="tns:searchType" minOccurs="2" maxOccurs="2"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="xMatchType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>A cross match expression</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Table" type="tns:xMatchTableAliasType" minOccurs="2" maxOccurs="unbounded"/>
+					<xs:element name="Nature" type="tns:comparisonType"/>
+					<xs:element name="Sigma" type="tns:numberType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="likePredType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>The Like expression of a query</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Arg" type="tns:scalarExpressionType"/>
+					<xs:element name="Pattern" type="tns:atomType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="notLikePredType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>The Not Like expression of a query</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:likePredType"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="closedSearchType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents expressions like (A)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Condition" type="tns:searchType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="comparisonPredType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents the Comparison of two expressions</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Arg" type="tns:scalarExpressionType" minOccurs="2" maxOccurs="2"/>
+				</xs:sequence>
+				<xs:attribute name="Comparison" type="tns:comparisonType" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="betweenPredType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents the Between expression of a query</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Arg" type="tns:scalarExpressionType" minOccurs="3" maxOccurs="3"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="notBetweenPredType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents the Not Between expression of a query</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:betweenPredType"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="inverseSearchType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents expressions like Not A</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Condition" type="tns:searchType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="regionSearchType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>Represents the Regions such as circle in Where clause</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="tns:searchType">
+				<xs:sequence>
+					<xs:element name="Region" type="reg:regionType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="havingType">
+		<xs:annotation>
+			<xs:documentation>Represents the Having expression part of a query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Condition" type="tns:searchType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="groupByType">
+		<xs:annotation>
+			<xs:documentation>Represents the Group By expression part of a query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Column" type="tns:columnReferenceType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="whereType">
+		<xs:annotation>
+			<xs:documentation>Represents the Where part of the query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Condition" type="tns:searchType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="fromType">
+		<xs:annotation>
+			<xs:documentation>Represents the From part of the query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Table" type="tns:fromTableType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="selectionListType">
+		<xs:annotation>
+			<xs:documentation>List of items to be selected in the Query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Item" type="tns:selectionItemType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="selectionLimitType">
+		<xs:annotation>
+			<xs:documentation>Represents the TOP part of a query</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Top" type="xs:unsignedInt"/>
+	</xs:complexType>
+	<xs:simpleType name="orderDirectionType">
+		<xs:annotation>
+			<xs:documentation>Ascending or Descending order of an Order by term</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ASC"/>
+			<xs:enumeration value="DESC"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="orderOptionType">
+		<xs:annotation>
+			<xs:documentation>Option for setting the direction for Order By </xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Direction" type="tns:orderDirectionType" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="orderType">
+		<xs:annotation>
+			<xs:documentation>Represents the ORDER BY part of a query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Expression" type="tns:scalarExpressionType"/>
+			<xs:element name="Order" type="tns:orderOptionType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="orderExpressionType">
+		<xs:annotation>
+			<xs:documentation>List of expressions in which order the results should be provided</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Item" type="tns:orderType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="Select" type="tns:selectType">
+		<xs:annotation>
+			<xs:documentation>The only permitted root element of a query, the SELECT element</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="selectType">
+		<xs:annotation>
+			<xs:documentation>The SELECT part of a query</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Allow" type="tns:selectionOptionType" minOccurs="0"/>
+			<xs:element name="Restrict" type="tns:selectionLimitType" minOccurs="0"/>
+			<xs:element name="SelectionList" type="tns:selectionListType"/>
+			<xs:element name="From" type="tns:fromType" minOccurs="0"/>
+			<xs:element name="Where" type="tns:whereType" minOccurs="0"/>
+			<xs:element name="GroupBy" type="tns:groupByType" minOccurs="0"/>
+			<xs:element name="Having" type="tns:havingType" minOccurs="0"/>
+			<xs:element name="OrderBy" type="tns:orderExpressionType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+</xs:schema>
+

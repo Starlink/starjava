@@ -1,0 +1,107 @@
+
+regsearch:  a tool for quering an IVOA searchable registry. 
+
+   This rudimentary command line tool provides access to a
+   registry's search functions via six commands.  Various options--some
+   command-specific--allow you to select out the information.
+
+   If you do not provide any arguments regsearch will run some internal 
+   tests.  
+
+GENERAL USAGE
+
+  regsearch -e url [ options ] command [ args ] 
+
+Options:
+  -e url         the registry search service endpoint URL.  If none is 
+                    provided, regsearch will run in a self-test mode without
+                    contacting a real registry; search inputs are generally
+                    ignored.
+  -v             verbose mode; print extra messages
+  -x             print to standard out the request and response SOAP messages 
+Arguments:
+  command        the (case-insensitive) name of the registry function to 
+                 access:
+                    getidentity       return the description of the registry
+                    getresource       return the description of the resource 
+                                        specified by an identifier
+                    searchbyadql      search for resources whose 
+                                        descriptions match ADQL constraints
+                    searchbykeywords  search for resources whose descriptions
+                                        contain given keywords
+                    idsbyadql         return just IDs of resources whose 
+                                        descriptions match ADQL constraints
+                    idsbykeywords     return just IDs of resources whose 
+                                        descriptions contain given keywords
+
+                 see USAGE BY COMMAND below for command specific options
+
+USAGE BY COMMAND
+
+GetIdentity:  return the description of the registry
+
+  Usage:  regsearch -e url [ -v ] [-s metadatum[,...]] getidentity
+
+  Options:
+    -s metadatum,...  a list of metadata values to print.  Each item is a
+                       simple XPath pointer to a VOResource element.  If not
+                       provided, the following are returned:
+                          identifier,title,capability/interface/accessURL
+
+GetResource: return the description of the resource specified by an identifier
+
+  Usage:  regsearch -e url [ -v ] [-s metadatum[,...]] getResource id
+
+  Options:
+    -s metadatum,...  a list of metadata to print (same as for getIdentity)
+  Arguments:
+    id                the IVOA identifier of the resource of interest
+
+SearchByADLQ: search for resources whose descriptions match ADQL constraints 
+
+  Usage:  regsearch -e url [-v -m max] [-s metadatum[,...]] SearchByADLQ adql
+
+  Options:
+    -m max           the maximum number of records to print out
+    -s metadatum,... a list of metadata to print (same as for getIdentity)
+  Arguments:
+    adql             the ADQL constraints to apply (e.g. "title like '%quasars%'
+                       and [capability/@xsi:type] like '%ConeSearch'")
+
+IDsByADLQ: return just the identifiers of resources whose descriptions 
+           match ADQL constraints 
+
+  Usage:  regsearch -e url [-v -m max] [-s metadatum[,...]] SearchByADLQ adql
+
+  Options:
+    -m max           the maximum number of identifiers to print out
+  Arguments:
+    adql             the ADQL constraints to apply (e.g. "title like '%quasars%'
+                       and [capability/@xsi:type] like '%ConeSearch'")
+
+SearchByKeywords: search for resources whose descriptions contain given 
+                  keywords
+
+  Usage:  regsearch -e url [-vo -m max] searchbykeywords keyword ...
+
+  Options:
+    -m max            the maximum number of records to print out
+    -o                logical OR: return records if the descriptions contain
+                         any of the keywords.  If not set, the matched records
+                         must contain all of the keywords
+  Arguments:
+    keyword           a word to search for
+
+IDsByKeywords: return just the identifiers of resources whose descriptions 
+               contain given keywords
+
+  Usage:  regsearch -e url [-vo -m max] searchbykeywords keyword ...
+
+  Options:
+    -m max            the maximum number of identifiers to print out
+    -o                logical OR: return records if the descriptions contain
+                         any of the keywords.  If not set, the matched records
+                         must contain all of the keywords
+  Arguments:
+    keyword           a word to search for
+
