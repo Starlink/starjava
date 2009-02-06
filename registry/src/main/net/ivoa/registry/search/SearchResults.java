@@ -252,7 +252,7 @@ public abstract class SearchResults {
         }
 
         while (currentRecord.getNodeType() != Node.ELEMENT_NODE ||
-               currentRecord.getLocalName() != elname) 
+               ! elname.equals(currentRecord.getLocalName()))
         {
             currentRecord = currentRecord.getNextSibling();
             if (currentRecord == null)  {
@@ -300,7 +300,7 @@ public abstract class SearchResults {
         if (currentRecord == null) return previousElement();
 
         while (currentRecord.getNodeType() != Node.ELEMENT_NODE ||
-               currentRecord.getLocalName() != elname) 
+               ! elname.equals(currentRecord.getLocalName()))
         {
             currentRecord = currentRecord.getPreviousSibling();
             if (currentRecord == null) return previousElement();
