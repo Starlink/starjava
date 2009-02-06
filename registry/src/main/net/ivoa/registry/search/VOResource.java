@@ -42,8 +42,8 @@ public class VOResource extends Metadata {
     }
 
     void cacheIdentityData(String name) {
-        Node child = getDOMNode().getFirstChild();
-        while (child != null) {
+        for (Node child = getDOMNode().getFirstChild(); child != null;
+             child = child.getNextSibling()) {
             if (child.getNodeType() == Node.ELEMENT_NODE) {
                 if (title == null && child.getNodeName().equals("title")) {
                     title = child.getNodeValue();
