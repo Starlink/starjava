@@ -26,6 +26,9 @@ public interface RegCapabilityInterface {
     /** Standard ID value identifying Simple Spectral Access services. */
     public static final String SSA_STDID = "ivo://ivoa.net/std/SSA";
 
+    /** Standard ID value identifying a Registry service. */
+    public static final String REG_STDID = "ivo://ivoa.net/std/Registry";
+
     /**
      * Returns the access URL.
      *
