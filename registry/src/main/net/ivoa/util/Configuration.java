@@ -227,7 +227,7 @@ public class Configuration {
 
             int len = matched.size();
             for(i=0; i < len; i++) {
-                Configuration candidate = matched.pop();
+                Configuration candidate = matched.popConfig();
                 boolean findElements = true;
                 if (! tok.hasMoreTokens()) {
                     // at the end of the path; check for matching attributes
@@ -289,7 +289,9 @@ public class Configuration {
             addLast(new Configuration(node, base + "/" + node.getNodeName()));
         }
 
-        public Configuration pop() { return (Configuration) removeFirst(); }
+        public Configuration popConfig() {
+            return (Configuration) removeFirst();
+        }
     }
 
     /**
