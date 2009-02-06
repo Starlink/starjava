@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   REGISTRY build file
  !
- !   This file describes how to build and install {Package} from
- !   source and binary releases. {Package} is a class library
+ !   This file describes how to build and install REGISTRY from
+ !   source and binary releases. REGISTRY is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for REGISTRY" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,8 +77,8 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
+  <property name="Name" value="REGISTRY"/>
+  <property name="name" value="registry"/>
   <property name="version" value="1.0"/>
 
   <!-- The Java package name -->
@@ -88,7 +88,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.4"/>
+  <property name="source.version" value="1.5"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -197,12 +197,7 @@
    !   path.
    !-->
   <extclasspath id="installed.classpath">
-
-    <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
+    <pathelement location="${star.jar.dir}/axis/axis.jar"/>
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -211,13 +206,7 @@
    !   not been installed (should be same packages as in installed.classpath).
    !-->
   <extclasspath id="built.jarpath">
-
-    <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
+    <pathelement location="${star.build.dir}/lib/axis/axis.jar"/>
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -350,21 +339,11 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {Example package1} -->
-    <available property="{package1}.present"
+    <!-- AXIS -->
+    <available property="axis.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package2} available" unless="{package2}.present"/>
-
-    <!-- {More critical dependencies} -->
+               classname="org.apache.axis.client.Service"/>
+    <fail message="No AXIS available" unless="axis.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -421,25 +400,21 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
-
+      <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
-
-      <!-- Exclude any files in the source tree that should not be
-       !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
+      <include name="**/*.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+ <!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/{package.support.files}"/>
         <include name="**/{more.package.support.files}"/>
       </fileset>
     </copy>
+  !-->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
@@ -467,7 +442,6 @@
           depends="build"
           unless="runonly.install"
           description="-> creates the package jar file(s)">
-
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
@@ -478,11 +452,12 @@
     </jar>
 
     <!-- Sign all jar files -->
-    <signjar jar="${dist.lib.pkg}/${name}.jar"
-             alias="${webstart.alias}"
+    <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib.pkg}" includes="*.jar"/>
+    </signjar>
 
   </target>
 
@@ -501,11 +476,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
-         <vendor>Starlink UK</vendor>
+         <title>REGISTRY - Registry access classes by Ray Plante</title>
+         <vendor>NVO</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"REGISTRY - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -520,8 +495,7 @@
          <jar href="${name}/${name}.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="{EXT1}" href="{ext1}.jnlp"/>
-         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+         <extension name="AXIS" href="axis.jnlp"/>
        </resources>
 
        <!-- This is a component -->
