@@ -32,6 +32,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
         "capability/@standardID = '" + RegCapabilityInterface.CONE_STDID + "'",
         "capability/@standardID = '" + RegCapabilityInterface.SIA_STDID + "'",
         "capability/@standardID = '" + RegCapabilityInterface.SSA_STDID + "'",
+        "capability/@standardID = '" + RegCapabilityInterface.REG_STDID + "'",
     };
 
     /**
