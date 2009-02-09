@@ -23,14 +23,8 @@ import net.ivoa.registry.search.RegistrySearchClient;
  */
 public class RegistryQueryPanel extends JPanel {
 
-    private JComboBox urlSelector_;
+    private RegistrySelector urlSelector_;
     private JComboBox querySelector_;
-
-    /** Known registry URLs.  */
-    public static String[] KNOWN_REGISTRIES = new String[] {
-        RegistryQuery.AG_REG,
-        RegistryQuery.NVO_REG,
-    };
 
     /**
      * Constructor.
@@ -41,18 +35,8 @@ public class RegistryQueryPanel extends JPanel {
         add( qBox, BorderLayout.CENTER );
 
         /* Registry URL selector. */
-        JComponent urlLine = Box.createHorizontalBox();
-        urlSelector_ = new JComboBox( KNOWN_REGISTRIES ) {
-            public Dimension getMaximumSize() {
-                return getPreferredSize();
-            }
-        };
-        urlSelector_.setEditable( true );
-        urlSelector_.setSelectedIndex( 0 );
-        urlLine.add( new JLabel( "Registry: " ) );
-        urlLine.add( urlSelector_ );
-        urlLine.add( Box.createHorizontalGlue() );
-        qBox.add( urlLine );
+        urlSelector_ = new RegistrySelector();
+        qBox.add( urlSelector_ );
         qBox.add( Box.createVerticalStrut( 5 ) );
 
         /* Query text selector. */
@@ -77,24 +61,6 @@ public class RegistryQueryPanel extends JPanel {
     }
 
     /**
-     * Returns the selector used for registry URL.
-     *
-     * @return  URL selector
-     */
-    public JComboBox getUrlSelector() {
-        return urlSelector_;
-    }
-
-    /**
-     * Returns the selector used for the query text.
-     *
-     * @return  query text selector
-     */
-    public JComboBox getQuerySelector() {
-        return querySelector_;
-    }
-
-    /**
      * Returns a RegistryQuery object which can perform the query currently
      * specified by the state of this component.  Some checking on whether
      * the fields are filled in sensibly is done; if they are not, an
@@ -103,7 +69,7 @@ public class RegistryQueryPanel extends JPanel {
      * @return  query object
      */
     public RegistryQuery getRegistryQuery() throws MalformedURLException {
-        String regServ = (String) urlSelector_.getSelectedItem();
+        String regServ = (String) urlSelector_.getUrl();
         String query = (String) querySelector_.getSelectedItem();
         if ( query == null || query.trim().length() == 0 ) {
             throw new MalformedURLException( "Query URL is blank" );
@@ -147,5 +113,4 @@ public class RegistryQueryPanel extends JPanel {
         urlSelector_.setEnabled( enabled );
         querySelector_.setEnabled( enabled );
     }
-
 }

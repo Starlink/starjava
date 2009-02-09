@@ -8,7 +8,6 @@ import java.net.URL;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -24,7 +23,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
     private final String baseQuery_;
     private final JComponent queryPanel_;
-    private final JComboBox urlSelector_;
+    private final RegistrySelector urlSelector_;
     private final JTextField keywordField_;
     private final JButton andButton_;
     private boolean or_;
@@ -63,12 +62,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
         /* Registry endpoint selector. */
         JComponent urlLine = Box.createHorizontalBox();
-        urlSelector_ = new JComboBox( KNOWN_REGISTRIES );
-        urlSelector_.setEditable( true );
-        urlSelector_.setSelectedIndex( 0 );
-        urlSelector_.setToolTipText( "Endpoint of VOResource 1.0"
-                                   + " registry service" );
-        urlLine.add( new JLabel( "Registry: " ) );
+        urlSelector_ = new RegistrySelector();
         urlLine.add( urlSelector_ );
         queryPanel_.add( urlLine );
         queryPanel_.add( Box.createVerticalStrut( 5 ) );
@@ -141,8 +135,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
             sbuf.append( " )" );
         }
         String adql = sbuf.toString();
-        String url = new URL( (String) urlSelector_.getSelectedItem() )
-                    .toString();
+        String url = new URL( (String) urlSelector_.getUrl() ).toString();
         return new RegistryQuery( url, adql ); 
     }
 
