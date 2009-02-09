@@ -8321,6 +8321,9 @@ The Registry value defaults to the AstroGrid registry, but you can choose
 another if you prefer.  In general, since the various registries
 harvest resources from each other, they can be expected to have similar
 content, but there will be exceptions.
+The <label>Update</label> button searches the currently selected
+registry for more registry services, so gives you a longer list
+of registries to choose from.
 The Keywords value is a space-separated list with no wildcarding.
 Each keyword is matched against the title, description, identifier,
 shortname and some other attributes to find matching services.
@@ -11724,6 +11727,11 @@ introduced since the last version:
     <li>Added SSAP load dialogue.  Basic functionality only.</li>
     <li>Added documentation for previously-unadvertised
         <ref id="DalTableLoadDialog">SIAP/SSAP</ref> load dialogues.</li>
+    <li>Fixed bug which caused registry queries (Cone, SIA, SSA) to fail
+        for Java 1.6.</li>
+    <li>Fixed bug which caused blank Contact field in registry query 
+        results.</li>
+    <li>Can now query registry for more registry services.</li>
     </ul>
     </p></dd>
 
