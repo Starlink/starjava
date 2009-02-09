@@ -31,7 +31,21 @@ public class VORegResource implements RegResource {
         title_ = resource.getParameter( "title" );
         identifier_ = resource.getParameter( "identifier" );
         publisher_ = resource.getParameter( "curation/publisher" );
-        contact_ = resource.getParameter( "curation/contact" );
+        String contactName = resource.getParameter( "curation/contact/name" );
+        String contactEmail = resource.getParameter( "curation/contact/email" );
+        if ( contactEmail != null && contactEmail.trim().length() > 0 &&
+             contactName != null && contactName.trim().length() > 0 ) {
+            contact_ = contactName + " <" + contactEmail + ">";
+        }
+        else if ( contactEmail != null && contactEmail.trim().length() > 0 ) {
+            contact_ = contactEmail;
+        }
+        else if ( contactName != null && contactName.trim().length() > 0 ) {
+            contact_ = contactName;
+        }
+        else {
+            contact_ = null;
+        }
         referenceUrl_ = resource.getParameter( "content/referenceURL" );
         Metadata[] capBlocks = resource.getBlocks( "capability" );
         List capList = new ArrayList();
