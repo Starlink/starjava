@@ -76,6 +76,7 @@ void jniastInitialize( JNIEnv *env ) {
 */
    jclass objclass;
    jclass classclass;
+   int status;
 
    ( ! (*env)->ExceptionCheck( env ) ) &&
 
@@ -161,6 +162,11 @@ void jniastInitialize( JNIEnv *env ) {
                                                 "()V" ) ) ) ) &&
 
    1;
+
+   /* Initialise error reporting machinery. */
+   if ( status = jniastErrInit() ) {
+      jniastThrowError( env, "pthread initialization error %d", status );
+   }
 }
 
 void *jniastMalloc( JNIEnv *env, size_t size ) {
