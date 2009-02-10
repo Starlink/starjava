@@ -36,9 +36,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_RateMap_construct(
 
    if ( jniastCheckNotNull( env, jMap ) ) {
       map = jniastGetPointerField( env, jMap );
-      ASTCALL(
+      THASTCALL( jniastList( 1, map.AstObject ),
          pointer.RateMap = astRateMap( map.Mapping, (int) ax1, (int) ax2, "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

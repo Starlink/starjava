@@ -96,7 +96,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_construct(
 
    /* Store the pointer to the AST object in an instance variable. */
    if ( ! (*env)->ExceptionCheck( env ) ) {
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 
@@ -111,7 +111,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_destroy(
 
    /* If we have already done this, don't do it again - the finalizer may
     * get called explicitly as well as by the garbage collector. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       refcnt = astGetI( pointer.AstObject, "RefCount" );
    )
 
@@ -138,7 +138,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_destroy(
       /* Set the pointer field to 0 so that the AstObject finalizer knows
        * not to try to annul it again. */
       pointer.jlong = 0L;
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
 
       /* Free the chaninfo structure. */
       chaninfo = (ChanInfo *) infopointer.ptr;
@@ -156,7 +156,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_delFits(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astDelFits( pointer.FitsChan );
    )
 }
@@ -175,7 +175,7 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_FitsChan_findFits(
 
    if ( jniastCheckNotNull( env, jName ) ) {
       name = jniastGetUTF( env, jName );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          success = astFindFits( pointer.FitsChan, name, card, 
                                 inc == JNI_TRUE );
       )
@@ -202,7 +202,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putFits(
 
    if ( jniastCheckNotNull( env, jCard ) ) {
       card = jniastGetUTF( env, jCard );
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astPutFits( pointer.FitsChan, card, overwrite == JNI_TRUE );
       )
       jniastReleaseUTF( env, jCard, card );
@@ -219,7 +219,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_FitsChan_read(
    int needchan;
 
    /* Call the AST function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       newpointer.AstObject = astRead( pointer.FitsChan );
    )
 
@@ -264,7 +264,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
       }
 
       /* Call the AST routine to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 2, pointer.AstObject, itempointer.AstObject ),
          nwrite = astWrite( pointer.FitsChan, itempointer.AstObject );
       )
 
@@ -288,7 +288,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putCards(
 
    if ( jniastCheckNotNull( env, jCards ) ) {
        cards = jniastGetUTF( env, jCards );
-       ASTCALL(
+       THASTCALL( jniastList( 1, pointer.AstObject ),
           astPutCards( pointer.FitsChan, cards );
        )
        jniastReleaseUTF( env, jCards, cards );
@@ -313,7 +313,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_setFits__Ljava_lang_Stri
       name = jniastGetUTF( env, jName ); \
       comment = jComment ? jniastGetUTF( env, jComment ) : NULL; \
  \
-      ASTCALL( \
+      THASTCALL( jniastList( 1, pointer.AstObject ), \
          astSetFits##Xappend( pointer.FitsChan, name, value, \
                               comment, overwrite == JNI_TRUE ); \
       ) \
@@ -346,7 +346,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_setFits__Ljava_lang_Stri
       name = jniastGetUTF( env, jName ); \
       comment = jComment ? jniastGetUTF( env, jComment ) : NULL; \
  \
-      ASTCALL( \
+      THASTCALL( jniastList( 1, pointer.AstObject ), \
          astSetFits##Xappend( pointer.FitsChan, name, value, \
                               comment, overwrite == JNI_TRUE ); \
       ) \
@@ -379,7 +379,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_setFits##Xjappend( \
       value = jniastGetUTF( env, jValue ); \
       comment = jComment ? jniastGetUTF( env, jComment ) : NULL; \
  \
-      ASTCALL( \
+      THASTCALL( jniastList( 1, pointer.AstObject ), \
          astSetFits##Xappend( pointer.FitsChan, name, value, \
                               comment, overwrite == JNI_TRUE ); \
       ) \

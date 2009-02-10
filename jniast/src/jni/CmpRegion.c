@@ -39,9 +39,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_CmpRegion_construct(
         jniastCheckNotNull( env, jRegion2 ) ) {
        region1 = jniastGetPointerField( env, jRegion1 ).Region;
        region2 = jniastGetPointerField( env, jRegion2 ).Region;
-       ASTCALL(
+       THASTCALL( jniastList( 2, region1, region2 ),
           pointer.CmpRegion = astCmpRegion( region1, region2, (int) oper, "" );
        )
-       jniastSetPointerField( env, this, pointer );
+       jniastInitObject( env, this, pointer );
    }
 }

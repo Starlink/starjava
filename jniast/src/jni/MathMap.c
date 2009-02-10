@@ -106,7 +106,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_MathMap_construct(
       free( jInvEl );
    
       /* Set the AstObject pointer to the new AST object. */
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 /* $Id$ */

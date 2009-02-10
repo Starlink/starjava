@@ -193,7 +193,7 @@
   <property name="build.jni" value="${build.dir}/jni"/>
 
   <!-- Non-standard files -->
-  <property name="perl" value="/stardev/Perl/bin/perl"/>
+  <property name="perl" value="perl"/>
   <property name="ast.fac.err" value="fac_1521_err"/>
   <property name="shared.object" value="lib${name}.so"/>
   <property name="link.script" value="${name}_libraries"/>

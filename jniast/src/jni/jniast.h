@@ -34,9 +34,9 @@
 #define PACKAGE_PATH "uk/ac/starlink/ast/"
 
 /* Required versions of the AST package. */
-#define JNIAST_MAJOR_VERS 4
+#define JNIAST_MAJOR_VERS 5
 #define JNIAST_MINOR_VERS 0
-#define JNIAST_RELEASE 1
+#define JNIAST_RELEASE 0
 
 /* Typedefs. */
 typedef union {
@@ -124,7 +124,10 @@ void jniastThrowException( JNIEnv *env, const char *fmt, ... );
 void jniastClearErrMsg();
 const char *jniastGetErrMsg();
 AstPointer jniastGetPointerField( JNIEnv *env, jobject object );
-void jniastSetPointerField( JNIEnv *env, jobject object, AstPointer pointer );
+void jniastInitObject( JNIEnv *env, jobject object, AstPointer pointer );
+void jniastLock( AstObject **ast_objs );
+void jniastUnlock( AstObject **ast_objs );
+AstObject **jniastList( int count, ... );
 int jniastCheckArrayLength( JNIEnv *env, jarray jArray, int minel );
 jobject jniastCheckNotNull( JNIEnv *env, jobject jObject );
 jobject jniastMakeObject( JNIEnv *env, AstObject *objptr );
@@ -196,6 +199,43 @@ void jniastTrace( JNIEnv *env, jobject obj );
          (*env)->Throw( env, throwable ); \
       } \
    }
+
+/*
+ * Macro for calling a code block which acquires AST thread locks on a 
+ * given list of objects before the block and releases them after it.
+ *
+ * The ast_objs parameter must be a malloc()'d, NULL-terminated list of
+ * AstPointer pointers (i.e. it must be AstObject **).  It must point to
+ * a list of any AstObjects which may be used (hence must be astLock()'d)
+ * by the code block.  The list may be modified, and will be free()'d 
+ * on exit, by this macro.  The return value of the jniastList() function
+ * provides a suitable value for ast_objs.  As a special case, ast_objs
+ * may be NULL.
+ *
+ * This macro uses AST error-reporting conventions - from a JNI context
+ * it should be used within an ASTCALL block.
+ */
+#define THASTLOCK(ast_objs, code) \
+   jniastLock(ast_objs); \
+   code \
+   jniastUnlock(ast_objs); \
+   free(ast_objs);
+
+/*
+ * Macro for calling a code block which uses AST-like conventions for 
+ * status management, and which acquires AST thread locks on a given
+ * list of objects before the block and releases them after it.
+ *
+ * The ast_objs parameter must be a malloc()'d, NULL-terminated list of
+ * AstPointer pointers (i.e. it must be AstObject **).  It must point to
+ * a list of any AstObjects which may be used (hence must be astLock()'d)
+ * by the code block.  The list may be modified, and will be free()'d 
+ * on exit, by this macro.  The return value of the jniastList() function
+ * provides a suitable value for ast_objs.  As a special case, ast_objs
+ * may be NULL.
+ */
+#define THASTCALL(ast_objs, code) \
+   ASTCALL( THASTLOCK(ast_objs, code) )
 
 /*
  * Macro for calling a code block which may call JNI functions but must

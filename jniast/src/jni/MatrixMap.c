@@ -59,7 +59,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_MatrixMap_construct(
          (*env)->ReleaseDoubleArrayElements( env, jMatrix,
                                              (jdouble *) matrix, JNI_ABORT );
       }
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 

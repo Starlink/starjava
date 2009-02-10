@@ -50,7 +50,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Box_construct(
            jniastCheckArrayLength( env, jPoint2, naxes ) ) {
          point1 = (*env)->GetDoubleArrayElements( env, jPoint1, NULL );
          point2 = (*env)->GetDoubleArrayElements( env, jPoint2, NULL );
-         ASTCALL(
+         THASTCALL( jniastList( 2, frame, unc ),
             pointer.Box = astBox( frame, (int) form, point1, point2, unc, "" );
          )
          ALWAYS(
@@ -59,7 +59,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Box_construct(
             (*env)->ReleaseDoubleArrayElements( env, jPoint2, point2,
                                                 JNI_ABORT );
          )
-         jniastSetPointerField( env, this, pointer );
+         jniastInitObject( env, this, pointer );
       }
    }
 }

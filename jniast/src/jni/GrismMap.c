@@ -35,5 +35,5 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_GrismMap_construct(
    ASTCALL(
        pointer.GrismMap = astGrismMap( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }

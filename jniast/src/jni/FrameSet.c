@@ -39,10 +39,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FrameSet_construct(
 
    if ( jniastCheckNotNull( env, jFrame ) ) {
       frame = jniastGetPointerField( env, jFrame );
-      ASTCALL(
+      THASTCALL( jniastList( 1, frame.AstObject ),
          pointer.FrameSet = astFrameSet( frame.Frame, "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 
@@ -66,7 +66,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FrameSet_addFrame(
       frame = jniastGetPointerField( env, jFrame );
 
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 3, pointer.AstObject, map.AstObject,
+                                frame.AstObject ),
          astAddFrame( pointer.FrameSet, (int) iframe, map.Mapping,
                       frame.Frame );
       )
@@ -82,7 +83,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_FrameSet_getFrame(
    AstFrame *frame;
 
    /* Call the C function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       frame = astGetFrame( pointer.FrameSet, (int) iframe );
    )
 
@@ -100,7 +101,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_FrameSet_getMapping(
    AstMapping *map;
 
    /* Call the C function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       map = astGetMapping( pointer.FrameSet, (int) iframe1, (int) iframe2 );
    )
 
@@ -124,7 +125,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FrameSet_remapFrame(
       map = jniastGetPointerField( env, jMap );
       
       /* Call the C function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 2, pointer.AstObject, map.AstObject ),
          astRemapFrame( pointer.FrameSet, (int) iframe, map.Mapping );
       )
    }
@@ -138,7 +139,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FrameSet_removeFrame(
    AstPointer pointer = jniastGetPointerField( env, this );
 
    /* Call the C function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astRemoveFrame( pointer.FrameSet, (int) iframe );
    )
 }

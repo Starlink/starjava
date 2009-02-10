@@ -10,7 +10,7 @@
 *     ANSI C.
 
 *  Authors:
-*     Mark Taylo 
+*     Mark Taylor
 
 *  History:
 *     15-JUL-2005 (MBT):
@@ -63,7 +63,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Circle_construct(
            jniastCheckArrayLength( env, jPoint, psize ) ) {
          centre = (*env)->GetDoubleArrayElements( env, jCentre, NULL );
          point = (*env)->GetDoubleArrayElements( env, jPoint, NULL );
-         ASTCALL(
+         THASTCALL( jniastList( 2, frame, unc ),
             pointer.Circle = 
                astCircle( frame, (int) form, centre, point, unc, "" );
          )
@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Circle_construct(
             (*env)->ReleaseDoubleArrayElements( env, jPoint, point,
                                                 JNI_ABORT );
          )
-         jniastSetPointerField( env, this, pointer );
+         jniastInitObject( env, this, pointer );
       }
    }
 }

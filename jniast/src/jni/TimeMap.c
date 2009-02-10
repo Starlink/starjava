@@ -37,7 +37,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeMap_construct(
    ASTCALL(
       pointer.TimeMap = astTimeMap( (int) flags, "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeMap_timeAdd(
@@ -54,7 +54,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeMap_timeAdd(
       args = jniastCopyDoubleArray( env, jArgs, 16 );
 
       /* Call the AST function to do the work. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astTimeAdd( pointer.TimeMap, cvt, args );
       )
    
@@ -64,7 +64,3 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TimeMap_timeAdd(
       )
    }
 }
-
-
-
-

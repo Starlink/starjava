@@ -122,7 +122,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Channel_read(
    /* Call the AST function to do the work.  This will in turn invoke
     * sourceWrap() which will invoke the (non-native) source instance 
     * method. */
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       readObj = astRead( pointer.Channel );
    )
 
@@ -176,7 +176,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Channel_write(
 
       /* Call the AST function to do the work.  This will in turn invoke 
        * sinkWrap() which will invoke the (non-native) sink instance method. */
-      ASTCALL(
+      THASTCALL( jniastList( 2, pointer.AstObject, itempointer.AstObject ),
          nwrite = astWrite( pointer.Channel, itempointer.AstObject );
       )
 
@@ -225,7 +225,7 @@ static void constructFlavouredChannel( JNIEnv *env, jobject this,
 
    /* Store the pointer to the AST object in an instance variable. */
    if ( ! (*env)->ExceptionCheck( env ) ) {
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 

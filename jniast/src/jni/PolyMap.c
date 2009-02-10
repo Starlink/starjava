@@ -72,6 +72,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PolyMap_construct(
                                                 JNI_ABORT );
          }
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

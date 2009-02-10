@@ -33,7 +33,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecFrame_construct(
    ASTCALL(
       pointer.SpecFrame = astSpecFrame( "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_SpecFrame_getRefPos(
@@ -58,7 +58,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_SpecFrame_getRefPos(
    }
 
    /* Call the AST function to do the work. */ 
-   ASTCALL(
+   THASTCALL( jniastList( 2, pointer.AstObject, frmPointer.AstObject ),
       astGetRefPos( pointer.SpecFrame, frmPointer.SkyFrame, &lon, &lat );
    )
 
@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecFrame_setRefPos(
    }
 
    /* Call the AST function to do the work. */
-   ASTCALL(
+   THASTCALL( jniastList( 2, pointer.AstObject, frmPointer.AstObject ),
       astSetRefPos( pointer.SpecFrame, frmPointer.SkyFrame, 
                     (double) lon, (double) lat );
    )

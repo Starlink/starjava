@@ -38,7 +38,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_construct(
    ASTCALL(
       pointer.SlaMap = astSlaMap( (int) flags, "" );
    );
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
@@ -55,7 +55,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
       cvt = jniastGetUTF( env, jCvt );
       args = jniastCopyDoubleArray( env, jArgs, 16 );
 
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astSlaAdd( pointer.SlaMap, cvt, args );
       )
 

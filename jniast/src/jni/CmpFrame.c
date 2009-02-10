@@ -43,11 +43,11 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_CmpFrame_construct(
       frm1Pointer = jniastGetPointerField( env, jFrame1 );
       frm2Pointer = jniastGetPointerField( env, jFrame2 );
 
-      ASTCALL(
+      THASTCALL( jniastList( 2, frm1Pointer.AstObject, frm2Pointer.AstObject ),
          pointer.CmpFrame = astCmpFrame( frm1Pointer.Frame, frm2Pointer.Frame,
                                          "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 

@@ -38,10 +38,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SpecFluxFrame_construct(
         jniastCheckNotNull( env, jFluxfrm ) ) {
       specfrm = jniastGetPointerField( env, jSpecfrm );
       fluxfrm = jniastGetPointerField( env, jFluxfrm );
-      ASTCALL(
+      THASTCALL( jniastList( 2, specfrm.AstObject, fluxfrm.AstObject ),
          pointer.SpecFluxFrame = astSpecFluxFrame( specfrm.SpecFrame,
                                                    fluxfrm.FluxFrame, "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

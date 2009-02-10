@@ -62,12 +62,12 @@ static void initializeIDs( JNIEnv *env );
  * can access it.  It relies on the fact that the ASTCALL macro 
  * locks an object, effectively synchronizing all calls to the AST 
  * library, to be thread-safe. */
-#define PLOTCALL( code ) \
+#define THPLOTCALL( ast_objs, code ) \
    { \
       jobject _plotcall_grf; \
       if ( ( _plotcall_grf = jniastCheckNotNull( env, \
               (*env)->GetObjectField( env, this, PlotGrfFieldID ) ) ) ) { \
-         ASTCALL( \
+         THASTCALL( ast_objs, \
             CurrentInfo = &_currentinfo; \
             CurrentInfo->env = env; \
             CurrentInfo->grf = _plotcall_grf; \
@@ -111,7 +111,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
                 (*env)->GetDoubleArrayElements( env, jBasebox, NULL );
 
       /* Call the AST Plot constructor function. */
-      ASTCALL(
+      THASTCALL( jniastList( 1, frmpointer.AstObject ),
          pointer.Plot = astPlot( frmpointer.Frame, graphbox, basebox, "" );
       )
 
@@ -130,7 +130,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
       )
 
       /* Set the pointer field to hold the AST pointer for this object. */
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }
 
@@ -140,7 +140,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_border(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       astBorder( pointer.Plot );
    )
 }
@@ -158,7 +158,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Plot_boundingBox(
    float h;
 
    /* Get the bounding box from AST. */
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       astBoundingBox( pointer.Plot, lbnd, ubnd );
    )
 
@@ -197,7 +197,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
    /* Treat the case in which clipping is being removed specially, since
     * bounds checking would cause problems. */
    if ( (int) iframe == AST__NOFRAME ) {
-      PLOTCALL(
+      THPLOTCALL( jniastList( 1, pointer.AstObject ),
          astClip( pointer.Plot, (int) iframe, NULL, NULL );
       )
    }
@@ -205,10 +205,11 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
    /* Check that the arrays contain enough elements, to defend against
     * segmentation faults. */
    else {
-      ASTCALL(
-         frm = astGetFrame( pointer.Frame, iframe );
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         frm = astGetFrame( pointer.FrameSet, iframe );
+         nax = astGetI( frm, "Naxes" );
+         frm = astAnnul( frm );
       )
-      nax = jniastGetNaxes( env, frm );
       if ( jniastCheckArrayLength( env, jLbnd, nax ) &&
            jniastCheckArrayLength( env, jUbnd, nax ) ) {
 
@@ -219,7 +220,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
                 (*env)->GetDoubleArrayElements( env, jUbnd, NULL );
    
          /* Call the C function to do the work. */
-         PLOTCALL(
+         THPLOTCALL( jniastList( 1, pointer.AstObject ),
             astClip( pointer.Plot, (int) iframe, lbnd, ubnd );
          )
 
@@ -252,7 +253,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_curve(
               (*env)->GetDoubleArrayElements( env, jStart, NULL );
       finish = (const double *)
                (*env)->GetDoubleArrayElements( env, jFinish, NULL );
-      PLOTCALL(
+      THPLOTCALL( jniastList( 1, pointer.AstObject ),
          astCurve( pointer.Plot, start, finish );
       )
       ALWAYS(
@@ -280,7 +281,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_genCurve(
 
    mappointer = jniastGetPointerField( env, map );
    if ( mappointer.Mapping != NULL ) {
-      PLOTCALL(
+      THPLOTCALL( jniastList( 2, pointer.AstObject, mappointer.AstObject ),
          astGenCurve( pointer.Plot, mappointer.Mapping );
       )
    }
@@ -292,7 +293,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_grid(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       astGrid( pointer.Plot );
    )
 }
@@ -314,7 +315,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_gridLine(
    if ( jniastCheckArrayLength( env, jStart, nax ) ) {
       start = (const double *)
               (*env)->GetDoubleArrayElements( env, jStart, NULL );
-      PLOTCALL(
+      THPLOTCALL( jniastList( 1, pointer.AstObject ),
          astGridLine( pointer.Plot, (int) axis, start, (double) length );
       )
       ALWAYS(
@@ -354,7 +355,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_mark(
       }
    }
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       astMark( pointer.Plot, (int) nmark, (int) ncoord, (int) nmark, 
                (const double *) in, (int) type );
    )
@@ -389,7 +390,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_polyCurve(
       }
    }
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       astPolyCurve( pointer.Plot, (int) npoint, (int) ncoord, (int) npoint,
                     (const double *) in );
    )
@@ -423,7 +424,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_text(
       (*env)->GetFloatArrayRegion( env, jUp, 0, 2, (float *) up );
       pos = (const double *)
             (*env)->GetDoubleArrayElements( env, jPos, NULL );
-      PLOTCALL(
+      THPLOTCALL( jniastList( 1, pointer.AstObject ),
          astText( pointer.Plot, text, pos, up, just );
       )
       ALWAYS(
@@ -455,7 +456,7 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_Plot_getC(
    jstring jValue = NULL;
    const char *value;
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       value = astGetC( pointer.Plot, attrib );
    )
    jniastReleaseUTF( env, jAttrib, attrib );
@@ -476,7 +477,7 @@ JNIEXPORT Xjtype JNICALL Java_uk_ac_starlink_ast_Plot_get##Xletter( \
    const char *attrib = jniastGetUTF( env, jAttrib ); \
    Xjtype value; \
  \
-   PLOTCALL( \
+   THPLOTCALL( jniastList( 1, pointer.AstObject ), \
       value = (Xjtype) astGet##Xletter( pointer.Plot, attrib ); \
    ) \
    jniastReleaseUTF( env, jAttrib, attrib ); \
@@ -498,7 +499,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_setC(
    const char *attrib = jniastGetUTF( env, jAttrib );
    const char *value = jniastGetUTF( env, jValue );
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       astSetC( pointer.Plot, attrib, value );
    )
    jniastReleaseUTF( env, jAttrib, attrib );
@@ -515,7 +516,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_set##Xletter( \
    AstPointer pointer = jniastGetPointerField( env, this ); \
    const char *attrib = jniastGetUTF( env, jAttrib ); \
  \
-   PLOTCALL( \
+   THPLOTCALL( jniastList( 1, pointer.AstObject ), \
       astSet##Xletter( pointer.Plot, attrib, (Xtype) value ); \
    ) \
    jniastReleaseUTF( env, jAttrib, attrib ); \
@@ -539,7 +540,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_set(
       setbuf = jniastEscapePercents( env, settings );
       jniastReleaseUTF( env, jSettings, settings );
 
-      PLOTCALL(
+      THPLOTCALL( jniastList( 1, pointer.AstObject ),
          astSet( pointer.Plot, setbuf );
       )
 
@@ -556,7 +557,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_Plot_test(
    const char *attrib = jniastGetUTF( env, jAttrib );
    int result;
 
-   PLOTCALL(
+   THPLOTCALL( jniastList( 1, pointer.AstObject ),
       result = astTest( pointer.Plot, attrib );
    )
    jniastReleaseUTF( env, jAttrib, attrib );

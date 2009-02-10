@@ -208,12 +208,6 @@ print <<'__EOT__';
         return copy;
     }
 
-    public Object clone() {
-        Object clone = super.clone();
-        ((Plot) clone).grfobj = this.grfobj;
-        return clone;
-    }
-
     /*
      * It is necessary to override the getter and setter methods, since
      * at least some of these reference the grf object belonging to this

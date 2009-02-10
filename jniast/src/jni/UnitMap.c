@@ -38,6 +38,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_UnitMap_construct(
    ASTCALL(
       pointer.UnitMap = astUnitMap( (int) ncoord, "" );
    )
-   jniastSetPointerField( env, this, pointer );
+   jniastInitObject( env, this, pointer );
 }
 /* $Id$ */

@@ -42,10 +42,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_TranMap_construct(
        map1Pointer = jniastGetPointerField( env, jMap1 );
        map2Pointer = jniastGetPointerField( env, jMap2 );
 
-       ASTCALL(
+       THASTCALL( jniastList( 2, map1Pointer.AstObject, map2Pointer.AstObject ),
           pointer.TranMap = astTranMap( map1Pointer.Mapping, 
                                         map2Pointer.Mapping, "" );
        )
-       jniastSetPointerField( env, this, pointer );
+       jniastInitObject( env, this, pointer );
    }
 }

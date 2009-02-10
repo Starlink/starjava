@@ -49,14 +49,14 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Interval_construct(
            jniastCheckArrayLength( env, jUbnd, naxes ) ) {
           lbnd = (*env)->GetDoubleArrayElements( env, jLbnd, NULL );
           ubnd = (*env)->GetDoubleArrayElements( env, jUbnd, NULL );
-          ASTCALL(
+          THASTCALL( jniastList( 2, frame, unc ),
              pointer.Interval = astInterval( frame, lbnd, ubnd, unc, "" );
           )
           ALWAYS(
              (*env)->ReleaseDoubleArrayElements( env, jLbnd, lbnd, JNI_ABORT );
              (*env)->ReleaseDoubleArrayElements( env, jUbnd, ubnd, JNI_ABORT );
           )
-          jniastSetPointerField( env, this, pointer );
+          jniastInitObject( env, this, pointer );
       }
    }
 }

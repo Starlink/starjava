@@ -52,10 +52,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Ellipse_construct(
       (*env)->GetDoubleArrayRegion( env, jCentre, 0, 2, centre );
       (*env)->GetDoubleArrayRegion( env, jPoint1, 0, 2, point1 );
       (*env)->GetDoubleArrayRegion( env, jPoint2, 0, 2, point2 );
-      ASTCALL(
+      THASTCALL( jniastList( 2, frame, unc ),
          pointer.Ellipse = astEllipse( frame, (int) form, centre, 
                                        point1, point2, unc, "" );
       )
-      jniastSetPointerField( env, this, pointer );
+      jniastInitObject( env, this, pointer );
    }
 }

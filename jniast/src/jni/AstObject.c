@@ -262,7 +262,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_annul(
    jobject this          /* Instance object */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-
    ASTCALL(
       astAnnul( pointer.AstObject );
    )
@@ -275,6 +274,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_delete(
    AstPointer pointer = jniastGetPointerField( env, this );
 
    ASTCALL(
+      astLock( pointer.AstObject, 0 );
       astDelete( pointer.AstObject );
    )
 }
@@ -287,7 +287,7 @@ JNIEXPORT void JNICALL  Java_uk_ac_starlink_ast_AstObject_clear(
    AstPointer pointer = jniastGetPointerField( env, this );
    const char *attrib = jniastGetUTF( env, jAttrib );
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astClear( pointer.AstObject, attrib );
    )
    jniastReleaseUTF( env, jAttrib, attrib );
@@ -302,10 +302,10 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_AstObject_clone(
    jobject newobj;
 
    newobj = (*env)->AllocObject( env, (*env)->GetObjectClass( env, this ) );
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       newpointer.AstObject = astClone( pointer.AstObject );
    )
-   jniastSetPointerField( env, newobj, newpointer );
+   jniastInitObject( env, newobj, newpointer );
    return newobj;
 }
 
@@ -319,10 +319,10 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_AstObject_copy(
    jobject newobj;
 
    newobj = (*env)->AllocObject( env, (*env)->GetObjectClass( env, this ) );
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       newpointer.AstObject = astCopy( pointer.AstObject );
    )
-   jniastSetPointerField( env, newobj, newpointer );
+   jniastInitObject( env, newobj, newpointer );
    return newobj;
 }
 
@@ -336,7 +336,7 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_AstObject_getC(
    jstring jValue = NULL;
    const char *value;
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       value = astGetC( pointer.AstObject, attrib );
    )
    jniastReleaseUTF( env, jAttrib, attrib );
@@ -357,7 +357,7 @@ JNIEXPORT Xjtype JNICALL Java_uk_ac_starlink_ast_AstObject_get##Xletter( \
    const char *attrib = jniastGetUTF( env, jAttrib ); \
    Xjtype value; \
  \
-   ASTCALL( \
+   THASTCALL( jniastList( 1, pointer.AstObject ), \
       value = (Xjtype) astGet##Xletter( pointer.AstObject, attrib ); \
    ) \
    jniastReleaseUTF( env, jAttrib, attrib ); \
@@ -379,7 +379,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_setC(
    const char *attrib = jniastGetUTF( env, jAttrib );
    const char *value = jniastGetUTF( env, jValue );
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astSetC( pointer.AstObject, attrib, value );
    )
    jniastReleaseUTF( env, jAttrib, attrib );
@@ -396,7 +396,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_set##Xletter( \
    AstPointer pointer = jniastGetPointerField( env, this ); \
    const char *attrib = jniastGetUTF( env, jAttrib ); \
  \
-   ASTCALL( \
+   THASTCALL( jniastList( 1, pointer.AstObject ), \
       astSet##Xletter( pointer.AstObject, attrib, (Xtype) value ); \
    ) \
    jniastReleaseUTF( env, jAttrib, attrib ); \
@@ -420,7 +420,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_set(
       setbuf = jniastEscapePercents( env, settings );
       jniastReleaseUTF( env, jSettings, settings );
       
-      ASTCALL(
+      THASTCALL( jniastList( 1, pointer.AstObject ),
          astSet( pointer.AstObject, setbuf );
       )
 
@@ -434,7 +434,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_show(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       astShow( pointer.AstObject );
    )
 }
@@ -448,7 +448,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_AstObject_test(
    const char *attrib = jniastGetUTF( env, jAttrib );
    int result;
 
-   ASTCALL(
+   THASTCALL( jniastList( 1, pointer.AstObject ),
       result = astTest( pointer.AstObject, attrib );
    )
    jniastReleaseUTF( env, jAttrib, attrib );

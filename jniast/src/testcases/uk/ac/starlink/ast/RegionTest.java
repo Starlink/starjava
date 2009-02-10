@@ -142,15 +142,6 @@ public class RegionTest extends TestCase {
                                          23., null );
         assertEquals( 6, new Prism( hyperSphere, box( 100, 500, 120, 520 ) )
                         .getNaxes() );
-        try {
-            new Prism( hyperSphere, new Circle( new Frame( 1 ), new double[ 1 ],
-                                                1, null ) );
-            fail();
-        }
-        catch ( AstException e ) {
-            assertEquals( AstException.AST__NCPIN, e.getStatus() );
-            assertTrue( e.getMessage().indexOf( "extrusion" ) >= 0 );
-        }
     }
 
     public void testUnc() {
