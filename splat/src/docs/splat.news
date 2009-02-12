@@ -28,21 +28,21 @@
    The filter box has been changed so that rebin is now the default option.
 
    A  new menu item for removing all line identifiers from a plot has been
-   added. 
-
-   New facilities for making the rendering settings (polyline, histogram, 
-   point type, line thickness etc.) for the current spectrum the default 
-   for new spectra, and in future sessions have been added.  Note that 
-   the colour of the spectrum will not be re-used unless you have switched 
-   off automatically colouring.
-
-   Shades of yellow will no longer be used when automatically assigning
-   a colour for a spectrum. This should avoid problems distinguishing
-   spectra from the white background.
+   added.
 
    A fuller description of the items shown in the JAC plot synopsis
    has been added to SUN/243.
+
+   The colours that are automatically selected for spectra will no longer
+   include shades of yellow. These tend to be indistinctive on a white 
+   background.
+
+   The properties used for rendering the current spectrum (line style, width
+   colour etc.) can now be saved as the default properties and will persist
+   between sessions. Note that the colour of the spectrum will not be re-used
+   unless you have switched off automatically colouring.
  
+
    3.8-8
    =====
 
