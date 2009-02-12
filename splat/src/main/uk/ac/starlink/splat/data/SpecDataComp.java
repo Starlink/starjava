@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
- * Copyright (C) 2008 Science and Technology Facilities Council
+ * Copyright (C) 2008-2009 Science and Technology Facilities Council
  *
  *  History:
  *     21-SEP-2000 (Peter W. Draper):
@@ -552,13 +552,13 @@ public class SpecDataComp
      */
     public void remove( SpecData inspec )
     {
-	int index = spectra.indexOf( inspec );
+        int index = spectra.indexOf( inspec );
         spectra.remove( inspec );
         mappings.remove( inspec );
         checkCurrentSpectrumRemoved( inspec );
-	if ( index != -1 ) {
-	    fireListDataRemoved( index );
-	}
+        if ( index != -1 ) {
+            fireListDataRemoved( index );
+        }
     }
 
     /**
@@ -588,10 +588,10 @@ public class SpecDataComp
             fireListDataChanged( lower, upper );
         }
         else if ( lower != -1 && upper == -1 ) {
-	    fireListDataRemoved( lower );
+            fireListDataRemoved( lower );
         }
         else if ( lower == -1 && upper != -1 ) {
-	    fireListDataRemoved( upper );
+            fireListDataRemoved( upper );
         }
     }
 
@@ -604,6 +604,25 @@ public class SpecDataComp
     {
         SpecData spectrum = (SpecData) spectra.get( index );
         remove( spectrum );
+    }
+
+    /**
+     *  Remove all spectra of a given class.
+     *
+     *  @param clazz the class of the spectra to remove.
+     */
+    public void remove( Class clazz )
+    {
+        ArrayList list = new ArrayList();
+        for ( int i = spectra.size() - 1; i >= 0; i-- ) {
+            Object spectrum = spectra.get( i );
+            if ( clazz.isInstance( spectrum ) ) {
+                list.add( spectrum );
+            }
+        }
+        if ( list.size() > 0 ) {
+            remove( (SpecData []) list.toArray( new SpecData[0] ) );
+        }
     }
 
     /**
