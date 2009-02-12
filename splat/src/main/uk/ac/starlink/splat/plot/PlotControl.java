@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
  * Copyright (C) 2006 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  * History:
  *    16-SEP-1999 (Peter W. Draper):
@@ -64,6 +64,7 @@ import uk.ac.starlink.diva.DragRegion;
 import uk.ac.starlink.diva.FigureChangedEvent;
 import uk.ac.starlink.diva.FigureListener;
 import uk.ac.starlink.splat.data.DataLimits;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -1293,12 +1294,22 @@ public class PlotControl
         if ( picked instanceof SpecFrame ) {
             try {
                 double[] range = spectra.getRange();
-                manager.matchDisplayLoad( (SpecFrame) picked, range, all, this );
+                manager.matchDisplayLoad( (SpecFrame) picked, range, all, 
+                                          this );
             }
             catch (SplatException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Unload all line identifiers displayed in this plot.
+     */
+    public void unloadLineIDs()
+    {
+        spectra.remove( LineIDSpecData.class );
+        updatePlot();
     }
 
     /**
