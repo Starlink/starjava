@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     1-JAN-2003 (Peter W. Draper):
@@ -307,8 +308,8 @@ public class SpecFilterFrame
         splitPane.setLeftComponent( tabbedPane );
         splitPane.setRightComponent( initRegionUI() );
 
-        initAverageUI();
         initBinUI();
+        initAverageUI();
         initMedianUI();
         initProfilesUI();
         initWaveletUI();
@@ -638,19 +639,19 @@ public class SpecFilterFrame
         boolean useHistogram = false;
         switch ( tabbedPane.getSelectedIndex() ) {
             case 0: {
-                // Average.
-                int value = averageWidth.getIntValue();
-                prefs.putInt( "SpecFilterFrame_averagewindow", value );
-                newSpec = filter.averageFilter( currentSpectrum, value,
-                                                ranges, include );
-            }
-            break;
-            case 1: {
                 // Rebin.
                 int value = rebinWidth.getIntValue();
                 prefs.putInt( "SpecFilterFrame_rebinwidth", value );
                 newSpec = filter.rebinFilter( currentSpectrum, value );
                 useHistogram = true;
+            }
+            break;
+            case 1: {
+                // Average.
+                int value = averageWidth.getIntValue();
+                prefs.putInt( "SpecFilterFrame_averagewindow", value );
+                newSpec = filter.averageFilter( currentSpectrum, value,
+                                                ranges, include );
             }
             break;
             case 2: {
