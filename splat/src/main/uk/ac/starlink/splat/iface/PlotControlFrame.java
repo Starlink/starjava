@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
- * Copyright (C) 2007-2008 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
  *     29-SEP-2000 (Peter W. Draper):
@@ -179,6 +179,7 @@ public class PlotControlFrame
     protected JMenuItem loadAllLineIDs = null;
     protected JMenuItem loadLoadedLineIDs = null;
     protected JMenuItem removeCurrent = null;
+    protected JMenuItem unloadLineIDs = null;
     protected PlotGraphicsClipMenuItem clipGraphics = null;
 
     /**
@@ -379,8 +380,8 @@ public class PlotControlFrame
         //  Set up the Analysis menu.
         setupAnalysisMenu();
 
-	//  Set up the Edit ment.
-	setupEditMenu();
+        //  Set up the Edit ment.
+        setupEditMenu();
 
         //  Set up the Options menu.
         setupOptionsMenu();
@@ -741,6 +742,11 @@ public class PlotControlFrame
             ( "Load all matching pre-loaded line identifiers" );
         lineOptionsMenu.add( loadLoadedLineIDs );
         loadLoadedLineIDs.addActionListener( this );
+
+        //  Unload all line identifiers.
+        unloadLineIDs = new JMenuItem( "Unload all line identifiers" );
+        lineOptionsMenu.add( unloadLineIDs );
+        unloadLineIDs.addActionListener( this );
 
         //  Make labels track the position of the current spectrum.
         trackerLineIDs =
@@ -2064,6 +2070,11 @@ public class PlotControlFrame
 
         if ( source.equals( loadLoadedLineIDs ) ) {
             plot.loadLineIDs( false, LocalLineIDManager.getInstance() );
+            return;
+        }
+
+        if ( source.equals( unloadLineIDs ) ) {
+            plot.unloadLineIDs();
             return;
         }
     }
