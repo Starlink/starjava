@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Science and Technlogy Facilities Council
+ * Copyright (C) 2008-2009 Science and Technlogy Facilities Council
  *
  *  History:
  *     18-DEC-2008 (Peter W. Draper):
@@ -131,16 +131,22 @@ public class PlotStackerFrame
         contentPane.add( centre, BorderLayout.CENTER );
 
         //  Whether to apply the offsets.
-        applyOffsets.setToolTipText( "Apply offsets to ordered spectra" );
+        applyOffsets.setToolTipText( "Toggle whether the offsets are used" );
         layouter.add( new JLabel( "Apply offsets:" ), false );
         layouter.add( applyOffsets, true );
-        applyOffsets.setSelected( false );
+        applyOffsets.setSelected( true );
+        applyOffsets.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    apply();
+                }
+            });
 
         //  Expression for deciding the spectral ordering.
         JLabel exprLabel = new JLabel( "Order expression:" );
         layouter.add( exprLabel, false );
-        orderExpression.setToolTipText( "Expression that evaluates FITS " + 
-                                        "keywords to give an ordered number" );
+        orderExpression.setToolTipText( "Expression that evaluates FITS " +
+                                        "keywords to give an ordered " +
+                                        "number, empty for any order." );
         layouter.add( orderExpression, true );
 
         //  The offset in physical units of the current spectrum.
@@ -217,7 +223,7 @@ public class PlotStackerFrame
      */
     protected void apply()
     {
-        plot.getPlot().setUsePlotStacker( applyOffsets.isEnabled() );
+        plot.getPlot().setUsePlotStacker( applyOffsets.isSelected() );
         PlotStacker stacker = plot.getPlot().getPlotStacker();
         stacker.setExpression( orderExpression.getText() );
         stacker.setShift( offsetField.getDoubleValue() );
