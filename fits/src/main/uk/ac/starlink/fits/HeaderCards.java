@@ -88,7 +88,7 @@ public class HeaderCards {
      * @return  string value, or null
      */
     public String getStringValue( String key ) {
-        return containsKey( key ) ? hdr_.getStringValue( key )
+        return containsKey( key ) ? hdr_.findCard( key ).getValue()
                                   : null;
     }
 
