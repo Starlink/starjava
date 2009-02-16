@@ -777,6 +777,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
+      <env key="ADDCFLAGS" value="${stardev.addcflags}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
@@ -790,6 +791,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
+      <env key="ADDCFLAGS" value="${stardev.addcflags}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
@@ -803,6 +805,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
+      <env key="ADDCFLAGS" value="${stardev.addcflags}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
@@ -816,6 +819,7 @@
       <env key="STARLINK" value="${stardev}"/>
       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
+      <env key="ADDCFLAGS" value="${stardev.addcflags}"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
