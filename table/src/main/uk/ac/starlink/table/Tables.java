@@ -264,8 +264,8 @@ public class Tables {
                 if ( cell != null ) {
                     if ( ! classes[ icol ]
                           .isAssignableFrom( cell.getClass() ) ) {
-                        throw new AssertionError( "Column " + icol + ": " +
-                            cell + " is a " + cell.getClass().getName() + 
+                        throw new AssertionError( "Column " + ( icol + 1 ) +
+                            ": " + cell + " is a " + cell.getClass().getName() +
                             " not a " + classes[ icol ].getName() );
                     }
                 }
