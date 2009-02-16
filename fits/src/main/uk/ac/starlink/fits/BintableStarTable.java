@@ -5,6 +5,8 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -57,7 +59,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
     /** Column aux metadata key for TZEROn cards. */
     public final static ValueInfo TZERO_INFO = new DefaultValueInfo(
         "Zero",
-        Double.class,
+        Number.class,
         "Offset for values (TZEROn card)" );
 
     /** Column aux metadata key for TDISPn cards. */
@@ -80,6 +82,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
         TNULL_INFO, TSCAL_INFO, TZERO_INFO, TDISP_INFO, TBCOL_INFO, TFORM_INFO,
     } );
+
+    /** BigInteger equal to 2^63 (== Long.MAX_VALUE + 1). */
+    static final BigInteger TWO63 = BigInteger.ONE.shiftLeft( 63 );
 
     /**
      * Constructs a StarTable from a given random access stream.
@@ -316,8 +321,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
             }
 
             /* Scaling. */
-            double scale;
-            double zero;
+            final double scale;
+            final Number zero;
             if ( cards.containsKey( "TSCAL" + jcol ) ) {
                 scale = cards.getDoubleValue( "TSCAL" + jcol ).doubleValue();
                 auxdata.add( new DescribedValue( TSCAL_INFO,
@@ -327,12 +332,42 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 scale = 1.0;
             }
             if ( cards.containsKey( "TZERO" + jcol ) ) {
-                zero = cards.getDoubleValue( "TZERO" + jcol ).doubleValue();
-                auxdata.add( new DescribedValue( TZERO_INFO,
-                                                 new Double( zero ) ) );
+
+                /* Careful here.  For unsigned long values, the TZERO value
+                 * is 9223372036854775808 == 2^63 == Long.MAX_VALUE+1,
+                 * i.e. not storable in a long (out of range) or a double
+                 * (loses precision).  So we need to be prepared to use
+                 * arbitrary precision numbers.  Check the javadocs when
+                 * manipulating these, behaviour is sometimes surprising. */
+                String zstr = cards.getStringValue( "TZERO" + jcol );
+                BigDecimal zbig = new BigDecimal( zstr );
+                boolean zIsInt =
+                    zbig.compareTo( new BigDecimal( zbig.toBigInteger() ) )
+                    == 0;
+                boolean zInLongRange =
+                    zbig.compareTo( new BigDecimal(
+                             BigInteger.valueOf( Long.MIN_VALUE ) ) ) >= 0 &&
+                    zbig.compareTo( new BigDecimal(
+                             BigInteger.valueOf( Long.MAX_VALUE ) ) ) <= 0;
+                Object zval;
+                if ( zbig.compareTo( new BigDecimal( TWO63 ) ) == 0 ) {
+                    zero = TWO63;
+                    zval = zstr;
+                }
+                else if ( zIsInt && zInLongRange ) {
+                    zero = new Long( zbig.longValue() );
+                    zval = zero;
+                }
+                else {
+                    zero = new Double( zbig.doubleValue() );
+                    zval = zero;
+                }
+                DefaultValueInfo zInfo = new DefaultValueInfo( TZERO_INFO );
+                zInfo.setContentClass( zval.getClass() );
+                auxdata.add( new DescribedValue( zInfo, zval ) );
             }
             else {
-                zero = 0.0;
+                zero = new Long( 0 );
             }
 
             /* Format code (recorded but otherwise ignored). */

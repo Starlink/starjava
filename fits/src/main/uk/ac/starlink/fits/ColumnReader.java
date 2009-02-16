@@ -2,6 +2,8 @@ package uk.ac.starlink.fits;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -107,7 +109,7 @@ abstract class ColumnReader {
      *
      * @param   tform  TFORM string from FITS header for column
      * @param   scale  factor to scale numerical values by
-     * @param   zero   offset to add to numerical values
+     * @param   zeroNum   offset to add to numerical values
      * @param   hasBlank  true if a magic value is regarded as blank
      * @param   blank   value represnting magic null value
      *                  (only used if hasBlank is true)
@@ -119,7 +121,7 @@ abstract class ColumnReader {
      * @return  a reader suitable for reading this type of column
      */
     public static ColumnReader createColumnReader( String tform, double scale,
-                                                   double zero,
+                                                   Number zeroNum,
                                                    boolean hasBlank,
                                                    long blank, int[] tdims,
                                                    String ttype,
@@ -183,7 +185,7 @@ abstract class ColumnReader {
             if ( heapStart > 0 ) {
                 char vtype = matchA.charAt( 0 );
                 final ArrayReader aReader =
-                    createArrayReader( vtype, scale, zero,
+                    createArrayReader( vtype, scale, zeroNum,
                                        hasBlank, blank, dims );
                 return new ColumnReader( aReader.getContentClass(),
                                          aReader.getShape(), 8 ) {
@@ -236,7 +238,7 @@ abstract class ColumnReader {
             if ( heapStart > 0 ) {
                 char vtype = matchA.charAt( 0 );
                 final ArrayReader aReader =
-                    createArrayReader( vtype, scale, zero,
+                    createArrayReader( vtype, scale, zeroNum,
                                        hasBlank, blank, dims );
                 return new ColumnReader( aReader.getContentClass(),
                                          aReader.getShape(), 16 ) {
@@ -286,14 +288,15 @@ abstract class ColumnReader {
 
         /* Scalar value case. */
         else if ( count == 1 ) {
-            return createScalarColumnReader( type, scale, zero,
+            return createScalarColumnReader( type, scale, zeroNum,
                                              hasBlank, blank );
         }
 
         /* Fixed size array case. */
         else {
             final ArrayReader aReader =
-                createArrayReader( type, scale, zero, hasBlank, blank, dims );
+                createArrayReader( type, scale, zeroNum,
+                                   hasBlank, blank, dims );
             return new ColumnReader( aReader.getContentClass(),
                                      aReader.getShape(),
                                      aReader.getByteCount( count ) ) {
@@ -312,19 +315,20 @@ abstract class ColumnReader {
      *
      * @param   type  TFORM data type character
      * @param   scale  factor to scale numerical values by
-     * @param   zero   offset to add to numerical values
+     * @param   zeroNum   offset to add to numerical values
      * @param   hasBlank  true if a magic value is regarded as blank
      * @param   blank   value represnting magic null value
      *                  (only used if hasBlank is true)
      * @return  new column reader
      */
     private static ColumnReader createScalarColumnReader(
-            char type, final double scale, final double zero,
+            char type, final double scale, final Number zeroNum,
             final boolean hasBlank, final long blank ) {
-        final boolean isScaled = ( scale != 1.0 || zero != 0.0 );
-        final boolean isOffset = ( scale == 1.0 && zero != 0.0 );
-        final boolean intOffset = isOffset &&
-                                  (double) Math.round( zero ) == zero;
+        final long lZero = zeroNum.longValue();
+        final double dZero = zeroNum.doubleValue();
+        final boolean isScaled = ( scale != 1.0 || dZero != 0.0 );
+        final boolean isOffset = ( scale == 1.0 && dZero != 0.0 );
+        final boolean intOffset = isOffset && isInteger( zeroNum );
         final ColumnReader reader;
         switch ( type ) {
 
@@ -353,9 +357,8 @@ abstract class ColumnReader {
              * can transform a FITS byte directly into a java one. */
             case 'B':
                 final short mask = (short) 0x00ff;
-                boolean shortable = intOffset && zero >= Short.MIN_VALUE
-                                              && zero < Short.MAX_VALUE - 256;
-                final short sZero = (short) zero;
+                boolean shortable = intOffset && dZero >= Short.MIN_VALUE
+                                              && dZero < Short.MAX_VALUE - 256;
                 //  if ( zero == -128.0 && scale == 1.0 ) {
                 //      reader = new ColumnReader( Byte.class, 1 ) {
                 //          Object readValue( DataInput stream )
@@ -369,6 +372,7 @@ abstract class ColumnReader {
                 //      };
                 //  }
                 if ( shortable ) {
+                    final short sZero = (short) lZero;
                     reader = new ColumnReader( Short.class, 1 ) {
                         Object readValue( DataInput stream )
                                 throws IOException {
@@ -389,7 +393,7 @@ abstract class ColumnReader {
                             return ( hasBlank && val == (byte) blank )
                                         ? null
                                         : new Float( ( val & mask )
-                                                     * scale + zero );
+                                                     * scale + dZero );
                         }
                     };
                 }
@@ -409,7 +413,22 @@ abstract class ColumnReader {
 
             /* Short. */
             case 'I':
-                if ( isScaled ) {
+                boolean intable = intOffset
+                               && dZero > Integer.MIN_VALUE - Short.MIN_VALUE
+                               && dZero < Integer.MAX_VALUE - Short.MAX_VALUE;
+                if ( intable ) {
+                    final int iZero = (int) lZero;
+                    reader = new ColumnReader( Integer.class, 2 ) {
+                        Object readValue( DataInput stream )
+                                throws IOException {
+                            short val = stream.readShort();
+                            return ( hasBlank && val == (short) blank )
+                                        ? null
+                                        : new Integer( (int) ( val + iZero ) );
+                        }
+                    };
+                }
+                else if ( isScaled ) {
                     reader = new ColumnReader( Float.class, 2 ) {
                         Object readValue( DataInput stream )
                                 throws IOException {
@@ -417,7 +436,7 @@ abstract class ColumnReader {
                             return ( hasBlank && val == (short) blank )
                                         ? null
                                         : new Float( (float)
-                                                   ( val * scale + zero ) );
+                                                   ( val * scale + dZero ) );
                         }
                     };
                 }
@@ -436,14 +455,28 @@ abstract class ColumnReader {
 
             /* Integer. */
             case 'J':
-                if ( isScaled ) {
+                boolean longable = intOffset
+                                && dZero > Long.MIN_VALUE - Integer.MIN_VALUE
+                                && dZero < Long.MAX_VALUE - Integer.MAX_VALUE;
+                if ( longable ) {
+                    reader = new ColumnReader( Long.class, 4 ) {
+                        Object readValue( DataInput stream )
+                                throws IOException {
+                            long val = stream.readInt();
+                            return ( hasBlank && val == (int) blank )
+                                        ? null
+                                        : new Long( (long) ( val + lZero ) );
+                        }
+                    };
+                }
+                else if ( isScaled ) {
                     reader = new ColumnReader( Double.class, 4 ) {
                         Object readValue( DataInput stream )
                                 throws IOException {
                             int val = stream.readInt();
                             return ( hasBlank && val == (int) blank )
                                         ? null
-                                        : new Double( val * scale + zero );
+                                        : new Double( val * scale + dZero );
                         }
                     };
                 }
@@ -462,14 +495,57 @@ abstract class ColumnReader {
 
             /* Long. */
             case 'K':
-                if ( isScaled ) {
+                if ( zeroNum.equals( BintableStarTable.TWO63 ) &&
+                     scale == 1.0 ) {
+                    long lMin = Long.MIN_VALUE;
+                    long lMax = -1L;
+                    final LongRanger ranger =
+                        new LongRanger( lMin, lMax, zeroNum, "null" );
+                    reader = new ColumnReader( Long.class, 8 ) {
+                        Object readValue( DataInput stream )
+                                throws IOException {
+                            long val = stream.readLong();
+                            if ( hasBlank && val == (long) blank ) {
+                                return null;
+                            }
+                            else {
+                                return ranger.inRange( val )
+                                     ? new Long( val + Long.MAX_VALUE + 1L )
+                                     : null;
+                            }
+                        }
+                    };
+                }
+                else if ( intOffset ) {
+                    long lMin = lZero < 0 ? Long.MIN_VALUE - lZero
+                                          : Long.MIN_VALUE;
+                    long lMax = lZero > 0 ? Long.MAX_VALUE - lZero
+                                          : Long.MAX_VALUE;
+                    final LongRanger ranger =
+                       new LongRanger( lMin, lMax, zeroNum, "null" );
+                    reader = new ColumnReader( Long.class, 8 ) {
+                        Object readValue( DataInput stream )
+                                throws IOException {
+                            long val = stream.readLong();
+                            if ( hasBlank && val == (long) blank ) {
+                                return null;
+                            }
+                            else {
+                                return ranger.inRange( val )
+                                     ? new Long( val + lZero )
+                                     : null;
+                            }
+                        }
+                    };
+                }
+                else if ( isScaled ) {
                     reader = new ColumnReader( Double.class, 8 ) {
                         Object readValue( DataInput stream )
                                 throws IOException {
                             long val = stream.readLong();
                             return ( hasBlank && val == (long) blank )
                                         ? null
-                                        : new Double( val * scale + zero );
+                                        : new Double( val * scale + dZero );
                         }
                     };
                 }
@@ -504,7 +580,7 @@ abstract class ColumnReader {
                         Object readValue( DataInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
-                            return new Float( val * scale + zero );
+                            return new Float( val * scale + dZero );
                         }
                     };
                 }
@@ -526,7 +602,7 @@ abstract class ColumnReader {
                         Object readValue( DataInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
-                            return new Double( val );
+                            return new Double( val * scale + dZero );
                         }
                     };
                 }
@@ -535,7 +611,7 @@ abstract class ColumnReader {
                         Object readValue( DataInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
-                            return new Double( val * scale + zero );
+                            return new Double( val );
                         }
                     };
                 }
@@ -547,8 +623,8 @@ abstract class ColumnReader {
                 final int[] complexDims = new int[] { 2 };
                 final ArrayReader complexReader =
                     type == 'C'
-                        ? createFloatsArrayReader( complexDims, scale, zero )
-                        : createDoublesArrayReader( complexDims, scale, zero );
+                        ? createFloatsArrayReader( complexDims, scale, dZero )
+                        : createDoublesArrayReader( complexDims, scale, dZero );
                 return new ColumnReader( complexReader.getContentClass(),
                                          complexDims,
                                          complexReader.getByteCount( 2 ) ) {
@@ -570,7 +646,7 @@ abstract class ColumnReader {
      *
      * @param   type  TFORM data type character
      * @param   scale  factor to scale numerical values by
-     * @param   zero   offset to add to numerical values
+     * @param   zeroNum   offset to add to numerical values
      * @param   hasBlank  true if a magic value is regarded as blank
      * @param   blank   value represnting magic null value
      *                  (only used if hasBlank is true)
@@ -579,14 +655,15 @@ abstract class ColumnReader {
      * @return  new array reader
      */
     private static ArrayReader createArrayReader( char type, final double scale,
-                                                  final double zero,
+                                                  final Number zeroNum,
                                                   final boolean hasBlank,
                                                   final long blank,
                                                   final int[] dims ) {
-        final boolean isScaled = ( scale != 1.0 || zero != 0.0 );
-        final boolean isOffset = ( scale == 1.0 && zero != 0.0 );
-        final boolean intOffset = isOffset &&
-                                  (double) Math.round( zero ) == zero;
+        final long lZero = zeroNum.longValue();
+        final double dZero = zeroNum.doubleValue();
+        final boolean isScaled = ( scale != 1.0 || dZero != 0.0 );
+        final boolean isOffset = ( scale == 1.0 && dZero != 0.0 );
+        final boolean intOffset = isOffset && isInteger( zeroNum );
         final ArrayReader reader;
         switch ( type ) {
 
@@ -637,9 +714,8 @@ abstract class ColumnReader {
              * can transform a FITS byte directly into a java one. */
             case 'B':
                 final short mask = (short) 0x00ff;
-                boolean shortable = intOffset && zero >= Short.MIN_VALUE
-                                              && zero < Short.MAX_VALUE - 256;
-                final short sZero = (short) zero;
+                boolean shortable = intOffset && dZero >= Short.MIN_VALUE
+                                              && dZero < Short.MAX_VALUE - 256;
                 //  if ( zero == -128.0 && scale == 1.0 ) {
                 //      reader = new ColumnReader( byte[].class, dims,
                 //                                 1 * count ) {
@@ -655,6 +731,7 @@ abstract class ColumnReader {
                 //      };
                 //  }
                 if ( shortable ) {
+                    final short sZero = (short) lZero;
                     reader = new ArrayReader( short[].class, dims, 1 ) {
                         Object readArray( DataInput stream, int count )
                                 throws IOException {
@@ -671,14 +748,14 @@ abstract class ColumnReader {
                     reader = new ArrayReader( float[].class, dims, 1 ) {
                         Object readArray( DataInput stream, int count )
                                 throws IOException {
-                            double[] value = new double[ count ];
+                            float[] value = new float[ count ];
                             for ( int i = 0; i < count; i++ ) {
                                 byte val = stream.readByte();
                                 value[ i ] =
                                     ( hasBlank && val == (byte) blank )
                                          ? Float.NaN
                                          : (float) ( ( val & mask )
-                                                     * scale + zero );
+                                                     * scale + dZero );
                             }
                             return value;
                         }
@@ -701,17 +778,34 @@ abstract class ColumnReader {
 
             /* Short. */
             case 'I':
-                if ( isScaled ) {
+                boolean intable = intOffset
+                               && dZero > Integer.MIN_VALUE - Short.MIN_VALUE
+                               && dZero < Integer.MAX_VALUE - Short.MAX_VALUE;
+                if ( intable ) {
+                    final int iZero = (int) lZero;
+                    reader = new ArrayReader( int[].class, dims, 2 ) {
+                        Object readArray( DataInput stream, int count )
+                                throws IOException {
+                            int[] value = new int[ count ];
+                            for ( int i = 0; i < count; i++ ) {
+                                short val = stream.readShort();
+                                value[ i ] = (int) ( val + iZero );
+                            }
+                            return value;
+                        }
+                    };
+                }
+                else if ( isScaled ) {
                     reader = new ArrayReader( float[].class, dims, 2 ) {
                         Object readArray( DataInput stream, int count )
                                 throws IOException {
-                            double[] value = new double[ count ];
+                            float[] value = new float[ count ];
                             for ( int i = 0; i < count; i++ ) {
                                 short val = stream.readShort();
                                 value[ i ] =
                                     ( hasBlank && val == (short) blank )
                                          ? Float.NaN
-                                         : (float) ( val * scale + zero );
+                                         : (float) ( val * scale + dZero );
                             }
                             return value;
                         }
@@ -734,7 +828,23 @@ abstract class ColumnReader {
 
             /* Integer. */
             case 'J':
-                if ( isScaled ) {
+                boolean longable = intOffset
+                                && dZero > Long.MIN_VALUE - Integer.MIN_VALUE
+                                && dZero < Long.MAX_VALUE - Integer.MAX_VALUE;
+                if ( longable ) {
+                    reader = new ArrayReader( long[].class, dims, 4 ) {
+                        Object readArray( DataInput stream, int count )
+                                throws IOException {
+                            long[] value = new long[ count ];
+                            for ( int i = 0; i < count; i++ ) {
+                                int val = stream.readInt();
+                                value[ i ] = (long) ( val + lZero );
+                            }
+                            return value;
+                        }
+                    };
+                }
+                else if ( isScaled ) {
                     reader = new ArrayReader( double[].class, dims, 4 ) {
                         Object readArray( DataInput stream, int count )
                                 throws IOException {
@@ -744,7 +854,7 @@ abstract class ColumnReader {
                                 value[ i ] =
                                     ( hasBlank && val == (int) blank )
                                          ? Double.NaN
-                                         : val * scale + zero;
+                                         : val * scale + dZero;
                             }
                             return value;
                         }
@@ -768,7 +878,50 @@ abstract class ColumnReader {
 
             /* Long. */
             case 'K':
-                if ( isScaled ) {
+                if ( zeroNum.equals( BintableStarTable.TWO63 ) &&
+                     scale == 1.0 ) {
+                    long lMin = Long.MIN_VALUE;
+                    long lMax = -1L;
+                    final LongRanger ranger =
+                        new LongRanger( lMin, lMax, zeroNum,
+                                        Long.toString( Long.MIN_VALUE ) );
+                    reader = new ArrayReader( long[].class, dims, 8 ) {
+                        Object readArray( DataInput stream, int count )
+                                throws IOException {
+                            long[] value = new long[ count ];
+                            for ( int i = 0; i < count; i++ ) {
+                                long val = stream.readLong();
+                                value[ i ] = ranger.inRange( val )
+                                           ? val + Long.MAX_VALUE + 1L
+                                           : Long.MIN_VALUE;
+                            }
+                            return value;
+                        }
+                    };
+                }
+                else if ( intOffset ) {
+                    long lMax = lZero > 0 ? Long.MAX_VALUE - lZero
+                                          : Long.MAX_VALUE;
+                    long lMin = lZero < 0 ? Long.MIN_VALUE - lZero
+                                          : Long.MIN_VALUE;
+                    final LongRanger ranger =
+                        new LongRanger( lMin, lMax, zeroNum,
+                                        Long.toString( Long.MIN_VALUE ) );
+                    reader = new ArrayReader( long[].class, dims, 8 ) {
+                        Object readArray( DataInput stream, int count )
+                                throws IOException {
+                            long[] value = new long[ count ];
+                            for ( int i = 0; i < count; i++ ) {
+                                long val = stream.readLong();
+                                value[ i ] = ranger.inRange( val )
+                                           ? val + lZero
+                                           : Long.MIN_VALUE;
+                            }
+                            return value;
+                        }
+                    };
+                }
+                else if ( isScaled ) {
                     reader = new ArrayReader( double[].class, dims, 8 ) {
                         Object readArray( DataInput stream, int count )
                                 throws IOException {
@@ -778,7 +931,7 @@ abstract class ColumnReader {
                                 value[ i ] =
                                     ( hasBlank && val == (long) blank )
                                          ? Double.NaN
-                                         : val * scale + zero;
+                                         : val * scale + dZero;
                             }
                             return value;
                         }
@@ -845,21 +998,21 @@ abstract class ColumnReader {
 
             /* Floating point. */
             case 'E':
-                return createFloatsArrayReader( dims, scale, zero );
+                return createFloatsArrayReader( dims, scale, dZero );
 
             /* Double precision. */
             case 'D':
-                return createDoublesArrayReader( dims, scale, zero );
+                return createDoublesArrayReader( dims, scale, dZero );
 
             /* Single precision complex. */
             case 'C':
                 return createFloatsArrayReader( complexShape( dims ),
-                                                scale, zero );
+                                                scale, dZero );
 
             /* Double precision complex. */
             case 'M':
                 return createDoublesArrayReader( complexShape( dims ),
-                                                 scale, zero );
+                                                 scale, dZero );
 
             /* No known TFORM type. */
             default:
@@ -996,6 +1149,86 @@ abstract class ColumnReader {
             shape[ 0 ] = 2;
             System.arraycopy( dims, 0, shape, 1, dims.length );
             return shape;
+        }
+    }
+
+    /**
+     * Indicates whether a Number value is an integer type or not.
+     * Makes some assumptions about the types it may have been passed.
+     *
+     * @param  num   value
+     * @return   true  iff num is an integer type
+     */
+    private static boolean isInteger( Number num ) {
+        if ( num instanceof Byte ||
+             num instanceof Short ||
+             num instanceof Integer ||
+             num instanceof Long ) {
+            return true;
+        }
+        else if ( num instanceof BigInteger ) {
+            BigInteger bnum = (BigInteger) num;
+            return bnum.compareTo( BigInteger.valueOf( Long.MIN_VALUE ) ) >= 0
+                && bnum.compareTo( BigInteger.valueOf( Long.MAX_VALUE ) ) <= 0;
+        }
+        else {
+            assert num instanceof Float ||
+                   num instanceof Double ||
+                   num instanceof BigDecimal;
+            return false;
+        }
+    }
+
+    /**
+     * Assesses whether long values are within a given range.
+     * The first time that a value out of range is encountered, 
+     * a warning message is written through the logging system.
+     */
+    private static class LongRanger {
+        private final long lMin_;
+        private final long lMax_;
+        private final Number zeroNum_;
+        private final String failReturn_;
+        private boolean hasWarned_;
+
+        /**
+         * Constructor.
+         *
+         * @param   lMin  minimum permitted value
+         * @param   lMax  maximum permitted value
+         * @param   zeroNum   offset value (used in log messages)
+         * @param   failRetrun  substitute value in case of range miss
+         *                      (used in log messages)
+         */
+        LongRanger( long lMin, long lMax, Number zeroNum, String failReturn  ) {
+            lMin_ = lMin;
+            lMax_ = lMax;
+            zeroNum_ = zeroNum;
+            failReturn_ = failReturn;
+        }
+
+        /**
+         * Determines whether a given value is in range.
+         * Warns through logging system the first time false is returned.
+         *
+         * @param  lval   value to assess
+         * @return  true iff lMin &lt;= lval &lt;= lMax
+         */
+        boolean inRange( long lval ) {
+            if ( lval >= lMin_ && lval <= lMax_ ) {
+                return true;
+            }
+            else {
+                if ( ! hasWarned_ ) {
+                    String msg = "Cannot represent large offset long values"
+                               + " - will return " + failReturn_
+                               + " (offset=" + zeroNum_ + ";"
+                               + " first value=" + lval + ")";
+                    logger_.warning( msg );
+                    hasWarned_ = true;
+                }
+                return false;
+            }
         }
     }
 

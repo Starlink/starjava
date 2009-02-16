@@ -6162,6 +6162,24 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fits BINTABLE TZERO/TSCAL value reading improvements:
+       <ul>
+       <li>Columns with integer TZERO values now read as integers
+           rather than floating point values where possible.  
+           This includes unsigned longs ('K'), which were previously 
+           represented as doubles with lost precision.  
+           Unsigned longs which are too large however (&gt;2<sup>63</sup>) 
+           are read as nulls.</li>
+       <li>More comprehensive testing.</li> 
+       <li>Fixed bug in calculating value scaled double ('D') values.</li>
+       <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
+       </ul></li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
