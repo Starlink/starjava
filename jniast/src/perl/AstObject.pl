@@ -139,6 +139,16 @@ print <<'__EOT__';
     static native String getAstConstantC( String constname );
 
     /**
+     * Indicates whether the package is running in threaded mode or not.
+     * If true, multiple AST calls may execute at once (though there are
+     * per-object locks).  Otherwise, only one AST call is ever in progress
+     * at any one time.
+     *
+     * @return   true iff JNIAST is operating in threaded mode
+     */
+    public static native boolean isThreaded();
+
+    /**
      * Annul this object.  Associated resources in the underlying library
      * are reclaimed.  Following this call the object cannot be used.
      *
@@ -282,6 +292,8 @@ print <<'__EOT__';
             .append( "; " )
             .append( "JNIAST java " )
             .append( reportVersion( JNIAST_JAVA_VERSION ) )
+            .append( "; " )
+            .append( isThreaded() ? "threaded" : "unthreaded" )
             .toString();
     }
 

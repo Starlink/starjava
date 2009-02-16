@@ -254,6 +254,13 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantC(
    return result;
 }
 
+JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_AstObject_isThreaded(
+   JNIEnv *env,
+   jclass class
+) {
+   return JNIAST_THREADS ? JNI_TRUE : JNI_FALSE;
+}
+
 
 /* Instance methods. */
 
