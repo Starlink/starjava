@@ -58,7 +58,7 @@ public abstract class Transformer2 extends Transformer {
      *           <code>npoint</code>-element array of the output X coordinates,
      *           and the second element is an
      *           <code>npoint</code>-element array of the output Y coordinates
-     * throws  Exception   If an error occurs during the transformation,
+     * @throws  Exception  If an error occurs during the transformation,
      *                     this method may throw an Exception.  In this
      *                     case the transformation will be aborted.
      */
