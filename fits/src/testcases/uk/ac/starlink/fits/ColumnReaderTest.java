@@ -61,7 +61,7 @@ public class ColumnReaderTest extends TestCase {
      * the FITS standard.
      */
     public void testRead() throws IOException {
-        URL url = BintableTest.class.getResource( "0-9.fits" );
+        URL url = ColumnReaderTest.class.getResource( "0-9.fits" );
         StarTable table = new FitsTableBuilder()
                          .makeStarTable( new URLDataSource( url ), true,
                                          StoragePolicy.PREFER_MEMORY );
