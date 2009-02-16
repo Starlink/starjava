@@ -158,12 +158,21 @@ void jniastTrace( JNIEnv *env, jobject obj );
 
 /*
  * Define whether multithreading will be used in invoking the AST library.
+ * Interestingly, some rudimentary benchmarking suggests that when running
+ * multithreaded the code does indeed occupy multiple cores of a 
+ * multi-core processor, but the elapsed time doesn't seem much different
+ * from the non-threaded case - i.e. scaling is poor.  So it might make
+ * sense to turn threading off in any case.  But for now leave it on.
  */
-#ifdef AST__THREADSAFE
+#define yes (1)
+#define no (0)
+#if AST__THREADSAFE
 #define JNIAST_THREADS (1)
 #else
 #define JNIAST_THREADS (0)
 #endif
+#undef no
+#undef yes
 
 /*
  * Macro for calling a code block which uses AST-like conventions for
