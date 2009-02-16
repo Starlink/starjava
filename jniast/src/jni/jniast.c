@@ -7,7 +7,7 @@
 *     Common functions for JNI code used to harness the AST library.
 
 *  Description:
-*     These functions may be used to do useful things by modulces 
+*     These functions may be used to do useful things by modules 
 *     implementing AST functionality using JNI.  All are safe to 
 *     call, and where applicable return a null result, if an
 *     exception is pending.
@@ -27,6 +27,7 @@
 /* Header files. */
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 #include "jni.h"
 #include "ast.h"
 #include "jniast.h"
@@ -76,7 +77,6 @@ void jniastInitialize( JNIEnv *env ) {
 */
    jclass objclass;
    jclass classclass;
-   int status;
 
    ( ! (*env)->ExceptionCheck( env ) ) &&
 
@@ -161,12 +161,13 @@ void jniastInitialize( JNIEnv *env ) {
                            (*env)->GetMethodID( env, objclass, "<init>", 
                                                 "()V" ) ) ) ) &&
 
-   1;
+   /* Initialize thread-specifics. */
+   ( ! jniastPthreadKeyCreate( env, &env_key, NULL ) ) &&
 
-   /* Initialise error reporting machinery. */
-   if ( status = jniastErrInit() ) {
-      jniastThrowError( env, "pthread initialization error %d", status );
-   }
+   /* Initialisations for other components. */
+   ( ! jniastErrInit( env ) ) &&
+
+   1;
 }
 
 void *jniastMalloc( JNIEnv *env, size_t size ) {
@@ -528,6 +529,74 @@ AstObject **jniastList( int count, ... ) {
    else {
       return NULL;
    }
+}
+
+int jniastPthreadKeyCreate( JNIEnv *env, pthread_key_t *key,
+                            void (*destructor)(void *) ) {
+/*+
+*  Name:
+*     jniastPthreadKeyCreate
+
+*  Purpose:
+*     Wraps pthread_key_create() providing JNI error handling.
+
+*  Description:
+*     Invokes pthread_key_create(key,destructor), and in case of error
+*     throws an exception via the supplied JNI interface.
+*     See pthread_key_create(3) for more details.
+
+*  Parameters:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+*     key = pthread_key_t *
+*        Address into which the new key will be written.
+*     destructor = void (*)( void * )
+*        Will be called on the key's thread-specific value at thread
+*        destruction time.
+
+*  Return value:
+*     Zero for success, non-zero for failure.
+*-
+*/
+   int status;
+   status = pthread_key_create( key, destructor );
+   if ( status ) {
+      jniastThrowError( env, "pthread initialization error %d", status );
+   }
+   return status;
+}
+
+int jniastPthreadSetSpecific( JNIEnv *env, pthread_key_t key, void *value ) {
+/*+
+*  Name:
+*     jniastPthreadSetSpecific
+
+*  Purpose:
+*     Wraps pthread_setspecific() providing JNI error handling.
+
+*  Description:
+*     Invokes pthread_set_specific(key,value), and in case of error
+*     throws an exception via the supplied JNI interface.
+*     See pthread_setspecific(3) for more details.
+
+*  Parameters:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+*     key = pthread_key_t
+*        Key set up by earlier pthread_create_key call.
+*     value = void *
+*        Value to be bound to key in this thread.
+
+*   Return value:
+*      Zero for success, non-zero for failure.
+*-
+*/
+   int status;
+   status = pthread_setspecific( key, value );
+   if ( status ) {
+      jniastThrowError( env, "pthread_setspecific error %d", status );
+   }
+   return status;
 }
 
 int jniastGetNaxes( JNIEnv *env, AstFrame *frame ) {

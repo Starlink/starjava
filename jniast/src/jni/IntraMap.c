@@ -30,14 +30,13 @@
 
 /* Typedefs. */
 typedef struct {
-   JNIEnv *env;
    jobject trans;
    jmethodID tranpID;
 } IntraInfo;
    
 
 /* Static functions. */
-static void getIntraInfo( AstIntraMap *map, JNIEnv **envp, 
+static void getIntraInfo( JNIEnv *env, AstIntraMap *map,
                           jobject *transp, jmethodID *tranpIDp );
 static void setIntraInfo( JNIEnv *env, AstIntraMap *map, jobject trans );
 static void clearIntraInfo( JNIEnv *env, AstIntraMap *map );
@@ -285,7 +284,8 @@ static void tranWrap( AstMapping *map, int npoint, int ncoord_in,
    int i;
 
    /* Retrieve the auxiliary information about this IntraMap. */
-   getIntraInfo( (AstIntraMap *) map, &env, &trans, &tranpID );
+   env = jniastGetEnv();
+   getIntraInfo( env, (AstIntraMap *) map, &trans, &tranpID );
 
    /* Prepare arguments for calling the java IntraMap object's tranP method. */
    if ( ! (*env)->ExceptionCheck( env ) ) {
@@ -369,7 +369,6 @@ static void setIntraInfo( JNIEnv *env, AstIntraMap *map, jobject trans ) {
    if ( ! (*env)->ExceptionCheck( env ) ) {
       tclass = (*env)->GetObjectClass( env, trans );
       info = jniastMalloc( env, sizeof( IntraInfo ) );
-      info->env = env;
       info->trans = (*env)->NewGlobalRef( env, trans );
       info->tranpID = (*env)->GetMethodID( env, tclass, "tranP", 
                                            "(II[[DZI)[[D" );
@@ -380,7 +379,7 @@ static void setIntraInfo( JNIEnv *env, AstIntraMap *map, jobject trans ) {
 }
 
 
-static void getIntraInfo( AstIntraMap *map, JNIEnv **envp, jobject *transp,
+static void getIntraInfo( JNIEnv *env, AstIntraMap *map, jobject *transp,
                           jmethodID *tranpIDp ) {
 /*
 *+
@@ -396,11 +395,11 @@ static void getIntraInfo( AstIntraMap *map, JNIEnv **envp, jobject *transp,
 *     stored there using setInfo.
 
 *  Arguments:
+*     env = JNIEnv *
+*        Pointer to the JNI environment.
 *     map = AstIntraMap *
 *        The AST IntraMap object to retrieve information from.
 *        Must be locked on entry; will be locked on exit.
-*     envp = JNIEnv **
-*        The address of the variable to receive the JNI environment pointer.
 *     transp = jobject *
 *        The address of the variable to receive the Transformer 
 *        associated with the IntraMap.
@@ -409,29 +408,22 @@ static void getIntraInfo( AstIntraMap *map, JNIEnv **envp, jobject *transp,
 *        Transformer's tranP method.
 *-
 */
+   const char *intraflag;
    IntraInfo *info;
+   int nconv;
 
-   /* Read a pointer to the IntraInfo structure from the IntraFlag value. 
-    * Note we do not have an environment pointer yet, so we cannot use the
-    * ASTCALL macro.  If anything goes wrong (unlikely) we will have to
-    * bail out. */
-   {
-      int status_val = 0;
-      int *status = &status_val;
-      int *old_status = astWatch( status );
-      int nconv;
-      nconv = sscanf( astGetC( map, "IntraFlag" ), "%p", &info );
-      astWatch( old_status );
-      if ( *status || ( nconv != 1 ) ) {
-         fprintf( stderr, "IntraMap fatal: failed to get IntraInfo\n" );
-         exit( 1 );
+   /* Read a pointer to the IntraInfo structure from the IntraFlag value. */
+   intraflag = astGetC( map, "IntraFlag" );
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      nconv = sscanf( intraflag, "%p", &info );
+      if ( nconv != 1 ) {
+         jniastThrowError( env, "Error reading IntraFlag: %s", intraflag );
       }
-   }
 
-   /* Set the return variables from the structure. */
-   *envp = info->env;
-   *transp = info->trans;
-   *tranpIDp = info->tranpID;
+      /* Set the return variables from the structure. */
+      *transp = info->trans;
+      *tranpIDp = info->tranpID;
+   }
 }
 
 

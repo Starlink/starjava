@@ -34,6 +34,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "jni.h"
 
 /* Constants. */
 #define BUFLENG 1024
@@ -49,7 +50,6 @@ static pthread_key_t errInfo_key;
 
 /* Static functions. */
 static errInfo *getErrInfo();
-static void destroyErrInfo( void * );
 
 
 /* Public function. */
@@ -99,7 +99,7 @@ void astPutErr_( int status, const char *message ) {
 
 /* Package functions. */
 
-int jniastErrInit() {
+int jniastErrInit( JNIEnv *env ) {
 /*
 *  Name:
 *     jniastErrInit
@@ -110,10 +110,14 @@ int jniastErrInit() {
 *  Description:
 *     Must be called before any invocation of astPutErr_().
 
+*  Parameters:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+
 *  Return value:
 *     Zero if all is well; non-zero in case of some initialisation error.
 */
-   return pthread_key_create( &errInfo_key, destroyErrInfo );
+   return jniastPthreadKeyCreate( env, &errInfo_key, free );
 }
 
 errInfo *getErrInfo() {
@@ -138,21 +142,6 @@ errInfo *getErrInfo() {
       pthread_setspecific( errInfo_key, info );
    }
    return (errInfo *) info;
-}
-
-void destroyErrInfo( void *ptr ) {
-/*
-*  Name:
-*     destroErrInfo
-
-*  Purpose:
-*     errInfo structure destructor.
-
-*  Description:
-*     Releases resources associated with an errInfo struct.
-*     To be called during pthread destruction.
-*/
-   free( ptr );
 }
 
 void jniastClearErrMsg() {

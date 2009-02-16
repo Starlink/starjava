@@ -25,6 +25,7 @@
 /* Include files. */
 #include <stdlib.h>
 #include <float.h>
+#include <pthread.h>
 #include "ast.h"
 #include "jni.h"
 #include "err_jniast.h"
@@ -98,6 +99,7 @@ typedef AstStc *(*StcConstructor)( AstRegion *, int, AstKeyMap*[], const char *,
 
 /* External variables. */
 jobject AstLock;
+pthread_key_t env_key;
 jclass AstExceptionClass;
 jclass AstObjectClass;
 jclass DoubleClass;
@@ -128,6 +130,9 @@ void jniastInitObject( JNIEnv *env, jobject object, AstPointer pointer );
 void jniastLock( AstObject **ast_objs );
 void jniastUnlock( AstObject **ast_objs );
 AstObject **jniastList( int count, ... );
+int jniastPthreadCreateKey( JNIEnv *env, pthread_key_t *key,
+                            void (*destructor)( void * ) );
+int jniastPthreadSetSpecific( JNIEnv *env, pthread_key_t key, void *value );
 int jniastCheckArrayLength( JNIEnv *env, jarray jArray, int minel );
 jobject jniastCheckNotNull( JNIEnv *env, jobject jObject );
 jobject jniastMakeObject( JNIEnv *env, AstObject *objptr );
@@ -180,6 +185,7 @@ void jniastTrace( JNIEnv *env, jobject obj );
  * The macro takes no action if an exception is pending when it is called.
  */
 #define ASTCALL(code) \
+   jniastPthreadSetSpecific( env, env_key, env ); \
    if ( ! (*env)->ExceptionCheck( env ) ) { \
       jthrowable throwable = NULL; \
       int status_val = 0; \
@@ -216,7 +222,16 @@ void jniastTrace( JNIEnv *env, jobject obj );
       if ( throwable != NULL ) { \
          (*env)->Throw( env, throwable ); \
       } \
-   }
+   } \
+   jniastPthreadSetSpecific( env, env_key, NULL );
+
+/*
+ * Macro to return the current JNIEnv interface pointer.  May only be used
+ * in code that executes within the body of an ASTCALL macro, or code
+ * which is called by such code.
+ */
+#define jniastGetEnv() \
+   (JNIEnv *) pthread_getspecific( env_key );
 
 /*
  * Macro for calling a code block which acquires AST thread locks on a 
