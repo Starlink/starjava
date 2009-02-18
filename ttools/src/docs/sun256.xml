@@ -6173,6 +6173,9 @@ but my thanks are especially due to the following:
            represented as doubles with lost precision.  
            Unsigned longs which are too large however (&gt;2<sup>63</sup>) 
            are read as nulls.</li>
+       <li>Byte-valued columns can now be written out by fits-basic output
+           handler as signed byte values (TFORM=B,TZERO=-128) 
+           rather than signed shorts (TFORM=I).</li>
        <li>More comprehensive testing.</li> 
        <li>Fixed bug in calculating value scaled double ('D') values.</li>
        <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
