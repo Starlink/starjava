@@ -74,7 +74,7 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter {
 
     protected FitsTableSerializer createSerializer( StarTable table ) 
             throws IOException {
-        return new StandardFitsTableSerializer( table );
+        return new StandardFitsTableSerializer( table, false );
     }
 
     /**

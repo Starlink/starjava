@@ -477,7 +477,7 @@ public abstract class VOSerializer {
         }
         else if ( dataFormat == DataFormat.FITS ) {
             return new FITSVOSerializer(
-                table, new StandardFitsTableSerializer( table ) );
+                table, new StandardFitsTableSerializer( table, false ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             return new BinaryVOSerializer( table );
