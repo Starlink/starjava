@@ -359,19 +359,19 @@ abstract class ColumnReader {
                 final short mask = (short) 0x00ff;
                 boolean shortable = intOffset && dZero >= Short.MIN_VALUE
                                               && dZero < Short.MAX_VALUE - 256;
-                //  if ( zero == -128.0 && scale == 1.0 ) {
-                //      reader = new ColumnReader( Byte.class, 1 ) {
-                //          Object readValue( DataInput stream )
-                //                  throws IOException {
-                //              byte val = stream.readByte();
-                //              return ( hasBlank && val == (byte) blank )
-                //                          ? null
-                //                          : new Byte( (byte)
-                //                                      ( val ^ (byte) 0x80 ) );
-                //          }
-                //      };
-                //  }
-                if ( shortable ) {
+                if ( dZero == -128.0 && scale == 1.0 ) {
+                    reader = new ColumnReader( Byte.class, 1 ) {
+                        Object readValue( DataInput stream )
+                                throws IOException {
+                            byte val = stream.readByte();
+                            return ( hasBlank && val == (byte) blank )
+                                        ? null
+                                        : new Byte( (byte)
+                                                    ( val ^ (byte) 0x80 ) );
+                        }
+                    };
+                }
+                else if ( shortable ) {
                     final short sZero = (short) lZero;
                     reader = new ColumnReader( Short.class, 1 ) {
                         Object readValue( DataInput stream )
@@ -716,21 +716,20 @@ abstract class ColumnReader {
                 final short mask = (short) 0x00ff;
                 boolean shortable = intOffset && dZero >= Short.MIN_VALUE
                                               && dZero < Short.MAX_VALUE - 256;
-                //  if ( zero == -128.0 && scale == 1.0 ) {
-                //      reader = new ColumnReader( byte[].class, dims,
-                //                                 1 * count ) {
-                //          Object readValue( DataInput stream )
-                //                  throws IOException {
-                //              byte[] value = new byte[ count ];
-                //              for ( int i = 0; i < count; i++ ) {
-                //                  byte val = stream.readByte();
-                //                  value[ i ] = (byte) ( val ^ (byte) 0x80 );
-                //              }
-                //              return value;
-                //          }
-                //      };
-                //  }
-                if ( shortable ) {
+                if ( dZero == -128.0 && scale == 1.0 ) {
+                    reader = new ArrayReader( byte[].class, dims, 1 ) {
+                        Object readArray( DataInput stream, int count )
+                                throws IOException {
+                            byte[] value = new byte[ count ];
+                            for ( int i = 0; i < count; i++ ) {
+                                byte val = stream.readByte();
+                                value[ i ] = (byte) ( val ^ (byte) 0x80 );
+                            }
+                            return value;
+                        }
+                    };
+                }
+                else if ( shortable ) {
                     final short sZero = (short) lZero;
                     reader = new ArrayReader( short[].class, dims, 1 ) {
                         Object readArray( DataInput stream, int count )
