@@ -76,6 +76,7 @@
   <!ENTITY FIG.SampWindow_clients '&figs;SampWindow_clients.gif'>
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
   <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
+  <!ENTITY FIG.columnSelector '&figs;columnSelector.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -1924,7 +1925,8 @@ or contact the author.
 <li>To define a custom
     <ref id="activation" plaintextref="yes">Activation Action</ref>
     in the <ref id="ActivationQueryWindow">Activation</ref> dialogue.</li>
-<li>When faced with a column selector for plotting or other purposes,
+<li>When faced with a <ref id="columnSelector">column selector</ref>
+    for plotting or other purposes,
     in some cases you can type in an expression rather than selecting
     or typing a simple column name.</li>
 </ol>
@@ -4234,6 +4236,55 @@ This permits you to select which columns are visible and which are hidden.
 Clicking on the menu will give you a list of all the available columns
 in the table, each with a checkbox by it; click the box to toggle
 whether the column is displayed or not.
+</p>
+
+</subsubsect>
+
+<subsubsect id="columnSelector">
+<subhead><title>Column Selector</title></subhead>
+
+<figure>
+<caption><px>Editable Column Selector</px></caption>
+<figureimage src="&FIG.columnSelector;"/>
+</figure>
+
+<p>Several windows in TOPCAT invite you to select a column value from
+one of the loaded tables by presenting a selection box like the one in 
+the figure.
+Examples are the
+<ref id="PointSelector">Plot</ref> and
+<ref id="MatchWindow">Match</ref> windows.
+</p>
+
+<p>In the simplest case you can simply select the value from the list
+of columns by clicking on the down-arrow at the right and then selecting
+one from the drop-down list of columns which is offered.
+Note that only appropriate columns will be offered - for instance if
+a numeric value is required, string-valued columns will not be included.
+</p>
+
+<p>Another possibility is to use the little left/right arrows on the far
+right to cycle through all the known columns.  This can be useful in
+plots, for instance to see a sequence of all the available plots 
+against a given abcissa using only one click at a time.
+</p>
+
+<p>Finally, you can type in an expression giving the required value.
+This can either be the name of a column just as if you had selected
+it from the drop-down list, or an expression based on column names, 
+or even a constant value.  The syntax of the expression language is
+explained in <ref id="jel"/>.
+Typing the column name rather than selecting it may be more convenient
+if the selection list is very long; typing an expression obviously gives
+you a lot more possibilities.
+</p>
+
+<p>Note that depending on your platform the selection box may not look
+exactly like the figure above.  However, if you can type into it
+(probably by clicking on it) then you should be able to use expressions
+as described above.  Some selectors however only take column names;
+if you can't type a value into it, you have to choose one of the 
+options given.
 </p>
 
 </subsubsect>
@@ -9090,6 +9141,12 @@ Only suitable columns are available for choosing from these column
 selectors; in most cases this means numeric ones.
 </p>
 
+<p>Instead of selecting a column name from the list provided in these
+boxes, you may type in an expression.  This can be a column name,
+or an algebraic expression based on column names, or even a constant.
+The expression language syntax is described in <ref id="jel"/>.
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="matchRowSelect">
@@ -11748,6 +11805,7 @@ introduced since the last version:
        <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
        </ul></li>
     </ul>
+    <li>Added documentation section <ref id="columnSelector"/>.</li>
     </p></dd>
 
 </dl>
