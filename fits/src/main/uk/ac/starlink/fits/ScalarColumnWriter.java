@@ -67,10 +67,13 @@ abstract class ScalarColumnWriter implements ColumnWriter {
      * @param  cinfo   column metadata for column to be written
      * @param  nullableInt  true if the column contains integer values which
      *                      may be null
+     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
+     *          (TZERO=-128), if false bytes written as signed shorts
      * @return  new column writer, or null if we don't know how to do it
      */
     public static ScalarColumnWriter
-                  createColumnWriter( ColumnInfo cinfo, boolean nullableInt ) {
+                  createColumnWriter( ColumnInfo cinfo, boolean nullableInt,
+                                      boolean allowSignedByte ) {
         Class clazz = cinfo.getContentClass();
         Number blankNum = null;
         if ( nullableInt ) {
@@ -106,24 +109,41 @@ abstract class ScalarColumnWriter implements ColumnWriter {
 
             /* Byte is a bit tricky since a FITS byte is unsigned, while
              * a byte in a StarTable (a java byte) is signed. */
-            final byte[] buf = new byte[ 1 ];
-
-            final byte badVal = blankNum == null ? (byte) 0
-                                                 : blankNum.byteValue();
-            return new ScalarColumnWriter( 'B', 1,
-                                           nullableInt ? new Byte( badVal )
-                                                       : null ) {
-                public void writeValue( DataOutput stream, Object value )
-                        throws IOException {
-                    byte b = (value != null) ? ((Number) value).byteValue()
-                                             : badVal;
-                    buf[ 0 ] = (byte) ( b ^ (byte) 0x80 );
-                    stream.write( buf );
-                }
-                public double getZero() {
-                    return -128.0;
-                }
-            };
+            if ( allowSignedByte ) {
+                final byte[] buf = new byte[ 1 ];
+                final byte badVal = blankNum == null ? (byte) 0
+                                                     : blankNum.byteValue();
+                return new ScalarColumnWriter( 'B', 1,
+                                               nullableInt ? new Byte( badVal )
+                                                           : null ) {
+                    public void writeValue( DataOutput stream, Object value )
+                            throws IOException {
+                        byte b = (value != null) ? ((Number) value).byteValue()
+                                                 : badVal;
+                        buf[ 0 ] = (byte) ( b ^ (byte) 0x80 );
+                        stream.write( buf );
+                    }
+                    public double getZero() {
+                        return -128.0;
+                    }
+                };
+            }
+            else {
+                final short badVal = blankNum == null
+                                   ? (short) ( Byte.MIN_VALUE - (short) 1 )
+                                   : blankNum.shortValue();
+                return new ScalarColumnWriter( 'I', 2,
+                                               nullableInt ? new Short( badVal )
+                                                           : null ) {
+                    public void writeValue( DataOutput stream, Object value )
+                            throws IOException {
+                        short sval = ( value != null )
+                                ? ((Number) value).shortValue()
+                                : badVal;
+                        stream.writeShort( sval );
+                    }
+                };
+            }
         }
         else if ( clazz == Short.class ) {
             final short badVal = blankNum == null ? Short.MIN_VALUE

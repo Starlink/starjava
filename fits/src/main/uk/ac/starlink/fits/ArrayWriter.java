@@ -75,9 +75,12 @@ abstract class ArrayWriter {
      * Constructs a new ArrayWriter for a given array class.
      *
      * @param   clazz   array class which this writer should be able to write
+     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
+     *          (TZERO=-128), if false bytes written as signed shorts
      * @return  new ArrayWriter, or null if <code>clazz</code> can't be handled
      */
-    public static ArrayWriter createArrayWriter( Class clazz ) {
+    public static ArrayWriter createArrayWriter( Class clazz,
+                                                 boolean allowSignedByte ) {
 
         if ( clazz == boolean[].class ) {
             return new ArrayWriter( 'L', 1 ) {
@@ -95,15 +98,29 @@ abstract class ArrayWriter {
             };
         }
         else if ( clazz == byte[].class ) {
-            return new NormalArrayWriter( 'B', 1, new byte[] { (byte) 0 } ) {
-                public void writeElement( DataOutput out, Object array, int ix )
-                        throws IOException {
-                    out.writeByte( ((byte[]) array)[ ix ] ^ (byte) 0x80 );
-                }
-                public double getZero() {
-                    return -128.0;
-                }
-            };
+            if ( allowSignedByte ) {
+                return new NormalArrayWriter( 'B', 1,
+                                              new byte[] { (byte) 0 } ) {
+                    public void writeElement( DataOutput out, Object array,
+                                              int ix )
+                            throws IOException {
+                        out.writeByte( ((byte[]) array)[ ix ] ^ (byte) 0x80 );
+                    }
+                    public double getZero() {
+                        return -128.0;
+                    }
+                };
+            }
+            else {
+                return new NormalArrayWriter( 'I', 2,
+                                              new byte[] { (byte) 0 } ) {
+                    public void writeElement( DataOutput out, Object array,
+                                              int ix )
+                            throws IOException {
+                        out.writeShort( (short) ((byte[]) array)[ ix ] );
+                    }
+                };
+            }
         }
         else if ( clazz == short[].class ) {
             return new NormalArrayWriter( 'I', 2, new short[] { (short) 0 } ) {

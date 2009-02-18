@@ -359,7 +359,7 @@ public class FormatsTest extends TableCase {
     private void exerciseVarFits( boolean isLong ) throws IOException {
         File loc = getTempFile( "tv.fits" );
         StarTable t1 = table;
-        new VariableFitsTableWriter( isLong )
+        new VariableFitsTableWriter( isLong, true )
            .writeStarTable( t1, loc.toString(), sto );
         StarTable t2 = new StarTableFactory().makeStarTable( loc.toString() );
         int ncol = t2.getColumnCount();
@@ -394,9 +394,13 @@ public class FormatsTest extends TableCase {
                            new ColFitsTableBuilder(), "fits" );
         exerciseReadWrite( new ColFitsPlusTableWriter(),
                            new ColFitsPlusTableBuilder(), "votable" );
-        exerciseReadWrite( new VariableFitsTableWriter( false ),
+        exerciseReadWrite( new VariableFitsTableWriter( false, true ),
                            new FitsTableBuilder(), "fitsv" );
-        exerciseReadWrite( new VariableFitsTableWriter( true ),
+        exerciseReadWrite( new VariableFitsTableWriter( false, false ),
+                           new FitsTableBuilder(), "fitsv" );
+        exerciseReadWrite( new VariableFitsTableWriter( true, true ),
+                           new FitsTableBuilder(), "fitsv" );
+        exerciseReadWrite( new VariableFitsTableWriter( true, false ),
                            new FitsTableBuilder(), "fitsv" );
         exerciseReadWrite( new VOTableWriter(),
                            new VOTableBuilder(), "votable" );

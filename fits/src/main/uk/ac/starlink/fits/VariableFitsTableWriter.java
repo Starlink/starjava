@@ -25,6 +25,7 @@ import uk.ac.starlink.table.StoragePolicy;
 public class VariableFitsTableWriter extends AbstractFitsTableWriter {
 
     private final Boolean longIndexing_;
+    private final boolean allowSignedByte_;
     private StoragePolicy storagePolicy_;
 
     /**
@@ -33,18 +34,21 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
      * be larger than 2^31 bytes.
      */
     public VariableFitsTableWriter() {
-        this( null );
+        this( null, true );
     }
 
     /**
      * Constructs a writer forcing use of either 'P' or 'Q' format for
      * variable-length array columns.
-
+     *
      * @param  longIndexing  true for 'Q' (64-bit) indexing into the heap,
      *                      false for 'P' (32-bit) indexing into the heap
+     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
+     *          (TZERO=-128), if false bytes written as signed shorts
      */
-    public VariableFitsTableWriter( boolean longIndexing ) {
-        this( Boolean.valueOf( longIndexing ) );
+    public VariableFitsTableWriter( boolean longIndexing,
+                                    boolean allowSignedByte ) {
+        this( Boolean.valueOf( longIndexing ), allowSignedByte );
     }
 
     /**
@@ -53,10 +57,14 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
      * @param  longIndexing  TRUE for 'Q' (64-bit) indexing into the heap,
      *                      FALSE for 'P' (32-bit) indexing into the heap,
      *                       null to make a sensible choice
+     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
+     *          (TZERO=-128), if false bytes written as signed shorts
      */
-    private VariableFitsTableWriter( Boolean longIndexing ) {
+    private VariableFitsTableWriter( Boolean longIndexing,
+                                     boolean allowSignedByte ) {
         super( "fits-var" );
         longIndexing_ = longIndexing;
+        allowSignedByte_ = allowSignedByte;
         storagePolicy_ = StoragePolicy.getDefaultPolicy();
     }
 
@@ -88,7 +96,8 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
     protected FitsTableSerializer createSerializer( StarTable table )
             throws IOException {
         VariableFitsTableSerializer fitser =
-            new VariableFitsTableSerializer( table, storagePolicy_ );
+            new VariableFitsTableSerializer( table, storagePolicy_,
+                                             allowSignedByte_ );
         if ( longIndexing_ != null ) {
             fitser.set64BitMode( longIndexing_.booleanValue() );
         }
