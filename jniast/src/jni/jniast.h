@@ -161,18 +161,12 @@ void jniastTrace( JNIEnv *env, jobject obj );
  * Interestingly, some rudimentary benchmarking suggests that when running
  * multithreaded the code does indeed occupy multiple cores of a 
  * multi-core processor, but the elapsed time doesn't seem much different
- * from the non-threaded case - i.e. scaling is poor.  So it might make
- * sense to turn threading off in any case.  But for now leave it on.
+ * from the non-threaded case - i.e. scaling is poor, so maybe there's
+ * not much point in turning it on.  But it should increase responsiveness 
+ * in any case.  So leave it on for now, as long as the underlying AST 
+ * supports it.
  */
-#define yes (1)
-#define no (0)
-#if AST__THREADSAFE
-#define JNIAST_THREADS (1)
-#else
-#define JNIAST_THREADS (0)
-#endif
-#undef no
-#undef yes
+#define JNIAST_THREADS AST__THREADSAFE
 
 /*
  * Macro for calling a code block which uses AST-like conventions for
