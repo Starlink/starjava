@@ -31,13 +31,25 @@
 
 /* Header files. */
 #include "err_jniast.h"
+#include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "jni.h"
 
 /* Constants. */
 #define BUFLENG 1024
 
+/* Typedefs. */
+typedef struct {
+   int msgleng;
+   char buffer[ BUFLENG ];
+} errInfo;
+
 /* Static variables. */
-static char buffer[ BUFLENG ];
-static int msgleng = 0;
+static pthread_key_t errInfo_key;
+
+/* Static functions. */
+static errInfo *getErrInfo();
 
 
 /* Public function. */
@@ -72,19 +84,66 @@ void astPutErr_( int status, const char *message ) {
 *        newline characters.
 *-
 */
-   if ( msgleng < BUFLENG - 2 ) {
-      if ( msgleng > 0 ) {
-         buffer[ msgleng++ ] = '\n';
+   errInfo *info = getErrInfo();
+   if ( info->msgleng < BUFLENG - 2 ) {
+      if ( info->msgleng > 0 ) {
+         info->buffer[ info->msgleng++ ] = '\n';
       }
-      while ( msgleng < BUFLENG - 1 && *message != '\0' ) {
-         buffer[ msgleng++ ] = *(message++);
+      while ( info->msgleng < BUFLENG - 1 && *message != '\0' ) {
+         info->buffer[ info->msgleng++ ] = *(message++);
       }
-      buffer[ msgleng ] = '\0';
+      info->buffer[ info->msgleng ] = '\0';
    }
 }
 
 
 /* Package functions. */
+
+int jniastErrInit( JNIEnv *env ) {
+/*
+*  Name:
+*     jniastErrInit
+
+*  Purpose:
+*     Initialise JNIAST error reporting.
+
+*  Description:
+*     Must be called before any invocation of astPutErr_().
+
+*  Parameters:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+
+*  Return value:
+*     Zero if all is well; non-zero in case of some initialisation error.
+*/
+   return jniastPthreadKeyCreate( env, &errInfo_key, free );
+}
+
+errInfo *getErrInfo() {
+/*
+*  Name:
+*     getErrInfo
+
+*  Purpose:
+*     Returns the errInfo structure.
+
+*  Description:
+*     Returns the thread-specific errInfo structure for use with the
+*     current thread.  Lazily initialises it if required.
+
+*  Return value:
+*     Pointer to errInfo structure ready for use.
+*/
+   void *info;
+   info = pthread_getspecific( errInfo_key );
+   if ( ! info ) {
+      info = malloc( sizeof( errInfo ) );
+      pthread_setspecific( errInfo_key, info );
+   }
+   return (errInfo *) info;
+}
+
 void jniastClearErrMsg() {
 /*
 *+
@@ -100,8 +159,10 @@ void jniastClearErrMsg() {
 *     that there are no pending error messages.
 *-
 */
-   *buffer = '\0';
-   msgleng = 0;
+   errInfo *info;
+   info = getErrInfo();
+   info->msgleng = 0;
+   *(info->buffer) = '\0';
 }
 
 const char *jniastGetErrMsg() {
@@ -125,7 +186,5 @@ const char *jniastGetErrMsg() {
 *     but not by an additional newline.
 *-
 */
-   return buffer;
+   return getErrInfo()->buffer;
 }
-
-/* $Id$ */

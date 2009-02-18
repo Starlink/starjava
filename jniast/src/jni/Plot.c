@@ -20,6 +20,7 @@
 
 /* Header files. */
 #include <stdlib.h>
+#include <pthread.h>
 #include "jni.h"
 #include "ast.h"
 #include "grf.h"
@@ -27,16 +28,7 @@
 #include "uk_ac_starlink_ast_Plot.h"
 
 
-/* Typedefs. */
-typedef struct {
-   JNIEnv *env;
-   jobject grf;
-} PlotInfo;
-
-
 /* Static variables. */
-static PlotInfo _currentinfo;
-static PlotInfo *CurrentInfo;
 static jclass Rectangle2DFloatClass;
 static jmethodID GrfAttrMethodID;
 static jmethodID GrfCapMethodID;
@@ -49,6 +41,7 @@ static jmethodID GrfQchMethodID;
 static jmethodID GrfTxExtMethodID;
 static jmethodID Rectangle2DFloatConstructorID;
 static jfieldID PlotGrfFieldID;
+static pthread_key_t grf_key;
 
 
 /* Static function prototypes. */
@@ -57,25 +50,26 @@ static void initializeIDs( JNIEnv *env );
 
 /* Macros. */
 
-/* This macro loads a static structure with pointers to required 
- * information about the current Plot so that AST Grf callbacks 
- * can access it.  It relies on the fact that the ASTCALL macro 
- * locks an object, effectively synchronizing all calls to the AST 
- * library, to be thread-safe. */
+/* This macro loads a thread-specific structure with the current Grf
+ * object for this plot so that AST Grf callbacks can access it.
+ * Like (TH)ASTCALL, it cannot be used in a re-entrant fashion. */
 #define THPLOTCALL( ast_objs, code ) \
    { \
       jobject _plotcall_grf; \
       if ( ( _plotcall_grf = jniastCheckNotNull( env, \
               (*env)->GetObjectField( env, this, PlotGrfFieldID ) ) ) ) { \
+         jniastPthreadSetSpecific( env, grf_key, _plotcall_grf ); \
          THASTCALL( ast_objs, \
-            CurrentInfo = &_currentinfo; \
-            CurrentInfo->env = env; \
-            CurrentInfo->grf = _plotcall_grf; \
             code \
-            CurrentInfo = NULL; \
          ) \
+         jniastPthreadSetSpecific( env, grf_key, NULL ); \
       } \
    }
+
+/* This macro returns the value of the Grf object currently being used by
+ * this thread, and hence by the Plot object being used in this thread 
+ * (as set up by the THPLOTCALL macro). */
+#define current_grf() ( (jobject) pthread_getspecific( grf_key ) );
 
 
 /* Instance methods. */
@@ -625,18 +619,20 @@ static void initializeIDs( JNIEnv *env ) {
       /* Get Field IDs. */
       ( PlotGrfFieldID = (*env)->GetFieldID( env, PlotClass, "grfobj", 
                                              "L" PACKAGE_PATH "Grf;" ) ) &&
+
+      /* Initialise thread-specific to hold Grf object. */
+      ( ! jniastPthreadKeyCreate( env, &grf_key, NULL ) ) &&
+   
       1;
-                              
    }
 }
-
 
 
 /* Grf module implementation. */
 
 int astGAttr( int attr, double value, double *old_value, int prim ) {
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jdouble oval;
 
    oval = (double) (*env)->CallDoubleMethod( env, grf, GrfAttrMethodID,
@@ -650,8 +646,8 @@ int astGAttr( int attr, double value, double *old_value, int prim ) {
 }
 
 int astGFlush( void ){
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    (*env)->CallVoidMethod( env, grf, GrfFlushMethodID );
 
    return ( ! (*env)->ExceptionCheck( env ) );
@@ -659,8 +655,8 @@ int astGFlush( void ){
 
 
 int astGLine( int n, const float *x, const float *y ){
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jfloatArray jX;
    jfloatArray jY;
 
@@ -676,8 +672,8 @@ int astGLine( int n, const float *x, const float *y ){
 }
 
 int astGMark( int n, const float *x, const float *y, int type ){
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jfloatArray jX;
    jfloatArray jY;
 
@@ -695,8 +691,8 @@ int astGMark( int n, const float *x, const float *y, int type ){
 
 int astGText( const char *text, float x, float y, const char *just,
               float upx, float upy ){
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jstring jText;
    jstring jJust;
    
@@ -710,8 +706,8 @@ int astGText( const char *text, float x, float y, const char *just,
 }
 
 int astGQch( float *chv, float *chh ){
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jfloatArray result;
 
    if ( jniastCheckSameType( env, float, jfloat ) ) {
@@ -727,8 +723,8 @@ int astGQch( float *chv, float *chh ){
 
 int astGTxExt( const char *text, float x, float y, const char *just,
                float upx, float upy, float *xb, float *yb ){
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jstring jText;
    jstring jJust;
    jobjectArray result;
@@ -756,8 +752,8 @@ int astGTxExt( const char *text, float x, float y, const char *just,
 }
 
 int astGCap( int cap, int value ) {
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jint result;
 
    result = (*env)->CallIntMethod( env, grf, GrfCapMethodID, 
@@ -766,8 +762,8 @@ int astGCap( int cap, int value ) {
 }
 
 int astGScales( float *alpha, float *beta ) {
-   JNIEnv *env = CurrentInfo->env;
-   jobject grf = CurrentInfo->grf;
+   JNIEnv *env = jniastGetEnv();
+   jobject grf = current_grf();
    jfloatArray result;
 
    result = (*env)->CallObjectMethod( env, grf, GrfScalesMethodID );
@@ -781,5 +777,7 @@ int astGScales( float *alpha, float *beta ) {
       return 0;
    }
 }
+
+#undef current_grf
 
 /* $Id$ */

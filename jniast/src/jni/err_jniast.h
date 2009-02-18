@@ -25,9 +25,8 @@
 void astPutErr_( int status, const char *message );
 
 /* Package function prototypes. */
+int jniastErrInit();
 void jniastClearErrMsg();
 const char *jniastGetErrMsg();
 
 #endif  /* ERR_JNIAST_DEFINED */
-
-/* $Id$ */

@@ -848,7 +848,8 @@ public class AstTest extends TestCase {
 
         Matcher matcher = Pattern.compile( "AST V([2-9])\\.([0-9]+)-([0-9]+); "+
                                            "JNIAST native V5\\.0-0; " +
-                                           "JNIAST java V4\\.0-1" )
+                                           "JNIAST java V4\\.0-1" +
+                                           "\\b.*" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
