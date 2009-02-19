@@ -60,7 +60,6 @@ public class SSARegistryQueryDialog
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQuery_ );
         add( rqPanel_ );
-        rqPanel_.getQuerySelector().addActionListener( getOkAction() );
     }
 
     public String getName()
