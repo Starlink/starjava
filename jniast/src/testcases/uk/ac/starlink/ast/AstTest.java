@@ -531,6 +531,21 @@ public class AstTest extends TestCase {
         assertEquals( "Frame", frms[ 0 ].getC( "Class" ) );
         assertEquals( 1, frms[ 0 ].decompose( null, null ).length );
 
+        // mapSplit
+        ZoomMap zmap = new ZoomMap( 3, 5.0 );
+        int[] zouts = new int[ 3 ];
+        Mapping zmap1 = zmap.mapSplit( new int[] { 3, }, zouts );
+        assertArrayEquals( new int[] { 3, 0, 0 }, zouts );
+        assertArrayEquals( new double[] { 20.0, },
+                           zmap1.tran1( 1, new double[] { 4.0 }, true ) );
+        try {
+            zmap.mapSplit( new int[] { 3, }, new int[ 2 ] );
+            fail();
+        }
+        catch ( IllegalArgumentException e ) {
+            // too few elements in out array
+        }
+
         // MatrixMap
         assertEquals( UnitMap.class, 
                       new MatrixMap( 10, 10 ).simplify().getClass() );

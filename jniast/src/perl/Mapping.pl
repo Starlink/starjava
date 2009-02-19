@@ -168,6 +168,30 @@ makeNativeMethod(
    ],
 );
 
+makeNativeMethod(
+   name => ( $fName = "mapSplit" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => {
+      type => 'Mapping',
+      descrip => q{
+         the returned mapping
+      },
+   },
+   params => [
+      {
+         name => ( $aName = "in" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "out" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
 $fName = "resample<X>";
 makeJavaMethodHeader(
    name => ( "resample" ),

@@ -264,6 +264,53 @@ public class Mapping extends AstObject {
     public native double[] mapBox( double[] lbnd_in, double[] ubnd_in, boolean forward, int coord_out, double[] xl, double[] xu );
 
     /** 
+     * Split a Mapping up into parallel component Mappings.   
+     * This function 
+     * creates a new Mapping which connects specified inputs within a
+     * supplied Mapping to the corresponding outputs of the supplied Mapping. 
+     * This is only possible if the specified inputs correspond to some 
+     * subset of the Mapping outputs. That is, there must exist a subset of 
+     * the Mapping outputs for which each output depends only on the selected 
+     * Mapping inputs, and not on any of the inputs which have not been 
+     * selected. If this condition is not met by the supplied Mapping, then
+     * a NULL 
+     * Mapping pointer is returned.
+     * <h4>Notes</h4>
+     * <br> - If this 
+     * function 
+     * is invoked with the global error status set, or if it should fail for 
+     * any reason, then 
+     * a NULL value
+     * will be returned for 
+     * the "map" pointer.
+     * @param   in
+     * Pointer to an 
+     * array holding the indices within the supplied Mapping of the inputs 
+     * which are to be picked from the Mapping. 
+     * This array should have "nin" elements. 
+     * If "Nin" is the number of inputs of the supplied Mapping, then each 
+     * element should have a value in the range 1 to Nin.
+     * 
+     * @param   out
+     * Pointer to an 
+     * array in which to return the indices of the outputs of the supplied 
+     * Mapping which are fed by the picked inputs. A value of one is
+     * used to refer to the first Mapping output. The supplied array should 
+     * have a length at least equal to the number of outputs in the
+     * supplied Mapping. The number of values stored in the array on
+     * exit will equal the number of outputs in the returned Mapping.
+     * The i'th element in the returned array holds the index within
+     * the supplied Mapping which corresponds to the i'th output of 
+     * the returned Mapping.
+     * 
+     * @return  
+     *          the returned mapping
+     *       
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native Mapping mapSplit( int[] in, int[] out );
+
+    /** 
      * Resample a region of a data grid.   
      * This is a set of functions for resampling gridded data (e.g. an
      * image) under the control of a geometrical transformation, which

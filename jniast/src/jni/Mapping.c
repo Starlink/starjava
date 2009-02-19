@@ -622,6 +622,50 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_linearApprox(
    }
 }
 
+JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Mapping_mapSplit(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jintArray jIn,        /* Array of input indices */
+   jintArray jOut        /* Array to store output indices */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   AstMapping *outMap;
+   int nin;
+   int maxNout;
+   int *in;
+   int *out;
+
+   ENSURE_SAME_TYPE(int, jint)
+
+   /* Validate parameters. */
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      maxNout = astGetI( pointer.Mapping, "Nout" );
+   )
+   if ( jniastCheckNotNull( env, jIn ) &&
+        jniastCheckArrayLength( env, jOut, maxNout ) ) {
+
+      /* Prepare array for return. */
+      nin = (*env)->GetArrayLength( env, jIn );
+      in = (*env)->GetIntArrayElements( env, jIn, NULL );
+      out = (int *) (*env)->GetIntArrayElements( env, jOut, NULL );
+
+      /* Call the C function to do the work. */
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astMapSplit( pointer.Mapping, nin, in, out, &outMap );
+      )
+
+      /* Release resources. */
+      ALWAYS(
+         (*env)->ReleaseIntArrayElements( env, jIn, in, JNI_ABORT );
+         (*env)->ReleaseIntArrayElements( env, jOut, out, 0 );
+      )
+
+      /* Return the created map. */
+      return outMap == NULL ? NULL
+                            : jniastMakeObject( env, (AstObject *) outMap );
+   }
+}
+
 
 #define MAKE_RESAMPLEX(Xletter,Xtype,Xjtype,XJtype,Xjsign) \
  \
