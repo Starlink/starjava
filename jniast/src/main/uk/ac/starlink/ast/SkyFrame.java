@@ -26,6 +26,21 @@ package uk.ac.starlink.ast;
  * All the coordinate values used by a SkyFrame are in
  * radians. These may be formatted in more conventional ways for
  * display by using astFormat.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SkyFrame'>AST SkyFrame</a>  
@@ -271,10 +286,14 @@ public class SkyFrame extends Frame {
      * This attribute is a boolean value which controls how longitude values
      * are normalized for display by astNorm.
      * <p>
-     * If the NegLon attribute is zero (the default), then normalized 
+     * If the NegLon attribute is zero, then normalized 
      * longitude values will be in the range zero to 2.pi. If NegLon is
      * non-zero, then normalized longitude values will be in the range -pi 
      * to pi. 
+     * <p>
+     * The default value depends on the current value of the SkyRefIs
+     * attribute, If SkyRefIs has a value of "Origin", then the default for
+     * NegLon is one, otherwise the default is zero.
      * 
      *
      * @return  this object's NegLon attribute
@@ -289,10 +308,14 @@ public class SkyFrame extends Frame {
      * This attribute is a boolean value which controls how longitude values
      * are normalized for display by astNorm.
      * <p>
-     * If the NegLon attribute is zero (the default), then normalized 
+     * If the NegLon attribute is zero, then normalized 
      * longitude values will be in the range zero to 2.pi. If NegLon is
      * non-zero, then normalized longitude values will be in the range -pi 
      * to pi. 
+     * <p>
+     * The default value depends on the current value of the SkyRefIs
+     * attribute, If SkyRefIs has a value of "Origin", then the default for
+     * NegLon is one, otherwise the default is zero.
      * 
      *
      * @param  negLon   the NegLon attribute of this object
@@ -358,10 +381,15 @@ public class SkyFrame extends Frame {
      * SkyFrame. It determines the coordinate system in which the two 
      * SkyFrames are aligned if a match occurs.
      * <p>
-     * A non-zero value results in alignment occuring in the offset
-     * coordinate system defined by attributes SkyRef, SkyRefP and SkyRefIs. 
-     * The default value of zero results in alignment occurring within the 
-     * coordinate system specified by the AlignSystem attribute.
+     * If the template and target SkyFrames both have defined offset coordinate
+     * systems (i.e. the SkyRefIs attribute is set to either "Origin" or "
+     * Pole"), and they both have a non-zero value for AlignOffset, then 
+     * alignment occurs within the offset coordinate systems (that is, a 
+     * UnitMap will always be used to align the two SkyFrames). If either 
+     * the template or target SkyFrame has zero (the default value) for 
+     * AlignOffset, or if either SkyFrame has SkyRefIs set to "Ignored", then 
+     * alignment occurring within the coordinate system specified by the 
+     * AlignSystem attribute.
      * 
      *
      * @return  this object's AlignOffset attribute
@@ -379,10 +407,15 @@ public class SkyFrame extends Frame {
      * SkyFrame. It determines the coordinate system in which the two 
      * SkyFrames are aligned if a match occurs.
      * <p>
-     * A non-zero value results in alignment occuring in the offset
-     * coordinate system defined by attributes SkyRef, SkyRefP and SkyRefIs. 
-     * The default value of zero results in alignment occurring within the 
-     * coordinate system specified by the AlignSystem attribute.
+     * If the template and target SkyFrames both have defined offset coordinate
+     * systems (i.e. the SkyRefIs attribute is set to either "Origin" or "
+     * Pole"), and they both have a non-zero value for AlignOffset, then 
+     * alignment occurs within the offset coordinate systems (that is, a 
+     * UnitMap will always be used to align the two SkyFrames). If either 
+     * the template or target SkyFrame has zero (the default value) for 
+     * AlignOffset, or if either SkyFrame has SkyRefIs set to "Ignored", then 
+     * alignment occurring within the coordinate system specified by the 
+     * AlignSystem attribute.
      * 
      *
      * @param  alignOffset   the AlignOffset attribute of this object
@@ -401,7 +434,7 @@ public class SkyFrame extends Frame {
      * rather than absolute axis values. SkyRefIs can take one of the 
      * case-insensitive values "Origin", "Pole" or "Ignored". 
      * <p>
-     * If SkyRefIs is set to "Origin" (the default), then the coordinate system
+     * If SkyRefIs is set to "Origin", then the coordinate system
      * represented by the SkyFrame is modified to put the origin of longitude
      * and latitude at the position specified by the SkyRef attribute.
      * <p>
@@ -409,8 +442,8 @@ public class SkyFrame extends Frame {
      * by the SkyFrame is modified to put the north pole at the position 
      * specified by the SkyRef attribute. 
      * <p>
-     * If SkyRefIs is set to "Ignored", then any value set for the SkyRef
-     * attribute is ignored, and the SkyFrame represents the coordinate
+     * If SkyRefIs is set to "Ignored" (the default), then any value set for the 
+     * SkyRef attribute is ignored, and the SkyFrame represents the coordinate
      * system specified by the System attribute directly without any rotation.
      * 
      *
@@ -430,7 +463,7 @@ public class SkyFrame extends Frame {
      * rather than absolute axis values. SkyRefIs can take one of the 
      * case-insensitive values "Origin", "Pole" or "Ignored". 
      * <p>
-     * If SkyRefIs is set to "Origin" (the default), then the coordinate system
+     * If SkyRefIs is set to "Origin", then the coordinate system
      * represented by the SkyFrame is modified to put the origin of longitude
      * and latitude at the position specified by the SkyRef attribute.
      * <p>
@@ -438,8 +471,8 @@ public class SkyFrame extends Frame {
      * by the SkyFrame is modified to put the north pole at the position 
      * specified by the SkyRef attribute. 
      * <p>
-     * If SkyRefIs is set to "Ignored", then any value set for the SkyRef
-     * attribute is ignored, and the SkyFrame represents the coordinate
+     * If SkyRefIs is set to "Ignored" (the default), then any value set for the 
+     * SkyRef attribute is ignored, and the SkyFrame represents the coordinate
      * system specified by the System attribute directly without any rotation.
      * 
      *
@@ -477,9 +510,7 @@ public class SkyFrame extends Frame {
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute. 
      * <p>
-     * The default values for SkyRef are zero longitude and zero latitude,
-     * but no rotation of the SkyFrame coordinate system will occur
-     * until a value is set explicitly for at least one axis.
+     * The default values for SkyRef are zero longitude and zero latitude.
      * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
      * The offset coordinate system within a SkyFrame should normally be 
      * considered as a superficial "re-badging" of the axes of the coordinate 
@@ -555,9 +586,7 @@ public class SkyFrame extends Frame {
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute. 
      * <p>
-     * The default values for SkyRef are zero longitude and zero latitude,
-     * but no rotation of the SkyFrame coordinate system will occur
-     * until a value is set explicitly for at least one axis.
+     * The default values for SkyRef are zero longitude and zero latitude.
      * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
      * The offset coordinate system within a SkyFrame should normally be 
      * considered as a superficial "re-badging" of the axes of the coordinate 
@@ -634,9 +663,7 @@ public class SkyFrame extends Frame {
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute. 
      * <p>
-     * The default values for SkyRef are zero longitude and zero latitude,
-     * but no rotation of the SkyFrame coordinate system will occur
-     * until a value is set explicitly for at least one axis.
+     * The default values for SkyRef are zero longitude and zero latitude.
      * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
      * The offset coordinate system within a SkyFrame should normally be 
      * considered as a superficial "re-badging" of the axes of the coordinate 
@@ -700,9 +727,7 @@ public class SkyFrame extends Frame {
      * comma, followed by an axis 2 value). The same form
      * will be used when getting the value of the attribute. 
      * <p>
-     * The default values for SkyRef are zero longitude and zero latitude,
-     * but no rotation of the SkyFrame coordinate system will occur
-     * until a value is set explicitly for at least one axis.
+     * The default values for SkyRef are zero longitude and zero latitude.
      * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
      * The offset coordinate system within a SkyFrame should normally be 
      * considered as a superficial "re-badging" of the axes of the coordinate 

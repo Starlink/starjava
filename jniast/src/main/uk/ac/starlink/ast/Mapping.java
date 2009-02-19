@@ -19,6 +19,21 @@ package uk.ac.starlink.ast;
  * function of its own, as it is simply a container class for a
  * family of specialised Mappings which implement particular types
  * of coordinate transformation.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Mapping'>AST Mapping</a>  
@@ -279,6 +294,16 @@ public class Mapping extends AstObject {
      * choice of sub-pixel interpolation schemes is provided, but you
      * may also implement your own.
      * <p>
+     * This algorithm samples the input data value, it does not integrate 
+     * it. Thus total data value in the input image will not, in general,
+     * be conserved. However, an option is provided (see the "Control Flags"
+     * section below) which can produce approximate flux conservation by 
+     * scaling the output values using the ratio of the output pixel size
+     * to the input pixel size. However, if accurate flux conservation is
+     * important to you, consder using the
+     * astRebin<X> or astRebinSeq<X> family of functions
+     * instead.
+     * <p>
      * Output pixel coordinates are transformed into the coordinate
      * system of the input grid using the inverse transformation of the
      * Mapping which is supplied. This means that geometrical features
@@ -313,7 +338,8 @@ public class Mapping extends AstObject {
      * with the global error status set, or if it should fail for any
      * reason.
      * <h4>Propagation of Missing Data</h4>
-     * Instances of missing data (bad pixels) in the output grid are
+     * Unless the AST__NOBAD flag is specified, instances of missing data 
+     * (bad pixels) in the output grid are
      * identified by occurrences of the "badval" value in the "out"
      * array. These may be produced if any of the following happen:
      * <p>
@@ -352,6 +378,14 @@ public class Mapping extends AstObject {
      * interpolation scheme in use.
      * <br> - The variance value lies outside the range which can be
      * represented using the data type of the "out_var" array.
+     * <p>
+     * If the AST__NOBAD flag is specified via
+     * parameter "flags",
+     * then output array elements that would otherwise be set to 
+     * "badval"
+     * are instead left holding the value they had on entry to this
+     * function. The number of such array elements is returned as
+     * the function value.
      * @param   ndim_in
      * The number of dimensions in the input grid. This should be at
      * least one.
@@ -463,13 +497,16 @@ public class Mapping extends AstObject {
      * then this value is used to test for bad pixels in the "in"
      * (and "in_var") array(s).
      * <p>
-     * In all cases, this value is also used to flag any output
+     * Unless the AST__NOBAD flag is set via the "flags" parameter,
+     * this value is also used to flag any output
      * elements in the "out" (and "out_var") array(s) for which
      * resampled values could not be obtained (see the "Propagation
      * of Missing Data" section below for details of the
      * circumstances under which this may occur). The astResample<X>
      * function return value indicates whether any such values have
-     * been produced.
+     * been produced. If the AST__NOBAD flag is set. then output array
+     * elements for which no resampled value could be obtained are
+     * left set to the value they had on entry to this function.
      * 
      * @param   ndim_out
      * The number of dimensions in the output grid. This should be
@@ -543,12 +580,11 @@ public class Mapping extends AstObject {
      * If no output variance estimates are required, a NULL pointer
      * should be given.
      * 
-     * @return  The number of output pixels to which a data value (or a
-     * variance value if relevant) equal to "badval" has been
-     * assigned because no valid resampled value could be obtained.
-     * Thus, in the absence of any error, a returned value of zero
-     * indicates that all the required output pixels received valid
-     * resampled data values (and variances).
+     * @return  The number of output pixels for which no valid resampled value
+     * could be obtained. Thus, in the absence of any error, a returned 
+     * value of zero indicates that all the required output pixels 
+     * received valid resampled data values (and variances). See the
+     * "badval" and "flags" parameters.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -692,6 +728,11 @@ public class Mapping extends AstObject {
      * rebined output data. Propagation of missing data (bad pixels)
      * is supported.
      * <p>
+     * Note, if you will be rebining a sequence of input arrays and then 
+     * co-adding them into a single array, the alternative 
+     * astRebinSeq<X> functions
+     * will in general be more efficient.
+     * <p>
      * You should use a rebinning function which matches the numerical
      * type of the data you are processing by replacing <X> in
      * the generic function name astRebin<X> by an appropriate 1- or
@@ -760,6 +801,17 @@ public class Mapping extends AstObject {
      * astResample<X> 
      * documentation for further discussion.
      * <p>
+     * The binning algorithm used has the ability to introduce artifacts
+     * not seen when using a resampling algorithm. Particularly, when
+     * viewing the output image at high contrast, systems of curves lines
+     * covering the entire image may be visible. These are caused by a
+     * beating effect between the input pixel positions and the output pixels
+     * position, and their nature and strength depend critically upon the
+     * nature of the Mapping and the spreading function being used. In
+     * general, the nearest neighbour spreading function demonstrates this
+     * effect more clearly than the other functions, and for this reason
+     * should be used with caution.
+     * <p>
      * The following values (defined in the 
      * "ast.h" header file)
      * may be assigned to the 
@@ -775,6 +827,7 @@ public class Mapping extends AstObject {
      * <br> - AST__SINCSINC
      * <br> - AST__SINCCOS
      * <br> - AST__SINCGAUSS
+     * <br> - AST__SOMBCOS
      * <p>
      * In addition, the following schemes can be used with 
      * astRebin<X> but not with astResample<X>:
@@ -887,6 +940,12 @@ public class Mapping extends AstObject {
      * of zero may be given. This will ensure that the Mapping is
      * used without any approximation, but may increase execution
      * time.
+     * <p>
+     * If the value is too high, discontinuities between the linear
+     * approximations used in adjacent panel will be higher, and may
+     * cause the edges of the panel to be visible when viewing the output 
+     * image at high contrast. If this is a problem, reduce the
+     * tolerance value used.
      * 
      * @param   maxpix
      * A value which specifies an initial scale size (in pixels) for
@@ -928,9 +987,7 @@ public class Mapping extends AstObject {
      * elements in the "out" (and "out_var") array(s) for which
      * rebined values could not be obtained (see the "Propagation
      * of Missing Data" section below for details of the
-     * circumstances under which this may occur). The astRebin<X>
-     * function return value indicates whether any such values have
-     * been produced.
+     * circumstances under which this may occur). 
      * 
      * @param   ndim_out
      * The number of dimensions in the output grid. This should be
@@ -1347,11 +1404,11 @@ public class Mapping extends AstObject {
      * and 3 outputs the linear approximation to the forward transformation 
      * is:
      * <p>
-     *    X_out = result[0] + result[3]*X_in + result[4]*Y_in 
+     *    X_out = fit[0] + fit[3]*X_in + fit[4]*Y_in 
      * <p>
-     *    Y_out = result[1] + result[5]*X_in + result[6]*Y_in 
+     *    Y_out = fit[1] + fit[5]*X_in + fit[6]*Y_in 
      * <p>
-     *    Z_out = result[2] + result[7]*X_in + result[8]*Y_in
+     *    Z_out = fit[2] + fit[7]*X_in + fit[8]*Y_in
      * <p>
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -1734,6 +1791,10 @@ public class Mapping extends AstObject {
                 getAstConstantI( "AST__SINCSINC" );
         private static final int AST__SINCCOS =
                 getAstConstantI( "AST__SINCCOS" );
+        private static final int AST__SOMB =
+                getAstConstantI( "AST__SOMB" );
+        private static final int AST__SOMBCOS =
+                getAstConstantI( "AST__SOMBCOS" );
         private static final int AST__SINCGAUSS =
                 getAstConstantI( "AST__SINCGAUSS" );
         private static final int AST__BLOCKAVE =
@@ -1842,6 +1903,54 @@ public class Mapping extends AstObject {
          */
         public static Interpolator sincCos( int npix, double width ) {
             return new Interpolator( AST__SINCCOS,
+                                     new double[] { (double) npix, width } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x)</code> 1-dimensional kernel 
+         * (a "sombrero" function).
+         * <code>x</code> is the pixel offset from the interpolation point
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @return  a somb-type resampling Interpolator
+         */
+        public static Interpolator somb( int npix ) {
+            return new Interpolator( AST__SOMB,
+                                     new double[] { (double) npix } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
+         * <code>k</code> is a constant, out to the point where
+         * <code>cos(k*pi*x) goes to zero, and zero beyond,
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  width  the number of pixels at which the envelope goes
+         *                to zero.  Should be at least 1.0.
+         * @return  a sinc-cos-type resampling Interpolator
+         */
+        public static Interpolator sombCos( int npix, double width ) {
+            return new Interpolator( AST__SOMBCOS,
                                      new double[] { (double) npix, width } );
         }
 

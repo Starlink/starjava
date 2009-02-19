@@ -21,7 +21,9 @@ package uk.ac.starlink.ast;
  * When quoting a position within such a spectrum, it is necessary to
  * indicate whether the quoted position is the USB position or the 
  * corresponding LSB position. The SideBand attribute provides this
- * indication.
+ * indication. Another option that the SideBand attribute provides is
+ * to represent a spectral position by its topocentric offset from the 
+ * LO frequency.
  * <p>
  * In practice, the LO frequency is specified by giving the distance
  * from the LO frequency to some "central" spectral position. Typically 
@@ -29,7 +31,22 @@ package uk.ac.starlink.ast;
  * The distance from this central position to the LO frequency is known 
  * as the "intermediate frequency" (IF). The value supplied for IF can
  * be a signed value in order to indicate whether the LO frequency is
- * above of below the central position.
+ * above or below the central position.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_DSBSpecFrame'>AST DSBSpecFrame</a>  
@@ -75,7 +92,7 @@ public class DSBSpecFrame extends SpecFrame {
      * <br> - The attributes which define the transformation to or from topocentric 
      * frequency should be assigned their correct values before accessing
      * this attribute. These potentially include System, Unit, StdOfRest, 
-     * GeoLon, GeoLat, Epoch, RefRA, RefDec and RestFreq.
+     * ObsLon, ObsLat, Epoch, RefRA, RefDec and RestFreq.
      * 
      *
      * @return  this object's DsbCentre attribute
@@ -115,7 +132,7 @@ public class DSBSpecFrame extends SpecFrame {
      * <br> - The attributes which define the transformation to or from topocentric 
      * frequency should be assigned their correct values before accessing
      * this attribute. These potentially include System, Unit, StdOfRest, 
-     * GeoLon, GeoLat, Epoch, RefRA, RefDec and RestFreq.
+     * ObsLon, ObsLat, Epoch, RefRA, RefDec and RestFreq.
      * 
      *
      * @param  dsbCentre   the DsbCentre attribute of this object
@@ -196,16 +213,17 @@ public class DSBSpecFrame extends SpecFrame {
      * Get 
      * indicates which sideband a dual sideband spectrum represents.  
      * This attribute indicates whether the DSBSpecFrame currently
-     * represents its lower or upper sideband. When querying the current 
-     * value, the returned string is always one of "usb" (for upper) or 
-     * "lsb" (for lower). When setting a new value, any of the strings "lsb", 
-     * "usb", "observed" or "image" may be supplied (case insensitive). The 
-     * "observed" sideband is which ever sideband (upper or lower) contains 
-     * the central spectral position given by attribute DSBCentre, and the 
-     * "image" sideband is the other sideband. It is the sign of the IF
-     * attribute which determines if the observed sideband is the upper or 
-     * lower sideband. The default value for SideBand is the observed
-     * sideband.
+     * represents its lower or upper sideband, or an offset from the local
+     * oscillator frequency. When querying the current value, the returned 
+     * string is always one of "usb" (for upper sideband), "lsb" (for lower
+     * sideband), or "lo" (for offset from the local oscillator frequency). 
+     * When setting a new value, any of the strings "lsb", "usb", "observed",
+     * "image" or "lo" may be supplied (case insensitive). The "observed" 
+     * sideband is which ever sideband (upper or lower) contains the central 
+     * spectral position given by attribute DSBCentre, and the "image" 
+     * sideband is the other sideband. It is the sign of the IF attribute 
+     * which determines if the observed sideband is the upper or lower 
+     * sideband. The default value for SideBand is the observed sideband.
      * 
      *
      * @return  this object's SideBand attribute
@@ -218,16 +236,17 @@ public class DSBSpecFrame extends SpecFrame {
      * Set 
      * indicates which sideband a dual sideband spectrum represents.  
      * This attribute indicates whether the DSBSpecFrame currently
-     * represents its lower or upper sideband. When querying the current 
-     * value, the returned string is always one of "usb" (for upper) or 
-     * "lsb" (for lower). When setting a new value, any of the strings "lsb", 
-     * "usb", "observed" or "image" may be supplied (case insensitive). The 
-     * "observed" sideband is which ever sideband (upper or lower) contains 
-     * the central spectral position given by attribute DSBCentre, and the 
-     * "image" sideband is the other sideband. It is the sign of the IF
-     * attribute which determines if the observed sideband is the upper or 
-     * lower sideband. The default value for SideBand is the observed
-     * sideband.
+     * represents its lower or upper sideband, or an offset from the local
+     * oscillator frequency. When querying the current value, the returned 
+     * string is always one of "usb" (for upper sideband), "lsb" (for lower
+     * sideband), or "lo" (for offset from the local oscillator frequency). 
+     * When setting a new value, any of the strings "lsb", "usb", "observed",
+     * "image" or "lo" may be supplied (case insensitive). The "observed" 
+     * sideband is which ever sideband (upper or lower) contains the central 
+     * spectral position given by attribute DSBCentre, and the "image" 
+     * sideband is the other sideband. It is the sign of the IF attribute 
+     * which determines if the observed sideband is the upper or lower 
+     * sideband. The default value for SideBand is the observed sideband.
      * 
      *
      * @param  sideBand   the SideBand attribute of this object

@@ -22,6 +22,21 @@ package uk.ac.starlink.ast;
  * <p>
  * For details of the individual coordinate conversions available,
  * see the description of the astTimeAdd function.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_TimeMap'>AST TimeMap</a>  
@@ -142,6 +157,10 @@ public class TimeMap extends Mapping {
      * <br> - "LMSTTOGMST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a LMST MJD to a GMST MJD.
      * <br> - "LASTTOLMST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a GMST MJD to a LMST MJD.
      * <br> - "LMSTTOLAST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a LMST MJD to a GMST MJD.
+     * <br> - "UTTOUTC" (DUT1): Convert a UT1 MJD to a UTC MJD.
+     * <br> - "UTCTOUT" (DUT1): Convert a UTC MJD to a UT1 MJD.
+     * <br> - "LTTOUTC" (LTOFF): Convert a Local Time MJD to a UTC MJD.
+     * <br> - "UTCTOLT" (LTOFF): Convert a UTC MJD to a Local Time MJD.
      * <p>
      * The units for the values processed by the above conversions are as
      * follows: 
@@ -164,6 +183,9 @@ public class TimeMap extends Mapping {
      * <br> - JEPOFF: The zero-point being used with Julian epoch values.
      * <br> - CLOCKLON: Clock longitude in radians (+ve westwards).
      * <br> - CLOCKLAT: Clock geodetic latitude in radians (+ve northwards).
+     * <br> - DUT1: The UT1-UTC value to use. 
+     * <br> - LTOFF: The offset between Local Time and UTC (in hours, positive 
+     * for time zones east of Greenwich).
      * @param   cvt
      * Pointer to a null-terminated string which identifies the
      * time coordinate conversion to be added to the

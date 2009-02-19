@@ -17,6 +17,25 @@ package uk.ac.starlink.ast;
  * such as the rest frequency, the standard of rest, the epoch of 
  * observation, units, etc (see the description of the System attribute
  * for details).
+ * <p>
+ * By setting a value for thr SpecOrigin attribute, a SpecFrame can be made 
+ * to represent offsets from a given spectral position, rather than absolute
+ * spectral values.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecFrame'>AST SpecFrame</a>  
@@ -105,13 +124,13 @@ public class SpecFrame extends Frame {
      * AlignSystem attribute, using the target's rest frequency if necessary.
      * <p>
      * <br> - Map these values from the target's standard of rest to the standard of
-     * rest specified by the AlignStdOfRest attribute, using the Epoch, GeoLat, 
-     * GeoLon, RefDec and RefRA attributes of the target to define the two
+     * rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat, 
+     * ObsLon, RefDec and RefRA attributes of the target to define the two
      * standards of rest.
      * <p>
      * <br> - Map these values from the standard of rest specified by the 
      * AlignStdOfRest attribute, to the template's standard of rest, using the 
-     * Epoch, GeoLat, GeoLon, RefDec and RefRA attributes of the template to 
+     * Epoch, ObsLat, ObsLon, RefDec and RefRA attributes of the template to 
      * define the two standards of rest.
      * <p>
      * <br> - Map these values from the system specified by the AlignSystem 
@@ -146,13 +165,13 @@ public class SpecFrame extends Frame {
      * AlignSystem attribute, using the target's rest frequency if necessary.
      * <p>
      * <br> - Map these values from the target's standard of rest to the standard of
-     * rest specified by the AlignStdOfRest attribute, using the Epoch, GeoLat, 
-     * GeoLon, RefDec and RefRA attributes of the target to define the two
+     * rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat, 
+     * ObsLon, RefDec and RefRA attributes of the target to define the two
      * standards of rest.
      * <p>
      * <br> - Map these values from the standard of rest specified by the 
      * AlignStdOfRest attribute, to the template's standard of rest, using the 
-     * Epoch, GeoLat, GeoLon, RefDec and RefRA attributes of the template to 
+     * Epoch, ObsLat, ObsLon, RefDec and RefRA attributes of the template to 
      * define the two standards of rest.
      * <p>
      * <br> - Map these values from the system specified by the AlignSystem 
@@ -164,104 +183,6 @@ public class SpecFrame extends Frame {
      */
     public void setAlignStdOfRest( String alignStdOfRest ) {
        setC( "AlignStdOfRest", alignStdOfRest );
-    }
-
-    /**
-     * Get 
-     * the geodetic latitude of the observer.  
-     * This attribute specifies the geodetic latitude of the observer, in
-     * degrees. Together with the GeoLon, Epoch, RefRA and RefDec attributes, 
-     * it defines the Doppler shift introduced by the observers diurnal 
-     * motion around the earths axis, which is needed when converting to 
-     * or from the topocentric standard of rest. The maximum velocity
-     * error which can be caused by an incorrect value is 0.5 km/s. The 
-     * default value for the attribute is zero.
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
-     * "-45.6", "S45.6". As indicated, the sign of the latitude can 
-     * optionally be indicated using characters "N" and "S" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]dd:mm:ss" is used, when "[s]" is "N" or "S".
-     * 
-     *
-     * @return  this object's GeoLat attribute
-     */
-    public String getGeoLat() {
-        return getC( "GeoLat" );
-    }
-
-    /**
-     * Set 
-     * the geodetic latitude of the observer.  
-     * This attribute specifies the geodetic latitude of the observer, in
-     * degrees. Together with the GeoLon, Epoch, RefRA and RefDec attributes, 
-     * it defines the Doppler shift introduced by the observers diurnal 
-     * motion around the earths axis, which is needed when converting to 
-     * or from the topocentric standard of rest. The maximum velocity
-     * error which can be caused by an incorrect value is 0.5 km/s. The 
-     * default value for the attribute is zero.
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
-     * "-45.6", "S45.6". As indicated, the sign of the latitude can 
-     * optionally be indicated using characters "N" and "S" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]dd:mm:ss" is used, when "[s]" is "N" or "S".
-     * 
-     *
-     * @param  geoLat   the GeoLat attribute of this object
-     */
-    public void setGeoLat( String geoLat ) {
-       setC( "GeoLat", geoLat );
-    }
-
-    /**
-     * Get 
-     * the geodetic longitude of the observer.  
-     * This attribute specifies the geodetic (or equivalently, geocentric)
-     * longitude of the observer, in degrees, measured positive eastwards. 
-     * See also attribute GeoLat. The default value is zero.
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
-     * "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
-     * optionally be indicated using characters "E" and "W" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]ddd:mm:ss" is used, when "[s]" is "E" or "W" and the 
-     * numerical value is chosen to be less than 180 degrees.
-     * 
-     *
-     * @return  this object's GeoLon attribute
-     */
-    public String getGeoLon() {
-        return getC( "GeoLon" );
-    }
-
-    /**
-     * Set 
-     * the geodetic longitude of the observer.  
-     * This attribute specifies the geodetic (or equivalently, geocentric)
-     * longitude of the observer, in degrees, measured positive eastwards. 
-     * See also attribute GeoLat. The default value is zero.
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
-     * "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
-     * optionally be indicated using characters "E" and "W" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]ddd:mm:ss" is used, when "[s]" is "E" or "W" and the 
-     * numerical value is chosen to be less than 180 degrees.
-     * 
-     *
-     * @param  geoLon   the GeoLon attribute of this object
-     */
-    public void setGeoLon( String geoLon ) {
-       setC( "GeoLon", geoLon );
     }
 
     /**
@@ -443,24 +364,64 @@ public class SpecFrame extends Frame {
     public void setRestFreq( String restFreq ) {
         set( "RestFreq=" + restFreq );
     }
+
+    /**
+     * Synonym for {@link #setObsLat}.
+     */
+    public void setGeoLat( String geoLat ) {
+        setObsLat( geoLat );
+    }
+
+    /**
+     * Synonym for {@link #getObsLat}.
+     */
+    public String getGeoLat() {
+        return getObsLat();
+    }
+
+    /**
+     * Synonym for {@link #setObsLon}.
+     */
+    public void setGeoLon( String geoLon ) {
+        setObsLon( geoLon );
+    }
+
+    /**
+     * Synonym for {@link #getObsLon}.
+     */
+    public String getGeoLon() {
+        return getObsLon();
+    }
     /**
      * Get 
      * the source velocity.  
-     * This attribute (together with SourceVRF, RefRA and RefDec) defines the 
-     * "Source" standard of rest (see attribute StdOfRest). This is a rest frame
-     * which is moving towards the position given by RefRA and RefDec at a 
-     * apparent radial ("relativistic") velocity given by SourceVel (in km/s). 
-     * When setting a value for SourceVel, the velocity should be supplied in 
-     * the rest frame specified by the SourceVRF attribute. Likewise, when 
-     * getting the value of SourceVel, it will be returned in the rest frame 
-     * specified by the SourceVRF attribute.
+     * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec) 
+     * defines the "Source" standard of rest (see attribute StdOfRest). This is 
+     * a rest frame which is moving towards the position given by RefRA and 
+     * RefDec at a  velocity given by SourceVel. A positive value means
+     * the source is moving away from the observer. When a new value is
+     * assigned to this attribute, the supplied value is assumed to refer
+     * to the spectral system specified by the SourceSys attribute. For
+     * instance, the SourceVel value may be supplied as a radio velocity, a
+     * redshift, a beta factor, etc. Similarly, when the current value of
+     * the SourceVel attribute is obtained, the returned value will refer 
+     * to the spectral system specified by the SourceSys value. If the
+     * SourceSys value is changed, any value previously stored for the SourceVel
+     * attribute will be changed automatically from the old spectral system 
+     * to the new spectral system.
      * <p>
-     * The default value is zero.
+     * When setting a value for SourceVel, the value should be supplied in the 
+     * rest frame specified by the SourceVRF attribute. Likewise, when getting 
+     * the value of SourceVel, it will be returned in the rest frame specified 
+     * by the SourceVRF attribute.
+     * <p>
+     * The default SourceVel value is zero.
      * <h4>Notes</h4>
-     * <br> - It is important to set an appropriate value for SourceVRF before
-     * setting a value for SourceVel. If a new value is later set for
-     * SourceVRF, the value stored for SourceVel will simultaneously be 
-     * changed to the new standard of rest.
+     * <br> - It is important to set an appropriate value for SourceVRF and
+     * SourceSys before setting a value for SourceVel. If a new value is later 
+     * set for SourceVRF or SourceSys, the value stored for SourceVel will 
+     * simultaneously be changed to the new standard of rest or spectral
+     * system.
      * 
      *
      * @return  this object's SourceVel attribute
@@ -472,21 +433,33 @@ public class SpecFrame extends Frame {
     /**
      * Set 
      * the source velocity.  
-     * This attribute (together with SourceVRF, RefRA and RefDec) defines the 
-     * "Source" standard of rest (see attribute StdOfRest). This is a rest frame
-     * which is moving towards the position given by RefRA and RefDec at a 
-     * apparent radial ("relativistic") velocity given by SourceVel (in km/s). 
-     * When setting a value for SourceVel, the velocity should be supplied in 
-     * the rest frame specified by the SourceVRF attribute. Likewise, when 
-     * getting the value of SourceVel, it will be returned in the rest frame 
-     * specified by the SourceVRF attribute.
+     * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec) 
+     * defines the "Source" standard of rest (see attribute StdOfRest). This is 
+     * a rest frame which is moving towards the position given by RefRA and 
+     * RefDec at a  velocity given by SourceVel. A positive value means
+     * the source is moving away from the observer. When a new value is
+     * assigned to this attribute, the supplied value is assumed to refer
+     * to the spectral system specified by the SourceSys attribute. For
+     * instance, the SourceVel value may be supplied as a radio velocity, a
+     * redshift, a beta factor, etc. Similarly, when the current value of
+     * the SourceVel attribute is obtained, the returned value will refer 
+     * to the spectral system specified by the SourceSys value. If the
+     * SourceSys value is changed, any value previously stored for the SourceVel
+     * attribute will be changed automatically from the old spectral system 
+     * to the new spectral system.
      * <p>
-     * The default value is zero.
+     * When setting a value for SourceVel, the value should be supplied in the 
+     * rest frame specified by the SourceVRF attribute. Likewise, when getting 
+     * the value of SourceVel, it will be returned in the rest frame specified 
+     * by the SourceVRF attribute.
+     * <p>
+     * The default SourceVel value is zero.
      * <h4>Notes</h4>
-     * <br> - It is important to set an appropriate value for SourceVRF before
-     * setting a value for SourceVel. If a new value is later set for
-     * SourceVRF, the value stored for SourceVel will simultaneously be 
-     * changed to the new standard of rest.
+     * <br> - It is important to set an appropriate value for SourceVRF and
+     * SourceSys before setting a value for SourceVel. If a new value is later 
+     * set for SourceVRF or SourceSys, the value stored for SourceVel will 
+     * simultaneously be changed to the new standard of rest or spectral
+     * system.
      * 
      *
      * @param  sourceVel   the SourceVel attribute of this object
@@ -499,11 +472,12 @@ public class SpecFrame extends Frame {
      * Get 
      * rest frame in which the source velocity is stored.  
      * This attribute identifies the rest frame in which the source
-     * velocity is stored (the source velocity is accessed using attribute
-     * SourceVel). When setting a new value for the SourceVel attribute,
-     * the source velocity should be supplied in the rest frame indicated
-     * by this attribute. Likewise, when getting the value of the SourceVel
-     * attribute, the velocity will be returned in this rest frame.
+     * velocity or redshift is stored (the source velocity or redshift is 
+     * accessed using attribute SourceVel). When setting a new value for the 
+     * SourceVel attribute, the source velocity or redshift should be supplied 
+     * in the rest frame indicated by this attribute. Likewise, when getting 
+     * the value of the SourceVel attribute, the velocity or redshift will be 
+     * returned in this rest frame.
      * <p>
      * If the value of SourceVRF is changed, the value stored for SourceVel 
      * will be converted from the old to the new rest frame.
@@ -523,11 +497,12 @@ public class SpecFrame extends Frame {
      * Set 
      * rest frame in which the source velocity is stored.  
      * This attribute identifies the rest frame in which the source
-     * velocity is stored (the source velocity is accessed using attribute
-     * SourceVel). When setting a new value for the SourceVel attribute,
-     * the source velocity should be supplied in the rest frame indicated
-     * by this attribute. Likewise, when getting the value of the SourceVel
-     * attribute, the velocity will be returned in this rest frame.
+     * velocity or redshift is stored (the source velocity or redshift is 
+     * accessed using attribute SourceVel). When setting a new value for the 
+     * SourceVel attribute, the source velocity or redshift should be supplied 
+     * in the rest frame indicated by this attribute. Likewise, when getting 
+     * the value of the SourceVel attribute, the velocity or redshift will be 
+     * returned in this rest frame.
      * <p>
      * If the value of SourceVRF is changed, the value stored for SourceVel 
      * will be converted from the old to the new rest frame.
@@ -559,7 +534,7 @@ public class SpecFrame extends Frame {
      * to be on the surface of the earth). Spectra recorded in this standard of 
      * rest suffer a Doppler shift which varies over the course of a day
      * because of the rotation of the observer around the axis of the earth.
-     * This standard of rest must be qualified using the GeoLat, GeoLon, Epoch, 
+     * This standard of rest must be qualified using the ObsLat, ObsLon, Epoch, 
      * RefRA and RefDec attributes. 
      * <p>
      * <br> - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre. 
@@ -631,7 +606,7 @@ public class SpecFrame extends Frame {
      * to be on the surface of the earth). Spectra recorded in this standard of 
      * rest suffer a Doppler shift which varies over the course of a day
      * because of the rotation of the observer around the axis of the earth.
-     * This standard of rest must be qualified using the GeoLat, GeoLon, Epoch, 
+     * This standard of rest must be qualified using the ObsLat, ObsLon, Epoch, 
      * RefRA and RefDec attributes. 
      * <p>
      * <br> - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre. 
