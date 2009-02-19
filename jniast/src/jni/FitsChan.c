@@ -209,6 +209,17 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putFits(
    }
 }
 
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_retainFits(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      astRetainFits( pointer.FitsChan );
+   )
+}
+
 JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_FitsChan_read(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */

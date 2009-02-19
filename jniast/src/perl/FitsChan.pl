@@ -442,6 +442,14 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "retainFits" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   params => [],
+   return => { type => 'void', },
+);
+
+makeNativeMethod(
    name => ( $fName = "putCards" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),

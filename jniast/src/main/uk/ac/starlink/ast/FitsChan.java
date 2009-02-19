@@ -617,6 +617,28 @@ public class FitsChan extends Channel {
     public native void putFits( String card, boolean overwrite );
 
     /** 
+     * Indicate that the current card in a FitsChan should be retained.   
+     * This function 
+     * stores a flag with the current card in the FitsChan indicating that
+     * the card should not be removed from the FitsChan when an Object is 
+     * read from the FitsChan using
+     * astRead.
+     * <p>
+     * Cards that have not been flagged in this way are removed when a
+     * read operation completes succesfully, but only if the card was used
+     * in the process of creating the returned AST Object. Any cards that
+     * are irrelevant to the creation of the AST Object are retained whether 
+     * or not they are flagged.
+     * <h4>Notes</h4>
+     * <br> - This function returns without action if the FitsChan is
+     * initially positioned at the "end-of-file" (i.e. if the Card
+     * attribute exceeds the number of cards in the FitsChan).
+     * <br> - The current card is not changed by this function.
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void retainFits(  );
+
+    /** 
      * Store a set of FITS header cards in a FitsChan.   
      * This function 
      * stores a set of FITS header cards in a FitsChan. The cards are

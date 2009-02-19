@@ -20,6 +20,9 @@ public class FitsChanTest extends TestCase {
         fc.setFits( "SVAL", "Captain Starlink", "R.I.P.", false );
         fc.setFitsContinue( "CNVAL", "Muon", null, true );
 
+        fc.putFits( "XXXCARD = 'Xxx data'           / Xxx comment", true );
+        fc.retainFits();
+
         fc.setCard( 0 );
         assertContains( fc.findFits( "CFVAL", false ), "3.1415" );
         assertContains( fc.findFits( "CFVAL", false ), "2.7182" );
@@ -30,6 +33,7 @@ public class FitsChanTest extends TestCase {
         assertContains( fc.findFits( "LVAL", false ), "Fishfinger" );
         assertContains( fc.findFits( "SVAL", false ), "Starlink" );
         assertContains( fc.findFits( "CNVAL", false ), "Muon" );
+        assertContains( fc.findFits( "XXXCARD", false ), "Xxx" );
 
         try {
             fc.setFits( null, false, "dummy", true );
