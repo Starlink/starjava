@@ -75,6 +75,8 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( AST__UKERN1 )
       else TRY_CONST( AST__UINTERP )
       else TRY_CONST( AST__GAUSS )
+      else TRY_CONST( AST__SOMB )
+      else TRY_CONST( AST__SOMBCOS )
 
       /* Symbolic frame numbers. */
       else TRY_CONST( AST__BASE )

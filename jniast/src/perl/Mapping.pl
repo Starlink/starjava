@@ -981,6 +981,10 @@ print <<'__EOT__';
                 getAstConstantI( "AST__SINCSINC" );
         private static final int AST__SINCCOS =
                 getAstConstantI( "AST__SINCCOS" );
+        private static final int AST__SOMB =
+                getAstConstantI( "AST__SOMB" );
+        private static final int AST__SOMBCOS =
+                getAstConstantI( "AST__SOMBCOS" );
         private static final int AST__SINCGAUSS =
                 getAstConstantI( "AST__SINCGAUSS" );
         private static final int AST__BLOCKAVE =
@@ -1089,6 +1093,54 @@ print <<'__EOT__';
          */
         public static Interpolator sincCos( int npix, double width ) {
             return new Interpolator( AST__SINCCOS,
+                                     new double[] { (double) npix, width } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x)</code> 1-dimensional kernel 
+         * (a "sombrero" function).
+         * <code>x</code> is the pixel offset from the interpolation point
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @return  a somb-type resampling Interpolator
+         */
+        public static Interpolator somb( int npix ) {
+            return new Interpolator( AST__SOMB,
+                                     new double[] { (double) npix } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
+         * <code>k</code> is a constant, out to the point where
+         * <code>cos(k*pi*x) goes to zero, and zero beyond,
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  width  the number of pixels at which the envelope goes
+         *                to zero.  Should be at least 1.0.
+         * @return  a sinc-cos-type resampling Interpolator
+         */
+        public static Interpolator sombCos( int npix, double width ) {
+            return new Interpolator( AST__SOMBCOS,
                                      new double[] { (double) npix, width } );
         }
 
