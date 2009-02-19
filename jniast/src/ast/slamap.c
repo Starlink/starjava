@@ -47,7 +47,24 @@ c     - astSlaAdd: Add a celestial coordinate conversion to an SlaMap
 f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -57,7 +74,7 @@ f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 *     25-APR-1996 (RFWS):
 *        Original version.
 *     28-MAY-1996 (RFWS):
-*        Fixed bug in argument order to slaMappa for AST__SLA_AMP case.
+*        Fixed bug in argument order to palSlaMappa for AST__SLA_AMP case.
 *     26-SEP-1996 (RFWS):
 *        Added external interface and I/O facilities.
 *     23-MAY-1997 (RFWS):
@@ -76,6 +93,23 @@ f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 *        - Added HEEQ and EQHE conversion functions.
 *     2-DEC-2004 (DSB):
 *        - Added J2000H and HJ2000 conversion functions.
+*     15-AUG-2005 (DSB):
+*        - Added H2E and E2H conversion functions.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
+*     22-FEB-2006 (DSB):
+*        Cache results returned by palSlaMappa in order to increase speed.
+*     10-MAY-2006 (DSB):
+*        Override astEqual.
+*     31-AUG-2007 (DSB):
+*        - Modify H2E and E2H conversion functions so that they convert to
+*        and from apparent (HA,Dec) rather than topocentric (HA,Dec) (i.e. 
+*        include a correction for diurnal aberration). This requires an
+*        extra conversion argument holding the magnitude of the diurnal 
+*        aberration vector.
+*        - Correct bug in the simplification of adjacent AMP and MAP
+*        conversions.
+
 *class--
 */
 
@@ -112,6 +146,10 @@ f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 #define AST__EQHE       22       /* Equatorial to helio-ecliptic */
 #define AST__J2000H     23       /* Dynamical J2000 to ICRS */
 #define AST__HJ2000     24       /* ICRS to dynamical J2000 */
+#define AST__SLA_DH2E   25       /* Horizon to equatorial coordinates */
+#define AST__SLA_DE2H   26       /* Equatorial coordinates to horizon */
+#define AST__R2H        27       /* RA to hour angle */
+#define AST__H2R        28       /* Hour to RA angle */
 
 /* Maximum number of arguments required by an SLALIB conversion. */
 #define MAX_SLA_ARGS 4
@@ -139,9 +177,12 @@ f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
-#include "slalib.h"              /* SLALIB interface */
+#include "pal.h"              /* SLALIB interface */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
+#include "globals.h"             /* Thread-safe global data access */
 #include "object.h"              /* Base Object class */
 #include "pointset.h"            /* Sets of points/coordinates */
 #include "mapping.h"             /* Coordinate Mappings (parent class) */
@@ -161,13 +202,54 @@ f     - AST_SLAADD: Add a celestial coordinate conversion to an SlaMap
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstSlaMapVtab class_vtab; /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+
+
+/* Define macros for accessing each item of thread specific global data. */
+#ifdef THREAD_SAFE
+
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; \
+   globals->Eq_Cache = AST__BAD; \
+   globals->Ep_Cache = AST__BAD; \
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(SlaMap)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(SlaMap,Class_Init)
+#define class_vtab astGLOBAL(SlaMap,Class_Vtab)
+#define eq_cache astGLOBAL(SlaMap,Eq_Cache)
+#define ep_cache astGLOBAL(SlaMap,Ep_Cache)
+#define amprms_cache astGLOBAL(SlaMap,Amprms_Cache)
+
+
+
+/* If thread safety is not needed, declare and initialise globals at static 
+   variables. */ 
+#else
+
+/* A cache used to store the most recent results from palSlaMappa in order
+   to avoid continuously recalculating the same values. */
+static double eq_cache = AST__BAD;
+static double ep_cache = AST__BAD;
+static double amprms_cache[ 21 ];
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstSlaMapVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -178,28 +260,215 @@ AstSlaMap *astSlaMapId_( int, const char *, ... );
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static const char *CvtString( int, const char **, int *, const char *[ MAX_SLA_ARGS ] );
-static int CvtCode( const char * );
-static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int ** );
-static void AddSlaCvt( AstSlaMap *, int, const double * );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
-static void SlaAdd( AstSlaMap *, const char *, const double[] );
-static void SolarPole( double, double[3] );
-static void Hpcc( double, double[3], double[3][3], double[3] );
-static void Hprc( double, double[3], double[3][3], double[3] );
-static void Hgc( double, double[3][3], double[3] );
-static void Haec( double, double[3][3], double[3] );
-static void Haqc( double, double[3][3], double[3] );
-static void Gsec( double, double[3][3], double[3] );
-static void STPConv( double, int, int, int, double[3], double *[3], int, double[3], double *[3] );
-static void J2000H( int, int, double *, double * );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static const char *CvtString( int, const char **, int *, const char *[ MAX_SLA_ARGS ], int * );
+static int CvtCode( const char *, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
+static void AddSlaCvt( AstSlaMap *, int, const double *, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void Earth( double, double[3], int * );
+static void SlaAdd( AstSlaMap *, const char *, const double[], int * );
+static void SolarPole( double, double[3], int * );
+static void Hpcc( double, double[3], double[3][3], double[3], int * );
+static void Hprc( double, double[3], double[3][3], double[3], int * );
+static void Hgc( double, double[3][3], double[3], int * );
+static void Haec( double, double[3][3], double[3], int * );
+static void Haqc( double, double[3][3], double[3], int * );
+static void Gsec( double, double[3][3], double[3], int * );
+static void STPConv( double, int, int, int, double[3], double *[3], int, double[3], double *[3], int * );
+static void J2000H( int, int, double *, double *, int * );
 
+static int GetObjSize( AstObject *, int * );
 /* Member functions. */
 /* ================= */
-static void AddSlaCvt( AstSlaMap *this, int cvttype, const double *args ) {
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two SlaMaps are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "slamap.h"
+*     int Equal( AstObject *this, AstObject *that, int *status ) 
+
+*  Class Membership:
+*     SlaMap member function (over-rides the astEqual protected
+*     method inherited from the astMapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two SlaMaps are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Object (a SlaMap).
+*     that
+*        Pointer to the second Object.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     One if the SlaMaps are equivalent, zero otherwise.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstSlaMap *that;        
+   AstSlaMap *this;        
+   const char *argdesc[ MAX_SLA_ARGS ]; 
+   const char *comment;      
+   int i, j;           
+   int nargs;                
+   int nin;
+   int nout;
+   int result;
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain pointers to the two SlaMap structures. */
+   this = (AstSlaMap *) this_object;
+   that = (AstSlaMap *) that_object;
+
+/* Check the second object is a SlaMap. We know the first is a
+   SlaMap since we have arrived at this implementation of the virtual
+   function. */
+   if( astIsASlaMap( that ) ) {
+
+/* Get the number of inputs and outputs and check they are the same for both. */
+      nin = astGetNin( this );
+      nout = astGetNout( this );
+      if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
+
+/* If the Invert flags for the two SlaMaps differ, it may still be possible 
+   for them to be equivalent. First compare the SlaMaps if their Invert 
+   flags are the same. In this case all the attributes of the two SlaMaps 
+   must be identical. */
+         if( astGetInvert( this ) == astGetInvert( that ) ) {
+            if( this->ncvt == that->ncvt ) {
+               result = 1;
+               for( i = 0; i < this->ncvt && result; i++ ) {
+                  if( this->cvttype[ i ] != that->cvttype[ i ] ) {
+                     result = 0;
+                  } else {
+                     CvtString( this->cvttype[ i ], &comment, &nargs, 
+                                argdesc, status );
+                     for( j = 0; j < nargs; j++ ) {
+                        if( !astEQUAL( this->cvtargs[ i ][ j ],
+                                       that->cvtargs[ i ][ j ] ) ){
+                           result = 0;
+                           break;
+                        }
+                     }
+                  }
+               }
+            }
+
+/* If the Invert flags for the two SlaMaps differ, the attributes of the two 
+   SlaMaps must be inversely related to each other. */
+         } else {
+
+/* In the specific case of a SlaMap, Invert flags must be equal. */
+            result = 0;
+
+         }
+      }
+   }
+   
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "slamap.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     SlaMap member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied SlaMap,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the SlaMap.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstSlaMap *this;         /* Pointer to SlaMap structure */
+   int result;              /* Result value to return */
+   int cvt;                 /* Loop counter for coordinate conversions */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the SlaMap structure. */
+   this = (AstSlaMap *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+   for ( cvt = 0; cvt < this->ncvt; cvt++ ) {
+      result += astTSizeOf( this->cvtargs[ cvt ] );
+      result += astTSizeOf( this->cvtextra[ cvt ] );
+   }
+
+   result += astTSizeOf( this->cvtargs );
+   result += astTSizeOf( this->cvtextra );
+   result += astTSizeOf( this->cvttype );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static void AddSlaCvt( AstSlaMap *this, int cvttype, const double *args, int *status ) {
 /*
 *  Name:
 *     AddSlaCvt
@@ -316,6 +585,14 @@ static void AddSlaCvt( AstSlaMap *this, int cvttype, const double *args ) {
 *           Convert dynamical J2000 to ICRS.
 *        AST__HJ2000( )
 *           Convert ICRS to dynamical J2000.
+*        AST__SLA_DH2E( LAT, DIURAB )
+*           Convert horizon to equatorial coordinates
+*        AST__SLA_DE2H( LAT, DIURAB )
+*           Convert equatorial to horizon coordinates
+*        AST__R2H( LAST )
+*           Convert RA to Hour Angle.
+*        AST__H2R( LAST )
+*           Convert Hour Angle to RA.
 
 *  Notes:
 *     - The specified conversion is appended only if the SlaMap's
@@ -338,14 +615,14 @@ static void AddSlaCvt( AstSlaMap *this, int cvttype, const double *args ) {
 
 /* Validate the coordinate conversion type and obtain the number of
    required arguments. */
-   cvt_string = CvtString( cvttype, &comment, &nargs, argdesc );
+   cvt_string = CvtString( cvttype, &comment, &nargs, argdesc, status );
 
 /* If the sky coordinate conversion type was not valid, then report an
    error. */
    if ( astOK && !cvt_string ) {
-      astError( AST__SLAIN,
-                "Invalid SLALIB sky coordinate conversion type (%d).",
-                astGetClass( this ), (int) cvttype );
+      astError( AST__SLAIN, "AddSlaCvt(%s): Invalid SLALIB sky coordinate "
+                "conversion type (%d).", status, astGetClass( this ), 
+                (int) cvttype );
    }
 
 /* Note the number of coordinate conversions already stored in the SlaMap. */
@@ -358,12 +635,15 @@ static void AddSlaCvt( AstSlaMap *this, int cvttype, const double *args ) {
                                        sizeof( int ) );
       this->cvtargs = (double **) astGrow( this->cvtargs, ncvt + 1,
                                            sizeof( double * ) );
+      this->cvtextra = (double **) astGrow( this->cvtextra, ncvt + 1,
+                                           sizeof( double * ) );
 
 /* If OK, allocate memory and store a copy of the argument list,
    putting a pointer to the copy into the SlaMap. */
       if ( astOK ) {
          this->cvtargs[ ncvt ] = astStore( NULL, args,
                                            sizeof( double ) * (size_t) nargs );
+         this->cvtextra[ ncvt ] = NULL;
       }
 
 /* Store the conversion type and increment the conversion count. */
@@ -374,7 +654,7 @@ static void AddSlaCvt( AstSlaMap *this, int cvttype, const double *args ) {
    }
 }
 
-static int CvtCode( const char *cvt_string ) {
+static int CvtCode( const char *cvt_string, int *status ) {
 /*
 *  Name:
 *     CvtCode
@@ -387,7 +667,7 @@ static int CvtCode( const char *cvt_string ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     int CvtCode( const char *cvt_string )
+*     int CvtCode( const char *cvt_string, int *status )
 
 *  Class Membership:
 *     SlaMap member function.
@@ -402,6 +682,8 @@ static int CvtCode( const char *cvt_string ) {
 *        Pointer to a constant null-terminated string representing a
 *        sky coordinate conversion. This is case sensitive and should
 *        contain no unnecessary white space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The equivalent conversion code. If the string was not
@@ -496,6 +778,18 @@ static int CvtCode( const char *cvt_string ) {
    } else if ( astChrMatch( cvt_string, "HJ2000" ) ) {
       result = AST__HJ2000;
 
+   } else if ( astChrMatch( cvt_string, "H2E" ) ) {
+      result = AST__SLA_DH2E;
+
+   } else if ( astChrMatch( cvt_string, "E2H" ) ) {
+      result = AST__SLA_DE2H;
+
+   } else if ( astChrMatch( cvt_string, "R2H" ) ) {
+      result = AST__R2H;
+
+   } else if ( astChrMatch( cvt_string, "H2R" ) ) {
+      result = AST__H2R;
+
    }
 
 /* Return the result. */
@@ -503,7 +797,7 @@ static int CvtCode( const char *cvt_string ) {
 }
 
 static const char *CvtString( int cvt_code, const char **comment,
-                              int *nargs, const char *arg[ MAX_SLA_ARGS ] ) {
+                              int *nargs, const char *arg[ MAX_SLA_ARGS ], int *status ) {
 /*
 *  Name:
 *     CvtString
@@ -517,7 +811,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 *  Synopsis:
 *     #include "slamap.h"
 *     const char *CvtString( int cvt_code, const char **comment,
-*                            int *nargs, const char *arg[ MAX_SLA_ARGS ] )
+*                            int *nargs, const char *arg[ MAX_SLA_ARGS ], int *status )
 
 *  Class Membership:
 *     SlaMap member function.
@@ -543,6 +837,8 @@ static const char *CvtString( int cvt_code, const char **comment,
 *        An array in which to return a pointer to a constant
 *        null-terminated string for each argument (above) containing a
 *        description of what each argument represents.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string representation of
@@ -748,13 +1044,43 @@ static const char *CvtString( int cvt_code, const char **comment,
       *nargs = 0;
       break;
 
+   case AST__SLA_DH2E:
+      result = "H2E";
+      *comment = "Horizon to equatorial";
+      *nargs = 2;
+      arg[ 0 ] = "Geodetic latitude of observer";
+      arg[ 1 ] = "Magnitude of diurnal aberration vector";
+      break;
+
+   case AST__SLA_DE2H:
+      result = "E2H";
+      *comment = "Equatorial to horizon";
+      *nargs = 2;
+      arg[ 0 ] = "Geodetic latitude of observer";
+      arg[ 1 ] = "Magnitude of diurnal aberration vector";
+      break;
+
+   case AST__R2H:
+      result = "R2H";
+      *comment = "RA to Hour Angle";
+      *nargs = 1;
+      arg[ 0 ] = "Local apparent sidereal time (radians)";
+      break;
+
+   case AST__H2R:
+      result = "H2R";
+      *comment = "Hour Angle to RA";
+      *nargs = 1;
+      arg[ 0 ] = "Local apparent sidereal time (radians)";
+      break;
+
    }
 
 /* Return the result. */
    return result;
 }
 
-static void Earth( double mjd, double earth[3] ) {
+static void Earth( double mjd, double earth[3], int *status ) {
 /*
 *+
 *  Name:
@@ -768,7 +1094,7 @@ static void Earth( double mjd, double earth[3] ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Earth( double mjd, double earth[3] ) 
+*     void Earth( double mjd, double earth[3], int *status ) 
 
 *  Class Membership:
 *     SlaMap method.
@@ -784,6 +1110,8 @@ static void Earth( double mjd, double earth[3] ) {
 *     earth
 *        The AST__HAEC position of the earth at the given date.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -802,11 +1130,11 @@ static void Earth( double mjd, double earth[3] ) {
 
 /* Get the position of the earth at the given date in the AST__HAQC coord
    system (dph). */
-   slaEvp( mjd, 2000.0, dvb, dpb, dvh, dph );
+   palSlaEvp( mjd, 2000.0, dvb, dpb, dvh, dph );
 
 /* Now rotate the earths position vector into AST__HAEC coords. */
-   slaEcmat( slaEpj2d( 2000.0 ), ecmat );
-   slaDmxv( ecmat, dph, earth );
+   palSlaEcmat( palSlaEpj2d( 2000.0 ), ecmat );
+   palSlaDmxv( ecmat, dph, earth );
 
 /* Convert from AU to metres. */
    earth[0] *= AST__AU;
@@ -815,7 +1143,7 @@ static void Earth( double mjd, double earth[3] ) {
 
 }
 
-static void Hgc( double mjd, double mat[3][3], double offset[3] ) {
+static void Hgc( double mjd, double mat[3][3], double offset[3], int *status ) {
 /*
 *+
 *  Name:
@@ -829,7 +1157,7 @@ static void Hgc( double mjd, double mat[3][3], double offset[3] ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Hgc( double mjd, double mat[3][3], double offset[3] )
+*     void Hgc( double mjd, double mat[3][3], double offset[3], int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -849,6 +1177,8 @@ static void Hgc( double mjd, double mat[3][3], double offset[3] ) {
 *     offset
 *        The origin of the AST__HGC system within the AST__HAEC system.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -875,20 +1205,20 @@ static void Hgc( double mjd, double mat[3][3], double offset[3] ) {
 /* Get a unit vector parallel to the solar north pole at the given date.
    This vector is expressed in AST__HAEC coords. This is the Z axis of the 
    AST__HGC system. */
-   SolarPole( mjd, zhg );
+   SolarPole( mjd, zhg, status );
 
 /* Get the position of the earth at the given date in the AST__HAEC coord
    system. */
-   Earth( mjd, earth );
+   Earth( mjd, earth, status );
 
 /* The HG Y axis is perpendicular to both the polar axis and the
    sun-earth line. Obtain a Y vector by taking the cross product of the
    two vectors, and then normalize it into a unit vector. */
-   slaDvxv( zhg, earth, ytemp );
-   slaDvn( ytemp, yhg, &len );
+   palSlaDvxv( zhg, earth, ytemp );
+   palSlaDvn( ytemp, yhg, &len );
 
 /* The HG X axis is perpendicular to both Z and Y, */
-   slaDvxv( yhg, zhg, xhg );
+   palSlaDvxv( yhg, zhg, xhg );
 
 /* The HG X, Y and Z unit vectors form the columns of the required matrix. 
    The origins of the two systems are co-incident, so return the zero offset
@@ -901,7 +1231,7 @@ static void Hgc( double mjd, double mat[3][3], double offset[3] ) {
 
 }
 
-static void Gsec( double mjd, double mat[3][3], double offset[3] ) {
+static void Gsec( double mjd, double mat[3][3], double offset[3], int *status ) {
 /*
 *+
 *  Name:
@@ -915,7 +1245,7 @@ static void Gsec( double mjd, double mat[3][3], double offset[3] ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Gsec( double mjd, double mat[3][3], double offset[3] )
+*     void Gsec( double mjd, double mat[3][3], double offset[3], int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -935,6 +1265,8 @@ static void Gsec( double mjd, double mat[3][3], double offset[3] ) {
 *     offset
 *        The origin of the AST__GSEC system within the AST__HAEC system.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -961,13 +1293,13 @@ static void Gsec( double mjd, double mat[3][3], double offset[3] ) {
 
 /* Get the position of the earth at the given date in the AST__HAEC coord
    system. */
-   Earth( mjd, earth );
+   Earth( mjd, earth, status );
 
 /* We need to find unit vectors parallel to the GSEC (X,Y,Z) axes, expressed
    in terms of the AST__HAEC (X,Y,Z) axes. The GSEC X axis starts at the
    earth and passes through the centre of the sun. This is just the
    normalized opposite of the earth's position vector. */
-   slaDvn( earth, xgs, &len );
+   palSlaDvn( earth, xgs, &len );
    xgs[0] *= -1.0;
    xgs[1] *= -1.0;
    xgs[2] *= -1.0;
@@ -981,15 +1313,15 @@ static void Gsec( double mjd, double mat[3][3], double offset[3] ) {
 /* Find the GSEC Y axis by taking the vector product of the X axis and 
    the ecliptic north pole vector, and then normalize it into a unit 
    vector. */
-   slaDvxv( pole, xgs, ytemp );
-   slaDvn( ytemp, ygs, &len );
+   palSlaDvxv( pole, xgs, ytemp );
+   palSlaDvn( ytemp, ygs, &len );
 
 /* The GSEC Z axis is perpendicular to both X and Y axis, and forms a
    right-handed system. The resulting vector will be of unit length 
    since the x and y vectors are both of unit length, and are
    perpendicular to each other. It therefore does not need to be
    normalized.*/
-   slaDvxv( xgs, ygs, zgs );
+   palSlaDvxv( xgs, ygs, zgs );
 
 /* The GSEC X, Y and Z unit vectors form the columns of the required matrix. */
    for( i = 0; i < 3; i++ ) {
@@ -1001,7 +1333,7 @@ static void Gsec( double mjd, double mat[3][3], double offset[3] ) {
 
 }
 
-static void Haec( double mjd, double mat[3][3], double offset[3] ) {
+static void Haec( double mjd, double mat[3][3], double offset[3], int *status ) {
 /*
 *+
 *  Name:
@@ -1015,7 +1347,7 @@ static void Haec( double mjd, double mat[3][3], double offset[3] ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Haec( double mjd, double mat[3][3], double offset[3] )
+*     void Haec( double mjd, double mat[3][3], double offset[3], int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -1035,6 +1367,8 @@ static void Haec( double mjd, double mat[3][3], double offset[3] ) {
 *     offset
 *        The origin of the AST__HAEC system within the AST__HAEC system.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1051,7 +1385,7 @@ static void Haec( double mjd, double mat[3][3], double offset[3] ) {
 
 }
 
-static void Haqc( double mjd, double mat[3][3], double offset[3] ) {
+static void Haqc( double mjd, double mat[3][3], double offset[3], int *status ) {
 /*
 *+
 *  Name:
@@ -1065,7 +1399,7 @@ static void Haqc( double mjd, double mat[3][3], double offset[3] ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Haqc( double mjd, double mat[3][3], double offset[3] )
+*     void Haqc( double mjd, double mat[3][3], double offset[3], int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -1085,6 +1419,8 @@ static void Haqc( double mjd, double mat[3][3], double offset[3] ) {
 *     offset
 *        The origin of the AST__HAQC system within the AST__HAEC system.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1103,11 +1439,11 @@ static void Haqc( double mjd, double mat[3][3], double offset[3] ) {
    if ( !astOK ) return;
 
 /* Return the required matrix. */
-   slaEcmat( slaEpj2d( 2000.0 ), mat );
+   palSlaEcmat( palSlaEpj2d( 2000.0 ), mat );
    return;
 }
 
-static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] ) {
+static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3], int *status ) {
 /*
 *+
 *  Name:
@@ -1122,7 +1458,7 @@ static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] )
+*     void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3], int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -1145,6 +1481,8 @@ static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 *     offset
 *        The origin of the AST__HPCC system within the AST__HAEC system.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1172,7 +1510,7 @@ static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 /* If no observers position was supplied, use the position of the earth
    at the specified date in AST__HAEC coords. */
    if( !obs ) {
-      Earth( mjd, earth );
+      Earth( mjd, earth, status );
       obs = earth;
    } 
 
@@ -1180,27 +1518,27 @@ static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] 
    in terms of the AST__HAEC (X,Y,Z) axes. The HPCC X axis starts at the
    observer and passes through the centre of the sun. This is just the
    normalized opposite of the supplied observer's position vector. */
-   slaDvn( obs, xhpc, &len );
+   palSlaDvn( obs, xhpc, &len );
    xhpc[0] *= -1.0;
    xhpc[1] *= -1.0;
    xhpc[2] *= -1.0;
 
 /* The HPC Y axis is perpendicular to both the X axis and the solar north
    pole vector. So find the solar north pole vector in AST__HAEC coords. */
-   SolarPole( mjd, pole );
+   SolarPole( mjd, pole, status );
 
 /* Find the HPC Y axis by taking the vector product of the X axis and 
    the solar north pole vector, and then normalize it into a unit vector.
    Note, HPC (X,Y,Z) axes form a left-handed system! */
-   slaDvxv( xhpc, pole, ytemp );
-   slaDvn( ytemp, yhpc, &len );
+   palSlaDvxv( xhpc, pole, ytemp );
+   palSlaDvn( ytemp, yhpc, &len );
 
 /* The HPC Z axis is perpendicular to both X and Y axis, and forms a
    left-handed system. The resulting vector will be of unit length 
    since the x and y vectors are both of unit length, and are
    perpendicular to each other. It therefore does not need to be
    normalized.*/
-   slaDvxv( yhpc, xhpc, zhpc );
+   palSlaDvxv( yhpc, xhpc, zhpc );
 
 /* The HPC X, Y and Z unit vectors form the columns of the required matrix. */
    for( i = 0; i < 3; i++ ) {
@@ -1212,7 +1550,7 @@ static void Hpcc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 
 }
 
-static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] ) {
+static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3], int *status ) {
 /*
 *+
 *  Name:
@@ -1227,7 +1565,7 @@ static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] )
+*     void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3], int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -1250,6 +1588,8 @@ static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 *     offset
 *        The origin of the AST__HPRC system within the AST__HAEC system.
 *-
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1277,7 +1617,7 @@ static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] 
 /* If no observers position was supplied, use the position of the earth
    at the specified date in AST__HAEC coords. */
    if( !obs ) {
-      Earth( mjd, earth );
+      Earth( mjd, earth, status );
       obs = earth;
    }
 
@@ -1285,27 +1625,27 @@ static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] 
    in terms of the AST__HAEC (X,Y,Z) axes. The HPRC Z axis starts at the
    observer and passes through the centre of the sun. This is just the
    normalized opposite of the supplied observer's position vector. */
-   slaDvn( obs, zhpr, &len );
+   palSlaDvn( obs, zhpr, &len );
    zhpr[0] *= -1.0;
    zhpr[1] *= -1.0;
    zhpr[2] *= -1.0;
 
 /* The HPR Y axis is perpendicular to both the Z axis and the solar north
    pole vector. So find the solar north pole vector in AST__HAEC coords. */
-   SolarPole( mjd, pole );
+   SolarPole( mjd, pole, status );
 
 /* Find the HPR Y axis by taking the vector product of the Z axis and 
    the solar north pole vector, and then normalize it into a unit vector.
    Note, HPR (X,Y,Z) axes form a left-handed system! */
-   slaDvxv( pole, zhpr, ytemp );
-   slaDvn( ytemp, yhpr, &len );
+   palSlaDvxv( pole, zhpr, ytemp );
+   palSlaDvn( ytemp, yhpr, &len );
 
 /* The HPRC X axis is perpendicular to both Y and Z axis, and forms a
    left-handed system. The resulting vector will be of unit length 
    since the y and z vectors are both of unit length, and are
    perpendicular to each other. It therefore does not need to be
    normalized.*/
-   slaDvxv( zhpr, yhpr, xhpr );
+   palSlaDvxv( zhpr, yhpr, xhpr );
 
 /* The HPRC X, Y and Z unit vectors form the columns of the required matrix. */
    for( i = 0; i < 3; i++ ) {
@@ -1316,7 +1656,7 @@ static void Hprc( double mjd, double obs[3], double mat[3][3], double offset[3] 
    } 
 }
 
-static void J2000H( int forward, int npoint, double *alpha, double *delta ){
+static void J2000H( int forward, int npoint, double *alpha, double *delta, int *status ){
 /*
 *  Name:
 *     J2000H
@@ -1329,7 +1669,7 @@ static void J2000H( int forward, int npoint, double *alpha, double *delta ){
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void J2000H( int forward, int npoint, double *alpha, double *delta )
+*     void J2000H( int forward, int npoint, double *alpha, double *delta, int *status )
 
 *  Class Membership:
 *     SlaMap method.
@@ -1347,6 +1687,8 @@ static void J2000H( int forward, int npoint, double *alpha, double *delta ){
 *        Pointer to longitude values.
 *     delta
 *        Pointer to latitude values.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1359,29 +1701,29 @@ static void J2000H( int forward, int npoint, double *alpha, double *delta ){
    if ( !astOK ) return;
 
 /* Get the J2000 to ICRS rotation matrix (supplied by P.T. Wallace) */
-   slaDeuler( "XYZ", -0.0068192*AS2R, 0.0166172*AS2R, 0.0146000*AS2R, 
+   palSlaDeuler( "XYZ", -0.0068192*AS2R, 0.0166172*AS2R, 0.0146000*AS2R, 
               rmat );
 
 /* Loop round all points. */
    for( i = 0; i < npoint; i++ ) {
 
 /* Convert from (alpha,delta) to 3-vector */
-      slaDcs2c( alpha[ i ], delta[ i ], v1 );
+      palSlaDcs2c( alpha[ i ], delta[ i ], v1 );
 
 /* Rotate the 3-vector */
       if( forward ) {
-         slaDmxv( rmat, v1, v2 );
+         palSlaDmxv( rmat, v1, v2 );
       } else {
-         slaDimxv( rmat, v1, v2 );
+         palSlaDimxv( rmat, v1, v2 );
       }      
 
 /* Convert from 3-vector to (alpha,delta) */
-      slaDcc2s( v2, alpha + i, delta + i );
+      palSlaDcc2s( v2, alpha + i, delta + i );
    }
 }
 
 void astSTPConv1_( double mjd, int in_sys, double in_obs[3], double in[3], 
-                   int out_sys, double out_obs[3], double out[3] ){
+                   int out_sys, double out_obs[3], double out[3], int *status ){
 /*
 *+
 *  Name:
@@ -1452,13 +1794,13 @@ void astSTPConv1_( double mjd, int in_sys, double in_obs[3], double in[3],
    outs[ 2 ] = out + 2;
 
 /* Convert the position. */
-   STPConv( mjd, 0, 1, in_sys, in_obs, ins, out_sys, out_obs, outs );
+   STPConv( mjd, 0, 1, in_sys, in_obs, ins, out_sys, out_obs, outs, status );
 
 }
 
 void astSTPConv_( double mjd, int n, int in_sys, double in_obs[3], 
                   double *in[3], int out_sys, double out_obs[3], 
-                  double *out[3] ){
+                  double *out[3], int *status ){
 /*
 *+
 *  Name:
@@ -1597,12 +1939,12 @@ void astSTPConv_( double mjd, int n, int in_sys, double in_obs[3],
 *     ecliptic north pole.
 *-
 */
-   STPConv( mjd, 0, n, in_sys, in_obs, in, out_sys, out_obs, out );
+   STPConv( mjd, 0, n, in_sys, in_obs, in, out_sys, out_obs, out, status );
 }
 
 static void STPConv( double mjd, int ignore_origins, int n, int in_sys, 
                      double in_obs[3], double *in[3], int out_sys, 
-                     double out_obs[3], double *out[3] ){
+                     double out_obs[3], double *out[3], int *status ){
 /*
 *  Name:
 *     STPConv
@@ -1618,7 +1960,7 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
 *     #include "slamap.h"
 *     void STPConv( double mjd, int ignore_origins, int n, int in_sys, 
 *                   double in_obs[3], double *in[3], int out_sys, 
-*                   double out_obs[3], double *out[3] ){
+*                   double out_obs[3], double *out[3], int *status ){
 
 *  Class Membership:
 *     Frame method.
@@ -1666,6 +2008,8 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
 *        elements should point to an array of "n" axis values. For spherical
 *        output coordinates, out[2] may be NULL, in which case the output
 *        radius values are thrown away.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - Output longitude values are always in the range 0 - 2.PI.
@@ -1757,7 +2101,7 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
             if( p[ 0 ] != AST__BAD && 
                 p[ 1 ] != AST__BAD && 
                 p[ 2 ] != AST__BAD ) {
-                slaDcs2c( p[ 0 ], p[ 1 ], q );
+                palSlaDcs2c( p[ 0 ], p[ 1 ], q );
                 *(px++) = q[ 0 ]*p[ 2 ];
                 *(py++) = q[ 1 ]*p[ 2 ];
                 *(pz++) = q[ 2 ]*p[ 2 ];
@@ -1804,53 +2148,53 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
    the current system. The matrix rotates direction vectors from the current 
    system to the AST__HAEC system. */
          if( cur_sys == AST__HGC ) {
-            Hgc( mjd, mat1, off1 );
+            Hgc( mjd, mat1, off1, status );
    
          } else if( cur_sys == AST__HAEC ) {
-            Haec( mjd, mat1, off1 );
+            Haec( mjd, mat1, off1, status );
    
          } else if( cur_sys == AST__HAQC ) {
-            Haqc( mjd, mat1, off1 );
+            Haqc( mjd, mat1, off1, status );
    
          } else if( cur_sys == AST__GSEC ) {
-            Gsec( mjd, mat1, off1 );
+            Gsec( mjd, mat1, off1, status );
    
          } else if( cur_sys == AST__HPCC ) {
-            Hpcc( mjd, in_obs, mat1, off1 );
+            Hpcc( mjd, in_obs, mat1, off1, status );
    
          } else if( cur_sys == AST__HPRC ) {
-            Hprc( mjd, in_obs, mat1, off1 );
+            Hprc( mjd, in_obs, mat1, off1, status );
    
          } else {
             astError( AST__INTER, "astSTPConv(SlaMap): Unsupported input "
                       "cartesian coordinate system type %d (internal AST "
-                      "programming error).", cur_sys );
+                      "programming error).", status, cur_sys );
          }
  
 /* Obtain an offset vector and a rotation matrix which moves positions from 
    the required output Cartesian system to the AST__HAEC system. */
          if( outCsys == AST__HGC ) {
-            Hgc( mjd, mat2, off2 );
+            Hgc( mjd, mat2, off2, status );
    
          } else if( outCsys == AST__HAEC ) {
-            Haec( mjd, mat2, off2 );
+            Haec( mjd, mat2, off2, status );
    
          } else if( outCsys == AST__HAQC ) {
-            Haqc( mjd, mat2, off2 );
+            Haqc( mjd, mat2, off2, status );
    
          } else if( outCsys == AST__GSEC ) {
-            Gsec( mjd, mat2, off2 );
+            Gsec( mjd, mat2, off2, status );
    
          } else if( outCsys == AST__HPCC ) {
-            Hpcc( mjd, out_obs, mat2, off2 );
+            Hpcc( mjd, out_obs, mat2, off2, status );
    
          } else if( outCsys == AST__HPRC ) {
-            Hprc( mjd, out_obs, mat2, off2 );
+            Hprc( mjd, out_obs, mat2, off2, status );
    
          } else {
             astError( AST__INTER, "astSTPConv(SlaMap): Unsupported output "
                       "cartesian coordinate system type %d (internal AST "
-                      "programming error).", outCsys );
+                      "programming error).", status, outCsys );
          }
  
 /* Invert the second matrix to get the matrix which rotates AST__HAEC coords
@@ -1872,12 +2216,12 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
             off4[ 1 ] = 0.0;            
             off4[ 2 ] = 0.0;            
          } else {
-            slaDmxv( mat3, off3, off4 );
+            palSlaDmxv( mat3, off3, off4 );
          }
          
 /* Concatentate the two matrices to get the matrix which rotates from the
    current system to the output cartesian system. */
-         slaDmxm( mat3, mat1, mat4 );
+         palSlaDmxm( mat3, mat1, mat4 );
 
 /* Use the matrix and offset to convert current positions to output 
    cartesian positions. */
@@ -1893,7 +2237,7 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
             if( p[ 0 ] != AST__BAD && 
                 p[ 1 ] != AST__BAD && 
                 p[ 2 ] != AST__BAD ) {
-               slaDmxv( mat4, p, q );
+               palSlaDmxv( mat4, p, q );
                *(px++) = q[ 0 ] + off4[ 0 ];
                *(py++) = q[ 1 ] + off4[ 1 ];
                *(pz++) = q[ 2 ] + off4[ 2 ];
@@ -1927,9 +2271,9 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
          if( p[ 0 ] != AST__BAD && 
              p[ 1 ] != AST__BAD && 
              p[ 2 ] != AST__BAD ) {
-             slaDvn( p, q, &radius );
-             slaDcc2s( q, &lng, &lat );
-             *(px++) = slaDranrm( lng );
+             palSlaDvn( p, q, &radius );
+             palSlaDcc2s( q, &lng, &lat );
+             *(px++) = palSlaDranrm( lng );
              *(py++) = lat;
              *(pz++) = radius;
          } else {
@@ -1945,7 +2289,7 @@ static void STPConv( double mjd, int ignore_origins, int n, int in_sys,
    if( !out[2] ) out2 = (double *) astFree( (void *) out2 );
 }
 
-void astInitSlaMapVtab_(  AstSlaMapVtab *vtab, const char *name ) {
+void astInitSlaMapVtab_(  AstSlaMapVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -1982,10 +2326,15 @@ void astInitSlaMapVtab_(  AstSlaMapVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -1994,8 +2343,8 @@ void astInitSlaMapVtab_(  AstSlaMapVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsASlaMap) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -2005,13 +2354,17 @@ void astInitSlaMapVtab_(  AstSlaMapVtab *vtab, const char *name ) {
 
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
+   object = (AstObjectVtab *) vtab;
    mapping = (AstMappingVtab *) vtab;
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
 
    parent_transform = mapping->Transform;
    mapping->Transform = Transform;
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   object->Equal = Equal;
    mapping->MapMerge = MapMerge;
 
 /* Declare the copy constructor, destructor and class dump
@@ -2020,10 +2373,15 @@ void astInitSlaMapVtab_(  AstSlaMapVtab *vtab, const char *name ) {
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "SlaMap",
                "Conversion between sky coordinate systems" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
-                     AstMapping ***map_list, int **invert_list ) {
+                     AstMapping ***map_list, int **invert_list, int *status ) {
 /*
 *  Name:
 *     MapMerge
@@ -2037,7 +2395,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *  Synopsis:
 *     #include "mapping.h"
 *     int MapMerge( AstMapping *this, int where, int series, int *nmap,
-*                   AstMapping ***map_list, int **invert_list )
+*                   AstMapping ***map_list, int **invert_list, int *status )
 
 *  Class Membership:
 *     SlaMap method (over-rides the protected astMapMerge method
@@ -2140,6 +2498,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *        length, the "*invert_list" array will be extended (and its
 *        pointer updated) if necessary to accommodate any new
 *        elements.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     If simplification was possible, the function returns the index
@@ -2245,11 +2605,15 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Loop through each transformation step in the SlaMap. */
          for ( icvt = icvt1; icvt != icvt2; icvt += inc ) {
 
+/* For simplicity, free any extra information stored with the conversion 
+   step (it will be recreated as and when necessary). */
+            slamap->cvtextra[ icvt ] = astFree( slamap->cvtextra[ icvt ] );
+
 /* Store the transformation type code and use "CvtString" to determine
    the associated number of arguments. Then store these arguments. */
             cvttype[ nstep ] = slamap->cvttype[ icvt ];
             (void) CvtString( cvttype[ nstep ], &comment, narg + nstep,
-                              argdesc );
+                              argdesc, status );
             if ( !astOK ) break;
             for ( iarg = 0; iarg < narg[ nstep ]; iarg++ ) {
                cvtargs[ nstep ][ iarg ] = slamap->cvtargs[ icvt ][ iarg ];
@@ -2316,6 +2680,11 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Exchange the transformation code for its inverse. */
                SWAP_CODES( AST__SLA_ECLEQ, AST__SLA_EQECL )
 
+/* Horizon to equatorial. */
+/* ---------------------- */
+/* Exchange the transformation code for its inverse. */
+               SWAP_CODES( AST__SLA_DH2E, AST__SLA_DE2H )
+
 /* Galactic coordinates to FK5 J2000.0 equatorial. */
 /* ------------------------------------------- */
 /* Exchange the transformation code for its inverse. */
@@ -2350,6 +2719,11 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* -------------------------- */
 /* Exchange the transformation code for its inverse. */
                SWAP_CODES( AST__J2000H, AST__HJ2000 )
+
+/* HA to RA */
+/* -------- */
+/* Exchange the transformation code for its inverse. */
+               SWAP_CODES( AST__H2R, AST__R2H )
 
             }
 
@@ -2451,9 +2825,9 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                } else if ( ( PAIR_CVT( AST__SLA_AMP, AST__SLA_MAP ) ||
                              PAIR_CVT( AST__SLA_MAP, AST__SLA_AMP ) ) &&
                            EQUAL( cvtargs[ istep ][ 0 ],
-                                  cvtargs[ istep + 1 ][ 1 ] ) &&
+                                  cvtargs[ istep + 1 ][ 0 ] ) &&
                            EQUAL( cvtargs[ istep ][ 1 ],
-                                  cvtargs[ istep + 1 ][ 0 ] ) ) {
+                                  cvtargs[ istep + 1 ][ 1 ] ) ) {
                   istep++;
                   keep = 0;
 
@@ -2464,6 +2838,17 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                              PAIR_CVT( AST__SLA_EQECL, AST__SLA_ECLEQ ) ) &&
                            EQUAL( cvtargs[ istep ][ 0 ],
                                   cvtargs[ istep + 1 ][ 0 ] ) ) {
+                  istep++;
+                  keep = 0;
+
+/* Eliminate redundant AzEl coordinate conversions. */
+/* ------------------------------------------------ */
+               } else if ( ( PAIR_CVT( AST__SLA_DH2E, AST__SLA_DE2H ) ||
+                             PAIR_CVT( AST__SLA_DE2H, AST__SLA_DH2E ) ) &&
+                           EQUAL( cvtargs[ istep ][ 0 ],
+                                  cvtargs[ istep + 1 ][ 0 ] ) &&
+                           EQUAL( cvtargs[ istep ][ 1 ],
+                                  cvtargs[ istep + 1 ][ 1 ] ) ) {
                   istep++;
                   keep = 0;
 
@@ -2530,6 +2915,15 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                   istep++;
                   keep = 0;
 
+/* Eliminate redundant Hour Angle conversions. */
+/* ------------------------------------------- */
+               } else if ( ( PAIR_CVT( AST__R2H, AST__H2R ) ||
+                             PAIR_CVT( AST__H2R, AST__R2H ) ) &&
+                           EQUAL( cvtargs[ istep ][ 0 ],
+                                  cvtargs[ istep + 1 ][ 0 ] ) ) {
+                  istep++;
+                  keep = 0;
+
                }
 
 /* Undefine the local macro. */
@@ -2588,15 +2982,15 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* If the replacement Mapping is a UnitMap, then create it. */
             if ( unit ) {
                new = (AstMapping *)
-                        astUnitMap( astGetNin( ( *map_list )[ where ] ), "" );
+                        astUnitMap( astGetNin( ( *map_list )[ where ] ), "", status );
 
 /* Otherwise, create a replacement SlaMap and add each of the
    remaining transformation steps to it. */
             } else {
-               new = (AstMapping *) astSlaMap( 0, "" );
+               new = (AstMapping *) astSlaMap( 0, "", status );
                for ( istep = 0; istep < nstep; istep++ ) {
                   AddSlaCvt( (AstSlaMap *) new, cvttype[ istep ],
-                             cvtargs[ istep ] );
+                             cvtargs[ istep ], status );
                }
             }
 
@@ -2647,7 +3041,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    return result;
 }
 
-static void SlaAdd( AstSlaMap *this, const char *cvt, const double args[] ) {
+static void SlaAdd( AstSlaMap *this, const char *cvt, const double args[], int *status ) {
 /*
 *++
 *  Name:
@@ -2775,6 +3169,8 @@ f     these arguments should be given, via the ARGS array, in the
 *     - "SUPGAL": Convert supergalactic coordinates to galactic.
 *     - "J2000H": Convert dynamical J2000.0 to ICRS.
 *     - "HJ2000": Convert ICRS to dynamical J2000.0.
+*     - "R2H" (LAST): Convert RA to Hour Angle.
+*     - "H2R" (LAST): Convert Hour Angle to RA.
 *
 *     For example, to use the "ADDET" conversion, which takes a single
 *     argument EQ, you should consult the documentation for the SLALIB
@@ -2786,8 +3182,9 @@ f     This value should then be supplied to AST_SLAADD in ARGS(1).
 *
 *     In addition the following strings may be supplied for more complex
 *     conversions which do not correspond to any one single SLALIB routine
-*     (DATE is the Modified Julian Date of the observation, and
-*     (OBSX,OBSY,OBZ) are the Heliocentric-Aries-Ecliptic cartesian
+*     (DIURAB is the magnitude of the diurnal aberration vector in units
+*     of "day/(2.PI)", DATE is the Modified Julian Date of the observation, 
+*     and (OBSX,OBSY,OBZ) are the Heliocentric-Aries-Ecliptic cartesian 
 *     coordinates, in metres, of the observer):
 *
 *     - "HPCEQ" (DATE,OBSX,OBSY,OBSZ): Convert Helioprojective-Cartesian coordinates to J2000.0 equatorial.
@@ -2796,7 +3193,14 @@ f     This value should then be supplied to AST_SLAADD in ARGS(1).
 *     - "EQHPR" (DATE,OBSX,OBSY,OBSZ): Convert J2000.0 equatorial coordinates to Helioprojective-Radial.
 *     - "HEEQ" (DATE): Convert helio-ecliptic coordinates to J2000.0 equatorial.
 *     - "EQHE" (DATE): Convert J2000.0 equatorial coordinates to helio-ecliptic.
+*     - "H2E" (LAT,DIRUAB): Convert horizon coordinates to equatorial.
+*     - "E2H" (LAT,DIURAB): Convert equatorial coordinates to horizon.
 *
+*     Note, the "H2E" and "E2H" conversions convert between topocentric
+*     horizon coordinates (azimuth,elevation), and apparent local equatorial
+*     coordinates (hour angle,declination). Thus, the effects of diurnal
+*     aberration are taken into account in the conversions but the effects 
+*     of atmospheric refraction are not.
 
 *--
 */
@@ -2809,20 +3213,20 @@ f     This value should then be supplied to AST_SLAADD in ARGS(1).
 
 /* Validate the type string supplied and obtain the equivalent
    conversion type code. */
-   cvttype = CvtCode( cvt );
+   cvttype = CvtCode( cvt, status );
 
 /* If the string was not recognised, then report an error. */
    if ( astOK && ( cvttype == AST__SLA_NULL ) ) {
       astError( AST__SLAIN,
                 "astSlaAdd(%s): Invalid SLALIB sky coordinate conversion "
-                "type \"%s\".", astGetClass( this ), cvt );
+                "type \"%s\".", status, astGetClass( this ), cvt );
    }
 
 /* Add the new conversion to the SlaMap. */
-   AddSlaCvt( this, cvttype, args );
+   AddSlaCvt( this, cvttype, args, status );
 }
 
-static void SolarPole( double mjd, double pole[3] ) {
+static void SolarPole( double mjd, double pole[3], int *status ) {
 /*
 *  Name:
 *     SolarPole
@@ -2835,7 +3239,7 @@ static void SolarPole( double mjd, double pole[3] ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void SolarPole( double mjd, double pole[3] )
+*     void SolarPole( double mjd, double pole[3], int *status )
 
 *  Class Membership:
 *     SlaMap member function.
@@ -2850,6 +3254,8 @@ static void SolarPole( double mjd, double pole[3] ) {
 *     pole
 *        An array holding the (X,Y,Z) components of the vector, in the
 *        AST__HAEC system.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     -  AST__BAD will be returned for all components of the vector if this 
@@ -2884,7 +3290,7 @@ static void SolarPole( double mjd, double pole[3] ) {
    J2000. We assume T is in days. The text does not explicitly say so,
    but we assume that this longitude value (Omega) is with respect to the
    mean equinox of J2000.0. */
-   omega = 75.76 + 0.01397*( slaEpj(mjd) - 2000.0 );
+   omega = 75.76 + 0.01397*( palSlaEpj(mjd) - 2000.0 );
 
 /* Convert this to the ecliptic longitude of the projection of the sun's 
    north pole onto the ecliptic, in radians. */
@@ -2906,7 +3312,7 @@ static void SolarPole( double mjd, double pole[3] ) {
 }
 
 static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -2920,7 +3326,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *  Synopsis:
 *     #include "slamap.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     SlaMap member function (over-rides the astTransform method inherited
@@ -2945,6 +3351,8 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -2960,12 +3368,14 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstPointSet *result;          /* Pointer to output PointSet */
    AstSlaMap *map;               /* Pointer to SlaMap to be applied */
    double **ptr_in;              /* Pointer to input coordinate data */
    double **ptr_out;             /* Pointer to output coordinate data */
    double *alpha;                /* Pointer to longitude array */
    double *args;                 /* Pointer to argument list for conversion */
+   double *extra;                /* Pointer to intermediate values */
    double *delta;                /* Pointer to latitude array */
    double *p[3];                 /* Pointers to arrays to be transformed */
    double *obs;                  /* Pointer to array holding observers position */
@@ -2982,6 +3392,9 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Check the global error status. */
    if ( !astOK ) return NULL;
 
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(this);
+
 /* Obtain a pointer to the SlaMap. */
    map = (AstSlaMap *) this;
 
@@ -2989,7 +3402,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    function inherited from the parent Mapping class. This function validates
    all arguments and generates an output PointSet if necessary, but does not
    actually transform any coordinate values. */
-   result = (*parent_transform)( this, in, forward, out );
+   result = (*parent_transform)( this, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    coordinate conversions needed to generate the output coordinate values. */
@@ -3030,6 +3443,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    pointer to the argument list for the current conversion. */
       for ( cvt = start; cvt != end; cvt += inc ) {
          args = map->cvtargs[ cvt ];
+         extra = map->cvtextra[ cvt ];
 
 /* Define a local macro as a shorthand to apply the code given as "function"
    (the macro argument) to each element of the (alpha,delta) arrays in turn.
@@ -3057,11 +3471,11 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    in turn, returning the results to the same arrays. */
             case AST__SLA_ADDET:
                if ( forward ) {
-                  TRAN_ARRAY(slaAddet( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaAddet( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
 	       } else {
-                  TRAN_ARRAY(slaSubet( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaSubet( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
                }
@@ -3073,11 +3487,11 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    transposed. */
             case AST__SLA_SUBET:
                if ( forward ) {
-                  TRAN_ARRAY(slaSubet( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaSubet( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
 	       } else {
-                  TRAN_ARRAY(slaAddet( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaAddet( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
 	       }
@@ -3095,16 +3509,16 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
                   double precess_matrix[ 3 ][ 3 ];
                   double vec1[ 3 ];
                   double vec2[ 3 ];
-                  slaPrebn( epoch1, epoch2, precess_matrix );
+                  palSlaPrebn( epoch1, epoch2, precess_matrix );
 
 /* For each point in the (alpha,delta) arrays, convert to Cartesian
    coordinates, apply the precession matrix, convert back to polar coordinates
    and then constrain the longitude result to lie in the range 0 to 2*pi
-   (slaDcc2s doesn't do this itself). */
-                  TRAN_ARRAY(slaDcs2c( alpha[ point ], delta[ point ], vec1 );
-                             slaDmxv( precess_matrix, vec1, vec2 );
-                             slaDcc2s( vec2, alpha + point, delta + point );
-                             alpha[ point ] = slaDranrm( alpha[ point ] );)
+   (palSlaDcc2s doesn't do this itself). */
+                  TRAN_ARRAY(palSlaDcs2c( alpha[ point ], delta[ point ], vec1 );
+                             palSlaDmxv( precess_matrix, vec1, vec2 );
+                             palSlaDcc2s( vec2, alpha + point, delta + point );
+                             alpha[ point ] = palSlaDranrm( alpha[ point ] );)
 	       }
                break;
 
@@ -3119,11 +3533,11 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
                   double precess_matrix[ 3 ][ 3 ];
                   double vec1[ 3 ];
                   double vec2[ 3 ];
-                  slaPrec( epoch1, epoch2, precess_matrix );
-                  TRAN_ARRAY(slaDcs2c( alpha[ point ], delta[ point ], vec1 );
-                             slaDmxv( precess_matrix, vec1, vec2 );
-                             slaDcc2s( vec2, alpha + point, delta + point );
-                             alpha[ point ] = slaDranrm( alpha[ point ] );)
+                  palSlaPrec( epoch1, epoch2, precess_matrix );
+                  TRAN_ARRAY(palSlaDcs2c( alpha[ point ], delta[ point ], vec1 );
+                             palSlaDmxv( precess_matrix, vec1, vec2 );
+                             palSlaDcc2s( vec2, alpha + point, delta + point );
+                             alpha[ point ] = palSlaDranrm( alpha[ point ] );)
 	       }
                break;
 
@@ -3132,7 +3546,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Apply the conversion to each point. */
 	    case AST__SLA_FK45Z:
                if ( forward ) {
-                  TRAN_ARRAY(slaFk45z( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaFk45z( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
 
@@ -3141,7 +3555,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 	       } else {
                   double dr1950;
                   double dd1950;
-                  TRAN_ARRAY(slaFk54z( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaFk54z( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point,
                                        &dr1950, &dd1950 );)
@@ -3156,12 +3570,12 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
                if ( forward ) {
                   double dr1950;
                   double dd1950;
-                  TRAN_ARRAY(slaFk54z( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaFk54z( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point,
                                        &dr1950, &dd1950 );)
 	       } else {
-                  TRAN_ARRAY(slaFk45z( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaFk45z( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
                }
@@ -3173,18 +3587,31 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    parameter array. Than apply this to each point in turn. */
 	    case AST__SLA_AMP:
                {
-                  double amprms[ 21 ];
-                  slaMappa( args[ 1 ], args[ 0 ], amprms );
+
+                  if( !extra ) {
+
+                     if( args[ 1 ] != eq_cache ||
+                         args[ 0 ] != ep_cache ) {
+                        eq_cache = args[ 1 ];
+                        ep_cache = args[ 0 ];
+                        palSlaMappa( eq_cache, ep_cache, amprms_cache );
+                     }                        
+
+                     extra = astStore( NULL, amprms_cache,
+                                       sizeof( double )*21 );
+                     map->cvtextra[ cvt ] = extra;
+                  }
+
                   if ( forward ) {
-                     TRAN_ARRAY(slaAmpqk( alpha[ point ], delta[ point ],
-                                          amprms,
+                     TRAN_ARRAY(palSlaAmpqk( alpha[ point ], delta[ point ],
+                                          extra,
                                           alpha + point, delta + point );)
 
 /* The inverse uses the same parameter array but converts from mean place
    to geocentric apparent. */
                   } else {
-                     TRAN_ARRAY(slaMapqkz( alpha[ point ], delta[ point ],
-                                           amprms,
+                     TRAN_ARRAY(palSlaMapqkz( alpha[ point ], delta[ point ],
+                                           extra,
                                            alpha + point, delta + point );)
 		  }
                }
@@ -3196,15 +3623,27 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    transposed. */
 	    case AST__SLA_MAP:
                {
-                  double amprms[ 21 ];
-                  slaMappa( args[ 0 ], args[ 1 ], amprms );
+                  if( !extra ) {
+
+                     if( args[ 0 ] != eq_cache ||
+                         args[ 1 ] != ep_cache ) {
+                        eq_cache = args[ 0 ];
+                        ep_cache = args[ 1 ];
+                        palSlaMappa( eq_cache, ep_cache, amprms_cache );
+                     }                        
+
+                     extra = astStore( NULL, amprms_cache,
+                                       sizeof( double )*21 );
+                     map->cvtextra[ cvt ] = extra;
+                  }
+
                   if ( forward ) {
-                     TRAN_ARRAY(slaMapqkz( alpha[ point ], delta[ point ],
-                                           amprms,
+                     TRAN_ARRAY(palSlaMapqkz( alpha[ point ], delta[ point ],
+                                           extra, 
                                            alpha + point, delta + point );)
                   } else {
-                     TRAN_ARRAY(slaAmpqk( alpha[ point ], delta[ point ],
-                                          amprms,
+                     TRAN_ARRAY(palSlaAmpqk( alpha[ point ], delta[ point ],
+                                          extra, 
                                           alpha + point, delta + point );)
 		  }
                }
@@ -3225,33 +3664,33 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Obtain the matrix that precesses equatorial coordinates from J2000.0 to the
    required date. Also obtain the rotation matrix that converts from
    equatorial to ecliptic coordinates.  */
-                  slaPrec( 2000.0, slaEpj( args[ 0 ] ), precess_matrix );
-                  slaEcmat( args[ 0 ], rotate_matrix );
+                  palSlaPrec( 2000.0, palSlaEpj( args[ 0 ] ), precess_matrix );
+                  palSlaEcmat( args[ 0 ], rotate_matrix );
 
 /* Multiply these matrices to give the overall matrix that converts from
    equatorial J2000.0 coordinates to ecliptic coordinates for the required
    date. */
-                  slaDmxm( rotate_matrix, precess_matrix, convert_matrix );
+                  palSlaDmxm( rotate_matrix, precess_matrix, convert_matrix );
 
 /* Apply the conversion by transforming from polar to Cartesian coordinates,
    multiplying by the inverse conversion matrix and converting back to polar
    coordinates. Then constrain the longitude result to lie in the range
-   0 to 2*pi (slaDcc2s doesn't do this itself). */
+   0 to 2*pi (palSlaDcc2s doesn't do this itself). */
                   if ( forward ) {
-                     TRAN_ARRAY(slaDcs2c( alpha[ point ], delta[ point ],
+                     TRAN_ARRAY(palSlaDcs2c( alpha[ point ], delta[ point ],
                                           vec1 );
-                                slaDimxv( convert_matrix, vec1, vec2 );
-                                slaDcc2s( vec2, alpha + point, delta + point );
-                                alpha[ point ] = slaDranrm ( alpha[ point ] );)
+                                palSlaDimxv( convert_matrix, vec1, vec2 );
+                                palSlaDcc2s( vec2, alpha + point, delta + point );
+                                alpha[ point ] = palSlaDranrm ( alpha[ point ] );)
 
 /* The inverse conversion is the same except that we multiply by the forward
-   conversion matrix (slaDmxv instead of slaDimxv). */
+   conversion matrix (palSlaDmxv instead of palSlaDimxv). */
                   } else {
-                     TRAN_ARRAY(slaDcs2c( alpha[ point ], delta[ point ],
+                     TRAN_ARRAY(palSlaDcs2c( alpha[ point ], delta[ point ],
                                           vec1 );
-                                slaDmxv( convert_matrix, vec1, vec2 );
-                                slaDcc2s( vec2, alpha + point, delta + point );
-                                alpha[ point ] = slaDranrm ( alpha[ point ] );)
+                                palSlaDmxv( convert_matrix, vec1, vec2 );
+                                palSlaDcc2s( vec2, alpha + point, delta + point );
+                                alpha[ point ] = palSlaDranrm ( alpha[ point ] );)
                   }
 	       }
                break;
@@ -3269,23 +3708,23 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
                   double vec2[ 3 ];
 
 /* Create the conversion matrix. */
-                  slaPrec( 2000.0, slaEpj( args[ 0 ] ), precess_matrix );
-                  slaEcmat( args[ 0 ], rotate_matrix );
-                  slaDmxm( rotate_matrix, precess_matrix, convert_matrix );
+                  palSlaPrec( 2000.0, palSlaEpj( args[ 0 ] ), precess_matrix );
+                  palSlaEcmat( args[ 0 ], rotate_matrix );
+                  palSlaDmxm( rotate_matrix, precess_matrix, convert_matrix );
 
 /* Apply it. */
                   if ( forward ) {
-                     TRAN_ARRAY(slaDcs2c( alpha[ point ], delta[ point ],
+                     TRAN_ARRAY(palSlaDcs2c( alpha[ point ], delta[ point ],
                                           vec1 );
-                                slaDmxv( convert_matrix, vec1, vec2 );
-                                slaDcc2s( vec2, alpha + point, delta + point );
-                                alpha[ point ] = slaDranrm ( alpha[ point ] );)
+                                palSlaDmxv( convert_matrix, vec1, vec2 );
+                                palSlaDcc2s( vec2, alpha + point, delta + point );
+                                alpha[ point ] = palSlaDranrm ( alpha[ point ] );)
                   } else {
-                     TRAN_ARRAY(slaDcs2c( alpha[ point ], delta[ point ],
+                     TRAN_ARRAY(palSlaDcs2c( alpha[ point ], delta[ point ],
                                           vec1 );
-                                slaDimxv( convert_matrix, vec1, vec2 );
-                                slaDcc2s( vec2, alpha + point, delta + point );
-                                alpha[ point ] = slaDranrm ( alpha[ point ] );)
+                                palSlaDimxv( convert_matrix, vec1, vec2 );
+                                palSlaDcc2s( vec2, alpha + point, delta + point );
+                                alpha[ point ] = palSlaDranrm ( alpha[ point ] );)
                   }
 	       }
                break;
@@ -3297,14 +3736,14 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
                if ( forward ) {
                   double dr5;
                   double dd5;
-                  TRAN_ARRAY(slaHfk5z( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaHfk5z( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point,
                                        &dr5, &dd5 );)
 
 /* The inverse simply uses the inverse SLALIB function. */
 	       } else {
-                  TRAN_ARRAY(slaFk5hz( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaFk5hz( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
 	       }
@@ -3316,7 +3755,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    transposed. */
 	    case AST__SLA_FK5HZ:
                if ( forward ) {
-                  TRAN_ARRAY(slaFk5hz( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaFk5hz( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point );)
 
@@ -3324,10 +3763,45 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 	       } else {
                   double dr5;
                   double dd5;
-                  TRAN_ARRAY(slaHfk5z( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaHfk5z( alpha[ point ], delta[ point ],
                                        args[ 0 ],
                                        alpha + point, delta + point,
                                        &dr5, &dd5 );)
+	       }
+               break;
+
+/* Convert horizon to equatorial. */
+/* ------------------------------ */
+/* Apply the conversion to each point. */
+	    case AST__SLA_DH2E:
+               if ( forward ) {
+                  TRAN_ARRAY(palSlaDh2e( alpha[ point ], delta[ point ],
+                                      args[ 0 ], args[ 1 ],
+                                      alpha + point, delta + point );)
+
+/* The inverse simply uses the inverse SLALIB function. */
+	       } else {
+                  TRAN_ARRAY(palSlaDe2h( alpha[ point ], delta[ point ],
+                                      args[ 0 ], args[ 1 ],
+                                      alpha + point, delta + point );)
+	       }
+               break;
+
+/* Convert equatorial to horizon. */
+/* ------------------------------ */
+/* This is the same as above, but with the forward and inverse cases
+   transposed. */
+	    case AST__SLA_DE2H:
+               if ( forward ) {
+                  TRAN_ARRAY(palSlaDe2h( alpha[ point ], delta[ point ],
+                                      args[ 0 ], args[ 1 ],
+                                      alpha + point, delta + point );)
+
+/* The inverse simply uses the inverse SLALIB function. */
+	       } else {
+                  TRAN_ARRAY(palSlaDh2e( alpha[ point ], delta[ point ],
+                                      args[ 0 ], args[ 1 ],
+                                      alpha + point, delta + point );)
 	       }
                break;
 
@@ -3336,12 +3810,12 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Apply the conversion to each point. */
 	    case AST__SLA_GALEQ:
                if ( forward ) {
-                  TRAN_ARRAY(slaGaleq( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaGaleq( alpha[ point ], delta[ point ],
                                        alpha + point, delta + point );)
 
 /* The inverse simply uses the inverse SLALIB function. */
 	       } else {
-                  TRAN_ARRAY(slaEqgal( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaEqgal( alpha[ point ], delta[ point ],
                                        alpha + point, delta + point );)
 	       }
                break;
@@ -3352,10 +3826,10 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    transposed. */
 	    case AST__SLA_EQGAL:
                if ( forward ) {
-                  TRAN_ARRAY(slaEqgal( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaEqgal( alpha[ point ], delta[ point ],
                                        alpha + point, delta + point );)
 	       } else {
-                  TRAN_ARRAY(slaGaleq( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaGaleq( alpha[ point ], delta[ point ],
                                        alpha + point, delta + point );)
                }
                break;
@@ -3365,12 +3839,12 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Apply the conversion to each point. */
 	    case AST__SLA_GALSUP:
                if ( forward ) {
-                  TRAN_ARRAY(slaGalsup( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaGalsup( alpha[ point ], delta[ point ],
                                         alpha + point, delta + point );)
 
 /* The inverse simply uses the inverse SLALIB function. */
                } else {
-                  TRAN_ARRAY(slaSupgal( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaSupgal( alpha[ point ], delta[ point ],
                                         alpha + point, delta + point );)
                }
                break;
@@ -3381,10 +3855,10 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    transposed. */
 	    case AST__SLA_SUPGAL:
                if ( forward ) {
-                  TRAN_ARRAY(slaSupgal( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaSupgal( alpha[ point ], delta[ point ],
                                         alpha + point, delta + point );)
                } else {
-                  TRAN_ARRAY(slaGalsup( alpha[ point ], delta[ point ],
+                  TRAN_ARRAY(palSlaGalsup( alpha[ point ], delta[ point ],
                                         alpha + point, delta + point );)
                }
                break;
@@ -3394,7 +3868,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    to detect a bad value previously). */
             default:
                astError( AST__SLAIN, "astTransform(%s): Corrupt %s contains "
-                         "invalid SLALIB sky coordinate conversion code (%d).",
+                         "invalid SLALIB sky coordinate conversion code (%d).", status,
                          astGetClass( this ), astGetClass( this ),
                          (int) ct );
                break;
@@ -3435,10 +3909,10 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    from the observer). */
                   if( forward ) {
                      STPConv( args[ 0 ], 1, npoint, sys, obs, p,
-                              AST__HAQ, NULL, p );
+                              AST__HAQ, NULL, p, status );
                   } else {
                      STPConv( args[ 0 ], 1, npoint, AST__HAQ, NULL, p,
-                              sys, obs, p );
+                              sys, obs, p, status );
                   }
 	       }
                break;
@@ -3481,10 +3955,10 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    from the observer). */
                   if( forward ) {
                      STPConv( args[ 0 ], 1, npoint, AST__HAQ, NULL, p,
-                              sys, obs, p );
+                              sys, obs, p, status );
                   } else {
                      STPConv( args[ 0 ], 1, npoint, sys, obs, p,
-                              AST__HAQ, NULL, p );
+                              AST__HAQ, NULL, p, status );
                   }
 	       }
                break;
@@ -3493,13 +3967,21 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* ---------------------------------- */
 /* Apply the conversion to each point. */
 	    case AST__J2000H:
-               J2000H( forward, npoint, alpha, delta );
+               J2000H( forward, npoint, alpha, delta, status );
                break;
 
 /* Convert ICRS to dynamical J2000.0  */
 /* ---------------------------------- */
 	    case AST__HJ2000:
-               J2000H( !(forward), npoint, alpha, delta );
+               J2000H( !(forward), npoint, alpha, delta, status );
+               break;
+
+/* Convert HA to RA, or RA to HA */
+/* ----------------------------- */
+/* The forward and inverse transformations are the same. */
+	    case AST__H2R:
+	    case AST__R2H:
+               TRAN_ARRAY( alpha[ point ] = args[ 0 ] - alpha[ point ]; )
                break;
 
          }
@@ -3523,7 +4005,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -3535,7 +4017,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for SlaMap objects.
@@ -3545,6 +4027,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3568,10 +4052,14 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 /* For safety, first clear any references to the input memory from the output
    SlaMap. */
    out->cvtargs = NULL;
+   out->cvtextra = NULL;
    out->cvttype = NULL;
 
 /* Allocate memory for the output array of argument list pointers. */
    out->cvtargs = astMalloc( sizeof( double * ) * (size_t) in->ncvt );
+
+/* Allocate memory for the output array of extra (intermediate) values. */
+   out->cvtextra = astMalloc( sizeof( double * ) * (size_t) in->ncvt );
 
 /* If necessary, allocate memory and make a copy of the input array of sky
    coordinate conversion codes. */
@@ -3586,6 +4074,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
       for ( cvt = 0; cvt < in->ncvt; cvt++ ) {
          out->cvtargs[ cvt ] = astStore( NULL, in->cvtargs[ cvt ],
                                          astSizeOf( in->cvtargs[ cvt ] ) );
+         out->cvtextra[ cvt ] = astStore( NULL, in->cvtextra[ cvt ],
+                                         astSizeOf( in->cvtextra[ cvt ] ) );
       }
 
 /* If an error occurred while copying the argument lists, loop through the
@@ -3601,13 +4091,14 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 /* If an error occurred, free all other memory allocated above. */
    if ( !astOK ) {
       out->cvtargs = astFree( out->cvtargs );
+      out->cvtextra = astFree( out->cvtextra );
       out->cvttype = astFree( out->cvttype );
    }
 }
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -3619,7 +4110,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for SlaMap objects.
@@ -3627,6 +4118,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3647,17 +4140,19 @@ static void Delete( AstObject *obj ) {
    conversion. */
    for ( cvt = 0; cvt < this->ncvt; cvt++ ) {
       this->cvtargs[ cvt ] = astFree( this->cvtargs[ cvt ] );
+      this->cvtextra[ cvt ] = astFree( this->cvtextra[ cvt ] );
    }
 
 /* Free the memory holding the array of conversion types and the array of
    argument list pointers. */
    this->cvtargs = astFree( this->cvtargs );
+   this->cvtextra = astFree( this->cvtextra );
    this->cvttype = astFree( this->cvttype );
 }
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -3670,7 +4165,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 
 *  Synopsis:
 *     #include "slamap.h"
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -3681,6 +4176,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the SlaMap whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Constants: */
@@ -3736,11 +4233,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
    obtain associated descriptive information. If the conversion code
    was not recognised, report an error and give up. */
       if ( astOK ) {
-         sval = CvtString( this->cvttype[ icvt ], &comment, &nargs, argdesc );
+         sval = CvtString( this->cvttype[ icvt ], &comment, &nargs, argdesc, status );
          if ( astOK && !sval ) {
             astError( AST__SLAIN,
                       "astWrite(%s): Corrupt %s contains invalid SLALIB "
-                      "sky coordinate conversion code (%d).",
+                      "sky coordinate conversion code (%d).", status,
                       astGetClass( channel ), astGetClass( this ),
                       (int) this->cvttype[ icvt ] );
             break;
@@ -3776,10 +4273,10 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsASlaMap and astCheckSlaMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(SlaMap,Mapping,check,&class_init)
+astMAKE_ISA(SlaMap,Mapping,check,&class_check)
 astMAKE_CHECK(SlaMap)
 
-AstSlaMap *astSlaMap_( int flags, const char *options, ... ) {
+AstSlaMap *astSlaMap_( int flags, const char *options, int *status, ...) {
 /*
 *++
 *  Name:
@@ -3871,8 +4368,12 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstSlaMap *new;               /* Pointer to the new SlaMap */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -3888,8 +4389,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new SlaMap's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -3939,8 +4440,17 @@ AstSlaMap *astSlaMapId_( int flags, const char *options, ... ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstSlaMap *new;               /* Pointer to the new SlaMap */
    va_list args;                 /* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -3957,7 +4467,7 @@ AstSlaMap *astSlaMapId_( int flags, const char *options, ... ) {
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new SlaMap's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -3970,7 +4480,7 @@ AstSlaMap *astSlaMapId_( int flags, const char *options, ... ) {
 
 AstSlaMap *astInitSlaMap_( void *mem, size_t size, int init,
                            AstSlaMapVtab *vtab, const char *name,
-                           int flags ) {
+                           int flags, int *status ) {
 /*
 *+
 *  Name:
@@ -4061,6 +4571,7 @@ AstSlaMap *astInitSlaMap_( void *mem, size_t size, int init,
    SlaMap simply implements a unit mapping. */
       new->ncvt = 0;
       new->cvtargs = NULL;
+      new->cvtextra = NULL;
       new->cvttype = NULL;
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -4073,7 +4584,7 @@ AstSlaMap *astInitSlaMap_( void *mem, size_t size, int init,
 
 AstSlaMap *astLoadSlaMap_( void *mem, size_t size,
                            AstSlaMapVtab *vtab, const char *name,
-                           AstChannel *channel ) {
+                           AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -4148,12 +4659,16 @@ AstSlaMap *astLoadSlaMap_( void *mem, size_t size,
 */
 
 /* Local Constants: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstSlaMap *new;               /* Pointer to the new SlaMap */
    char *sval;                   /* Pointer to string value */
-   char key[ KEY_LEN + 1 ];      /* Buffer for keyword string */
+   char key[ KEY_LEN + 1 ];      /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Buffer for keyword string */
    const char *argdesc[ MAX_SLA_ARGS ]; /* Pointers to argument descriptions */
    const char *comment;          /* Pointer to comment string */
    int iarg;                     /* Loop counter for arguments */
@@ -4212,16 +4727,19 @@ AstSlaMap *astLoadSlaMap_( void *mem, size_t size,
       if ( new->ncvt < 0 ) new->ncvt = 0;
       new->cvttype = astMalloc( sizeof( int ) * (size_t) new->ncvt );
       new->cvtargs = astMalloc( sizeof( double * ) * (size_t) new->ncvt );
+      new->cvtextra = astMalloc( sizeof( double * ) * (size_t) new->ncvt );
 
 /* If an error occurred, ensure that all allocated memory is freed. */
       if ( !astOK ) {
          new->cvttype = astFree( new->cvttype );
          new->cvtargs = astFree( new->cvtargs );
+         new->cvtextra = astFree( new->cvtextra );
 
 /* Otherwise, initialise the argument pointer array. */
       } else {
          for ( icvt = 0; icvt < new->ncvt; icvt++ ) {
             new->cvtargs[ icvt ] = NULL;
+            new->cvtextra[ icvt ] = NULL;
          }
 
 /* Read in data for each conversion step... */
@@ -4239,19 +4757,19 @@ AstSlaMap *astLoadSlaMap_( void *mem, size_t size,
                if ( !sval ) {
                   astError( AST__BADIN,
                             "astRead(%s): An SLALIB sky coordinate conversion "
-                            "type is missing from the input SlaMap data.",
+                            "type is missing from the input SlaMap data.", status,
                             astGetClass( channel ) );
 
 /* Otherwise, convert the string representation into the required
    conversion type code. */
                } else {
-                  new->cvttype[ icvt ] = CvtCode( sval );
+                  new->cvttype[ icvt ] = CvtCode( sval, status );
 
 /* If the string was not recognised, report an error. */
                   if ( new->cvttype[ icvt ] == AST__SLA_NULL ) {
                      astError( AST__BADIN,
                               "astRead(%s): Invalid SLALIB sky conversion "
-                              "type \"%s\" in SlaMap data.",
+                              "type \"%s\" in SlaMap data.", status,
                               astGetClass( channel ), sval );
                   }
                }
@@ -4263,7 +4781,7 @@ AstSlaMap *astLoadSlaMap_( void *mem, size_t size,
 /* Obtain the number of arguments associated with the conversion and
    allocate memory to hold them. */
             (void) CvtString( new->cvttype[ icvt ], &comment, &nargs,
-                              argdesc );
+                              argdesc, status );
             new->cvtargs[ icvt ] = astMalloc( sizeof( double ) *
                                               (size_t) nargs );
 
@@ -4307,7 +4825,12 @@ AstSlaMap *astLoadSlaMap_( void *mem, size_t size,
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
-void astSlaAdd_( AstSlaMap *this, const char *cvt, const double args[] ) {
+void astSlaAdd_( AstSlaMap *this, const char *cvt, const double args[], int *status ) {
    if ( !astOK ) return;
-   (**astMEMBER(this,SlaMap,SlaAdd))( this, cvt, args );
+   (**astMEMBER(this,SlaMap,SlaAdd))( this, cvt, args, status );
 }
+
+
+
+
+

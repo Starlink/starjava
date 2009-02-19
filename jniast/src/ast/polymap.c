@@ -30,7 +30,24 @@ f     The PolyMap class does not define any new routines beyond those
 *     which are applicable to all Mappings.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: D.S. Berry (Starlink)
@@ -44,6 +61,12 @@ f     The PolyMap class does not define any new routines beyond those
 *        FitsChans. 
 *     20-MAY-2005 (DSB):
 *        Correct the indexing of keywords produced in the Dump function.
+*     20-APR-2006 (DSB):
+*        Guard against undefined transformations in Copy.
+*     10-MAY-2006 (DSB):
+*        Override astEqual.
+*     4-JUL-2008 (DSB):
+*        Fixed loop indexing problems in Equal function.
 *class--
 */
 
@@ -67,6 +90,8 @@ exceptions, so bad values are dealt with explicitly. */
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -90,13 +115,40 @@ exceptions, so bad values are dealt with explicitly. */
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstPolyMapVtab class_vtab; /* Virtual function table */
-static int class_init = 0;          /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+
+
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(PolyMap)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(PolyMap,Class_Init)
+#define class_vtab astGLOBAL(PolyMap,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstPolyMapVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -107,15 +159,174 @@ AstPolyMap *astPolyMapId_( int, int, int, const double[], int, const double[], c
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int ** );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject *obj );
-static void Dump( AstObject *, AstChannel * );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *obj, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static void FreeArrays( AstPolyMap *, int, int * );
 
 /* Member functions. */
 /* ================= */
-static void FreeArrays( AstPolyMap *this, int forward ) {
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two PolyMaps are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "polymap.h"
+*     int Equal( AstObject *this, AstObject *that, int *status ) 
+
+*  Class Membership:
+*     PolyMap member function (over-rides the astEqual protected
+*     method inherited from the astMapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two PolyMaps are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Object (a PolyMap).
+*     that
+*        Pointer to the second Object.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     One if the PolyMaps are equivalent, zero otherwise.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstPolyMap *that;        
+   AstPolyMap *this;        
+   int i, j, k; 
+   int nin;
+   int nout;
+   int result;
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain pointers to the two PolyMap structures. */
+   this = (AstPolyMap *) this_object;
+   that = (AstPolyMap *) that_object;
+
+/* Check the second object is a PolyMap. We know the first is a
+   PolyMap since we have arrived at this implementation of the virtual
+   function. */
+   if( astIsAPolyMap( that ) ) {
+
+/* Get the number of inputs and outputs and check they are the same for both. */
+      nin = astGetNin( this );
+      nout = astGetNout( this );
+      if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
+
+/* If the Invert flags for the two PolyMaps differ, it may still be possible 
+   for them to be equivalent. First compare the PolyMaps if their Invert 
+   flags are the same. In this case all the attributes of the two PolyMaps 
+   must be identical. */
+         if( astGetInvert( this ) == astGetInvert( that ) ) {
+
+            result = 1;
+
+            for( i = 0; i < nout && result; i++ ) {
+               if( this->ncoeff_f[ i ] != that->ncoeff_f[ i ] ||
+                   this->mxpow_i[ i ] != that->mxpow_i[ i ] ) {
+                  result = 0;
+               } 
+            }
+
+
+            if( this->coeff_f && that->coeff_f ) {
+               for( i = 0; i < nout && result; i++ ) {
+                  for( j = 0; j < this->ncoeff_f[ i ] && result; j++ ) {
+                     if( !EQUAL( this->coeff_f[ i ][ j ],
+                                 that->coeff_f[ i ][ j ] ) ) {
+                        result = 0;
+                     }
+                  }
+               }
+            }
+
+            if( this->power_f && that->power_f ) {
+               for( i = 0; i < nout && result; i++ ) {
+                  for( j = 0; j < this->ncoeff_f[ i ] && result; j++ ) {
+                     for( k = 0; k < nin && result; k++ ) {
+                        if( !EQUAL( this->power_f[ i ][ j ][ k ],
+                                    that->power_f[ i ][ j ][ k ] ) ) {
+                           result = 0;
+                        }
+                     }
+                  }
+               }
+            }
+
+            for( i = 0; i < nin && result; i++ ) {
+               if( this->ncoeff_i[ i ] != that->ncoeff_i[ i ] ||
+                   this->mxpow_f[ i ] != that->mxpow_f[ i ] ) {
+                  result = 0;
+               } 
+            }
+
+
+            if( this->coeff_i && that->coeff_i ) {
+               for( i = 0; i < nin && result; i++ ) {
+                  for( j = 0; j < this->ncoeff_i[ i ] && result; j++ ) {
+                     if( !EQUAL( this->coeff_i[ i ][ j ],
+                                 that->coeff_i[ i ][ j ] ) ) {
+                        result = 0;
+                     }
+                  }
+               }
+            }
+
+            if( this->power_i && that->power_i ) {
+               for( i = 0; i < nin && result; i++ ) {
+                  for( j = 0; j < this->ncoeff_i[ i ] && result; j++ ) {
+                     for( k = 0; k < nout && result; k++ ) {
+                        if( !EQUAL( this->power_i[ i ][ j ][ k ],
+                                    that->power_i[ i ][ j ][ k ] ) ) {
+                           result = 0;
+                        }
+                     }
+                  }
+               }
+            }
+
+/* If the Invert flags for the two PolyMaps differ, the attributes of the two 
+   PolyMaps must be inversely related to each other. */
+         } else {
+
+/* In the specific case of a PolyMap, Invert flags must be equal. */
+            result = 0;
+
+         }
+      }
+   }
+   
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static void FreeArrays( AstPolyMap *this, int forward, int *status ) {
 /*
 *  Name:
 *     FreeArrays
@@ -127,7 +338,7 @@ static void FreeArrays( AstPolyMap *this, int forward ) {
 *     Private function.
 
 *  Synopsis:
-*     void FreeArrays( AstPolyMap *this, int forward )
+*     void FreeArrays( AstPolyMap *this, int forward, int *status )
 
 *  Description:
 *     This function frees all the dynamic arrays allocated as part of a
@@ -139,6 +350,8 @@ static void FreeArrays( AstPolyMap *this, int forward ) {
 *     forward
 *        If non-zero, the arrays for the forward transformation are freed.
 *        Otherwise, the arrays for the inverse transformation are freed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -210,7 +423,7 @@ static void FreeArrays( AstPolyMap *this, int forward ) {
    }
 }
 
-void astInitPolyMapVtab_(  AstPolyMapVtab *vtab, const char *name ) {
+void astInitPolyMapVtab_(  AstPolyMapVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -247,11 +460,16 @@ void astInitPolyMapVtab_(  AstPolyMapVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -260,8 +478,8 @@ void astInitPolyMapVtab_(  AstPolyMapVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAPolyMap) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -279,6 +497,7 @@ void astInitPolyMapVtab_(  AstPolyMapVtab *vtab, const char *name ) {
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   object->Equal = Equal;
    mapping->MapMerge = MapMerge;
 
 /* Declare the destructor and copy constructor. */
@@ -287,10 +506,15 @@ void astInitPolyMapVtab_(  AstPolyMapVtab *vtab, const char *name ) {
 
 /* Declare the class dump function. */
    astSetDump( vtab, Dump, "PolyMap", "Polynomial transformation" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
-                     AstMapping ***map_list, int **invert_list ) {
+                     AstMapping ***map_list, int **invert_list, int *status ) {
 /*
 *  Name:
 *     MapMerge
@@ -304,7 +528,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *  Synopsis:
 *     #include "mapping.h"
 *     int MapMerge( AstMapping *this, int where, int series, int *nmap,
-*                   AstMapping ***map_list, int **invert_list )
+*                   AstMapping ***map_list, int **invert_list, int *status )
 
 *  Class Membership:
 *     PolyMap method (over-rides the protected astMapMerge method
@@ -407,6 +631,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *        length, the "*invert_list" array will be extended (and its
 *        pointer updated) if necessary to accommodate any new
 *        elements.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     If simplification was possible, the function returns the index
@@ -535,14 +761,14 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          (void) astAnnul( pmap0 );
          (void) astAnnul( pmap1 );
          if( i < where ) {
-            ( *map_list )[ where ] = (AstMapping *) astUnitMap( nout, "" );
-            ( *map_list )[ i ] = (AstMapping *) astUnitMap( nout, "" );
+            ( *map_list )[ where ] = (AstMapping *) astUnitMap( nout, "", status );
+            ( *map_list )[ i ] = (AstMapping *) astUnitMap( nout, "", status );
             ( *invert_list )[ where ] = 0;
             ( *invert_list )[ i ] = 0;
             result = i;
          } else {
-            ( *map_list )[ where ] = (AstMapping *) astUnitMap( nin, "" );
-            ( *map_list )[ i ] = (AstMapping *) astUnitMap( nin, "" );
+            ( *map_list )[ where ] = (AstMapping *) astUnitMap( nin, "", status );
+            ( *map_list )[ i ] = (AstMapping *) astUnitMap( nin, "", status );
             ( *invert_list )[ where ] = 0;
             ( *invert_list )[ i ] = 0;
             result = where;
@@ -558,7 +784,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 }
 
 static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -572,7 +798,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *  Synopsis:
 *     #include "polymap.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     PolyMap member function (over-rides the astTransform protected
@@ -595,6 +821,8 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -649,7 +877,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    function inherited from the parent Mapping class. This function validates
    all arguments and generates an output PointSet if necessary, but does not
    actually transform any coordinate values. */
-   result = (*parent_transform)( this, in, forward, out );
+   result = (*parent_transform)( this, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    calculations needed to generate the output coordinate values. */
@@ -786,7 +1014,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -798,7 +1026,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for PolyMap objects.
@@ -808,6 +1036,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -854,36 +1084,38 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Copy the number of coefficients associated with each output of the forward 
    transformation. */
-   out->ncoeff_f = (int *) astStore( NULL, (void *) in->ncoeff_f,
-                                     sizeof( int )*(size_t) nout ); 
+   if( in->ncoeff_f ) {
+      out->ncoeff_f = (int *) astStore( NULL, (void *) in->ncoeff_f,
+                                        sizeof( int )*(size_t) nout ); 
 
 /* Copy the maximum power of each input axis value used by the forward 
    transformation. */
-   out->mxpow_f = (int *) astStore( NULL, (void *) in->mxpow_f,
-                                    sizeof( int )*(size_t) nin ); 
+      out->mxpow_f = (int *) astStore( NULL, (void *) in->mxpow_f,
+                                       sizeof( int )*(size_t) nin ); 
 
 /* Copy the coefficient values used by the forward transformation. */
-   if( in->coeff_f ) {
-      out->coeff_f = astMalloc( sizeof( double * )*(size_t) nout );
-      if( astOK ) {
-         for( i = 0; i < nout; i++ ) {
-            out->coeff_f[ i ] = (double *) astStore( NULL, (void *) in->coeff_f[ i ],
-                                                  sizeof( double )*(size_t) in->ncoeff_f[ i ] ); 
+      if( in->coeff_f ) {
+         out->coeff_f = astMalloc( sizeof( double * )*(size_t) nout );
+         if( astOK ) {
+            for( i = 0; i < nout; i++ ) {
+               out->coeff_f[ i ] = (double *) astStore( NULL, (void *) in->coeff_f[ i ],
+                                                     sizeof( double )*(size_t) in->ncoeff_f[ i ] ); 
+            }
          }
       }
-   }
 
 /* Copy the input axis powers associated with each coefficient of the forward 
    transformation. */
-   if( in->power_f ) {
-      out->power_f = astMalloc( sizeof( int ** )*(size_t) nout );
-      if( astOK ) {
-         for( i = 0; i < nout; i++ ) {
-            out->power_f[ i ] = astMalloc( sizeof( int * )*(size_t) in->ncoeff_f[ i ] );
-            if( astOK ) {
-               for( j = 0; j < in->ncoeff_f[ i ]; j++ ) {
-                  out->power_f[ i ][ j ] = (int *) astStore( NULL, (void *) in->power_f[ i ][ j ],
-                                                             sizeof( int )*(size_t) nin );
+      if( in->power_f ) {
+         out->power_f = astMalloc( sizeof( int ** )*(size_t) nout );
+         if( astOK ) {
+            for( i = 0; i < nout; i++ ) {
+               out->power_f[ i ] = astMalloc( sizeof( int * )*(size_t) in->ncoeff_f[ i ] );
+               if( astOK ) {
+                  for( j = 0; j < in->ncoeff_f[ i ]; j++ ) {
+                     out->power_f[ i ][ j ] = (int *) astStore( NULL, (void *) in->power_f[ i ][ j ],
+                                                                sizeof( int )*(size_t) nin );
+                  }
                }
             }
          }
@@ -891,31 +1123,33 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
    }
 
 /* Do the same for the inverse transformation. */
-   out->ncoeff_i = (int *) astStore( NULL, (void *) in->ncoeff_i,
-                                     sizeof( int )*(size_t) nin ); 
-
-   out->mxpow_i = (int *) astStore( NULL, (void *) in->mxpow_i,
-                                    sizeof( int )*(size_t) nout ); 
-
-   if( in->coeff_i ) {
-      out->coeff_i = astMalloc( sizeof( double * )*(size_t) nin );
-      if( astOK ) {
-         for( i = 0; i < nin; i++ ) {
-            out->coeff_i[ i ] = (double *) astStore( NULL, (void *) in->coeff_i[ i ],
-                                                  sizeof( double )*(size_t) in->ncoeff_i[ i ] ); 
+   if( in->ncoeff_i ) {
+      out->ncoeff_i = (int *) astStore( NULL, (void *) in->ncoeff_i,
+                                        sizeof( int )*(size_t) nin ); 
+   
+      out->mxpow_i = (int *) astStore( NULL, (void *) in->mxpow_i,
+                                       sizeof( int )*(size_t) nout ); 
+   
+      if( in->coeff_i ) {
+         out->coeff_i = astMalloc( sizeof( double * )*(size_t) nin );
+         if( astOK ) {
+            for( i = 0; i < nin; i++ ) {
+               out->coeff_i[ i ] = (double *) astStore( NULL, (void *) in->coeff_i[ i ],
+                                                     sizeof( double )*(size_t) in->ncoeff_i[ i ] ); 
+            }
          }
       }
-   }
-
-   if( in->power_i ) {
-      out->power_i = astMalloc( sizeof( int ** )*(size_t) nin );
-      if( astOK ) {
-         for( i = 0; i < nin; i++ ) {
-            out->power_i[ i ] = astMalloc( sizeof( int * )*(size_t) in->ncoeff_i[ i ] );
-            if( astOK ) {
-               for( j = 0; j < in->ncoeff_i[ i ]; j++ ) {
-                  out->power_i[ i ][ j ] = (int *) astStore( NULL, (void *) in->power_i[ i ][ j ],
-                                                             sizeof( int )*(size_t) nout );
+   
+      if( in->power_i ) {
+         out->power_i = astMalloc( sizeof( int ** )*(size_t) nin );
+         if( astOK ) {
+            for( i = 0; i < nin; i++ ) {
+               out->power_i[ i ] = astMalloc( sizeof( int * )*(size_t) in->ncoeff_i[ i ] );
+               if( astOK ) {
+                  for( j = 0; j < in->ncoeff_i[ i ]; j++ ) {
+                     out->power_i[ i ][ j ] = (int *) astStore( NULL, (void *) in->power_i[ i ][ j ],
+                                                                sizeof( int )*(size_t) nout );
+                  }
                }
             }
          }
@@ -924,8 +1158,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* If an error has occurred, free the output arrays. */
    if( !astOK ) {
-      FreeArrays( out, 1 );
-      FreeArrays( out, 0 );
+      FreeArrays( out, 1, status );
+      FreeArrays( out, 0, status );
    }
 
    return;
@@ -934,7 +1168,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -946,7 +1180,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for PolyMap objects.
@@ -954,6 +1188,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -970,14 +1206,14 @@ static void Delete( AstObject *obj ) {
    this = (AstPolyMap *) obj;
 
 /* Free the arrays. */
-   FreeArrays( this, 1 );
-   FreeArrays( this, 0 );
+   FreeArrays( this, 1, status );
+   FreeArrays( this, 0, status );
 
 }
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -989,7 +1225,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -1000,6 +1236,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the PolyMap whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 #define KEY_LEN 50               /* Maximum length of a keyword */
@@ -1130,11 +1368,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAPolyMap and astCheckPolyMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(PolyMap,Mapping,check,&class_init)
+astMAKE_ISA(PolyMap,Mapping,check,&class_check)
 astMAKE_CHECK(PolyMap)
 
 AstPolyMap *astPolyMap_( int nin, int nout, int ncoeff_f, const double coeff_f[],
-                         int ncoeff_i, const double coeff_i[], const char *options, ... ){
+                         int ncoeff_i, const double coeff_i[], const char *options, int *status, ...){
 /*
 *++
 *  Name:
@@ -1261,11 +1499,15 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;         /* Pointer to thread-specific global data */
    AstPolyMap *new;            /* Pointer to new PolyMap */
    va_list args;               /* Variable argument list */
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialise the PolyMap, allocating memory and initialising the
    virtual function table as well if necessary. */
@@ -1280,8 +1522,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new PolyMap's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -1334,8 +1576,16 @@ AstPolyMap *astPolyMapId_( int nin, int nout, int ncoeff_f, const double coeff_f
 */
 
 /* Local Variables: */
-   AstPolyMap *new;            /* Pointer to new PolyMap */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstPolyMap *new;              /* Pointer to new PolyMap */
    va_list args;                 /* Variable argument list */
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -1354,7 +1604,7 @@ AstPolyMap *astPolyMapId_( int nin, int nout, int ncoeff_f, const double coeff_f
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new PolyMap's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -1368,7 +1618,7 @@ AstPolyMap *astPolyMapId_( int nin, int nout, int ncoeff_f, const double coeff_f
 AstPolyMap *astInitPolyMap_( void *mem, size_t size, int init, 
                              AstPolyMapVtab *vtab, const char *name,
                              int nin, int nout, int ncoeff_f, const double coeff_f[],
-                             int ncoeff_i, const double coeff_i[] ){
+                             int ncoeff_i, const double coeff_i[], int *status ){
 /*
 *+
 *  Name:
@@ -1548,9 +1798,9 @@ AstPolyMap *astInitPolyMap_( void *mem, size_t size, int init,
                if( iout < 1 || iout > nout ) {
                   astError( AST__BADCI, "astInitPolyMap(%s): Forward "
                             "coefficient %d referred to an illegal output "
-                            "coordinate %d.", name, i + 1, iout );
+                            "coordinate %d.", status, name, i + 1, iout );
                   astError( AST__BADCI, "This number should be in the "
-                            "range 1 to %d.", nout );
+                            "range 1 to %d.", status, nout );
                   break;
                }
 
@@ -1561,10 +1811,10 @@ AstPolyMap *astInitPolyMap_( void *mem, size_t size, int init,
                   if( pow < 0 ) {
                      astError( AST__BADPW, "astInitPolyMap(%s): Forward "
                                "coefficient %d has a negative power (%d) "
-                               "for input coordinate %d.", name, i + 1, pow, 
+                               "for input coordinate %d.", status, name, i + 1, pow, 
                                 j + 1 );
                      astError( AST__BADPW, "All powers should be zero or "
-                               "positive." );
+                               "positive." , status);
                      break;
                   }
                   if( pow > new->mxpow_f[ j ] ) new->mxpow_f[ j ] = pow;      
@@ -1633,9 +1883,9 @@ AstPolyMap *astInitPolyMap_( void *mem, size_t size, int init,
                if( iin < 1 || iin > nin ) {
                   astError( AST__BADCI, "astInitPolyMap(%s): Inverse "
                             "coefficient %d referred to an illegal input "
-                            "coordinate %d.", name, i + 1, iin );
+                            "coordinate %d.", status, name, i + 1, iin );
                   astError( AST__BADCI, "This number should be in the "
-                            "range 1 to %d.", nin );
+                            "range 1 to %d.", status, nin );
                   break;
                }
 
@@ -1646,10 +1896,10 @@ AstPolyMap *astInitPolyMap_( void *mem, size_t size, int init,
                   if( pow < 0 ) {
                      astError( AST__BADPW, "astInitPolyMap(%s): Inverse "
                                "coefficient %d has a negative power (%d) "
-                               "for output coordinate %d.", name, i + 1, pow, 
+                               "for output coordinate %d.", status, name, i + 1, pow, 
                                 j + 1 );
                      astError( AST__BADPW, "All powers should be zero or "
-                               "positive." );
+                               "positive." , status);
                      break;
                   }
                   if( pow > new->mxpow_i[ j ] ) new->mxpow_i[ j ] = pow;      
@@ -1700,7 +1950,7 @@ AstPolyMap *astInitPolyMap_( void *mem, size_t size, int init,
 
 AstPolyMap *astLoadPolyMap_( void *mem, size_t size,
                              AstPolyMapVtab *vtab, const char *name,
-                             AstChannel *channel ) {
+                             AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -1776,11 +2026,15 @@ AstPolyMap *astLoadPolyMap_( void *mem, size_t size,
 
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 /* Local Variables: */
    AstPolyMap *new;              /* Pointer to the new PolyMap */
    char buff[ KEY_LEN + 1 ];     /* Buffer for keyword string */
    int i;                        /* Loop index */
-   int iv;                       /* Vectorised keyword index */
+   int iv;                       /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Vectorised keyword index */
    int j;                        /* Loop index */
    int k;                        /* Loop index */
    int nin;                      /* No. of input coords */
@@ -2008,3 +2262,7 @@ AstPolyMap *astLoadPolyMap_( void *mem, size_t size,
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
+
+
+
+

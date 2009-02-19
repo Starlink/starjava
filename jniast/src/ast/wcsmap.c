@@ -62,6 +62,7 @@ f     AST_WCSMAP
 *     - NatLat: Native latitude of the reference point of a FITS-WCS projection
 *     - NatLon: Native longitude of the reference point of a FITS-WCS projection
 *     - PVi_m: FITS-WCS projection parameters
+*     - PVMax: Maximum number of FITS-WCS projection parameters
 *     - WcsAxis(lonlat): FITS-WCS projection axes
 *     - WcsType: FITS-WCS projection type
 
@@ -71,7 +72,24 @@ f     The WcsMap class does not define any new routines beyond those
 *     which are applicable to all Mappings.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: D.S. Berry (Starlink)
@@ -161,6 +179,24 @@ f     The WcsMap class does not define any new routines beyond those
 *        CopyPV rewritten to avoid assumption that the input and output
 *        WcsMaps have the same number of axes and that the lon/lat axes have 
 *        the same indices.
+*     7-DEC-2005 (DSB):
+*        Free memory allocated by calls to astReadString.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
+*     15-FEB-2006 (DSB):
+*        Use dynamic rather than static memory for the parameter arrays in 
+*        the AstPrjPrm structure.Override astGetObjSize. This is to
+*        reduce the in-memory size of a WcsMap.
+*     10-MAY-2006 (DSB):
+*        Override astEqual.
+*     10-AUG-2006 (DSB):
+*        Correct astLoadWcsMap to take acount of the different number of
+*        PVi_m values that can be associated with each axis.
+*     4-JAN-2007 (DSB):
+*        Correct astLoadWcsMap to load the projection parameter with
+*        highest index correctly.
+*     23-FEB-2007 (DSB):
+*        Added HPX projection.
 *class--
 */
 
@@ -238,7 +274,7 @@ f     The WcsMap class does not define any new routines beyond those
 \
 /* Private member function. */ \
 /* ------------------------ */ \
-static void Clear##attr( AstWcsMap *this, int axis ) { \
+static void Clear##attr( AstWcsMap *this, int axis, int *status ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return; \
@@ -246,7 +282,7 @@ static void Clear##attr( AstWcsMap *this, int axis ) { \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
       astError( AST__AXIIN, "%s(%s): Index (%d) is invalid for attribute " \
-                #attr " - it should be in the range 1 to %d.", \
+                #attr " - it should be in the range 1 to %d.", status, \
                 "astClear" #attr, astGetClass( this ), \
                 axis + 1, nval ); \
 \
@@ -258,13 +294,13 @@ static void Clear##attr( AstWcsMap *this, int axis ) { \
 \
 /* External interface. */ \
 /* ------------------- */ \
-void astClear##attr##_( AstWcsMap *this, int axis ) { \
+void astClear##attr##_( AstWcsMap *this, int axis, int *status ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return; \
 \
 /* Invoke the required method via the virtual function table. */ \
-   (**astMEMBER(this,WcsMap,Clear##attr))( this, axis ); \
+   (**astMEMBER(this,WcsMap,Clear##attr))( this, axis, status ); \
 }   
 
 
@@ -327,7 +363,7 @@ void astClear##attr##_( AstWcsMap *this, int axis ) { \
 \
 /* Private member function. */ \
 /* ------------------------ */ \
-static type Get##attr( AstWcsMap *this, int axis ) { \
+static type Get##attr( AstWcsMap *this, int axis, int *status ) { \
    type result;                  /* Result to be returned */ \
 \
 /* Initialise */ \
@@ -339,7 +375,7 @@ static type Get##attr( AstWcsMap *this, int axis ) { \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
       astError( AST__AXIIN, "%s(%s): Index (%d) is invalid for attribute " \
-                #attr " - it should be in the range 1 to %d.", \
+                #attr " - it should be in the range 1 to %d.", status, \
                 "astGet" #attr, astGetClass( this ), \
                 axis + 1, nval ); \
 \
@@ -356,13 +392,13 @@ static type Get##attr( AstWcsMap *this, int axis ) { \
 } \
 /* External interface. */ \
 /* ------------------- */  \
-type astGet##attr##_( AstWcsMap *this, int axis ) { \
+type astGet##attr##_( AstWcsMap *this, int axis, int *status ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return (bad_value); \
 \
 /* Invoke the required method via the virtual function table. */ \
-   return (**astMEMBER(this,WcsMap,Get##attr))( this, axis ); \
+   return (**astMEMBER(this,WcsMap,Get##attr))( this, axis, status ); \
 }
 
 /*
@@ -425,7 +461,7 @@ type astGet##attr##_( AstWcsMap *this, int axis ) { \
 \
 /* Private member function. */ \
 /* ------------------------ */ \
-static void Set##attr( AstWcsMap *this, int axis, type value ) { \
+static void Set##attr( AstWcsMap *this, int axis, type value, int *status ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return; \
@@ -433,7 +469,7 @@ static void Set##attr( AstWcsMap *this, int axis, type value ) { \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
       astError( AST__AXIIN, "%s(%s): Index (%d) is invalid for attribute " \
-                #attr " - it should be in the range 1 to %d.", \
+                #attr " - it should be in the range 1 to %d.", status, \
                 "astSet" #attr, astGetClass( this ), \
                 axis + 1, nval ); \
 \
@@ -445,13 +481,13 @@ static void Set##attr( AstWcsMap *this, int axis, type value ) { \
 \
 /* External interface. */ \
 /* ------------------- */ \
-void astSet##attr##_( AstWcsMap *this, int axis, type value ) { \
+void astSet##attr##_( AstWcsMap *this, int axis, type value, int *status ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return; \
 \
 /* Invoke the required method via the virtual function table. */ \
-   (**astMEMBER(this,WcsMap,Set##attr))( this, axis, value ); \
+   (**astMEMBER(this,WcsMap,Set##attr))( this, axis, value, status ); \
 }
 
 /*
@@ -510,7 +546,7 @@ void astSet##attr##_( AstWcsMap *this, int axis, type value ) { \
 \
 /* Private member function. */ \
 /* ------------------------ */ \
-static int Test##attr( AstWcsMap *this, int axis ) { \
+static int Test##attr( AstWcsMap *this, int axis, int *status ) { \
    int result;                   /* Value to return */ \
 \
 /* Initialise */ \
@@ -523,7 +559,7 @@ static int Test##attr( AstWcsMap *this, int axis ) { \
 /* Validate the axis index. */ \
    if( axis < 0 || axis >= nval ){ \
       astError( AST__AXIIN, "%s(%s): Index (%d) is invalid for attribute " \
-                #attr " - it should be in the range 1 to %d.", \
+                #attr " - it should be in the range 1 to %d.", status, \
                 "astTest" #attr, astGetClass( this ), \
                 axis + 1, nval ); \
 \
@@ -540,13 +576,13 @@ static int Test##attr( AstWcsMap *this, int axis ) { \
 } \
 /* External interface. */ \
 /* ------------------- */ \
-int astTest##attr##_( AstWcsMap *this, int axis ) { \
+int astTest##attr##_( AstWcsMap *this, int axis, int *status ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return 0; \
 \
 /* Invoke the required method via the virtual function table. */ \
-   return (**astMEMBER(this,WcsMap,Test##attr))( this, axis ); \
+   return (**astMEMBER(this,WcsMap,Test##attr))( this, axis, status ); \
 }
 
 
@@ -554,15 +590,18 @@ int astTest##attr##_( AstWcsMap *this, int axis ) { \
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
+#include "globals.h"             /* Thread-safe global data access */
 #include "object.h"              /* Base Object class */
 #include "pointset.h"            /* Sets of points/coordinates */
 #include "mapping.h"             /* Coordinate mappings (parent class) */
 #include "unitmap.h"             /* Unit mappings */
 #include "permmap.h"             /* Axis permutation mappings */
 #include "wcsmap.h"              /* Interface definition for this class */
-#include "slalib.h"              /* SLALIB function prototypes */
+#include "pal.h"                 /* SLALIB function prototypes */
 #include "channel.h"             /* I/O channels */
 #include "proj.h"                /* WCSLIB projections and WCSLIB_MXPAR */
 
@@ -577,6 +616,7 @@ int astTest##attr##_( AstWcsMap *this, int axis ) { \
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 /* Local Type Definitions. */
 /* ----------------------- */
@@ -584,6 +624,8 @@ int astTest##attr##_( AstWcsMap *this, int axis ) { \
    projection. */
 typedef struct PrjData {
    int prj;                     /* WCSLIB projection identifier value */
+   int mxpar;                   /* Max index for a lat axis projection param */
+   int mxpar2;                  /* Max index for a lon axis projection param */
    char desc[60];               /* Long projection description */
    char ctype[5];               /* FITS CTYPE identifying string */
    int (* WcsFwd)(double, double, struct AstPrjPrm *, double *, double *);
@@ -595,53 +637,87 @@ typedef struct PrjData {
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstWcsMapVtab class_vtab; /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
-static const char *(* parent_getattrib)( AstObject *, const char * );
-static int (* parent_testattrib)( AstObject *, const char * );
-static void (* parent_clearattrib)( AstObject *, const char * );
-static void (* parent_setattrib)( AstObject *, const char * );
-static int *(* parent_mapsplit)( AstMapping *, int, int *, AstMapping ** );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static const char *(* parent_getattrib)( AstObject *, const char *, int * );
+static int (* parent_testattrib)( AstObject *, const char *, int * );
+static void (* parent_clearattrib)( AstObject *, const char *, int * );
+static void (* parent_setattrib)( AstObject *, const char *, int * );
+static int *(* parent_mapsplit)( AstMapping *, int, const int *, AstMapping **, int * );
 
 /* The following array of PrjData structured describes each of the WCSLIB
    projections. The last entry in the list should be for the AST__WCSBAD 
    projection. This marks the end of the list. */
 static PrjData PrjInfo[] = {
-   { AST__AZP,  "zenithal perspective", "-AZP", astAZPfwd, astAZPrev, AST__DPIBY2 },
-   { AST__SZP,  "slant zenithal perspective", "-SZP", astSZPfwd, astSZPrev, AST__DPIBY2 },
-   { AST__TAN,  "gnomonic", "-TAN",  astTANfwd, astTANrev, AST__DPIBY2 },
-   { AST__STG,  "stereographic", "-STG",  astSTGfwd, astSTGrev, AST__DPIBY2 },
-   { AST__SIN,  "orthographic", "-SIN",  astSINfwd, astSINrev, AST__DPIBY2 },
-   { AST__ARC,  "zenithal equidistant", "-ARC",  astARCfwd, astARCrev, AST__DPIBY2 },
-   { AST__ZPN,  "zenithal polynomial", "-ZPN",  astZPNfwd, astZPNrev, AST__DPIBY2 },
-   { AST__ZEA,  "zenithal equal area", "-ZEA",  astZEAfwd, astZEArev, AST__DPIBY2 },
-   { AST__AIR,  "Airy", "-AIR",  astAIRfwd, astAIRrev, AST__DPIBY2 },
-   { AST__CYP,  "cylindrical perspective", "-CYP",  astCYPfwd, astCYPrev, 0.0 },
-   { AST__CEA,  "cylindrical equal area", "-CEA",  astCEAfwd, astCEArev, 0.0 },
-   { AST__CAR,  "Cartesian", "-CAR",  astCARfwd, astCARrev, 0.0 },
-   { AST__MER,  "Mercator", "-MER",  astMERfwd, astMERrev, 0.0 },
-   { AST__SFL,  "Sanson-Flamsteed", "-SFL",  astSFLfwd, astSFLrev, 0.0 },
-   { AST__PAR,  "parabolic", "-PAR",  astPARfwd, astPARrev, 0.0 },
-   { AST__MOL,  "Mollweide", "-MOL",  astMOLfwd, astMOLrev, 0.0 },
-   { AST__AIT,  "Hammer-Aitoff", "-AIT",  astAITfwd, astAITrev, 0.0 },
-   { AST__COP,  "conical perspective", "-COP",  astCOPfwd, astCOPrev, AST__BAD },
-   { AST__COE,  "conical equal area", "-COE",  astCOEfwd, astCOErev, AST__BAD },
-   { AST__COD,  "conical equidistant", "-COD",  astCODfwd, astCODrev, AST__BAD },
-   { AST__COO,  "conical orthomorphic", "-COO",  astCOOfwd, astCOOrev, AST__BAD },
-   { AST__BON,  "Bonne's equal area", "-BON",  astBONfwd, astBONrev, 0.0 },
-   { AST__PCO,  "polyconic", "-PCO",  astPCOfwd, astPCOrev, 0.0 },
-   { AST__TSC,  "tangential spherical cube", "-TSC",  astTSCfwd, astTSCrev, 0.0 },
-   { AST__CSC,  "cobe quadrilateralized spherical cube", "-CSC", astCSCfwd, astCSCrev, 0.0 },
-   { AST__QSC,  "quadrilateralized spherical cube", "-QSC",  astQSCfwd, astQSCrev, 0.0 },
-   { AST__NCP,  "AIPS north celestial pole", "-NCP",  NULL,   NULL, 0.0 },
-   { AST__GLS,  "sinusoidal", "-GLS",  astSFLfwd, astSFLrev, 0.0 },
-   { AST__TPN,  "gnomonic polynomial", "-TPN",  astTPNfwd, astTPNrev, AST__DPIBY2 },
-   { AST__WCSBAD, "<null>",   "    ",  NULL,   NULL, 0.0 } };
+   { AST__AZP,  2, 4, "zenithal perspective", "-AZP", astAZPfwd, astAZPrev, AST__DPIBY2 },
+   { AST__SZP,  3, 4, "slant zenithal perspective", "-SZP", astSZPfwd, astSZPrev, AST__DPIBY2 },
+   { AST__TAN,  0, 4, "gnomonic", "-TAN",  astTANfwd, astTANrev, AST__DPIBY2 },
+   { AST__STG,  0, 4, "stereographic", "-STG",  astSTGfwd, astSTGrev, AST__DPIBY2 },
+   { AST__SIN,  2, 4, "orthographic", "-SIN",  astSINfwd, astSINrev, AST__DPIBY2 },
+   { AST__ARC,  0, 4, "zenithal equidistant", "-ARC",  astARCfwd, astARCrev, AST__DPIBY2 },
+   { AST__ZPN,  WCSLIB_MXPAR, 4, "zenithal polynomial", "-ZPN",  astZPNfwd, astZPNrev, AST__DPIBY2 },
+   { AST__ZEA,  0, 4, "zenithal equal area", "-ZEA",  astZEAfwd, astZEArev, AST__DPIBY2 },
+   { AST__AIR,  1, 4, "Airy", "-AIR",  astAIRfwd, astAIRrev, AST__DPIBY2 },
+   { AST__CYP,  2, 4, "cylindrical perspective", "-CYP",  astCYPfwd, astCYPrev, 0.0 },
+   { AST__CEA,  1, 4, "cylindrical equal area", "-CEA",  astCEAfwd, astCEArev, 0.0 },
+   { AST__CAR,  0, 4, "Cartesian", "-CAR",  astCARfwd, astCARrev, 0.0 },
+   { AST__MER,  0, 4, "Mercator", "-MER",  astMERfwd, astMERrev, 0.0 },
+   { AST__SFL,  0, 4, "Sanson-Flamsteed", "-SFL",  astSFLfwd, astSFLrev, 0.0 },
+   { AST__PAR,  0, 4, "parabolic", "-PAR",  astPARfwd, astPARrev, 0.0 },
+   { AST__MOL,  0, 4, "Mollweide", "-MOL",  astMOLfwd, astMOLrev, 0.0 },
+   { AST__AIT,  0, 4, "Hammer-Aitoff", "-AIT",  astAITfwd, astAITrev, 0.0 },
+   { AST__COP,  2, 4, "conical perspective", "-COP",  astCOPfwd, astCOPrev, AST__BAD },
+   { AST__COE,  2, 4, "conical equal area", "-COE",  astCOEfwd, astCOErev, AST__BAD },
+   { AST__COD,  2, 4, "conical equidistant", "-COD",  astCODfwd, astCODrev, AST__BAD },
+   { AST__COO,  2, 4, "conical orthomorphic", "-COO",  astCOOfwd, astCOOrev, AST__BAD },
+   { AST__BON,  1, 4, "Bonne's equal area", "-BON",  astBONfwd, astBONrev, 0.0 },
+   { AST__PCO,  0, 4, "polyconic", "-PCO",  astPCOfwd, astPCOrev, 0.0 },
+   { AST__TSC,  0, 4, "tangential spherical cube", "-TSC",  astTSCfwd, astTSCrev, 0.0 },
+   { AST__CSC,  0, 4, "cobe quadrilateralized spherical cube", "-CSC", astCSCfwd, astCSCrev, 0.0 },
+   { AST__QSC,  0, 4, "quadrilateralized spherical cube", "-QSC",  astQSCfwd, astQSCrev, 0.0 },
+   { AST__NCP,  2, 4, "AIPS north celestial pole", "-NCP",  NULL,   NULL, 0.0 },
+   { AST__GLS,  0, 4, "sinusoidal", "-GLS",  astSFLfwd, astSFLrev, 0.0 },
+   { AST__HPX,  2, 4, "HEALPix", "-HPX",  astHPXfwd, astHPXrev, 0.0 },
+   { AST__TPN,  WCSLIB_MXPAR, WCSLIB_MXPAR, "gnomonic polynomial", "-TPN",  astTPNfwd, astTPNrev, AST__DPIBY2 },
+   { AST__WCSBAD, 0, 4, "<null>",   "    ",  NULL,   NULL, 0.0 } };
+
+/* Define macros for accessing each item of thread specific global data. */
+#ifdef THREAD_SAFE
+
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; \
+   globals->GetAttrib_Buff[ 0 ] = 0;
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(WcsMap)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(WcsMap,Class_Init)
+#define class_vtab astGLOBAL(WcsMap,Class_Vtab)
+#define getattrib_buff astGLOBAL(WcsMap,GetAttrib_Buff)
+
+
+
+/* If thread safety is not needed, declare and initialise globals at static 
+   variables. */ 
+#else
+
+static char getattrib_buff[ 101 ];
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstWcsMapVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -652,42 +728,45 @@ AstWcsMap *astWcsMapId_( int, int, int, int, const char *options, ... );
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static double GetPV( AstWcsMap *, int, int );
-static int TestPV( AstWcsMap *, int, int );
-static void ClearPV( AstWcsMap *, int, int );
-static void SetPV( AstWcsMap *, int, int, double );
+static int GetObjSize( AstObject *, int * );
+static double GetPV( AstWcsMap *, int, int, int * );
+static int TestPV( AstWcsMap *, int, int, int * );
+static void ClearPV( AstWcsMap *, int, int, int * );
+static void SetPV( AstWcsMap *, int, int, double, int * );
 
-static int GetWcsType( AstWcsMap * );
-static double GetNatLat( AstWcsMap * );
-static double GetNatLon( AstWcsMap * );
-static int GetWcsAxis( AstWcsMap *, int );
+static int GetPVMax( AstWcsMap *, int, int * );
+static int GetWcsType( AstWcsMap *, int * );
+static double GetNatLat( AstWcsMap *, int * );
+static double GetNatLon( AstWcsMap *, int * );
+static int GetWcsAxis( AstWcsMap *, int, int * );
 
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static const PrjData *FindPrjData( int );
-static const char *GetAttrib( AstObject *, const char * );
-static int CanMerge( AstMapping *, int, AstMapping *, int );
-static int CanSwap( AstMapping *, AstMapping *, int, int, int * );
-static int GetNP( AstWcsMap *, int );
-static int IsZenithal( AstWcsMap * );
-static int Map( AstWcsMap *, int, int, double *, double *, double *, double *);
-static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int ** );
-static int TestAttrib( AstObject *, const char * );
-static void ClearAttrib( AstObject *, const char * );
-static void Copy( const AstObject *, AstObject * );
-static void CopyPV( AstWcsMap *, AstWcsMap * );
-static void Delete( AstObject *obj );
-static void Dump( AstObject *, AstChannel * );
-static void FreePV( AstWcsMap * );
-static void InitPrjPrm( AstWcsMap * );
-static void LongRange( const PrjData *, struct AstPrjPrm *, double *, double *);
-static void PermGet( AstPermMap *, int **, int **, double ** );
-static void SetAttrib( AstObject *, const char * );
-static void WcsPerm( AstMapping **, int *, int );
-static int *MapSplit( AstMapping *, int, int *, AstMapping ** );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static const PrjData *FindPrjData( int, int * );
+static const char *GetAttrib( AstObject *, const char *, int * );
+static int CanMerge( AstMapping *, int, AstMapping *, int, int * );
+static int CanSwap( AstMapping *, AstMapping *, int, int, int *, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static int GetNP( AstWcsMap *, int, int * );
+static int IsZenithal( AstWcsMap *, int * );
+static int Map( AstWcsMap *, int, int, double *, double *, double *, double *, int * );
+static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
+static int TestAttrib( AstObject *, const char *, int * );
+static void ClearAttrib( AstObject *, const char *, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void CopyPV( AstWcsMap *, AstWcsMap *, int * );
+static void Delete( AstObject *obj, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void FreePV( AstWcsMap *, int * );
+static void InitPrjPrm( AstWcsMap *, int * );
+static void LongRange( const PrjData *, struct AstPrjPrm *, double *, double *, int * );
+static void PermGet( AstPermMap *, int **, int **, double **, int * );
+static void SetAttrib( AstObject *, const char *, int * );
+static void WcsPerm( AstMapping **, int *, int, int * );
+static int *MapSplit( AstMapping *, int, const int *, AstMapping **, int * );
 
 /* Member functions. */
 /* ================= */
-static int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2 ){
+static int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2, int *status ){
 /*
 *
 *  Name:
@@ -701,7 +780,7 @@ static int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2 ){
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2 )
+*     int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2, int *status )
 
 *  Class Membership:
 *     WcsMap internal utility function.
@@ -720,6 +799,8 @@ static int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2 ){
 *        The invert flag to use with the first mapping.
 *     inv2
 *        The invert flag to use with the second mapping.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     1 if the WcsMaps can be merged, zero otherwise.
@@ -769,14 +850,14 @@ static int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2 ){
 
 /* If the two WcsMaps have a different number of parameters for this axes,
    they cannot merge. */
-                  if( GetNP( wcs1, i ) != GetNP( wcs1, i ) ){
+                  if( GetNP( wcs1, i, status ) != GetNP( wcs1, i, status ) ){
                      ret = 0;
                      break;
 
 /* Otherwise, check each parameter value in turn. If any are found which
    are not equal, the WcsMaps cannot merge. */
                   } else {
-                     for( m = 0; m < GetNP( wcs1, i ); m++ ){
+                     for( m = 0; m < GetNP( wcs1, i, status ); m++ ){
                         if( !EQUAL( astGetPV( wcs1, i, m ),
                                     astGetPV( wcs2, i, m ) ) ){
                            ret = 0;
@@ -796,7 +877,7 @@ static int CanMerge( AstMapping *map1, int inv1, AstMapping *map2, int inv2 ){
 }
 
 static int CanSwap( AstMapping *map1, AstMapping *map2, int inv1, int inv2,
-                    int *simpler ){
+                    int *simpler, int *status ){
 /*
 *  Name:
 
@@ -912,7 +993,7 @@ static int CanSwap( AstMapping *map1, AstMapping *map2, int inv1, int inv2,
 
 /* We need to know the axis permutation arrays and constants array for
    the PermMap. */
-         PermGet( (AstPermMap *) nowcs, &outperm, &inperm, &consts );
+         PermGet( (AstPermMap *) nowcs, &outperm, &inperm, &consts, status );
          if( astOK ) {
 
 /* Indicate we can swap with the PermMap. */
@@ -995,7 +1076,7 @@ static int CanSwap( AstMapping *map1, AstMapping *map2, int inv1, int inv2,
    return astOK ? ret : 0;
 }
 
-static void ClearAttrib( AstObject *this_object, const char *attrib ) {
+static void ClearAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     ClearAttrib
@@ -1008,7 +1089,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     void ClearAttrib( AstObject *this, const char *attrib )
+*     void ClearAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     WcsMap member function (over-rides the astClearAttrib protected
@@ -1025,6 +1106,8 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1066,17 +1149,17 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
         !strcmp( attrib, "natlat" ) ||
         !strcmp( attrib, "natlon" ) ){
       astError( AST__NOWRT, "astClear: Invalid attempt to clear the \"%s\" "
-                "value for a %s.", attrib, astGetClass( this ) );
-      astError( AST__NOWRT, "This is a read-only attribute." );
+                "value for a %s.", status, attrib, astGetClass( this ) );
+      astError( AST__NOWRT, "This is a read-only attribute." , status);
 
 /* If the attribute is still not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      (*parent_clearattrib)( this_object, attrib );
+      (*parent_clearattrib)( this_object, attrib, status );
    }
 }
 
-static void ClearPV( AstWcsMap *this, int i, int m ) { 
+static void ClearPV( AstWcsMap *this, int i, int m, int *status ) { 
 /*
 *+
 *  Name:
@@ -1109,7 +1192,9 @@ static void ClearPV( AstWcsMap *this, int i, int m ) {
 
 *-
 */
+/* Local Variables; */
    int npar;
+   int mxpar;       
 
 /* Check the global error status. */ 
    if ( !astOK ) return; 
@@ -1118,27 +1203,30 @@ static void ClearPV( AstWcsMap *this, int i, int m ) {
    if( i < 0 || i >= astGetNin( this ) ){ 
       astError( AST__AXIIN, "astClearPV(%s): Axis index (%d) is invalid in "
                 "attribute PV%d_%d  - it should be in the range 1 to %d.", 
-                astGetClass( this ), i + 1, i + 1, m, astGetNin( this ) ); 
+                status, astGetClass( this ), i + 1, i + 1, m, 
+                astGetNin( this ) ); 
 
-/* Validate the parameter index. */ 
-   } else if( m < 0 || m >= WCSLIB_MXPAR ){ 
-      astError( AST__AXIIN, "astClearPV(%s): Parameter index (%d) is invalid "
-                "in attribute PV%d_%d - it should be in the range 0 to %d.", 
-                astGetClass( this ), m, i + 1, m, WCSLIB_MXPAR - 1 ); 
+   } else {
+
+/* Find the maximum number of parameters allowed for the axis. */
+      mxpar = astGetPVMax( this, i );
+
+/* Ignore unused parameters. */ 
+      if( m < 0 || m > mxpar ){ 
 
 /* See if the parameter is currently set. Is so, set its value to
    AST__BAD. */
-   } else if( this->np && this->p ){ 
-      npar = this->np[ i ];
-      if( m < npar && this->p[ i ] ) this->p[ i ][ m ] = AST__BAD;
-   } 
+      } else if( this->np && this->p ){ 
+         npar = this->np[ i ];
+         if( m < npar && this->p[ i ] ) this->p[ i ][ m ] = AST__BAD;
+      } 
 
 /* Re-initialize the values stored in the "AstPrjPrm" structure. */
-    InitPrjPrm( this );
-
+      InitPrjPrm( this, status );
+   }
 } 
 
-static void CopyPV( AstWcsMap *in, AstWcsMap *out ) {
+static void CopyPV( AstWcsMap *in, AstWcsMap *out, int *status ) {
 /*
 *  Name:
 *     CopyPV
@@ -1228,16 +1316,143 @@ static void CopyPV( AstWcsMap *in, AstWcsMap *out ) {
       }
 
 /* If an error has occurred, free the output arrays. */
-      if( !astOK ) FreePV( out );
+      if( !astOK ) FreePV( out, status );
 
    }
 
 /* Re-initialize the values stored in the "AstPrjPrm" structure. */
-   InitPrjPrm( out );
+   InitPrjPrm( out, status );
 
 }
 
-static const PrjData *FindPrjData( int type ){
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two WcsMaps are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "wcsmap.h"
+*     int Equal( AstObject *this, AstObject *that, int *status ) 
+
+*  Class Membership:
+*     WcsMap member function (over-rides the astEqual protected
+*     method inherited from the astMapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two WcsMaps are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Object (a WcsMap).
+*     that
+*        Pointer to the second Object.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     One if the WcsMaps are equivalent, zero otherwise.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstWcsMap *that;        
+   AstWcsMap *this;        
+   int i, j;           
+   int nin;
+   int nout;
+   int result;
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain pointers to the two WcsMap structures. */
+   this = (AstWcsMap *) this_object;
+   that = (AstWcsMap *) that_object;
+
+/* Check the second object is a WcsMap. We know the first is a
+   WcsMap since we have arrived at this implementation of the virtual
+   function. */
+   if( astIsAWcsMap( that ) ) {
+
+/* Get the number of inputs and outputs and check they are the same for both. */
+      nin = astGetNin( this );
+      nout = astGetNout( this );
+      if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
+
+/* If the Invert flags for the two WcsMaps differ, it may still be possible 
+   for them to be equivalent. First compare the WcsMaps if their Invert 
+   flags are the same. In this case all the attributes of the two WcsMaps 
+   must be identical. */
+         if( astGetInvert( this ) == astGetInvert( that ) ) {
+
+            if( this->type == that->type &&
+                this->wcsaxis[ 0 ] == that->wcsaxis[ 0 ] &&
+                this->wcsaxis[ 1 ] == that->wcsaxis[ 1 ] ) {
+
+               result = 1;
+
+               if( this->np && that->np ){
+   
+                  for( i = 0; i < nout && result; i++ ) {
+   
+                     if( (this->np)[ i ] != (that->np)[ i ] ) {
+                        result = 0;
+   
+                     } else if( (this->p)[ i ] && !(this->p)[ i ] ) {
+                        result = 0;
+   
+                     } else if( !(this->p)[ i ] && (this->p)[ i ] ) {
+                        result = 0;
+   
+                     } else if( (this->p)[ i ] && (this->p)[ i ] ) {
+   
+                        for( j = 0; j < (this->np)[ i ]; j++ ) {
+                           if( !astEQUAL( (this->p)[ i ][ j ], 
+                                          (that->p)[ i ][ j ] ) ) {
+                              result = 0;
+                              break;
+                           }                  
+                        }
+                     }
+                  }
+               }
+
+            } else if( this->np || that->np ){
+               result = 0;
+            }
+
+/* If the Invert flags for the two WcsMaps differ, the attributes of the two 
+   WcsMaps must be inversely related to each other. */
+         } else {
+
+/* In the specific case of a WcsMap, Invert flags must be equal. */
+            result = 0;
+
+         }
+      }
+   }
+   
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static const PrjData *FindPrjData( int type, int *status ){
 /*
 *+
 *  Name:
@@ -1251,7 +1466,7 @@ static const PrjData *FindPrjData( int type ){
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     const PrjData *FindPrjData( int type )
+*     const PrjData *FindPrjData( int type, int *status )
 
 *  Class Membership:
 *     WcsMap member function
@@ -1263,6 +1478,8 @@ static const PrjData *FindPrjData( int type ){
 *  Parameters:
 *     type
 *        The projection type.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the "const" PrjData structure describing the projection.
@@ -1283,7 +1500,7 @@ static const PrjData *FindPrjData( int type ){
    return data;
 }
 
-static void FreePV( AstWcsMap *this ) { 
+static void FreePV( AstWcsMap *this, int *status ) { 
 /*
 *
 *  Name:
@@ -1297,7 +1514,7 @@ static void FreePV( AstWcsMap *this ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     FreePV( AstWcsMap *this )
+*     FreePV( AstWcsMap *this, int *status )
 
 *  Class Membership:
 *     WcsMap private function
@@ -1309,6 +1526,8 @@ static void FreePV( AstWcsMap *this ) {
 *  Parameters:
 *     this 
 *        A pointer to the WcsMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     This function attempts to execute even if an error has already occurred.
@@ -1326,12 +1545,86 @@ static void FreePV( AstWcsMap *this ) {
    }
 
 /* Re-initialize the values stored in the "AstPrjPrm" structure. */
-   InitPrjPrm( this );
+   InitPrjPrm( this, status );
 
 
 }   
 
-static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "wcsmap.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     WcsMap member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied WcsMap,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the WcsMap.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstWcsMap *this;         /* Pointer to WcsMap structure */
+   int result;              /* Result value to return */
+   int i;                   /* Axis index */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the WcsMap structure. */
+   this = (AstWcsMap *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+      
+   result += astTSizeOf( this->np );
+   if( this->p ){
+      for( i = 0; i < astGetNin( this ); i++ ){
+         result += astTSizeOf( (void *) this->p[ i ] );
+      }
+      result += astTSizeOf( this->p );
+   }
+
+   result += astTSizeOf( this->params.p );
+   result += astTSizeOf( this->params.p2 );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static const char *GetAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     GetAttrib
@@ -1344,7 +1637,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     const char *GetAttrib( AstObject *this, const char *attrib )
+*     const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     WcsMap member function (over-rides the protected astGetAttrib
@@ -1361,6 +1654,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null-terminated string containing the name of
 *        the attribute whose value is required. This name should be in
 *        lower case, with all white space removed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - Pointer to a null-terminated string containing the attribute
@@ -1378,10 +1673,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *     reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 50              /* Max. characters in result buffer */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;          /* Pointer to thread-specific global data */
    AstWcsMap *this;             /* Pointer to the WcsMap structure */
    const char *result;          /* Pointer value to return */
    double dval;                 /* Floating point attribute value */
@@ -1390,13 +1683,15 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    int len;                     /* Length of attribute string */
    int m;                       /* Projection parameter index */
    int nc;                      /* No. of characters read by astSscanf */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for string result */
 
 /* Initialise. */
    result = NULL;
 
 /* Check the global error status. */   
    if ( !astOK ) return result;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(this_object);
 
 /* Obtain a pointer to the WcsMap structure. */
    this = (AstWcsMap *) this_object;
@@ -1406,7 +1701,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Compare "attrib" with each recognised attribute name in turn,
    obtaining the value of the required attribute. If necessary, write
-   the value into "buff" as a null-terminated string in an appropriate
+   the value into "getattrib_buff" as a null-terminated string in an appropriate
    format.  Set "result" to point at the result string. */
 
 /* ProjP. */
@@ -1415,8 +1710,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
                   && ( nc >= len ) ) {
       dval = astGetPV( this, astGetWcsAxis( this, 1 ), m );
       if ( astOK ) {
-         (void) sprintf( buff, "%.*g", DBL_DIG, dval );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+         result = getattrib_buff;
       }
 
 /* PV. */
@@ -1425,8 +1720,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
                   && ( nc >= len ) ) {
       dval = astGetPV( this, i - 1, m );
       if ( astOK ) {
-         (void) sprintf( buff, "%.*g", DBL_DIG, dval );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+         result = getattrib_buff;
       }
 
 /* WcsType */
@@ -1434,8 +1729,18 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "wcstype" ) ) {
       ival = astGetWcsType( this );
       if ( astOK ) {
-         (void) sprintf( buff, "%d", ival );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%d", ival );
+         result = getattrib_buff;
+      }
+
+/* PVMax */
+/* ===== */
+   } else if ( nc = 0, ( 1 == astSscanf( attrib, "pvmax(%d)%n", &i, &nc ) )
+                  && ( nc >= len ) ) {
+      ival = astGetPVMax( this, i - 1 );
+      if ( astOK ) {
+         (void) sprintf( getattrib_buff, "%d", ival );
+         result = getattrib_buff;
       }
 
 /* NatLat */
@@ -1443,8 +1748,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "natlat" ) ) {
       dval = astGetNatLat( this );
       if ( astOK ) {
-         (void) sprintf( buff, "%.*g", DBL_DIG, dval );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+         result = getattrib_buff;
       }
 
 /* NatLon */
@@ -1452,8 +1757,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "natlon" ) ) {
       dval = astGetNatLon( this );
       if ( astOK ) {
-         (void) sprintf( buff, "%.*g", DBL_DIG, dval );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+         result = getattrib_buff;
       }
 
 
@@ -1463,24 +1768,21 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
                          && ( nc >= len ) ) {
       ival = astGetWcsAxis( this, i - 1 ) + 1;
       if ( astOK ) {
-         (void) sprintf( buff, "%d", ival );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%d", ival );
+         result = getattrib_buff;
       }
 
 /* If the attribute name was not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      result = (*parent_getattrib)( this_object, attrib );
+      result = (*parent_getattrib)( this_object, attrib, status );
    }
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static double GetNatLat( AstWcsMap *this ) { 
+static double GetNatLat( AstWcsMap *this, int *status ) { 
 /*
 *+
 *  Name:
@@ -1494,7 +1796,7 @@ static double GetNatLat( AstWcsMap *this ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     double GetNatLat( AstWcsMap *this ) 
+*     double GetNatLat( AstWcsMap *this, int *status ) 
 
 *  Class Membership:
 *     WcsMap protected function
@@ -1509,6 +1811,8 @@ static double GetNatLat( AstWcsMap *this ) {
 *  Parameters:
 *     this 
 *        A pointer to the WcsMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The attribute value, in radians.
@@ -1520,7 +1824,7 @@ static double GetNatLat( AstWcsMap *this ) {
 /* The native latitude of the reference point of the projection is 
    constant for most projection, but for some (the conics) it is 
    specified by projection one on the latitude axis. */
-   ret = FindPrjData( this->type )->theta0;
+   ret = FindPrjData( this->type, status )->theta0;
    if( ret == AST__BAD ){
       ret = astGetPV( this, astGetWcsAxis( this, 1 ), 1 );
       if( ret != AST__BAD ) ret *= AST__DD2R;
@@ -1530,7 +1834,7 @@ static double GetNatLat( AstWcsMap *this ) {
    return ret;
 }
 
-static double GetNatLon( AstWcsMap *this ) { 
+static double GetNatLon( AstWcsMap *this, int *status ) { 
 /*
 *+
 *  Name:
@@ -1544,7 +1848,7 @@ static double GetNatLon( AstWcsMap *this ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     double GetNatLon( AstWcsMap *this ) 
+*     double GetNatLon( AstWcsMap *this, int *status ) 
 
 *  Class Membership:
 *     WcsMap protected function
@@ -1556,6 +1860,8 @@ static double GetNatLon( AstWcsMap *this ) {
 *  Parameters:
 *     this 
 *        A pointer to the WcsMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The attribute value, in radians.
@@ -1565,7 +1871,7 @@ static double GetNatLon( AstWcsMap *this ) {
    return 0.0;
 }
 
-static int GetNP( AstWcsMap *this, int i ) { 
+static int GetNP( AstWcsMap *this, int i, int *status ) { 
 /*
 *+
 *  Name:
@@ -1579,7 +1885,7 @@ static int GetNP( AstWcsMap *this, int i ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     int GetNP( AstWcsMap *this, int i ) 
+*     int GetNP( AstWcsMap *this, int i, int *status ) 
 
 *  Class Membership:
 *     WcsMap protected function
@@ -1595,6 +1901,8 @@ static int GetNP( AstWcsMap *this, int i ) {
 *        A pointer to the WcsMap.
 *     i 
 *        Zero based axis index.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The number of projection parameters for the specified axis.
@@ -1616,7 +1924,7 @@ static int GetNP( AstWcsMap *this, int i ) {
 
 } 
 
-static double GetPV( AstWcsMap *this, int i, int m ) { 
+static double GetPV( AstWcsMap *this, int i, int m, int *status ) { 
 /*
 *+
 *  Name:
@@ -1653,8 +1961,11 @@ static double GetPV( AstWcsMap *this, int i, int m ) {
 
 *-
 */
+
+/* Local Variables: */
    double ret;
    int npar;
+   int mxpar;       
 
 /* Initialise */
    ret = AST__BAD;
@@ -1666,49 +1977,55 @@ static double GetPV( AstWcsMap *this, int i, int m ) {
    if( i < 0 || i >= astGetNin( this ) ){ 
       astError( AST__AXIIN, "astGetPV(%s): Axis index (%d) is invalid in "
                 "attribute PV%d_%d  - it should be in the range 1 to %d.", 
-                astGetClass( this ), i + 1, i + 1, m, astGetNin( this ) ); 
+                status, astGetClass( this ), i + 1, i + 1, m, astGetNin( this ) ); 
+
+/* Find the maximum number of parameters allowed for the axis. */
+   } else {
+      mxpar = astGetPVMax( this, i );
 
 /* Validate the parameter index. */ 
-   } else if( m < 0 || m >= WCSLIB_MXPAR ){ 
-      astError( AST__AXIIN, "astGetPV(%s): Parameter index (%d) is invalid "
-                "in attribute PV%d_%d - it should be in the range 0 to %d.", 
-                astGetClass( this ), m, i + 1, m, WCSLIB_MXPAR - 1 ); 
+      if( m < 0 || m > mxpar ){ 
+         astError( AST__AXIIN, "astGetPV(%s): Parameter index (%d) is invalid "
+                   "in attribute PV%d_%d for a \"%s\" projection - it should be "
+                   "in the range 0 to %d.", status, astGetClass( this ), m, i + 1, m, 
+                   FindPrjData( this->type, status )->ctype, mxpar ); 
 
 /* For latitude parameters use the values in the "params" structure which will
    have been defaulted. */
-   } else if( i == astGetWcsAxis( this, 1 ) ) {
-      ret = (this->params).p[ m ];
-
+      } else if( i == astGetWcsAxis( this, 1 ) ) {
+         ret = (this->params).p[ m ];
+   
 /* For other axes, see if the arrays stored in the WcsMap structure extend as 
    far as the requested parameter. If so, return the required attribute value.
    Otherwise the AST__BAD value initialised above is retained. */
-   } else if( this->np && this->p ){ 
-      npar = this->np[ i ];
-      if( m < npar && this->p[ i ] ) ret = this->p[ i ][ m ];
-   } 
-
+      } else if( this->np && this->p ){ 
+         npar = this->np[ i ];
+         if( m < npar && this->p[ i ] ) ret = this->p[ i ][ m ];
+      } 
+   
 /* FITS-WCS paper II gives defaults for the first 3 longitude axis
    parameters. The AST-specific TPN projection does not use this
    convention since it needs all projection parameters to specify
    correction terms. */
-   if( ret == AST__BAD && i == astGetWcsAxis( this, 0 ) &&
-       astGetWcsType( this ) != AST__TPN ) { 
-
+      if( ret == AST__BAD && i == astGetWcsAxis( this, 0 ) &&
+          astGetWcsType( this ) != AST__TPN ) { 
+   
 /* Parameter zero has a default of zero. */
-      if( m == 0 ) { 
-         ret = 0.0;
-
+         if( m == 0 ) { 
+            ret = 0.0;
+   
 /* Parameter one has a default equal to the native longitude of the
    reference point of the projection, in degrees. */
-      } else if( m == 1 ) { 
-         ret = astGetNatLon( this )*AST__DR2D;
-
+         } else if( m == 1 ) { 
+            ret = astGetNatLon( this )*AST__DR2D;
+   
 /* Parameter two has a default equal to the native latitude of the
    reference point of the projection (in degrees). This is constant for
    most projection, but for some (the conics) it is specified by
    projection one on the latitude axis. */
-      } else if( m == 2 ) { 
-         ret = astGetNatLat( this )*AST__DR2D;
+         } else if( m == 2 ) { 
+            ret = astGetNatLat( this )*AST__DR2D;
+         }
       }
    }
 
@@ -1716,7 +2033,74 @@ static double GetPV( AstWcsMap *this, int i, int m ) {
 
 } 
 
-static void InitPrjPrm( AstWcsMap *this ) {
+static int GetPVMax( AstWcsMap *this, int i, int *status ) { 
+/*
+*+
+*  Name:
+*     astGetPVMax
+
+*  Purpose:
+*     Get the maximum projection parameter index for a WcsMap.
+
+*  Type:
+*     Protected function.
+
+*  Synopsis:
+*     #include "wcsmap.h"
+*     int astGetPVMax( AstWcsMap *this, int i )
+
+*  Class Membership:
+*     WcsMap protected function
+
+*  Description:
+*     This function returns the largest legal projection parameter index
+*     for a specified axis of the given WcsMap (i.e. the largest value of
+*     "m" in the attribute "PVi_m").
+
+*  Parameters:
+*     this 
+*        A pointer to the WcsMap.
+*     i 
+*        Zero based axis index.
+
+*  Returned Value:
+*     The largest legal projection parameter index, or -1 if no
+*     projection parameters are allowed on the specified axis.
+
+*-
+*/
+
+/* Local Variables: */
+   int mxpar;       
+
+/* Initialise */
+   mxpar = 0;
+
+/* Check the global error status. */ 
+   if ( !astOK ) return -1; 
+
+/* Validate the axis index. */ 
+   if( i < 0 || i >= astGetNin( this ) ){ 
+      astError( AST__AXIIN, "astGetPVMax(%s): Axis index (%d) is invalid in "
+                "attribute PVMax(%d)  - it should be in the range 1 to %d.", 
+                status, astGetClass( this ), i + 1, i + 1, astGetNin( this ) ); 
+
+/* Find the maximum number of parameters allowed for the axis. */
+   } else if( i == astGetWcsAxis( this, 0 ) ) {
+      mxpar = astSizeOf( this->params.p2 )/sizeof( double );
+
+   } else if( i == astGetWcsAxis( this, 1 ) ) {
+      mxpar = astSizeOf( this->params.p )/sizeof( double );
+
+   }
+
+/* The mxpar variable holds the max number of parameters. Return the the
+   largest legal parameter index (one less than the max number of
+   parameters). */
+   return mxpar - 1;
+}
+
+static void InitPrjPrm( AstWcsMap *this, int *status ) {
 /*
 *  Name:
 *     InitPrjPrm
@@ -1729,7 +2113,7 @@ static void InitPrjPrm( AstWcsMap *this ) {
 *     Private function.
 
 *  Synopsis:
-*     void InitPrjPrm( AstWcsMap *this )
+*     void InitPrjPrm( AstWcsMap *this, int *status )
 
 *  Description:
 *     This function initializes the projection parameter information
@@ -1741,6 +2125,8 @@ static void InitPrjPrm( AstWcsMap *this ) {
 *  Parameters:
 *     this 
 *        The WcsMap.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -1751,6 +2137,8 @@ static void InitPrjPrm( AstWcsMap *this ) {
    int latax;                    /* Index of latitude axis */
    int lonax;                    /* Index of longitude axis */
    int npar;                     /* No. of parameters supplied */
+   int plen;                     /* Length of params array */
+   int plen2;                    /* Length of latitude params array */
    int type;                     /* Projection type */
 
 /* Check the global error status. */
@@ -1764,8 +2152,14 @@ static void InitPrjPrm( AstWcsMap *this ) {
    params->flag = 0;
    params->r0 = 0;
 
+/* Find the max number of projection parameters associated with each
+   axis.*/
+   plen2 = astSizeOf( params->p2 )/sizeof( double );
+   plen = astSizeOf( params->p )/sizeof( double );
+
 /* Initially set all parameter to AST__BAD. */
-   for( i = 0; i < WCSLIB_MXPAR; i++ ) (params->p)[i] = AST__BAD;
+   for( i = 0; i < plen; i++ ) (params->p)[i] = AST__BAD;
+   for( i = 0; i < plen2; i++ ) (params->p2)[i] = AST__BAD;
 
 /* If the WcsMap contains any projection parameter values... */
    if( this->np && this->p ){
@@ -1779,18 +2173,29 @@ static void InitPrjPrm( AstWcsMap *this ) {
 /* Find the number of projection parameters in the WcsMap for the
    latitude axis. */
       npar = (this->np)[ latax ];
+      if( npar > plen ) {
+         astError( AST__INTER, "InitPrjPrm(WcsMap): Too many projection "
+                   "parameters on the latitude axis (%d > %d) (internal "
+                   "AST programming error).", status, npar, plen );
+      }
 
 /* Copy the parameters to the AstPrjPrm structure. Do not copy more than
    can be stored in the AstPrjPrm structure. */
-      for( i = 0; i < npar && i < WCSLIB_MXPAR; i++ ) {
+      for( i = 0; i < npar && i < plen; i++ ) {
          (params->p)[ i ] = (this->p)[ latax ][ i ];
       }
 
-/* Do the same for the longitude axis (for the benefit of the TPN
-   projection). */
+/* Do the same for the longitude axis (for the benefit of the TPN projection). */
       lonax = astGetWcsAxis( this, 0 );
       npar = (this->np)[ lonax ];
-      for( i = 0; i < npar && i < WCSLIB_MXPAR; i++ ) {
+
+      if( npar > plen2 ) {
+         astError( AST__INTER, "InitPrjPrm(WcsMap): Too many projection "
+                   "parameters on the longitude axis (%d > %d) (internal "
+                   "AST programming error).", status, npar, plen2 );
+      }
+
+      for( i = 0; i < npar && i < plen2; i++ ) {
          (params->p2)[ i ] = (this->p)[ lonax ][ i ];
       }
 
@@ -1818,11 +2223,15 @@ static void InitPrjPrm( AstWcsMap *this ) {
       if( (params->p)[ 1 ] == AST__BAD ) (params->p)[ 1 ] = 1.0;
       if( (params->p2)[ 1 ] == AST__BAD ) (params->p2)[ 1 ] = 1.0;
 
+   } else if( type == AST__HPX ){
+      if( (params->p)[ 1 ] == AST__BAD ) (params->p)[ 1 ] = 4.0;
+      if( (params->p)[ 2 ] == AST__BAD ) (params->p)[ 2 ] = 3.0;
+
    } 
 
 /* Now use a default value of zero for any remaining unspecified values,
    except for un-defaultable projection parameters. */
-   for( i = 0; i < WCSLIB_MXPAR; i++ ){
+   for( i = 0; i < plen; i++ ){
 
 /* Retain any AST__BAD value for these undefaultable parameters. */
       if( i == 1 && ( type == AST__BON || 
@@ -1832,12 +2241,21 @@ static void InitPrjPrm( AstWcsMap *this ) {
 /* Use a default of zero for all other parameters. */
       } else {
          if( (params->p)[ i ] == AST__BAD ) (params->p)[ i ] = 0.0;
+      }
+   }
+
+/* Do the same for the latitude projection parameters (if any) */
+   for( i = 0; i < plen2; i++ ){
+      if( i == 1 && ( type == AST__BON || 
+                      type == AST__COP || type == AST__COE || 
+                      type == AST__COD || type == AST__COO ) ){
+      } else {
          if( (params->p2)[ i ] == AST__BAD ) (params->p2)[ i ] = 0.0;
       }
    }
 }
 
-void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
+void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -1874,11 +2292,15 @@ void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -1887,8 +2309,8 @@ void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAWcsMap) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -1899,6 +2321,7 @@ void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
    vtab->GetNatLon = GetNatLon;
    vtab->GetPV = GetPV;
    vtab->GetWcsAxis = GetWcsAxis;
+   vtab->GetPVMax = GetPVMax;
    vtab->GetWcsType = GetWcsType;
    vtab->SetPV = SetPV;
    vtab->TestPV = TestPV;
@@ -1908,6 +2331,8 @@ void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
    replace them with pointers to the new member functions. */
    object = (AstObjectVtab *) vtab;
    mapping = (AstMappingVtab *) vtab;
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
 
    parent_clearattrib = object->ClearAttrib;
    object->ClearAttrib = ClearAttrib;
@@ -1926,6 +2351,7 @@ void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   object->Equal = Equal;
    mapping->MapMerge = MapMerge;
 
 /* Declare the destructor and copy constructor. */
@@ -1934,9 +2360,14 @@ void astInitWcsMapVtab_(  AstWcsMapVtab *vtab, const char *name ) {
 
 /* Declare the class dump function. */
    astSetDump( vtab, Dump, "WcsMap", "FITS-WCS sky projection" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
-static int IsZenithal( AstWcsMap *this ){
+static int IsZenithal( AstWcsMap *this, int *status ){
 /*
 *+
 *  Name:
@@ -1950,7 +2381,7 @@ static int IsZenithal( AstWcsMap *this ){
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     int IsZenithal( AstWcsMap *this )
+*     int IsZenithal( AstWcsMap *this, int *status )
 
 *  Class Membership:
 *     WcsMap protected function
@@ -1966,6 +2397,8 @@ static int IsZenithal( AstWcsMap *this ){
 *  Parameters:
 *     this
 *        The WcsMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value if the WcsMap represents a zenithal projection.
@@ -2022,7 +2455,7 @@ static int IsZenithal( AstWcsMap *this ){
 }
 
 static void LongRange( const PrjData *prjdata, struct AstPrjPrm *params,
-                       double *high, double *low ){
+                       double *high, double *low, int *status ){
 /*
 *
 *  Name:
@@ -2038,7 +2471,7 @@ static void LongRange( const PrjData *prjdata, struct AstPrjPrm *params,
 *  Synopsis:
 *     #include "wcsmap.h"
 *     void LongRange( const PrjData *prjdata, struct AstPrjPrm *params,
-*                     double *high, double *low )
+*                     double *high, double *low, int *status )
 
 *  Class Membership:
 *     WcsMap internal utility function.
@@ -2059,6 +2492,8 @@ static void LongRange( const PrjData *prjdata, struct AstPrjPrm *params,
 *     low
 *        A pointer to a location at which is returned the lower bound of
 *        the primary longitude range.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     None.
@@ -2098,7 +2533,7 @@ static void LongRange( const PrjData *prjdata, struct AstPrjPrm *params,
 }
 
 static int Map( AstWcsMap *this, int forward, int npoint, double *in0, 
-                double *in1, double *out0, double *out1 ){
+                double *in1, double *out0, double *out1, int *status ){
 /*
 *
 *  Name:
@@ -2112,8 +2547,8 @@ static int Map( AstWcsMap *this, int forward, int npoint, double *in0,
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     static int Map( AstWcsMap *this, int forward, int npoint, double *in0, 
-*                     double *in1, double *out0, double *out1 )
+*     int Map( AstWcsMap *this, int forward, int npoint, double *in0, 
+*              double *in1, double *out0, double *out1 )
 
 *  Class Membership:
 *     WcsMap internal utility function.
@@ -2174,6 +2609,7 @@ static int Map( AstWcsMap *this, int forward, int npoint, double *in0,
    double x;                     /* X Cartesian coordinate in degrees */
    double y;                     /* Y Cartesian coordinate in degrees */
    int i;                        /* Loop count */
+   int plen;                     /* Length of proj par array */
    int point;                    /* Loop counter for points */
    int wcs_status;               /* Status from WCSLIB functions */
    int type;                     /* Projection type */
@@ -2181,11 +2617,15 @@ static int Map( AstWcsMap *this, int forward, int npoint, double *in0,
 /* Check the global error status. */
    if ( !astOK ) return 4;
 
+/* Initialise variables to avoid compiler warnings. */
+   longlo = AST__BAD;
+   longhi = AST__BAD;
+
 /* Store the projection type. */
    type = astGetWcsType( this );
 
 /* Get information about the projection. */
-   prjdata = FindPrjData( type );
+   prjdata = FindPrjData( type, status );
 
 /* Return if there are no WcsLib mapping functons associated with the
    projection. */
@@ -2195,13 +2635,14 @@ static int Map( AstWcsMap *this, int forward, int npoint, double *in0,
 /* Check that all necessary projection parameters have been supplied, or
    can be defaulted. */
    params = &(this->params);
-   for( i = 0; i < WCSLIB_MXPAR; i++ ) {
+   plen = astSizeOf( params->p )/sizeof( double );
+   for( i = 0; i < plen; i++ ) {
       if( ( params->p)[ i ] == AST__BAD ) return 400+i;
    }
 
 /* If we are doing a reverse mapping, get the acceptable range of longitude
    values. */
-   if( !forward ) LongRange( prjdata, params, &longhi, &longlo );
+   if( !forward ) LongRange( prjdata, params, &longhi, &longlo, status );
 
 /* Loop to apply the projection to each point in turn, checking for
    (and propagating) bad values in the process. */
@@ -2221,17 +2662,17 @@ static int Map( AstWcsMap *this, int forward, int npoint, double *in0,
    in the range [-90,90] (as required by the WCSLIB library). Any point with
    a latitude outside the range [-90,90] is converted to the equivalent
    point on the complementary meridian. */
-            latitude = AST__DR2D*slaDrange(  in1[ point ] );  
+            latitude = AST__DR2D*palSlaDrange(  in1[ point ] );  
             if ( latitude > 90.0 ){
                latitude = 180.0 - latitude;
-               longitude = AST__DR2D*slaDrange( AST__DPI + in0[ point ] );
+               longitude = AST__DR2D*palSlaDrange( AST__DPI + in0[ point ] );
 
             } else if ( latitude < -90.0 ){
                latitude = -180.0 - latitude;
-               longitude = AST__DR2D*slaDrange( AST__DPI + in0[ point ] );
+               longitude = AST__DR2D*palSlaDrange( AST__DPI + in0[ point ] );
 
             } else {
-               longitude = AST__DR2D*slaDrange( in0[ point ] );
+               longitude = AST__DR2D*palSlaDrange( in0[ point ] );
             }
 
 /* Call the relevant WCSLIB forward projection function. */
@@ -2310,7 +2751,7 @@ static int Map( AstWcsMap *this, int forward, int npoint, double *in0,
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
-                     AstMapping ***map_list, int **invert_list ) {
+                     AstMapping ***map_list, int **invert_list, int *status ) {
 /*
 *  Name:
 *     MapMerge
@@ -2324,7 +2765,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *  Synopsis:
 *     #include "wcsmap.h"
 *     int MapMerge( AstMapping *this, int where, int series, int *nmap,
-*                   AstMapping ***map_list, int **invert_list )
+*                   AstMapping ***map_list, int **invert_list, int *status )
 
 *  Class Membership:
 *     WcsMap method (over-rides the protected astMapMerge method
@@ -2427,6 +2868,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *        length, the "*invert_list" array will be extended (and its
 *        pointer updated) if necessary to accommodate any new
 *        elements.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     If simplification was possible, the function returns the index
@@ -2488,7 +2931,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    pointer, and indicate that the forward transformation of the returned
    UnitMap should be used. */
       (void) astAnnul( ( *map_list )[ where ] );
-      ( *map_list )[ where ] = (AstMapping *) astUnitMap( nin, "" );
+      ( *map_list )[ where ] = (AstMapping *) astUnitMap( nin, "", status );
       ( *invert_list )[ where ] = 0;
 
 /* Return the index of the first modified element. */
@@ -2515,7 +2958,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          i2 = where;
          neighbour = ( *map_list )[ i1 ];
          merge = CanMerge( ( *map_list )[ i1 ], (* invert_list)[ i1 ],
-                           ( *map_list )[ i2 ], (* invert_list)[ i2 ] );
+                           ( *map_list )[ i2 ], (* invert_list)[ i2 ], status );
       }
 
 /* If the WcsMap can not be merged with its lower neighbour, check its
@@ -2525,7 +2968,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          i2 = where + 1;
          neighbour = ( *map_list )[ i2 ];
          merge = CanMerge( ( *map_list )[ i1 ], (* invert_list)[ i1 ],
-                           ( *map_list )[ i2 ], (* invert_list)[ i2 ] );
+                           ( *map_list )[ i2 ], (* invert_list)[ i2 ], status );
       }
 
 /* If either neighbour has passed these checks, it is the inverse of the 
@@ -2539,7 +2982,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 
 /* Create a UnitMap, and store a pointer for it in place of the first 
    WcsMap. */
-         ( *map_list )[ i1 ] = (AstMapping *) astUnitMap( nin, "" );
+         ( *map_list )[ i1 ] = (AstMapping *) astUnitMap( nin, "", status );
          ( *invert_list )[ i1 ] = 0;
 
 /* Shuffle down the remaining Mappings to fill the hole left by the
@@ -2575,7 +3018,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
             swaphi = CanSwap(  ( *map_list )[ where ], 
                                ( *map_list )[ where + 1 ],
                                ( *invert_list )[ where ], 
-                               ( *invert_list )[ where + 1 ], &do2 );
+                               ( *invert_list )[ where + 1 ], &do2, status );
          } else {
             do2 = 0;
             swaphi = 0;
@@ -2594,7 +3037,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* See if we can merge with this Mapping. If so, note the number of steps
    between the two Mappings and leave the loop. */
                if( CanMerge( ( *map_list )[ i2 ], ( *invert_list )[ i2 ],
-                             ( *map_list )[ where ], ( *invert_list )[ where ]  ) ) {
+                             ( *map_list )[ where ], ( *invert_list )[ where ], status ) ) {
                   nstep2 = i2 - where - 1;
                   break;
                }
@@ -2617,7 +3060,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
             swaplo = CanSwap(  ( *map_list )[ where - 1 ], 
                                ( *map_list )[ where ],
                                ( *invert_list )[ where - 1 ], 
-                               ( *invert_list )[ where ], &do1 );
+                               ( *invert_list )[ where ], &do1, status );
          } else {
             do1 = 0;
             swaplo = 0;
@@ -2628,7 +3071,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
             for( i1 = where - 1; i1 >= 0; i1-- ){
 
                if( CanMerge( ( *map_list )[ i1 ], ( *invert_list )[ i1 ],
-                             ( *map_list )[ where ], ( *invert_list )[ where ]  ) ) {
+                             ( *map_list )[ where ], ( *invert_list )[ where ], status ) ) {
                   nstep1 = where - 1 - i1;
                   break;
                }
@@ -2662,7 +3105,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    WcsMap closer to the target Mapping. */
          if( nclass ){
 
-            WcsPerm( (*map_list) + i1, (*invert_list) + i1, where - i1 );
+            WcsPerm( (*map_list) + i1, (*invert_list) + i1, where - i1, status );
 
 /* Store the index of the first modified Mapping. */
             result = i1;
@@ -2692,7 +3135,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
             ic[ 1 ] = ( (*invert_list) + i1 )[1];
 
 /* Swap these Mappings. */
-            WcsPerm( mc, ic, where - i1 );
+            WcsPerm( mc, ic, where - i1, status );
 
 /* If neither of the swapped Mappings can be simplified further, then there
    is no point in swapping the Mappings, so just annul the map copies. */
@@ -2734,7 +3177,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    return result;
 }
 
-static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map ){
+static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping **map, int *status ){
 /*
 *  Name:
 *     MapSplit
@@ -2748,7 +3191,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     int *MapSplit( AstMapping *this, int nin, int *in, AstMapping **map )
+*     int *MapSplit( AstMapping *this, int nin, const int *in, AstMapping **map, int *status )
 
 *  Class Membership:
 *     WcsMap method (over-rides the protected astMapSplit method
@@ -2780,6 +3223,8 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 *        outputs may be different to "nin"). A NULL pointer will be
 *        returned if the supplied WcsMap has no subset of outputs which 
 *        depend only on the selected inputs.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
@@ -2799,9 +3244,12 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
    AstWcsMap *newwcs;         /* Pointer to returned WcsMap */
    AstWcsMap *this;           /* Pointer to WcsMap structure */
    int *result;               /* Pointer to returned array */
+   int *inperm;               /* Input axis permutation array */
+   int *outperm;              /* Output axis permutation array */
    int i;                     /* Loop count */
    int iin;                   /* Mapping input index */
    int ilat;                  /* Index of latitude axis in new WcsMap */
+   int ilatlon;               /* Index of last lat or lon axis */
    int ilon;                  /* Index of longitude axis in new WcsMap */
    int latax;                 /* Index of latitude axis in supplied WcsMap */
    int lonax;                 /* Index of longitude axis in supplied WcsMap */
@@ -2816,13 +3264,16 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
    if ( !astOK ) return result;
 
 /* Invoke the parent astMapSplit method to see if it can do the job. */
-   result = (*parent_mapsplit)( this_map, nin, in, map );
+   result = (*parent_mapsplit)( this_map, nin, in, map, status );
 
 /* If not, we provide a special implementation here. */
    if( !result ) {
 
 /* Get a pointer to the WcsMap structure. */
       this = (AstWcsMap *) this_map;
+
+/* Prevent compiler warnings. */
+      ilatlon = -1;
 
 /* Allocate memory for the returned array. */
       result = astMalloc( sizeof( int )*(size_t) nin );
@@ -2846,8 +3297,10 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
                break;
             } else if( iin == lonax ) {
                ilon = i;
+               ilatlon = i;
             } else if( iin == latax ) {
                ilat = i;
+               ilatlon = i;
             }
             result[ i ] = iin;
          }
@@ -2860,18 +3313,44 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
    is a WcsMap. Create one based on the supplied WcsMap. */
          } else if( ilat != -1 && ilon != -1 ) {
             newwcs = astWcsMap( nin, astGetWcsType( this ), ilon + 1, ilat + 1,
-                                "" );
-            CopyPV( this, newwcs );
+                                "", status );
+            CopyPV( this, newwcs, status );
             astSetInvert( newwcs, astGetInvert( this ) );
             *map = (AstMapping *) newwcs;
 
 /* If neither the longitude nor the latitude axis has been selected, then 
    the returned Mapping is a UnitMap. */
          } else if( ilat == -1 && ilon == -1 ) {
-            *map = (AstMapping *) astUnitMap( nin, "" );
+            *map = (AstMapping *) astUnitMap( nin, "", status );
 
-/* If only one of the latitude and longitude axes was selected we cannot
-   split the Mapping.*/
+/* If only one of the latitude and longitude axes was selected we remove
+   it from the returned Mapping (a PermMap) and list of outputs */
+         } else if( nin > 1 ) {
+            
+            for( i = ilatlon; i < nin - 1; i++ ) {
+               result[ i ] = result[ i + 1 ];
+            }
+            result[ i ] = -1;
+
+            inperm = astMalloc( sizeof( int )*(size_t) nin );
+            outperm = astMalloc( sizeof( int )*(size_t) ( nin - 1 ) );
+            if( outperm ) {
+               for( i = 0; i < ilatlon; i++ ) {
+                  inperm[ i ] = i;
+                  outperm[ i ] = i;
+               }
+               inperm[ ilatlon ] = INT_MAX;
+               for( i = ilatlon + 1; i < nin; i++ ) {
+                  inperm[ i ] = i - 1;
+                  outperm[ i - 1 ] = i;
+               }
+
+               *map = (AstMapping *) astPermMap( nin, inperm, nin - 1, outperm, NULL, " ", status );
+
+            }
+            inperm = astFree( inperm );
+            outperm = astFree( outperm );
+
          } else {
             result = astFree( result );   
          }
@@ -2889,7 +3368,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 }
 
 static void PermGet( AstPermMap *map, int **outperm, int **inperm, 
-                     double **consts ){
+                     double **consts, int *status ){
 /*
 *  Name:
 *     PermGet
@@ -2903,7 +3382,7 @@ static void PermGet( AstPermMap *map, int **outperm, int **inperm,
 *  Synopsis:
 *     #include "wcsmap.h"
 *     void PermGet( AstPermMap *map, int **outperm, int **inperm, 
-*                   double **const )
+*                   double **const, int *status )
 
 *  Class Membership:
 *     WcsMap member function 
@@ -2927,6 +3406,8 @@ static void PermGet( AstPermMap *map, int **outperm, int **inperm,
 *        An address at which to return a popinter to an array of doubles
 *        holding the constants array. The array should be released using 
 *        astFree when no longer needed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     -  NULL pointers are returned if an error has already occurred, or if
@@ -2977,8 +3458,8 @@ static void PermGet( AstPermMap *map, int **outperm, int **inperm,
 
 /* Create two PointSets, each holding two points, which can be used for
    input and output positions with the PermMap. */
-   pset1 = astPointSet( 2, nin, "" );
-   pset2 = astPointSet( 2, nout, "" );
+   pset1 = astPointSet( 2, nin, "", status );
+   pset2 = astPointSet( 2, nout, "", status );
 
 /* Set up the two input positions to be [0,1,2...] and [-1,-1,-1,...]. The
    first position is used to enumerate the axes, and the second is used to 
@@ -3071,10 +3552,10 @@ static void PermGet( AstPermMap *map, int **outperm, int **inperm,
    return;
 }
 
-static void SetAttrib( AstObject *this_object, const char *setting ) {
+static void SetAttrib( AstObject *this_object, const char *setting, int *status ) {
 /*
 *  Name:
-*     astSetAttrib
+*     SetAttrib
 
 *  Purpose:
 *     Set an attribute value for a WcsMap.
@@ -3163,14 +3644,14 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
         MATCH( "natlat" ) ||
         MATCH( "natlon" ) ||
         MATCH2( "wcsaxis" ) ) {
-      astError( AST__NOWRT, "astSet: The setting \"%s\" is invalid for a %s.",
+      astError( AST__NOWRT, "astSet: The setting \"%s\" is invalid for a %s.", status,
                 setting, astGetClass( this ) );
-      astError( AST__NOWRT, "This is a read-only attribute." );
+      astError( AST__NOWRT, "This is a read-only attribute." , status);
 
 /* If the attribute is still not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      (*parent_setattrib)( this_object, setting );
+      (*parent_setattrib)( this_object, setting, status );
    }
 
 /* Undefine macros local to this function. */
@@ -3178,7 +3659,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 #undef MATCH2
 }
 
-static void SetPV( AstWcsMap *this, int i, int m, double val ) { 
+static void SetPV( AstWcsMap *this, int i, int m, double val, int *status ) { 
 /*
 *+
 *  Name:
@@ -3211,8 +3692,10 @@ static void SetPV( AstWcsMap *this, int i, int m, double val ) {
 
 *-
 */
+/* Local Variables: */
    int naxis;       /* No. of axes in WcsMap */
    int mm;          /* Loop count */
+   int mxpar;       /* Max number of parameters allowed for the axis */
 
 /* Check the global error status. */ 
    if ( !astOK ) return; 
@@ -3224,31 +3707,35 @@ static void SetPV( AstWcsMap *this, int i, int m, double val ) {
    if( i < 0 || i >= naxis ){ 
       astError( AST__AXIIN, "astSetPV(%s): Axis index (%d) is invalid in "
                 "attribute PV%d_%d  - it should be in the range 1 to %d.", 
-                astGetClass( this ), i + 1, i + 1, m, naxis ); 
+                status, astGetClass( this ), i + 1, i + 1, m, naxis ); 
 
 /* Validate the parameter index. */ 
-   } else if( m < 0 || m >= WCSLIB_MXPAR ){ 
-      astError( AST__AXIIN, "astSetPV(%s): Parameter index (%d) is invalid "
-                "in attribute PV%d_%d - it should be in the range 0 to %d.", 
-                astGetClass( this ), m, i + 1, m, WCSLIB_MXPAR - 1 ); 
+   } else {
+      mxpar = astGetPVMax( this, i );
+      if( m < 0 || m > mxpar ){ 
+         astError( AST__AXIIN, "astSetPV(%s): Parameter index (%d) is invalid "
+                   "in attribute PV%d_%d for a \"%s\" projection - it should be "
+                   "in the range 0 to %d.", status, astGetClass( this ), m, i + 1, m, 
+                   FindPrjData( this->type, status )->ctype, mxpar ); 
 
 /* If the dynamic arrays used to hold the parameters have not yet been
    created, create them now, and store pointers to them in the WcsMap
    structure. */
-   } else {
-      if( !this->np || !this->p ) {
-         this->np = (int *) astMalloc( sizeof(int)*naxis );
-         this->p = (double **) astMalloc( sizeof(double *)*naxis );
-         if( astOK ) {
-            for( mm = 0; mm < naxis; mm++ ) {
-               this->np[ mm ] = 0;
-               this->p[ mm ] = NULL;
+      } else {
+         if( !this->np || !this->p ) {
+            this->np = (int *) astMalloc( sizeof(int)*naxis );
+            this->p = (double **) astMalloc( sizeof(double *)*naxis );
+            if( astOK ) {
+               for( mm = 0; mm < naxis; mm++ ) {
+                  this->np[ mm ] = 0;
+                  this->p[ mm ] = NULL;
+               }
             }
-         }
 
 /* Release the dynamic arrays if an error has occurred. */
-         if( !astOK ) FreePV( this );
+            if( !astOK ) FreePV( this, status );
 
+         }
       }
 
 /* Check we can use the arrays. */
@@ -3279,10 +3766,10 @@ static void SetPV( AstWcsMap *this, int i, int m, double val ) {
    }
 
 /* Re-initialize the values stored in the "AstPrjPrm" structure. */
-    InitPrjPrm( this );
+   InitPrjPrm( this, status );
 } 
 
-static int TestAttrib( AstObject *this_object, const char *attrib ) {
+static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     TestAttrib
@@ -3295,7 +3782,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     int TestAttrib( AstObject *this, const char *attrib )
+*     int TestAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     WcsMap member function (over-rides the astTestAttrib protected
@@ -3312,6 +3799,8 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null-terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if a value has been set, otherwise zero.
@@ -3369,14 +3858,14 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute is still not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      result = (*parent_testattrib)( this_object, attrib );
+      result = (*parent_testattrib)( this_object, attrib, status );
    }
 
 /* Return the result, */
    return result;
 }
 
-static int TestPV( AstWcsMap *this, int i, int m ) { 
+static int TestPV( AstWcsMap *this, int i, int m, int *status ) { 
 /*
 *+
 *  Name:
@@ -3412,8 +3901,10 @@ static int TestPV( AstWcsMap *this, int i, int m ) {
 
 *-
 */
+/* Local Variables: */
    int ret;
    int npar;
+   int mxpar;       
 
 /* Initialise */
    ret = 0;
@@ -3425,27 +3916,29 @@ static int TestPV( AstWcsMap *this, int i, int m ) {
    if( i < 0 || i >= astGetNin( this ) ){ 
       astError( AST__AXIIN, "astTestPV(%s): Axis index (%d) is invalid in "
                 "attribute PV%d_%d  - it should be in the range 1 to %d.", 
-                astGetClass( this ), i + 1, i + 1, m, astGetNin( this ) ); 
+                status, astGetClass( this ), i + 1, i + 1, m, astGetNin( this ) ); 
 
-/* Validate the parameter index. */ 
-   } else if( m < 0 || m >= WCSLIB_MXPAR ){ 
-      astError( AST__AXIIN, "astTestPV(%s): Parameter index (%d) is invalid "
-                "in attribute PV%d_%d - it should be in the range 0 to %d.", 
-                astGetClass( this ), m, i + 1, m, WCSLIB_MXPAR - 1 ); 
+/* Find the maximum number of parameters allowed for the axis. */
+   } else {
+      mxpar = astGetPVMax( this, i );
+
+/* Ignore unused parameters. */ 
+      if( m < 0 || m > mxpar ){ 
 
 /* See if the parameter is currently set. */
-   } else if( this->np && this->p ){ 
-      npar = this->np[ i ];
-      if( m < npar && this->p[ i ] ){
-         ret = ( this->p[ i ][ m ] != AST__BAD );
-      }
-   } 
+      } else if( this->np && this->p ){ 
+         npar = this->np[ i ];
+         if( m < npar && this->p[ i ] ){
+            ret = ( this->p[ i ][ m ] != AST__BAD );
+         }
+      } 
+   }
 
    return ret;
 } 
 
 static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *+
 *  Name:
@@ -3460,7 +3953,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *  Synopsis:
 *     #include "wcsmap.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     WcsMap member function (over-rides the astTransform method inherited
@@ -3483,6 +3976,8 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -3513,7 +4008,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    int latax;                    /* Latitude axis index */
    int lonax;                    /* Longitude axis index */
    int npoint;                   /* Number of points */
-   int status;                   /* Status from Map function */
+   int status_value;                   /* Status from Map function */
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
@@ -3525,7 +4020,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    function inherited from the parent Mapping class. This function validates
    all arguments and generates an output PointSet if necessary, but does not
    actually transform any coordinate values. */
-   result = (*parent_transform)( this, in, forward, out );
+   result = (*parent_transform)( this, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    calculations needed to generate the output coordinate values. */
@@ -3546,34 +4041,34 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Do the coordinate transformation. */
       lonax = astGetWcsAxis( map, 0 );
       latax = astGetWcsAxis( map, 1 );
-      status = Map( map, forward, npoint, ptr_in[ lonax ], ptr_in[ latax ], 
-                    ptr_out[ lonax ], ptr_out[ latax ] );
+      status_value = Map( map, forward, npoint, ptr_in[ lonax ], ptr_in[ latax ], 
+                    ptr_out[ lonax ], ptr_out[ latax ], status );
 
 /* Report an error if the projection type was unrecognised. */
-      if ( status == 1 ) {
+      if ( status_value == 1 ) {
          astError( AST__WCSTY, "astTransform(%s): The %s specifies an "
-                   "illegal projection type ('%s').", astClass( this ), 
-                   astClass( this ), FindPrjData( map->type )->desc  );
+                   "illegal projection type ('%s').", status, astClass( this ), 
+                   astClass( this ), FindPrjData( map->type, status )->desc  );
 
 /* Report an error if the projection parameters were invalid. */
-       } else if ( status == 2 ) {
+       } else if ( status_value == 2 ) {
           astError( AST__WCSPA, "astTransform(%s): The %s projection "
-                    "parameter values in this %s are unusable.", 
-                    astClass( this ), FindPrjData( map->type )->desc, 
+                    "parameter values in this %s are unusable.", status, 
+                    astClass( this ), FindPrjData( map->type, status )->desc, 
                     astClass( this )  );
 
 /* Report an error if required projection parameters were not supplied. */
-       } else if ( status >= 400 ) {
+       } else if ( status_value >= 400 ) {
           astError( AST__WCSPA, "astTransform(%s): Required projection "
                     "parameter PV%d_%d was not supplied for a %s "
-                    "projection.", astClass( this ), latax+1, status - 400,
-                    FindPrjData( map->type )->desc  );
+                    "projection.", status, astClass( this ), latax+1, status_value - 400,
+                    FindPrjData( map->type, status )->desc  );
 
-       } else if ( status >= 100 ) {
+       } else if ( status_value >= 100 ) {
           astError( AST__WCSPA, "astTransform(%s): Required projection "
                     "parameter PV%d_%d was not supplied for a %s "
-                    "projection.", astClass( this ), lonax+1, status - 100,
-                    FindPrjData( map->type )->desc  );
+                    "projection.", status, astClass( this ), lonax+1, status_value - 100,
+                    FindPrjData( map->type, status )->desc  );
        }
 
 /* Copy the remaining axes (i.e. all axes except the longitude and latitude 
@@ -3603,7 +4098,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 }
 
-int PrjType_( const char *ctype ){
+int astWcsPrjType_( const char *ctype, int *status ){
 /*
 *+
 *  Name:
@@ -3665,7 +4160,7 @@ int PrjType_( const char *ctype ){
    return data->prj;
 }
 
-const char *PrjName_( int type ){
+const char *astWcsPrjName_( int type, int *status ){
 /*
 *+
 *  Name:
@@ -3709,7 +4204,7 @@ const char *PrjName_( int type ){
    return data->ctype;
 }
 
-const char *PrjDesc_( int type ){
+const char *astWcsPrjDesc_( int type, int *status ){
 /*
 *+
 *  Name:
@@ -3753,7 +4248,7 @@ const char *PrjDesc_( int type ){
    return data->desc;
 }
 
-static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
+static void WcsPerm( AstMapping **maps, int *inverts, int iwm, int *status ){
 /*
 *  Name:
 *     WcsPerm
@@ -3766,7 +4261,7 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
 
 *  Synopsis:
 *     #include "wcsmap.h"
-*     void WcsPerm( AstMapping **maps, int *inverts, int iwm )
+*     void WcsPerm( AstMapping **maps, int *inverts, int iwm, int *status )
 
 *  Class Membership:
 *     WcsMap member function 
@@ -3785,6 +4280,8 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
 *        A pointer to an array of two invert flags.
 *     iwm
 *        The index within "maps" of the WcsMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     -  All links between input and output axes in the PermMap must 
@@ -3843,7 +4340,7 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
    PermMap. Note, no constants are used more than once in the returned
    arrays (i.e. duplicate constants are returned in "consts" if more than
    one axis uses a given constant). */
-   PermGet( pm, &outperm, &inperm, &consts );
+   PermGet( pm, &outperm, &inperm, &consts, status );
 
    if( astOK ) {
 
@@ -3884,10 +4381,10 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
                   } 
                }
 
-               newpm = astPermMap( npin, inperm, npout, outperm, consts, "" );
+               newpm = astPermMap( npin, inperm, npout, outperm, consts, "", status );
 
 /* Use a UnitMap instead of the WcsMap. */
-               newwm = (AstMapping *) astUnitMap( npout, "" );
+               newwm = (AstMapping *) astUnitMap( npout, "", status );
 
             }
 
@@ -3925,10 +4422,10 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
                   } 
                }
 
-               newpm = astPermMap( npin, inperm, npout, outperm, consts, "" );
+               newpm = astPermMap( npin, inperm, npout, outperm, consts, "", status );
 
 /* Use a UnitMap instead ofhte WcsMap. */
-               newwm = (AstMapping *) astUnitMap( npin, "" );
+               newwm = (AstMapping *) astUnitMap( npin, "", status );
 
             }
 
@@ -3948,14 +4445,14 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
    the private interface to astWcsMap uses 1-based axis indices. */
          if( iwm == 0 ) {
             newwm = (AstMapping *) astWcsMap( npout, type, inperm[ lonax ] + 1, 
-                                              inperm[ latax ] + 1, "" );
+                                              inperm[ latax ] + 1, "", status );
          } else {
             newwm = (AstMapping *) astWcsMap( npin, type, outperm[ lonax ] + 1, 
-                                              outperm[ latax ] + 1, "" );
+                                              outperm[ latax ] + 1, "", status );
          }
 
 /* Copy any projection parameters which have been set. */
-         CopyPV( wm, (AstWcsMap *) newwm );
+         CopyPV( wm, (AstWcsMap *) newwm, status );
 
 /* Set the invert flag. */
          astSetInvert( newwm, inverts[ iwm ] );
@@ -3975,8 +4472,8 @@ static void WcsPerm( AstMapping **maps, int *inverts, int iwm  ){
    astSetInvert( wm, old_winv );
 
 /* Annul the supplied pointers */
-   astAnnul( pm );
-   astAnnul( wm );
+   pm = astAnnul( pm );
+   wm = astAnnul( wm );
 
 /* Store the returned Mappings. */
    maps[ iwm ] = (AstMapping *) newpm;
@@ -4106,6 +4603,39 @@ f     done using the OPTIONS argument of AST_WCSMAP (q.v.) when a WcsMap
 *     satisfy all the required constraints (as defined in the FITS-WCS
 *     paper), then an error will result when the WcsMap is used to
 *     transform coordinates.
+*att--
+*/
+
+/* PVMax. */
+/* ------ */
+/*
+*att++
+*  Name:
+*     PVMax(i)
+
+*  Purpose:
+*     Maximum number of FITS-WCS projection parameters.
+
+*  Type:
+*     Public attribute.
+
+*  Synopsis:
+*     Integer, read-only.
+
+*  Description:
+*     This attribute specifies the largest legal index for a PV projection
+*     parameter attached to a specified axis of the WcsMap (i.e. the
+*     largest legal value for "m" when accessing the "PVi_m" attribute). 
+*     The axis index is specified by i, and should be in the range 1 to 99. 
+*     The value for each axis is determined by the projection type specified 
+*     when the WcsMap
+c     is first created using astWcsMap and cannot subsequently be
+f     is first created using AST_WCSMAP and cannot subsequently be
+*     changed.
+
+*  Applicability:
+*     WcsMap
+*        All WcsMaps have this attribute.
 *att--
 */
 
@@ -4273,7 +4803,7 @@ MAKE_GET(WcsAxis,int,0,this->wcsaxis[ axis ],2)
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -4285,7 +4815,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for WcsMap objects.
@@ -4295,6 +4825,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -4316,8 +4848,13 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
    in = (AstWcsMap *) objin;
    out = (AstWcsMap *) objout;
 
+/* Allocate memory to hold the projection parameters within the AstPrjPrm
+   structure used by WCSLIB. */
+   (out->params).p = astMalloc( astSizeOf( (in->params).p ) );
+   (out->params).p2 = astMalloc( astSizeOf( (in->params).p2 ) );
+
 /* Copy the projection parameter information. */
-   CopyPV( in, out );
+   CopyPV( in, out, status );
 
    return;
 
@@ -4325,7 +4862,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -4337,7 +4874,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for WcsMap objects.
@@ -4345,6 +4882,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -4361,12 +4900,18 @@ static void Delete( AstObject *obj ) {
    this = (AstWcsMap *) obj;
 
 /* Free the arrays used to store projection parameters. */
-   FreePV( this );
+   FreePV( this, status );
+
+/* Free memory used to hold the projection parameters within the AstPrjPrm
+   structure used by WCSLIB. */
+   this->params.p = astFree( this->params.p );
+   this->params.p2 = astFree( this->params.p2 );
+
 }
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -4378,7 +4923,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -4389,6 +4934,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the WcsMap whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 #define COMMENT_LEN 150          /* Maximum length of a keyword comment */
@@ -4431,8 +4978,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 
 /* WcsType. */
 /* -------- */
-   ival = GetWcsType( this );
-   prjdata = FindPrjData( ival );
+   ival = GetWcsType( this, status );
+   prjdata = FindPrjData( ival, status );
    (void) sprintf( comment_buff, "%s projection", prjdata->desc );
    comment_buff[ 0 ] = toupper( comment_buff[ 0 ] );
    astWriteString( channel, "Type", 1, 1, prjdata->ctype + 1, comment_buff );
@@ -4442,9 +4989,9 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
    for( i = 0; i < astGetNin( this ); i++ ){
       if( this->np ) {
          for( m = 0; m < this->np[ i ]; m++ ){
-            set = TestPV( this, i, m );
+            set = TestPV( this, i, m, status );
             if( set ) {
-               dval = set ? GetPV( this, i, m ) : astGetPV( this, i, m );
+               dval = set ? GetPV( this, i, m, status ) : astGetPV( this, i, m );
                (void) sprintf( buff, "PV%d_%d", i + 1, m );
                (void) sprintf( comment_buff, "Projection parameter %d for axis %d", m, i + 1 );
                astWriteDouble( channel, buff, set, 0, dval, comment_buff );
@@ -4456,7 +5003,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* WcsAxis(axis). */
 /* -------------- */
    for( axis = 0; axis < 2; axis++ ){
-      ival =  GetWcsAxis( this, axis );
+      ival =  GetWcsAxis( this, axis, status );
       (void) sprintf( buff, "WcsAx%d", axis + 1 );
       if( axis == 0 ) {
          comment = "Index of celestial longitude axis";
@@ -4481,11 +5028,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAWcsMap and astCheckWcsMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(WcsMap,Mapping,check,&class_init)
+astMAKE_ISA(WcsMap,Mapping,check,&class_check)
 astMAKE_CHECK(WcsMap)
 
 AstWcsMap *astWcsMap_( int ncoord, int type, int lonax, int latax, 
-                       const char *options, ... ){
+                       const char *options, int *status, ...){
 /*
 *++
 *  Name:
@@ -4614,15 +5161,15 @@ f     AST_WCSMAP = INTEGER
 *        A pointer to the new WcsMap.
 
 *  Examples:
-c     wcsmap = astWcsMap( AST__MER, 2, 1, 2, "" );
-f     WCSMAP = AST_WCSMAP( AST__MER, 2, 1, 2, ' ', STATUS )
+c     wcsmap = astWcsMap( 2, AST__MER, 1, 2, "" );
+f     WCSMAP = AST_WCSMAP( 2, AST__MER, 1, 2, ' ', STATUS )
 *        Creates a WcsMap that implements a FITS-WCS Mercator
 *        projection on pairs of coordinates, with coordinates 1 and 2
 *        representing the longitude and latitude respectively. Note
 *        that the FITS-WCS Mercator projection does not require any
 *        projection parameters.
-c     wcsmap = astWcsMap( AST__COE, 3, 2, 3, "PV3_1=40.0" );
-f     WCSMAP = AST_WCSMAP( AST__COE, 3, 2, 3, 'PV3_1=40.0', STATUS )
+c     wcsmap = astWcsMap( 3, AST__COE, 2, 3, "PV3_1=40.0" );
+f     WCSMAP = AST_WCSMAP( 3, AST__COE, 2, 3, 'PV3_1=40.0', STATUS )
 *        Creates a WcsMap that implements a FITS-WCS conical equal
 *        area projection. The WcsMap acts on points in a 3-dimensional
 *        space; coordinates 2 and 3 represent longitude and latitude
@@ -4655,15 +5202,26 @@ f     parameter in the OPTIONS string is not checked by this
 c     function is invoked with the AST error status set, or if it
 f     function is invoked with STATUS set to an error value, or if it
 *     should fail for any reason.
+
+*  Status Handling:
+*     The protected interface to this function includes an extra
+*     parameter at the end of the parameter list descirbed above. This
+*     parameter is a pointer to the integer inherited status
+*     variable: "int *status".
+
 *--
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstWcsMap *new;               /* Pointer to new WcsMap */
    va_list args;                 /* Variable argument list */
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialise the WcsMap, allocating memory and initialising the
    virtual function table as well if necessary. */
@@ -4677,8 +5235,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new WcsMap's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -4730,8 +5288,16 @@ AstWcsMap *astWcsMapId_( int ncoord, int type, int lonax, int latax,
 */
 
 /* Local Variables: */
-   AstWcsMap *new;              /* Pointer to new WcsMap */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstWcsMap *new;               /* Pointer to new WcsMap */
    va_list args;                 /* Variable argument list */
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -4749,7 +5315,7 @@ AstWcsMap *astWcsMapId_( int ncoord, int type, int lonax, int latax,
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new WcsMap's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -4762,7 +5328,7 @@ AstWcsMap *astWcsMapId_( int ncoord, int type, int lonax, int latax,
 
 AstWcsMap *astInitWcsMap_( void *mem, size_t size, int init,
                            AstWcsMapVtab *vtab, const char *name,
-                           int ncin, int type, int lonax, int latax ) {
+                           int ncin, int type, int lonax, int latax, int *status ) {
 /*
 *+
 *  Name:
@@ -4841,6 +5407,7 @@ AstWcsMap *astInitWcsMap_( void *mem, size_t size, int init,
 */
 
 /* Local Variables: */
+   const PrjData *prjdata;      /* Information about the projection */
    AstWcsMap *new;              /* Pointer to new WcsMap */
 
 /* Check the global status. */
@@ -4859,33 +5426,36 @@ AstWcsMap *astInitWcsMap_( void *mem, size_t size, int init,
    if( type != AST__WCSBAD ){
       if ( ncin < 2 ){
          astError( AST__WCSNC, "astInitWcsMap(%s): Too few axes (%d) "
-                   "specified. Must be at least 2.", name, ncin );
+                   "specified. Must be at least 2.", status, name, ncin );
 
 /* Report an error if either the longitude or latitude axes are out of
    bounds. */
       } else if ( lonax < 0 || lonax >= ncin ){
          astError( AST__WCSAX, "astInitWcsMap(%s): Specified longitude axis (%d) "
-                   "does not exist within a %d dimensional coordinate system. ",
+                   "does not exist within a %d dimensional coordinate system. ", status,
                    name, lonax + 1, ncin );
    
       } else if ( latax < 0 || latax >= ncin ){
          astError( AST__WCSAX, "astInitWcsMap(%s): Specified latitude axis (%d) "
-                   "does not exist within a %d dimensional coordinate system. ",
+                   "does not exist within a %d dimensional coordinate system. ", status,
                    name, latax + 1, ncin );
 
 /* Report an error if the longitude or latitude axes are the same. */
       } else if ( lonax == latax ){
          astError( AST__WCSAX, "astInitWcsMap(%s): The same axis (%d) has been "
-                   "given for both the longitude and the latitude axis.", name,
+                   "given for both the longitude and the latitude axis.", status, name,
                    lonax + 1 );
 
 /* Report an error if projection type is unknown. */
       } else if ( type < 1 || type >= AST__WCSBAD ){
          astError( AST__WCSTY, "astInitWcsMap(%s): Projection type %d is "
-                   "undefined. Projection types must be in the range 1 to %d.",
+                   "undefined. Projection types must be in the range 1 to %d.", status,
                    name, type, AST__WCSBAD - 1 );
       }
    }
+
+/* Get a description of the requeste dprojection type. */
+   prjdata = FindPrjData( type, status );
 
 /* If all the above checks have been passed succesfully... */
    if( astOK ){
@@ -4912,8 +5482,13 @@ AstWcsMap *astInitWcsMap_( void *mem, size_t size, int init,
          new->p = NULL;
          new->np = NULL;
 
+/* Allocate memory of the right size to hold the maximum number of
+   projection parameters needed by the projection. */
+         new->params.p = astMalloc( sizeof( double ) * (prjdata->mxpar + 1) );
+         new->params.p2 = astMalloc( sizeof( double ) * (prjdata->mxpar2 + 1) );
+
 /* Initialise the "AstPrjPrm" structure (defined in proj.h). */
-         InitPrjPrm( new );
+         InitPrjPrm( new, status );
 
 /* If an error occurred, clean up by deleting the new WcsMap. */
          if ( !astOK ) new = astDelete( new );
@@ -4926,7 +5501,7 @@ AstWcsMap *astInitWcsMap_( void *mem, size_t size, int init,
 
 AstWcsMap *astLoadWcsMap_( void *mem, size_t size,
                            AstWcsMapVtab *vtab, const char *name,
-                           AstChannel *channel ) {
+                           AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -5002,14 +5577,20 @@ AstWcsMap *astLoadWcsMap_( void *mem, size_t size,
 
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 /* Local Variables: */
+   const PrjData *prjdata;      /* Information about the projection */
    AstWcsMap *new;              /* Pointer to the new WcsMap */
-   const char *text;            /* Textual form of an integer value */
-   char buff[ KEY_LEN + 1 ];    /* Buffer for keyword string */
+   char *text;                  /* Textual form of an integer value */
+   char buff[ KEY_LEN + 1 ];    /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Buffer for keyword string */
    double pv;                   /* Projection parameter */
    int axis;                    /* Axis index */
    int i;                       /* Axis index */
    int m;                       /* Parameter index */
+   int mxpar;                   /* Maximum number of PVi_m values */
 
 /* Initialise. */
    new = NULL;
@@ -5066,6 +5647,8 @@ AstWcsMap *astLoadWcsMap_( void *mem, size_t size,
       } else {
          new->type = AST__WCSBAD;
       }
+      text = astFree( text );
+      prjdata = FindPrjData( new->type, status );
 
 /* WcsAxis(axis). */
 /* -------------- */
@@ -5077,27 +5660,38 @@ AstWcsMap *astLoadWcsMap_( void *mem, size_t size,
 /* Initialise the pointers to the projection parameter information. */
       new->p = NULL;
       new->np = NULL;
+      new->params.p = astMalloc( sizeof( double ) * (prjdata->mxpar + 1) );
+      new->params.p2 = astMalloc( sizeof( double ) * (prjdata->mxpar2 + 1) );
 
 /* Initialise the structure used by WCSLIB to hold intermediate values,
    so that the values will be re-calculated on the first invocation of a
    mapping function. */
-      InitPrjPrm( new );
+      InitPrjPrm( new, status );
 
 /* ProjP(m). */
 /* --------- */
       for( m = 0; m < AST__WCSMX; m++ ){
          (void) sprintf( buff, "projp%d", m );
          pv = astReadDouble( channel, buff, AST__BAD );
-         if( pv != AST__BAD ) SetPV( new, new->wcsaxis[ 1 ], m, pv );
+         if( pv != AST__BAD ) SetPV( new, new->wcsaxis[ 1 ], m, pv, status );
       }
 
 /* PVi_m. */
 /* -------*/
       for( i = 0; i < astGetNin( new ); i++ ){
-         for( m = 0; m < WCSLIB_MXPAR; m++ ){
+
+         if( i == new->wcsaxis[ 0 ] ) {
+            mxpar = prjdata->mxpar2;
+         } else if( i == new->wcsaxis[ 1 ] ) {
+            mxpar = prjdata->mxpar;
+         } else {
+            mxpar = 0;
+         } 
+
+         for( m = 0; m <= mxpar; m++ ){
             (void) sprintf( buff, "pv%d_%d", i + 1, m );
             pv = astReadDouble( channel, buff, AST__BAD );
-            if( pv != AST__BAD ) SetPV( new, i, m, pv );
+            if( pv != AST__BAD ) SetPV( new, i, m, pv, status );
          }
       }
 
@@ -5124,39 +5718,49 @@ AstWcsMap *astLoadWcsMap_( void *mem, size_t size,
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
 
-void astClearPV_( AstWcsMap *this, int i, int m ) {
+void astClearPV_( AstWcsMap *this, int i, int m, int *status ) {
    if ( !astOK ) return; 
-   (**astMEMBER(this,WcsMap,ClearPV))( this, i, m ); 
+   (**astMEMBER(this,WcsMap,ClearPV))( this, i, m, status ); 
 }   
 
-double astGetPV_( AstWcsMap *this, int i, int m ) { 
+double astGetPV_( AstWcsMap *this, int i, int m, int *status ) { 
    if ( !astOK ) return AST__BAD; 
-   return (**astMEMBER(this,WcsMap,GetPV))( this, i, m ); 
+   return (**astMEMBER(this,WcsMap,GetPV))( this, i, m, status ); 
 }
 
-void astSetPV_( AstWcsMap *this, int i, int m, double val ) {
+void astSetPV_( AstWcsMap *this, int i, int m, double val, int *status ) {
    if ( !astOK ) return; 
-   (**astMEMBER(this,WcsMap,SetPV))( this, i, m, val ); 
+   (**astMEMBER(this,WcsMap,SetPV))( this, i, m, val, status ); 
 }   
 
-int astTestPV_( AstWcsMap *this, int i, int m ) { 
+int astTestPV_( AstWcsMap *this, int i, int m, int *status ) { 
    if ( !astOK ) return 0; 
-   return (**astMEMBER(this,WcsMap,TestPV))( this, i, m ); 
+   return (**astMEMBER(this,WcsMap,TestPV))( this, i, m, status ); 
 }
 
-int astIsZenithal_( AstWcsMap *this ) { 
+int astIsZenithal_( AstWcsMap *this, int *status ) { 
    if ( !astOK ) return 0; 
-   return (**astMEMBER(this,WcsMap,IsZenithal))( this ); 
+   return (**astMEMBER(this,WcsMap,IsZenithal))( this, status ); 
 }
 
-double astGetNatLat_( AstWcsMap *this ) { 
+double astGetNatLat_( AstWcsMap *this, int *status ) { 
    if ( !astOK ) return AST__BAD; 
-   return (**astMEMBER(this,WcsMap,GetNatLat))( this ); 
+   return (**astMEMBER(this,WcsMap,GetNatLat))( this, status ); 
 }
 
-double astGetNatLon_( AstWcsMap *this ) { 
+double astGetNatLon_( AstWcsMap *this, int *status ) { 
    if ( !astOK ) return AST__BAD; 
-   return (**astMEMBER(this,WcsMap,GetNatLon))( this ); 
+   return (**astMEMBER(this,WcsMap,GetNatLon))( this, status ); 
 }
+
+int astGetPVMax_( AstWcsMap *this, int i, int *status ) { 
+   if ( !astOK ) return -1; 
+   return (**astMEMBER(this,WcsMap,GetPVMax))( this, i, status ); 
+}
+
+
+
+
+
 
 

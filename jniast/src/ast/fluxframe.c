@@ -37,7 +37,24 @@ f     The FluxFrame class does not define any new routines beyond those
 *     which are applicable to all Frames.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -47,6 +64,22 @@ f     The FluxFrame class does not define any new routines beyond those
 *        Original version.
 *     14-DEC-2004 (DSB):
 *        Added AST__SBRIGHT and AST__SBRIGHTW systems.
+*     7-DEC-2005 (DSB):
+*        Free memory allocated by calls to astReadString.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
+*     31-JAN-2007 (DSB):
+*        Modified so that a FluxFrame can be used as a template to find a
+*        FluxFrame contained within a CmpFrame. This involves changes in
+*        Match and the removal of the local versions of SetMaxAxes and
+*        SetMinAxes.
+*     3-SEP-2007 (DSB):
+*        In SubFrame, since AlignSystem is extended by the FluxFrame class
+*        it needs to be cleared before invoking the parent SubFrame
+*        method in cases where the result Frame is not a FluxFrame.
+*     2-OCT-2007 (DSB):
+*        In Overlay, clear AlignSystem as well as System before calling
+*        the parent overlay method.
 *class--
 */
 
@@ -70,13 +103,22 @@ f     The FluxFrame class does not define any new routines beyond those
    exceptions, so bad values are dealt with explicitly. */
 #define EQUAL(aa,bb) (((aa)==AST__BAD)?(((bb)==AST__BAD)?1:0):(((bb)==AST__BAD)?0:(fabs((aa)-(bb))<=1.0E8*MAX((fabs(aa)+fabs(bb))*DBL_EPSILON,DBL_MIN))))
 
+/* Define other numerical constants for use in this module. */
+#define GETATTRIB_BUFF_LEN 50
+#define GETLABEL_BUFF_LEN 200
+#define GETSYMBOL_BUFF_LEN 20
+#define GETTITLE_BUFF_LEN 200
+
 /* Header files. */
 /* ============= */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "unit.h"                /* Units management facilities */
+#include "globals.h"             /* Thread-safe global data access */
 #include "object.h"              /* Base Object class */
 #include "frame.h"               /* Parent Frame class */
 #include "fluxframe.h"           /* Interface definition for this class */
@@ -84,6 +126,7 @@ f     The FluxFrame class does not define any new routines beyond those
 #include "unitmap.h"             /* Unit Mappings */
 #include "cmpmap.h"              /* Compound Mappings */
 #include "zoommap.h"             /* Scaling Mappings */
+#include "specframe.h"           /* Spectral Frames */
 
 /* Error code definitions. */
 /* ----------------------- */
@@ -99,86 +142,134 @@ f     The FluxFrame class does not define any new routines beyond those
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag as
-   static variables. */
-static AstFluxFrameVtab class_vtab; /* Virtual function table */
-static int class_init = 0;          /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are used or extended by this
    class. */
-static AstSystemType (* parent_getalignsystem)( AstFrame * );
-static AstSystemType (* parent_getsystem)( AstFrame * );
-static const char *(* parent_getattrib)( AstObject *, const char * );
-static const char *(* parent_getdomain)( AstFrame * );
-static const char *(* parent_getlabel)( AstFrame *, int );
-static const char *(* parent_getsymbol)( AstFrame *, int );
-static const char *(* parent_gettitle)( AstFrame * );
-static const char *(* parent_getunit)( AstFrame *, int );
-static int (* parent_match)( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame ** );
-static int (* parent_subframe)( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame ** );
-static int (* parent_testattrib)( AstObject *, const char * );
-static void (* parent_setunit)( AstFrame *, int, const char * );
-static void (* parent_clearattrib)( AstObject *, const char * );
-static void (* parent_overlay)( AstFrame *, const int *, AstFrame * );
-static void (* parent_setattrib)( AstObject *, const char * );
-static void (* parent_setmaxaxes)( AstFrame *, int );
-static void (* parent_setminaxes)( AstFrame *, int );
-static void (* parent_setsystem)( AstFrame *, AstSystemType );
-static void (* parent_clearsystem)( AstFrame * );
-static void (* parent_clearunit)( AstFrame *, int );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstSystemType (* parent_getalignsystem)( AstFrame *, int * );
+static AstSystemType (* parent_getsystem)( AstFrame *, int * );
+static const char *(* parent_getattrib)( AstObject *, const char *, int * );
+static const char *(* parent_getdomain)( AstFrame *, int * );
+static const char *(* parent_getlabel)( AstFrame *, int, int * );
+static const char *(* parent_getsymbol)( AstFrame *, int, int * );
+static const char *(* parent_gettitle)( AstFrame *, int * );
+static const char *(* parent_getunit)( AstFrame *, int, int * );
+static int (* parent_match)( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int (* parent_subframe)( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
+static int (* parent_testattrib)( AstObject *, const char *, int * );
+static void (* parent_setunit)( AstFrame *, int, const char *, int * );
+static void (* parent_clearattrib)( AstObject *, const char *, int * );
+static void (* parent_overlay)( AstFrame *, const int *, AstFrame *, int * );
+static void (* parent_setattrib)( AstObject *, const char *, int * );
+static void (* parent_setsystem)( AstFrame *, AstSystemType, int * );
+static void (* parent_clearsystem)( AstFrame *, int * );
+static void (* parent_clearunit)( AstFrame *, int, int * );
+
+#if defined(THREAD_SAFE)
+static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
+#endif
+
+/* Define macros for accessing each item of thread specific global data. */
+#ifdef THREAD_SAFE
+
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; \
+   globals->GetAttrib_Buff[ 0 ] = 0; \
+   globals->GetLabel_Buff[ 0 ] = 0; \
+   globals->GetSymbol_Buff[ 0 ] = 0; \
+   globals->GetTitle_Buff[ 0 ] = 0; \
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(FluxFrame)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(FluxFrame,Class_Init)
+#define class_vtab astGLOBAL(FluxFrame,Class_Vtab)
+#define getattrib_buff astGLOBAL(FluxFrame,GetAttrib_Buff)
+#define getlabel_buff astGLOBAL(FluxFrame,GetLabel_Buff)
+#define getsymbol_buff astGLOBAL(FluxFrame,GetSymbol_Buff)
+#define gettitle_buff astGLOBAL(FluxFrame,GetTitle_Buff)
+
+
+
+/* If thread safety is not needed, declare and initialise globals at static 
+   variables. */ 
+#else
+
+/* Buffers for strings returned by various functions. */
+static char getattrib_buff[ AST__FLUXFRAME_GETATTRIB_BUFF_LEN + 1 ];
+static char getlabel_buff[ AST__FLUXFRAME_GETLABEL_BUFF_LEN + 1 ]; 
+static char getsymbol_buff[ AST__FLUXFRAME_GETSYMBOL_BUFF_LEN + 1 ]; 
+static char gettitle_buff[ AST__FLUXFRAME_GETTITLE_BUFF_LEN + 1 ]; 
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstFluxFrameVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstSpecFrame *GetSpecFrame( AstFluxFrame * );
-static AstSystemType DensitySystem( AstSystemType );
-static AstSystemType GetAlignSystem( AstFrame * );
-static AstSystemType GetDensitySystem( AstFluxFrame * );
-static AstSystemType SystemCode( AstFrame *, const char * );
-static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char * );
-static const char *DefUnit( AstSystemType, const char *, const char * );
-static const char *DensityUnit( AstSystemType );
-static const char *FluxSystemString( AstSystemType );
-static const char *GetDensityUnit( AstFluxFrame * );
-static const char *GetDomain( AstFrame * );
-static const char *GetLabel( AstFrame *, int );
-static const char *GetSymbol( AstFrame *, int );
-static const char *GetTitle( AstFrame * );
-static const char *GetUnit( AstFrame *, int );
-static const char *SystemLabel( AstSystemType );
-static const char *SystemString( AstFrame *, AstSystemType );
-static int GetActiveUnit( AstFrame * );
-static int MakeFluxMapping( AstFluxFrame *, AstFluxFrame *, AstSystemType, AstMapping ** );
-static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame ** );
-static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame ** );
-static int TestActiveUnit( AstFrame * );
-static int UnitsOK( AstSystemType, const char *, int, const char *, const char * );
-static void ClearUnit( AstFrame *, int );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
-static void Overlay( AstFrame *, const int *, AstFrame * );
-static void SetMaxAxes( AstFrame *, int );
-static void SetMinAxes( AstFrame *, int );
-static void SetUnit( AstFrame *, int, const char * );
+static int GetObjSize( AstObject *, int * );
+static AstSpecFrame *GetSpecFrame( AstFluxFrame *, int * );
+static AstSystemType DensitySystem( AstSystemType, int * );
+static AstSystemType GetAlignSystem( AstFrame *, int * );
+static AstSystemType GetDensitySystem( AstFluxFrame *, int * );
+static AstSystemType SystemCode( AstFrame *, const char *, int * );
+static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char *, int * );
+static const char *DefUnit( AstSystemType, const char *, const char *, int * );
+static const char *DensityUnit( AstSystemType, int * );
+static const char *FluxSystemString( AstSystemType, int * );
+static const char *GetDensityUnit( AstFluxFrame *, int * );
+static const char *GetDomain( AstFrame *, int * );
+static const char *GetLabel( AstFrame *, int, int * );
+static const char *GetSymbol( AstFrame *, int, int * );
+static const char *GetTitle( AstFrame *, int * );
+static const char *GetUnit( AstFrame *, int, int * );
+static const char *SystemLabel( AstSystemType, int * );
+static const char *SystemString( AstFrame *, AstSystemType, int * );
+static int GetActiveUnit( AstFrame *, int * );
+static int MakeFluxMapping( AstFluxFrame *, AstFluxFrame *, AstSystemType, AstMapping **, int * );
+static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
+static int TestActiveUnit( AstFrame *, int * );
+static int UnitsOK( AstSystemType, const char *, int, const char *, const char *, int * );
+static void ClearUnit( AstFrame *, int, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void Overlay( AstFrame *, const int *, AstFrame *, int * );
+static void SetUnit( AstFrame *, int, const char *, int * );
 
-static AstSystemType GetSystem( AstFrame * );
-static void SetSystem( AstFrame *, AstSystemType );
-static void ClearSystem( AstFrame * );
+static AstSystemType GetSystem( AstFrame *, int * );
+static void SetSystem( AstFrame *, AstSystemType, int * );
+static void ClearSystem( AstFrame *, int * );
 
-static const char *GetAttrib( AstObject *, const char * );
-static int TestAttrib( AstObject *, const char * );
-static void ClearAttrib( AstObject *, const char * );
-static void SetAttrib( AstObject *, const char * );
+static const char *GetAttrib( AstObject *, const char *, int * );
+static int TestAttrib( AstObject *, const char *, int * );
+static void ClearAttrib( AstObject *, const char *, int * );
+static void SetAttrib( AstObject *, const char *, int * );
 
-static double GetSpecVal( AstFluxFrame * );
-static int TestSpecVal( AstFluxFrame * );
-static void ClearSpecVal( AstFluxFrame * );
-static void SetSpecVal( AstFluxFrame *, double );
+static double GetSpecVal( AstFluxFrame *, int * );
+static int TestSpecVal( AstFluxFrame *, int * );
+static void ClearSpecVal( AstFluxFrame *, int * );
+static void SetSpecVal( AstFluxFrame *, double, int * );
+
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *, int, int, AstObject **, int * );
+#endif
 
 /* Member functions. */
 /* ================= */
 
-static void ClearAttrib( AstObject *this_object, const char *attrib ) {
+static void ClearAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     ClearAttrib
@@ -191,7 +282,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     void ClearAttrib( AstObject *this, const char *attrib )
+*     void ClearAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astClearAttrib protected
@@ -208,6 +299,8 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - This function uses one-based axis numbering so that it is
@@ -237,11 +330,11 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute is not recognised, pass it on to the parent method
    for further interpretation. */
    } else {
-      (*parent_clearattrib)( this_object, attrib );
+      (*parent_clearattrib)( this_object, attrib, status );
    }
 }
 
-static void ClearSystem( AstFrame *this_frame ) {
+static void ClearSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     ClearSystem
@@ -254,7 +347,7 @@ static void ClearSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     void ClearSystem( AstFrame *this_frame )
+*     void ClearSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astClearSystem protected
@@ -266,6 +359,8 @@ static void ClearSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -284,7 +379,7 @@ static void ClearSystem( AstFrame *this_frame ) {
    oldsys = astGetSystem( this_frame );
 
 /* Use the parent ClearSystem method to clear the System value. */
-   (*parent_clearsystem)( this_frame );
+   (*parent_clearsystem)( this_frame, status );
 
 /* Get the default System. */
    newsys = astGetSystem( this_frame );
@@ -299,9 +394,9 @@ static void ClearSystem( AstFrame *this_frame ) {
    the default units will eb used with the new System. */
       if( (int) newsys < this->nuunits && this->usedunits &&
           this->usedunits[ (int) newsys ] ) {
-         (*parent_setunit)( this_frame, 0, this->usedunits[ (int) newsys ] );
+         (*parent_setunit)( this_frame, 0, this->usedunits[ (int) newsys ], status );
       } else {
-         (*parent_clearunit)( this_frame, 0 );
+         (*parent_clearunit)( this_frame, 0, status );
       }
 
 /* Also, clear all attributes which have system-specific defaults. */
@@ -312,10 +407,10 @@ static void ClearSystem( AstFrame *this_frame ) {
 
 }
 
-static void ClearUnit( AstFrame *this_frame, int axis ) {
+static void ClearUnit( AstFrame *this_frame, int axis, int *status ) {
 /*
 *  Name:
-*     astClearUnit
+*     ClearUnit
 
 *  Purpose:
 *     Clear the value of the Unit string for a FluxFrame's axis.
@@ -363,11 +458,11 @@ static void ClearUnit( AstFrame *this_frame, int axis ) {
    }
 
 /* Use the parent method to clear the Unit attribute of the axis. */
-   (*parent_clearunit)( this_frame, axis );
+   (*parent_clearunit)( this_frame, axis, status );
 }
 
 static const char *DefUnit( AstSystemType system, const char *method,
-                            const char *class ){
+                            const char *class, int *status ){
 /*
 *  Name:
 *     DefUnit
@@ -381,7 +476,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 *  Synopsis:
 *     #include "fluxframe.h"
 *     const char *DefUnit( AstSystemType system, const char *method,
-*                          const char *class )
+*                          const char *class, int *status )
 
 *  Class Membership:
 *     FluxFrame member function.
@@ -399,6 +494,8 @@ static const char *DefUnit( AstSystemType system, const char *method,
 *     class 
 *        Pointer to a string holding the name of the supplied object class.
 *        This is only for use in constructing error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     As tring describing the default units. This string follows the
@@ -435,7 +532,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 /* Report an error if the coordinate system was not recognised. */
    } else {
       astError( AST__SCSIN, "%s(%s): Corrupt %s contains illegal System "
-                "identification code (%d).", method, class, class, 
+                "identification code (%d).", status, method, class, class, 
                 (int) system );
    }
 
@@ -443,7 +540,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
    return result;
 }
 
-static AstSystemType DensitySystem( AstSystemType sys ) {
+static AstSystemType DensitySystem( AstSystemType sys, int *status ) {
 /*
 *  Name:
 *     DensitySystem
@@ -457,7 +554,7 @@ static AstSystemType DensitySystem( AstSystemType sys ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     AstSystemType DensitySystem( AstSystemType sys )
+*     AstSystemType DensitySystem( AstSystemType sys, int *status )
 
 *  Class Membership:
 *     FluxFrame member function.
@@ -470,6 +567,8 @@ static AstSystemType DensitySystem( AstSystemType sys ) {
 *  Parameters:
 *     sys
 *        A System value appropriate to a FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The density System value.
@@ -498,7 +597,7 @@ static AstSystemType DensitySystem( AstSystemType sys ) {
    } else if( astOK ) {
       astError( AST__INTER, "DensitySystem(FluxFrame): The "
                 "DensitySystem method does not yet support "
-                "FluxFrame system %d (AST internal programming error).",
+                "FluxFrame system %d (AST internal programming error).", status,
                 sys );
    }
 
@@ -506,7 +605,7 @@ static AstSystemType DensitySystem( AstSystemType sys ) {
    return result;
 }
 
-static const char *DensityUnit( AstSystemType sys ) {
+static const char *DensityUnit( AstSystemType sys, int *status ) {
 /*
 *  Name:
 *     DensityUnit
@@ -520,7 +619,7 @@ static const char *DensityUnit( AstSystemType sys ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *DensityUnit( AstSystemType sys )
+*     const char *DensityUnit( AstSystemType sys, int *status )
 
 *  Class Membership:
 *     FluxFrame member function.
@@ -533,6 +632,8 @@ static const char *DensityUnit( AstSystemType sys ) {
 *  Parameters:
 *     sys
 *        A FluxFrame system value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a null-terminated string containing the Unit value.
@@ -561,14 +662,14 @@ static const char *DensityUnit( AstSystemType sys ) {
    } else if( astOK ) {
       astError( AST__INTER, "DensityUnit(FluxFrame): The DensityUnit "
                 "method does not yet support FluxFrame system %d (AST "
-                "internal programming error).", sys );
+                "internal programming error).", status, sys );
    }
 
 /* Return the result. */
    return result;
 }
 
-static const char *FluxSystemString( AstSystemType system ) {
+static const char *FluxSystemString( AstSystemType system, int *status ) {
 /*
 *  Name:
 *     FluxSystemString
@@ -581,7 +682,7 @@ static const char *FluxSystemString( AstSystemType system ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *FluxSystemString( AstSystemType system )
+*     const char *FluxSystemString( AstSystemType system, int *status )
 
 *  Class Membership:
 *     FluxFrame member function 
@@ -594,6 +695,8 @@ static const char *FluxSystemString( AstSystemType system ) {
 *  Parameters:
 *     system
 *        The coordinate system type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -642,7 +745,79 @@ static const char *FluxSystemString( AstSystemType system ) {
    return result;
 }
 
-static int GetActiveUnit( AstFrame *this_frame ) {
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "fluxframe.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     FluxFrame member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied FluxFrame,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstFluxFrame *this;         /* Pointer to FluxFrame structure */
+   int result;                /* Result value to return */
+   int i;
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the FluxFrame structure. */
+   this = (AstFluxFrame *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+
+   if( this && this->usedunits ) {
+      for( i = 0; i < this->nuunits; i++ ) {
+         result += astTSizeOf( this->usedunits[ i ] );
+      }
+      result += astTSizeOf( this->usedunits );
+   }
+
+   result += astGetObjSize( this->specframe );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static int GetActiveUnit( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetActiveUnit
@@ -655,7 +830,7 @@ static int GetActiveUnit( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     int GetActiveUnit( AstFrame *this_frame ) 
+*     int GetActiveUnit( AstFrame *this_frame, int *status ) 
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetActiveUnit protected
@@ -668,6 +843,8 @@ static int GetActiveUnit( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The value to use for the ActiveUnit flag (1).
@@ -676,7 +853,7 @@ static int GetActiveUnit( AstFrame *this_frame ) {
    return 1;
 }
 
-static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
+static const char *GetAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     GetAttrib
@@ -689,7 +866,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *GetAttrib( AstObject *this, const char *attrib )
+*     const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the protected astGetAttrib
@@ -706,6 +883,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null-terminated string containing the name of
 *        the attribute whose value is required. This name should be in
 *        lower case, with all white space removed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - Pointer to a null-terminated string containing the attribute
@@ -725,21 +904,21 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *     reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 50              /* Max. characters in result buffer */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstFluxFrame *this;           /* Pointer to the FluxFrame structure */
    const char *result;           /* Pointer value to return */
    double dval;                  /* Attribute value */
    int len;                      /* Length of attrib string */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for string result */
 
 /* Initialise. */
    result = NULL;
 
 /* Check the global error status. */
    if ( !astOK ) return result;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_object);
 
 /* Obtain a pointer to the FluxFrame structure. */
    this = (AstFluxFrame *) this_object;
@@ -749,7 +928,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Compare "attrib" with each recognised attribute name in turn,
    obtaining the value of the required attribute. If necessary, write
-   the value into "buff" as a null-terminated string in an appropriate
+   the value into "getattrib_buff" as a null-terminated string in an appropriate
    format.  Set "result" to point at the result string. */
 
 /* SpecVal */
@@ -758,8 +937,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
       dval = astGetSpecVal( this );
       if ( astOK ) {
          if( dval != AST__BAD ) {
-            (void) sprintf( buff, "%.*g", DBL_DIG, dval );
-            result = buff;
+            (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+            result = getattrib_buff;
          } else {
             result = "<bad>";
          }
@@ -768,17 +947,14 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute name was not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      result = (*parent_getattrib)( this_object, attrib );
+      result = (*parent_getattrib)( this_object, attrib, status );
    }
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static AstSystemType GetDensitySystem( AstFluxFrame *this ) {
+static AstSystemType GetDensitySystem( AstFluxFrame *this, int *status ) {
 /*
 *+
 *  Name:
@@ -819,10 +995,10 @@ static AstSystemType GetDensitySystem( AstFluxFrame *this ) {
    if ( !astOK ) return AST__BADSYSTEM;
 
 /* Get the FluxFrame system and categorise it. */
-   return DensitySystem( astGetSystem( this ) );
+   return DensitySystem( astGetSystem( this ), status );
 }
 
-static const char *GetDensityUnit( AstFluxFrame *this ) {
+static const char *GetDensityUnit( AstFluxFrame *this, int *status ) {
 /*
 *+
 *  Name:
@@ -863,10 +1039,10 @@ static const char *GetDensityUnit( AstFluxFrame *this ) {
    if ( !astOK ) return NULL;
 
 /* Get the FluxFrame system and categorise it. */
-   return DensityUnit( astGetSystem( this ) );
+   return DensityUnit( astGetSystem( this ), status );
 }
 
-static const char *GetDomain( AstFrame *this_frame ) {
+static const char *GetDomain( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetDomain
@@ -879,7 +1055,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *GetDomain( AstFrame *this )
+*     const char *GetDomain( AstFrame *this, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetDomain protected
@@ -892,6 +1068,8 @@ static const char *GetDomain( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a constant null-terminated string containing the
@@ -921,7 +1099,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
 /* If a Domain attribute string has been set, invoke the parent method
    to obtain a pointer to it. */
    if ( astTestDomain( this ) ) {
-      result = (*parent_getdomain)( this_frame );
+      result = (*parent_getdomain)( this_frame, status );
 
 /* Otherwise, provide a pointer to a suitable default string. */
    } else {
@@ -932,7 +1110,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
    return result;
 }
 
-static const char *GetLabel( AstFrame *this, int axis ) {
+static const char *GetLabel( AstFrame *this, int axis, int *status ) {
 /*
 *  Name:
 *     GetLabel
@@ -945,7 +1123,7 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *GetLabel( AstFrame *this, int axis )
+*     const char *GetLabel( AstFrame *this, int axis, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetLabel method inherited
@@ -961,6 +1139,8 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 *     axis
 *        Axis index (zero-based) identifying the axis for which information is
 *        required.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated character string containing the
@@ -971,18 +1151,18 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 *     global error status set, or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 200             /* Max characters in result string */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstMapping *map;              /* Mapping between units */
    AstSystemType system;         /* Code identifying type of flux coordinates */
    char *new_lab;                /* Modified label string */
    const char *result;           /* Pointer to label string */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for result string */
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this);
 
 /* Initialise. */
    result = NULL;
@@ -993,7 +1173,7 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 /* Check if a value has been set for the required axis label string. If so,
    invoke the parent astGetLabel method to obtain a pointer to it. */
    if ( astTestLabel( this, axis ) ) {
-      result = (*parent_getlabel)( this, axis );
+      result = (*parent_getlabel)( this, axis, status );
 
 /* Otherwise, identify the flux coordinate system described by the 
    FluxFrame. */
@@ -1002,8 +1182,8 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 
 /* If OK, supply a pointer to a suitable default label string. */
       if ( astOK ) {
-         result = strcpy( buff, SystemLabel( system ) );
-         buff[ 0 ] = toupper( buff[ 0 ] );
+         result = strcpy( getlabel_buff, SystemLabel( system, status ) );
+         getlabel_buff[ 0 ] = toupper( getlabel_buff[ 0 ] );
 
 /* Modify this default to take account of the current value of the Unit 
    attribute, if set. */
@@ -1015,11 +1195,11 @@ static const char *GetLabel( AstFrame *this, int axis ) {
    units is "Jy" and the actual units is "log(Jy)", then the default label
    of "Flux density" is changed to "log( Flux density )". */
             map = astUnitMapper( DefUnit( system, "astGetLabel", 
-                                          astGetClass( this ) ),
+                                          astGetClass( this ), status ),
                                  astGetUnit( this, axis ), result,
                                  &new_lab );
             if( new_lab ) {
-               result = strcpy( buff, new_lab );
+               result = strcpy( getlabel_buff, new_lab );
                new_lab = astFree( new_lab );
             }
 
@@ -1032,13 +1212,9 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
-
 }
 
-static AstSpecFrame *GetSpecFrame( AstFluxFrame *this ) {
+static AstSpecFrame *GetSpecFrame( AstFluxFrame *this, int *status ) {
 /*
 *  Name:
 *     GetSpecFrame
@@ -1051,7 +1227,7 @@ static AstSpecFrame *GetSpecFrame( AstFluxFrame *this ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     AstSpecFrame *GetSpecFrame( AstFluxFrame *this )
+*     AstSpecFrame *GetSpecFrame( AstFluxFrame *this, int *status )
 
 *  Class Membership:
 *     FluxFrame member function 
@@ -1065,6 +1241,8 @@ static AstSpecFrame *GetSpecFrame( AstFluxFrame *this ) {
 *  Parameters:
 *     this
 *        The FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the SpecFrame. It should be freed using astAnnul when no
@@ -1091,7 +1269,7 @@ static AstSpecFrame *GetSpecFrame( AstFluxFrame *this ) {
 
 /* Otherwise, create a SpecFrame appropriate to the FluxFrames System. */
    } else {
-      result = astSpecFrame( "" );
+      result = astSpecFrame( "", status );
       astSetSystem( result, astGetDensitySystem( this ) );
       astSetUnit( result, 0, astGetDensityUnit( this ) );
    }
@@ -1103,7 +1281,7 @@ static AstSpecFrame *GetSpecFrame( AstFluxFrame *this ) {
    return result;
 }
 
-static const char *GetSymbol( AstFrame *this, int axis ) {
+static const char *GetSymbol( AstFrame *this, int axis, int *status ) {
 /*
 *  Name:
 *     GetSymbol
@@ -1116,7 +1294,7 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *GetSymbol( AstFrame *this, int axis )
+*     const char *GetSymbol( AstFrame *this, int axis, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetSymbol method inherited
@@ -1132,6 +1310,8 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 *     axis
 *        Axis index (zero-based) identifying the axis for which information is
 *        required.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated character string containing the
@@ -1142,18 +1322,18 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 *     global error status set, or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 200             /* Max characters in result string */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstMapping *map;              /* Mapping between units */
    AstSystemType system;         /* Code identifying type of sky coordinates */
    char *new_sym;                /* Modified symbol string */
    const char *result;           /* Pointer to symbol string */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for result string */
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this);
 
 /* Initialise. */
    result = NULL;
@@ -1164,7 +1344,7 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 /* Check if a value has been set for the required axis symbol string. If so,
    invoke the parent astGetSymbol method to obtain a pointer to it. */
    if ( astTestSymbol( this, axis ) ) {
-      result = (*parent_getsymbol)( this, axis );
+      result = (*parent_getsymbol)( this, axis, status );
 
 /* Otherwise, identify the flux coordinate system described by the FluxFrame. */
    } else {
@@ -1188,7 +1368,7 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 /* Report an error if the coordinate system was not recognised. */
          } else {
 	    astError( AST__SCSIN, "astGetSymbol(%s): Corrupt %s contains "
-		      "invalid System identification code (%d).", 
+		      "invalid System identification code (%d).", status, 
                       astGetClass( this ), astGetClass( this ), (int) system );
          }
 
@@ -1202,11 +1382,11 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
    units is "Jy" and the actual units is "log(Jy)", then the default symbol
    of "S_nu" is changed to "log( S_nu )". */
             map = astUnitMapper( DefUnit( system, "astGetSymbol", 
-                                          astGetClass( this ) ),
+                                          astGetClass( this ), status ),
                                  astGetUnit( this, axis ), result,
                                  &new_sym );
             if( new_sym ) {
-               result = strcpy( buff, new_sym );
+               result = strcpy( getsymbol_buff, new_sym );
                new_sym = astFree( new_sym );
             }
 
@@ -1219,12 +1399,9 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
+static AstSystemType GetAlignSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetAlignSystem
@@ -1236,8 +1413,8 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 *     Private function.
 
 *  Synopsis:
-*     #include "Specframe.h"
-*     AstSystemType GetAlignSystem( AstFrame *this_frame )
+*     #include "fluxframe.h"
+*     AstSystemType GetAlignSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetAlignSystem protected
@@ -1249,6 +1426,8 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The AlignSystem value.
@@ -1271,7 +1450,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 /* If a AlignSystem attribute has been set, invoke the parent method to obtain 
    it. */
    if ( astTestAlignSystem( this ) ) {
-      result = (*parent_getalignsystem)( this_frame );
+      result = (*parent_getalignsystem)( this_frame, status );
 
 /* Otherwise, provide a suitable default. */
    } else {
@@ -1282,7 +1461,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
    return result;
 }
 
-static AstSystemType GetSystem( AstFrame *this_frame ) {
+static AstSystemType GetSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetSystem
@@ -1295,7 +1474,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     AstSystemType GetSystem( AstFrame *this_frame )
+*     AstSystemType GetSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetSystem protected
@@ -1307,6 +1486,8 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The System value.
@@ -1339,7 +1520,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 /* If a System attribute has been set, invoke the parent method to obtain 
    it. */
    if ( astTestSystem( this ) ) {
-      result = (*parent_getsystem)( this_frame );
+      result = (*parent_getsystem)( this_frame, status );
 
 /* Otherwise, if the Unit attribute has been set, provide a suitable default 
    system based on the units. */
@@ -1351,7 +1532,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
       units = astGetUnit( this_frame, 0 );
       for( i = FIRST_SYSTEM; i <= LAST_SYSTEM; i++ ) {
          map = astUnitMapper( units, DefUnit( i, "astGetSystem", 
-                                    astGetClass( this ) ), NULL, NULL );
+                                    astGetClass( this ), status ), NULL, NULL );
          if( map ) {
             map = astAnnul( map );
             result = i;
@@ -1362,7 +1543,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 /* Otherwise, report an error. */
       if( result == AST__BADSYSTEM && astOK ) {
          astError( AST__BADUN, "astGetSystem(%s): The current units (%s) "
-                   "cannot be used with any of the supported flux systems.", 
+                   "cannot be used with any of the supported flux systems.", status, 
                    astGetClass( this ), astGetUnit( this_frame, 0 ) );
       }
 
@@ -1375,7 +1556,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
    return result;
 }
 
-static const char *GetTitle( AstFrame *this_frame ) {
+static const char *GetTitle( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetTitle
@@ -1388,7 +1569,7 @@ static const char *GetTitle( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *GetTitle( AstFrame *this_frame )
+*     const char *GetTitle( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astGetTitle method inherited
@@ -1402,6 +1583,8 @@ static const char *GetTitle( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a null-terminated character string containing the requested
@@ -1412,10 +1595,8 @@ static const char *GetTitle( AstFrame *this_frame ) {
 *     global error status set, or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 200             /* Max characters in result string */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstFluxFrame *this;           /* Pointer to FluxFrame structure */
    AstSpecFrame *sf;             /* Pointer to SpecFrame structure */
    const char *result;           /* Pointer to result string */
@@ -1423,10 +1604,12 @@ static const char *GetTitle( AstFrame *this_frame ) {
    const char *su;               /* Units string */
    double specval;               /* SpecVal value */
    int pos;                      /* Buffer position to enter text */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for result string */
    
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_frame);
 
 /* Initialise. */
    result = NULL;
@@ -1437,7 +1620,7 @@ static const char *GetTitle( AstFrame *this_frame ) {
 /* See if a Title string has been set. If so, use the parent astGetTitle
    method to obtain a pointer to it. */
    if ( astTestTitle( this ) ) {
-      result = (*parent_gettitle)( this_frame );
+      result = (*parent_gettitle)( this_frame, status );
 
 /* Otherwise, we will generate a default Title string. */
    } else {
@@ -1445,19 +1628,19 @@ static const char *GetTitle( AstFrame *this_frame ) {
 /* Classify the coordinate system type and create an appropriate Title
    string.  */
       if ( astOK ) {
-         result = buff;
+         result = gettitle_buff;
 
 /* Begin with the system's default label. */
-         pos = sprintf( buff, "%s", SystemLabel( astGetSystem( this ) ) );
-         buff[ 0 ] = toupper( buff[ 0 ] );
+         pos = sprintf( gettitle_buff, "%s", SystemLabel( astGetSystem( this ), status ) );
+         gettitle_buff[ 0 ] = toupper( gettitle_buff[ 0 ] );
 
 /* Append the spectral position, if known. */
          specval = astGetSpecVal( this );
-         sf = GetSpecFrame( this );
+         sf = GetSpecFrame( this, status );
          if( specval != AST__BAD && sf ) {       
             sv = astFormat( sf, 0, specval );
             su = astGetUnit( sf, 0 );
-            pos += sprintf( buff + pos, " at = %s %s", sv, su );
+            pos += sprintf( gettitle_buff + pos, " at = %s %s", sv, su );
          }
          sf = astAnnul( sf );
       }
@@ -1468,15 +1651,12 @@ static const char *GetTitle( AstFrame *this_frame ) {
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static const char *GetUnit( AstFrame *this_frame, int axis ) {
+static const char *GetUnit( AstFrame *this_frame, int axis, int *status ) {
 /*
 *  Name:
-*     astGetUnit
+*     GetUnit
 
 *  Purpose:
 *     Obtain a pointer to the Unit string for a FluxFrame's axis.
@@ -1528,7 +1708,7 @@ static const char *GetUnit( AstFrame *this_frame, int axis ) {
 /* If a value has been set for the Unit attribute, use the parent 
    GetUnit method to return a pointer to the required Unit string. */
    if( astTestUnit( this, axis ) ){
-      result = (*parent_getunit)( this_frame, axis );
+      result = (*parent_getunit)( this_frame, axis, status );
 
 /* Otherwise, identify the flux coordinate system described by the 
    FluxFrame. */
@@ -1536,7 +1716,7 @@ static const char *GetUnit( AstFrame *this_frame, int axis ) {
       system = astGetSystem( this );
 
 /* Return a string describing the default units. */
-      result = DefUnit( system, "astGetUnit", astGetClass( this ) );
+      result = DefUnit( system, "astGetUnit", astGetClass( this ), status );
    }
 
 /* If an error occurred, clear the returned value. */
@@ -1546,7 +1726,7 @@ static const char *GetUnit( AstFrame *this_frame, int axis ) {
    return result;
 }
 
-void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
+void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -1583,11 +1763,15 @@ void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstFrameVtab *frame;          /* Pointer to Frame component of Vtab */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -1596,8 +1780,8 @@ void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAFluxFrame) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -1615,6 +1799,8 @@ void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
    replace them with pointers to the new member functions. */
    object = (AstObjectVtab *) vtab;
    frame = (AstFrameVtab *) vtab;
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
 
    parent_clearattrib = object->ClearAttrib;
    object->ClearAttrib = ClearAttrib;
@@ -1624,6 +1810,11 @@ void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
    object->SetAttrib = SetAttrib;
    parent_testattrib = object->TestAttrib;
    object->TestAttrib = TestAttrib;
+
+#if defined(THREAD_SAFE)
+   parent_managelock = object->ManageLock;
+   object->ManageLock = ManageLock;
+#endif
 
    parent_getdomain = frame->GetDomain;
    frame->GetDomain = GetDomain;
@@ -1662,12 +1853,6 @@ void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
    parent_overlay = frame->Overlay;
    frame->Overlay = Overlay;
 
-   parent_setmaxaxes = frame->SetMaxAxes;
-   frame->SetMaxAxes = SetMaxAxes;
-
-   parent_setminaxes = frame->SetMinAxes;
-   frame->SetMinAxes = SetMinAxes;
-
    parent_subframe = frame->SubFrame;
    frame->SubFrame = SubFrame;
 
@@ -1685,10 +1870,108 @@ void astInitFluxFrameVtab_(  AstFluxFrameVtab *vtab, const char *name ) {
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "FluxFrame", "Description of flux values" );
 
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *this_object, int mode, int extra, 
+                       AstObject **fail, int *status ) {
+/*
+*  Name:
+*     ManageLock
+
+*  Purpose:
+*     Manage the thread lock on an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "object.h"
+*     AstObject *ManageLock( AstObject *this, int mode, int extra, 
+*                            AstObject **fail, int *status ) 
+
+*  Class Membership:
+*     FluxFrame member function (over-rides the astManageLock protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function manages the thread lock on the supplied Object. The
+*     lock can be locked, unlocked or checked by this function as 
+*     deteremined by parameter "mode". See astLock for details of the way
+*     these locks are used.
+
+*  Parameters:
+*     this
+*        Pointer to the Object.
+*     mode
+*        An integer flag indicating what the function should do:
+*
+*        AST__LOCK: Lock the Object for exclusive use by the calling
+*        thread. The "extra" value indicates what should be done if the
+*        Object is already locked (wait or report an error - see astLock).
+*
+*        AST__UNLOCK: Unlock the Object for use by other threads.
+*
+*        AST__CHECKLOCK: Check that the object is locked for use by the
+*        calling thread (report an error if not).
+*     extra
+*        Extra mode-specific information. 
+*     fail
+*        If a non-zero function value is returned, a pointer to the
+*        Object that caused the failure is returned at "*fail". This may
+*        be "this" or it may be an Object contained within "this". Note,
+*        the Object's reference count is not incremented, and so the
+*        returned pointer should not be annulled. A NULL pointer is 
+*        returned if this function returns a value of zero.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*    A local status value: 
+*        0 - Success
+*        1 - Could not lock or unlock the object because it was already 
+*            locked by another thread.
+*        2 - Failed to lock a POSIX mutex
+*        3 - Failed to unlock a POSIX mutex
+*        4 - Bad "mode" value supplied.
+
+*  Notes:
+*     - This function attempts to execute even if an error has already
+*     occurred.
+*/
+
+/* Local Variables: */
+   AstFluxFrame *this;       /* Pointer to FluxFrame structure */
+   int result;               /* Returned status value */
+
+/* Initialise */
+   result = 0;
+
+/* Check the supplied pointer is not NULL. */
+   if( !this_object ) return result;
+
+/* Obtain a pointers to the FluxFrame structure. */
+   this = (AstFluxFrame *) this_object;
+
+/* Invoke the ManageLock method inherited from the parent class. */
+   if( !result ) result = (*parent_managelock)( this_object, mode, extra,
+                                                fail, status );
+
+/* Invoke the astManageLock method on any Objects contained within
+   the supplied Object. */
+   if( !result ) result = astManageLock( this->specframe, mode, extra, fail );
+
+   return result;
+
+}
+#endif
+
 static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
-                            AstSystemType align_sys, AstMapping **map ) {
+                            AstSystemType align_sys, AstMapping **map, int *status ) {
 /*
 *  Name:
 *     MakeFluxMapping
@@ -1702,7 +1985,7 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
 *  Synopsis:
 *     #include "fluxframe.h"
 *     int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
-*                          AstSystemType align_sys, MakeFluAstMapping **map )
+*                          AstSystemType align_sys, MakeFluAstMapping **map, int *status )
 
 *  Class Membership:
 *     FluxFrame member function.
@@ -1733,6 +2016,8 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
 *        will convert from "target" coordinates to "result"
 *        coordinates, and the inverse transformation will convert in
 *        the opposite direction (all coordinate values in radians).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the Mapping could be generated, or zero if the two
@@ -1793,7 +2078,7 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
    to the default units associated with the target's system. 
    ---------------------------------------------------------------------- */
    map1 = astUnitMapper( astGetUnit( target, 0 ), 
-                         DefUnit( rsys_in, "MakeFluxMapping", "FluxFrame" ), 
+                         DefUnit( rsys_in, "MakeFluxMapping", "FluxFrame", status ), 
                          NULL, NULL );
 
 /* If the target system is surface brightness, change it to the
@@ -1863,15 +2148,15 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
    within the target and result FluxFrames. Take deep copies of the two
    SpecFrames, and set their systems and units. */
    } else {
-      sfin1 = GetSpecFrame( target );
+      sfin1 = GetSpecFrame( target, status );
       sfin2 = astCopy( sfin1 );
-      astSetSystem( sfin2, DensitySystem( sys_in ) );
-      astSetUnit( sfin2, 0, DensityUnit( sys_in ) );
+      astSetSystem( sfin2, DensitySystem( sys_in, status ) );
+      astSetUnit( sfin2, 0, DensityUnit( sys_in, status ) );
    
-      sfout1 = GetSpecFrame( result );
+      sfout1 = GetSpecFrame( result, status );
       sfout2 = astCopy( sfout1 );
-      astSetSystem( sfout2, DensitySystem( sys_out ) );
-      astSetUnit( sfout2, 0, DensityUnit( sys_out ) );
+      astSetSystem( sfout2, DensitySystem( sys_out, status ) );
+      astSetUnit( sfout2, 0, DensityUnit( sys_out, status ) );
       
 /* Indicate we do not yet have a zoom factor */
       zoom = AST__BAD;
@@ -1953,7 +2238,7 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
 
 /* Create the required zoom map if a scaling factor was found. */
    if( zoom != AST__BAD ) {
-      map2 = (AstMapping *) astZoomMap( 1, fabs( zoom ), "" );
+      map2 = (AstMapping *) astZoomMap( 1, fabs( zoom ), "", status );
    } else {
       map2 = NULL;
    }
@@ -1961,14 +2246,14 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
 /* Now get a Mapping which converts from the default units associated with 
    the results's system, to the units used in the result. 
    ----------------------------------------------------------------------- */
-   map3 = astUnitMapper( DefUnit( rsys_out, "MakeFluxMapping", "FluxFrame" ), 
+   map3 = astUnitMapper( DefUnit( rsys_out, "MakeFluxMapping", "FluxFrame", status ), 
                          astGetUnit( result, 0 ), NULL, NULL );
 
 /* Indicate a match was found and combine all Mapings in series. */
    if( map1 && map2 && map3 ) {
       match = 1;
-      map4 = (AstMapping *) astCmpMap( map1, map2, 1, "" ); 
-      map5 = (AstMapping *) astCmpMap( map4, map3, 1, "" ); 
+      map4 = (AstMapping *) astCmpMap( map1, map2, 1, "", status ); 
+      map5 = (AstMapping *) astCmpMap( map4, map3, 1, "", status ); 
 
 /* Return the simplified Mapping. */
       *map = astSimplify( map5 );
@@ -1996,7 +2281,7 @@ static int MakeFluxMapping( AstFluxFrame *target, AstFluxFrame *result,
 
 static int Match( AstFrame *template_frame, AstFrame *target,
                   int **template_axes, int **target_axes, AstMapping **map,
-                  AstFrame **result ) {
+                  AstFrame **result, int *status ) {
 /*
 *  Name:
 *     Match
@@ -2011,7 +2296,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *     #include "fluxframe.h"
 *     int Match( AstFrame *template, AstFrame *target,
 *                int **template_axes, int **target_axes,
-*                AstMapping **map, AstFrame **result )
+*                AstMapping **map, AstFrame **result, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the protected astMatch method
@@ -2074,6 +2359,8 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *        particular, when the template allows the possibility of transformaing
 *        to any one of a set of alternative coordinate systems, the "result"
 *        Frame will indicate which of the alternatives was used.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if the requested coordinate conversion is
@@ -2095,7 +2382,9 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    AstFrame *frame0;             /* Pointer to Frame underlying axis 0 */
    AstFluxFrame *template;       /* Pointer to template FluxFrame structure */
    int iaxis0;                   /* Axis index underlying axis 0 */
+   int iaxis;                    /* Axis index */
    int match;                    /* Coordinate conversion possible? */
+   int target_axis0;             /* Index of FluxFrame axis in the target */
    int target_naxes;             /* Number of target axes */
 
 /* Initialise the returned values. */
@@ -2114,24 +2403,12 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 /* Obtain the number of axes in the target Frame. */
    target_naxes = astGetNaxes( target );
 
-/* Obtain pointers to the primary Frame which underlies the target axis. */
-   astPrimaryFrame( target, 0, &frame0, &iaxis0 );
-
-/* The first criterion for a match is that this Frame must be a FluxFrame 
-   (or from a class derived from FluxFrame). */
-   match = astIsAFluxFrame( frame0 );
-
-/* Annul the Frame pointers used in the above tests. */
-   frame0 = astAnnul( frame0 );
-
-/* The next criterion for a match is that the template matches as a
+/* The first criterion for a match is that the template matches as a
    Frame class object. This ensures that the number of axes (1) and
    domain, etc. of the target Frame are suitable. Invoke the parent
    "astMatch" method to verify this. */
-   if( match ) {
-      match = (*parent_match)( template_frame, target,
-                               template_axes, target_axes, map, result );
-   }
+   match = (*parent_match)( template_frame, target,
+                            template_axes, target_axes, map, result, status );
 
 /* If a match was found, annul the returned objects, which are not
    needed, but keep the memory allocated for the axis association
@@ -2141,30 +2418,47 @@ static int Match( AstFrame *template_frame, AstFrame *target,
       *result = astAnnul( *result );
    }
 
-/* If the Frames still match, we next set up the axis association
-   arrays. */
-   if ( astOK && match ) {
+/* If OK so far, obtain pointers to the primary Frames which underlie
+   all target axes. Stop when a FluxFrame axis is found. */
+   if ( match && astOK ) {
+      match = 0;
+      for( iaxis = 0; iaxis < target_naxes; iaxis++ ) {
+         astPrimaryFrame( target, iaxis, &frame0, &iaxis0 );
+         if( astIsAFluxFrame( frame0 ) ) {
+            frame0 = astAnnul( frame0 );
+            target_axis0 = iaxis;
+            match = 1;
+            break;
+         } else {
+            frame0 = astAnnul( frame0 );
+         }
+      }
+   }
+
+/* Check at least one FluxFrame axis was found it the target. Store the
+   axis associataions. */
+   if( match && astOK ) {
       (*template_axes)[ 0 ] = 0;
-      (*target_axes)[ 0 ] = 0;
+      (*target_axes)[ 0 ] = target_axis0;
 
 /* Use the target's "astSubFrame" method to create a new Frame (the
-   result Frame) with a copy of of the target axis. This process also 
-   overlays the template attributes on to the target Frame and returns a 
-   Mapping between the target and result Frames which effects the required 
-   coordinate conversion. */
+   result Frame) with copies of the target axes in the required
+   order. This process also overlays the template attributes on to the
+   target Frame and returns a Mapping between the target and result
+   Frames which effects the required coordinate conversion. */
       match = astSubFrame( target, template, 1, *target_axes, *template_axes,
                            map, result );
+   }
 
-/* If an error occurred, or conversion to the result Frame's coordinate 
-   system was not possible, then free all memory, annul the returned 
-   objects, and reset the returned value. */
-      if ( !astOK || !match ) {
-         *template_axes = astFree( *template_axes );
-         *target_axes = astFree( *target_axes );
-         if( *map ) *map = astAnnul( *map );
-         if( *result ) *result = astAnnul( *result );
-         match = 0;
-      }
+/* If an error occurred, or conversion to the result Frame's
+   coordinate system was not possible, then free all memory, annul the
+   returned objects, and reset the returned value. */
+   if ( !astOK || !match ) {
+      *template_axes = astFree( *template_axes );
+      *target_axes = astFree( *target_axes );
+      if( *map ) *map = astAnnul( *map );
+      if( *result ) *result = astAnnul( *result );
+      match = 0;
    }
 
 /* Return the result. */
@@ -2172,7 +2466,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 }
 
 static void Overlay( AstFrame *template, const int *template_axes,
-                     AstFrame *result ) {
+                     AstFrame *result, int *status ) {
 /*
 *  Name:
 *     Overlay
@@ -2186,7 +2480,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
 *  Synopsis:
 *     #include "fluxframe.h"
 *     void Overlay( AstFrame *template, const int *template_axes,
-*                   AstFrame *result )
+*                   AstFrame *result, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the protected astOverlay method
@@ -2224,6 +2518,8 @@ static void Overlay( AstFrame *template, const int *template_axes,
 *        axis, the corresponding element of this array should be set to -1.
 *     result
 *        Pointer to the Frame which is to receive the new attribute values.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -2239,6 +2535,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
 /* Local Variables: */
    AstFluxFrame *resff;          /* Result FluxFrame */
    AstFluxFrame *tmpff;          /* Template FluxFrame */
+   AstSystemType new_alignsystem;/* Code identifying alignment coords */
    AstSystemType new_system;     /* Code identifying new cordinates */
    AstSystemType old_system;     /* Code identifying old coordinates */
    const char *method;           /* Pointer to method string */
@@ -2274,8 +2571,8 @@ static void Overlay( AstFrame *template, const int *template_axes,
 
 /* If the systems have the same default units, we can retain the current 
    Unit value. */
-         if( strcmp( DefUnit( new_system, method, new_class ),
-                     DefUnit( old_system, method, old_class ) ) ) { 
+         if( strcmp( DefUnit( new_system, method, new_class, status ),
+                     DefUnit( old_system, method, old_class, status ) ) ) { 
             astClearUnit( result, 0 );
          }
 
@@ -2291,25 +2588,32 @@ static void Overlay( AstFrame *template, const int *template_axes,
       resff = (AstFluxFrame *) result;
       tmpff = (AstFluxFrame *) template;
       resff->defspecval = tmpff->defspecval;
-      if( resff->specframe ) astAnnul( resff->specframe );
+      if( resff->specframe ) (void) astAnnul( resff->specframe );
       resff->specframe = tmpff->specframe ? astCopy( tmpff->specframe ) : NULL;
 
 /* If the result Frame is not a FluxFrame, we must temporarily clear the
-   System value since the System values used by this class are only
+   System and AlignSystem values since the values used by this class are only
    appropriate to this class. */
    } else {
       if( astTestSystem( template ) ) {
          astClearSystem( template );
+
+         new_alignsystem = astGetAlignSystem( template );
+         astClearAlignSystem( template );
+
          resetSystem = 1;
       }
    }
 
 /* Invoke the parent class astOverlay method to transfer attributes inherited
    from the parent class. */
-   (*parent_overlay)( template, template_axes, result );
+   (*parent_overlay)( template, template_axes, result, status );
 
-/* Reset the System value if necessary */
-   if( resetSystem ) astSetSystem( template, new_system );
+/* Reset the System and AlignSystem values if necessary */
+   if( resetSystem ) {
+      astSetSystem( template, new_system );
+      astSetAlignSystem( template, new_alignsystem );
+   }
 
 /* Check if the result Frame is a FluxFrame or from a class derived from
    FluxFrame. If not, we cannot transfer FluxFrame attributes to it as it is
@@ -2333,7 +2637,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
 #undef OVERLAY
 }
 
-static void SetAttrib( AstObject *this_object, const char *setting ) {
+static void SetAttrib( AstObject *this_object, const char *setting, int *status ) {
 /*
 *  Name:
 *     SetAttrib
@@ -2346,7 +2650,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     void SetAttrib( AstObject *this, const char *setting )
+*     void SetAttrib( AstObject *this, const char *setting, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (extends the astSetAttrib method inherited from
@@ -2371,6 +2675,8 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 *     setting
 *        Pointer to a null terminated string specifying the new attribute
 *        value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -2415,93 +2721,11 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 /* Pass any unrecognised setting to the parent method for further
    interpretation. */
    } else {
-      (*parent_setattrib)( this_object, setting );
+      (*parent_setattrib)( this_object, setting, status );
    }
 }
 
-static void SetMaxAxes( AstFrame *this_frame, int maxaxes ) {
-/*
-*  Name:
-*     SetMaxAxes
-
-*  Purpose:
-*     Set a value for the MaxAxes attribute of a FluxFrame.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "fluxframe.h"
-*     void SetMaxAxes( AstFrame *this, int maxaxes )
-
-*  Class Membership:
-*     FluxFrame member function (over-rides the astSetMaxAxes method
-*     inherited from the Frame class).
-
-*  Description:
-*     This function sets the MaxAxes value for a FluxFrame to 1, which 
-*     is the only valid value for a FluxFrame, regardless of the value 
-*     supplied.
-
-*  Parameters:
-*     this
-*        Pointer to the FluxFrame.
-*     maxaxes
-*        The new value to be set (ignored).
-
-*  Returned Value:
-*     void.
-*/
-
-/* Check the global error status. */
-   if ( !astOK ) return;
-
-/* Use the parent astSetMaxAxes method to set a value of 1. */
-   (*parent_setmaxaxes)( this_frame, 1 );
-}
-
-static void SetMinAxes( AstFrame *this_frame, int minaxes ) {
-/*
-*  Name:
-*     SetMinAxes
-
-*  Purpose:
-*     Set a value for the MinAxes attribute of a FluxFrame.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "fluxframe.h"
-*     void SetMinAxes( AstFrame *this, int minaxes )
-
-*  Class Membership:
-*     FluxFrame member function (over-rides the astSetMinAxes method
-*     inherited from the Frame class).
-
-*  Description:
-*     This function sets the MinAxes value for a FluxFrame to 1, which is 
-*     the only valid value for a FluxFrame, regardless of the value 
-*     supplied.
-
-*  Parameters:
-*     this
-*        Pointer to the FluxFrame.
-*     minaxes
-*        The new value to be set (ignored).
-
-*  Returned Value:
-*     void.
-*/
-
-/* Check the global error status. */
-   if ( !astOK ) return;
-
-/* Use the parent astSetMinAxes method to set a value of 1. */
-   (*parent_setminaxes)( this_frame, 1 );
-}
-
-static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
+static void SetSystem( AstFrame *this_frame, AstSystemType newsys, int *status ) {
 /*
 *  Name:
 *     SetSystem
@@ -2514,7 +2738,7 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     void SetSystem( AstFrame *this_frame, AstSystemType newsys )
+*     void SetSystem( AstFrame *this_frame, AstSystemType newsys, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astSetSystem protected
@@ -2528,6 +2752,8 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
 *        Pointer to the FluxFrame.
 *     newsys
 *        The new System value to be stored.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -2545,7 +2771,7 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
    oldsys = astGetSystem( this_frame );
 
 /* Use the parent SetSystem method to store the new System value. */
-   (*parent_setsystem)( this_frame, newsys );
+   (*parent_setsystem)( this_frame, newsys, status );
 
 /* If the system has changed... */
    if( oldsys != newsys ) {
@@ -2557,9 +2783,9 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
    the default units will eb used with the new System. */
       if( (int) newsys < this->nuunits && this->usedunits &&
           this->usedunits[ (int) newsys ] ) {
-         (*parent_setunit)( this_frame, 0, this->usedunits[ (int) newsys ] );
+         (*parent_setunit)( this_frame, 0, this->usedunits[ (int) newsys ], status );
       } else {
-         (*parent_clearunit)( this_frame, 0 );
+         (*parent_clearunit)( this_frame, 0, status );
       }
 
 /* Also, clear all attributes which have system-specific defaults. */
@@ -2569,10 +2795,10 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
    }
 }
 
-static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
+static void SetUnit( AstFrame *this_frame, int axis, const char *value, int *status ) {
 /*
 *  Name:
-*     astSetUnit
+*     SetUnit
 
 *  Purpose:
 *     Set a pointer to the Unit string for a FluxFrame's axis.
@@ -2614,7 +2840,7 @@ static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
 
 /* Use the parent SetUnit method to store the value in the Axis
    structure */
-   (*parent_setunit)( this_frame, axis, value );
+   (*parent_setunit)( this_frame, axis, value, status );
 
 /* Obtain a pointer to the FluxFrame structure. */
    this = (AstFluxFrame *) this_frame;
@@ -2627,7 +2853,7 @@ static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
    array is big enough. Free any previous value stored for the current 
    system. */
    system = astGetSystem( this );
-   if( UnitsOK( system, value, 0, "astSetUnit", astGetClass( this ) ) ) {
+   if( UnitsOK( system, value, 0, "astSetUnit", astGetClass( this ), status ) ) {
       isystem = (int) astGetSystem( this );
       if( isystem >= this->nuunits ) {
          this->usedunits = astGrow( this->usedunits, isystem + 1, 
@@ -2649,7 +2875,7 @@ static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
    System value. Use the parent ClearSystem function since the 
    astClearSystem implemented by this class will clear the units. */
    } else {
-      (*parent_clearsystem)( this_frame );
+      (*parent_clearsystem)( this_frame, status );
    }
 
 }
@@ -2657,7 +2883,7 @@ static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
 static int SubFrame( AstFrame *target_frame, AstFrame *template,
                      int result_naxes, const int *target_axes,
                      const int *template_axes, AstMapping **map,
-                     AstFrame **result ) {
+                     AstFrame **result, int *status ) {
 /*
 *  Name:
 *     SubFrame
@@ -2674,7 +2900,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *     int SubFrame( AstFrame *target, AstFrame *template,
 *                   int result_naxes, const int *target_axes,
 *                   const int *template_axes, AstMapping **map,
-*                   AstFrame **result )
+*                   AstFrame **result, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the protected astSubFrame 
@@ -2730,6 +2956,8 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *        transformation will convert in the opposite direction.
 *     result
 *        Address of a location to receive a pointer to the result Frame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if coordinate conversion is possible
@@ -2826,7 +3054,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    possible. If the template is a fluxframe, report errors if a match is not 
    possible. */
       match = ( MakeFluxMapping( target, (AstFluxFrame *) *result, 
-                align_sys, map ) != 0 );
+                align_sys, map, status ) != 0 );
 
 /* Result is not a FluxFrame. */
 /* ------------------------------ */
@@ -2872,13 +3100,14 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 /* Clear attributes which have an extended range of values allowed by
    this class. */
       astClearSystem( temp );
+      astClearAlignSystem( temp );
 
 /* Invoke the astSubFrame method inherited from the Frame class to
    produce the result Frame by selecting the required set of axes and
    overlaying the template Frame's attributes. */
       match = (*parent_subframe)( (AstFrame *) temp, template,
                                   result_naxes, target_axes, template_axes,
-                                  map, result );
+                                  map, result, status );
 
 /* Delete the temporary copy of the target FluxFrame. */
       temp = astDelete( temp );
@@ -2900,7 +3129,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 #undef SET_AXIS
 }
 
-static AstSystemType SystemCode( AstFrame *this, const char *system ) {
+static AstSystemType SystemCode( AstFrame *this, const char *system, int *status ) {
 /*
 *  Name:
 *     SystemCode
@@ -2913,7 +3142,7 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     AstSystemType SystemCode( AstFrame *this, const char *system )
+*     AstSystemType SystemCode( AstFrame *this, const char *system, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astSystemCode method
@@ -2931,6 +3160,8 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
 *     system
 *        Pointer to a constant null-terminated string containing the
 *        external description of the sky coordinate system.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The System type code.
@@ -2973,7 +3204,7 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
    return result;
 }
 
-static const char *SystemLabel( AstSystemType system ) {
+static const char *SystemLabel( AstSystemType system, int *status ) {
 /*
 *  Name:
 *     SystemLabel
@@ -2986,7 +3217,7 @@ static const char *SystemLabel( AstSystemType system ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *SystemLabel( AstSystemType system )
+*     const char *SystemLabel( AstSystemType system, int *status )
 
 *  Class Membership:
 *     FluxFrame member function.
@@ -2998,6 +3229,8 @@ static const char *SystemLabel( AstSystemType system ) {
 *  Parameters:
 *     system
 *        The coordinate system type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -3046,7 +3279,7 @@ static const char *SystemLabel( AstSystemType system ) {
    return result;
 }
 
-static const char *SystemString( AstFrame *this, AstSystemType system ) {
+static const char *SystemString( AstFrame *this, AstSystemType system, int *status ) {
 /*
 *  Name:
 *     SystemString
@@ -3059,7 +3292,7 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     const char *SystemString( AstFrame *this, AstSystemType system )
+*     const char *SystemString( AstFrame *this, AstSystemType system, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astSystemString method
@@ -3075,6 +3308,8 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 *        The Frame.
 *     system
 *        The coordinate system type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -3088,10 +3323,10 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 *     for any reason.
 */
 
-   return FluxSystemString( system );
+   return FluxSystemString( system, status );
 }
 
-static int TestActiveUnit( AstFrame *this_frame ) {
+static int TestActiveUnit( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     TestActiveUnit
@@ -3104,7 +3339,7 @@ static int TestActiveUnit( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     int TestActiveUnit( AstFrame *this_frame ) 
+*     int TestActiveUnit( AstFrame *this_frame, int *status ) 
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astTestActiveUnit protected
@@ -3117,6 +3352,8 @@ static int TestActiveUnit( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the FluxFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The result of the test (0).
@@ -3125,7 +3362,7 @@ static int TestActiveUnit( AstFrame *this_frame ) {
    return 0;
 }
 
-static int TestAttrib( AstObject *this_object, const char *attrib ) {
+static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     TestAttrib
@@ -3138,7 +3375,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "fluxframe.h"
-*     int TestAttrib( AstObject *this, const char *attrib )
+*     int TestAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astTestAttrib protected
@@ -3155,6 +3392,8 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if a value has been set, otherwise zero.
@@ -3193,7 +3432,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute is not recognised, pass it on to the parent method
    for further interpretation. */
    } else {
-      result = (*parent_testattrib)( this_object, attrib );
+      result = (*parent_testattrib)( this_object, attrib, status );
    }
 
 /* Return the result, */
@@ -3201,7 +3440,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 }
 
 static int UnitsOK( AstSystemType system, const char *units, int report, 
-                    const char *method, const char *class ) {
+                    const char *method, const char *class, int *status ) {
 /*
 *  Name:
 *     UnitsOK
@@ -3215,7 +3454,7 @@ static int UnitsOK( AstSystemType system, const char *units, int report,
 *  Synopsis:
 *     #include "fluxframe.h"
 *     int UnitsOK( AstSystemType system, const char *units, int report, 
-*                  const char *method, const char *class ) 
+*                  const char *method, const char *class, int *status ) 
 
 *  Class Membership:
 *     FluxFrame member function 
@@ -3237,6 +3476,8 @@ static int UnitsOK( AstSystemType system, const char *units, int report,
 *        String holding a method name to be used in error messages.
 *     class
 *        String holding a class name to be used in error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns Value:
 *     Non-zero if the units string can be used to describe the current
@@ -3253,7 +3494,7 @@ static int UnitsOK( AstSystemType system, const char *units, int report,
 
 /* Get the Mapping from the default units for the supplied system to the
    supplied Units. */
-   map = astUnitMapper( DefUnit( system, method, class ), units, NULL, NULL );
+   map = astUnitMapper( DefUnit( system, method, class, status ), units, NULL, NULL );
 
 /* If a Mapping was found succesfully, annul it and return non-zero.
    Otherwise return zero. */
@@ -3267,8 +3508,8 @@ static int UnitsOK( AstSystemType system, const char *units, int report,
 /* Report an error if required. */
       if( report && astOK ) {
          astError( AST__BADUN, "%s(%s): The units (%s) and system (%s) "
-                   "within the supplied %s are inconsistent.", method,
-                   class, units, FluxSystemString( system ), class );
+                   "within the supplied %s are inconsistent.", status, method,
+                   class, units, FluxSystemString( system, status ), class );
       }
    }
 
@@ -3276,7 +3517,7 @@ static int UnitsOK( AstSystemType system, const char *units, int report,
    return result;
 }
 
-static int ValidateSystem( AstFrame *this, AstSystemType system, const char *method ) {
+static int ValidateSystem( AstFrame *this, AstSystemType system, const char *method, int *status ) {
 /*
 *
 *  Name:
@@ -3291,7 +3532,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *  Synopsis:
 *     #include "fluxframe.h"
 *     int ValidateSystem( AstFrame *this, AstSystemType system, 
-*                         const char *method )
+*                         const char *method, int *status )
 
 *  Class Membership:
 *     FluxFrame member function (over-rides the astValidateSystem method
@@ -3312,6 +3553,8 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *        containing the name of the method that invoked this function
 *        to validate an axis index. This method name is used solely
 *        for constructing error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The validated system value.
@@ -3334,7 +3577,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 /* If the value is out of bounds, report an error. */
    if ( system < FIRST_SYSTEM || system > LAST_SYSTEM ) {
          astError( AST__AXIIN, "%s(%s): Bad value (%d) given for the System "
-                   "attribute of a %s.", method, astGetClass( this ),
+                   "attribute of a %s.", status, method, astGetClass( this ),
                    (int) system, astGetClass( this ) );
 
 /* Otherwise, return the supplied value. */
@@ -3383,7 +3626,7 @@ astMAKE_TEST(FluxFrame,SpecVal,( this->specval != AST__BAD ))
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -3395,7 +3638,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for FluxFrame objects.
@@ -3405,6 +3648,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     -  This constructor makes a deep copy.
@@ -3453,13 +3698,13 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
    if( in->specframe ) out->specframe = astCopy( in->specframe );
 
 /* If an error has occurred, free the output resources. */
-   if( !astOK ) Delete( (AstObject *) out );
+   if( !astOK ) Delete( (AstObject *) out, status );
 
 }
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -3471,7 +3716,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for FluxFrame objects.
@@ -3479,6 +3724,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     This function attempts to execute even if the global error status is
@@ -3505,7 +3752,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -3517,7 +3764,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -3528,6 +3775,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the FluxFrame whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -3563,8 +3812,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 
 /* SpecVal. */
 /* -------- */
-   set = TestSpecVal( this );
-   dval = set ? GetSpecVal( this ) : astGetSpecVal( this );
+   set = TestSpecVal( this, status );
+   dval = set ? GetSpecVal( this, status ) : astGetSpecVal( this );
    if( dval != AST__BAD ) {
       astWriteDouble( channel, "SpcVl", set, 0, dval, "Spectral position" );
    }
@@ -3588,7 +3837,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
          if( this->usedunits[ i ] ) {
             sprintf( buff, "U%s", astSystemString( this, (AstSystemType) i ));
             for( j = 2; j < strlen( buff ); j++ ) buff[ j ] = tolower( buff[ j ] );
-            sprintf( comm, "Preferred units for %s", SystemLabel( (AstSystemType) i ) );
+            sprintf( comm, "Preferred units for %s", SystemLabel( (AstSystemType) i, status ) );
             astWriteString( channel, buff, 1, 0, this->usedunits[ i ], comm );
          }
       }
@@ -3599,11 +3848,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAFluxFrame and astCheckFluxFrame functions using the 
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(FluxFrame,Frame,check,&class_init)
+astMAKE_ISA(FluxFrame,Frame,check,&class_check)
 astMAKE_CHECK(FluxFrame)
 
 AstFluxFrame *astFluxFrame_( double specval, void *specfrm_void, 
-                             const char *options, ... ) {
+                             const char *options, int *status, ...) {
 /*
 *+
 *  Name:
@@ -3618,7 +3867,7 @@ AstFluxFrame *astFluxFrame_( double specval, void *specfrm_void,
 *  Synopsis:
 *     #include "fluxframe.h"
 *     AstFluxFrame *astFluxFrame( double specval, AstSpecFrame *specfrm, 
-*                                 const char *options, ... )
+*                                 const char *options, ..., int *status )
 
 *  Class Membership:
 *     FluxFrame constructor.
@@ -3644,6 +3893,8 @@ AstFluxFrame *astFluxFrame_( double specval, void *specfrm_void,
 *        initialising the new FluxFrame. The syntax used is the same as for the
 *        astSet method and may include "printf" format specifiers identified
 *        by "%" symbols in the normal way.
+*     status
+*        Pointer to the inherited status variable.
 *     ...
 *        If the "options" string contains "%" format specifiers, then an
 *        optional list of arguments may follow it in order to supply values to
@@ -3666,12 +3917,16 @@ AstFluxFrame *astFluxFrame_( double specval, void *specfrm_void,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstMapping *um;               /* Mapping from default to actual units */
    AstFluxFrame *new;            /* Pointer to new FluxFrame */
    AstSpecFrame *sfrm;           /* Pointer to SpecFrame */
    AstSystemType s;              /* System */
    const char *u;                /* Units string */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -3690,20 +3945,20 @@ AstFluxFrame *astFluxFrame_( double specval, void *specfrm_void,
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new FluxFrame's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* Check the Units are appropriate for the System. */
       u = astGetUnit( new, 0 );
       s = astGetSystem( new );
-      um = astUnitMapper( DefUnit( s, "astFluxFrame", "FluxFrame" ), 
+      um = astUnitMapper( DefUnit( s, "astFluxFrame", "FluxFrame", status ), 
                           u, NULL, NULL );
       if( um ) {
          um = astAnnul( um );
       } else {
          astError( AST__BADUN, "astFluxFrame: Inappropriate units (%s) "
-                   "specified for a %s axis.", u, SystemLabel( s ) );
+                   "specified for a %s axis.", status, u, SystemLabel( s, status ) );
       }      
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -3716,7 +3971,7 @@ AstFluxFrame *astFluxFrame_( double specval, void *specfrm_void,
 
 AstFluxFrame *astInitFluxFrame_( void *mem, size_t size, int init,
                                  AstFluxFrameVtab *vtab, const char *name,
-                                 double specval, AstSpecFrame *specfrm ) {
+                                 double specval, AstSpecFrame *specfrm, int *status ) {
 /*
 *+
 *  Name:
@@ -3829,7 +4084,7 @@ AstFluxFrame *astInitFluxFrame_( void *mem, size_t size, int init,
 }
 
 AstFluxFrame *astLoadFluxFrame_( void *mem, size_t size, AstFluxFrameVtab *vtab, 
-                                 const char *name, AstChannel *channel ) {
+                                 const char *name, AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -3898,11 +4153,15 @@ AstFluxFrame *astLoadFluxFrame_( void *mem, size_t size, AstFluxFrameVtab *vtab,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstFluxFrame *new;            /* Pointer to the new FluxFrame */
    char buff[ 20 ];              /* Buffer for item name */
    char *sval;                   /* Pointer to string value */
    int i;                        /* Loop count */
-   int j;                        /* Loop count */
+   int j;                        /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Loop count */
    int sys;                      /* System value */
 
 /* Initialise. */
@@ -3959,7 +4218,7 @@ AstFluxFrame *astLoadFluxFrame_( void *mem, size_t size, AstFluxFrameVtab *vtab,
 /* SpecVal */
 /* ------- */
       new->specval = astReadDouble( channel, "spcvl", AST__BAD );
-      if ( TestSpecVal( new ) ) SetSpecVal( new, new->specval );
+      if ( TestSpecVal( new, status ) ) SetSpecVal( new, new->specval, status );
 
 /* UsedUnits */
 /* --------- */
@@ -3984,6 +4243,7 @@ AstFluxFrame *astLoadFluxFrame_( void *mem, size_t size, AstFluxFrameVtab *vtab,
                new->usedunits[ sys ] = astStore( new->usedunits[ sys ],
                                                  sval, strlen( sval ) + 1 );
             }
+            sval = astFree( sval );
          }
       }
 
@@ -4007,14 +4267,14 @@ AstFluxFrame *astLoadFluxFrame_( void *mem, size_t size, AstFluxFrameVtab *vtab,
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
 
-AstSystemType astGetDensitySystem_( AstFluxFrame *this ){
+AstSystemType astGetDensitySystem_( AstFluxFrame *this, int *status ){
    if ( !astOK ) return AST__BADSYSTEM;
-   return (**astMEMBER(this,FluxFrame,GetDensitySystem))(this);
+   return (**astMEMBER(this,FluxFrame,GetDensitySystem))(this, status );
 }
 
-const char *astGetDensityUnit_( AstFluxFrame *this ){
+const char *astGetDensityUnit_( AstFluxFrame *this, int *status ){
    if ( !astOK ) return NULL;
-   return (**astMEMBER(this,FluxFrame,GetDensityUnit))(this);
+   return (**astMEMBER(this,FluxFrame,GetDensityUnit))(this, status );
 }
 
 
@@ -4157,12 +4417,21 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstMapping *um;               /* Mapping from default to actual units */
    AstFluxFrame *new;            /* Pointer to new FluxFrame */
    AstSpecFrame *sfrm;           /* Pointer to SpecFrame */
    AstSystemType s;              /* System */
-   const char *u;                /* Units string */
+   const char *u;                /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Units string */
    va_list args;                 /* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -4182,19 +4451,19 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new FluxFrame's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* Check the Units are appropriate for the System. */
       u = astGetUnit( new, 0 );
       s = astGetSystem( new );
-      um = astUnitMapper( DefUnit( s, "astFluxFrame", "FluxFrame" ), 
+      um = astUnitMapper( DefUnit( s, "astFluxFrame", "FluxFrame", status ), 
                           u, NULL, NULL );
       if( um ) {
          um = astAnnul( um );
       } else {
          astError( AST__BADUN, "astFluxFrame: Inappropriate units (%s) "
-                   "specified for a %s axis.", u, SystemLabel( s ) );
+                   "specified for a %s axis.", status, u, SystemLabel( s, status ) );
       }      
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -4204,6 +4473,11 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Return an ID value for the new FluxFrame. */
    return astMakeId( new );
 }
+
+
+
+
+
 
 
 

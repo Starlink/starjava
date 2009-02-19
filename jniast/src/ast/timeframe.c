@@ -29,7 +29,7 @@ f     AST_TIMEFRAME
 *     are always represented in units of (tropical) years.
 *
 *     The TimeScale attribute allows the time scale to be specified (that
-*     is, the physical proces used to define the rate of flow of time).
+*     is, the physical process used to define the rate of flow of time).
 *     MJD, JD and Julian epoch can be used to represent a time in any
 *     supported time scale. However, Besselian epoch may only be used with the 
 *     "TT" (Terrestrial Time) time scale. The list of supported time scales
@@ -49,8 +49,7 @@ f     AST_TIMEFRAME
 *     TimeFrame also has the following attributes:
 *
 *     - AlignTimeScale: Time scale in which to align TimeFrames
-*     - ClockLat: Geodetic latitude of observer/clock
-*     - ClockLon: Geodetic longitude of observer/clock
+*     - LTOffset: The offset of Local Time from UTC, in hours.
 *     - TimeOrigin: The zero point for TimeFrame axis values
 *     - TimeScale: The timescale used by the TimeFrame
 *
@@ -70,21 +69,78 @@ c     - astCurrentTime: Return the current system time
 f     - AST_CURRENTTIME: Return the current system time
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     NG: Norman Gray (Starlink)
 *     DSB: David Berry (Starlink)
 
 *  History:
-*    XX-Aug-2003 (NG):
-*       Original version, drawing heavily on specframe.c.
-*    20-MAY-2005 (NG):
-*       Merged into main AST system.
-*    25-MAY-2005 (DSB):
-*       Extensive modifications to add extra timescales, unit support,
-*       support for relative times, etc, and to make it more like the
-*       other AST Frame classes.
+*     XX-Aug-2003 (NG):
+*        Original version, drawing heavily on specframe.c.
+*     20-MAY-2005 (NG):
+*        Merged into main AST system.
+*     25-MAY-2005 (DSB):
+*        Extensive modifications to add extra timescales, unit support,
+*        support for relative times, etc, and to make it more like the
+*        other AST Frame classes.
+*     12-AUG-2005 (DSB):
+*        Remove ClockLon and ClockLat attributes. Use the new ObsLon and
+*        ObsLat attributes in the parent Frame class instead. Note, for
+*        backward compatibility the public attribute accessors and the 
+*        astLoadTimeFrame functions still recogonise ClockLon and ClockLat,
+*        but use the ObsLat/ObsLon attributes internally.
+*     1-MAR-2006 (DSB):
+*        Replace astSetPermMap within DEBUG blocks by astBeginPM/astEndPM.
+*     29-JUN-2006 (DSB):
+*        - Activate astAbbrev function for abbreviating leading fields in
+*        plot labels.
+*        - Include TimeOrigin in default Label.
+*     30-JUN-2006 (DSB):
+*        When splitting a date/time string into fields, allow each field 
+*        to include a decimal point.
+*     30-JUN-2006 (DSB):
+*        Allow astAbbrev to have a null "str1" value.
+*     16-OCT-2006 (DSB):
+*        Allow conversions between UTC and UT1 (using the new Frame attribute 
+*     1-NOV-2006 (DSB):
+*        Correct sign of longitude passed to TimeMap contrutcorss in
+*        function MakeMap.
+*     31-JAN-2007 (DSB):
+*        Modified so that a TimeFrame can be used as a template to find a
+*        TimeFrame contained within a CmpFrame. This involves changes in
+*        Match and the removal of the local versions of SetMaxAxes and
+*        SetMinAxes.
+*     3-SEP-2007 (DSB):
+*        In SubFrame, since AlignSystem is extended by the TimeFrame class
+*        it needs to be cleared before invoking the parent SubFrame
+*        method in cases where the result Frame is not a TimeFrame.
+*     2-OCT-2007 (DSB):
+*        In Overlay, clear AlignSystem as well as System before calling
+*        the parent overlay method.
+*     2-OCT-2007 (DSB):
+*        Added "LT" (Local Time) time scale.
+*     9-DEC-2008 (DSB):
+*        Ensure Format string pointer is used correctly.
+*     19-JAN-2009 (DSB):
+*        Ensure "<bad>" is returned by astFormat if the axis value is bad.
 *class--
 */
 
@@ -101,7 +157,7 @@ f     - AST_CURRENTTIME: Return the current system time
 
 /* Define the first and last acceptable TimeScale values. */
 #define FIRST_TS AST__TAI
-#define LAST_TS AST__TCG
+#define LAST_TS AST__LT
 
 /* Macros which return the maximum and minimum of two values. */
 #define MAX(aa,bb) ((aa)>(bb)?(aa):(bb))
@@ -124,23 +180,43 @@ f     - AST_CURRENTTIME: Return the current system time
           ts == AST__TDB || \
           ts == AST__TCB ) ? 1 : 0 )
 
+
+/* Define a macro which tests if a given timescale requires a Dut1 value 
+   in order to convert from the timescale to UTC. */
+#define DUT1_SCALE(ts) \
+      ( ( ts == AST__LMST || \
+          ts == AST__LAST || \
+          ts == AST__GMST || \
+          ts == AST__UT1 ) ? 1 : 0 )
+
+/* Define a macro which tests if a given timescale requires a LTOffset value 
+   in order to convert from the timescale to UTC. */
+#define LTOFFSET_SCALE(ts) \
+      ( ( ts == AST__LT ) ? 1 : 0 )
+
+/* The Unix epoch (00:00:00 UTC 1 January 1970 AD) as an absolute MJD in
+   the UTC timescale. */
+#define UNIX_EPOCH 40587.0
+   
 /* Header files. */
 /* ============= */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "unit.h"                /* Units management facilities */
+#include "globals.h"             /* Thread-safe global data access */
 #include "object.h"              /* Base Object class */
 #include "timemap.h"             /* Time coordinate Mappings */
 #include "frame.h"               /* Parent Frame class */
-#include "skyframe.h"            /* Celestial coordinate frames */
 #include "timeframe.h"           /* Interface definition for this class */
 #include "mapping.h"             /* Coordinate Mappings */
 #include "cmpmap.h"              /* Compound Mappings */
 #include "unitmap.h"             /* Unit Mappings */
 #include "shiftmap.h"            /* Shift of origins */
-#include "slalib.h"              /* SlaLib interface */
+#include "pal.h"              /* SlaLib interface */
 
 
 /* Error code definitions. */
@@ -159,121 +235,166 @@ f     - AST_CURRENTTIME: Return the current system time
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag as
-   static variables. */
-static AstTimeFrameVtab class_vtab; /* Virtual function table */
-static int class_init = 0;          /* Virtual function table initialised? */
 
-/* Define a variable to hold a SkyFrame which will be used for formatting
-   and unformatting angular values. */
-static AstSkyFrame *skyframe;      
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are used or extended by this
    class. */
-static AstSystemType (* parent_getalignsystem)( AstFrame * );
-static AstSystemType (* parent_getsystem)( AstFrame * );
-static double (* parent_gap)( AstFrame *, int, double, int * );
-static const char *(* parent_abbrev)( AstFrame *, int, const char *, const char *, const char * );
-static const char *(* parent_format)( AstFrame *, int, double );
-static const char *(* parent_getattrib)( AstObject *, const char * );
-static const char *(* parent_getdomain)( AstFrame * );
-static const char *(* parent_getlabel)( AstFrame *, int );
-static const char *(* parent_getsymbol)( AstFrame *, int );
-static const char *(* parent_gettitle)( AstFrame * );
-static const char *(* parent_getunit)( AstFrame *, int );
-static double (* parent_getepoch)( AstFrame * );
-static int (* parent_match)( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame ** );
-static int (* parent_subframe)( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame ** );
-static int (* parent_testattrib)( AstObject *, const char * );
-static int (* parent_unformat)( AstFrame *, int, const char *, double * );
-static void (* parent_clearattrib)( AstObject *, const char * );
-static void (* parent_clearsystem)( AstFrame * );
-static void (* parent_overlay)( AstFrame *, const int *, AstFrame * );
-static void (* parent_setattrib)( AstObject *, const char * );
-static void (* parent_setmaxaxes)( AstFrame *, int );
-static void (* parent_setminaxes)( AstFrame *, int );
-static void (* parent_setsystem)( AstFrame *, AstSystemType );
-static void (* parent_setunit)( AstFrame *, int, const char * );
+static AstSystemType (* parent_getalignsystem)( AstFrame *, int * );
+static AstSystemType (* parent_getsystem)( AstFrame *, int * );
+static double (* parent_gap)( AstFrame *, int, double, int *, int * );
+static const char *(* parent_abbrev)( AstFrame *, int, const char *, const char *, const char *, int * );
+static const char *(* parent_format)( AstFrame *, int, double, int * );
+static const char *(* parent_getattrib)( AstObject *, const char *, int * );
+static const char *(* parent_getdomain)( AstFrame *, int * );
+static const char *(* parent_getlabel)( AstFrame *, int, int * );
+static const char *(* parent_getsymbol)( AstFrame *, int, int * );
+static const char *(* parent_gettitle)( AstFrame *, int * );
+static const char *(* parent_getunit)( AstFrame *, int, int * );
+static double (* parent_getepoch)( AstFrame *, int * );
+static int (* parent_match)( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int (* parent_subframe)( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
+static int (* parent_testattrib)( AstObject *, const char *, int * );
+static int (* parent_unformat)( AstFrame *, int, const char *, double *, int * );
+static void (* parent_clearattrib)( AstObject *, const char *, int * );
+static void (* parent_clearsystem)( AstFrame *, int * );
+static void (* parent_overlay)( AstFrame *, const int *, AstFrame *, int * );
+static void (* parent_setattrib)( AstObject *, const char *, int * );
+static void (* parent_setsystem)( AstFrame *, AstSystemType, int * );
+static void (* parent_setunit)( AstFrame *, int, const char *, int * );
+
+/* The Unix epoch (00:00:00 UTC 1 January 1970 AD) as an absolute MJD in
+   the TAI timescale. */
+static double tai_epoch;   
+
+/* Define macros for accessing each item of thread specific global data. */
+#ifdef THREAD_SAFE
+
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; \
+   globals->Format_Buff[ 0 ] = 0; \
+   globals->GetAttrib_Buff[ 0 ] = 0; \
+   globals->GetLabel_Buff[ 0 ] = 0; \
+   globals->GetSymbol_Buff[ 0 ] = 0; \
+   globals->GetTitle_Buff[ 0 ] = 0; \
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(TimeFrame)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(TimeFrame,Class_Init)
+#define class_vtab astGLOBAL(TimeFrame,Class_Vtab)
+#define format_buff astGLOBAL(TimeFrame,Format_Buff)
+#define getattrib_buff astGLOBAL(TimeFrame,GetAttrib_Buff)
+#define getlabel_buff astGLOBAL(TimeFrame,GetLabel_Buff)
+#define getsymbol_buff astGLOBAL(TimeFrame,GetSymbol_Buff)
+#define gettitle_buff astGLOBAL(TimeFrame,GetTitle_Buff)
+
+
+
+static pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_MUTEX2 pthread_mutex_lock( &mutex2 ); 
+#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 ); 
+
+/* If thread safety is not needed, declare and initialise globals at static 
+   variables. */ 
+#else
+
+/* Buffers for strings returned by various functions. */
+static char getattrib_buff[ AST__TIMEFRAME_GETATTRIB_BUFF_LEN + 1 ];
+static char format_buff[ AST__TIMEFRAME_FORMAT_BUFF_LEN + 1 ];
+static char getlabel_buff[ AST__TIMEFRAME_GETLABEL_BUFF_LEN + 1 ]; 
+static char getsymbol_buff[ AST__TIMEFRAME_GETSYMBOL_BUFF_LEN + 1 ]; 
+static char gettitle_buff[ AST__TIMEFRAME_GETTITLE_BUFF_LEN + 1 ]; 
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstTimeFrameVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#define LOCK_MUTEX2
+#define UNLOCK_MUTEX2
+
+#endif
+
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstMapping *MakeMap( AstTimeFrame *, AstSystemType, AstSystemType, AstTimeScaleType, AstTimeScaleType, double, double, const char *, const char *, const char * );
-static AstSystemType GetAlignSystem( AstFrame * );
-static AstSystemType SystemCode( AstFrame *, const char * );
-static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char * );
-static AstTimeScaleType TimeScaleCode( const char * );
-static const char *DefUnit( AstSystemType, const char *, const char * );
-static const char *GetDomain( AstFrame * );
-static const char *GetLabel( AstFrame *, int );
-static const char *GetSymbol( AstFrame *, int );
-static const char *GetTitle( AstFrame * );
-static const char *GetUnit( AstFrame *, int );
-static const char *SystemLabel( AstSystemType );
-static const char *SystemString( AstFrame *, AstSystemType );
-static const char *TimeScaleString( AstTimeScaleType );
-static double CurrentTime( AstTimeFrame * );
-static double FromMJD( AstTimeFrame *, double );
-static double GetEpoch( AstFrame * );
-static double GetTimeOriginCur( AstTimeFrame * );
-static double ToMJD( AstSystemType, double );
-static double ToUnits( AstTimeFrame *, const char *, double, const char * );
-static int DateFormat( const char *, int * );
-static int GetActiveUnit( AstFrame * );
-static int MakeTimeMapping( AstTimeFrame *, AstTimeFrame *, AstTimeFrame *, int, AstMapping ** );
-static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame ** );
-static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame ** );
-static int TestActiveUnit( AstFrame * );
-static void Dump( AstObject *, AstChannel * );
-static void OriginScale( AstTimeFrame *, AstTimeScaleType, const char * );
-static void OriginSystem( AstTimeFrame *, AstSystemType, const char * );
-static void Overlay( AstFrame *, const int *, AstFrame * );
-static void SetMaxAxes( AstFrame *, int );
-static void SetMinAxes( AstFrame *, int );
-static void SetUnit( AstFrame *, int, const char * );
-static void VerifyAttrs( AstTimeFrame *, const char *, const char *, const char * );
-static AstMapping *ToMJDMap( AstSystemType, double );
-static int Unformat( AstFrame *, int, const char *, double * );
-static const char *Abbrev( AstFrame *, int, const char *, const char *, const char * );
-static double Gap( AstFrame *, int, double, int * );
+static AstMapping *MakeMap( AstTimeFrame *, AstSystemType, AstSystemType, AstTimeScaleType, AstTimeScaleType, double, double, const char *, const char *, const char *, int * );
+static AstSystemType GetAlignSystem( AstFrame *, int * );
+static AstSystemType SystemCode( AstFrame *, const char *, int * );
+static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char *, int * );
+static AstTimeScaleType TimeScaleCode( const char *, int * );
+static const char *DefUnit( AstSystemType, const char *, const char *, int * );
+static const char *Format( AstFrame *, int, double, int * );
+static const char *GetDomain( AstFrame *, int * );
+static const char *GetLabel( AstFrame *, int, int * );
+static const char *GetSymbol( AstFrame *, int, int * );
+static const char *GetTitle( AstFrame *, int * );
+static const char *GetUnit( AstFrame *, int, int * );
+static const char *SystemLabel( AstSystemType, int * );
+static const char *SystemString( AstFrame *, AstSystemType, int * );
+static const char *TimeScaleString( AstTimeScaleType, int * );
+static double CurrentTime( AstTimeFrame *, int * );
+static double FromMJD( AstTimeFrame *, double, int * );
+static double GetEpoch( AstFrame *, int * );
+static double GetTimeOriginCur( AstTimeFrame *, int * );
+static double ToMJD( AstSystemType, double, int * );
+static double ToUnits( AstTimeFrame *, const char *, double, const char *, int * );
+static int DateFormat( const char *, int *, int * );
+static int GetActiveUnit( AstFrame *, int * );
+static int MakeTimeMapping( AstTimeFrame *, AstTimeFrame *, AstTimeFrame *, int, AstMapping **, int * );
+static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
+static int TestActiveUnit( AstFrame *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void OriginScale( AstTimeFrame *, AstTimeScaleType, const char *, int * );
+static void OriginSystem( AstTimeFrame *, AstSystemType, const char *, int * );
+static void Overlay( AstFrame *, const int *, AstFrame *, int * );
+static void SetUnit( AstFrame *, int, const char *, int * );
+static void VerifyAttrs( AstTimeFrame *, const char *, const char *, const char *, int * );
+static AstMapping *ToMJDMap( AstSystemType, double, int * );
+static int Unformat( AstFrame *, int, const char *, double *, int * );
+static const char *Abbrev( AstFrame *, int, const char *, const char *, const char *, int * );
+static double Gap( AstFrame *, int, double, int *, int * );
 
-static AstSystemType GetSystem( AstFrame * );
-static void SetSystem( AstFrame *, AstSystemType );
-static void ClearSystem( AstFrame * );
+static AstSystemType GetSystem( AstFrame *, int * );
+static void SetSystem( AstFrame *, AstSystemType, int * );
+static void ClearSystem( AstFrame *, int * );
 
-static double GetTimeOrigin( AstTimeFrame * );
-static int TestTimeOrigin( AstTimeFrame * );
-static void ClearTimeOrigin( AstTimeFrame * );
-static void SetTimeOrigin( AstTimeFrame *, double );
+static double GetTimeOrigin( AstTimeFrame *, int * );
+static int TestTimeOrigin( AstTimeFrame *, int * );
+static void ClearTimeOrigin( AstTimeFrame *, int * );
+static void SetTimeOrigin( AstTimeFrame *, double, int * );
 
-static const char *GetAttrib( AstObject *, const char * );
-static int TestAttrib( AstObject *, const char * );
-static void ClearAttrib( AstObject *, const char * );
-static void SetAttrib( AstObject *, const char * );
+static double GetLTOffset( AstTimeFrame *, int * );
+static int TestLTOffset( AstTimeFrame *, int * );
+static void ClearLTOffset( AstTimeFrame *, int * );
+static void SetLTOffset( AstTimeFrame *, double, int * );
 
-static AstTimeScaleType GetAlignTimeScale( AstTimeFrame * );
-static int TestAlignTimeScale( AstTimeFrame * );
-static void ClearAlignTimeScale( AstTimeFrame * );
-static void SetAlignTimeScale( AstTimeFrame *, AstTimeScaleType );
+static const char *GetAttrib( AstObject *, const char *, int * );
+static int TestAttrib( AstObject *, const char *, int * );
+static void ClearAttrib( AstObject *, const char *, int * );
+static void SetAttrib( AstObject *, const char *, int * );
 
-static AstTimeScaleType GetTimeScale( AstTimeFrame * );
-static int TestTimeScale( AstTimeFrame * );
-static void ClearTimeScale( AstTimeFrame * );
-static void SetTimeScale( AstTimeFrame *, AstTimeScaleType );
+static AstTimeScaleType GetAlignTimeScale( AstTimeFrame *, int * );
+static int TestAlignTimeScale( AstTimeFrame *, int * );
+static void ClearAlignTimeScale( AstTimeFrame *, int * );
+static void SetAlignTimeScale( AstTimeFrame *, AstTimeScaleType, int * );
 
-static double GetClockLat( AstTimeFrame * );
-static int TestClockLat( AstTimeFrame * );
-static void ClearClockLat( AstTimeFrame * );
-static void SetClockLat( AstTimeFrame *, double );
-
-static double GetClockLon( AstTimeFrame * );
-static int TestClockLon( AstTimeFrame * );
-static void ClearClockLon( AstTimeFrame * );
-static void SetClockLon( AstTimeFrame *, double );
+static AstTimeScaleType GetTimeScale( AstTimeFrame *, int * );
+static int TestTimeScale( AstTimeFrame *, int * );
+static void ClearTimeScale( AstTimeFrame *, int * );
+static void SetTimeScale( AstTimeFrame *, AstTimeScaleType, int * );
 
 /* Member functions. */
 /* ================= */
 static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt, 
-                           const char *str1, const char *str2 ) {
+                           const char *str1, const char *str2, int *status ) {
 /*
 *  Name:
 *     Abbrev
@@ -287,7 +408,7 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
 *  Synopsis:
 *     #include "timeframe.h"
 *     const char *Abbrev( AstFrame *this, int axis, const char *fmt, 
-*                         const char *str1, const char *str2 )
+*                         const char *str1, const char *str2, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astAbbrev protected
@@ -311,10 +432,13 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
 *        format specification used to format the two values.
 *     str1
 *        Pointer to a constant null-terminated string containing the
-*        first formatted value.
-*     str1
+*        first formatted value. If this is null, the returned pointer
+*        points to the start of the final field in str2.
+*     str2
 *        Pointer to a constant null-terminated string containing the
 *        second formatted value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer into the "str2" string which locates the first
@@ -356,11 +480,36 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
 
 /* Use the parent astAbbrev function unless the Format attribute indicates 
    that axis values are to be formatted as multi-field date/time strings. */
-   df = DateFormat( fmt, &ndp );
+   df = DateFormat( fmt, &ndp, status );
    if( !df ) {
-      result = (*parent_abbrev)( this_frame, axis,  fmt, str1, str2 );
+      result = (*parent_abbrev)( this_frame, axis,  fmt, str1, str2, status );
 
-/* Otherwise. */
+/* Otherwise, if no "str1" string was supplied find the start of the 
+   last field in "str2". */
+   } else if( !str1 ){
+
+/* Initialise a pointer to the start of the next field in the "str2" string
+   (skip leading spaces). */
+      p2 = str2;
+      while( *p2 && isspace( *p2 ) ) p2++;
+            
+/* Check the entire string, saving the start of the next field as the
+   returned pointer. */
+      while( *p2 ) {
+         result = p2;
+
+/* Each field in a date/time field consists of digits only (and maybe a
+   decimal point). Find the number of leading digits/dots in this field
+   and increment the point to the following character (the first delimiter
+   character). */
+         p2 += strspn( p2, "0123456789." );
+
+/* Skip inter-field (non-numeric) delimiters. */
+         p2 += strcspn( p2, "0123456789." );
+      }
+
+/* Otherwise, if an "str1" string was supplied find the start of the 
+   first differing field in "str2". */
    } else {
 
 /* Initialise pointers to the start of the next field in each string
@@ -374,12 +523,12 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
       result = p2;
       while( *p1 && *p2 ) {
 
-/* Each field in a date/time field consists of digits only. Find the
-   number of leading digits in each string */
-         nc1 = strspn( p1, "0123456789" );
-         nc2 = strspn( p2, "0123456789" );
+/* Each field in a date/time field consists of digits only (and maybe a
+   decimal point). Find the number of leading digits/dots in each string */
+         nc1 = strspn( p1, "0123456789." );
+         nc2 = strspn( p2, "0123456789." );
 
-/* If the next field has different lengthsin the two strings, or of the 
+/* If the next field has different lengths in the two strings, or of the 
    content of the fields differ, break out of th eloop, leaving "result"
    pointing to the start of the current field. */
          if( nc1 != nc2 || strncmp( p1, p2, nc1 ) ) {
@@ -392,8 +541,8 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
             p2 += nc2;
 
 /* Skip inter-field (non-numeric) delimiters. */
-            p1 += strcspn( p1, "0123456789" );
-            p2 += strcspn( p2, "0123456789" );
+            p1 += strcspn( p1, "0123456789." );
+            p2 += strcspn( p2, "0123456789." );
          }
 
 /* Prepare to check the next field. */
@@ -408,7 +557,7 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
    return result;
 }
 
-static int DateFormat( const char *fmt, int *ndp ){
+static int DateFormat( const char *fmt, int *ndp, int *status ){
 /*
 *  Name:
 *     DateFormat
@@ -421,7 +570,7 @@ static int DateFormat( const char *fmt, int *ndp ){
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     int DateFormat( const char *fmt, int *ndp )
+*     int DateFormat( const char *fmt, int *ndp, int *status )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -439,6 +588,8 @@ static int DateFormat( const char *fmt, int *ndp ){
 *        if a time is required as well as a date. A value of -1 will be
 *        returned in no time is required, otherwise the returned value will 
 *        equal the number of decimal places required for the seconds field.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the formatted TimeFrame value should include a date.
@@ -473,7 +624,7 @@ static int DateFormat( const char *fmt, int *ndp ){
    return result;
 }
 
-static void ClearAttrib( AstObject *this_object, const char *attrib ) {
+static void ClearAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     ClearAttrib
@@ -486,7 +637,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     void ClearAttrib( AstObject *this, const char *attrib )
+*     void ClearAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astClearAttrib protected
@@ -503,6 +654,8 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - This function uses one-based axis numbering so that it is
@@ -542,7 +695,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
       if( new_attrib ) {
          memcpy( new_attrib, attrib, len );
          memcpy( new_attrib + len, "(1)", 4 ); 
-         (*parent_clearattrib)( this_object, new_attrib );
+         (*parent_clearattrib)( this_object, new_attrib, status );
          new_attrib = astFree( new_attrib );
       }
 
@@ -552,14 +705,23 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
       astClearAlignTimeScale( this );
 
 /* ClockLat. */
-/* ------- */
+/* --------- */
+/* Retained for backward compatibility with older versions of AST in which 
+   TimeFrame had ClockLon/Lat attributes (now ObsLon/Lat are used instead). */
    } else if ( !strcmp( attrib, "clocklat" ) ) {
-      astClearClockLat( this );
+      astClearAttrib( this, "obslat" );
 
 /* ClockLon. */
-/* ------- */
+/* --------- */
+/* Retained for backward compatibility with older versions of AST in which 
+   TimeFrame had ClockLon/Lat attributes (now ObsLon/Lat are used instead). */
    } else if ( !strcmp( attrib, "clocklon" ) ) {
-      astClearClockLon( this );
+      astClearAttrib( this, "obslon" );
+
+/* LTOffset. */
+/* --------- */
+   } else if ( !strcmp( attrib, "ltoffset" ) ) {
+      astClearLTOffset( this );
 
 /* TimeOrigin. */
 /* ---------- */
@@ -574,11 +736,11 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute is not recognised, pass it on to the parent method
    for further interpretation. */
    } else {
-      (*parent_clearattrib)( this_object, attrib );
+      (*parent_clearattrib)( this_object, attrib, status );
    }
 }
 
-static void ClearSystem( AstFrame *this_frame ) {
+static void ClearSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     ClearSystem
@@ -591,7 +753,7 @@ static void ClearSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     void ClearSystem( AstFrame *this_frame )
+*     void ClearSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astClearSystem protected
@@ -603,6 +765,8 @@ static void ClearSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -620,13 +784,13 @@ static void ClearSystem( AstFrame *this_frame ) {
    oldsys = astGetSystem( this_frame );
 
 /* Use the parent ClearSystem method to clear the System value. */
-   (*parent_clearsystem)( this_frame );
+   (*parent_clearsystem)( this_frame, status );
 
 /* Do nothing more if the system has not actually changed. */
    if( astGetSystem( this_frame ) != oldsys ) {
 
 /* Modify the TimeOrigin value to use the new System */
-      OriginSystem( this, oldsys, "astClearSystem" );
+      OriginSystem( this, oldsys, "astClearSystem", status );
 
 /* Clear attributes which have system-specific defaults. */
       astClearLabel( this_frame, 0 );
@@ -643,7 +807,7 @@ static void ClearSystem( AstFrame *this_frame ) {
    }
 }
 
-static void ClearTimeScale( AstTimeFrame *this ) {
+static void ClearTimeScale( AstTimeFrame *this, int *status ) {
 /*
 *+
 *  Name:
@@ -683,13 +847,13 @@ static void ClearTimeScale( AstTimeFrame *this ) {
    TimeOrigin value stored in the TimeFrame structure to refer to the 
    default timescale (TAI or TT). */
    if( astGetSystem( this ) != AST__BEPOCH ) OriginScale( this, AST__TAI, 
-                                                     "astClearTimeScale" );
+                                                     "astClearTimeScale", status );
 
 /* Store a bad value for the timescale in the TimeFrame structure. */
    this->timescale = AST__BADTS;
 }
 
-static double CurrentTime( AstTimeFrame *this ){
+static double CurrentTime( AstTimeFrame *this, int *status ){
 /*
 *++
 *  Name:
@@ -716,7 +880,8 @@ f     This routine
 *     returns the current system time, represented in the form specified
 *     by the supplied TimeFrame. That is, the returned floating point
 *     value should be interpreted using the attribute values of the
-*     TimeFrame. This includes System, TimeOrigin, TimeScale, and Unit.
+*     TimeFrame. This includes System, TimeOrigin, LTOffset, TimeScale, 
+*     and Unit.
 
 *  Parameters:
 c     this
@@ -750,17 +915,10 @@ f     invoked with STATUS set to an error value, or if it should fail for
 
 /* Local Constants: */
 
-/* The Unix epoch (00:00:00 UTC 1 January 1970 AD) as an absolute MJD in
-   the UTC timescale. */
-#define UNIX_EPOCH 40587.0
-   
 /* Local Variables: */
    AstMapping *map;
    double result;
    double systime;
-   double utc_epoch;   
-   static double tai_epoch;   
-   static int init = 0;   
 
 /* Initialise. */
    result = AST__BAD;
@@ -768,28 +926,17 @@ f     invoked with STATUS set to an error value, or if it should fail for
 /* Check the global error status. */
    if ( !astOK ) return result;
 
-/* If not already done, convert the Unix Epoch (00:00:00 UTC 1 January
-   1970 AD) from UTC to TAI. */
-   if( !init ) {
-      map = MakeMap( this, AST__MJD, AST__MJD, AST__UTC, AST__TAI,
-                     0.0, 0.0, "d", "d", "astCurrentTime" );
-      utc_epoch = UNIX_EPOCH;
-      astTran1( map, 1, &utc_epoch, 1, &tai_epoch );
-      map = astAnnul( map );
-      if( astOK ) init = 1;
-   }
-
 /* Get a Mapping from the system time (TAI seconds relative to "tai_epoch")
    to the system represented by the supplied TimeFrame. */
    map = MakeMap( this, AST__MJD, astGetSystem( this ), 
                   AST__TAI, astGetTimeScale( this ),
                   tai_epoch, astGetTimeOrigin( this ),
-                  "s", astGetUnit( this, 0 ), "astCurrentTime" );
+                  "s", astGetUnit( this, 0 ), "astCurrentTime", status );
    if( !map ) {
       astError( AST__INCTS, "astCurrentTime(%s): Cannot convert the "
-                "current system time to the required timescale (%s).",
+                "current system time to the required timescale (%s).", status,
                 astGetClass( this ), 
-                TimeScaleString( astGetTimeScale( this ) ) );
+                TimeScaleString( astGetTimeScale( this ), status ) );
 
 /* Get the system time. The "time" function returns a "time_t" which may be
    encoded in any way. We use "difftime" to convert this into a floating
@@ -812,14 +959,10 @@ f     invoked with STATUS set to an error value, or if it should fail for
 
 /* Return the result. */
    return result;
-
-/* Undefine local constants */
-#undef UNIX_EPOCH 
-
 }
 
 static const char *DefUnit( AstSystemType system, const char *method,
-                            const char *class ){
+                            const char *class, int *status ){
 /*
 *  Name:
 *     DefUnit
@@ -833,7 +976,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 *  Synopsis:
 *     #include "timeframe.h"
 *     const char *DefUnit( AstSystemType system, const char *method,
-*                          const char *class )
+*                          const char *class, int *status )
 
 *  Class Membership:
 *     TimeFrame member function.
@@ -851,6 +994,8 @@ static const char *DefUnit( AstSystemType system, const char *method,
 *     class 
 *        Pointer to a string holding the name of the supplied object class.
 *        This is only for use in constructing error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A string describing the default units. This string follows the
@@ -884,7 +1029,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 /* Report an error if the coordinate system was not recognised. */
    } else {
       astError( AST__SCSIN, "%s(%s): Corrupt %s contains illegal System "
-                "identification code (%d).", method, class, class, 
+                "identification code (%d).", status, method, class, class, 
                 (int) system );
    }
 
@@ -892,7 +1037,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
    return result;
 }
 
-static const char *Format( AstFrame *this_frame, int axis, double value ) {
+static const char *Format( AstFrame *this_frame, int axis, double value, int *status ) {
 /*
 *  Name:
 *     Format
@@ -905,7 +1050,7 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *Format( AstFrame *this, int axis, double value )
+*     const char *Format( AstFrame *this, int axis, double value, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astFormat method inherited
@@ -925,6 +1070,8 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
 *        performed.
 *     value
 *        The coordinate value to be formatted, in radians.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a null-terminated string containing the formatted value.
@@ -935,13 +1082,13 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           
    AstMapping *map;       
    AstSystemType sys;
    AstTimeFrame *this;    
    AstTimeScaleType ts;   
    char *d;    
-   static char buf[ 200 ];
-   static char tbuf[ 100 ];
+   char tbuf[ 100 ];
    char sign[ 2 ];
    const char *fmt;    
    const char *result;    
@@ -958,8 +1105,14 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
    int ndp;               
    int tlen;
 
+/* Initialise */
+   result = NULL;
+
 /* Check the global error status. */
-   if ( !astOK ) return NULL;
+   if ( !astOK ) return result;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_frame);
 
 /* Obtain a pointer to the TimeFrame structure. */
    this = (AstTimeFrame *) this_frame;
@@ -967,55 +1120,62 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
 /* Validate the axis index. */
    (void) astValidateAxis( this, axis, "astFormat" );
 
-/* If the format string does not indicate a date/time format, invoke the
-   parent Format method. */
-   fmt = astGetFormat( this, 0 );
-   df = DateFormat( fmt, &ndp );
-   if( !df ) {
-      result = (*parent_format)( this_frame, axis, value );
-
-/* Otherwise, format the value as a date/time */
+/* Check if a bad coordinate value was supplied and return a pointer to an
+   appropriate string if necessary. */
+   if ( value == AST__BAD ) {
+      result = "<bad>";
    } else {
 
+/* If the format string does not indicate a date/time format, invoke the
+   parent Format method. */
+      fmt = astGetFormat( this, 0 );
+      df = DateFormat( fmt, &ndp, status );
+      if( !df ) {
+         result = (*parent_format)( this_frame, axis, value, status );
+
+/* Otherwise, format the value as a date/time */
+      } else {
+
 /* Convert the value to an absolute MJD in units of days. */
-      ts = astGetTimeScale( this );
-      sys = astGetSystem( this );
-      off = astGetTimeOrigin( this );
-      u = astGetUnit( this, 0 );
-      map = MakeMap( this, sys, AST__MJD, ts, ts, off, 0.0, u, "d", 
-                     "astFormat" );
-      if( map ) {
-         astTran1( map, 1, &value, 1, &mjd );
-         map = astAnnul( map );
+         ts = astGetTimeScale( this );
+         sys = astGetSystem( this );
+         off = astGetTimeOrigin( this );
+         u = astGetUnit( this, 0 );
+         map = MakeMap( this, sys, AST__MJD, ts, ts, off, 0.0, u, "d", 
+                        "astFormat", status );
+         if( map ) {
+            astTran1( map, 1, &value, 1, &mjd );
+            map = astAnnul( map );
 
 /* If no time fields will be produced, round to the nearest day. */
-         if( ndp < 0 ) mjd = (int) ( mjd + 0.5 );
+            if( ndp < 0 ) mjd = (int) ( mjd + 0.5 );
 
 /* Convert the MJD into a set of numeric date fields, plus day fraction,
    and format them. */
-         slaDjcl( mjd, &iy, &im, &id, &fd, &j );
-         d = buf;
-         d += sprintf( d, "%4d-%2.2d-%2.2d", iy, im, id );
+            palSlaDjcl( mjd, &iy, &im, &id, &fd, &j );
+            d = format_buff;
+            d += sprintf( d, "%4d-%2.2d-%2.2d", iy, im, id );
 
 /* If required, convert the day fraction into a set of numerical time
    fields. */
-         if( ndp >= 0 ) {
-            slaDd2tf( ndp, fd, sign, ihmsf );
+            if( ndp >= 0 ) {
+               palSlaDd2tf( ndp, fd, sign, ihmsf );
 
 /* Format the time fields. */
-            if( ndp > 0 ) {
-               tlen = sprintf( tbuf, " %2.2d:%2.2d:%2.2d.%*.*d", ihmsf[0],
-                             ihmsf[1], ihmsf[2], ndp, ndp, ihmsf[3] );
-            } else {
-               tlen = sprintf( tbuf, " %2.2d:%2.2d:%2.2d", ihmsf[0],
-                             ihmsf[1], ihmsf[2] );
-            }
+               if( ndp > 0 ) {
+                  tlen = sprintf( tbuf, " %2.2d:%2.2d:%2.2d.%*.*d", ihmsf[0],
+                                ihmsf[1], ihmsf[2], ndp, ndp, ihmsf[3] );
+               } else {
+                  tlen = sprintf( tbuf, " %2.2d:%2.2d:%2.2d", ihmsf[0],
+                                ihmsf[1], ihmsf[2] );
+               }
 
 /* Add in the formatted time. */
-            d += sprintf( d, "%s", tbuf );
+               d += sprintf( d, "%s", tbuf );
 
+            }
+            result = format_buff;         
          }
-         result = buf;         
       }
    }
 
@@ -1026,7 +1186,7 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
    return result;
 }
 
-static double FromMJD( AstTimeFrame *this, double oldval ){
+static double FromMJD( AstTimeFrame *this, double oldval, int *status ){
 /*
 *
 *  Name:
@@ -1040,7 +1200,7 @@ static double FromMJD( AstTimeFrame *this, double oldval ){
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     double FromMJD( AstTimeFrame *this, double oldval )
+*     double FromMJD( AstTimeFrame *this, double oldval, int *status )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -1055,6 +1215,8 @@ static double FromMJD( AstTimeFrame *this, double oldval ){
 *     oldval
 *        The value to be converted. It is assume to be an absolute MJD
 *        value (i.e. zero offset) in units of days.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The converted value (with zero offset), in the default units
@@ -1084,7 +1246,7 @@ static double FromMJD( AstTimeFrame *this, double oldval ){
 /* Otherwise create a TimeMap wich converts from the MJD to the required
    system, and use it to transform the supplied value. */
    } else {
-      timemap = astTimeMap( 0, "" );
+      timemap = astTimeMap( 0, "", status );
 
 /* The supplied and returned values are assumed to have zero offset.*/
       args[ 0 ] = 0.0;
@@ -1115,7 +1277,7 @@ static double FromMJD( AstTimeFrame *this, double oldval ){
 }
 
 
-static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
+static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick, int *status ) {
 /*
 *  Name:
 *     Gap
@@ -1128,7 +1290,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     double Gap( AstFrame *this, int axis, double gap, int *ntick )
+*     double Gap( AstFrame *this, int axis, double gap, int *ntick, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGap protected
@@ -1150,6 +1312,8 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 *     ntick
 *        Address of an int in which to return a convenient number of
 *        divisions into which the gap can be divided.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The nice gap size.
@@ -1189,9 +1353,9 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 /* Use the parent astGap function unless the Format attribute indicates 
    that axis values are to be formatted as multi-field date/time strings. */
    fmt = astGetFormat( this, 0 );
-   df = DateFormat( fmt, &ndp );
+   df = DateFormat( fmt, &ndp, status );
    if( !df ) {
-      result = (*parent_gap)( this_frame, axis, gap, ntick );
+      result = (*parent_gap)( this_frame, axis, gap, ntick, status );
 
 /* Otherwise. */
    } else {
@@ -1200,7 +1364,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
       ts = astGetTimeScale( this );
       map = MakeMap( this, astGetSystem( this ), AST__MJD, ts, ts, 
                      astGetTimeOrigin( this ), 0.0, astGetUnit( this, 0 ), 
-                     "d", "astGap" );
+                     "d", "astGap", status );
       if( map ) {
 
 /* Use it to transform two TimeFrame times to MJD. The first is the
@@ -1215,7 +1379,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 /* If it is 1 year or more, use the parent astGap method to find a nice
    number of years, and convert back to days. */
          if( mjdgap >= 365.25 ) {
-            mjdgap = 365.25*(*parent_gap)( this_frame, axis, mjdgap/365.25, ntick );
+            mjdgap = 365.25*(*parent_gap)( this_frame, axis, mjdgap/365.25, ntick, status );
 
 /* If it is more than 19 days use 1 year. */
          } else if( mjdgap > 19.0 ) {
@@ -1273,7 +1437,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
             *ntick = 4;
     
          } else {                              /* Less than 1 second */
-            mjdgap = 86400.0*(*parent_gap)( this_frame, axis, mjdgap/86400.0, ntick );
+            mjdgap = 86400.0*(*parent_gap)( this_frame, axis, mjdgap/86400.0, ntick, status );
 
          }              
 
@@ -1287,7 +1451,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 
 /* If no Mapping could be found, use the parent astGap method. */
       } else {
-         result = (*parent_gap)( this_frame, axis, gap, ntick );
+         result = (*parent_gap)( this_frame, axis, gap, ntick, status );
       }
    }
 
@@ -1298,7 +1462,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
    return result;
 }
 
-static int GetActiveUnit( AstFrame *this_frame ) {
+static int GetActiveUnit( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetActiveUnit
@@ -1311,7 +1475,7 @@ static int GetActiveUnit( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     int GetActiveUnit( AstFrame *this_frame ) 
+*     int GetActiveUnit( AstFrame *this_frame, int *status ) 
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetActiveUnit protected
@@ -1324,6 +1488,8 @@ static int GetActiveUnit( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The value to use for the ActiveUnit flag (1).
@@ -1332,7 +1498,7 @@ static int GetActiveUnit( AstFrame *this_frame ) {
    return 1;
 }
 
-static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
+static const char *GetAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     GetAttrib
@@ -1345,7 +1511,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *GetAttrib( AstObject *this, const char *attrib )
+*     const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the protected astGetAttrib
@@ -1362,6 +1528,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null-terminated string containing the name of
 *        the attribute whose value is required. This name should be in
 *        lower case, with all white space removed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - Pointer to a null-terminated string containing the attribute
@@ -1381,23 +1549,23 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *     reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 50              /* Max. characters in result buffer */
-
 /* Local Variables: */
    AstTimeFrame *this;           /* Pointer to the TimeFrame structure */
    AstTimeScaleType ts;          /* Time scale */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    char *new_attrib;             /* Pointer value to new attribute name */
    const char *result;           /* Pointer value to return */
    double dval;                  /* Attribute value */
    int len;                      /* Length of attrib string */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for string result */
 
 /* Initialise. */
    result = NULL;
 
 /* Check the global error status. */
    if ( !astOK ) return result;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_object);
 
 /* Obtain a pointer to the TimeFrame structure. */
    this = (AstTimeFrame *) this_object;
@@ -1407,7 +1575,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 /* Compare "attrib" with each recognised attribute name in turn,
    obtaining the value of the required attribute. If necessary, write
-   the value into "buff" as a null-terminated string in an appropriate
+   the value into "getattrib_buff" as a null-terminated string in an appropriate
    format.  Set "result" to point at the result string. */
 
 /* First look for axis attributes defined by the Frame class. Since a
@@ -1427,7 +1595,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
       if( new_attrib ) {
          memcpy( new_attrib, attrib, len );
          memcpy( new_attrib + len, "(1)", 4 ); 
-         result = (*parent_getattrib)( this_object, new_attrib );
+         result = (*parent_getattrib)( this_object, new_attrib, status );
          new_attrib = astFree( new_attrib );
       }
 
@@ -1437,13 +1605,13 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "aligntimescale" ) ) {
       ts = astGetAlignTimeScale( this );
       if ( astOK ) {
-         result = TimeScaleString( ts );
+         result = TimeScaleString( ts, status );
 
 /* Report an error if the value was not recognised. */
          if ( !result ) {
             astError( AST__SCSIN,
                      "astGetAttrib(%s): Corrupt %s contains invalid AlignTimeScale "
-                     "identification code (%d).", astGetClass( this ), 
+                     "identification code (%d).", status, astGetClass( this ), 
                      astGetClass( this ), (int) ts );
          }
       }
@@ -1451,50 +1619,29 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 /* ClockLat. */
 /* ------- */
    } else if ( !strcmp( attrib, "clocklat" ) ) {
-      dval = astGetClockLat( this );
-      if ( astOK ) {
-
-/* Display absolute value preceeded by "N" or "S" as appropriate. */
-         if( dval < 0 ) {         
-            (void) sprintf( buff, "S%s",  astFormat( skyframe, 1, -dval ) );
-         } else {
-            (void) sprintf( buff, "N%s",  astFormat( skyframe, 1, dval ) );
-         }
-         result = buff;
-      }
+      result = astGetAttrib( this, "obslat" );
 
 /* ClockLon. */
 /* ------- */
    } else if ( !strcmp( attrib, "clocklon" ) ) {
-      dval = astGetClockLon( this );
-      if ( astOK ) {
-
-/* Put into range +/- PI. */
-         dval = slaDrange( dval );
-
-/* Temporarily make the SkyFrame use degrees for longitude axis. */
-         astSetAsTime( skyframe, 0, 0 );
-
-/* Display absolute value preceeded by "E" or "W" as appropriate. */
-         if( dval < 0 ) {         
-            (void) sprintf( buff, "W%s",  astFormat( skyframe, 0, -dval ) );
-         } else {
-            (void) sprintf( buff, "E%s",  astFormat( skyframe, 0, dval ) );
-         }
-         result = buff;
-
-/* Make the SkyFrame use hours for longitude axis again. */
-         astSetAsTime( skyframe, 0, 1 );
-
-      }
+      result = astGetAttrib( this, "obslon" );
 
 /* TimeOrigin. */
 /* ----------- */
    } else if ( !strcmp( attrib, "timeorigin" ) ) {
-      dval = GetTimeOriginCur( this );
+      dval = GetTimeOriginCur( this, status );
       if( astOK ) {
-         (void) sprintf( buff, "%.*g", DBL_DIG, dval );
-         result = buff;
+         (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+         result = getattrib_buff;
+      }
+
+/* LTOffset. */
+/* --------- */
+   } else if ( !strcmp( attrib, "ltoffset" ) ) {
+      dval = astGetLTOffset( this );
+      if( astOK ) {
+         (void) sprintf( getattrib_buff, "%.*g", DBL_DIG, dval );
+         result = getattrib_buff;
       }
 
 /* TimeScale. */
@@ -1503,13 +1650,13 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
    } else if ( !strcmp( attrib, "timescale" ) ) {
       ts = astGetTimeScale( this );
       if ( astOK ) {
-         result = TimeScaleString( ts );
+         result = TimeScaleString( ts, status );
 
 /* Report an error if the value was not recognised. */
          if ( !result ) {
             astError( AST__SCSIN,
                      "astGetAttrib(%s): Corrupt %s contains invalid TimeScale "
-                     "identification code (%d).", astGetClass( this ), 
+                     "identification code (%d).", status, astGetClass( this ), 
                      astGetClass( this ), (int) ts );
          }
       }
@@ -1517,17 +1664,14 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute name was not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      result = (*parent_getattrib)( this_object, attrib );
+      result = (*parent_getattrib)( this_object, attrib, status );
    }
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static double GetTimeOriginCur( AstTimeFrame *this ) {
+static double GetTimeOriginCur( AstTimeFrame *this, int *status ) {
 /*
 *  Name:
 *     GetTimeOriginCur
@@ -1540,7 +1684,7 @@ static double GetTimeOriginCur( AstTimeFrame *this ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     double GetTimeOriginCur( AstTimeFrame *this )
+*     double GetTimeOriginCur( AstTimeFrame *this, int *status )
 
 *  Class Membership:
 *     TimeFrame virtual function 
@@ -1548,12 +1692,14 @@ static double GetTimeOriginCur( AstTimeFrame *this ) {
 *  Description:
 *     This function returns the TimeOrigin attribute for a TimeFrame, in
 *     the current units of the TimeFrame. The protected astGetTimeOrigin
-*     method can be used to obtain the time origin in the defaultunits of 
+*     method can be used to obtain the time origin in the default units of 
 *     the TimeFrame's System.
 
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The TimeOrigin value, in the units, system and timescale specified
@@ -1585,7 +1731,7 @@ static double GetTimeOriginCur( AstTimeFrame *this ) {
    if( result != 0.0 && result != AST__BAD ) {
 
 /* Get the default units for the TimeFrame's System. */
-      def = DefUnit( astGetSystem( this ), "astGetTimeOrigin", "TimeFrame" );
+      def = DefUnit( astGetSystem( this ), "astGetTimeOrigin", "TimeFrame", status );
 
 /* Get the current units from the TimeFrame. */
       cur = astGetUnit( this, 0 );
@@ -1598,7 +1744,7 @@ static double GetTimeOriginCur( AstTimeFrame *this ) {
 /* Report an error if the units are incompatible. */
             if( !map ) {
                astError( AST__BADUN, "%s(%s): The current units (%s) are not suitable "
-                         "for a TimeFrame.", "astGetTimeOrigin", astGetClass( this ), 
+                         "for a TimeFrame.", status, "astGetTimeOrigin", astGetClass( this ), 
                          cur );
 
 /* Otherwise, transform the stored origin value.*/
@@ -1615,7 +1761,7 @@ static double GetTimeOriginCur( AstTimeFrame *this ) {
    return result;
 }
 
-static const char *GetDomain( AstFrame *this_frame ) {
+static const char *GetDomain( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetDomain
@@ -1628,7 +1774,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *GetDomain( AstFrame *this )
+*     const char *GetDomain( AstFrame *this, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetDomain protected
@@ -1641,6 +1787,8 @@ static const char *GetDomain( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a constant null-terminated string containing the
@@ -1670,7 +1818,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
 /* If a Domain attribute string has been set, invoke the parent method
    to obtain a pointer to it. */
    if ( astTestDomain( this ) ) {
-      result = (*parent_getdomain)( this_frame );
+      result = (*parent_getdomain)( this_frame, status );
 
 /* Otherwise, provide a pointer to a suitable default string. */
    } else {
@@ -1681,7 +1829,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
    return result;
 }
 
-static double GetEpoch( AstFrame *this_frame ) {
+static double GetEpoch( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetEpoch
@@ -1694,7 +1842,7 @@ static double GetEpoch( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     double GetEpoch( AstFrame *this )
+*     double GetEpoch( AstFrame *this, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetEpoch method
@@ -1707,6 +1855,8 @@ static double GetEpoch( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The Epoch attribute value.
@@ -1738,7 +1888,7 @@ static double GetEpoch( AstFrame *this_frame ) {
 /* If an Epoch attribute value has been set, invoke the parent method
    to obtain it. */
    if ( astTestEpoch( this ) ) {
-      result = (*parent_getepoch)( this_frame );
+      result = (*parent_getepoch)( this_frame, status );
 
 /* Otherwise, if the TimeOrigin value is set in the TimeFrame,
    return it, converted to an absolute TDB MJD. */
@@ -1748,7 +1898,7 @@ static double GetEpoch( AstFrame *this_frame ) {
       oldval = astGetTimeOrigin( this );
       ts = astGetTimeScale( this );
       sys = astGetSystem( this );
-      u = DefUnit( sys, "astGetEpoch", "TimeFrame" );
+      u = DefUnit( sys, "astGetEpoch", "TimeFrame", status );
 
 /* Epoch is defined as a TDB value. If the timescale is stored in an angular 
    timescale such as UT1, then we would not normally be able to convert it
@@ -1759,7 +1909,7 @@ static double GetEpoch( AstFrame *this_frame ) {
       if( ts == AST__UT1 || ts == AST__GMST || 
           ts == AST__LAST || ts == AST__LMST ) {
          map = MakeMap( this, sys, AST__MJD, ts, AST__UT1, 0.0, 0.0, u,
-                        "d", "astGetEpoch" );
+                        "d", "astGetEpoch", status );
          if( map ) {
             astTran1( map, 1, &oldval, 1, &result );
             map = astAnnul( map );
@@ -1772,14 +1922,14 @@ static double GetEpoch( AstFrame *this_frame ) {
 
          } else if( astOK ) {
             astError( AST__INTER, "astGetEpoch(%s): No Mapping from %s to "
-                      "UT1 (AST internal programming error).", 
-                      astGetClass( this ), TimeScaleString(  ts ) );
+                      "UT1 (AST internal programming error).", status, 
+                      astGetClass( this ), TimeScaleString(  ts, status ) );
          }
       }
 
 /* Now convert to TDB */
       map = MakeMap( this, sys, AST__MJD, ts, AST__TDB, 0.0, 0.0, u,
-                     "d", "astGetEpoch" );
+                     "d", "astGetEpoch", status );
       if( map ) {
          oldval = astGetTimeOrigin( this );
          astTran1( map, 1, &oldval, 1, &result );
@@ -1787,20 +1937,20 @@ static double GetEpoch( AstFrame *this_frame ) {
 
       } else if( astOK ) {
          astError( AST__INTER, "astGetEpoch(%s): No Mapping from %s to "
-                   "TDB (AST internal programming error).", 
-                   astGetClass( this ), TimeScaleString(  ts ) );
+                   "TDB (AST internal programming error).", status, 
+                   astGetClass( this ), TimeScaleString(  ts, status ) );
       }
 
 /* Otherwise, return the default Epoch value from the parent Frame. */
    } else {
-      result =  (*parent_getepoch)( this_frame );
+      result =  (*parent_getepoch)( this_frame, status );
    }
 
 /* Return the result. */
    return result;
 }
 
-static const char *GetLabel( AstFrame *this, int axis ) {
+static const char *GetLabel( AstFrame *this, int axis, int *status ) {
 /*
 *  Name:
 *     GetLabel
@@ -1813,7 +1963,7 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *GetLabel( AstFrame *this, int axis )
+*     const char *GetLabel( AstFrame *this, int axis, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetLabel method inherited
@@ -1829,6 +1979,8 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 *     axis
 *        Axis index (zero-based) identifying the axis for which information is
 *        required.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated character string containing the
@@ -1839,19 +1991,23 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 *     global error status set, or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 200             /* Max characters in result string */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstMapping *map;              /* Mapping between units */
    AstSystemType system;         /* Code identifying type of time coordinates */
    char *new_lab;                /* Modified label string */
+   const char *fmt;              /* Pointer to original Format string */
    const char *result;           /* Pointer to label string */
+   double ltoff;                 /* Local Time offset from UTC (hours) */
+   double orig;                  /* Time origin (seconds) */
+   int fmtSet;                   /* Was Format attribute set? */
    int ndp;                      /* Number of decimal places for seconds field */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for result string */
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this);
 
 /* Initialise. */
    result = NULL;
@@ -1862,14 +2018,15 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 /* Check if a value has been set for the required axis label string. If so,
    invoke the parent astGetLabel method to obtain a pointer to it. */
    if ( astTestLabel( this, axis ) ) {
-      result = (*parent_getlabel)( this, axis );
+      result = (*parent_getlabel)( this, axis, status );
 
 /* Otherwise, provide a suitable default label. */
    } else {
 
 /* If the Format attribute indicates that time values will be formatted
    as dates, then choose a suitable label. */
-      if( DateFormat( astGetFormat( this, 0 ), &ndp ) ) {
+      fmt = astGetFormat( this, 0 );
+      if( DateFormat( fmt, &ndp, status ) ) {
          result = ( ndp >= 0 ) ? "Date/Time" : "Date";
 
 /* Otherwise, identify the time coordinate system described by the 
@@ -1879,8 +2036,41 @@ static const char *GetLabel( AstFrame *this, int axis ) {
 
 /* If OK, supply a pointer to a suitable default label string. */
          if ( astOK ) {
-            result = strcpy( buff, SystemLabel( system ) );
-            buff[ 0 ] = toupper( buff[ 0 ] );
+            result = strcpy( getlabel_buff, SystemLabel( system, status ) );
+            getlabel_buff[ 0 ] = toupper( getlabel_buff[ 0 ] );
+
+/* If a non-zero TimeOrigin has been specified, include the offset now as a 
+   date/time string. */
+            orig = astGetTimeOrigin( this );
+            if( orig != 0.0 ) {
+
+/* Save the Format attribute, and then temporarily set it to give a date/time 
+   string. */
+               fmt = astStore( NULL, fmt, strlen( fmt ) + 1 );
+               fmtSet = astTestFormat( this, 0 );
+               astSetFormat( this, 0, "iso.0" );
+
+/* Format the origin value as an absolute time and append it to the
+   returned label string. Note, the origin always corresponds to a
+   TimeFrame axis value of zero. */
+               sprintf( getlabel_buff + strlen( getlabel_buff ), " offset from %s", 
+                        astFormat( this, 0, 0.0 ) );
+
+/* Re-instate the original Format value. */
+               if( fmtSet ) {
+                  astSetFormat( this, 0, fmt );                        
+               } else {
+                  astClearFormat( this, 0 );
+               }
+
+/* Free the memory holding the copy of the format string. */
+               fmt = astFree( (char *) fmt );
+
+/* If the time of day is "00:00:00", remove it. */
+               if( !strcmp( getlabel_buff + strlen( getlabel_buff ) - 8, "00:00:00" ) ) {
+                  getlabel_buff[ strlen( getlabel_buff ) - 8 ] = 0;
+               }
+            }
 
 /* Modify this default to take account of the current value of the Unit 
    attribute, if set. */
@@ -1892,11 +2082,11 @@ static const char *GetLabel( AstFrame *this, int axis ) {
    units is "yr" and the actual units is "log(yr)", then the default label
    of "Julian epoch" is changed to "log( Julian epoch )". */
                map = astUnitMapper( DefUnit( system, "astGetLabel", 
-                                             astGetClass( this ) ),
+                                             astGetClass( this ), status ),
                                     astGetUnit( this, axis ), result,
                                     &new_lab );
                if( new_lab ) {
-                  result = strcpy( buff, new_lab );
+                  result = strcpy( getlabel_buff, new_lab );
                   new_lab = astFree( new_lab );
                }
 
@@ -1905,17 +2095,24 @@ static const char *GetLabel( AstFrame *this, int axis ) {
             }
          }
       }
+
+/* If the time is a Local Time, indicate the offset from UTC. */
+      if( astGetTimeScale( this ) == AST__LT ) {
+         ltoff = astGetLTOffset( this );
+         if( ltoff >= 0.0 ) {
+            sprintf( getlabel_buff, "%s (UTC+%g)", result, ltoff );
+         } else {
+            sprintf( getlabel_buff, "%s (UTC-%g)", result, -ltoff );
+         }
+         result = getlabel_buff;
+      }
    }
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
-
 }
 
-static const char *GetSymbol( AstFrame *this, int axis ) {
+static const char *GetSymbol( AstFrame *this, int axis, int *status ) {
 /*
 *  Name:
 *     GetSymbol
@@ -1928,7 +2125,7 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *GetSymbol( AstFrame *this, int axis )
+*     const char *GetSymbol( AstFrame *this, int axis, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetSymbol method inherited
@@ -1944,6 +2141,8 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 *     axis
 *        Axis index (zero-based) identifying the axis for which information is
 *        required.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated character string containing the
@@ -1954,18 +2153,18 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 *     global error status set, or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 200             /* Max characters in result string */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstMapping *map;              /* Mapping between units */
    AstSystemType system;         /* Code identifying type of sky coordinates */
    char *new_sym;                /* Modified symbol string */
    const char *result;           /* Pointer to symbol string */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for result string */
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this);
 
 /* Initialise. */
    result = NULL;
@@ -1976,7 +2175,7 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 /* Check if a value has been set for the required axis symbol string. If so,
    invoke the parent astGetSymbol method to obtain a pointer to it. */
    if ( astTestSymbol( this, axis ) ) {
-      result = (*parent_getsymbol)( this, axis );
+      result = (*parent_getsymbol)( this, axis, status );
 
 /* Otherwise, identify the sky coordinate system described by the TimeFrame. */
    } else {
@@ -1997,7 +2196,7 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 /* Report an error if the coordinate system was not recognised. */
          } else {
 	    astError( AST__SCSIN, "astGetSymbol(%s): Corrupt %s contains "
-		      "invalid System identification code (%d).", 
+		      "invalid System identification code (%d).", status, 
                       astGetClass( this ), astGetClass( this ), (int) system );
          }
 
@@ -2011,11 +2210,11 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
    units is "yr" and the actual units is "log(yr)", then the default symbol
    of "JEP" is changed to "log( JEP )". */
             map = astUnitMapper( DefUnit( system, "astGetSymbol", 
-                                          astGetClass( this ) ),
+                                          astGetClass( this ), status ),
                                  astGetUnit( this, axis ), result,
                                  &new_sym );
             if( new_sym ) {
-               result = strcpy( buff, new_sym );
+               result = strcpy( getsymbol_buff, new_sym );
                new_sym = astFree( new_sym );
             }
 
@@ -2028,12 +2227,9 @@ static const char *GetSymbol( AstFrame *this, int axis ) {
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
+static AstSystemType GetAlignSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetAlignSystem
@@ -2046,7 +2242,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "Specframe.h"
-*     AstSystemType GetAlignSystem( AstFrame *this_frame )
+*     AstSystemType GetAlignSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetAlignSystem protected
@@ -2058,6 +2254,8 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The AlignSystem value.
@@ -2080,7 +2278,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 /* If a AlignSystem attribute has been set, invoke the parent method to obtain 
    it. */
    if ( astTestAlignSystem( this ) ) {
-      result = (*parent_getalignsystem)( this_frame );
+      result = (*parent_getalignsystem)( this_frame, status );
 
 /* Otherwise, provide a suitable default. */
    } else {
@@ -2091,7 +2289,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
    return result;
 }
 
-static AstTimeScaleType GetAlignTimeScale( AstTimeFrame *this ) {
+static AstTimeScaleType GetAlignTimeScale( AstTimeFrame *this, int *status ) {
 /*
 *+
 *  Name:
@@ -2155,7 +2353,7 @@ static AstTimeScaleType GetAlignTimeScale( AstTimeFrame *this ) {
    return result;
 }
 
-static AstSystemType GetSystem( AstFrame *this_frame ) {
+static AstSystemType GetSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetSystem
@@ -2168,7 +2366,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     AstSystemType GetSystem( AstFrame *this_frame )
+*     AstSystemType GetSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetSystem protected
@@ -2180,6 +2378,8 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The System value.
@@ -2205,7 +2405,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 /* If a System attribute has been set, invoke the parent method to obtain 
    it. */
    if ( astTestSystem( this ) ) {
-      result = (*parent_getsystem)( this_frame );
+      result = (*parent_getsystem)( this_frame, status );
 
 /* Otherwise, provide a suitable default. */
    } else {
@@ -2216,7 +2416,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
    return result;
 }
 
-static AstTimeScaleType GetTimeScale( AstTimeFrame *this ) {
+static AstTimeScaleType GetTimeScale( AstTimeFrame *this, int *status ) {
 /*
 *+
 *  Name:
@@ -2278,7 +2478,7 @@ static AstTimeScaleType GetTimeScale( AstTimeFrame *this ) {
    return result;
 }
 
-static const char *GetTitle( AstFrame *this_frame ) {
+static const char *GetTitle( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetTitle
@@ -2291,7 +2491,7 @@ static const char *GetTitle( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *GetTitle( AstFrame *this_frame )
+*     const char *GetTitle( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astGetTitle method inherited
@@ -2305,6 +2505,8 @@ static const char *GetTitle( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a null-terminated character string containing the requested
@@ -2315,24 +2517,25 @@ static const char *GetTitle( AstFrame *this_frame ) {
 *     global error status set, or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 200             /* Max characters in result string */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstSystemType system;         /* Code identifying type of coordinates */
    AstTimeScaleType ts;          /* Time scale value */
    AstTimeFrame *this;           /* Pointer to TimeFrame structure */
    const char *fmt;              /* Pointer to original Format string */
    const char *result;           /* Pointer to result string */
+   double ltoff;                 /* Local Time offset from UTC (hours) */
    double orig;                  /* Time origin (seconds) */
    int fmtSet;                   /* Was Format attribute set? */
    int nc;                       /* No. of characters added */
    int ndp;                      /* Number of decimal places */
    int pos;                      /* Buffer position to enter text */
-   static char buff[ BUFF_LEN + 1 ]; /* Buffer for result string */
 
 /* Check the global error status. */
    if ( !astOK ) return NULL;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_frame);
 
 /* Initialise. */
    result = NULL;
@@ -2343,26 +2546,41 @@ static const char *GetTitle( AstFrame *this_frame ) {
 /* See if a Title string has been set. If so, use the parent astGetTitle
    method to obtain a pointer to it. */
    if ( astTestTitle( this ) ) {
-      result = (*parent_gettitle)( this_frame );
+      result = (*parent_gettitle)( this_frame, status );
 
 /* Otherwise, we will generate a default Title string. Obtain the values of the
    TimeFrame's attributes that determine what this string will be. */
    } else {
       system = astGetSystem( this );
-      orig = GetTimeOriginCur( this );
+      orig = GetTimeOriginCur( this, status );
       ts = astGetTimeScale( this );
       if ( astOK ) {
-         result = buff;
+         result = gettitle_buff;
 
 /* Begin with the system's default label. */
-         pos = sprintf( buff, "%s", SystemLabel( system ) );
-         buff[ 0 ] = toupper( buff[ 0 ] );
+         pos = sprintf( gettitle_buff, "%s", SystemLabel( system, status ) );
+         gettitle_buff[ 0 ] = toupper( gettitle_buff[ 0 ] );
 
 /* Append the time scale code, if a value has been set for the timescale. 
    Do not do this if the system is BEPOCH since BEPOCH can only be used
    with the TT timescale. */
          if( system != AST__BEPOCH && astTestTimeScale( this ) ) {
-            nc = sprintf( buff + pos, " [%s]", TimeScaleString( ts ) );
+            nc = sprintf( gettitle_buff + pos, " [%s", TimeScaleString( ts, status ) );
+            pos += nc;
+
+/* For Local Time, include the offset from UTC. */
+            if( ts == AST__LT ) {
+               ltoff = astGetLTOffset( this );
+               if( ltoff >= 0.0 ) {
+                  nc = sprintf( gettitle_buff + pos, " (UTC+%g)", ltoff );
+               } else {
+                  nc = sprintf( gettitle_buff + pos, " (UTC-%g)", -ltoff );
+               }
+               pos += nc;
+            }
+
+/* Close the brackets. */
+            nc = sprintf( gettitle_buff + pos, "]" );
             pos += nc;
          }
 
@@ -2370,17 +2588,18 @@ static const char *GetTitle( AstFrame *this_frame ) {
    not indicate a date string (which is always absolute), include the
    offset now as a date/time string. */
          fmt = astGetFormat( this, 0 );
-         if( orig != 0.0 && !DateFormat( fmt, &ndp ) ) {
+         if( orig != 0.0 && !DateFormat( fmt, &ndp, status ) ) {
 
 /* Save the Format attribute, and then temporarily set it to give a date/time 
    string. */
+            fmt = astStore( NULL, fmt, strlen( fmt ) + 1 );
             fmtSet = astTestFormat( this, 0 );
             astSetFormat( this, 0, "iso.0" );
 
 /* Format the origin value as an absolute time and append it to the
    returned title string. Note, the origin always corresponds to a
    TimeFrame axis value of zero. */
-            nc = sprintf( buff+pos, " offset from %s", 
+            nc = sprintf( gettitle_buff+pos, " offset from %s", 
                           astFormat( this, 0, 0.0 ) );
             pos += nc;
 
@@ -2390,6 +2609,10 @@ static const char *GetTitle( AstFrame *this_frame ) {
             } else {
                astClearFormat( this, 0 );
             }
+
+/* Free the Format string copy. */
+            fmt = astFree( (char *) fmt );
+
          }
       }
    }
@@ -2399,15 +2622,12 @@ static const char *GetTitle( AstFrame *this_frame ) {
 
 /* Return the result. */
    return result;
-
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static const char *GetUnit( AstFrame *this_frame, int axis ) {
+static const char *GetUnit( AstFrame *this_frame, int axis, int *status ) {
 /*
 *  Name:
-*     astGetUnit
+*     GetUnit
 
 *  Purpose:
 *     Obtain a pointer to the Unit string for a TimeFrame's axis.
@@ -2459,7 +2679,7 @@ static const char *GetUnit( AstFrame *this_frame, int axis ) {
 /* If a value has been set for the Unit attribute, use the parent 
    GetUnit method to return a pointer to the required Unit string. */
    if( astTestUnit( this, axis ) ){
-      result = (*parent_getunit)( this_frame, axis );
+      result = (*parent_getunit)( this_frame, axis, status );
 
 /* Otherwise, identify the time coordinate system described by the 
    TimeFrame. */
@@ -2467,7 +2687,7 @@ static const char *GetUnit( AstFrame *this_frame, int axis ) {
       system = astGetSystem( this );
 
 /* Return a string describing the default units. */
-      result = DefUnit( system, "astGetUnit", astGetClass( this ) );
+      result = DefUnit( system, "astGetUnit", astGetClass( this ), status );
    }
 
 /* If an error occurred, clear the returned value. */
@@ -2477,7 +2697,7 @@ static const char *GetUnit( AstFrame *this_frame, int axis ) {
    return result;
 }
 
-void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
+void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -2514,15 +2734,17 @@ void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstFrameVtab *frame;          /* Pointer to Frame component of Vtab */
+   AstMapping *map;              /* Temporary Maping */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
-
-#ifdef DEBUG
-   int pm;     /* See astSetPermMem in memory.c */
-#endif
+   double utc_epoch;             /* Unix epoch as a UTC MJD */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -2531,8 +2753,8 @@ void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsATimeFrame) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -2544,20 +2766,15 @@ void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
    vtab->GetAlignTimeScale = GetAlignTimeScale;
    vtab->SetAlignTimeScale = SetAlignTimeScale;
 
-   vtab->ClearClockLat = ClearClockLat;
-   vtab->TestClockLat = TestClockLat;
-   vtab->GetClockLat = GetClockLat;
-   vtab->SetClockLat = SetClockLat;
-
-   vtab->ClearClockLon = ClearClockLon;
-   vtab->TestClockLon = TestClockLon;
-   vtab->GetClockLon = GetClockLon;
-   vtab->SetClockLon = SetClockLon;
-
    vtab->ClearTimeOrigin = ClearTimeOrigin;
    vtab->TestTimeOrigin = TestTimeOrigin;
    vtab->GetTimeOrigin = GetTimeOrigin;
    vtab->SetTimeOrigin = SetTimeOrigin;
+
+   vtab->ClearLTOffset = ClearLTOffset;
+   vtab->TestLTOffset = TestLTOffset;
+   vtab->GetLTOffset = GetLTOffset;
+   vtab->SetLTOffset = SetLTOffset;
 
    vtab->ClearTimeScale = ClearTimeScale;
    vtab->TestTimeScale = TestTimeScale;
@@ -2617,12 +2834,6 @@ void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
    parent_overlay = frame->Overlay;
    frame->Overlay = Overlay;
 
-   parent_setmaxaxes = frame->SetMaxAxes;
-   frame->SetMaxAxes = SetMaxAxes;
-
-   parent_setminaxes = frame->SetMinAxes;
-   frame->SetMinAxes = SetMinAxes;
-
    parent_subframe = frame->SubFrame;
    frame->SubFrame = SubFrame;
 
@@ -2632,13 +2843,8 @@ void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
    parent_unformat = frame->Unformat;
    frame->Unformat = Unformat;
 
-/* Abbreviation of date fields doesn't look quite right at the moment, so
-   supress it. 
-
    parent_abbrev = frame->Abbrev;
    frame->Abbrev = Abbrev;
-
-*/
 
    parent_gap = frame->Gap;
    frame->Gap = Gap;
@@ -2656,18 +2862,18 @@ void astInitTimeFrameVtab_(  AstTimeFrameVtab *vtab, const char *name ) {
    astSetDump( vtab, Dump, "TimeFrame",
                "Description of time coordinate system" );
 
-/* Create an FK5 J2000 SkyFrame which will be used for formatting and 
-   unformatting sky positions, etc. */
-#ifdef DEBUG
-   pm = astSetPermMem( 1 );
-#endif
+/* Convert the Unix Epoch (00:00:00 UTC 1 January 1970 AD) from UTC to TAI. */
+   LOCK_MUTEX2
+   map = MakeMap( NULL, AST__MJD, AST__MJD, AST__UTC, AST__TAI,
+                  0.0, 0.0, "d", "d", "astInitTimeFrameVtab", status );
+   utc_epoch = UNIX_EPOCH;
+   astTran1( map, 1, &utc_epoch, 1, &tai_epoch );
+   map = astAnnul( map );
+   UNLOCK_MUTEX2
 
-   skyframe = astSkyFrame( "system=FK5,equinox=J2000" );
-
-#ifdef DEBUG
-   astSetPermMem( pm );
-#endif
-
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
 
 }
 
@@ -2675,7 +2881,7 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
                             AstSystemType sys2, AstTimeScaleType ts1, 
                             AstTimeScaleType ts2, double off1, double off2,
                             const char *unit1, const char *unit2,
-                            const char *method ){
+                            const char *method, int *status ){
 /*
 *  Name:
 *     MakeMap
@@ -2692,7 +2898,7 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 *                          AstSystemType sys2, AstTimeScaleType ts1, 
 *                          AstTimeScaleType ts2, double off1, double off2,
 *                          const char *unit1, const char unit2,
-*                          const char *method )
+*                          const char *method, int *status )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -2703,8 +2909,8 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 
 *  Parameters:
 *     this
-*        A TimeFrame which specifies the clock position (for both input
-*        and output).
+*        A TimeFrame which specifies extra attributes (the clock position, 
+*        time zone, etc) for both input and output. 
 *     sys1
 *        The input System.
 *     sys2
@@ -2725,6 +2931,8 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 *        The output units.
 *     method
 *        A string containing the method name to include in error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the new Mapping. NULL if the timescales were
@@ -2741,11 +2949,11 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
    AstMapping *umap1;
    AstMapping *umap2;
    AstTimeMap *timemap;
-   AstTimeScaleType cmn;
    const char *du;
-   double args[ 3 ];
+   double args[ 4 ];
+   double args_lt[ 1 ];
+   double args_ut[ 1 ];
    double shift;
-   int ok;           
 
 /* Check the global error status. */
    result = NULL;
@@ -2762,7 +2970,7 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 
 /* and the units are equal, return a UnitMap. */
             if( !strcmp( unit1, unit2 ) ) {
-               result = (AstMapping *) astUnitMap( 1, "" );            
+               result = (AstMapping *) astUnitMap( 1, "", status );            
 
 /* If only the units differ, return the appropriate units Mapping. */
             } else {
@@ -2775,24 +2983,24 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 /* Transform the difference in offsets from the default units associated
    with the (common) system, to the units associated with the output. */
             shift = off1 - off2;
-            du = DefUnit( sys1, method, "TimeFrame" );
+            du = DefUnit( sys1, method, "TimeFrame", status );
             if( du && strcmp( du, unit2 ) && shift != 0.0 ) {
-               umap = astUnitMapper( DefUnit( sys1, method, "TimeFrame" ), 
+               umap = astUnitMapper( DefUnit( sys1, method, "TimeFrame", status ), 
                                      unit2, NULL, NULL );
                astTran1( umap, 1, &shift, 1, &shift );
                umap = astAnnul( umap );
             }
 
 /* Create a ShiftMap to apply the shift. */
-            result = (AstMapping *) astShiftMap( 1, &shift, "" );            
+            result = (AstMapping *) astShiftMap( 1, &shift, "", status );            
 
 /* If the input and output units also differ, include the appropriate units 
    Mapping. */
             if( strcmp( unit1, unit2 ) ) {
                umap = astUnitMapper( unit1, unit2, NULL, NULL );
-               tmap = (AstMapping *) astCmpMap( umap, result, 1, "" );
+               tmap = (AstMapping *) astCmpMap( umap, result, 1, "", status );
                umap = astAnnul( umap );
-               astAnnul( result );
+               (void) astAnnul( result );
                result = tmap;
             }
          }
@@ -2806,16 +3014,16 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 
 /* First, a Mapping from the input units to the default units for the
    input System (these are the units expected by the TimeMap conversions). */
-      umap1 = astUnitMapper( unit1, DefUnit( sys1, method, "TimeFrame" ), 
+      umap1 = astUnitMapper( unit1, DefUnit( sys1, method, "TimeFrame", status ), 
                              NULL, NULL );
 
 /* Now create a null TimeMap. */
-      timemap = astTimeMap( 0, "" );
+      timemap = astTimeMap( 0, "", status );
 
 /* Store the input time offsets to use. They correspond to the same moment in
    time (the second is the MJD equivalent of the first). */
       args[ 0 ] = off1;
-      args[ 1 ] = ToMJD( sys1, off1 );
+      args[ 1 ] = ToMJD( sys1, off1, status );
 
 /* Add a conversion from the input System to MJD. */
       if( sys1 == AST__JD ) {
@@ -2828,125 +3036,121 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
          astTimeAdd( timemap, "BEPTOMJD", args );
       }
 
-/* All timescale conversions require the input (MJD) offset as the first 
-   argument. In general, the clock longitude and latitude are also
-   needed. */
+/* All timescale conversions except UTTOUTC and UTCTOUT require the input (MJD)
+   offset as the first argument. In general, the clock longitude and latitude 
+   are also needed. The Frame class stores longitude values in a +ve
+   eastwards sense, but the TimeMap class needs +ve westwards, so negate 
+   the longitude. */
       args[ 0 ] = args[ 1 ];
-      args[ 1 ] = astGetClockLon( this );
-      args[ 2 ] = astGetClockLat( this );
+      args[ 1 ] = this ? -astGetObsLon( this ) : 0.0;
+      args[ 2 ] = this ? astGetObsLat( this ) : 0.0;
+
+/* The UTTOUTC and UTCTOUT conversions required just the DUT1 value. */
+      args_ut[ 0 ] = this ? astGetDut1( this ) : 0.0;
+
+/* The LTTOUTC and UTCTOLT conversions required just the time zone
+   correction. */
+      args_lt[ 0 ] = this ? astGetLTOffset( this ) : 0.0;
 
 /* If the input and output timescales differ, now add a conversion from the 
-   input timescale to TAI or UT1 (note which is used). */
-      ok = 1;
+   input timescale to TAI. */
       if( ts1 != ts2 ) {
          if( ts1 == AST__TAI ) {
-            cmn = AST__TAI;
        
          } else if( ts1 == AST__UTC ) {
-            cmn = AST__TAI;
             astTimeAdd( timemap, "UTCTOTAI", args );
        
          } else if( ts1 == AST__TT ) {
-            cmn = AST__TAI;
             astTimeAdd( timemap, "TTTOTAI", args );
        
          } else if( ts1 == AST__TDB ) {
-            cmn = AST__TAI;
             astTimeAdd( timemap, "TDBTOTT", args );
             astTimeAdd( timemap, "TTTOTAI", args );
        
          } else if( ts1 == AST__TCG ) {
-            cmn = AST__TAI;
             astTimeAdd( timemap, "TCGTOTT", args );
             astTimeAdd( timemap, "TTTOTAI", args );
        
+         } else if( ts1 == AST__LT ) {
+            astTimeAdd( timemap, "LTTOUTC", args_lt );
+            astTimeAdd( timemap, "UTCTOTAI", args );
+       
          } else if( ts1 == AST__TCB ) {
-            cmn = AST__TAI;
             astTimeAdd( timemap, "TCBTOTDB", args );
             astTimeAdd( timemap, "TDBTOTT", args );
             astTimeAdd( timemap, "TTTOTAI", args );
        
          } else if( ts1 == AST__UT1 ) {
-            cmn = AST__UT1;
+            astTimeAdd( timemap, "UTTOUTC", args_ut );
+            astTimeAdd( timemap, "UTCTOTAI", args );
        
          } else if( ts1 == AST__GMST ) {
-            cmn = AST__UT1;
             astTimeAdd( timemap, "GMSTTOUT", args );
+            astTimeAdd( timemap, "UTTOUTC", args_ut );
+            astTimeAdd( timemap, "UTCTOTAI", args );
        
          } else if( ts1 == AST__LAST ) {
-            cmn = AST__UT1;
             astTimeAdd( timemap, "LASTTOLMST", args );
             astTimeAdd( timemap, "LMSTTOGMST", args );
             astTimeAdd( timemap, "GMSTTOUT", args );
+            astTimeAdd( timemap, "UTTOUTC", args_ut );
+            astTimeAdd( timemap, "UTCTOTAI", args );
       
          } else if( ts1 == AST__LMST ) {
-            cmn = AST__UT1;
             astTimeAdd( timemap, "LMSTTOGMST", args );
             astTimeAdd( timemap, "GMSTTOUT", args );
+            astTimeAdd( timemap, "UTTOUTC", args_ut );
+            astTimeAdd( timemap, "UTCTOTAI", args );
          }
 
-/* Now add a conversion to the output timescale (if possible). */
-         ok = 0;
+/* Now add a conversion from TAI to the output timescale. */
          if( ts2 == AST__TAI ) {
-            if( cmn == AST__TAI ) ok = 1;
-      
+
          } else if( ts2 == AST__UTC ) {
-            if( cmn == AST__TAI ){
-               ok = 1;
-               astTimeAdd( timemap, "TAITOUTC", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOUTC", args );
+
          } else if( ts2 == AST__TT ) {
-            if( cmn == AST__TAI ){
-               ok = 1;
-               astTimeAdd( timemap, "TAITOTT", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOTT", args );
+
          } else if( ts2 == AST__TDB ) {
-            if( cmn == AST__TAI ){
-               ok = 1;
-               astTimeAdd( timemap, "TAITOTT", args );
-               astTimeAdd( timemap, "TTTOTDB", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOTT", args );
+            astTimeAdd( timemap, "TTTOTDB", args );
+
          } else if( ts2 == AST__TCG ) {
-            if( cmn == AST__TAI ){
-               ok = 1;
-               astTimeAdd( timemap, "TAITOTT", args );
-               astTimeAdd( timemap, "TTTOTCG", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOTT", args );
+            astTimeAdd( timemap, "TTTOTCG", args );
+
          } else if( ts2 == AST__TCB ) {
-            if( cmn == AST__TAI ){
-               ok = 1;
-               astTimeAdd( timemap, "TAITOTT", args );
-               astTimeAdd( timemap, "TTTOTDB", args );
-               astTimeAdd( timemap, "TDBTOTCB", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOTT", args );
+            astTimeAdd( timemap, "TTTOTDB", args );
+            astTimeAdd( timemap, "TDBTOTCB", args );
+
          } else if( ts2 == AST__UT1 ) {
-            if( cmn == AST__UT1 ) ok = 1;
-      
+            astTimeAdd( timemap, "TAITOUTC", args );
+            astTimeAdd( timemap, "UTCTOUT", args_ut );
+
          } else if( ts2 == AST__GMST ) {
-            if( cmn == AST__UT1 ){
-               ok = 1;
-               astTimeAdd( timemap, "UTTOGMST", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOUTC", args );
+            astTimeAdd( timemap, "UTCTOUT", args_ut );
+            astTimeAdd( timemap, "UTTOGMST", args );
+
          } else if( ts2 == AST__LAST ) {
-            if( cmn == AST__UT1 ){
-               ok = 1;
-               astTimeAdd( timemap, "UTTOGMST", args );
-               astTimeAdd( timemap, "GMSTTOLMST", args );
-               astTimeAdd( timemap, "LMSTTOLAST", args );
-            }
-      
+            astTimeAdd( timemap, "TAITOUTC", args );
+            astTimeAdd( timemap, "UTCTOUT", args_ut );
+            astTimeAdd( timemap, "UTTOGMST", args );
+            astTimeAdd( timemap, "GMSTTOLMST", args );
+            astTimeAdd( timemap, "LMSTTOLAST", args );
+
          } else if( ts2 == AST__LMST ) {
-            if( cmn == AST__UT1 ){
-               ok = 1;
-               astTimeAdd( timemap, "UTTOGMST", args );
-               astTimeAdd( timemap, "GMSTTOLMST", args );
-            }
+            astTimeAdd( timemap, "TAITOUTC", args );
+            astTimeAdd( timemap, "UTCTOUT", args_ut );
+            astTimeAdd( timemap, "UTTOGMST", args );
+            astTimeAdd( timemap, "GMSTTOLMST", args );
+
+         } else if( ts2 == AST__LT ) {
+            astTimeAdd( timemap, "TAITOUTC", args );
+            astTimeAdd( timemap, "UTCTOLT", args_lt );
+       
          }
       } 
 
@@ -2968,20 +3172,18 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 /* Now, create a Mapping from the default units for the output System (these 
    are the units produced by the TimeMap conversions) to the requested
    output units. */
-      umap2 = astUnitMapper( DefUnit( sys2, method, "TimeFrame" ), unit2, 
+      umap2 = astUnitMapper( DefUnit( sys2, method, "TimeFrame", status ), unit2, 
                              NULL, NULL );
 
 /* If OK, combine the Mappings in series. Note, umap1 and umap2 should
    always be non-NULL because the suitablity of units strings is checked 
    within OriginSystem - called from within SetSystem. */
-      if( umap1 && umap2 && ok ) {
-         tmap = (AstMapping *) astCmpMap( umap1, timemap, 1, "" );      
-         tmap2 = (AstMapping *) astCmpMap( tmap, umap2, 1, "" );      
+      if( umap1 && umap2 ) {
+         tmap = (AstMapping *) astCmpMap( umap1, timemap, 1, "", status );      
+         tmap2 = (AstMapping *) astCmpMap( tmap, umap2, 1, "", status );      
          tmap = astAnnul( tmap );
          result = astSimplify( tmap2 );
          tmap2 = astAnnul( tmap2 );
-      } else {
-         result = NULL;
       }
    
 /* Free remaining resources */
@@ -3000,7 +3202,7 @@ static AstMapping *MakeMap( AstTimeFrame *this, AstSystemType sys1,
 
 static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
                             AstTimeFrame *align_frm, int report, 
-                            AstMapping **map ) {
+                            AstMapping **map, int *status ) {
 /*
 *  Name:
 *     MakeTimeMapping
@@ -3015,7 +3217,7 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
 *     #include "timeframe.h"
 *     int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
 *                          AstTimeFrame *align_frm, int report, 
-*                          AstMapping **map ) {
+*                          AstMapping **map, int *status ) {
 
 *  Class Membership:
 *     TimeFrame member function.
@@ -3043,6 +3245,8 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
 *        will convert from "target" coordinates to "result"
 *        coordinates, and the inverse transformation will convert in
 *        the opposite direction (all coordinate values in radians).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the Mapping could be generated, or zero if the two
@@ -3068,12 +3272,20 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
    const char *u1;               /* Input target units */
    const char *u2;               /* Output target units */
    double align_off;             /* Axis offset */
+   double ltoff1;                /* Input axis Local Time offset */
+   double ltoff2;                /* Output axis Local Time offset */
    double off1;                  /* Input axis offset */
    double off2;                  /* Output axis offset */
    int arclk;                    /* Align->result depends on clock position? */
+   int ardut;                    /* Align->result depends on Dut1? */
+   int arlto;                    /* Align->result depends on LT offset? */
    int clkdiff;                  /* Do target and result clock positions differ? */
+   int dut1diff;                 /* Do target and result Dut1 values differ? */
+   int ltodiff;                  /* Do target and result LTOffset values differ? */
    int match;                    /* Mapping can be generated? */
    int taclk;                    /* Target->align depends on clock position? */
+   int tadut;                    /* Target->align depends on Dut1? */
+   int talto;                    /* Target->align depends on LT offset? */
 
 /* Check the global error status. */
    if ( !astOK ) return 0;
@@ -3087,12 +3299,14 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
    ts1 = astGetTimeScale( target );
    off1 = astGetTimeOrigin( target );
    u1 = astGetUnit( target, 0 );
+   ltoff1= astGetLTOffset( target );
 
 /* Get the required properties of the output (result) TimeFrame */
    sys2 = astGetSystem( result );
    ts2 = astGetTimeScale( result );
    off2 = astGetTimeOrigin( result );
    u2 = astGetUnit( result, 0 );
+   ltoff2= astGetLTOffset( result );
 
 /* Get the timescale in which alignment is to be performed. The alignment
    System does not matter since they all supported time systems are linearly 
@@ -3108,8 +3322,8 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
    on the clock position. If either of these 2 conditions is not met,
    then the alignment frame can be ignored, and the simpler MakeMap function
    can be called. See if the clock positions differ. */
-   clkdiff = ( astGetClockLon( target ) != astGetClockLon( result ) ||
-               astGetClockLat( target ) != astGetClockLat( result ) );
+   clkdiff = ( astGetObsLon( target ) != astGetObsLon( result ) ||
+               astGetObsLat( target ) != astGetObsLat( result ) );
 
 /* See if the Mapping from target to alignment frame depends on the clock
    position. */
@@ -3119,25 +3333,41 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
    position. */
    arclk = CLOCK_SCALE( align_ts ) || CLOCK_SCALE( ts2 );
 
+/* In addition, the alignment frame is significant if either of the Mappings 
+   depends on DUT1 and the values of the DUT1 attribute are different for the
+   two TimeFrames. */
+   dut1diff = ( astGetDut1( target ) != astGetDut1( result ) );
+   tadut = DUT1_SCALE( ts1 ) != DUT1_SCALE( align_ts );
+   ardut = DUT1_SCALE( align_ts ) != DUT1_SCALE( ts2 );
+
+/* In addition, the alignment frame is significant if either of the Mappings 
+   depends on LTOffset and the values of the LTOffset attribute are different 
+   for the two TimeFrames. */
+   ltodiff = ( ltoff1 != ltoff2 );
+   talto = LTOFFSET_SCALE( ts1 ) != LTOFFSET_SCALE( align_ts );
+   arlto = LTOFFSET_SCALE( align_ts ) != LTOFFSET_SCALE( ts2 );
+
 /* If the alignment frame can be ignored, use MakeMap */
-   if( !clkdiff || !( taclk || arclk ) ) {
+   if( ( !clkdiff || !( taclk || arclk ) ) &&
+       ( !ltodiff || !( talto || arlto ) ) &&
+       ( !dut1diff || !( tadut || ardut ) ) ) {
       *map = MakeMap( target, sys1, sys2, ts1, ts2, off1, off2, u1, u2, 
-                      "astSubFrame" );
+                      "astSubFrame", status );
       if( *map ) match = 1;
 
 /* Otherwise, we create the Mapping in two parts; first a Mapping from
-   the target Frame to the alignment Frame (using the target clock
-   position), then a Mapping from the alignment Frame to the results
-   Frame (using the result clock position). */
+   the target Frame to the alignment Frame (using the target clock, dut1
+   and ltoffset), then a Mapping from the alignment Frame to the results 
+   Frame (using the result clock, dut1 and ltoffset). */
    } else {
 
 /* Create a Mapping from target units/system/timescale/offset to MJD in 
    the alignment timescale with default units and offset equal to the MJD
    equivalent of the target offset. */
-      align_off = ToMJD( sys1, off1 );
-      align_unit = DefUnit( AST__MJD, "MakeTimeMap", "TimeFrame" );
+      align_off = ToMJD( sys1, off1, status );
+      align_unit = DefUnit( AST__MJD, "MakeTimeMap", "TimeFrame", status );
       map1 = MakeMap( target, sys1, AST__MJD, ts1, align_ts, off1, align_off, 
-                      u1, align_unit, "MakeTimeMap" );
+                      u1, align_unit, "MakeTimeMap", status );
 
 /* Report an error if the timescales were incompatible. */
       if( !map1 ){
@@ -3145,16 +3375,16 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
          if( report && astOK ) {
             astError( AST__INCTS, "astMatch(%s): Alignment in requested "
                    "timescale (%s) is not possible since one or both of the "
-                   "TimeFrames being aligned refer to the %s timescale.",
-                   astGetClass( target ), TimeScaleString( align_ts ),
-                   TimeScaleString( ts1 ) );
+                   "TimeFrames being aligned refer to the %s timescale.", status,
+                   astGetClass( target ), TimeScaleString( align_ts, status ),
+                   TimeScaleString( ts1, status ) );
          }
       }   
 
-/* We now create a Mapping converts from the alignment System (MJD), 
+/* We now create a Mapping that converts from the alignment System (MJD), 
    TimeScale and offset to the result coordinate system. */
       map2 = MakeMap( result, AST__MJD, sys2, align_ts, ts2, align_off, off2, 
-                      align_unit, u2, "MakeTimeMap" );
+                      align_unit, u2, "MakeTimeMap", status );
 
 /* Report an error if the timescales were incompatible. */
       if( !map2 ){
@@ -3162,16 +3392,16 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
          if( report && astOK ) {
             astError( AST__INCTS, "astMatch(%s): Alignment in requested "
                    "timescale (%s) is not possible since one or both of the "
-                   "TimeFrames being aligned refer to the %s timescale.",
-                   astGetClass( result ), TimeScaleString( align_ts ),
-                   TimeScaleString( ts2 ) );
+                   "TimeFrames being aligned refer to the %s timescale.", status,
+                   astGetClass( result ), TimeScaleString( align_ts, status ),
+                   TimeScaleString( ts2, status ) );
          }
       }   
 
 /* Combine these two Mappings. */
       if( map1 && map2 ) {
          match = 1;
-         tmap = (AstMapping *) astCmpMap( map1, map2, 1, "" );
+         tmap = (AstMapping *) astCmpMap( map1, map2, 1, "", status );
          *map = astSimplify( tmap );
          tmap = astAnnul( tmap );
       }
@@ -3194,7 +3424,7 @@ static int MakeTimeMapping( AstTimeFrame *target, AstTimeFrame *result,
 
 static int Match( AstFrame *template_frame, AstFrame *target,
                   int **template_axes, int **target_axes, AstMapping **map,
-                  AstFrame **result ) {
+                  AstFrame **result, int *status ) {
 /*
 *  Name:
 *     Match
@@ -3209,7 +3439,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *     #include "timeframe.h"
 *     int Match( AstFrame *template, AstFrame *target,
 *                int **template_axes, int **target_axes,
-*                AstMapping **map, AstFrame **result )
+*                AstMapping **map, AstFrame **result, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the protected astMatch method
@@ -3272,6 +3502,8 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *        particular, when the template allows the possibility of transformaing
 *        to any one of a set of alternative coordinate systems, the "result"
 *        Frame will indicate which of the alternatives was used.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if the requested coordinate conversion is
@@ -3289,11 +3521,13 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *     a less specialised class of Frame.
 */
 
-/* Local Variables: */
    AstFrame *frame0;             /* Pointer to Frame underlying axis 0 */
    AstTimeFrame *template;       /* Pointer to template TimeFrame structure */
    int iaxis0;                   /* Axis index underlying axis 0 */
+   int iaxis;                    /* Axis index */
    int match;                    /* Coordinate conversion possible? */
+   int target_axis0;             /* Index of TimeFrame axis in the target */
+   int target_naxes;             /* Number of target axes */
 
 /* Initialise the returned values. */
    *template_axes = NULL;
@@ -3308,24 +3542,15 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 /* Obtain a pointer to the template TimeFrame structure. */
    template = (AstTimeFrame *) template_frame;
 
-/* Obtain pointers to the primary Frame which underlies the target axis. */
-   astPrimaryFrame( target, 0, &frame0, &iaxis0 );
+/* Obtain the number of axes in the target Frame. */
+   target_naxes = astGetNaxes( target );
 
-/* The first criterion for a match is that this Frame must be a TimeFrame 
-   (or from a class derived from TimeFrame). */
-   match = astIsATimeFrame( frame0 );
-
-/* Annul the Frame pointers used in the above tests. */
-   frame0 = astAnnul( frame0 );
-
-/* The next criterion for a match is that the template matches as a
+/* The first criterion for a match is that the template matches as a
    Frame class object. This ensures that the number of axes (1) and
    domain, etc. of the target Frame are suitable. Invoke the parent
    "astMatch" method to verify this. */
-   if( match ) {
-      match = (*parent_match)( template_frame, target,
-                               template_axes, target_axes, map, result );
-   }
+   match = (*parent_match)( template_frame, target,
+                            template_axes, target_axes, map, result, status );
 
 /* If a match was found, annul the returned objects, which are not
    needed, but keep the memory allocated for the axis association
@@ -3335,30 +3560,47 @@ static int Match( AstFrame *template_frame, AstFrame *target,
       *result = astAnnul( *result );
    }
 
-/* If the Frames still match, we next set up the axis association
-   arrays. */
-   if ( astOK && match ) {
+/* If OK so far, obtain pointers to the primary Frames which underlie
+   all target axes. Stop when a TimeFrame axis is found. */
+   if ( match && astOK ) {
+      match = 0;
+      for( iaxis = 0; iaxis < target_naxes; iaxis++ ) {
+         astPrimaryFrame( target, iaxis, &frame0, &iaxis0 );
+         if( astIsATimeFrame( frame0 ) ) {
+            frame0 = astAnnul( frame0 );
+            target_axis0 = iaxis;
+            match = 1;
+            break;
+         } else {
+            frame0 = astAnnul( frame0 );
+         }
+      }
+   }
+
+/* Check at least one TimeFrame axis was found it the target. Store the
+   axis associataions. */
+   if( match && astOK ) {
       (*template_axes)[ 0 ] = 0;
-      (*target_axes)[ 0 ] = 0;
+      (*target_axes)[ 0 ] = target_axis0;
 
 /* Use the target's "astSubFrame" method to create a new Frame (the
-   result Frame) with a copy of of the target axis. This process also 
-   overlays the template attributes on to the target Frame and returns a 
-   Mapping between the target and result Frames which effects the required 
-   coordinate conversion. */
+   result Frame) with copies of the target axes in the required
+   order. This process also overlays the template attributes on to the
+   target Frame and returns a Mapping between the target and result
+   Frames which effects the required coordinate conversion. */
       match = astSubFrame( target, template, 1, *target_axes, *template_axes,
                            map, result );
+   }
 
 /* If an error occurred, or conversion to the result Frame's coordinate 
    system was not possible, then free all memory, annul the returned 
    objects, and reset the returned value. */
-      if ( !astOK || !match ) {
-         *template_axes = astFree( *template_axes );
-         *target_axes = astFree( *target_axes );
-         if( *map ) *map = astAnnul( *map );
-         if( *result ) *result = astAnnul( *result );
-         match = 0;
-      }
+   if ( !astOK || !match ) {
+      *template_axes = astFree( *template_axes );
+      *target_axes = astFree( *target_axes );
+      if( *map ) *map = astAnnul( *map );
+      if( *result ) *result = astAnnul( *result );
+      match = 0;
    }
 
 /* Return the result. */
@@ -3366,7 +3608,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 }
 
 static void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
-                         const char *method ){
+                         const char *method, int *status ){
 /*
 *  Name:
 *     OriginScale
@@ -3380,7 +3622,7 @@ static void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
 *  Synopsis:
 *     #include "timeframe.h"
 *     void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
-*                       const char *method )
+*                       const char *method, int *status )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -3403,6 +3645,8 @@ static void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
 *     method
 *        Pointer to a string holding the name of the method to be
 *        included in any error messages. 
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -3427,9 +3671,9 @@ static void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
 
 /* Create a Mapping to perform the TimeScale change. */
          sys = astGetSystem( this );
-         u = DefUnit( sys, method, "TimeFrame" ), 
+         u = DefUnit( sys, method, "TimeFrame", status ), 
          map = MakeMap( this, sys, sys, oldts, newts, 0.0, 0.0, u, u, 
-                        method );
+                        method, status );
 
 /* Use the Mapping to convert the stored TimeOrigin value. */
          if( map ) {
@@ -3445,7 +3689,7 @@ static void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
          } else if( astOK ) {
             astError( AST__INCTS, "%s(%s): Cannot convert the TimeOrigin "
                       "value to a different timescale because of "
-                      "incompatible time scales.", method, 
+                      "incompatible time scales.", status, method, 
                       astGetClass( this ) );
          }
       }
@@ -3453,7 +3697,7 @@ static void OriginScale( AstTimeFrame *this, AstTimeScaleType newts,
 }
 
 static void OriginSystem( AstTimeFrame *this, AstSystemType oldsys, 
-                          const char *method ){
+                          const char *method, int *status ){
 /*
 *  Name:
 *     OriginSystem
@@ -3467,7 +3711,7 @@ static void OriginSystem( AstTimeFrame *this, AstSystemType oldsys,
 *  Synopsis:
 *     #include "timeframe.h"
 *     void OriginSystem( AstTimeFrame *this, AstSystemType oldsys, 
-*                        const char *method )
+*                        const char *method, int *status )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -3488,6 +3732,8 @@ static void OriginSystem( AstTimeFrame *this, AstSystemType oldsys,
 *        refers on entry. 
 *     method
 *        A string containing the method name for error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -3512,10 +3758,10 @@ static void OriginSystem( AstTimeFrame *this, AstSystemType oldsys,
 
 /* Create a Mapping to perform the System change. */
          ts = astGetTimeScale( this );
-         oldu = DefUnit( oldsys, method, "TimeFrame" ), 
-         newu = DefUnit( newsys, method, "TimeFrame" ), 
+         oldu = DefUnit( oldsys, method, "TimeFrame", status ), 
+         newu = DefUnit( newsys, method, "TimeFrame", status ), 
          map = MakeMap( this, oldsys, newsys, ts, ts, 0.0, 0.0, oldu, newu, 
-                        method );
+                        method, status );
 
 /* Use the Mapping to convert the stored TimeOrigin value. */
          if( map ) {
@@ -3531,14 +3777,14 @@ static void OriginSystem( AstTimeFrame *this, AstSystemType oldsys,
          } else if( astOK ) {
             astError( AST__INCTS, "%s(%s): Cannot convert the TimeOrigin "
                       "value to a different System because of incompatible "
-                      "time scales.", method, astGetClass( this ) );
+                      "time scales.", status, method, astGetClass( this ) );
          }
       }
    }
 }
 
 static void Overlay( AstFrame *template, const int *template_axes,
-                     AstFrame *result ) {
+                     AstFrame *result, int *status ) {
 /*
 *  Name:
 *     Overlay
@@ -3552,7 +3798,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
 *  Synopsis:
 *     #include "timeframe.h"
 *     void Overlay( AstFrame *template, const int *template_axes,
-*                   AstFrame *result )
+*                   AstFrame *result, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the protected astOverlay method
@@ -3590,6 +3836,8 @@ static void Overlay( AstFrame *template, const int *template_axes,
 *        axis, the corresponding element of this array should be set to -1.
 *     result
 *        Pointer to the Frame which is to receive the new attribute values.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3606,6 +3854,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
    const char *new_class;        /* Pointer to template class string */
    const char *old_class;        /* Pointer to result class string */
    const char *method;           /* Pointer to method string */
+   AstSystemType new_alignsystem;/* Code identifying new alignment coords */
    AstSystemType new_system;     /* Code identifying new cordinates */
    AstSystemType old_system;     /* Code identifying old coordinates */
    int resetSystem;              /* Was the template System value cleared? */
@@ -3640,21 +3889,28 @@ static void Overlay( AstFrame *template, const int *template_axes,
       }
 
 /* If the result Frame is not a TimeFrame, we must temporarily clear the
-   System value since the System values used by this class are only
+   System and AlignSystem values since the values used by this class are only
    appropriate to this class. */
    } else {
       if( astTestSystem( template ) ) {
          astClearSystem( template );
+
+         new_alignsystem = astGetAlignSystem( template );
+         astClearAlignSystem( template );
+
          resetSystem = 1;
       }
    }
 
 /* Invoke the parent class astOverlay method to transfer attributes inherited
    from the parent class. */
-   (*parent_overlay)( template, template_axes, result );
+   (*parent_overlay)( template, template_axes, result, status );
 
-/* Reset the System value if necessary */
-   if( resetSystem ) astSetSystem( template, new_system );
+/* Reset the System and AlignSystem values if necessary */
+   if( resetSystem ) {
+      astSetSystem( template, new_system );
+      astSetAlignSystem( template, new_alignsystem );
+   }
 
 /* Check if the result Frame is a TimeFrame or from a class derived from
    TimeFrame. If not, we cannot transfer TimeFrame attributes to it as it is
@@ -3673,8 +3929,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
    for SourceVel would be changed from the default SourceVRF to the specified
    SourceVRF when SourceVRF was overlayed. */
       OVERLAY(AlignTimeScale)
-      OVERLAY(ClockLat)
-      OVERLAY(ClockLon)
+      OVERLAY(LTOffset)
       OVERLAY(TimeOrigin)
       OVERLAY(TimeScale)
    }
@@ -3683,7 +3938,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
 #undef OVERLAY
 }
 
-static void SetAttrib( AstObject *this_object, const char *setting ) {
+static void SetAttrib( AstObject *this_object, const char *setting, int *status ) {
 /*
 *  Name:
 *     SetAttrib
@@ -3696,7 +3951,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     void SetAttrib( AstObject *this, const char *setting )
+*     void SetAttrib( AstObject *this, const char *setting, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (extends the astSetAttrib method inherited from
@@ -3721,6 +3976,8 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 *     setting
 *        Pointer to a null terminated string specifying the new attribute
 *        value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3738,14 +3995,11 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
    double dval;                  /* Double atribute value */
    double mjd;                   /* MJD read from setting */
    double origin;                /* TimeOrigin value */
-   int ival;                     /* Integer attribute value */
    int len;                      /* Length of setting string */
    int namelen;                  /* Length of attribute name in setting */
    int nc;                       /* Number of characters read by astSscanf */
-   int off2;                     /* Modified offset of attribute value */
    int off;                      /* Offset of attribute value */
    int rep;                      /* Original error reporting state */
-   int sign;                     /* Sign of longitude value */
    int ulen;                     /* Used length of setting string */
 
 /* Check the global error status. */
@@ -3788,7 +4042,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
          memcpy( a, "(1)", 4 );
          a += 3;
          strcpy( a, setting + namelen );
-         (*parent_setattrib)( this_object, new_setting );
+         (*parent_setattrib)( this_object, new_setting, status );
          new_setting = astFree( new_setting );
       }
 
@@ -3799,14 +4053,14 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
         && ( nc >= len ) ) {
 
 /* Convert the string to a TimeScale code before use. */
-      ts = TimeScaleCode( setting + off );
+      ts = TimeScaleCode( setting + off, status );
       if ( ts != AST__BADTS ) {
          astSetAlignTimeScale( this, ts );
 
 /* Report an error if the string value wasn't recognised. */
       } else {
          astError( AST__ATTIN, "astSetAttrib(%s): Invalid time scale "
-                   "description \"%s\".", astGetClass( this ), setting+off );
+                   "description \"%s\".", status, astGetClass( this ), setting+off );
       }
 
 /* ClockLat. */
@@ -3814,67 +4068,33 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
    } else if ( nc = 0,
               ( 0 == astSscanf( setting, "clocklat=%n%*s %n", &off, &nc ) )
               && ( nc >= 7 ) ) {
-
-/* If the first character in the value string is "N" or "S", remember the
-   sign of the value and skip over the sign character. Default is north
-   (+ve). */
-      off2 = off;
-      if( setting[ off ] == 'N' || setting[ off ] == 'n' ) {
-         off2++;
-         sign = +1;
-      } else if( setting[ off ] == 'S' || setting[ off ] == 's' ) {
-         off2++;
-         sign = -1;
-      } else {
-         sign = +1;
-      } 
-
-/* Convert the string to a radians value before use. */
-      ival = astUnformat( skyframe, 1, setting + off2, &dval );
-      if ( ival == ulen - off2  ) {
-         astSetClockLat( this, dval*sign );
-
-/* Report an error if the string value wasn't recognised. */
-      } else {
-         astError( AST__ATTIN, "astSetAttrib(%s): Invalid value for "
-                   "ClockLat (observers latitude) \"%s\".", astGetClass( this ), 
-                   setting + off );
-      }
+      new_setting = astMalloc( sizeof( char )*(size_t) len + 1 );
+      new_setting[ 0 ] = 'o';
+      new_setting[ 1 ] = 'b';
+      new_setting[ 2 ] = 's';
+      strcpy( new_setting + 3, setting + 5 );
+      astSetAttrib( this, new_setting );
+      new_setting = astFree( new_setting );
 
 /* ClockLon. */
 /* ------- */
    } else if ( nc = 0,
               ( 0 == astSscanf( setting, "clocklon=%n%*s %n", &off, &nc ) )
               && ( nc >= 7 ) ) {
+      new_setting = astMalloc( sizeof( char )*(size_t) len + 1 );
+      new_setting[ 0 ] = 'o';
+      new_setting[ 1 ] = 'b';
+      new_setting[ 2 ] = 's';
+      strcpy( new_setting + 3, setting + 5 );
+      astSetAttrib( this, new_setting );
+      new_setting = astFree( new_setting );
 
-/* If the first character in the value string is "E" or "W", remember the
-   sign of the value and skip over the sign character. Default is east
-   (+ve). */
-      off2 = off;
-      if( setting[ off ] == 'E' || setting[ off ] == 'e' ) {
-         off2++;
-         sign = +1;
-      } else if( setting[ off ] == 'W' || setting[ off ] == 'w' ) {
-         off2++;
-         sign = -1;
-      } else {
-         sign = +1;
-      } 
-
-/* Convert the string to a radians value before use (temporarily make the 
-   SkyFrame use degrees for longitude axis). */
-      astSetAsTime( skyframe, 0, 0 );
-      ival = astUnformat( skyframe, 0, setting + off2, &dval );
-      astSetAsTime( skyframe, 0, 1 );
-      if ( ival == ulen - off2  ) {
-         astSetClockLon( this, dval*sign );
-
-/* Report an error if the string value wasn't recognised. */
-      } else {
-         astError( AST__ATTIN, "astSetAttrib(%s): Invalid value for "
-                   "ClockLon (observers longitude) \"%s\".", astGetClass( this ), 
-                   setting + off );
-      }
+/* LTOffset */
+/* -------- */
+   } else if ( nc = 0,
+        ( 1 == astSscanf( setting, "ltoffset= %lg %n", &dval, &nc ) )
+        && ( nc >= len ) ) {
+      astSetLTOffset( this, dval );
 
 /* TimeOrigin */
 /* ---------- */
@@ -3886,7 +4106,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
         && ( nc >= len ) ) {
 
       astSetTimeOrigin( this, ToUnits( this, astGetUnit( this, 0 ), dval,
-                                       "astSetTimeOrigin" ) );
+                                       "astSetTimeOrigin", status ) );
 
 /* Floating-point with units. */
    } else if ( nc = 0,
@@ -3897,7 +4117,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
    with a floating point number, then convert the supplied value to the
    default units for the TimeFrame's System. */
       rep = astReporting( 0 );
-      origin = ToUnits( this, setting + off, dval, "astSetTimeOrigin" );
+      origin = ToUnits( this, setting + off, dval, "astSetTimeOrigin", status );
       if( !astOK ) astClearStatus;
       astReporting( rep );
 
@@ -3912,12 +4132,12 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
            && ( nc >= len ) ) {
          mjd = astReadDateTime( setting + off );
          if ( astOK ) {
-            astSetTimeOrigin( this, FromMJD( this, mjd ) );
+            astSetTimeOrigin( this, FromMJD( this, mjd, status ) );
 
 /* Report contextual information if the conversion failed. */
          } else {
             astError( AST__ATTIN, "astSetAttrib(%s): Invalid TimeOrigin value "
-                      "\"%s\" given.", astGetClass( this ), setting + off );
+                      "\"%s\" given.", status, astGetClass( this ), setting + off );
          }
       }
 
@@ -3928,12 +4148,12 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
         && ( nc >= len ) ) {
       mjd = astReadDateTime( setting + off );
       if ( astOK ) {
-         astSetTimeOrigin( this, FromMJD( this, mjd ) );
+         astSetTimeOrigin( this, FromMJD( this, mjd, status ) );
 
 /* Report contextual information if the conversion failed. */
       } else {
          astError( AST__ATTIN, "astSetAttrib(%s): Invalid TimeOrigin value "
-                   "\"%s\" given.", astGetClass( this ), setting + off );
+                   "\"%s\" given.", status, astGetClass( this ), setting + off );
       }
 
 /* TimeScale. */
@@ -3943,106 +4163,24 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
               && ( nc >= len ) ) {
 
 /* Convert the string to a TimeScale code before use. */
-      ts = TimeScaleCode( setting + off );
+      ts = TimeScaleCode( setting + off, status );
       if ( ts != AST__BADTS ) {
          astSetTimeScale( this, ts );
 
 /* Report an error if the string value wasn't recognised. */
       } else {
          astError( AST__ATTIN, "astSetAttrib(%s): Invalid time scale "
-                   "description \"%s\".", astGetClass( this ), setting + off );
+                   "description \"%s\".", status, astGetClass( this ), setting + off );
       }
 
 /* Pass any unrecognised setting to the parent method for further
    interpretation. */
    } else {
-      (*parent_setattrib)( this_object, setting );
+      (*parent_setattrib)( this_object, setting, status );
    }
 }
 
-static void SetMaxAxes( AstFrame *this_frame, int maxaxes ) {
-/*
-*  Name:
-*     SetMaxAxes
-
-*  Purpose:
-*     Set a value for the MaxAxes attribute of a TimeFrame.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "timeframe.h"
-*     void SetMaxAxes( AstFrame *this, int maxaxes )
-
-*  Class Membership:
-*     TimeFrame member function (over-rides the astSetMaxAxes method
-*     inherited from the Frame class).
-
-*  Description:
-*     This function sets the MaxAxes value for a TimeFrame to 1, which 
-*     is the only valid value for a TimeFrame, regardless of the value 
-*     supplied.
-
-*  Parameters:
-*     this
-*        Pointer to the TimeFrame.
-*     maxaxes
-*        The new value to be set (ignored).
-
-*  Returned Value:
-*     void.
-*/
-
-/* Check the global error status. */
-   if ( !astOK ) return;
-
-/* Use the parent astSetMaxAxes method to set a value of 1. */
-   (*parent_setmaxaxes)( this_frame, 1 );
-}
-
-static void SetMinAxes( AstFrame *this_frame, int minaxes ) {
-/*
-*  Name:
-*     SetMinAxes
-
-*  Purpose:
-*     Set a value for the MinAxes attribute of a TimeFrame.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "timeframe.h"
-*     void SetMinAxes( AstFrame *this, int minaxes )
-
-*  Class Membership:
-*     TimeFrame member function (over-rides the astSetMinAxes method
-*     inherited from the Frame class).
-
-*  Description:
-*     This function sets the MinAxes value for a TimeFrame to 1, which is 
-*     the only valid value for a TimeFrame, regardless of the value 
-*     supplied.
-
-*  Parameters:
-*     this
-*        Pointer to the TimeFrame.
-*     minaxes
-*        The new value to be set (ignored).
-
-*  Returned Value:
-*     void.
-*/
-
-/* Check the global error status. */
-   if ( !astOK ) return;
-
-/* Use the parent astSetMinAxes method to set a value of 1. */
-   (*parent_setminaxes)( this_frame, 1 );
-}
-
-static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
+static void SetSystem( AstFrame *this_frame, AstSystemType newsys, int *status ) {
 /*
 *  Name:
 *     SetSystem
@@ -4055,7 +4193,7 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     void SetSystem( AstFrame *this_frame, AstSystemType newsys )
+*     void SetSystem( AstFrame *this_frame, AstSystemType newsys, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astSetSystem protected
@@ -4069,6 +4207,8 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
 *        Pointer to the TimeFrame.
 *     newsys
 *        The new System value to be stored.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -4093,13 +4233,13 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
    oldsys = astGetSystem( this_frame );
 
 /* Use the parent SetSystem method to store the new System value. */
-   (*parent_setsystem)( this_frame, newsys );
+   (*parent_setsystem)( this_frame, newsys, status );
 
 /* If the system has changed... */
    if( oldsys != newsys ) {
 
 /* Modify the stored TimeOrigin. */
-      OriginSystem( this, oldsys, "astSetSystem" );
+      OriginSystem( this, oldsys, "astSetSystem", status );
 
 /* Clear all attributes which have system-specific defaults. */
       astClearLabel( this_frame, 0 );
@@ -4108,7 +4248,7 @@ static void SetSystem( AstFrame *this_frame, AstSystemType newsys ) {
    }
 }
 
-static void SetTimeScale( AstTimeFrame *this, AstTimeScaleType value ) {
+static void SetTimeScale( AstTimeFrame *this, AstTimeScaleType value, int *status ) {
 /*
 *+
 *  Name:
@@ -4146,7 +4286,7 @@ static void SetTimeScale( AstTimeFrame *this, AstTimeScaleType value ) {
 /* Verify the supplied timescale value */
    if( value < FIRST_TS || value > LAST_TS ) {
       astError( AST__ATTIN, "%s(%s): Bad value (%d) given for TimeScale "
-                "attribute.", "astSetTimeScale", astGetClass( this ), 
+                "attribute.", status, "astSetTimeScale", astGetClass( this ), 
                 (int) value );
 
 /* Report an error if System is set to BEPOCH and an in appropriate
@@ -4155,8 +4295,8 @@ static void SetTimeScale( AstTimeFrame *this, AstTimeScaleType value ) {
               value != AST__TT ) {
       astError( AST__ATTIN, "%s(%s): Supplied TimeScale (%s) cannot be "
                 "used because the %s represents Besselian Epoch which "
-                "is defined in terms of TT.", "astSetTimeScale",
-                astGetClass( this ), TimeScaleString( value ),
+                "is defined in terms of TT.", status, "astSetTimeScale",
+                astGetClass( this ), TimeScaleString( value, status ),
                 astGetClass( this ) );
 
 /* Otherwise set the new TimeScale */
@@ -4164,7 +4304,7 @@ static void SetTimeScale( AstTimeFrame *this, AstTimeScaleType value ) {
 
 /* Modify the TimeOrigin value stored in the TimeFrame structure to refer 
    to the new timescale. */
-      OriginScale( this, value, "astSetTimeScale" );
+      OriginScale( this, value, "astSetTimeScale", status );
 
 /* Store the new value for the timescale in the TimeFrame structure. */
       this->timescale = value;
@@ -4172,10 +4312,10 @@ static void SetTimeScale( AstTimeFrame *this, AstTimeScaleType value ) {
    }
 }
 
-static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
+static void SetUnit( AstFrame *this_frame, int axis, const char *value, int *status ) {
 /*
 *  Name:
-*     astSetUnit
+*     SetUnit
 
 *  Purpose:
 *     Set a pointer to the Unit string for a TimeFrame's axis.
@@ -4223,17 +4363,17 @@ static void SetUnit( AstFrame *this_frame, int axis, const char *value ) {
    if( astGetSystem( this ) == AST__BEPOCH && strcmp( "yr", value ) ) {
       astError( AST__ATTIN, "astSetUnit(%s): Supplied Unit (%s) cannot "
                 "be used because the %s represents Besselian Epoch which "
-                "is defined in units of years (yr).", astGetClass( this ),
+                "is defined in units of years (yr).", status, astGetClass( this ),
                 value, astGetClass( this ) );
 
 /* Otherwise use the parent SetUnit method to store the value in the Axis
    structure */
    } else {
-      (*parent_setunit)( this_frame, axis, value );
+      (*parent_setunit)( this_frame, axis, value, status );
    }
 }
 
-static AstTimeScaleType TimeScaleCode( const char *ts ) {
+static AstTimeScaleType TimeScaleCode( const char *ts, int *status ) {
 /*
 *  Name:
 *     TimeScaleCode
@@ -4313,13 +4453,16 @@ static AstTimeScaleType TimeScaleCode( const char *ts ) {
    } else if ( astChrMatch( "TCB", ts ) ) {
       result = AST__TCB;
 
+   } else if ( astChrMatch( "LT", ts ) ) {
+      result = AST__LT;
+
    }
 
 /* Return the result. */
    return result;
 }
 
-static const char *TimeScaleString( AstTimeScaleType ts ) {
+static const char *TimeScaleString( AstTimeScaleType ts, int *status ) {
 /*
 *  Name:
 *     TimeScaleString
@@ -4332,7 +4475,7 @@ static const char *TimeScaleString( AstTimeScaleType ts ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *TimeScaleString( AstTimeScaleType ts )
+*     const char *TimeScaleString( AstTimeScaleType ts, int *status )
 
 *  Class Membership:
 *     TimeFrame member function.
@@ -4345,6 +4488,8 @@ static const char *TimeScaleString( AstTimeScaleType ts ) {
 *  Parameters:
 *     ts
 *        The time scale type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -4411,6 +4556,10 @@ static const char *TimeScaleString( AstTimeScaleType ts ) {
       result = "TCG";
       break;
 
+   case AST__LT:
+      result = "LT";
+      break;
+
    }
 
 /* Return the result pointer. */
@@ -4420,7 +4569,7 @@ static const char *TimeScaleString( AstTimeScaleType ts ) {
 static int SubFrame( AstFrame *target_frame, AstFrame *template,
                      int result_naxes, const int *target_axes,
                      const int *template_axes, AstMapping **map,
-                     AstFrame **result ) {
+                     AstFrame **result, int *status ) {
 /*
 *  Name:
 *     SubFrame
@@ -4437,7 +4586,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *     int SubFrame( AstFrame *target, AstFrame *template,
 *                   int result_naxes, const int *target_axes,
 *                   const int *template_axes, AstMapping **map,
-*                   AstFrame **result )
+*                   AstFrame **result, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the protected astSubFrame 
@@ -4493,6 +4642,8 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *        transformation will convert in the opposite direction.
 *     result
 *        Address of a location to receive a pointer to the result Frame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if coordinate conversion is possible
@@ -4570,7 +4721,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    target. */
       } else {
          VerifyAttrs( target, "convert between different time systems", 
-                      "TimeScale", "astMatch" );
+                      "TimeScale", "astMatch", status );
          align_frm = astClone( target );
       }
 
@@ -4579,7 +4730,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    TimeFrame. If this Mapping can be generated, set "match" to indicate that
    coordinate conversion is possible. */
       match = ( MakeTimeMapping( target, (AstTimeFrame *) *result, 
-                align_frm, 0, map ) != 0 );
+                align_frm, 0, map, status ) != 0 );
 
 /* Free resources. */
       align_frm = astAnnul( align_frm );
@@ -4628,13 +4779,14 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 /* Clear attributes which have an extended range of values allowed by
    this class. */
       astClearSystem( temp );
+      astClearAlignSystem( temp );
 
 /* Invoke the astSubFrame method inherited from the Frame class to
    produce the result Frame by selecting the required set of axes and
    overlaying the template Frame's attributes. */
       match = (*parent_subframe)( (AstFrame *) temp, template,
                                   result_naxes, target_axes, template_axes,
-                                  map, result );
+                                  map, result, status );
 
 /* Delete the temporary copy of the target TimeFrame. */
       temp = astDelete( temp );
@@ -4656,7 +4808,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 #undef SET_AXIS
 }
 
-static AstSystemType SystemCode( AstFrame *this, const char *system ) {
+static AstSystemType SystemCode( AstFrame *this, const char *system, int *status ) {
 /*
 *  Name:
 *     SystemCode
@@ -4669,7 +4821,7 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     AstSystemType SystemCode( AstFrame *this, const char *system )
+*     AstSystemType SystemCode( AstFrame *this, const char *system, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astSystemCode method
@@ -4687,6 +4839,8 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
 *     system
 *        Pointer to a constant null-terminated string containing the
 *        external description of the sky coordinate system.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The System type code.
@@ -4729,7 +4883,7 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
    return result;
 }
 
-static const char *SystemLabel( AstSystemType system ) {
+static const char *SystemLabel( AstSystemType system, int *status ) {
 /*
 *  Name:
 *     SystemLabel
@@ -4742,7 +4896,7 @@ static const char *SystemLabel( AstSystemType system ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *SystemLabel( AstSystemType system )
+*     const char *SystemLabel( AstSystemType system, int *status )
 
 *  Class Membership:
 *     TimeFrame member function.
@@ -4754,6 +4908,8 @@ static const char *SystemLabel( AstSystemType system ) {
 *  Parameters:
 *     system
 *        The coordinate system type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -4802,7 +4958,7 @@ static const char *SystemLabel( AstSystemType system ) {
    return result;
 }
 
-static const char *SystemString( AstFrame *this, AstSystemType system ) {
+static const char *SystemString( AstFrame *this, AstSystemType system, int *status ) {
 /*
 *  Name:
 *     SystemString
@@ -4815,7 +4971,7 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     const char *SystemString( AstFrame *this, AstSystemType system )
+*     const char *SystemString( AstFrame *this, AstSystemType system, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astSystemString method
@@ -4831,6 +4987,8 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 *        The Frame.
 *     system
 *        The coordinate system type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -4879,7 +5037,7 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
    return result;
 }
 
-static int TestActiveUnit( AstFrame *this_frame ) {
+static int TestActiveUnit( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     TestActiveUnit
@@ -4892,7 +5050,7 @@ static int TestActiveUnit( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     int TestActiveUnit( AstFrame *this_frame ) 
+*     int TestActiveUnit( AstFrame *this_frame, int *status ) 
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astTestActiveUnit protected
@@ -4905,6 +5063,8 @@ static int TestActiveUnit( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the TimeFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The result of the test (0).
@@ -4913,7 +5073,7 @@ static int TestActiveUnit( AstFrame *this_frame ) {
    return 0;
 }
 
-static int TestAttrib( AstObject *this_object, const char *attrib ) {
+static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     TestAttrib
@@ -4926,7 +5086,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     int TestAttrib( AstObject *this, const char *attrib )
+*     int TestAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astTestAttrib protected
@@ -4943,6 +5103,8 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if a value has been set, otherwise zero.
@@ -4991,7 +5153,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
       if( new_attrib ) {
          memcpy( new_attrib, attrib, len );
          memcpy( new_attrib + len, "(1)", 4 ); 
-         result = (*parent_testattrib)( this_object, new_attrib );
+         result = (*parent_testattrib)( this_object, new_attrib, status );
          new_attrib = astFree( new_attrib );
       }
 
@@ -5003,12 +5165,17 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* ClockLat. */
 /* ------- */
    } else if ( !strcmp( attrib, "clocklat" ) ) {
-      result = astTestClockLat( this );
+      result = astTestAttrib( this, "obslat" );
 
 /* ClockLon. */
 /* ------- */
    } else if ( !strcmp( attrib, "clocklon" ) ) {
-      result = astTestClockLon( this );
+      result = astTestAttrib( this, "obslon" );
+
+/* LTOffset. */
+/* --------- */
+   } else if ( !strcmp( attrib, "ltoffset" ) ) {
+      result = astTestLTOffset( this );
 
 /* TimeOrigin. */
 /* --------- */
@@ -5023,14 +5190,14 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute is not recognised, pass it on to the parent method
    for further interpretation. */
    } else {
-      result = (*parent_testattrib)( this_object, attrib );
+      result = (*parent_testattrib)( this_object, attrib, status );
    }
 
 /* Return the result, */
    return result;
 }
 
-static double ToMJD( AstSystemType oldsys, double oldval ){
+static double ToMJD( AstSystemType oldsys, double oldval, int *status ){
 /*
 *  Name:
 *     ToMJD
@@ -5043,7 +5210,7 @@ static double ToMJD( AstSystemType oldsys, double oldval ){
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     double ToMJD( AstSystemType oldsys, double oldval ){
+*     double ToMJD( AstSystemType oldsys, double oldval, int *status ){
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -5058,6 +5225,8 @@ static double ToMJD( AstSystemType oldsys, double oldval ){
 *     oldval
 *        The value to convert, assumed to be in the default units
 *        associated with "oldsys".
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The MJD value corresponding to "oldval"
@@ -5085,7 +5254,7 @@ static double ToMJD( AstSystemType oldsys, double oldval ){
 /* Otherwise create a TimeMap wich converts from the TimeFrame system to
    MJD, and use it to transform the supplied value. */
    } else {
-      map = ToMJDMap( oldsys, 0.0 );
+      map = ToMJDMap( oldsys, 0.0, status );
 
 /* Use the TimeMap to convert the supplied value. */
       astTran1( map, 1, &oldval, 1, &result );
@@ -5099,7 +5268,7 @@ static double ToMJD( AstSystemType oldsys, double oldval ){
    return result;
 }
 
-static AstMapping *ToMJDMap( AstSystemType oldsys, double off ){
+static AstMapping *ToMJDMap( AstSystemType oldsys, double off, int *status ){
 /*
 *  Name:
 *     ToMJDMap
@@ -5112,7 +5281,7 @@ static AstMapping *ToMJDMap( AstSystemType oldsys, double off ){
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     AstMapping *ToMJDMap( AstSystemType oldsys, double off ){
+*     AstMapping *ToMJDMap( AstSystemType oldsys, double off, int *status ){
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -5127,6 +5296,8 @@ static AstMapping *ToMJDMap( AstSystemType oldsys, double off ){
 *     off
 *        The axis offset used with the old System, assumed to be in the
 *        default system associated with oldsys.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The Mapping.
@@ -5141,7 +5312,7 @@ static AstMapping *ToMJDMap( AstSystemType oldsys, double off ){
    if ( !astOK ) return NULL;
 
 /* Create a null TimeMap */
-   timemap = astTimeMap( 0, "" );
+   timemap = astTimeMap( 0, "", status );
 
 /* Set the offsets for the supplied and returned values. */
    args[ 0 ] = off;
@@ -5168,7 +5339,7 @@ static AstMapping *ToMJDMap( AstSystemType oldsys, double off ){
 }
 
 static double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
-                       const char *method ){
+                       const char *method, int *status ){
 /*
 *
 *  Name:
@@ -5183,7 +5354,7 @@ static double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
 *  Synopsis:
 *     #include "timeframe.h"
 *     double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
-*                     const char *method )
+*                     const char *method, int *status )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -5203,6 +5374,8 @@ static double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
 *     method
 *        Pointer to a string holding the name of the method to be
 *        included in any error messages. 
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The converted value.
@@ -5222,7 +5395,7 @@ static double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
 
 /* Get default units associated with the System attribute of the supplied
    TimeFrame, and find a Mapping from the old units to the default. */
-   defunit = DefUnit( astGetSystem( this ), method, "TimeFrame" );
+   defunit = DefUnit( astGetSystem( this ), method, "TimeFrame", status );
    map = astUnitMapper( oldunit, defunit, NULL, NULL );
    if( map ) {
 
@@ -5235,7 +5408,7 @@ static double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
 /* Report an error if no conversion is possible. */
    } else if( astOK ){
       astError( AST__BADUN, "%s(%s): Cannot convert the supplied attribute "
-                "value from units of %s to %s.", method, astGetClass( this ), 
+                "value from units of %s to %s.", status, method, astGetClass( this ), 
                  oldunit, defunit );
    }
 
@@ -5244,7 +5417,7 @@ static double ToUnits( AstTimeFrame *this, const char *oldunit, double oldval,
 }
 
 static int Unformat( AstFrame *this_frame, int axis, const char *string,
-                     double *value ) {
+                     double *value, int *status ) {
 /*
 *  Name:
 *     Unformat
@@ -5258,7 +5431,7 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
 *  Synopsis:
 *     #include "timeframe.h"
 *     int Unformat( AstFrame *this, int axis, const char *string,
-*                   double *value )
+*                   double *value, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the public astUnformat
@@ -5283,6 +5456,8 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
 *     value
 *        Pointer to a double in which the coordinate value read will
 *        be returned.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The number of characters read from the string to obtain the
@@ -5340,14 +5515,14 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
    attribute if it has been set to a date format, since the parent Frame 
    class does not understand date format.*/
    txt = astGetFormat( this, axis );
-   if( DateFormat( txt, &ndp ) ) {
+   if( DateFormat( txt, &ndp, status ) ) {
        old_fmt = astStore( NULL, txt, strlen( txt ) + 1 );
        astClearFormat( this, axis );
    } else {
        old_fmt = NULL;
    }
 
-   nc1 = (*parent_unformat)( this_frame, axis, string, &val1 );
+   nc1 = (*parent_unformat)( this_frame, axis, string, &val1, status );
 
 /* Re-instate the original Format */
    if( old_fmt ) {
@@ -5420,15 +5595,15 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
 /* Create the Mapping and use it to transform the mjd value. */
       map = MakeMap( this, AST__MJD, astGetSystem( this ), ts1, ts2, 
                      0.0, astGetTimeOrigin( this ), "d", 
-                     astGetUnit( this, 0 ), "astFormat" );
+                     astGetUnit( this, 0 ), "astFormat", status );
       if( map ) {
          astTran1( map, 1, &mjd, 1, value );
          map = astAnnul( map );
       } else {
          astError( AST__INCTS, "astUnformat(%s): Cannot convert the "
                 "supplied date/time string (%s) to the required "
-                "timescale (%s).", astGetClass( this ), string, 
-                TimeScaleString( ts2 ) );
+                "timescale (%s).", status, astGetClass( this ), string, 
+                TimeScaleString( ts2, status ) );
       }        
    }
 
@@ -5436,7 +5611,7 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
    return nc;
 }
 
-static int ValidateSystem( AstFrame *this, AstSystemType system, const char *method ) {
+static int ValidateSystem( AstFrame *this, AstSystemType system, const char *method, int *status ) {
 /*
 *
 *  Name:
@@ -5451,7 +5626,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *  Synopsis:
 *     #include "timeframe.h"
 *     int ValidateSystem( AstFrame *this, AstSystemType system, 
-*                         const char *method )
+*                         const char *method, int *status )
 
 *  Class Membership:
 *     TimeFrame member function (over-rides the astValidateSystem method
@@ -5472,6 +5647,8 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *        containing the name of the method that invoked this function
 *        to validate an axis index. This method name is used solely
 *        for constructing error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The validated system value.
@@ -5494,7 +5671,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 /* If the value is out of bounds, report an error. */
    if ( system < FIRST_SYSTEM || system > LAST_SYSTEM ) {
          astError( AST__AXIIN, "%s(%s): Bad value (%d) given for the System "
-                   "attribute of a %s.", method, astGetClass( this ),
+                   "attribute of a %s.", status, method, astGetClass( this ),
                    (int) system, astGetClass( this ) );
 
 /* Otherwise, return the supplied value. */
@@ -5507,7 +5684,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 }
 
 static void VerifyAttrs( AstTimeFrame *this, const char *purp, 
-                         const char *attrs, const char *method ) {
+                         const char *attrs, const char *method, int *status ) {
 /*
 *  Name:
 *     VerifyAttrs
@@ -5521,7 +5698,7 @@ static void VerifyAttrs( AstTimeFrame *this, const char *purp,
 *  Synopsis:
 *     #include "timeframe.h"
 *     void VerifyAttrs( AstTimeFrame *this, const char *purp, 
-*                       const char *attrs, const char *method  )
+*                       const char *attrs, const char *method, int *status  )
 
 *  Class Membership:
 *     TimeFrame member function 
@@ -5547,6 +5724,8 @@ static void VerifyAttrs( AstTimeFrame *this, const char *purp,
 *     method
 *        A string holding the name of the calling method for use in error
 *        messages.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -5560,6 +5739,12 @@ static void VerifyAttrs( AstTimeFrame *this, const char *purp,
 
 /* Check inherited status */
    if( !astOK ) return;
+
+/* Stop compiler warnings about uninitialised variables */
+   a = NULL;
+   desc = NULL;
+   len = 0;
+   set = 0;
 
 /* If the TimeFrame has a non-zero value for its UseDefs attribute, then
    all attributes are assumed to have usable values, since the defaults 
@@ -5586,17 +5771,25 @@ static void VerifyAttrs( AstTimeFrame *this, const char *purp,
    value, and a string describing the attribute.*/
                if( len > 0 ) {
 
-                  if( !strncmp( "ClockLat", a, len ) ) {
-                     set = astTestClockLat( this );
+                  if( !strncmp( "ObsLat", a, len ) ) {
+                     set = astTestObsLat( this );
                      desc = "clock latitude";
 
-                  } else if( !strncmp( "ClockLon", a, len ) ) {
-                     set = astTestClockLon( this );
+                  } else if( !strncmp( "ObsLon", a, len ) ) {
+                     set = astTestObsLon( this );
                      desc = "clock longitude";
+
+                  } else if( !strncmp( "Dut1", a, len ) ) {
+                     set = astTestDut1( this );
+                     desc = "UT1-UTC correction";
 
                   } else if( !strncmp( "TimeOrigin", a, len ) ) {
                      set = astTestTimeOrigin( this );
                      desc = "time offset";
+
+                  } else if( !strncmp( "LTOffset", a, len ) ) {
+                     set = astTestLTOffset( this );
+                     desc = "local time offset";
 
                   } else if( !strncmp( "TimeScale", a, len ) ) {
                      set = astTestTimeScale( this );
@@ -5605,15 +5798,15 @@ static void VerifyAttrs( AstTimeFrame *this, const char *purp,
                   } else {
                      astError( AST__INTER, "VerifyAttrs(TimeFrame): "
                                "Unknown attribute name \"%.*s\" supplied (AST "
-                               "internal programming error).", len, a );
+                               "internal programming error).", status, len, a );
                   }
 
 /* If the attribute does not have a set value, report an error. */
                   if( !set && astOK ) {
-                     astError( AST__NOVAL, "%s(%s): Cannot %s.", method,
+                     astError( AST__NOVAL, "%s(%s): Cannot %s.", status, method,
                                astGetClass( this ), purp );
                      astError( AST__NOVAL, "No value has been set for "
-                               "the AST \"%.*s\" attribute (%s).", len, a,
+                               "the AST \"%.*s\" attribute (%s).", status, len, a,
                                desc );
                   }
 
@@ -5632,92 +5825,6 @@ static void VerifyAttrs( AstTimeFrame *this, const char *purp,
 
 /* Functions which access class attributes. */
 /* ---------------------------------------- */
-/*
-*att++
-*  Name:
-*     ClockLat
-
-*  Purpose:
-*     The geodetic latitude of the observer/clock
-
-*  Type:
-*     Public attribute.
-
-*  Synopsis:
-*     String.
-
-*  Description:
-*     This attribute specifies the geodetic latitude of the observer's
-*     clock, in degrees. It is used only when converting between certain
-*     time scales (TDB, TCB, LMST, LAST). The default value for the attribute 
-*     is zero. 
-
-*     The value is stored internally in radians, but is converted to and 
-*     from a degrees string for access. Some example input formats are: 
-*     "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
-*     "-45.6", "S45.6". As indicated, the sign of the latitude can 
-*     optionally be indicated using characters "N" and "S" in place of the 
-*     usual "+" and "-". When converting the stored value to a string, the 
-*     format "[s]dd:mm:ss" is used, when "[s]" is "N" or "S".
-
-*  Applicability:
-*     TimeFrame
-*        All TimeFrames have this attribute.
-
-*att--
-*/
-/* The geodetic latitude of the observer (radians). Clear the ClockLat value by
-   setting it to AST__BAD, returning zero as the default value. Any value is 
-   acceptable. */
-astMAKE_CLEAR(TimeFrame,ClockLat,clocklat,AST__BAD)
-astMAKE_GET(TimeFrame,ClockLat,double,0.0,((this->clocklat!=AST__BAD)?this->clocklat:0.0))
-astMAKE_SET(TimeFrame,ClockLat,double,clocklat,value)
-astMAKE_TEST(TimeFrame,ClockLat,(this->clocklat!=AST__BAD))
-
-
-/*
-*att++
-*  Name:
-*     ClockLon
-
-*  Purpose:
-*     The geodetic longitude of the observer/clock
-
-*  Type:
-*     Public attribute.
-
-*  Synopsis:
-*     String.
-
-*  Description:
-*     This attribute specifies the geodetic (or equivalently, geocentric)
-*     longitude of the observer's clock, in degrees, measured positive 
-*     eastwards. It is used only when converting between certain time 
-*     scales (TDB, TCB, LMST, LAST). See also attribute ClockLat. The default 
-*     value is zero.
-*
-*     The value is stored internally in radians, but is converted to and 
-*     from a degrees string for access. Some example input formats are: 
-*     "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
-*     "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
-*     optionally be indicated using characters "E" and "W" in place of the 
-*     usual "+" and "-". When converting the stored value to a string, the 
-*     format "[s]ddd:mm:ss" is used, when "[s]" is "E" or "W" and the 
-*     numerical value is chosen to be less than 180 degrees.
-
-*  Applicability:
-*     TimeFrame
-*        All TimeFrames have this attribute.
-
-*att--
-*/
-/* The geodetic longitude of the observer (radians). Clear the ClockLon value by 
-   setting it to AST__BAD, returning zero as the default value. Any value is 
-   acceptable. */
-astMAKE_CLEAR(TimeFrame,ClockLon,clocklon,AST__BAD)
-astMAKE_GET(TimeFrame,ClockLon,double,0.0,((this->clocklon!=AST__BAD)?this->clocklon:0.0))
-astMAKE_SET(TimeFrame,ClockLon,double,clocklon,value)
-astMAKE_TEST(TimeFrame,ClockLon,(this->clocklon!=AST__BAD))
 
 /*
 *att++
@@ -5801,6 +5908,37 @@ astMAKE_TEST(TimeFrame,TimeOrigin,( this->timeorigin != AST__BAD ))
 /*
 *att++
 *  Name:
+*     LTOffset
+
+*  Purpose:
+*     The offset from UTC to Local Time, in hours.
+
+*  Type:
+*     Public attribute.
+
+*  Synopsis:
+*     Floating point.
+
+*  Description:
+*     This specifies the offset from UTC to Local Time, in hours (fractional 
+*     hours can be supplied). It is positive for time zones east of Greenwich. 
+*     AST uses the figure as given, without making any attempt to correct for 
+*     daylight saving. The default value is zero.
+
+*  Applicability:
+*     TimeFrame
+*        All TimeFrames have this attribute.
+
+*att--
+*/
+astMAKE_CLEAR(TimeFrame,LTOffset,ltoffset,AST__BAD)
+astMAKE_GET(TimeFrame,LTOffset,double,0.0,((this->ltoffset!=AST__BAD)?this->ltoffset:0.0))
+astMAKE_SET(TimeFrame,LTOffset,double,ltoffset,value)
+astMAKE_TEST(TimeFrame,LTOffset,( this->ltoffset != AST__BAD ))
+
+/*
+*att++
+*  Name:
 *     AlignTimeScale
 
 *  Purpose:
@@ -5854,7 +5992,7 @@ astMAKE_SET(TimeFrame,AlignTimeScale,AstTimeScaleType,aligntimescale,(
             ( ( value >= FIRST_TS ) && ( value <= LAST_TS ) ) ?
                  value :
                  ( astError( AST__ATTIN, "%s(%s): Bad value (%d) "
-                             "given for AlignTimeScale attribute.",
+                             "given for AlignTimeScale attribute.", status,
                              "astSetAlignTimeScale", astGetClass( this ), (int) value ),
 
 /* Leave the value unchanged on error. */
@@ -5877,12 +6015,7 @@ astMAKE_SET(TimeFrame,AlignTimeScale,AstTimeScaleType,aligntimescale,(
 *  Description:
 *     This attribute identifies the time scale to which the time axis values 
 *     of a TimeFrame refer, and may take any of the values listed in the 
-*     "Time Scales" section (below). Note, conversions which require 
-*     knowledge of DUT1 (the difference between UT1 and UTC) are not currently
-*     supported. This means that UT1 can only be converted to the other 
-*     angle-based scales such as GMST, LMST and LAST. An error will be reported
-*     about "incompatible timescales" if an attempt is made to convert
-*     between an angle-based timescale and any of the other time scales.
+*     "Time Scales" section (below).
 *
 *     The default TimeScale value depends on the current System value; if
 *     the current TimeFrame system is "Besselian epoch" the default is
@@ -5890,6 +6023,17 @@ astMAKE_SET(TimeFrame,AlignTimeScale,AstTimeScaleType,aligntimescale,(
 *     so that the TimeFrame represents Besselian Epoch, then an error
 *     will be reported if an attempt is made to set the TimeScale to 
 *     anything other than TT.
+* 
+*     Note, the supported time scales fall into two groups. The first group 
+*     containing  UT1, GMST, LAST and LMST define time in terms of the 
+*     orientation of the earth. The second group (containing all the remaining
+*     time scales) define time in terms of an atomic process. Since the rate of 
+*     rotation of the earth varies in an unpredictable way, conversion between 
+*     two timescales in different groups relies on a value being supplied for 
+*     the Dut1 attribute (defined by the parent Frame class). This attribute 
+*     specifies the difference between the UT1 and UTC time scales, in seconds,
+*     and defaults to zero. See the documentation for the Dut1 attribute for 
+*     further details. 
 
 *  Applicability:
 *     TimeFrame
@@ -5909,6 +6053,7 @@ astMAKE_SET(TimeFrame,AlignTimeScale,AstTimeScaleType,aligntimescale,(
 *     - "TDB" - Barycentric Dynamical Time
 *     - "TCB" - Barycentric Coordinate Time
 *     - "TCG" - Geocentric Coordinate Time
+*     - "LT" - Local Time (the offset from UTC is given by attribute LTOffset)
 *
 *     An very informative description of these and other time scales is
 *     available at http://www.ucolick.org/~sla/leapsecs/timescales.html.
@@ -5940,7 +6085,7 @@ astMAKE_TEST(TimeFrame,TimeScale,( this->timescale != AST__BADTS ))
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -5952,7 +6097,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -5963,6 +6108,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the TimeFrame whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -5996,21 +6143,21 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 
 /* TimeScale. */
 /* ---------- */
-   set = TestTimeScale( this );
-   ts = set ? GetTimeScale( this ) : astGetTimeScale( this );
+   set = TestTimeScale( this, status );
+   ts = set ? GetTimeScale( this, status ) : astGetTimeScale( this );
 
 /* If set, convert explicitly to a string for the external
    representation. */
    sval = "";
    if ( set ) {
       if ( astOK ) {
-         sval = TimeScaleString( ts );
+         sval = TimeScaleString( ts, status );
 
 /* Report an error if the TimeScale value was not recognised. */
          if ( !sval ) {
             astError( AST__SCSIN,
                      "%s(%s): Corrupt %s contains invalid time scale "
-                     "identification code (%d).", "astWrite", 
+                     "identification code (%d).", status, "astWrite", 
                      astGetClass( channel ), astGetClass( this ), (int) ts );
          }
       }
@@ -6026,19 +6173,19 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 
 /* AlignTimeScale. */
 /* --------------- */
-   set = TestAlignTimeScale( this );
-   ts = set ? GetAlignTimeScale( this ) : astGetAlignTimeScale( this );
+   set = TestAlignTimeScale( this, status );
+   ts = set ? GetAlignTimeScale( this, status ) : astGetAlignTimeScale( this );
 
 /* If set, convert explicitly to a string for the external representation. */
    if ( set ) {
       if ( astOK ) {
-         sval = TimeScaleString( ts );
+         sval = TimeScaleString( ts, status );
 
 /* Report an error if the TimeScale value was not recognised. */
          if ( !sval ) {
             astError( AST__SCSIN,
                      "%s(%s): Corrupt %s contains invalid alignment time "
-                     "scale identification code (%d).", "astWrite", 
+                     "scale identification code (%d).", status, "astWrite", 
                      astGetClass( channel ), astGetClass( this ), (int) ts );
          }
       }
@@ -6052,23 +6199,17 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* Write out the value. */
    astWriteString( channel, "ATmScl", set, 0, sval, "Alignment time scale" );
 
-/* ClockLat. */
-/* --------- */
-   set = TestClockLat( this );
-   dval = set ? GetClockLat( this ) : astGetClockLat( this );
-   astWriteDouble( channel, "ClLat", set, 0, dval, "Observers geodetic latitude (rads)" );
-
-/* ClockLon. */
-/* --------- */
-   set = TestClockLon( this );
-   dval = set ? GetClockLon( this ) : astGetClockLon( this );
-   astWriteDouble( channel, "ClLon", set, 0, dval, "Observers geodetic longitude (rads)" );
-
 /* TimeOrigin. */
 /* ----------- */
-   set = TestTimeOrigin( this );
-   dval = set ? GetTimeOrigin( this ) : astGetTimeOrigin( this );
+   set = TestTimeOrigin( this, status );
+   dval = set ? GetTimeOrigin( this, status ) : astGetTimeOrigin( this );
    astWriteDouble( channel, "TmOrg", set, 0, dval, "Time offset" );
+
+/* LTOffset. */
+/* --------- */
+   set = TestLTOffset( this, status );
+   dval = set ? GetLTOffset( this, status ) : astGetLTOffset( this );
+   astWriteDouble( channel, "LTOff", set, 0, dval, "Local Time offset from UTC" );
 
 }
 
@@ -6076,10 +6217,10 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsATimeFrame and astCheckTimeFrame functions using the 
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(TimeFrame,Frame,check,&class_init)
+astMAKE_ISA(TimeFrame,Frame,check,&class_check)
 astMAKE_CHECK(TimeFrame)
 
-AstTimeFrame *astTimeFrame_( const char *options, ... ) {
+AstTimeFrame *astTimeFrame_( const char *options, int *status, ...) {
 /*
 *+
 *  Name:
@@ -6093,7 +6234,7 @@ AstTimeFrame *astTimeFrame_( const char *options, ... ) {
 
 *  Synopsis:
 *     #include "timeframe.h"
-*     AstTimeFrame *astTimeFrame( const char *options, ... )
+*     AstTimeFrame *astTimeFrame( const char *options, int *status, ... )
 
 *  Class Membership:
 *     TimeFrame constructor.
@@ -6109,6 +6250,8 @@ AstTimeFrame *astTimeFrame_( const char *options, ... ) {
 *        initialising the new TimeFrame. The syntax used is the same as for the
 *        astSet method and may include "printf" format specifiers identified
 *        by "%" symbols in the normal way.
+*     status
+*        Pointer to the inherited status variable.
 *     ...
 *        If the "options" string contains "%" format specifiers, then an
 *        optional list of arguments may follow it in order to supply values to
@@ -6131,11 +6274,15 @@ AstTimeFrame *astTimeFrame_( const char *options, ... ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstMapping *um;               /* Mapping from default to actual units */
    AstTimeFrame *new;            /* Pointer to new TimeFrame */
    AstSystemType s;              /* System */
    const char *u;                /* Units string */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -6151,20 +6298,20 @@ AstTimeFrame *astTimeFrame_( const char *options, ... ) {
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new TimeFrame's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* Check the Units are appropriate for the System. */
       u = astGetUnit( new, 0 );
       s = astGetSystem( new );
-      um = astUnitMapper( DefUnit( s, "astTimeFrame", "TimeFrame" ), 
+      um = astUnitMapper( DefUnit( s, "astTimeFrame", "TimeFrame", status ), 
                           u, NULL, NULL );
       if( um ) {
          um = astAnnul( um );
       } else {
          astError( AST__BADUN, "astTimeFrame: Inappropriate units (%s) "
-                   "specified for a %s axis.", u, SystemLabel( s ) );
+                   "specified for a %s axis.", status, u, SystemLabel( s, status ) );
       }      
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -6176,7 +6323,7 @@ AstTimeFrame *astTimeFrame_( const char *options, ... ) {
 }
 
 AstTimeFrame *astInitTimeFrame_( void *mem, size_t size, int init,
-                                 AstTimeFrameVtab *vtab, const char *name ) {
+                                 AstTimeFrameVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -6261,9 +6408,8 @@ AstTimeFrame *astInitTimeFrame_( void *mem, size_t size, int init,
 /* Initialise the TimeFrame data. */
 /* ----------------------------- */
 /* Initialise all attributes to their "undefined" values. */
-      new->clocklat = AST__BAD;
-      new->clocklon = AST__BAD;
       new->timeorigin = AST__BAD;
+      new->ltoffset = AST__BAD;
       new->timescale = AST__BADTS;
       new->aligntimescale = AST__BADTS;
 
@@ -6278,7 +6424,7 @@ AstTimeFrame *astInitTimeFrame_( void *mem, size_t size, int init,
 
 AstTimeFrame *astLoadTimeFrame_( void *mem, size_t size,
                                  AstTimeFrameVtab *vtab, 
-                                 const char *name, AstChannel *channel ) {
+                                 const char *name, AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -6348,8 +6494,14 @@ AstTimeFrame *astLoadTimeFrame_( void *mem, size_t size,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstTimeFrame *new;            /* Pointer to the new TimeFrame */
    char *sval;                   /* Pointer to string value */
+   double obslat;                /* Value for ObsLat attribute */
+   double obslon;                /* Value for ObsLon attribute */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
 
 /* Initialise. */
    new = NULL;
@@ -6403,13 +6555,13 @@ AstTimeFrame *astLoadTimeFrame_( void *mem, size_t size,
 /* If a value was read, convert from a string to a TimeScale code. */
        if ( sval ) {
           if ( astOK ) {
-             new->timescale = TimeScaleCode( sval );
+             new->timescale = TimeScaleCode( sval, status );
 
 /* Report an error if the value wasn't recognised. */
              if ( new->timescale == AST__BADTS ) {
                 astError( AST__ATTIN,
                           "astRead(%s): Invalid time scale description "
-                          "\"%s\".", astGetClass( channel ), sval );
+                          "\"%s\".", status, astGetClass( channel ), sval );
              }
           }
 
@@ -6426,13 +6578,13 @@ AstTimeFrame *astLoadTimeFrame_( void *mem, size_t size,
 /* If a value was read, convert from a string to a TimeScale code. */
        if ( sval ) {
           if ( astOK ) {
-             new->aligntimescale = TimeScaleCode( sval );
+             new->aligntimescale = TimeScaleCode( sval, status );
 
 /* Report an error if the value wasn't recognised. */
              if ( new->aligntimescale == AST__BADTS ) {
                 astError( AST__ATTIN,
                           "astRead(%s): Invalid alignment time scale "
-                          "description \"%s\".", astGetClass( channel ), sval );
+                          "description \"%s\".", status, astGetClass( channel ), sval );
              }
           }
 
@@ -6441,19 +6593,32 @@ AstTimeFrame *astLoadTimeFrame_( void *mem, size_t size,
        }
 
 /* ClockLat. */
-/* ------- */
-      new->clocklat = astReadDouble( channel, "cllat", AST__BAD );
-      if ( TestClockLat( new ) ) SetClockLat( new, new->clocklat );
+/* --------- */
+/* Retained for backward compatibility with older versions of AST in
+   which TimeFrame had a ClockLat attribute (now ObsLat is used instead). */
+      if( !astTestObsLat( new ) ) {
+         obslat = astReadDouble( channel, "cllat", AST__BAD );
+         if ( obslat != AST__BAD ) astSetObsLat( new, obslat );
+      }
 
 /* ClockLon. */
 /* ------- */
-      new->clocklon = astReadDouble( channel, "cllon", AST__BAD );
-      if ( TestClockLon( new ) ) SetClockLon( new, new->clocklon );
+/* Retained for backward compatibility with older versions of AST in
+   which TimeFrame had a ClockLon attribute (now ObsLon is used instead). */
+      if( !astTestObsLon( new ) ) {
+         obslon = astReadDouble( channel, "cllon", AST__BAD );
+         if ( obslon != AST__BAD ) astSetObsLon( new, obslon );
+      }
 
 /* TimeOrigin. */
 /* --------- */
       new->timeorigin = astReadDouble( channel, "tmorg", AST__BAD );
-      if ( TestTimeOrigin( new ) ) SetTimeOrigin( new, new->timeorigin );
+      if ( TestTimeOrigin( new, status ) ) SetTimeOrigin( new, new->timeorigin, status );
+
+/* LTOffset. */
+/* --------- */
+      new->ltoffset = astReadDouble( channel, "ltoff", AST__BAD );
+      if ( TestLTOffset( new, status ) ) SetLTOffset( new, new->ltoffset, status );
 
 /* If an error occurred, clean up by deleting the new TimeFrame. */
       if ( !astOK ) new = astDelete( new );
@@ -6475,29 +6640,29 @@ AstTimeFrame *astLoadTimeFrame_( void *mem, size_t size,
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
 
-void astSetTimeScale_( AstTimeFrame *this, AstTimeScaleType value ){
+void astSetTimeScale_( AstTimeFrame *this, AstTimeScaleType value, int *status ){
    if ( !astOK ) return;
-   (**astMEMBER(this,TimeFrame,SetTimeScale))(this,value);
+   (**astMEMBER(this,TimeFrame,SetTimeScale))(this,value, status );
 }
 
-void astClearTimeScale_( AstTimeFrame *this ){
+void astClearTimeScale_( AstTimeFrame *this, int *status ){
    if ( !astOK ) return;
-   (**astMEMBER(this,TimeFrame,ClearTimeScale))(this);
+   (**astMEMBER(this,TimeFrame,ClearTimeScale))(this, status );
 }
 
-AstTimeScaleType astGetAlignTimeScale_( AstTimeFrame *this ) {
+AstTimeScaleType astGetAlignTimeScale_( AstTimeFrame *this, int *status ) {
    if ( !astOK ) return AST__BADTS;
-   return (**astMEMBER(this,TimeFrame,GetAlignTimeScale))(this);
+   return (**astMEMBER(this,TimeFrame,GetAlignTimeScale))(this, status );
 }
 
-AstTimeScaleType astGetTimeScale_( AstTimeFrame *this ) {
+AstTimeScaleType astGetTimeScale_( AstTimeFrame *this, int *status ) {
    if ( !astOK ) return AST__BADTS;
-   return (**astMEMBER(this,TimeFrame,GetTimeScale))(this);
+   return (**astMEMBER(this,TimeFrame,GetTimeScale))(this, status );
 }
 
-double astCurrentTime_( AstTimeFrame *this ){
+double astCurrentTime_( AstTimeFrame *this, int *status ){
    if ( !astOK ) return AST__BAD;
-   return (**astMEMBER(this,TimeFrame,CurrentTime))(this);
+   return (**astMEMBER(this,TimeFrame,CurrentTime))(this, status );
 }
    
 
@@ -6632,11 +6797,20 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstMapping *um;               /* Mapping from default to actual units */
    AstTimeFrame *new;            /* Pointer to new TimeFrame */
    AstSystemType s;              /* System */
    const char *u;                /* Units string */
-   va_list args;                 /* Variable argument list */
+   va_list args;                 /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -6653,19 +6827,19 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new TimeFrame's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* Check the Units are appropriate for the System. */
       u = astGetUnit( new, 0 );
       s = astGetSystem( new );
-      um = astUnitMapper( DefUnit( s, "astTimeFrame", "TimeFrame" ), 
+      um = astUnitMapper( DefUnit( s, "astTimeFrame", "TimeFrame", status ), 
                           u, NULL, NULL );
       if( um ) {
          um = astAnnul( um );
       } else {
          astError( AST__BADUN, "astTimeFrame: Inappropriate units (%s) "
-                   "specified for a %s axis.", u, SystemLabel( s ) );
+                   "specified for a %s axis.", status, u, SystemLabel( s, status ) );
       }      
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -6675,6 +6849,11 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Return an ID value for the new TimeFrame. */
    return astMakeId( new );
 }
+
+
+
+
+
 
 
 

@@ -29,7 +29,24 @@ f     The StcSearchLocation class does not define any new routines beyond those
 *     which are applicable to all Stcs.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -51,6 +68,8 @@ f     The StcSearchLocation class does not define any new routines beyond those
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -72,10 +91,37 @@ f     The StcSearchLocation class does not define any new routines beyond those
 
 /* Module Variables. */
 /* ================= */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
+
+
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(StcSearchLocation)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(StcSearchLocation,Class_Init)
+#define class_vtab astGLOBAL(StcSearchLocation,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
 /* Define the class virtual function table and its initialisation flag
    as static variables. */
-static AstStcSearchLocationVtab class_vtab;  /* Virtual function table */
-static int class_init = 0;         /* Virtual function table initialised? */
+static AstStcSearchLocationVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -86,12 +132,12 @@ AstStcSearchLocation *astStcSearchLocationId_( void *, int, AstKeyMap **, const 
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static void Dump( AstObject *, AstChannel * );
+static void Dump( AstObject *, AstChannel *, int * );
 
 /* Member functions. */
 /* ================= */
 
-void astInitStcSearchLocationVtab_( AstStcSearchLocationVtab *vtab, const char *name ) {
+void astInitStcSearchLocationVtab_( AstStcSearchLocationVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -128,11 +174,15 @@ void astInitStcSearchLocationVtab_( AstStcSearchLocationVtab *vtab, const char *
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstMappingVtab *mapping;  /* Pointer to Mapping component of Vtab */
    AstStcVtab *stc;          /* Pointer to Stc component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -141,8 +191,8 @@ void astInitStcSearchLocationVtab_( AstStcSearchLocationVtab *vtab, const char *
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAStcSearchLocation) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -160,6 +210,11 @@ void astInitStcSearchLocationVtab_( AstStcSearchLocationVtab *vtab, const char *
 /* Declare the copy constructor, destructor and class dump
    functions. */
    astSetDump( vtab, Dump, "StcSearchLocation", "Query coverage" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
 /* Functions which access class attributes. */
@@ -179,7 +234,7 @@ void astInitStcSearchLocationVtab_( AstStcSearchLocationVtab *vtab, const char *
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -191,7 +246,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -202,6 +257,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the StcSearchLocation whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -236,11 +293,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAStcSearchLocation and astCheckStcSearchLocation functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(StcSearchLocation,Stc,check,&class_init)
+astMAKE_ISA(StcSearchLocation,Stc,check,&class_check)
 astMAKE_CHECK(StcSearchLocation)
 
 AstStcSearchLocation *astStcSearchLocation_( void *region_void, int ncoords, 
-                               AstKeyMap **coords, const char *options, ... ) {
+                               AstKeyMap **coords, const char *options, int *status, ...) {
 /*
 *++
 *  Name:
@@ -334,13 +391,24 @@ f     AST_STCSEARCHLOCATION = INTEGER
 c     function is invoked with the AST error status set, or if it
 f     function is invoked with STATUS set to an error value, or if it
 *     should fail for any reason.
+
+*  Status Handling:
+*     The protected interface to this function includes an extra
+*     parameter at the end of the parameter list descirbed above. This
+*     parameter is a pointer to the integer inherited status
+*     variable: "int *status".
+
 *--
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstRegion *region;            /* Pointer to Region structure */
    AstStcSearchLocation *new;    /* Pointer to new StcSearchLocation */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -361,8 +429,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new StcSearchLocation's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -414,22 +482,45 @@ AstStcSearchLocation *astStcSearchLocationId_( void *region_void, int ncoords,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstKeyMap **keymaps;            /* Pointer to array of KeyMap pointers */
    AstRegion *region;              /* Pointer to Region structure */
    AstStcSearchLocation *new;      /* Pointer to new StcSearchLocation */
-   va_list args;                   /* Variable argument list */
+   int icoord;                     /* Keymap index */
+   va_list args;                   /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
 
 /* Obtain a Region pointer from the supplied ID and validate the
    pointer to ensure it identifies a valid Region. */
-   region = astCheckRegion( astMakePointer( region_void ) );
+   region = astVerifyRegion( astMakePointer( region_void ) );
+
+/* Obtain pointer from the supplied KeyMap ID's and validate the
+   pointers to ensure it identifies a valid KeyMap. */
+   keymaps = astMalloc( sizeof( AstKeyMap * )*(size_t) ncoords );
+   if( keymaps ) {
+      for( icoord = 0; icoord < ncoords; icoord++ ) {
+         keymaps[ icoord ] = astVerifyKeyMap( astMakePointer( coords[ icoord ] ) );
+      }
+   }
 
 /* Initialise the StcSearchLocation, allocating memory and initialising the
    virtual function table as well if necessary. */
    new = astInitStcSearchLocation( NULL, sizeof( AstStcSearchLocation ), !class_init, 
                                    &class_vtab, "StcSearchLocation", region,
-                                   ncoords, coords );
+                                   ncoords, keymaps );
+
+/* Free resources. */
+   keymaps = astFree( keymaps );
 
 /* If successful, note that the virtual function table has been initialised. */
    if ( astOK ) {
@@ -438,7 +529,7 @@ AstStcSearchLocation *astStcSearchLocationId_( void *region_void, int ncoords,
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new StcSearchLocation's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -452,7 +543,7 @@ AstStcSearchLocation *astStcSearchLocationId_( void *region_void, int ncoords,
 AstStcSearchLocation *astInitStcSearchLocation_( void *mem, size_t size, 
                                     int init, AstStcSearchLocationVtab *vtab, 
                                     const char *name, AstRegion *region,
-                                    int ncoords, AstKeyMap **coords ) {
+                                    int ncoords, AstKeyMap **coords, int *status ) {
 /*
 *+
 *  Name:
@@ -560,7 +651,7 @@ AstStcSearchLocation *astInitStcSearchLocation_( void *mem, size_t size,
 }
 
 AstStcSearchLocation *astLoadStcSearchLocation_( void *mem, size_t size, AstStcSearchLocationVtab *vtab, 
-                                                 const char *name, AstChannel *channel ) {
+                                                 const char *name, AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -633,6 +724,7 @@ AstStcSearchLocation *astLoadStcSearchLocation_( void *mem, size_t size, AstStcS
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstStcSearchLocation *new;              /* Pointer to the new StcSearchLocation */
 
 /* Initialise. */
@@ -640,6 +732,9 @@ AstStcSearchLocation *astLoadStcSearchLocation_( void *mem, size_t size, AstStcS
 
 /* Check the global error status. */
    if ( !astOK ) return new;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
 
 /* If a NULL virtual function table has been supplied, then this is
    the first loader to be invoked for this StcSearchLocation. In this case the
@@ -700,5 +795,9 @@ AstStcSearchLocation *astLoadStcSearchLocation_( void *mem, size_t size, AstStcS
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
+
+
+
+
 
 
