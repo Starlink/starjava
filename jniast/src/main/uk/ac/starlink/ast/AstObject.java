@@ -711,6 +711,20 @@ public class AstObject {
 
     /**
      * Get 
+     * the in-memory size of the Object.  
+     * This attribute gives the total number of bytes of memory used by
+     * the Object. This includes any Objects which are encapsulated within
+     * the supplied Object.
+     * 
+     *
+     * @return  this object's ObjSize attribute
+     */
+    public int getObjSize() {
+        return getI( "ObjSize" );
+    }
+
+    /**
+     * Get 
      * count of active Object pointers.  
      * This attribute gives the number of active pointers associated
      * with an Object. It is modified whenever pointers are created or

@@ -83,6 +83,7 @@ public class AstTest extends TestCase {
         Frame ff = grid;
         ff.setIdent( "1-2-3-4" );
         ff.setID( "9-8-7-6" );
+        assertTrue( ff.getObjSize() > 1 );
 
         Frame f = grid;
         Frame fff = (Frame) ff.copy();

@@ -511,6 +511,14 @@ makeSetAttrib( @args );
 makeGetAttrib( @args );
 
 @args = (
+   name => ( $aName = "objSize" ),
+   type => 'int',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+
+@args = (
    name => ( $aName = "refCount" ),
    type => 'int',
    purpose => AttPurpose( $aName ),
