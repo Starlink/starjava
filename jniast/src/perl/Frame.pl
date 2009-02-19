@@ -503,6 +503,26 @@ makeSetAttrib( @args );
 makeGetAttrib( @args );
 
 @args = (
+   name => ( $aName = "obsLat" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "obsLon" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "permute" ),
    type => "boolean",
    purpose => AttPurpose( $aName ),

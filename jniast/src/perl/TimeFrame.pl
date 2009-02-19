@@ -47,24 +47,6 @@ makeGetAttrib( @args );
 makeSetAttrib( @args );
 
 @args = (
-   name => ( $aName = "clockLat" ),
-   type => 'String',
-   purpose => AttPurpose( $aName ),
-   descrip => AttDescrip( $aName ),
-);
-makeGetAttrib( @args );
-makeSetAttrib( @args );
-
-@args = (
-   name => ( $aName = "clockLon" ),
-   type => 'String',
-   purpose => AttPurpose( $aName ),
-   descrip => AttDescrip( $aName ),
-);
-makeGetAttrib( @args );
-makeSetAttrib( @args );
-
-@args = (
    name => ( $aName = "timeOrigin" ),
    type => 'double',
    purpose => AttPurpose( $aName ),
@@ -82,5 +64,35 @@ makeSetAttrib( @args );
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
+
+print <<'__EOT__';
+    /**
+     * Synonym for {@link #setObsLat}.
+     */ 
+    public void setClockLat( String clockLat ) {
+        setObsLat( clockLat );
+    } 
+
+    /**
+     * Synonym for {@link #getObsLat}.
+     */
+    public String getClockLat() {
+        return getObsLat();
+    }
+
+    /**
+     * Synonym for {@link #setObsLon}.
+     */
+    public void setClockLon( String clockLon ) {
+        setObsLon( clockLon );
+    }
+
+    /**
+     * Synonym for {@link #getObsLon}.
+     */ 
+    public String getClockLon() {
+        return getObsLon();
+    } 
+__EOT__
 
 print "}\n";
