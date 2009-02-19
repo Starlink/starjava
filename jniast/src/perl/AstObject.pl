@@ -77,6 +77,9 @@ print <<'__EOT__';
     /** Bad coordinate value. */
     public static final double AST__BAD = getAstConstantD( "AST__BAD" );
 
+    /** No-change value for use with {@link #tune tune}. */
+    public static final int AST__TUNULL = getAstConstantI( "AST__TUNULL" );
+
     /**
      * Dummy constructor.  This constructor does not create a valid
      * AstObject object, but is required for inheritance by AstObject's
@@ -476,6 +479,25 @@ makeNativeMethod(
       {
          name => ( $aName = "attrib" ),
          type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
+makeStaticNativeMethod(
+   name => ( $fName = "tune" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'int', descrip => ReturnDescrip( $fName ), },
+   params => [
+      {
+         name => ( $aName = "name" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "value" ),
+         type => 'int',
          descrip => ArgDescrip( $fName, $aName ),
       },
    ],

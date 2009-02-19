@@ -117,6 +117,14 @@ public class AstTest extends TestCase {
 
     }
 
+    public void testTuning() {
+        assertEquals( 0, AstObject.tune( "ObjectCaching", 2 ) );
+        assertEquals( 2, AstObject.tune( "ObjectCaching", 0 ) );
+        assertEquals( 0, AstObject.tune( "ObjectCaching",
+                                         AstObject.AST__TUNULL ) );
+        assertEquals( 0, AstObject.tune( "ObjectCaching", 0 ) );
+    }
+
     private void exerciseChannel( Channel chan ) throws IOException {
         assertEquals( 1, chan.write( new FrameSet( frm ) ) );
         FrameSet f2 = (FrameSet) chan.read();

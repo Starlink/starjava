@@ -50,6 +50,7 @@ use warnings FATAL => qw(all);
     makeClassHeader
     makeNativeMethod
     makeNativeConstructor
+    makeStaticNativeMethod
     makeJavaMethodHeader
     makeSetAttrib
     makeGetAttrib
@@ -119,9 +120,14 @@ sub capFirst {
    substr( $name, 0, 1 ) =~ tr/a-z/A-Z/;
    return $name;
 }
- 
+
 sub makeNativeMethod {
    makeMethodHeader( @_, qualifiers => 'native' );
+   print( ";\n\n" );
+}
+
+sub makeStaticNativeMethod {
+   makeMethodHeader( @_, qualifiers => 'static native' );
    print( ";\n\n" );
 }
 

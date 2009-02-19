@@ -64,6 +64,9 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( JNIAST_MINOR_VERS )
       else TRY_CONST( JNIAST_RELEASE )
 
+      /* Tuning special. */
+      else TRY_CONST( AST__TUNULL )
+
       /* Interpolation schemes. */
       else TRY_CONST( AST__NEAREST )
       else TRY_CONST( AST__LINEAR )
@@ -257,10 +260,27 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantC(
 }
 
 JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_AstObject_isThreaded(
-   JNIEnv *env,
-   jclass class
+   JNIEnv *env,          /* Interface pointer */
+   jclass class          /* Class object */
 ) {
    return JNIAST_THREADS ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_tune(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class,         /* Class object */
+   jstring jName,        /* Name of tuning parameter */
+   jint jValue           /* Value of tuning parameter */
+) {
+   int oldVal;
+   const char *name;
+
+   name = jniastGetUTF( env, jName );
+   ASTCALL(
+      oldVal = astTune( name, (int) jValue );
+   )
+   jniastReleaseUTF( env, jName, name );
+   return (jint) oldVal;
 }
 
 
