@@ -740,6 +740,27 @@ public class AstTest extends TestCase {
         }
     }
 
+    public void testSwitchMap() {
+        Frame f = new Frame( 1 );
+        Region lReg =
+            new Box( f, 1, new double[] { -100 }, new double[] { 0 }, null );
+        Region rReg =
+            new Box( f, 1, new double[] { 0 }, new double[] { +100 }, null );
+        SelectorMap fsMap = new SelectorMap( new Region[] { lReg, rReg }, -99 );
+        assertEquals( 1, fsMap.getNout() );
+        assertArrayEquals(
+            new double[] { 0, 1, 2, -99 },
+            fsMap.tran1( 4, new double[] { 9999, -1, +1, AstObject.AST__BAD },
+                         true ) );
+        Mapping lMap = new ShiftMap( new double[] { -4 } );
+        Mapping rMap = new ShiftMap( new double[] { +4 } );
+        SwitchMap swMap =
+            new SwitchMap( fsMap, null, new Mapping[] { lMap, rMap } );
+        assertArrayEquals(
+            new double[] { AstObject.AST__BAD, -5, +5, AstObject.AST__BAD },
+            swMap.tran1( 4, new double[] { -1000, -1, +1, +1000 }, true ) );
+    }
+
     public void testPlot() {
 
         /* Check we have graphics capability. */
