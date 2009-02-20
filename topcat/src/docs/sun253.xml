@@ -11804,8 +11804,8 @@ introduced since the last version:
        <li>Fixed bug in calculating value scaled double ('D') values.</li>
        <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
        </ul></li>
-    </ul>
     <li>Added documentation section <ref id="columnSelector"/>.</li>
+    </ul>
     </p></dd>
 
 </dl>
