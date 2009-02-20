@@ -1644,6 +1644,64 @@ public class Frame extends Mapping {
 
     /**
      * Get 
+     * the UT1-UTC correction.  
+     * This attribute is used when calculating the Local Apparent Sidereal
+     * Time corresponding to SkyFrame's Epoch value (used when converting
+     * positions to or from the "AzEl" system). It should be set to the 
+     * difference, in seconds, between the UT1 and UTC timescales at the 
+     * moment in time represented by the SkyFrame's Epoch attribute. The 
+     * value to use is unpredictable and depends on changes in the earth's 
+     * rotation speed. Values for UT1-UTC can be obtained from the 
+     * International Earth Rotation and Reference Systems Service 
+     * (IERS) at http://www.iers.org/.
+     * <p>
+     * Currently, the correction is always less than 1 second. This is
+     * ensured by the occasional introduction of leap seconds into the UTC
+     * timescale. Therefore no great error will usually result if no value
+     * is assigned to this attribute (in which case a default value of
+     * zero is used). However, it is possible that a decision may be taken
+     * at some time in the future to abandon the introduction of leap
+     * seconds, in which case the DUT correction could grow to significant 
+     * sizes.
+     * 
+     *
+     * @return  this object's Dut1 attribute
+     */
+    public double getDut1() {
+        return getD( "Dut1" );
+    }
+
+    /**
+     * Set 
+     * the UT1-UTC correction.  
+     * This attribute is used when calculating the Local Apparent Sidereal
+     * Time corresponding to SkyFrame's Epoch value (used when converting
+     * positions to or from the "AzEl" system). It should be set to the 
+     * difference, in seconds, between the UT1 and UTC timescales at the 
+     * moment in time represented by the SkyFrame's Epoch attribute. The 
+     * value to use is unpredictable and depends on changes in the earth's 
+     * rotation speed. Values for UT1-UTC can be obtained from the 
+     * International Earth Rotation and Reference Systems Service 
+     * (IERS) at http://www.iers.org/.
+     * <p>
+     * Currently, the correction is always less than 1 second. This is
+     * ensured by the occasional introduction of leap seconds into the UTC
+     * timescale. Therefore no great error will usually result if no value
+     * is assigned to this attribute (in which case a default value of
+     * zero is used). However, it is possible that a decision may be taken
+     * at some time in the future to abandon the introduction of leap
+     * seconds, in which case the DUT correction could grow to significant 
+     * sizes.
+     * 
+     *
+     * @param  dut1   the Dut1 attribute of this object
+     */
+    public void setDut1( double dut1 ) {
+       setD( "Dut1", dut1 );
+    }
+
+    /**
+     * Get 
      * epoch of observation.  
      * This attribute is used to qualify the coordinate systems described by
      * a Frame, by giving the moment in time when the coordinates are known

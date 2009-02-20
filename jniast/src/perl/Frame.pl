@@ -433,6 +433,15 @@ makeGetAttrib( @args );
 makeSetAttrib( @args );
 
 @args = (
+   name => ( $aName = "dut1" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "epoch" ),
    type => 'double',
    purpose => AttPurpose( $aName ),
