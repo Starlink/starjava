@@ -851,6 +851,50 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "tranGrid" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'double[][]', descrip => ArgDescrip( $fName, "out" ), },
+   params => [
+      {
+         name => ( $aName = "ncoord_in" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "lbnd" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ubnd" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "tol" ),
+         type => 'double',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "maxpix" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "forward" ),
+         type => 'boolean',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ncoord_out" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
+makeNativeMethod(
    name => ( $fName = "rate" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),

@@ -23,6 +23,7 @@
 */
 
 /* Header files. */
+#include <stdlib.h>
 #include "jni.h"
 #include "ast.h"
 #include "jniast.h"
@@ -515,6 +516,89 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranP(
    free( jPtr_in );
    free( ptr_out );
    free( jPtr_out );
+
+   /* Return the result. */
+   return jOut;
+}
+
+JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranGrid(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jint ncoord_in,       /* Dimensionality of input space */
+   jintArray jLbnd,      /* Lower bound array */
+   jintArray jUbnd,      /* Upper bound array */
+   jdouble tol,          /* Tolerance */
+   jint maxpix,          /* Initial scale size for adaptive algorithm */
+   jboolean forward,     /* Forward/reverse flag */
+   jint ncoord_out       /* Dimensionality of output space */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   double *out = NULL;
+   jdoubleArray *jPtr_out = NULL;
+   jobjectArray jOut = NULL;
+   const int *lbnd;
+   const int *ubnd;
+   int i;
+   int npoint;
+
+   ENSURE_SAME_TYPE(double,jdouble)
+
+   /* Validate input. */
+   if ( jniastCheckArrayLength( env, jLbnd, ncoord_in ) &&
+        jniastCheckArrayLength( env, jUbnd, ncoord_in ) ) {
+      lbnd = (*env)->GetIntArrayElements( env, jLbnd, NULL );
+      ubnd = (*env)->GetIntArrayElements( env, jUbnd, NULL );
+
+      /* Calculate the number of points in the output grid. */
+      npoint = 1;
+      for ( i = 0; i < ncoord_in; i++ ) {
+         npoint *= ( abs( ubnd[ i ] - lbnd[ i ] ) + 1 );
+      }
+
+      /* Allocate pointer arrays to reference the output points. */
+      out = jniastMalloc( env, ncoord_out * npoint * sizeof( double ) );
+      jPtr_out = jniastMalloc( env, ncoord_out * sizeof( jdoubleArray ) );
+
+      /* Construct and map java arrays to hold the output points. */
+      if ( ! (*env)->ExceptionCheck( env ) ) {
+         jOut = (*env)->NewObjectArray( env, ncoord_out, DoubleArrayClass,
+                                        NULL );
+      }
+      for ( i = 0; i < ncoord_out; i++ ) {
+         if ( ( ! (*env)->ExceptionCheck( env ) ) &&
+              ( jPtr_out[ i ] = (*env)->NewDoubleArray( env, npoint ) ) ) {
+            (*env)->SetObjectArrayElement( env, jOut, i, jPtr_out[ i ] );
+         }
+         else {
+            if ( jPtr_out != NULL ) {
+               jPtr_out[ i ] = NULL;
+            }
+         }
+      }
+
+      /* Call the AST routine to do the work. */
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astTranGrid( pointer.Mapping, ncoord_in, lbnd, ubnd, (double) tol,
+                      (int) maxpix, forward == JNI_TRUE, ncoord_out, npoint,
+                      out );
+      )
+
+      /* Copy the output to the java arrays. */
+      for ( i = 0; i < ncoord_out; i++ ) {
+         if ( ! (*env)->ExceptionCheck( env ) ) {
+            (*env)->SetDoubleArrayRegion( env, jPtr_out[ i ],
+                                          (jsize) 0, (jsize) npoint,
+                                          (jdouble *) (out + i * npoint) );
+         }
+      }
+
+      /* Release resources. */
+      ALWAYS(
+         (*env)->ReleaseIntArrayElements( env, jLbnd, (int *) lbnd, JNI_ABORT );
+         (*env)->ReleaseIntArrayElements( env, jUbnd, (int *) ubnd, JNI_ABORT );
+         free( out );
+      )
+   }
 
    /* Return the result. */
    return jOut;

@@ -602,6 +602,19 @@ public class AstTest extends TestCase {
         assertArrayEquals( resulta[ 1 ], resulte[ 1 ] );
     }
 
+    public void testTranGrid() {
+        Mapping map = new CmpMap( new ZoomMap( 2, 5.0 ),
+                                  new ShiftMap( new double[] { 100.0, 0.0 } ),
+                                  true );
+        double[][] grid =
+            map.tranGrid( 2, new int[] { 2, -1 }, new int[] { 3, 1 }, 
+                          0.1, 10, true, 2 );
+        assertArrayEquals( new double[] { 110, 115, 110, 115, 110, 115, },
+                           grid[ 0 ] );
+        assertArrayEquals( new double[] {  -5,  -5,   0,   0,   5,   5, },
+                           grid[ 1 ] );
+    }
+
     public void testPolyMap() {
         // y = 3*x*x.
         Mapping poly = new PolyMap( 1, 1, 
