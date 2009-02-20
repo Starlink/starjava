@@ -63,6 +63,116 @@ public class DSBSpecFrame extends SpecFrame {
 
     /**
      * Get 
+     * should the SideBand attribute be taken into account when aligning
+     * this DSBSpecFrame with another DSBSpecFrame.  
+     * This attribute controls how a DSBSpecFrame behaves when an attempt
+     * is made to align it with another DSBSpecFrame using 
+     * astFindFrame or astConvert.
+     * If both DSBSpecFrames have a non-zero value for AlignSideBand, the 
+     * value of the SideBand attribute in each DSBSpecFrame is used so that 
+     * alignment occurs between sidebands. That is, if one DSBSpecFrame 
+     * represents USB and the other represents LSB then 
+     * astFindFrame and astConvert
+     * will recognise that the DSBSpecFrames represent different sidebands
+     * and will take this into account when constructing the Mapping that
+     * maps positions in one DSBSpecFrame into the other. If AlignSideBand
+     * in either DSBSpecFrame is set to zero, then the values of the SideBand 
+     * attributes are ignored. In the above example, this would result in a 
+     * frequency in the first DSBSpecFrame being mapped onto the same 
+     * frequency in the second DSBSpecFrame, even though those frequencies 
+     * refer to different sidebands. In other words, if either AlignSideBand 
+     * attribute is zero, then the two DSBSpecFrames aligns like basic 
+     * SpecFrames. The default value for AlignSideBand is zero.
+     * <p>
+     * When astFindFrame or astConvert 
+     * is used on two DSBSpecFrames (potentially describing different spectral 
+     * coordinate systems and/or sidebands), it returns a Mapping which can be 
+     * used to transform a position in one DSBSpecFrame into the corresponding 
+     * position in the other. The Mapping is made up of the following steps in 
+     * the indicated order:
+     * <p>
+     * <br> - If both DSBSpecFrames have a value of 1 for the AlignSideBand
+     * attribute, map values from the target's current sideband (given by its 
+     * SideBand attribute) to the observed sideband (whether USB or LSB). If 
+     * the target already represents the observed sideband, this step will 
+     * leave the values unchanged. If either of the two DSBSpecFrames have a 
+     * value of zero for its AlignSideBand attribute, then this step is omitted.
+     * <p>
+     * <br> - Map the values from the spectral system of the target to the spectral 
+     * system of the template. This Mapping takes into account all the
+     * inherited SpecFrame attributes such as System, StdOfRest, Unit, etc.
+     * <p>
+     * <br> - If both DSBSpecFrames have a value of 1 for the AlignSideBand
+     * attribute, map values from the result's observed sideband to the 
+     * result's current sideband (given by its SideBand attribute). If the 
+     * result already represents the observed sideband, this step will leave 
+     * the values unchanged. If either of the two DSBSpecFrames have a value 
+     * of zero for its AlignSideBand attribute, then this step is omitted.
+     * 
+     *
+     * @return  this object's AlignSideBand attribute
+     */
+    public boolean getAlignSideBand() {
+        return getB( "AlignSideBand" );
+    }
+
+    /**
+     * Set 
+     * should the SideBand attribute be taken into account when aligning
+     * this DSBSpecFrame with another DSBSpecFrame.  
+     * This attribute controls how a DSBSpecFrame behaves when an attempt
+     * is made to align it with another DSBSpecFrame using 
+     * astFindFrame or astConvert.
+     * If both DSBSpecFrames have a non-zero value for AlignSideBand, the 
+     * value of the SideBand attribute in each DSBSpecFrame is used so that 
+     * alignment occurs between sidebands. That is, if one DSBSpecFrame 
+     * represents USB and the other represents LSB then 
+     * astFindFrame and astConvert
+     * will recognise that the DSBSpecFrames represent different sidebands
+     * and will take this into account when constructing the Mapping that
+     * maps positions in one DSBSpecFrame into the other. If AlignSideBand
+     * in either DSBSpecFrame is set to zero, then the values of the SideBand 
+     * attributes are ignored. In the above example, this would result in a 
+     * frequency in the first DSBSpecFrame being mapped onto the same 
+     * frequency in the second DSBSpecFrame, even though those frequencies 
+     * refer to different sidebands. In other words, if either AlignSideBand 
+     * attribute is zero, then the two DSBSpecFrames aligns like basic 
+     * SpecFrames. The default value for AlignSideBand is zero.
+     * <p>
+     * When astFindFrame or astConvert 
+     * is used on two DSBSpecFrames (potentially describing different spectral 
+     * coordinate systems and/or sidebands), it returns a Mapping which can be 
+     * used to transform a position in one DSBSpecFrame into the corresponding 
+     * position in the other. The Mapping is made up of the following steps in 
+     * the indicated order:
+     * <p>
+     * <br> - If both DSBSpecFrames have a value of 1 for the AlignSideBand
+     * attribute, map values from the target's current sideband (given by its 
+     * SideBand attribute) to the observed sideband (whether USB or LSB). If 
+     * the target already represents the observed sideband, this step will 
+     * leave the values unchanged. If either of the two DSBSpecFrames have a 
+     * value of zero for its AlignSideBand attribute, then this step is omitted.
+     * <p>
+     * <br> - Map the values from the spectral system of the target to the spectral 
+     * system of the template. This Mapping takes into account all the
+     * inherited SpecFrame attributes such as System, StdOfRest, Unit, etc.
+     * <p>
+     * <br> - If both DSBSpecFrames have a value of 1 for the AlignSideBand
+     * attribute, map values from the result's observed sideband to the 
+     * result's current sideband (given by its SideBand attribute). If the 
+     * result already represents the observed sideband, this step will leave 
+     * the values unchanged. If either of the two DSBSpecFrames have a value 
+     * of zero for its AlignSideBand attribute, then this step is omitted.
+     * 
+     *
+     * @param  alignSideBand   the AlignSideBand attribute of this object
+     */
+    public void setAlignSideBand( boolean alignSideBand ) {
+       setB( "AlignSideBand", alignSideBand );
+    }
+
+    /**
+     * Get 
      * the central position of interest in a dual sideband spectrum.  
      * This attribute specifies the central position of interest in a dual 
      * sideband spectrum. Its sole use is to determine the local oscillator 

@@ -399,6 +399,11 @@ public class AstTest extends TestCase {
         catch ( AstException e ) {
             assertEquals( e.getStatus(), AstException.AST__ATTIN );
         }
+
+        dsb.setAlignSideBand( false );
+        assertTrue( ! dsb.getAlignSideBand() );
+        dsb.setAlignSideBand( true );
+        assertTrue( dsb.getAlignSideBand() );
     }
 
     public void testGeometry() {
