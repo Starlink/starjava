@@ -394,6 +394,66 @@ public class SpecFrame extends Frame {
     }
     /**
      * Get 
+     * spectral system in which the source velocity is stored.  
+     * This attribute identifies the spectral system in which the
+     * SourceVel attribute value (the source velocity) is supplied and 
+     * returned. It can be one of the following:
+     * <p>
+     *    - "VRAD" or "VRADIO": Radio velocity (km/s)
+     *    - "VOPT" or "VOPTICAL": Optical velocity (km/s)
+     *    - "ZOPT" or "REDSHIFT": Redshift (dimensionless)
+     *    - "BETA": Beta factor (dimensionless)
+     *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
+     * <p>
+     * When setting a new value for the SourceVel attribute, the source 
+     * velocity should be supplied in the spectral system indicated
+     * by this attribute. Likewise, when getting the value of the SourceVel
+     * attribute, the velocity will be returned in this spectral system.
+     * <p>
+     * If the value of SourceSys is changed, the value stored for SourceVel 
+     * will be converted from the old to the new spectral systems.
+     * <p>
+     * The default value is "VELO" (apparent radial velocity).
+     * 
+     *
+     * @return  this object's SourceSys attribute
+     */
+    public String getSourceSys() {
+        return getC( "SourceSys" );
+    }
+
+    /**
+     * Set 
+     * spectral system in which the source velocity is stored.  
+     * This attribute identifies the spectral system in which the
+     * SourceVel attribute value (the source velocity) is supplied and 
+     * returned. It can be one of the following:
+     * <p>
+     *    - "VRAD" or "VRADIO": Radio velocity (km/s)
+     *    - "VOPT" or "VOPTICAL": Optical velocity (km/s)
+     *    - "ZOPT" or "REDSHIFT": Redshift (dimensionless)
+     *    - "BETA": Beta factor (dimensionless)
+     *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
+     * <p>
+     * When setting a new value for the SourceVel attribute, the source 
+     * velocity should be supplied in the spectral system indicated
+     * by this attribute. Likewise, when getting the value of the SourceVel
+     * attribute, the velocity will be returned in this spectral system.
+     * <p>
+     * If the value of SourceSys is changed, the value stored for SourceVel 
+     * will be converted from the old to the new spectral systems.
+     * <p>
+     * The default value is "VELO" (apparent radial velocity).
+     * 
+     *
+     * @param  sourceSys   the SourceSys attribute of this object
+     */
+    public void setSourceSys( String sourceSys ) {
+       setC( "SourceSys", sourceSys );
+    }
+
+    /**
+     * Get 
      * the source velocity.  
      * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec) 
      * defines the "Source" standard of rest (see attribute StdOfRest). This is 

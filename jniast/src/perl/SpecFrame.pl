@@ -163,6 +163,15 @@ print <<'__EOT__';
 __EOT__
 
 @args = (
+   name => ( $aName = "sourceSys" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "sourceVel" ),
    type => 'double',
    purpose => AttPurpose( $aName ),
