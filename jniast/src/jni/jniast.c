@@ -312,7 +312,7 @@ void jniastInitObject( JNIEnv *env, jobject object, AstPointer pointer ) {
 
       /* Unlock ready for use by other threads. */
       ASTCALL(
-         astUnlock( pointer.AstObject );
+         astUnlock( pointer.AstObject, 0 );
       )
    }
 }
@@ -469,7 +469,7 @@ void jniastUnlock( AstObject **ast_objs ) {
       for ( pos = ast_objs; *pos; pos++ ) {
       }
       while ( --pos >= ast_objs ) {
-         astUnlock( *pos );
+         astUnlock( *pos, 0 );
       }
    }
 }
