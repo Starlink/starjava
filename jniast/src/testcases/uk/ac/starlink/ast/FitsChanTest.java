@@ -35,6 +35,8 @@ public class FitsChanTest extends TestCase {
         assertContains( fc.findFits( "CNVAL", false ), "Muon" );
         assertContains( fc.findFits( "XXXCARD", false ), "Xxx" );
 
+        fc.purgeWCS();
+
         try {
             fc.setFits( null, false, "dummy", true );
             fail();

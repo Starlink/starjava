@@ -639,6 +639,17 @@ public class FitsChan extends Channel {
     public native void retainFits(  );
 
     /** 
+     * Delete all cards in the FitsChan describing WCS information.   
+     * This function 
+     * deletes all cards in a FitsChan that relate to any of the recognised 
+     * WCS encodings. On exit, the current card is the first remaining card 
+     * in the FitsChan.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void purgeWCS(  );
+
+    /** 
      * Store a set of FITS header cards in a FitsChan.   
      * This function 
      * stores a set of FITS header cards in a FitsChan. The cards are

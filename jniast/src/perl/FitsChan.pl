@@ -450,6 +450,14 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "purgeWCS" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   params => [],
+   return => { type => 'void', },
+);
+
+makeNativeMethod(
    name => ( $fName = "putCards" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),
