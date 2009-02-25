@@ -139,6 +139,11 @@ public class AstTest extends TestCase {
 
     public void testChannel() throws IOException {
         exerciseChannel( new TestChannel() );
+        Channel chan = new TestChannel();
+        boolean strict = chan.getStrict();
+        chan.setStrict( ! strict );
+        assertTrue( strict ^ chan.getStrict() );
+        chan.setStrict( strict );
     }
 
     public void testXmlChan() throws IOException {

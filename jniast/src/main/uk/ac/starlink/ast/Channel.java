@@ -216,6 +216,26 @@ public class Channel extends AstObject {
     }
 
     /**
+     * Get this channel's Strict attribute.
+     *
+     * @return   true to generate a fatal error for conversion problems,
+     *           false to generate a warning
+     */
+    public boolean getStrict() {
+        return getB( "Strict" );
+    }
+
+    /**
+     * Set this channel's Strict attribute.
+     *
+     * @param  strict  true to generate a fatal error for conversion problems,
+     *                 false to generate a warning
+     */
+    public void setStrict( boolean strict ) {
+        setB( "Strict", strict );
+    }
+
+    /**
      * This method is currently unsupported for Channel and its subclasses
      * because of difficulties in its implementation, and because it is
      * probably not that useful.
