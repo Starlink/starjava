@@ -47,6 +47,15 @@ makeGetAttrib( @args );
 makeSetAttrib( @args );
 
 @args = (
+   name => ( $aName = "ltOffset" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "timeOrigin" ),
    type => 'double',
    purpose => AttPurpose( $aName ),

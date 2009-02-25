@@ -213,6 +213,36 @@ public class TimeFrame extends Frame {
 
     /**
      * Get 
+     * the offset from UTC to Local Time, in hours.  
+     * This specifies the offset from UTC to Local Time, in hours (fractional 
+     * hours can be supplied). It is positive for time zones east of Greenwich. 
+     * AST uses the figure as given, without making any attempt to correct for 
+     * daylight saving. The default value is zero.
+     * 
+     *
+     * @return  this object's LtOffset attribute
+     */
+    public double getLtOffset() {
+        return getD( "LtOffset" );
+    }
+
+    /**
+     * Set 
+     * the offset from UTC to Local Time, in hours.  
+     * This specifies the offset from UTC to Local Time, in hours (fractional 
+     * hours can be supplied). It is positive for time zones east of Greenwich. 
+     * AST uses the figure as given, without making any attempt to correct for 
+     * daylight saving. The default value is zero.
+     * 
+     *
+     * @param  ltOffset   the LtOffset attribute of this object
+     */
+    public void setLtOffset( double ltOffset ) {
+       setD( "LtOffset", ltOffset );
+    }
+
+    /**
+     * Get 
      * the zero point for TimeFrame axis values.  
      * This specifies the origin from which all time values are measured.
      * The default value (zero) results in the TimeFrame describing
