@@ -269,6 +269,14 @@ public class RegionTest extends TestCase {
         }
     }
 
+    /*
+     * Don't run this one - it generates messy output to stdout.
+     */
+    public void noTestShowMesh() {
+        Box box = box( 0, 0, 2, 2 );
+        box.showMesh( true, "Mesh" );
+    }
+
     private static Box box( double x1, double y1, double x2, double y2 ) {
         return new Box( new Frame( 2 ), 1, new double[] { x1, y1 },
                         new double[] { x2, y2 }, null );

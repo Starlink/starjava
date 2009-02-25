@@ -498,6 +498,31 @@ public abstract class Region extends Frame {
      */
     public native void setUnc( Region unc );
 
+    /** 
+     * Display a mesh of points covering the surface of a Region.   
+     * This function 
+     * writes a table to standard output containing the axis values at a
+     * mesh of points covering the surface of the supplied Region. Each row
+     * of output contains a tab-separated list of axis values, one for
+     * each axis in the Frame encapsulated by the Region. The number of
+     * points in the mesh is determined by the MeshSize attribute.
+     * <p>
+     * The table is preceeded by a given title string, and followed by a
+     * single line containing the word "ENDMESH".
+     * 
+     * @param   format
+     * A boolean value indicating if the displayed axis values should
+     * be formatted according to the Format attribute associated with
+     * the Frame's axis. Otherwise, they are displayed as simple
+     * floating point values.
+     * 
+     * @param   ttl
+     * A title to display before displaying the first position.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void showMesh( boolean format, String ttl );
+
     /**
      * Get 
      * should the area adapt to changes in the coordinate system.  

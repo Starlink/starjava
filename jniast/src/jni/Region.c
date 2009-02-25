@@ -153,6 +153,22 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Region_setUnc(
    }
 }
 
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Region_showMesh(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jboolean format,      /* Whether to format axis values */
+   jstring jTtl          /* Title string */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *ttl;
+
+   ttl = jniastGetUTF( env, jTtl );
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      astShowMesh( pointer.Region, format == JNI_TRUE, ttl );
+   )
+   jniastReleaseUTF( env, jTtl, ttl );
+}
+
 #define MAKE_MASKX(Xletter,Xtype,Xjtype,XJtype) \
  \
 JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Region_mask##Xletter( \
