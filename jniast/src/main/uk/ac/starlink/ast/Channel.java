@@ -20,7 +20,7 @@ import java.io.OutputStream;
  *       from <code>System.in</code> or another <code>InputStream</code>
  *       and writes to <code>System.out</code> or another 
  *       <code>OutputStream</code>.
- *       To perform I/O to some other object, extend this clas and
+ *       To perform I/O to some other object, extend this class and
  *       override the <code>source</code> and <code>sink</code> methods.
  *    
  * 
@@ -186,6 +186,40 @@ public class Channel extends AstObject {
         throw new UnsupportedOperationException(
             "Sorry - copy not currently supported for Channels" );
     }
+
+    /** 
+     * Returns any warnings issued by the previous read or write operation.   
+     * This function returns an AST KeyMap object holding the text of any
+     * warnings issued as a result of the previous invocation of the 
+     * astRead or astWrite
+     * function on the Channel. If no warnings were issued, a 
+     * a NULL value
+     * will be returned. 
+     * <p>
+     * Such warnings are non-fatal and will not prevent the
+     * read or write operation succeeding. However, the converted object
+     * may not be identical to the original object in all respects.
+     * Differences which would usually be deemed as insignificant in most 
+     * usual cases will generate a warning, whereas more significant 
+     * differences will generate an error.
+     * <p>
+     * The "Strict" attribute allows this warning facility to be switched
+     * off, so that a fatal error is always reported for any conversion
+     * error.
+     * <h4>Notes</h4>
+     * <br> - The returned KeyMap uses keys of the form "Warning_1",
+     * "Warning_2", etc.
+     * <br> - A value of 
+     * NULL will be returned if this function is invoked with the AST
+     * error status set,
+     * or if it should fail for any reason.
+     * @return  A pointer to the KeyMap holding the warning messages, or 
+     * NULL
+     * if no warnings were issued during the previous read operation. 
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native KeyMap warnings(  );
 
     /**
      * Get 

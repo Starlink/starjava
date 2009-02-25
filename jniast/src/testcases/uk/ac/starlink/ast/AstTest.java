@@ -144,6 +144,8 @@ public class AstTest extends TestCase {
         chan.setStrict( ! strict );
         assertTrue( strict ^ chan.getStrict() );
         chan.setStrict( strict );
+        KeyMap warnings = chan.warnings();
+        assertNull( warnings );
     }
 
     public void testXmlChan() throws IOException {

@@ -196,6 +196,14 @@ public class Channel extends AstObject {
 
 __EOT__
 
+makeNativeMethod(
+   name => ( $fName = "warnings" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'KeyMap', descrip => ReturnDescrip( $fName ) },
+   params => [],
+);
+
 my( @commentArgs ) = (
    name => ( $aName = "comment" ),
    type => 'boolean',
