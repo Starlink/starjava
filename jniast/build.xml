@@ -458,6 +458,10 @@
       <param name="pj.cfile" value="box.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Channel"/>
+      <param name="pj.cfile" value="channel.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="Circle"/>
       <param name="pj.cfile" value="circle.c"/>
     </antcall>
