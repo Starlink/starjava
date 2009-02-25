@@ -67,5 +67,15 @@ makeNativeMethod(
    params => [],
 );
 
+my( @args );
+
+@args = (
+   name => ( $aName = "listSize" ),
+   type => 'int',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+
 print "}\n";
 

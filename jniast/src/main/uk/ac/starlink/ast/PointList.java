@@ -122,4 +122,17 @@ public class PointList extends Region {
      */
     public native double[][] points(  );
 
+    /**
+     * Get 
+     * number of points in a PointList.  
+     * This is a read-only attribute giving the number of points in a
+     * PointList. This value is determined when the PointList is created.
+     * 
+     *
+     * @return  this object's ListSize attribute
+     */
+    public int getListSize() {
+        return getI( "ListSize" );
+    }
+
 }
