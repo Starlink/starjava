@@ -457,6 +457,13 @@ public class AstTest extends TestCase {
         assertEquals( grid.axOffset( 2, 99., 2. ), 101. );
 
         assertEquals( grid.axDistance( 1, 4., 9. ), 5. );
+
+        assertArrayEquals(
+            new double[] { 1, 2 },
+            new Frame( 2 )
+           .intersect( new double[] { 1, 0 }, new double[] { 1, 4 },
+                       new double[] { 0, 2 }, new double[] { 2, 2 } ) );
+        
     }
 
     public void testMapping() throws IOException {

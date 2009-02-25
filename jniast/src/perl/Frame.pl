@@ -117,6 +117,35 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "intersect" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'double[]', descrip => ArgDescrip( $fName, "cross" ) },
+   params => [
+      {
+         name => ( $aName = "a1" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "a2" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "b1" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "b2" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
+makeNativeMethod(
    name => ( $fName = "axOffset" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),

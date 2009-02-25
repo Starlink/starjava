@@ -173,6 +173,60 @@ public class Frame extends Mapping {
     public native double axDistance( int axis, double v1, double v2 );
 
     /** 
+     * Find the point of intersection between two geodesic curves.   
+     * This function 
+     * finds the coordinate values at the point of intersection between
+     * two geodesic curves. Each curve is specified by two points on 
+     * the curve.  It can only be used with 2-dimensional Frames.
+     * <p>
+     * For example, in a basic Frame, it will find the point of
+     * intersection between two straight lines. But for a SkyFrame it 
+     * will find an intersection of two great circles.
+     * <h4>Notes</h4>
+     * <br> - For SkyFrames each curve will be a great circle, and in general
+     * each pair of curves will intersect at two diametrically opposite 
+     * points on the sky. The returned position is the one which is
+     * closest to point 
+     * "a1".
+     * <br> - This function will return "bad" coordinate values (AST__BAD)
+     * if any of the input coordinates has this value, or if the two
+     * points defining either geodesic are co-incident, or if the two
+     * curves do not intersect.
+     * <br> - The geodesic curve used by this function is the path of
+     * shortest distance between two points, as defined by the
+     * astDistance function.
+     * <br> - An error will be reported if the Frame is not 2-dimensional.
+     * @param   a1
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of the
+     * first point on the first geodesic curve.
+     * 
+     * @param   a2
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of a
+     * second point on the first geodesic curve. It should not be 
+     * co-incident with the first point.
+     * 
+     * @param   b1
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of the
+     * first point on the second geodesic curve.
+     * 
+     * @param   b2
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of a
+     * second point on the second geodesic curve. It should not be 
+     * co-incident with the first point.
+     * 
+     * @return  An array of double, with one element for each Frame axis
+     * in which the coordinates of the required intersection will 
+     * be returned.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[] intersect( double[] a1, double[] a2, double[] b1, double[] b2 );
+
+    /** 
      * Add an increment onto a supplied axis value.   
      * This function returns an axis value formed by adding a signed axis
      * increment onto a supplied axis value.
