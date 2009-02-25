@@ -102,4 +102,24 @@ public class PointList extends Region {
     }
     private native void construct( Frame frame, int npnt, double[][] points, Region unc );
 
+    /** 
+     * Return the axis values in a PointList.   
+     * This function 
+     * returns the PointList axis values in a supplied array.
+     * <h4>Notes</h4>
+     * <br> - The number of axes spanned by the PointList is given by the Naxes
+     * attribute.
+     * <br> - The number of points in the PointList is given by the ListSize
+     * attribute.
+     * @return  The address of the first element in a 2-dimensional array of 
+     * shape "[max_coord][max_point]", into
+     * which the coordinates of the points will
+     * be written. These will be stored such that the value of
+     * coordinate number "coord" for point number "point"
+     * will be found in element "out[coord][point]".
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[][] points(  );
+
 }
