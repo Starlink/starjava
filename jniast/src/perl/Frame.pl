@@ -600,4 +600,12 @@ makeSetAttribByAxis( @args );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
 
+@args = (
+   name => ( $aName = "normUnit" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+
 print "}\n";

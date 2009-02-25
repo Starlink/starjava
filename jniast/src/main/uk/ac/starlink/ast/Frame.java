@@ -3876,4 +3876,36 @@ public class Frame extends Mapping {
         }
     }
 
+    /**
+     * Get 
+     * normalised Axis physical units by axis.  
+     * The value of this read-only attribute is derived from the current
+     * value of the Unit attribute. It will represent an equivalent system
+     * of units to the Unit attribute, but will potentially be simplified.
+     * For instance, if Unit is set to "s*(m/s)", the NormUnit value will
+     * be "m". If no simplification can be performed, the value of the
+     * NormUnit attribute will equal that of the Unit attribute.
+     * <h4>Notes</h4>
+     * <br> - When specifying this attribute by name, it should be
+     * subscripted with the number of the Frame axis to which it
+     * applies.
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the NormUnit attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public String getNormUnit( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getC( "NormUnit" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
 }
