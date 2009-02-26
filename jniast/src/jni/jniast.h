@@ -160,15 +160,31 @@ void jniastTrace( JNIEnv *env, jobject obj );
 
 /*
  * Define whether multithreading will be used in invoking the AST library.
- * Interestingly, some rudimentary benchmarking suggests that when running
- * multithreaded the code does indeed occupy multiple cores of a 
- * multi-core processor, but the elapsed time doesn't seem much different
- * from the non-threaded case - i.e. scaling is poor, so maybe there's
- * not much point in turning it on.  But it should increase responsiveness 
- * in any case.  So leave it on for now, as long as the underlying AST 
- * supports it.
+ * This is currently set false, which means there is a single per-AST
+ * mutex, so that no AST call is in progress at the same time as any
+ * other AST call.
+ *
+ * It is somewhat disappointing that this has to be the case, and it
+ * means that some, but not most, of the JNIAST threading machinery 
+ * is doing no useful work.  It's like this.  Although AST's 
+ * design means that no AstObject may be accessed simultaneously
+ * by multiple threads, it should in principle be possible for AST
+ * calls using disjoint objects to execute simultaneously.
+ * However, this can in practice lead to deadlock.  Although care is 
+ * taken within JNIAST to acquire locks (call astLock() on required 
+ * objects) in a defined order, which ought to be enough to prevent deadlock
+ * (see Resource Hierarchy solution to Dining Philosophers problem), 
+ * there is a problem: astLock() itself does not simply acquire a single
+ * lock, but potentially many, since it locks not only the requested
+ * object but any object which that contains.  Since the order in which
+ * it does this is not congruent with the order used by JNIAST, 
+ * deadlock is no longer prevented.  The only fix I can think of for 
+ * this would be an AST call which takes an array of objects to lock,
+ * and acquires locks in some well-defined order.  If that ever comes
+ * about, the following JNIAST_THREADS def should be changed to
+ * AST__THREADSAFE instead.
  */
-#define JNIAST_THREADS AST__THREADSAFE
+#define JNIAST_THREADS 0
 
 /*
  * Macro for calling a code block which uses AST-like conventions for
