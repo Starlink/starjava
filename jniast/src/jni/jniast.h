@@ -36,7 +36,7 @@
 
 /* Required versions of the AST package. */
 #define JNIAST_MAJOR_VERS 5
-#define JNIAST_MINOR_VERS 0
+#define JNIAST_MINOR_VERS 1
 #define JNIAST_RELEASE 0
 
 /* Typedefs. */
