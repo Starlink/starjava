@@ -485,16 +485,9 @@ public class Mapping extends AstObject {
      *             sub-pixel interpolation scheme should be used for the
      *             resampling
      *          
-     * @param   usebad
-     * if true, indicates that there may be bad
-     *             pixels in the input array(s) which must be
-     *             recognised by comparing with the value given for
-     *             <code>badval</code> and propagated to the
-     *             output array(s). If
-     *             this flag is not set, all input values are treated
-     *             literally and the <code>badval</code>
-     *             value is only used for
-     *             flagging output array values.
+     * @param   flags
+     * flags object giving additional details about the resampling
+     *             procedure
      *          
      * @param   tol
      * The maximum tolerable geometrical distortion which may be
@@ -635,13 +628,13 @@ public class Mapping extends AstObject {
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
-    public int resample( int ndim_in, int[] lbnd_in, int[] ubnd_in, Object in, Object in_var, Mapping.Interpolator interp, boolean usebad, double tol, int maxpix, Number badval, int ndim_out, int[] lbnd_out, int[] ubnd_out, int[] lbnd, int[] ubnd, Object out, Object out_var ){
+    public int resample( int ndim_in, int[] lbnd_in, int[] ubnd_in, Object in, Object in_var, Mapping.Interpolator interp, ResampleFlags flags, double tol, int maxpix, Number badval, int ndim_out, int[] lbnd_out, int[] ubnd_out, int[] lbnd, int[] ubnd, Object out, Object out_var ){
         Class type = in.getClass().getComponentType();
         try {
             if ( type == byte.class ) {
                 return resampleB( ndim_in, lbnd_in, ubnd_in,
                                   (byte[]) in, (byte[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Byte) badval).byteValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (byte[]) out, (byte[]) out_var );
@@ -649,7 +642,7 @@ public class Mapping extends AstObject {
             else if ( type == short.class ) {
                 return resampleS( ndim_in, lbnd_in, ubnd_in,
                                   (short[]) in, (short[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Short) badval).shortValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (short[]) out, (short[]) out_var );
@@ -657,7 +650,7 @@ public class Mapping extends AstObject {
             else if ( type == int.class ) {
                 return resampleI( ndim_in, lbnd_in, ubnd_in,
                                   (int[]) in, (int[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Integer) badval).intValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (int[]) out, (int[]) out_var );
@@ -665,7 +658,7 @@ public class Mapping extends AstObject {
             else if ( type == long.class ) {
                 return resampleL( ndim_in, lbnd_in, ubnd_in,
                                   (long[]) in, (long[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Long) badval).longValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (long[]) out, (long[]) out_var );
@@ -673,7 +666,7 @@ public class Mapping extends AstObject {
             else if ( type == float.class ) {
                 return resampleF( ndim_in, lbnd_in, ubnd_in,
                                   (float[]) in, (float[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Float) badval).floatValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (float[]) out, (float[]) out_var );
@@ -681,7 +674,7 @@ public class Mapping extends AstObject {
             else if ( type == double.class ) {
                 return resampleD( ndim_in, lbnd_in, ubnd_in,
                                   (double[]) in, (double[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Double) badval).doubleValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (double[]) out, (double[]) out_var );
@@ -702,7 +695,8 @@ public class Mapping extends AstObject {
     public native int resampleB( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         byte[] in, byte[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         byte badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         byte[] out, byte[] out_var );
@@ -713,7 +707,8 @@ public class Mapping extends AstObject {
     public native int resampleS( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         short[] in, short[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         short badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         short[] out, short[] out_var );
@@ -724,7 +719,8 @@ public class Mapping extends AstObject {
     public native int resampleI( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         int[] in, int[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         int badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         int[] out, int[] out_var );
@@ -735,7 +731,8 @@ public class Mapping extends AstObject {
     public native int resampleL( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         long[] in, long[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         long badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         long[] out, long[] out_var );
@@ -746,7 +743,8 @@ public class Mapping extends AstObject {
     public native int resampleF( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         float[] in, float[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         float badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         float[] out, float[] out_var );
@@ -757,7 +755,8 @@ public class Mapping extends AstObject {
     public native int resampleD( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         double[] in, double[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         double badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         double[] out, double[] out_var );

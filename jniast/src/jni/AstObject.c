@@ -56,8 +56,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
          result = (jint) Xname; \
          success = 1; \
       }
+      if ( 0 ) {}
+
       /* Version identifiers. */
-      TRY_CONST( AST_MAJOR_VERS )
+      else TRY_CONST( AST_MAJOR_VERS )
       else TRY_CONST( AST_MINOR_VERS )
       else TRY_CONST( AST_RELEASE )
       else TRY_CONST( JNIAST_MAJOR_VERS )
@@ -80,6 +82,11 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( AST__GAUSS )
       else TRY_CONST( AST__SOMB )
       else TRY_CONST( AST__SOMBCOS )
+
+      /* Resampling flags. */
+      else TRY_CONST( AST__NOBAD )
+      else TRY_CONST( AST__USEBAD )
+      else TRY_CONST( AST__CONSERVEFLUX )
 
       /* Symbolic frame numbers. */
       else TRY_CONST( AST__BASE )

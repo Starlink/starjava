@@ -49,12 +49,14 @@ static void fukern1( double offset, const double params[], int flags,
 /* Static variables. */
 jclass InterpolatorClass = NULL;
 jclass SpreaderClass = NULL;
+jclass ResampleFlagsClass = NULL;
 jfieldID InterpolatorSchemeID = NULL;
 jfieldID InterpolatorParamsID = NULL;
 jfieldID InterpolatorUkern1erID = NULL;
 jfieldID InterpolatorUinterperID = NULL;
 jfieldID SpreaderSchemeID = NULL;
 jfieldID SpreaderParamsID = NULL;
+jmethodID ResampleFlagsGetFlagsIntID = NULL;
 
 
 /* Static functions. */
@@ -84,6 +86,9 @@ static void initializeIDs( JNIEnv *env ) {
       ( SpreaderClass = (jclass) (*env)->NewGlobalRef( env,
            (*env)->FindClass( env,
                               PACKAGE_PATH "Mapping$Spreader" ) ) ) &&
+      ( ResampleFlagsClass = (jclass) (*env)->NewGlobalRef( env,
+           (*env)->FindClass( env,
+                              PACKAGE_PATH "ResampleFlags" ) ) ) &&
 
       /* Get Field IDs. */
       ( InterpolatorSchemeID = 
@@ -100,6 +105,11 @@ static void initializeIDs( JNIEnv *env ) {
            (*env)->GetFieldID( env, SpreaderClass, "scheme_", "I" ) ) &&
       ( SpreaderParamsID =
            (*env)->GetFieldID( env, SpreaderClass, "params_", "[D" ) ) &&
+
+      /* Get Method IDs. */
+      ( ResampleFlagsGetFlagsIntID =
+           (*env)->GetMethodID( env, ResampleFlagsClass, "getFlagsInt",
+                                "()I" ) ) &&
       1;
    }
 }
@@ -765,7 +775,7 @@ typedef struct { \
    JNIEnv *env; \
    jobject calculator; \
    jmethodID method; \
-   jboolean usebad; \
+   jobject jFlags; \
    int *lbnd_in; \
    jintArray jLbnd_in; \
    int *ubnd_in; \
@@ -789,7 +799,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
    Xjtype##Array jIn,    /* Input data grid */ \
    Xjtype##Array jIn_var,/* Input variance grid */ \
    jobject interpObj,    /* Interpolator object */ \
-   jboolean usebad,      /* Bad value flag */ \
+   jobject jFlags,       /* Bad value flag */ \
    jdouble tol,          /* Tolerance */ \
    jint maxpix,          /* Initial scale size */ \
    Xjtype badval,        /* Bad value */ \
@@ -830,6 +840,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
  \
    /* Ensure that we have all the field and method ID that we may require. */ \
    initializeIDs( env ); \
+ \
+   /* Decode flags. */ \
+   flags = (int) (*env)->CallIntMethod( env, jFlags, \
+                                        ResampleFlagsGetFlagsIntID ); \
  \
    /* Map array elements from java arrays. */ \
    ( lbnd = (int *) (*env)->GetIntArrayElements( env, jLbnd, NULL ) ) && \
@@ -934,7 +948,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
                                     "[" #Xjsign  /* out */ \
                                     "[" #Xjsign  /* out_var */ \
                                     ")I" ); \
-            infoUi->usebad = usebad; \
+            infoUi->jFlags = jFlags; \
             infoUi->lbnd_in = lbnd_in; \
             infoUi->jLbnd_in = jLbnd_in; \
             infoUi->ubnd_in = ubnd_in; \
@@ -951,7 +965,6 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
          default: \
             finterp = (void (*)()) NULL; \
       } \
-      flags = ( usebad == JNI_TRUE ) ? AST__USEBAD : 0; \
    } \
  \
    /* Call the AST routine to do the work. */ \
@@ -1053,7 +1066,7 @@ static void fuinterp##Xletter( int ndim_in, const int *lbnd_in,  \
    JNIEnv *env = info->env; \
    jobject calc = info->calculator; \
    jmethodID method = info->method; \
-   jboolean usebad = info->usebad; \
+   jobject jFlags = info->jFlags; \
    jintArray jLbnd_in; \
    jintArray jUbnd_in; \
    Xjtype##Array jIn; \
@@ -1180,7 +1193,7 @@ static void fuinterp##Xletter( int ndim_in, const int *lbnd_in,  \
       /* Call the uinterp method of the UinterpCalculator object. */ \
       *nbad = (*env)->CallIntMethod( env, calc, method, (jint) ndim_in, \
                                      jLbnd_in, jUbnd_in, jIn, jIn_var, \
-                                     (jint) npoint, jOffset, jCoords, usebad, \
+                                     (jint) npoint, jOffset, jCoords, jFlags, \
                                      (Xjtype) badval, jOut, jOut_var ); \
    } \
  \

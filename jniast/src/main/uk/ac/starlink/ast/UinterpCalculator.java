@@ -77,17 +77,15 @@ public abstract class UinterpCalculator {
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * @param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * @param  flags    flag object giving more details about resampling
+     *                   procedure
      * @param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resampleD</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -134,7 +132,7 @@ public abstract class UinterpCalculator {
     public int uinterpD( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         double[] in, double[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, double badval, 
+        double[][] coords, ResampleFlags flags, double badval, 
         double[] out, double[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(
@@ -198,17 +196,15 @@ public abstract class UinterpCalculator {
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * @param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * @param  flags    flag object giving more details about resampling
+     *                   procedure
      * @param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resampleF</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -255,7 +251,7 @@ public abstract class UinterpCalculator {
     public int uinterpF( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         float[] in, float[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, float badval, 
+        double[][] coords, ResampleFlags flags, float badval, 
         float[] out, float[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(
@@ -319,17 +315,15 @@ public abstract class UinterpCalculator {
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * @param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * @param  flags    flag object giving more details about resampling
+     *                   procedure
      * @param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resampleL</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -376,7 +370,7 @@ public abstract class UinterpCalculator {
     public int uinterpL( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         long[] in, long[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, long badval, 
+        double[][] coords, ResampleFlags flags, long badval, 
         long[] out, long[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(
@@ -440,17 +434,15 @@ public abstract class UinterpCalculator {
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * @param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * @param  flags    flag object giving more details about resampling
+     *                   procedure
      * @param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resampleI</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -497,7 +489,7 @@ public abstract class UinterpCalculator {
     public int uinterpI( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         int[] in, int[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, int badval, 
+        double[][] coords, ResampleFlags flags, int badval, 
         int[] out, int[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(
@@ -561,17 +553,15 @@ public abstract class UinterpCalculator {
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * @param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * @param  flags    flag object giving more details about resampling
+     *                   procedure
      * @param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resampleS</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -618,7 +608,7 @@ public abstract class UinterpCalculator {
     public int uinterpS( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         short[] in, short[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, short badval, 
+        double[][] coords, ResampleFlags flags, short badval, 
         short[] out, short[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(
@@ -682,17 +672,15 @@ public abstract class UinterpCalculator {
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * @param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * @param  flags    flag object giving more details about resampling
+     *                   procedure
      * @param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resampleB</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -739,7 +727,7 @@ public abstract class UinterpCalculator {
     public int uinterpB( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         byte[] in, byte[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, byte badval, 
+        double[][] coords, ResampleFlags flags, byte badval, 
         byte[] out, byte[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(

@@ -110,17 +110,15 @@ foreach $typeset (
      *                   then the corresponding output
      *                   data (and variance) should be set to the value given
      *                   by <code>badval</code> (see below). 
-     * \@param  usebad   <code>true</code> if bad values (pixels with the
-     *                   special value <code>badval</code>) may appear 
-     *                   in the input grid and should be propagated to the
-     *                   output grid.
+     * \@param  flags    flag object giving more details about resampling
+     *                   procedure
      * \@param  badval   This will be the same value as was given via the
      *                   <code>badval</code> parameter of 
      *                   <code>resample$Xletter</code>, and will
      *                   have the same numerical type as the data being
      *                   processed (as elements of the <code>in</code> array).
      *                   It should be used to test for bad pixels in 
-     *                   the input grid (but only if <code>usebad</code>
+     *                   the input grid (but only if <code>flags.usebad</code>
      *                   is true) and for identifying bad output
      *                   values in the <code>out</code> 
      *                   (and <code>out_var</code>) array(s). 
@@ -167,7 +165,7 @@ foreach $typeset (
     public int uinterp$Xletter( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in, 
         $Xtype\[] in, $Xtype\[] in_var, int npoint, int[] offset, 
-        double[][] coords, boolean usebad, ${Xtype} badval, 
+        double[][] coords, ResampleFlags flags, ${Xtype} badval, 
         $Xtype\[] out, $Xtype\[] out_var 
     ) throws Exception {
         throw new UnsupportedOperationException(

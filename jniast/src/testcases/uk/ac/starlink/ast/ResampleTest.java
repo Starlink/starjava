@@ -56,13 +56,15 @@ public class ResampleTest extends TestCase {
         int[] lbnd = lbnd_out;
         int[] ubnd = ubnd_out;
         Mapping.Interpolator interp = Mapping.NEAREST_INTERPOLATOR;
+        ResampleFlags flags = new ResampleFlags();
+        flags.setUseBad( true );
 
         double[] inD = new double[] { 1., 1., 1, };
         double[] outD = new double[ 5 ];
         double badD = Double.NaN;
         assertEquals( 2, map.resampleD( ndim_in, lbnd_in, ubnd_in, 
                                         inD, null, interp, 
-                                        true, tol, maxpix, badD,
+                                        flags, tol, maxpix, badD,
                                         ndim_out, lbnd_out, ubnd_out,
                                         lbnd, ubnd, outD, null ) );
         assertArrayEquals( new double[] { badD, 1., 1., 1., badD }, outD );
@@ -70,9 +72,10 @@ public class ResampleTest extends TestCase {
         int[] inI = new int[] { 1, 1, 1 };
         int[] outI = new int[ 5 ];
         int badI = 999;
+        flags.setUseBad( false );
         assertEquals( 2, map.resampleI( ndim_in, lbnd_in, ubnd_in,
                                         inI, null, interp,
-                                        false, tol, maxpix, badI,
+                                        flags, tol, maxpix, badI,
                                         ndim_out, lbnd_out, ubnd_out,
                                         lbnd, ubnd, outI, null ) );
         assertArrayEquals( new int[] { 999, 1, 1, 1, 999 }, outI );
@@ -83,7 +86,7 @@ public class ResampleTest extends TestCase {
         assertEquals( 1, map.resampleF( ndim_in, lbnd_in, ubnd_in,
                                         inF, null, 
                                         Mapping.Interpolator.blockAve( 1 ),
-                                        false, tol, maxpix, badF,
+                                        flags, tol, maxpix, badF,
                                         ndim_out, lbnd_out, ubnd_out,
                                         lbnd, ubnd, outF, null ) );
         assertArrayEquals( outF, new float[] { 2f, 3f, 3f, 2f, badF } );
@@ -95,13 +98,43 @@ public class ResampleTest extends TestCase {
             Mapping.Interpolator.ukern1( new Shift1(), 2 );
         assertEquals( 3, map.resampleS( ndim_in, lbnd_in, ubnd_in,
                                         inS, null, ukinterp,
-                                        false, tol, maxpix, badS,
+                                        flags, tol, maxpix, badS,
                                         ndim_out, lbnd_out, ubnd_out,
                                         lbnd, ubnd, outS, null ) );
         assertArrayEquals( new short[] { badS, (short) 2, (short) 3,
                                          badS, badS }, outS );
         
 
+        ResampleFlags xflags = new ResampleFlags();
+        xflags.setNoBad( true );
+        xflags.setConserveFlux( true );
+        try {
+            map.resampleS( ndim_in, lbnd_in, ubnd_in, inS, null, ukinterp,
+                           xflags, tol, maxpix, badS, ndim_out,
+                           lbnd_out, ubnd_out, lbnd, ubnd, outS, null );
+            fail();
+        }
+        catch ( AstException e ) {
+            assertEquals( AstException.AST__BADFLG, e.getStatus() );
+        }
+
+    }
+
+    public void testResampleFlags() {
+        ResampleFlags flags = new ResampleFlags();
+        assertEquals( 0, flags.getFlagsInt() );
+        flags.setNoBad( true );
+        assertEquals( AstObject.getAstConstantI( "AST__NOBAD" ),
+                      flags.getFlagsInt() );
+        flags.setConserveFlux( true );
+        assertEquals( AstObject.getAstConstantI( "AST__NOBAD" )
+                    | AstObject.getAstConstantI( "AST__CONSERVEFLUX" ),
+                      flags.getFlagsInt() );
+        flags.setNoBad( false );
+        assertEquals( AstObject.getAstConstantI( "AST__CONSERVEFLUX" ),
+                      flags.getFlagsInt() );
+        assertTrue( flags.getConserveFlux() );
+        assertTrue( ! flags.getNoBad() );
     }
 
     private static class Shift1 implements Ukern1Calculator {
