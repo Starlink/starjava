@@ -528,9 +528,12 @@
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
 
          <!-- Name any extension packages we directly depend on -->
+         <extension name="REGISTRY" href="registry.jnlp"/>
          <extension name="AXIS" href="axis.jnlp"/>
+         <extension name="UTIL" href="util.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
          <extension name="VOTABLE" href="votable.jnlp"/>
- 
+
        </resources>
 
        <!-- This is a component -->
