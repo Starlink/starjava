@@ -207,7 +207,7 @@ JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_FitsChan_testFits(
       )
       jniastReleaseUTF( env, jName, name );
    }
-   return result;
+   return result ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putFits(
