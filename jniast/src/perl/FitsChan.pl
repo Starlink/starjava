@@ -423,6 +423,20 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "testFits" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'boolean', descrip => ReturnDescrip( $fName ) },
+   params => [
+      {
+         name => ( $aName = "name" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
+makeNativeMethod(
    name => ( $fName = "putFits" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),

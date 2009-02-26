@@ -16,7 +16,9 @@ public class FitsChanTest extends TestCase {
         fc.setFits( "FVAL", 0.25, "more commentary, but this time it's far "
                                 + "too long to fit into a FITS header card",
                     false );
+        assertTrue( ! fc.testFits( "LVAL" ) );
         fc.setFits( "LVAL", true, "Fishfinger", true );
+        assertTrue( fc.testFits( "LVAL" ) );
         fc.setFits( "SVAL", "Captain Starlink", "R.I.P.", false );
         fc.setFitsContinue( "CNVAL", "Muon", null, true );
 

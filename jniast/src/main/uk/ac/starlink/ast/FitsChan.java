@@ -588,6 +588,44 @@ public class FitsChan extends Channel {
     public native String findFits( String name, boolean inc );
 
     /** 
+     * See if a named keyword has a defined value in a FitsChan.   
+     * This function serches for a named keyword in a FitsChan. If found,
+     * and if the keyword has a value associated with it, a
+     * non-zero
+     * value is returned. If the keyword is not found, or if it does not
+     * have an associated value, a
+     * zero
+     * value is returned.
+     * <h4>Notes</h4>
+     * <br> -  The current card is left unchanged by this function.
+     * <br> -  The card following the current card is checked first. If this is
+     * not the required card, then the rest of the FitsChan is searched,
+     * starting with the first card added to the FitsChan. Therefore cards
+     * should be accessed in the order they are stored in the FitsChan (if
+     * possible) as this will minimise the time spent searching for cards. 
+     * <br> -  An error will be reported if the keyword name does not conform
+     * to FITS requirements.
+     * <br> -  Zero 
+     * <br> -  .FALSE.
+     * is returned as the function value if an error has already occurred, 
+     * or if this function should fail for any reason.
+     * @param   name
+     * Pointer to a null-terminated character string
+     * containing the FITS keyword name. This may be a complete FITS
+     * header card, in which case the keyword to use is extracted from 
+     * it. No more than 80 characters are read from this string.
+     * 
+     * @return  A value of zero 
+     * is returned if the keyword was not found in the FitsChan or has
+     * no associated value. Otherwise, a value of 
+     * one 
+     * is returned. 
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native boolean testFits( String name );
+
+    /** 
      * Store a FITS header card in a FitsChan.   
      * This function stores a FITS header card in a FitsChan. The card
      * is either inserted before the current card (identified by the

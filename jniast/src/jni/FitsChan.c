@@ -191,6 +191,25 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_FitsChan_findFits(
    return jCard;
 }
 
+JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_FitsChan_testFits(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jstring jName         /* Card name */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *name;
+   int result;
+
+   if ( jniastCheckNotNull( env, jName ) ) {
+      name = jniastGetUTF( env, jName );
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         result = astTestFits( pointer.FitsChan, name, NULL );
+      )
+      jniastReleaseUTF( env, jName, name );
+   }
+   return result;
+}
+
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putFits(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
