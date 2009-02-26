@@ -83,6 +83,7 @@ public class AstTest extends TestCase {
         Frame ff = grid;
         ff.setIdent( "1-2-3-4" );
         ff.setID( "9-8-7-6" );
+        assertTrue( ff.getObjSize() > 1 );
 
         Frame f = grid;
         Frame fff = (Frame) ff.copy();
@@ -116,6 +117,14 @@ public class AstTest extends TestCase {
 
     }
 
+    public void testTuning() {
+        assertEquals( 0, AstObject.tune( "ObjectCaching", 2 ) );
+        assertEquals( 2, AstObject.tune( "ObjectCaching", 0 ) );
+        assertEquals( 0, AstObject.tune( "ObjectCaching",
+                                         AstObject.AST__TUNULL ) );
+        assertEquals( 0, AstObject.tune( "ObjectCaching", 0 ) );
+    }
+
     private void exerciseChannel( Channel chan ) throws IOException {
         assertEquals( 1, chan.write( new FrameSet( frm ) ) );
         FrameSet f2 = (FrameSet) chan.read();
@@ -130,6 +139,13 @@ public class AstTest extends TestCase {
 
     public void testChannel() throws IOException {
         exerciseChannel( new TestChannel() );
+        Channel chan = new TestChannel();
+        boolean strict = chan.getStrict();
+        chan.setStrict( ! strict );
+        assertTrue( strict ^ chan.getStrict() );
+        chan.setStrict( strict );
+        KeyMap warnings = chan.warnings();
+        assertNull( warnings );
     }
 
     public void testXmlChan() throws IOException {
@@ -390,6 +406,11 @@ public class AstTest extends TestCase {
         catch ( AstException e ) {
             assertEquals( e.getStatus(), AstException.AST__ATTIN );
         }
+
+        dsb.setAlignSideBand( false );
+        assertTrue( ! dsb.getAlignSideBand() );
+        dsb.setAlignSideBand( true );
+        assertTrue( dsb.getAlignSideBand() );
     }
 
     public void testGeometry() {
@@ -436,6 +457,13 @@ public class AstTest extends TestCase {
         assertEquals( grid.axOffset( 2, 99., 2. ), 101. );
 
         assertEquals( grid.axDistance( 1, 4., 9. ), 5. );
+
+        assertArrayEquals(
+            new double[] { 1, 2 },
+            new Frame( 2 )
+           .intersect( new double[] { 1, 0 }, new double[] { 1, 4 },
+                       new double[] { 0, 2 }, new double[] { 2, 2 } ) );
+        
     }
 
     public void testMapping() throws IOException {
@@ -531,6 +559,21 @@ public class AstTest extends TestCase {
         assertEquals( "Frame", frms[ 0 ].getC( "Class" ) );
         assertEquals( 1, frms[ 0 ].decompose( null, null ).length );
 
+        // mapSplit
+        ZoomMap zmap = new ZoomMap( 3, 5.0 );
+        int[] zouts = new int[ 3 ];
+        Mapping zmap1 = zmap.mapSplit( new int[] { 3, }, zouts );
+        assertArrayEquals( new int[] { 3, 0, 0 }, zouts );
+        assertArrayEquals( new double[] { 20.0, },
+                           zmap1.tran1( 1, new double[] { 4.0 }, true ) );
+        try {
+            zmap.mapSplit( new int[] { 3, }, new int[ 2 ] );
+            fail();
+        }
+        catch ( IllegalArgumentException e ) {
+            // too few elements in out array
+        }
+
         // MatrixMap
         assertEquals( UnitMap.class, 
                       new MatrixMap( 10, 10 ).simplify().getClass() );
@@ -576,6 +619,19 @@ public class AstTest extends TestCase {
         double[][] resulte = imap.tran2( 3, xina, yina, true );
         assertArrayEquals( resulta[ 0 ], resulte[ 0 ] );
         assertArrayEquals( resulta[ 1 ], resulte[ 1 ] );
+    }
+
+    public void testTranGrid() {
+        Mapping map = new CmpMap( new ZoomMap( 2, 5.0 ),
+                                  new ShiftMap( new double[] { 100.0, 0.0 } ),
+                                  true );
+        double[][] grid =
+            map.tranGrid( 2, new int[] { 2, -1 }, new int[] { 3, 1 }, 
+                          0.1, 10, true, 2 );
+        assertArrayEquals( new double[] { 110, 115, 110, 115, 110, 115, },
+                           grid[ 0 ] );
+        assertArrayEquals( new double[] {  -5,  -5,   0,   0,   5,   5, },
+                           grid[ 1 ] );
     }
 
     public void testPolyMap() {
@@ -701,6 +757,27 @@ public class AstTest extends TestCase {
         catch ( AstException e ) {
             assertEquals( AstException.AST__TRNND, e.getStatus() );
         }
+    }
+
+    public void testSwitchMap() {
+        Frame f = new Frame( 1 );
+        Region lReg =
+            new Box( f, 1, new double[] { -100 }, new double[] { 0 }, null );
+        Region rReg =
+            new Box( f, 1, new double[] { 0 }, new double[] { +100 }, null );
+        SelectorMap fsMap = new SelectorMap( new Region[] { lReg, rReg }, -99 );
+        assertEquals( 1, fsMap.getNout() );
+        assertArrayEquals(
+            new double[] { 0, 1, 2, -99 },
+            fsMap.tran1( 4, new double[] { 9999, -1, +1, AstObject.AST__BAD },
+                         true ) );
+        Mapping lMap = new ShiftMap( new double[] { -4 } );
+        Mapping rMap = new ShiftMap( new double[] { +4 } );
+        SwitchMap swMap =
+            new SwitchMap( fsMap, null, new Mapping[] { lMap, rMap } );
+        assertArrayEquals(
+            new double[] { AstObject.AST__BAD, -5, +5, AstObject.AST__BAD },
+            swMap.tran1( 4, new double[] { -1000, -1, +1, +1000 }, true ) );
     }
 
     public void testPlot() {
@@ -847,8 +924,8 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([2-9])\\.([0-9]+)-([0-9]+); "+
-                                           "JNIAST native V5\\.0-0; " +
-                                           "JNIAST java V4\\.0-1" +
+                                           "JNIAST native V5\\.1-0; " +
+                                           "JNIAST java V5\\.1-0" +
                                            "\\b.*" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );

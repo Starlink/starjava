@@ -266,6 +266,25 @@ makeNativeMethod(
    ],
 );
 
+makeNativeMethod(
+   name => ( $fName = "showMesh" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'void' },
+   params => [
+      {
+         name => ( $aName = "format" ),
+         type => 'boolean',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ttl" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      }
+   ],
+);
+
 
 my( @args );
 

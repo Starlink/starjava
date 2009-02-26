@@ -83,3 +83,53 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PointList_construct(
       jniastInitObject( env, this, pointer );
    }
 }
+
+JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_PointList_points(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   int naxes = 0;
+   int npoint = 0;
+   double *out = NULL;
+   jobjectArray jResult = NULL;
+   jdoubleArray axValues = NULL;
+   int i;
+   int ok;
+
+   ENSURE_SAME_TYPE(double,jdouble)
+
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      naxes = astGetI( pointer.AstObject, "Naxes" );
+      npoint = astGetI( pointer.AstObject, "ListSize" );
+   )
+
+   ok =  ( ! (*env)->ExceptionCheck( env ) )
+      && ( out = jniastMalloc( env, naxes * npoint * sizeof( double ) ) )
+      && ( jResult = (*env)->NewObjectArray( env, naxes, DoubleArrayClass,
+                                             NULL ) );
+   for ( i = 0; i < naxes; i++ ) {
+      ok = ok && ( axValues = (*env)->NewDoubleArray( env, npoint ) );
+      if ( ok ) {
+         (*env)->SetObjectArrayElement( env, jResult, i, axValues );
+      }
+   }
+   if ( ok ) {
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astPoints( pointer.PointList, naxes, npoint, out );
+      )
+      if ( ! (*env)->ExceptionCheck( env ) ) {
+         for ( i = 0; i < naxes; i++ ) {
+            if ( ! (*env)->ExceptionCheck( env ) ) {
+               axValues = (*env)->GetObjectArrayElement( env, jResult, i );
+               if ( ! (*env)->ExceptionCheck( env ) ) {
+                  (*env)->SetDoubleArrayRegion( env, axValues, 0, npoint,
+                                                out + i * npoint );
+               }
+            }
+         }
+      }
+   }
+   free( out );
+   return jResult;
+}

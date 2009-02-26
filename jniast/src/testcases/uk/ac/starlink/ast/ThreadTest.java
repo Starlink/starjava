@@ -70,7 +70,7 @@ public class ThreadTest extends TestCase {
         }
         int izoom = (int) zoom;
         Mapping.Interpolator interp = Mapping.Interpolator.nearest();
-        boolean usebad = false;
+        ResampleFlags rflags = new ResampleFlags();
         double tol = 0.1;
         int maxpix = 4;  // low number to work harder.
         int badval = Integer.MIN_VALUE;
@@ -85,7 +85,7 @@ public class ThreadTest extends TestCase {
         long start = System.currentTimeMillis();
         int nbad =
             zoomMap.resampleI( ndim_in, lbnd_in, ubnd_in, in, in_var,
-                               interp, usebad, tol, maxpix, badval,
+                               interp, rflags, tol, maxpix, badval,
                                ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                out, out_var );
         for ( int ix = 1; ix < nx; ix +=4 ) {

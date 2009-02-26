@@ -27,6 +27,15 @@ makeNativeConstructor(
    params => [],
 );
 
+my( @alignSideBandArgs ) = (
+   name => ( $aName = "alignSideBand" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @alignSideBandArgs );
+makeSetAttrib( @alignSideBandArgs );
+
 my( @dsbcentreArgs ) = (
    name => ( $aName = "dsbCentre" ),
    type => 'double',

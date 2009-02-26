@@ -23,6 +23,7 @@
 */
 
 /* Header files. */
+#include <stdlib.h>
 #include "jni.h"
 #include "ast.h"
 #include "jniast.h"
@@ -48,12 +49,14 @@ static void fukern1( double offset, const double params[], int flags,
 /* Static variables. */
 jclass InterpolatorClass = NULL;
 jclass SpreaderClass = NULL;
+jclass ResampleFlagsClass = NULL;
 jfieldID InterpolatorSchemeID = NULL;
 jfieldID InterpolatorParamsID = NULL;
 jfieldID InterpolatorUkern1erID = NULL;
 jfieldID InterpolatorUinterperID = NULL;
 jfieldID SpreaderSchemeID = NULL;
 jfieldID SpreaderParamsID = NULL;
+jmethodID ResampleFlagsGetFlagsIntID = NULL;
 
 
 /* Static functions. */
@@ -83,6 +86,9 @@ static void initializeIDs( JNIEnv *env ) {
       ( SpreaderClass = (jclass) (*env)->NewGlobalRef( env,
            (*env)->FindClass( env,
                               PACKAGE_PATH "Mapping$Spreader" ) ) ) &&
+      ( ResampleFlagsClass = (jclass) (*env)->NewGlobalRef( env,
+           (*env)->FindClass( env,
+                              PACKAGE_PATH "ResampleFlags" ) ) ) &&
 
       /* Get Field IDs. */
       ( InterpolatorSchemeID = 
@@ -99,6 +105,11 @@ static void initializeIDs( JNIEnv *env ) {
            (*env)->GetFieldID( env, SpreaderClass, "scheme_", "I" ) ) &&
       ( SpreaderParamsID =
            (*env)->GetFieldID( env, SpreaderClass, "params_", "[D" ) ) &&
+
+      /* Get Method IDs. */
+      ( ResampleFlagsGetFlagsIntID =
+           (*env)->GetMethodID( env, ResampleFlagsClass, "getFlagsInt",
+                                "()I" ) ) &&
       1;
    }
 }
@@ -520,6 +531,89 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranP(
    return jOut;
 }
 
+JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranGrid(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jint ncoord_in,       /* Dimensionality of input space */
+   jintArray jLbnd,      /* Lower bound array */
+   jintArray jUbnd,      /* Upper bound array */
+   jdouble tol,          /* Tolerance */
+   jint maxpix,          /* Initial scale size for adaptive algorithm */
+   jboolean forward,     /* Forward/reverse flag */
+   jint ncoord_out       /* Dimensionality of output space */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   double *out = NULL;
+   jdoubleArray *jPtr_out = NULL;
+   jobjectArray jOut = NULL;
+   const int *lbnd;
+   const int *ubnd;
+   int i;
+   int npoint;
+
+   ENSURE_SAME_TYPE(double,jdouble)
+
+   /* Validate input. */
+   if ( jniastCheckArrayLength( env, jLbnd, ncoord_in ) &&
+        jniastCheckArrayLength( env, jUbnd, ncoord_in ) ) {
+      lbnd = (*env)->GetIntArrayElements( env, jLbnd, NULL );
+      ubnd = (*env)->GetIntArrayElements( env, jUbnd, NULL );
+
+      /* Calculate the number of points in the output grid. */
+      npoint = 1;
+      for ( i = 0; i < ncoord_in; i++ ) {
+         npoint *= ( abs( ubnd[ i ] - lbnd[ i ] ) + 1 );
+      }
+
+      /* Allocate pointer arrays to reference the output points. */
+      out = jniastMalloc( env, ncoord_out * npoint * sizeof( double ) );
+      jPtr_out = jniastMalloc( env, ncoord_out * sizeof( jdoubleArray ) );
+
+      /* Construct and map java arrays to hold the output points. */
+      if ( ! (*env)->ExceptionCheck( env ) ) {
+         jOut = (*env)->NewObjectArray( env, ncoord_out, DoubleArrayClass,
+                                        NULL );
+      }
+      for ( i = 0; i < ncoord_out; i++ ) {
+         if ( ( ! (*env)->ExceptionCheck( env ) ) &&
+              ( jPtr_out[ i ] = (*env)->NewDoubleArray( env, npoint ) ) ) {
+            (*env)->SetObjectArrayElement( env, jOut, i, jPtr_out[ i ] );
+         }
+         else {
+            if ( jPtr_out != NULL ) {
+               jPtr_out[ i ] = NULL;
+            }
+         }
+      }
+
+      /* Call the AST routine to do the work. */
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astTranGrid( pointer.Mapping, ncoord_in, lbnd, ubnd, (double) tol,
+                      (int) maxpix, forward == JNI_TRUE, ncoord_out, npoint,
+                      out );
+      )
+
+      /* Copy the output to the java arrays. */
+      for ( i = 0; i < ncoord_out; i++ ) {
+         if ( ! (*env)->ExceptionCheck( env ) ) {
+            (*env)->SetDoubleArrayRegion( env, jPtr_out[ i ],
+                                          (jsize) 0, (jsize) npoint,
+                                          (jdouble *) (out + i * npoint) );
+         }
+      }
+
+      /* Release resources. */
+      ALWAYS(
+         (*env)->ReleaseIntArrayElements( env, jLbnd, (int *) lbnd, JNI_ABORT );
+         (*env)->ReleaseIntArrayElements( env, jUbnd, (int *) ubnd, JNI_ABORT );
+         free( out );
+      )
+   }
+
+   /* Return the result. */
+   return jOut;
+}
+
 JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
@@ -622,6 +716,50 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_linearApprox(
    }
 }
 
+JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Mapping_mapSplit(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jintArray jIn,        /* Array of input indices */
+   jintArray jOut        /* Array to store output indices */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   AstMapping *outMap;
+   int nin;
+   int maxNout;
+   int *in;
+   int *out;
+
+   ENSURE_SAME_TYPE(int, jint)
+
+   /* Validate parameters. */
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      maxNout = astGetI( pointer.Mapping, "Nout" );
+   )
+   if ( jniastCheckNotNull( env, jIn ) &&
+        jniastCheckArrayLength( env, jOut, maxNout ) ) {
+
+      /* Prepare array for return. */
+      nin = (*env)->GetArrayLength( env, jIn );
+      in = (*env)->GetIntArrayElements( env, jIn, NULL );
+      out = (int *) (*env)->GetIntArrayElements( env, jOut, NULL );
+
+      /* Call the C function to do the work. */
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astMapSplit( pointer.Mapping, nin, in, out, &outMap );
+      )
+
+      /* Release resources. */
+      ALWAYS(
+         (*env)->ReleaseIntArrayElements( env, jIn, in, JNI_ABORT );
+         (*env)->ReleaseIntArrayElements( env, jOut, out, 0 );
+      )
+
+      /* Return the created map. */
+      return outMap == NULL ? NULL
+                            : jniastMakeObject( env, (AstObject *) outMap );
+   }
+}
+
 
 #define MAKE_RESAMPLEX(Xletter,Xtype,Xjtype,XJtype,Xjsign) \
  \
@@ -637,7 +775,7 @@ typedef struct { \
    JNIEnv *env; \
    jobject calculator; \
    jmethodID method; \
-   jboolean usebad; \
+   jobject jFlags; \
    int *lbnd_in; \
    jintArray jLbnd_in; \
    int *ubnd_in; \
@@ -661,7 +799,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
    Xjtype##Array jIn,    /* Input data grid */ \
    Xjtype##Array jIn_var,/* Input variance grid */ \
    jobject interpObj,    /* Interpolator object */ \
-   jboolean usebad,      /* Bad value flag */ \
+   jobject jFlags,       /* Bad value flag */ \
    jdouble tol,          /* Tolerance */ \
    jint maxpix,          /* Initial scale size */ \
    Xjtype badval,        /* Bad value */ \
@@ -702,6 +840,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
  \
    /* Ensure that we have all the field and method ID that we may require. */ \
    initializeIDs( env ); \
+ \
+   /* Decode flags. */ \
+   flags = (int) (*env)->CallIntMethod( env, jFlags, \
+                                        ResampleFlagsGetFlagsIntID ); \
  \
    /* Map array elements from java arrays. */ \
    ( lbnd = (int *) (*env)->GetIntArrayElements( env, jLbnd, NULL ) ) && \
@@ -806,7 +948,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
                                     "[" #Xjsign  /* out */ \
                                     "[" #Xjsign  /* out_var */ \
                                     ")I" ); \
-            infoUi->usebad = usebad; \
+            infoUi->jFlags = jFlags; \
             infoUi->lbnd_in = lbnd_in; \
             infoUi->jLbnd_in = jLbnd_in; \
             infoUi->ubnd_in = ubnd_in; \
@@ -823,7 +965,6 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
          default: \
             finterp = (void (*)()) NULL; \
       } \
-      flags = ( usebad == JNI_TRUE ) ? AST__USEBAD : 0; \
    } \
  \
    /* Call the AST routine to do the work. */ \
@@ -925,7 +1066,7 @@ static void fuinterp##Xletter( int ndim_in, const int *lbnd_in,  \
    JNIEnv *env = info->env; \
    jobject calc = info->calculator; \
    jmethodID method = info->method; \
-   jboolean usebad = info->usebad; \
+   jobject jFlags = info->jFlags; \
    jintArray jLbnd_in; \
    jintArray jUbnd_in; \
    Xjtype##Array jIn; \
@@ -1052,7 +1193,7 @@ static void fuinterp##Xletter( int ndim_in, const int *lbnd_in,  \
       /* Call the uinterp method of the UinterpCalculator object. */ \
       *nbad = (*env)->CallIntMethod( env, calc, method, (jint) ndim_in, \
                                      jLbnd_in, jUbnd_in, jIn, jIn_var, \
-                                     (jint) npoint, jOffset, jCoords, usebad, \
+                                     (jint) npoint, jOffset, jCoords, jFlags, \
                                      (Xjtype) badval, jOut, jOut_var ); \
    } \
  \

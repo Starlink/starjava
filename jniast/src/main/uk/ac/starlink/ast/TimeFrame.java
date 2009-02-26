@@ -27,7 +27,7 @@ package uk.ac.starlink.ast;
  * are always represented in units of (tropical) years.
  * <p>
  * The TimeScale attribute allows the time scale to be specified (that
- * is, the physical proces used to define the rate of flow of time).
+ * is, the physical process used to define the rate of flow of time).
  * MJD, JD and Julian epoch can be used to represent a time in any
  * supported time scale. However, Besselian epoch may only be used with the 
  * "TT" (Terrestrial Time) time scale. The list of supported time scales
@@ -38,6 +38,21 @@ package uk.ac.starlink.ast;
  * When a time value is formatted it can be formated either as a simple
  * floating point value, or as a Gregorian date (see the Format
  * attribute).
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_TimeFrame'>AST TimeFrame</a>  
@@ -100,7 +115,8 @@ public class TimeFrame extends Frame {
      * returns the current system time, represented in the form specified
      * by the supplied TimeFrame. That is, the returned floating point
      * value should be interpreted using the attribute values of the
-     * TimeFrame. This includes System, TimeOrigin, TimeScale, and Unit.
+     * TimeFrame. This includes System, TimeOrigin, LTOffset, TimeScale, 
+     * and Unit.
      * <h4>Notes</h4>
      * <br> - Values of AST__BAD will be returned if this function is
      * invoked with the AST error status set, or if it should fail for
@@ -197,98 +213,32 @@ public class TimeFrame extends Frame {
 
     /**
      * Get 
-     * the geodetic latitude of the observer/clock.  
-     * This attribute specifies the geodetic latitude of the observer's
-     * clock, in degrees. It is used only when converting between certain
-     * time scales (TDB, TCB, LMST, LAST). The default value for the attribute 
-     * is zero. 
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
-     * "-45.6", "S45.6". As indicated, the sign of the latitude can 
-     * optionally be indicated using characters "N" and "S" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]dd:mm:ss" is used, when "[s]" is "N" or "S".
+     * the offset from UTC to Local Time, in hours.  
+     * This specifies the offset from UTC to Local Time, in hours (fractional 
+     * hours can be supplied). It is positive for time zones east of Greenwich. 
+     * AST uses the figure as given, without making any attempt to correct for 
+     * daylight saving. The default value is zero.
      * 
      *
-     * @return  this object's ClockLat attribute
+     * @return  this object's LtOffset attribute
      */
-    public String getClockLat() {
-        return getC( "ClockLat" );
+    public double getLtOffset() {
+        return getD( "LtOffset" );
     }
 
     /**
      * Set 
-     * the geodetic latitude of the observer/clock.  
-     * This attribute specifies the geodetic latitude of the observer's
-     * clock, in degrees. It is used only when converting between certain
-     * time scales (TDB, TCB, LMST, LAST). The default value for the attribute 
-     * is zero. 
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
-     * "-45.6", "S45.6". As indicated, the sign of the latitude can 
-     * optionally be indicated using characters "N" and "S" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]dd:mm:ss" is used, when "[s]" is "N" or "S".
+     * the offset from UTC to Local Time, in hours.  
+     * This specifies the offset from UTC to Local Time, in hours (fractional 
+     * hours can be supplied). It is positive for time zones east of Greenwich. 
+     * AST uses the figure as given, without making any attempt to correct for 
+     * daylight saving. The default value is zero.
      * 
      *
-     * @param  clockLat   the ClockLat attribute of this object
+     * @param  ltOffset   the LtOffset attribute of this object
      */
-    public void setClockLat( String clockLat ) {
-       setC( "ClockLat", clockLat );
-    }
-
-    /**
-     * Get 
-     * the geodetic longitude of the observer/clock.  
-     * This attribute specifies the geodetic (or equivalently, geocentric)
-     * longitude of the observer's clock, in degrees, measured positive 
-     * eastwards. It is used only when converting between certain time 
-     * scales (TDB, TCB, LMST, LAST). See also attribute ClockLat. The default 
-     * value is zero.
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
-     * "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
-     * optionally be indicated using characters "E" and "W" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]ddd:mm:ss" is used, when "[s]" is "E" or "W" and the 
-     * numerical value is chosen to be less than 180 degrees.
-     * 
-     *
-     * @return  this object's ClockLon attribute
-     */
-    public String getClockLon() {
-        return getC( "ClockLon" );
-    }
-
-    /**
-     * Set 
-     * the geodetic longitude of the observer/clock.  
-     * This attribute specifies the geodetic (or equivalently, geocentric)
-     * longitude of the observer's clock, in degrees, measured positive 
-     * eastwards. It is used only when converting between certain time 
-     * scales (TDB, TCB, LMST, LAST). See also attribute ClockLat. The default 
-     * value is zero.
-     * <p>
-     * The value is stored internally in radians, but is converted to and 
-     * from a degrees string for access. Some example input formats are: 
-     * "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
-     * "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
-     * optionally be indicated using characters "E" and "W" in place of the 
-     * usual "+" and "-". When converting the stored value to a string, the 
-     * format "[s]ddd:mm:ss" is used, when "[s]" is "E" or "W" and the 
-     * numerical value is chosen to be less than 180 degrees.
-     * 
-     *
-     * @param  clockLon   the ClockLon attribute of this object
-     */
-    public void setClockLon( String clockLon ) {
-       setC( "ClockLon", clockLon );
+    public void setLtOffset( double ltOffset ) {
+       setD( "LtOffset", ltOffset );
     }
 
     /**
@@ -471,12 +421,7 @@ public class TimeFrame extends Frame {
      * time scale.  
      * This attribute identifies the time scale to which the time axis values 
      * of a TimeFrame refer, and may take any of the values listed in the 
-     * "Time Scales" section (below). Note, conversions which require 
-     * knowledge of DUT1 (the difference between UT1 and UTC) are not currently
-     * supported. This means that UT1 can only be converted to the other 
-     * angle-based scales such as GMST, LMST and LAST. An error will be reported
-     * about "incompatible timescales" if an attempt is made to convert
-     * between an angle-based timescale and any of the other time scales.
+     * "Time Scales" section (below).
      * <p>
      * The default TimeScale value depends on the current System value; if
      * the current TimeFrame system is "Besselian epoch" the default is
@@ -484,6 +429,17 @@ public class TimeFrame extends Frame {
      * so that the TimeFrame represents Besselian Epoch, then an error
      * will be reported if an attempt is made to set the TimeScale to 
      * anything other than TT.
+     * <p>
+     * Note, the supported time scales fall into two groups. The first group 
+     * containing  UT1, GMST, LAST and LMST define time in terms of the 
+     * orientation of the earth. The second group (containing all the remaining
+     * time scales) define time in terms of an atomic process. Since the rate of 
+     * rotation of the earth varies in an unpredictable way, conversion between 
+     * two timescales in different groups relies on a value being supplied for 
+     * the Dut1 attribute (defined by the parent Frame class). This attribute 
+     * specifies the difference between the UT1 and UTC time scales, in seconds,
+     * and defaults to zero. See the documentation for the Dut1 attribute for 
+     * further details. 
      * <h4>Time Scales</h4>
      * The TimeFrame class supports the following TimeScale values (all are
      * case-insensitive):
@@ -498,6 +454,7 @@ public class TimeFrame extends Frame {
      * <br> - "TDB" - Barycentric Dynamical Time
      * <br> - "TCB" - Barycentric Coordinate Time
      * <br> - "TCG" - Geocentric Coordinate Time
+     * <br> - "LT" - Local Time (the offset from UTC is given by attribute LTOffset)
      * <p>
      * An very informative description of these and other time scales is
      * available at http://www.ucolick.org/~sla/leapsecs/timescales.html.
@@ -528,12 +485,7 @@ public class TimeFrame extends Frame {
      * time scale.  
      * This attribute identifies the time scale to which the time axis values 
      * of a TimeFrame refer, and may take any of the values listed in the 
-     * "Time Scales" section (below). Note, conversions which require 
-     * knowledge of DUT1 (the difference between UT1 and UTC) are not currently
-     * supported. This means that UT1 can only be converted to the other 
-     * angle-based scales such as GMST, LMST and LAST. An error will be reported
-     * about "incompatible timescales" if an attempt is made to convert
-     * between an angle-based timescale and any of the other time scales.
+     * "Time Scales" section (below).
      * <p>
      * The default TimeScale value depends on the current System value; if
      * the current TimeFrame system is "Besselian epoch" the default is
@@ -541,6 +493,17 @@ public class TimeFrame extends Frame {
      * so that the TimeFrame represents Besselian Epoch, then an error
      * will be reported if an attempt is made to set the TimeScale to 
      * anything other than TT.
+     * <p>
+     * Note, the supported time scales fall into two groups. The first group 
+     * containing  UT1, GMST, LAST and LMST define time in terms of the 
+     * orientation of the earth. The second group (containing all the remaining
+     * time scales) define time in terms of an atomic process. Since the rate of 
+     * rotation of the earth varies in an unpredictable way, conversion between 
+     * two timescales in different groups relies on a value being supplied for 
+     * the Dut1 attribute (defined by the parent Frame class). This attribute 
+     * specifies the difference between the UT1 and UTC time scales, in seconds,
+     * and defaults to zero. See the documentation for the Dut1 attribute for 
+     * further details. 
      * <h4>Time Scales</h4>
      * The TimeFrame class supports the following TimeScale values (all are
      * case-insensitive):
@@ -555,6 +518,7 @@ public class TimeFrame extends Frame {
      * <br> - "TDB" - Barycentric Dynamical Time
      * <br> - "TCB" - Barycentric Coordinate Time
      * <br> - "TCG" - Geocentric Coordinate Time
+     * <br> - "LT" - Local Time (the offset from UTC is given by attribute LTOffset)
      * <p>
      * An very informative description of these and other time scales is
      * available at http://www.ucolick.org/~sla/leapsecs/timescales.html.
@@ -580,4 +544,31 @@ public class TimeFrame extends Frame {
        setC( "TimeScale", timeScale );
     }
 
+    /**
+     * Synonym for {@link #setObsLat}.
+     */ 
+    public void setClockLat( String clockLat ) {
+        setObsLat( clockLat );
+    } 
+
+    /**
+     * Synonym for {@link #getObsLat}.
+     */
+    public String getClockLat() {
+        return getObsLat();
+    }
+
+    /**
+     * Synonym for {@link #setObsLon}.
+     */
+    public void setClockLon( String clockLon ) {
+        setObsLon( clockLon );
+    }
+
+    /**
+     * Synonym for {@link #getObsLon}.
+     */ 
+    public String getClockLon() {
+        return getObsLon();
+    } 
 }

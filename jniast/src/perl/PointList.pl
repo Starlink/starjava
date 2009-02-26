@@ -57,5 +57,25 @@ makeNativeConstructor(
    ],
 );
 
+my( $fName );
+
+makeNativeMethod(
+   name => ( $fName = "points" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'double[][]', descrip => ArgDescrip( $fName, "out" ), },
+   params => [],
+);
+
+my( @args );
+
+@args = (
+   name => ( $aName = "listSize" ),
+   type => 'int',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+
 print "}\n";
 

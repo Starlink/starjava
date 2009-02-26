@@ -191,6 +191,25 @@ JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_FitsChan_findFits(
    return jCard;
 }
 
+JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_FitsChan_testFits(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jstring jName         /* Card name */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *name;
+   int result;
+
+   if ( jniastCheckNotNull( env, jName ) ) {
+      name = jniastGetUTF( env, jName );
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         result = astTestFits( pointer.FitsChan, name, NULL );
+      )
+      jniastReleaseUTF( env, jName, name );
+   }
+   return result ? JNI_TRUE : JNI_FALSE;
+}
+
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putFits(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */
@@ -207,6 +226,28 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putFits(
       )
       jniastReleaseUTF( env, jCard, card );
    }
+}
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_retainFits(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      astRetainFits( pointer.FitsChan );
+   )
+}
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_purgeWCS(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      astPurgeWCS( pointer.FitsChan );
+   )
 }
 
 JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_FitsChan_read(

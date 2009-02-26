@@ -111,6 +111,7 @@ C_ROUTINES = \
    Prism.c \
    RateMap.c \
    Region.c \
+   SelectorMap.c \
    SkyFrame.c \
    SlaMap.c \
    ShiftMap.c \
@@ -123,6 +124,7 @@ C_ROUTINES = \
    StcObsDataLocation.c \
    StcResourceProfile.c \
    StcSearchLocation.c \
+   SwitchMap.c \
    TimeFrame.c \
    TimeMap.c \
    TranMap.c \

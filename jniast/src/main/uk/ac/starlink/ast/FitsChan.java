@@ -30,7 +30,8 @@ import java.io.*;
  * card, to which subsequent operations apply. Searches
  * based on keyword may be performed (using astFindFits), new
  * cards may be inserted (astPutFits, astPutCards, astSetFits<X>) and 
- * existing ones may be deleted (astDelFits) or changed (astSetFits<X>).
+ * existing ones may be deleted (astDelFits), extracted (astGetFits<X>),
+ * or changed (astSetFits<X>).
  * <p>
  * When you create a FitsChan, you have the option of specifying
  * "source" and "sink" functions which connect it to external data
@@ -70,9 +71,16 @@ import java.io.*;
  * <p>
  * The detailed behaviour of astRead and astWrite, when used with
  * a FitsChan, depends on the encoding in use. In general, however,
- * all use of astRead is destructive, so that FITS header cards
+ * all successful use of astRead is destructive, so that FITS header cards
  * are consumed in the process of reading an Object, and are
- * removed from the FitsChan.
+ * removed from the FitsChan (this deletion can be prevented for 
+ * specific cards by calling the 
+ * astRetainFits function).
+ * An unsuccessful call of 
+ * astRead
+ * (for instance, caused by the FitsChan not containing the necessary
+ * FITS headers cards needed to create an Object) results in the
+ * contents of the FitsChan being left unchanged.
  * <p>
  * If the encoding in use allows only a single Object description
  * to be stored in a FitsChan (e.g. the DSS, FITS-WCS and FITS-IRAF
@@ -81,6 +89,21 @@ import java.io.*;
  * encoding. Otherwise (e.g. the NATIVE encoding), multiple Object
  * descriptions are written sequentially and may later be read
  * back in the same sequence.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * <p>
  *       <h4>Usage</h4>
@@ -565,6 +588,43 @@ public class FitsChan extends Channel {
     public native String findFits( String name, boolean inc );
 
     /** 
+     * See if a named keyword has a defined value in a FitsChan.   
+     * This function serches for a named keyword in a FitsChan. If found,
+     * and if the keyword has a value associated with it, a
+     * non-zero
+     * value is returned. If the keyword is not found, or if it does not
+     * have an associated value, a
+     * zero
+     * value is returned.
+     * <h4>Notes</h4>
+     * <br> -  The current card is left unchanged by this function.
+     * <br> -  The card following the current card is checked first. If this is
+     * not the required card, then the rest of the FitsChan is searched,
+     * starting with the first card added to the FitsChan. Therefore cards
+     * should be accessed in the order they are stored in the FitsChan (if
+     * possible) as this will minimise the time spent searching for cards. 
+     * <br> -  An error will be reported if the keyword name does not conform
+     * to FITS requirements.
+     * <br> -  Zero 
+     * is returned as the function value if an error has already occurred, 
+     * or if this function should fail for any reason.
+     * @param   name
+     * Pointer to a null-terminated character string
+     * containing the FITS keyword name. This may be a complete FITS
+     * header card, in which case the keyword to use is extracted from 
+     * it. No more than 80 characters are read from this string.
+     * 
+     * @return  A value of zero 
+     * is returned if the keyword was not found in the FitsChan or has
+     * no associated value. Otherwise, a value of 
+     * one 
+     * is returned. 
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native boolean testFits( String name );
+
+    /** 
      * Store a FITS header card in a FitsChan.   
      * This function stores a FITS header card in a FitsChan. The card
      * is either inserted before the current card (identified by the
@@ -592,6 +652,39 @@ public class FitsChan extends Channel {
      * @throws  AstException  if an error occurred in the AST library
      */
     public native void putFits( String card, boolean overwrite );
+
+    /** 
+     * Indicate that the current card in a FitsChan should be retained.   
+     * This function 
+     * stores a flag with the current card in the FitsChan indicating that
+     * the card should not be removed from the FitsChan when an Object is 
+     * read from the FitsChan using
+     * astRead.
+     * <p>
+     * Cards that have not been flagged in this way are removed when a
+     * read operation completes succesfully, but only if the card was used
+     * in the process of creating the returned AST Object. Any cards that
+     * are irrelevant to the creation of the AST Object are retained whether 
+     * or not they are flagged.
+     * <h4>Notes</h4>
+     * <br> - This function returns without action if the FitsChan is
+     * initially positioned at the "end-of-file" (i.e. if the Card
+     * attribute exceeds the number of cards in the FitsChan).
+     * <br> - The current card is not changed by this function.
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void retainFits(  );
+
+    /** 
+     * Delete all cards in the FitsChan describing WCS information.   
+     * This function 
+     * deletes all cards in a FitsChan that relate to any of the recognised 
+     * WCS encodings. On exit, the current card is the first remaining card 
+     * in the FitsChan.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void purgeWCS(  );
 
     /** 
      * Store a set of FITS header cards in a FitsChan.   
@@ -638,7 +731,7 @@ public class FitsChan extends Channel {
      * this attribute (using astClear) effectively "rewinds" the
      * FitsChan, so that the first card is accessed next.  If Card is
      * set to a value which exceeds the total number of cards in the
-     * FitsChan (as given by its Ncards attribute), it is regarded as
+     * FitsChan (as given by its Ncard attribute), it is regarded as
      * pointing at the "end-of-file". In this case, the value returned
      * in response to an enquiry is always one more than the number of
      * cards in the FitsChan.
@@ -668,7 +761,7 @@ public class FitsChan extends Channel {
      * this attribute (using astClear) effectively "rewinds" the
      * FitsChan, so that the first card is accessed next.  If Card is
      * set to a value which exceeds the total number of cards in the
-     * FitsChan (as given by its Ncards attribute), it is regarded as
+     * FitsChan (as given by its Ncard attribute), it is regarded as
      * pointing at the "end-of-file". In this case, the value returned
      * in response to an enquiry is always one more than the number of
      * cards in the FitsChan.
@@ -977,8 +1070,8 @@ public class FitsChan extends Channel {
      * <br> - "FITS-CLASS": Encodes coordinate system information in FITS
      * header cards using the conventions used by the CLASS project.
      * CLASS is a software package for reducing single-dish radio and
-     * sub-mm spectroscopic data. See 
-     * http://www.iram.fr/IRAMFR/GILDAS/doc/html/class-html/class.html.
+     * sub-mm spectroscopic data. See the section "CLASS FITS format" at
+     * http://www.iram.fr/IRAMFR/GILDAS/doc/html/class-html/.
      * <p>
      * <br> - "NATIVE": Encodes AST Objects in FITS header cards using a
      * convention which is private to the AST library (but adheres to
@@ -999,8 +1092,9 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
      * string "BEGAST", then NATIVE encoding is used,
-     * <br> - Otherwise, FITS-CLASS is used if the FitsChan contains an ORIGIN
-     * keyword with the value 'CLASS-Grenoble'.
+     * <br> - Otherwise, FITS-CLASS is used if the FitsChan contains a DELTAV
+     * keyword and a keyword of the form VELO-xxx, where xxx indicates one
+     * of the rest frames used by class (e.g. "VELO-LSR").
      * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
      * represents a spectral axis using the conventions of the AIPS and
      * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
@@ -1031,6 +1125,11 @@ public class FitsChan extends Channel {
      * <br> - Otherwise, if none of these conditions is met (as would be the
      * case when using an empty FitsChan), then NATIVE encoding is
      * used.
+     * <p>
+     * Except for the NATIVE and DSS encodings, all the above checks 
+     * also require that the header contains at least one CTYPE, CRPIX and
+     * CRVAL keyword (otherwise the checking process continues to the next
+     * case). 
      * <p>
      * Setting an explicit value for the Encoding attribute always
      * over-rides this default behaviour.
@@ -1245,8 +1344,8 @@ public class FitsChan extends Channel {
      * <br> - "FITS-CLASS": Encodes coordinate system information in FITS
      * header cards using the conventions used by the CLASS project.
      * CLASS is a software package for reducing single-dish radio and
-     * sub-mm spectroscopic data. See 
-     * http://www.iram.fr/IRAMFR/GILDAS/doc/html/class-html/class.html.
+     * sub-mm spectroscopic data. See the section "CLASS FITS format" at
+     * http://www.iram.fr/IRAMFR/GILDAS/doc/html/class-html/.
      * <p>
      * <br> - "NATIVE": Encodes AST Objects in FITS header cards using a
      * convention which is private to the AST library (but adheres to
@@ -1267,8 +1366,9 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
      * string "BEGAST", then NATIVE encoding is used,
-     * <br> - Otherwise, FITS-CLASS is used if the FitsChan contains an ORIGIN
-     * keyword with the value 'CLASS-Grenoble'.
+     * <br> - Otherwise, FITS-CLASS is used if the FitsChan contains a DELTAV
+     * keyword and a keyword of the form VELO-xxx, where xxx indicates one
+     * of the rest frames used by class (e.g. "VELO-LSR").
      * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
      * represents a spectral axis using the conventions of the AIPS and
      * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
@@ -1299,6 +1399,11 @@ public class FitsChan extends Channel {
      * <br> - Otherwise, if none of these conditions is met (as would be the
      * case when using an empty FitsChan), then NATIVE encoding is
      * used.
+     * <p>
+     * Except for the NATIVE and DSS encodings, all the above checks 
+     * also require that the header contains at least one CTYPE, CRPIX and
+     * CRVAL keyword (otherwise the checking process continues to the next
+     * case). 
      * <p>
      * Setting an explicit value for the Encoding attribute always
      * over-rides this default behaviour.
@@ -1496,12 +1601,12 @@ public class FitsChan extends Channel {
      * Get 
      * controls the issuing of warnings about various conditions.  
      * This attribute controls the issuing of warnings about selected
-     * conditions when an Object is read from or written to a FitsChan.
-     * The value supplied for the Warnings attribute should consist of a
-     * space separated list of condition names (see the AllWarnings
-     * attribute for a list of the currently defined names). Each name 
-     * indicates a condition which should be reported. The default 
-     * value for Warnings is the string "Tnx Zpx BadCel BadMat BadCTYPE".
+     * conditions when an Object or keyword is read from or written to a 
+     * FitsChan. The value supplied for the Warnings attribute should 
+     * consist of a space separated list of condition names (see the 
+     * AllWarnings attribute for a list of the currently defined names). 
+     * Each name indicates a condition which should be reported. The default 
+     * value for Warnings is the string "Tnx Zpx BadCel BadMat BadPV BadCTYPE".
      * <p>
      * The text of any warning will be stored within the FitsChan in the
      * form of one or more new header cards with keyword ASTWARN. If
@@ -1510,6 +1615,14 @@ public class FitsChan extends Channel {
      * performed, and report the text of any such cards to the user. ASTWARN
      * cards will be propagated to any output header unless they are
      * deleted from the FitsChan using astDelFits.
+     * <h4>Notes</h4>
+     * This attribute only controls the warnings that are to be stored as 
+     * a set of header cards in the FitsChan as described above. It has no
+     * effect on the storage of warnings in the parent Channel structure. 
+     * All warnings are stored in the parent Channel structure, from where 
+     * they can be retrieved using the 
+     * astWarnings
+     * function.
      * 
      *
      * @return  this object's Warnings attribute
@@ -1522,12 +1635,12 @@ public class FitsChan extends Channel {
      * Set 
      * controls the issuing of warnings about various conditions.  
      * This attribute controls the issuing of warnings about selected
-     * conditions when an Object is read from or written to a FitsChan.
-     * The value supplied for the Warnings attribute should consist of a
-     * space separated list of condition names (see the AllWarnings
-     * attribute for a list of the currently defined names). Each name 
-     * indicates a condition which should be reported. The default 
-     * value for Warnings is the string "Tnx Zpx BadCel BadMat BadCTYPE".
+     * conditions when an Object or keyword is read from or written to a 
+     * FitsChan. The value supplied for the Warnings attribute should 
+     * consist of a space separated list of condition names (see the 
+     * AllWarnings attribute for a list of the currently defined names). 
+     * Each name indicates a condition which should be reported. The default 
+     * value for Warnings is the string "Tnx Zpx BadCel BadMat BadPV BadCTYPE".
      * <p>
      * The text of any warning will be stored within the FitsChan in the
      * form of one or more new header cards with keyword ASTWARN. If
@@ -1536,6 +1649,14 @@ public class FitsChan extends Channel {
      * performed, and report the text of any such cards to the user. ASTWARN
      * cards will be propagated to any output header unless they are
      * deleted from the FitsChan using astDelFits.
+     * <h4>Notes</h4>
+     * This attribute only controls the warnings that are to be stored as 
+     * a set of header cards in the FitsChan as described above. It has no
+     * effect on the storage of warnings in the parent Channel structure. 
+     * All warnings are stored in the parent Channel structure, from where 
+     * they can be retrieved using the 
+     * astWarnings
+     * function.
      * 
      *
      * @param  warnings   the Warnings attribute of this object
@@ -1577,6 +1698,11 @@ public class FitsChan extends Channel {
      * "Representation of World Coordinates in FITS" by Greisen & Calabretta
      * requires that this matrix be invertable. Many operations (such as
      * grid plotting) will not be possible if the matrix cannot be inverted.
+     * <p>
+     * <br> - "BadPV": This condition arises when reading a FrameSet from a
+     * non-Native encoded FitsChan. It is issued if a PVi_m header is found 
+     * that refers to a projection parameter that is not used by the 
+     * projection type specified by CTYPE.
      * <p>
      * <br> - "BadVal": This condition arises when reading a FrameSet from a
      * non-Native encoded FitsChan if it is not possible to convert the

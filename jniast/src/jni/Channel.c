@@ -190,6 +190,19 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Channel_write(
    }
 }
 
+JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Channel_warnings(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   AstKeyMap *warnings;
+
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      warnings = astWarnings( pointer.Channel );
+   )
+   return jniastMakeObject( env, (AstObject *) warnings );
+}
+
 
 /* Static functions. */
 

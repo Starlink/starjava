@@ -36,7 +36,7 @@
 
 /* Required versions of the AST package. */
 #define JNIAST_MAJOR_VERS 5
-#define JNIAST_MINOR_VERS 0
+#define JNIAST_MINOR_VERS 1
 #define JNIAST_RELEASE 0
 
 /* Typedefs. */
@@ -74,6 +74,7 @@ typedef union {
    AstPrism *Prism;          /* Pointer to C AstPrism struct */
    AstRateMap *RateMap;      /* Pointer to C AstRateMap struct */
    AstRegion *Region;        /* Pointer to C AstRegion struct */
+   AstSelectorMap *SelectorMap; /* Pointer to C AstSelectorMap struct */
    AstShiftMap *ShiftMap;    /* Pointer to C AstShiftMap struct */
    AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstSlaMap *SlaMap;        /* Pointer to C AstSlaMap struct */
@@ -86,6 +87,7 @@ typedef union {
    AstStcObsDataLocation *StcObsDataLocation; /* Pointer to C AstStcObsDataLocation struct */
    AstStcResourceProfile *StcResourceProfile; /* Pointer to C AstStcResourceProfile struct */
    AstStcSearchLocation *StcSearchLocation; /* Pointer to C AstStcSearchLocation struct */
+   AstSwitchMap *SwitchMap;  /* Pointer to C AstSwitchMap struct */
    AstTimeFrame *TimeFrame;  /* Pointer to C AstTimeFrame struct */
    AstTimeMap *TimeMap;      /* Pointer to C AstTimeMap struct */
    AstTranMap *TranMap;      /* Pointer to C AstTranMap struct */

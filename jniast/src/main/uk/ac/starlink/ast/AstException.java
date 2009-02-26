@@ -403,6 +403,15 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__INTRD" );
        }
    }
+   /** Status constant for error "Circular dependency between KeyMaps" */
+   public static final int AST__KYCIR;
+   static {
+       try { AST__KYCIR = getErrConst( "AST__KYCIR" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__KYCIR" );
+       }
+   }
    /** Status constant for error "class loader error" */
    public static final int AST__LDERR;
    static {
@@ -1211,6 +1220,87 @@ public class AstException extends RuntimeException {
        catch( IllegalArgumentException e ) {
            throw new LinkageError(
                 "Unknown AST error constant AST__STCIND" );
+       }
+   }
+   /** Status constant for error "cannot conserve flux whilst resampling an array of data" */
+   public static final int AST__CNFLX;
+   static {
+       try { AST__CNFLX = getErrConst( "AST__CNFLX" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__CNFLX" );
+       }
+   }
+   /** Status constant for error "Unknown AST tuning parameter name supplied" */
+   public static final int AST__TUNAM;
+   static {
+       try { AST__TUNAM = getErrConst( "AST__TUNAM" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__TUNAM" );
+       }
+   }
+   /** Status constant for error "Bad value supplied for a public function parameter" */
+   public static final int AST__BDPAR;
+   static {
+       try { AST__BDPAR = getErrConst( "AST__BDPAR" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BDPAR" );
+       }
+   }
+   /** Status constant for error "Supplied FrameSet does not contain any independent axes" */
+   public static final int AST__3DFSET;
+   static {
+       try { AST__3DFSET = getErrConst( "AST__3DFSET" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__3DFSET" );
+       }
+   }
+   /** Status constant for error "Attempt to delete original Plot3D base Frame" */
+   public static final int AST__PXFRRM;
+   static {
+       try { AST__PXFRRM = getErrConst( "AST__PXFRRM" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__PXFRRM" );
+       }
+   }
+   /** Status constant for error "Illegal syntax for string substitution template" */
+   public static final int AST__BADSUB;
+   static {
+       try { AST__BADSUB = getErrConst( "AST__BADSUB" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADSUB" );
+       }
+   }
+   /** Status constant for error "Incompatible flags for re-sampling or re-binning" */
+   public static final int AST__BADFLG;
+   static {
+       try { AST__BADFLG = getErrConst( "AST__BADFLG" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADFLG" );
+       }
+   }
+   /** Status constant for error "Error locking or unlocking an AST Object" */
+   public static final int AST__LCKERR;
+   static {
+       try { AST__LCKERR = getErrConst( "AST__LCKERR" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__LCKERR" );
+       }
+   }
+   /** Status constant for error "FITS keyword had undefined value" */
+   public static final int AST__FUNDEF;
+   static {
+       try { AST__FUNDEF = getErrConst( "AST__FUNDEF" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__FUNDEF" );
        }
    }
 }

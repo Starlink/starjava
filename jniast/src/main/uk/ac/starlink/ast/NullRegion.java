@@ -14,6 +14,21 @@ package uk.ac.starlink.ast;
  * represents a Region containing no points. If the Negated attribute of 
  * a NullRegion is true, the NullRegion represents an infinite Region 
  * (that is, all points in the coordinate system are inside the NullRegion).
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_NullRegion'>AST NullRegion</a>  

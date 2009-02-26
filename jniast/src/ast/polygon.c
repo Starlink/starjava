@@ -46,7 +46,24 @@ f     The Polygon class does not define any new routines beyond those
 *     which are applicable to all Regions.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -84,6 +101,8 @@ f     The Polygon class does not define any new routines beyond those
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -95,7 +114,7 @@ f     The Polygon class does not define any new routines beyond those
 #include "polygon.h"             /* Interface definition for this class */
 #include "mapping.h"             /* Position mappings */
 #include "unitmap.h"             /* Unit Mapping */
-#include "slalib.h"              /* SLALIB library interface */
+#include "pal.h"              /* SLALIB library interface */
 #include "frame.h"               /* Coordinate system description */
 
 /* Error code definitions. */
@@ -113,16 +132,43 @@ f     The Polygon class does not define any new routines beyond those
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstPolygonVtab class_vtab;    /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
-static AstMapping *(* parent_simplify)( AstMapping * );
-static void (* parent_setregfs)( AstRegion *, AstFrame * );
-static void (* parent_resetcache)( AstRegion * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static AstMapping *(* parent_simplify)( AstMapping *, int * );
+static void (* parent_setregfs)( AstRegion *, AstFrame *, int * );
+static void (* parent_resetcache)( AstRegion *, int * );
+
+
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(Polygon)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(Polygon,Class_Init)
+#define class_vtab astGLOBAL(Polygon,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstPolygonVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -133,21 +179,22 @@ AstPolygon *astPolygonId_( void *, int, int, const double *, void *, const char 
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstMapping *Simplify( AstMapping * );
-static AstPointSet *RegBaseMesh( AstRegion * );
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int ** );
-static void Dump( AstObject *, AstChannel * );
-static void RegBaseBox( AstRegion *this, double *, double * );
-static void Cache( AstPolygon * );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void SetRegFS( AstRegion *, AstFrame * );
-static void ResetCache( AstRegion *this );
+static AstMapping *Simplify( AstMapping *, int * );
+static AstPointSet *RegBaseMesh( AstRegion *, int * );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static double Polywidth( AstFrame *, AstLineDef **, int, int, double[ 2 ], int * );
+static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int **, int * );
+static void Cache( AstPolygon *, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void RegBaseBox( AstRegion *this, double *, double *, int * );
+static void ResetCache( AstRegion *this, int * );
+static void SetRegFS( AstRegion *, AstFrame *, int * );
 
 /* Member functions. */
 /* ================= */
-static void Cache( AstPolygon *this ){
+static void Cache( AstPolygon *this, int *status ){
 /*
 *  Name:
 *     Cache
@@ -160,7 +207,7 @@ static void Cache( AstPolygon *this ){
 
 *  Synopsis:
 *     #include "polygon.h"
-*     void Cache( AstPolygon *this )
+*     void Cache( AstPolygon *this, int *status )
 
 *  Class Membership:
 *     Polygon member function 
@@ -173,20 +220,21 @@ static void Cache( AstPolygon *this ){
 *  Parameters:
 *     this
 *        Pointer to the Polygon.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
 /* Local Variables: */
    AstFrame *frm;       /* Pointer to base Frame in Polygon */
    double **ptr;        /* Pointer to data in the encapsulated PointSet */
-   double d;            /* Length of first edge */
-   double end[2];       /* Start position for edge */
-   double start[2];     /* Start position for edge */
+   double end[ 2 ];     /* Start position for edge */
+   double maxwid;       /* Maximum polygon width found so far */
+   double polcen[ 2 ];  /* Polygon centre perpendicular to current edge */
+   double polwid;       /* Polygon width perpendicular to current edge */
+   double start[ 2 ];   /* Start position for edge */
    int i;               /* Axis index */
-   int j;               /* Axis index */
    int nv;              /* Number of vertices in Polygon */
-   int nzedge;          /* INdex of edge used to define interior point */
-   int good;            /* Is interior point not on any edge? */
 
 /* Check the global error status. */
    if ( !astOK ) return;
@@ -228,44 +276,37 @@ static void Cache( AstPolygon *this ){
             start[ 1 ] = end[ 1 ];
          }     
 
-/* Find an edge which has non-zero length and for which the start
-   position is not contained in any other edge (the end position of each
-   line will be checked as the start position of the next line). */
-         nzedge = -1;
-         start[ 0 ] = ptr[ 0 ][ nv - 1 ];
-         start[ 1 ] = ptr[ 1 ][ nv - 1 ];
+/* We now look for a point that is inside the polygon. We want a point
+   that is well within the polygon, since points that are only just inside
+   the polygon can give numerical problems. Loop round each edge with 
+   non-zero length. */
+         maxwid = -1.0;
          for( i = 0; i < nv; i++ ) {
             if( this->edges[ i ]->length > 0.0 ) {
-               good = 1;
-               for( j = 0; j < nv; j++ ) {
-                  if( j != i ) {
-                     if( astLineContains( frm, this->edges[ j ], 0, start ) ) {
-                        good = 0;
-                        break;
-                     } 
-                  }
+
+/* We define another line perpendicular to the current edge, passing
+   through the mid point of the edge, extending towards the inside of the
+   polygon. The following function returns the distance we can travel
+   along this line before we hit any of the other polygon edges. It also
+   puts the position corresponding to half that distance into "polcen". */
+               polwid = Polywidth( frm, this->edges, i, nv, polcen, status );
+
+/* If the width of the polygon perpendicular to the current edge is
+   greater than the width perpdeicular to any other edge, record the
+   width and also store the current polygon centre. */
+               if( polwid > maxwid ) {
+                  maxwid = polwid;
+                  (this->in)[ 0 ] = polcen[ 0 ];                  
+                  (this->in)[ 1 ] = polcen[ 1 ];                  
                }
-               if( good ){
-                  nzedge = i;
-                  break;
-               } 
             }
-            start[ 0 ] = ptr[ 0 ][ i ];
-            start[ 1 ] = ptr[ 1 ][ i ];
          }
 
-/* Report an error if no such edge was found. */
-         if( nzedge < 0 ) {
+/* Report an error if no point was found. */
+         if( maxwid < 0 && astOK ) {
             if( astOK ) astError( AST__BADIN, "astInitPolygon(%s): Degenerate "
-                                  "(zero-area) polygon supplied.",
+                                  "(zero-area) polygon supplied.", status,
                                   astGetClass( this ) );
-
-/* Otherwise, find a point which is just inside the Polygon. This is 1.0E-6
-   of the length of the edge found above away from the mid point of the 
-   edge (on the inside). */
-         } else {
-            d = this->edges[nzedge]->length;
-            astLineOffset( frm,this->edges[nzedge], 0.5*d, 1.0E-6*d, this->in );
          }
       }
    
@@ -278,7 +319,7 @@ static void Cache( AstPolygon *this ){
    }
 }
 
-void astInitPolygonVtab_(  AstPolygonVtab *vtab, const char *name ) {
+void astInitPolygonVtab_(  AstPolygonVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -315,11 +356,15 @@ void astInitPolygonVtab_(  AstPolygonVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
    AstRegionVtab *region;        /* Pointer to Region component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -328,8 +373,8 @@ void astInitPolygonVtab_(  AstPolygonVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAPolygon) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -365,9 +410,136 @@ void astInitPolygonVtab_(  AstPolygonVtab *vtab, const char *name ) {
    astSetDump( vtab, Dump, "Polygon", "Polygonal region" );
    astSetDelete( vtab, Delete );
    astSetCopy( vtab, Copy );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
-static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd ){
+static double Polywidth( AstFrame *frm, AstLineDef **edges, int i, int nv, 
+                         double cen[ 2 ], int *status ){
+/*
+*  Name:
+*     Polywidth
+
+*  Purpose:
+*     Find the width of a polygon perpendicular to a given edge.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "polygon.h"
+*     double Polywidth( AstFrame *frm, AstLineDef **edges, int i, int nv, 
+*                       double cen[ 2 ], int *status )
+
+*  Class Membership:
+*     Polygon member function 
+
+*  Description:
+*     This function defines a line perpendicular to a given polygon edge, 
+*     passing through the mid point of the edge, extending towards the 
+*     inside of the polygon. It returns the distance that can be travelled
+*     along this line before any of the other polygon edges are hit (the
+*     "width" of the polygon perpendicular to the given edge). It also 
+*     puts the position corresponding to half that distance into "cen".
+
+*  Parameters:
+*     frm
+*        The Frame in which the lines are defined.
+*     edges
+*        Array of "nv" pointers to AstLineDef structures, each defining an 
+*        edge of the polygon.
+*     i
+*        The index of the edge that is to define the polygon width.
+*     nv
+*        Total number of edges.
+*     cen
+*        An array into which are put the coords of the point half way
+*        along the polygon width line.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returnd Value:
+*     The width of the polygon perpendicular to the given edge.
+
+*/
+
+/* Local Variables: */
+   AstLineDef *line;
+   double *cross;
+   double d;        
+   double end[ 2 ];
+   double l1;
+   double l2;
+   double result;
+   double start[ 2 ];
+   int j;
+
+/* Check the global error status. */
+   result = AST__BAD;
+   if ( !astOK ) return result;
+
+/* Create a Line description for a line perpendicular to the specified
+   edge, passing through the mid point of the edge, and extending towards
+   the inside of the polygon. First move away from the start along the 
+   line to the mid point. This gives the start of the new line. */
+   l1 = 0.5*( edges[ i ]->length );
+   astLineOffset( frm, edges[ i ], l1, 0.0, start );
+
+/* We now move away from this position at right angles to the line. We
+   start off by moving 5 times the length of the specified edge. For
+   some Frames (e.g. SkyFrames) this may result in a position that is 
+   much too closer (i.e. if it goes all the wat round the great circle
+   and comes back to the beginning). Therefore, we check that the end
+   point is the requested distance from the start point, and if not, we
+   halve the length of the line and try again. */
+   l2 = 10.0*l1;
+   while( 1 ) {
+      astLineOffset( frm, edges[ i ], l1, l2, end );
+      d = astDistance( frm, start, end );
+      if( d != AST__BAD && fabs( d - l2 ) < 1.0E-6*l2 ) break;
+      l2 *= 0.5;
+   }
+
+/* Create a description of the required line. */
+   line = astLineDef( frm, start, end );
+
+/* Loop round every edge, except for the supplied edge. */
+   for( j = 0; j < nv; j++ ) {
+      if( j != i ) {
+
+/* Find the position at which the line created above crosses the current
+   edge. Skip to the next edge if the line does not intersect the edge. */
+         if( astLineCrossing( frm, line, edges[ j ], &cross ) ) {
+
+/* Find the distance between the crossing point and the line start. */
+            d = astDistance( frm, start, cross );
+
+/* If this is less than the smallest found so far, record it. */
+            if( d != AST__BAD && ( d < result || result == AST__BAD ) ) {
+               result = d;
+            }
+         }
+
+/* Free resources */
+         cross = astFree( cross );
+      }
+   }
+   line = astFree( line );
+
+/* If a width was found, return the point half way across the polygon. */
+   if( result != AST__BAD ) {
+      astOffset( frm, start, end, 0.5*result, cen );
+   }
+
+/* Return the width. */
+   return result;
+
+}
+
+static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int *status ){
 /*
 *  Name:
 *     RegBaseBox
@@ -381,7 +553,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd ){
 
 *  Synopsis:
 *     #include "polygon.h"
-*     void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd )
+*     void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd, int *status )
 
 *  Class Membership:
 *     Polygon member function (over-rides the astRegBaseBox protected
@@ -398,7 +570,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd ){
 *        Pointer to the Region.
 *     lbnd
 *        Pointer to an array in which to return the lower axis bounds
-*        covered by the Region in the base Frame of the encpauslated
+*        covered by the Region in the base Frame of the encapsulated
 *        FrameSet. It should have at least as many elements as there are 
 *        axes in the base Frame.
 *     ubnd
@@ -406,6 +578,8 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd ){
 *        covered by the Region in the base Frame of the encapsulated
 *        FrameSet. It should have at least as many elements as there are 
 *        axes in the base Frame.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -486,7 +660,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd ){
    }
 }
 
-static AstPointSet *RegBaseMesh( AstRegion *this_region ){
+static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 /*
 *  Name:
 *     RegBaseMesh
@@ -500,7 +674,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region ){
 
 *  Synopsis:
 *     #include "polygon.h"
-*     AstPointSet *astRegBaseMesh( AstRegion *this )
+*     AstPointSet *astRegBaseMesh( AstRegion *this, int *status )
 
 *  Class Membership:
 *     Polygon member function (over-rides the astRegBaseMesh protected
@@ -514,6 +688,8 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region ){
 *  Parameters:
 *     this
 *        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the PointSet. Annul the pointer using astAnnul when it 
@@ -610,7 +786,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region ){
             }
 
 /* Create a suitable PointSet to hold the returned positions. */
-            result = astPointSet( np, 2, "" );
+            result = astPointSet( np, 2, "", status );
             rptr = astGetPoints( result );
             if( astOK ) {
 
@@ -684,7 +860,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region ){
                if( next != np && astOK ) {
                   astError( AST__INTER, "astRegBaseMesh(%s): Error in the "
                             "allocated PointSet size (%d) - should have "
-                            "been %d (internal AST programming error).", 
+                            "been %d (internal AST programming error).", status, 
                             astGetClass( this ), np, next );
                }
 
@@ -696,7 +872,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region ){
 
          } else if( astOK ) {
             astError( AST__BADIN, "astRegBaseMesh(%s): The boundary of "
-                      "the supplied %s has an undefined length.",
+                      "the supplied %s has an undefined length.", status,
                       astGetClass( this ), astGetClass( this ) );
          }
 
@@ -715,7 +891,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region ){
 }
 
 static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
-                    int **mask ){
+                    int **mask, int *status ){
 /*
 *  Name:
 *     RegPins
@@ -729,7 +905,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 *  Synopsis:
 *     #include "polygon.h"
 *     int RegPins( AstRegion *this, AstPointSet *pset, AstRegion *unc,
-*                  int **mask )
+*                  int **mask, int *status )
 
 *  Class Membership:
 *     Polygon member function (over-rides the astRegPins protected
@@ -763,6 +939,8 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 *        and is set to zero otherwise. A NULL value may be supplied
 *        in which case no array is created. If created, the array should
 *        be freed using astFree when no longer needed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the points all fall on the boundary of the given
@@ -813,7 +991,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    if( astGetNcoord( pset ) != 2 && astOK ) {
       astError( AST__INTER, "astRegPins(%s): Illegal number of axis "
                 "values per point (%d) in the supplied PointSet - should be "
-                "2 (internal AST programming error).", astGetClass( this ),
+                "2 (internal AST programming error).", status, astGetClass( this ),
                 astGetNcoord( pset ) );
    }
 
@@ -821,7 +999,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    if( unc && astGetNaxes( unc ) != 2 && astOK ) {
       astError( AST__INTER, "astRegPins(%s): Illegal number of axes (%d) "
                 "in the supplied uncertainty Region - should be 2 "
-                "(internal AST programming error).", astGetClass( this ),
+                "(internal AST programming error).", status, astGetClass( this ),
                 astGetNaxes( unc ) );
    }
 
@@ -839,7 +1017,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 
 /* Create a PointSet to hold the resolved components and get pointers to its 
    axis data. */
-   pset2 = astPointSet( np, 2, "" );
+   pset2 = astPointSet( np, 2, "", status );
    ptr2 = astGetPoints( pset2 );
 
 /* Create a mask array if required. */
@@ -891,7 +1069,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 
 /* Resolve all the supplied mesh points into components parallel and 
    perpendicular to this edge. */
-         astResolvePoints( frm, start, end, pset1, pset2 );
+         (void) astResolvePoints( frm, start, end, pset1, pset2 );
 
 /* A point is effectively on this edge if the parallel component is
    greater than (-wid) and less than (edge_len+wid) AND the perpendicular
@@ -959,7 +1137,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    return result;
 }
 
-static void ResetCache( AstRegion *this ){
+static void ResetCache( AstRegion *this, int *status ){
 /*
 *  Name:
 *     ResetCache
@@ -972,7 +1150,7 @@ static void ResetCache( AstRegion *this ){
 
 *  Synopsis:
 *     #include "polygon.h"
-*     void ResetCache( AstRegion *this )
+*     void ResetCache( AstRegion *this, int *status )
 
 *  Class Membership:
 *     Region member function (overrides the astResetCache method
@@ -985,15 +1163,17 @@ static void ResetCache( AstRegion *this ){
 *  Parameters:
 *     this
 *        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
 */
    if( this ) {
       ( (AstPolygon *) this )->stale = 1;
       ( (AstPolygon *) this )->lbnd[ 0 ] = AST__BAD;
-      (*parent_resetcache)( this );
+      (*parent_resetcache)( this, status );
    }
 }
 
-static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
+static void SetRegFS( AstRegion *this_region, AstFrame *frm, int *status ) {
 /*
 *  Name:
 *     SetRegFS
@@ -1006,7 +1186,7 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 
 *  Synopsis:
 *     #include "polygon.h"
-*     void SetRegFS( AstRegion *this_region, AstFrame *frm )
+*     void SetRegFS( AstRegion *this_region, AstFrame *frm, int *status )
 
 *  Class Membership:
 *     Polygon method (over-rides the astSetRegFS method inherited from
@@ -1022,6 +1202,8 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 *        Pointer to the Region.
 *     frm
 *        The Frame to use.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -1031,13 +1213,13 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 
 /* Invoke the parent method to store the FrameSet in the parent Region
    structure. */
-   (* parent_setregfs)( this_region, frm );
+   (* parent_setregfs)( this_region, frm, status );
 
 /* Indicate cached information eeds re-calculating. */
    astResetCache( this_region );
 }
 
-static AstMapping *Simplify( AstMapping *this_mapping ) {
+static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 /*
 *  Name:
 *     Simplify
@@ -1050,7 +1232,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 *  Synopsis:
 *     #include "polygon.h"
-*     AstMapping *Simplify( AstMapping *this )
+*     AstMapping *Simplify( AstMapping *this, int *status )
 
 *  Class Membership:
 *     Polygon method (over-rides the astSimplify method inherited
@@ -1067,6 +1249,8 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 *  Parameters:
 *     this
 *        Pointer to the original Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the simplified Region. A cloned pointer to the
@@ -1109,7 +1293,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 /* Invoke the parent Simplify method inherited from the Region class. This
    will simplify the encapsulated FrameSet and uncertainty Region. */
-   new = (AstRegion *) (*parent_simplify)( this_mapping );
+   new = (AstRegion *) (*parent_simplify)( this_mapping, status );
 
 /* Note if any simplification took place. This is assumed to be the case
    if the pointer returned by the above call is different to the supplied
@@ -1156,7 +1340,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
          for( iv = 0; iv < nv; iv++ ) *(p++) = *(q++);
 
 /* Create a new Polygon using these transformed vertices. */
-         newpol = ok ? astPolygon( frm, nv, nv, mem, unc, "" ) : NULL;
+         newpol = ok ? astPolygon( frm, nv, nv, mem, unc, "", status ) : NULL;
 
 /* See if all points within the mesh created from the original Polygon fall 
    on the boundary of the new Polygon, to within the uncertainty of the 
@@ -1164,7 +1348,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
          if( newpol && astRegPins( newpol, mesh, NULL, NULL ) ) {
 
 /* If so, use the new Polygon in place of the original Region. */
-            astAnnul( new );
+            (void) astAnnul( new );
             new = astClone( newpol );
             simpler =1;
          }
@@ -1202,7 +1386,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 
 static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -1216,7 +1400,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 *  Synopsis:
 *     #include "polygon.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     Polygon member function (over-rides the astTransform protected
@@ -1241,6 +1425,8 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -1291,7 +1477,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    function inherited from the parent Region class. This function validates
    all arguments and generates an output PointSet if necessary,
    containing a copy of the input PointSet. */
-   result = (*parent_transform)( this_mapping, in, forward, out );
+   result = (*parent_transform)( this_mapping, in, forward, out, status );
 
 /* Get the number of points to be transformed. */
    npoint = astGetNpoint( result );
@@ -1344,7 +1530,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
          } else {
 
 /* Ensure cached information is available.*/
-            Cache( this );
+            Cache( this, status );
 
 /* Create a definition of the line from a point which is inside the
    polygon to the supplied point. This is a structure which includes
@@ -1440,7 +1626,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -1452,7 +1638,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for Polygon objects.
@@ -1462,6 +1648,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     -  This constructor makes a deep copy.
@@ -1489,7 +1677,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -1501,7 +1689,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for Polygon objects.
@@ -1509,6 +1697,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     This function attempts to execute even if the global error status is
@@ -1551,7 +1741,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -1563,7 +1753,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -1574,6 +1764,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the Polygon whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -1608,12 +1800,12 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAPolygon and astCheckPolygon functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(Polygon,Region,check,&class_init)
+astMAKE_ISA(Polygon,Region,check,&class_check)
 astMAKE_CHECK(Polygon)
 
 AstPolygon *astPolygon_( void *frame_void, int npnt, int dim, 
                          const double *points, AstRegion *unc,
-                         const char *options, ... ) {
+                         const char *options, int *status, ...) {
 /*
 *++
 *  Name:
@@ -1755,13 +1947,24 @@ f     AST_POLYGON = INTEGER
 c     function is invoked with the AST error status set, or if it
 f     function is invoked with STATUS set to an error value, or if it
 *     should fail for any reason.
+
+*  Status Handling:
+*     The protected interface to this function includes an extra
+*     parameter at the end of the parameter list descirbed above. This
+*     parameter is a pointer to the integer inherited status
+*     variable: "int *status".
+
 *--
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstFrame *frame;              /* Pointer to Frame structure */
    AstPolygon *new;            /* Pointer to new Polygon */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -1782,8 +1985,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new Polygon's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -1837,17 +2040,26 @@ AstPolygon *astPolygonId_( void *frame_void, int npnt, int dim,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstFrame *frame;              /* Pointer to Frame structure */
    AstPolygon *new;              /* Pointer to new Polygon */
    AstRegion *unc;               /* Pointer to Region structure */
    va_list args;                 /* Variable argument list */
+
+   int *status;                  /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
 
 /* Obtain a Frame pointer from the supplied ID and validate the
    pointer to ensure it identifies a valid Frame. */
-   frame = astCheckFrame( astMakePointer( frame_void ) );
+   frame = astVerifyFrame( astMakePointer( frame_void ) );
 
 /* Obtain a Region pointer from the supplied "unc" ID and validate the
    pointer to ensure it identifies a valid Region . */
@@ -1867,7 +2079,7 @@ AstPolygon *astPolygonId_( void *frame_void, int npnt, int dim,
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new Polygon's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -1881,7 +2093,7 @@ AstPolygon *astPolygonId_( void *frame_void, int npnt, int dim,
 
 AstPolygon *astInitPolygon_( void *mem, size_t size, int init, AstPolygonVtab *vtab, 
                              const char *name, AstFrame *frame, int npnt, 
-                             int dim, const double *points, AstRegion *unc ) {
+                             int dim, const double *points, AstRegion *unc, int *status ) {
 /*
 *+
 *  Name:
@@ -2000,13 +2212,13 @@ AstPolygon *astInitPolygon_( void *mem, size_t size, int init, AstPolygonVtab *v
    nin = astGetNaxes( frame );
    if( nin != 2 ) {
       astError( AST__BADIN, "astInitPolygon(%s): The supplied %s has %d "
-                "axes - polygons must have exactly 2 axes.", name,
+                "axes - polygons must have exactly 2 axes.", status, name,
                 astGetClass( frame ), nin );
 
 /* If so create a PointSet and store the supplied points in it. Check
    none are bad. */
    } else {
-      pset = astPointSet( npnt, 2, "" );
+      pset = astPointSet( npnt, 2, "", status );
       ptr = astGetPoints( pset );
       for( i = 0; i < 2 && astOK; i++ ) {
          p = ptr[ i ];
@@ -2015,7 +2227,7 @@ AstPolygon *astInitPolygon_( void *mem, size_t size, int init, AstPolygonVtab *v
             if( (*(p++) = *(q++)) == AST__BAD ) {
                astError( AST__BADIN, "astInitPolygon(%s): One or more "
                          "bad axis values supplied for the vertex "
-                         "number %d.", name, j + 1 );
+                         "number %d.", status, name, j + 1 );
                break;
             }
          }
@@ -2050,7 +2262,7 @@ AstPolygon *astInitPolygon_( void *mem, size_t size, int init, AstPolygonVtab *v
 }
 
 AstPolygon *astLoadPolygon_( void *mem, size_t size, AstPolygonVtab *vtab, 
-                             const char *name, AstChannel *channel ) {
+                             const char *name, AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -2123,6 +2335,7 @@ AstPolygon *astLoadPolygon_( void *mem, size_t size, AstPolygonVtab *vtab,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstPolygon *new;              /* Pointer to the new Polygon */
 
 /* Initialise. */
@@ -2130,6 +2343,9 @@ AstPolygon *astLoadPolygon_( void *mem, size_t size, AstPolygonVtab *vtab,
 
 /* Check the global error status. */
    if ( !astOK ) return new;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
 
 /* If a NULL virtual function table has been supplied, then this is
    the first loader to be invoked for this Polygon. In this case the
@@ -2200,6 +2416,20 @@ AstPolygon *astLoadPolygon_( void *mem, size_t size, AstPolygonVtab *vtab,
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

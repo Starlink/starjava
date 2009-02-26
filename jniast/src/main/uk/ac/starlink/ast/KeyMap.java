@@ -12,7 +12,9 @@ package uk.ac.starlink.ast;
  * The KeyMap class is used to store a set of values with associated keys 
  * which identify the values. The keys are strings (case-sensitive,
  * trailing spaces are ignored), and the data type of the values can be 
- * integer, floating point, character string or AST Object pointer. Each 
+ * integer, floating point, 
+ * void pointer, 
+ * character string or AST Object pointer. Each 
  * value can be a scalar or a one-dimensional vector. A KeyMap is
  * conceptually similar to a Mapping in that a KeyMap transforms an
  * input into an output - the input is the key, and the output is the
@@ -20,6 +22,21 @@ package uk.ac.starlink.ast;
  * similarity, and it should be noted that the KeyMap class inherits from 
  * the Object class rather than the Mapping class. The methods of the
  * Mapping class cannot be used with a KeyMap.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * <p>
  *        In Java, you are probably better off using a {@link java.util.Map}.
@@ -170,6 +187,7 @@ public class KeyMap extends AstObject {
      * spaces are ignored.
      * 
      * @return  One of AST__INTTYPE (for integer), AST__DOUBLETYPE (for double
+     * precision floating point), AST__FLOATTYPE (for single 
      * precision floating point), AST__STRINGTYPE (for character string)
      * or AST__OBJECTTYPE (for AST Object pointer). AST__BADTYPE is
      * returned if the supplied key is not found in the KeyMap.

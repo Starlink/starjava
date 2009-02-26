@@ -33,7 +33,24 @@ f     The PermMap class does not define any new routines beyond those
 *     which are applicable to all Mappings.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -52,6 +69,15 @@ f     The PermMap class does not define any new routines beyond those
 *        Added methods astGetInPerm and astGetOutPerm.
 *     2-NOV-2004 (DSB):
 *        Added method astGetConstants.
+*     14-MAR-2006 (DSB):
+*        Override astEqual.
+*     2-MAY-2007 (DSB):
+*        Change MapSplit so that it does not try to use the
+*        implementation from the parent Mapping class, since this 
+*        class can do a better job.
+*     11-SEP-2007 (DSB):
+*        In MapSplit, check that the permuted axis index is less than the 
+*        number of axes available. Use AST__BAD otherwise.
 *class--
 */
 
@@ -66,6 +92,8 @@ f     The PermMap class does not define any new routines beyond those
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -86,14 +114,40 @@ f     The PermMap class does not define any new routines beyond those
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstPermMapVtab class_vtab; /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
-static int *(* parent_mapsplit)( AstMapping *, int, int *, AstMapping ** );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+
+
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(PermMap)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(PermMap,Class_Init)
+#define class_vtab astGLOBAL(PermMap,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstPermMapVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -104,22 +158,176 @@ AstPermMap *astPermMapId_( int, const int [], int, const int [], const double []
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static double *GetConstants( AstPermMap * );
-static double Rate( AstMapping *, double *, int, int );
-static int *GetInPerm( AstPermMap * );
-static int *GetOutPerm( AstPermMap * );
-static int *MapSplit( AstMapping *, int, int *, AstMapping ** );
-static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int ** );
-static int NullPerm( AstPermMap *, int );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static double *GetConstants( AstPermMap *, int * );
+static double Rate( AstMapping *, double *, int, int, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static int *GetInPerm( AstPermMap *, int * );
+static int *GetOutPerm( AstPermMap *, int * );
+static int *MapSplit( AstMapping *, int, const int *, AstMapping **, int * );
+static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
+static int NullPerm( AstPermMap *, int, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
 
 /* Member functions. */
 /* ================= */
 
-static double *GetConstants( AstPermMap *this ){
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two PermMaps are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "permmap.h"
+*     int Equal( AstObject *this, AstObject *that, int *status ) 
+
+*  Class Membership:
+*     PermMap member function (over-rides the astEqual protected
+*     method inherited from the astMapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two PermMaps are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Object (a PermMap).
+*     that
+*        Pointer to the second Object.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     One if the PermMaps are equivalent, zero otherwise.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstPermMap *that;        
+   AstPermMap *this;        
+   int *that_inp;
+   int *that_outp;
+   int *this_inp;
+   int *this_outp;
+   int i;           
+   int nin;
+   int nout;
+   int p1;
+   int p2;
+   int result;
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain pointers to the two PermMap structures. */
+   this = (AstPermMap *) this_object;
+   that = (AstPermMap *) that_object;
+
+/* Check the second object is a PermMap. We know the first is a
+   PermMap since we have arrived at this implementation of the virtual
+   function. */
+   if( astIsAPermMap( that ) ) {
+
+/* Get the number of inputs and outputs and check they are the same for both. */
+      nin = astGetNin( this );
+      nout = astGetNout( this );
+      if( astGetNout( that ) == nout && astGetNin( that ) == nin ) {
+
+/* Assume the PermMaps are equivalent. */
+         result = 1;
+
+/* Get pointers to the effective inperm and outperm array for each PermMap. 
+   If the Invert flags of the two PermMaps are not equal, we swap the
+   arrays for the second PermMap in order to take account of the relative
+   inversion of the second PermMap. */
+         if( astGetInvert( this ) != astGetInvert( that ) ) {
+            this_inp = this->inperm;
+            this_outp = this->outperm;
+            that_inp = that->outperm;
+            that_outp = that->inperm;
+         } else {
+            this_inp = this->inperm;
+            this_outp = this->outperm;
+            that_inp = that->inperm;
+            that_outp = that->outperm;
+         }
+
+/* Loop round every PermMap input. */
+         for( i = 0; i < nin; i++ ) {
+
+/* See what is fed to this input by the inverse transformation. A zero or
+   positive integer "p" value indicates that the input is fed from the
+   output with the corresponding index. A negative integer "p" value means
+   the input is fed a constant value stored at index (-p-1) in the
+   associated constants array. */
+            p1 = this_inp ? this_inp[ i ] : i;
+            p2 = that_inp ? that_inp[ i ] : i;
+
+/* If the "p" values differ, we may have evidence that the PermMaps are
+   not equivalent. */
+            if( p1 != p2 ) {
+
+/* If either "p" value is zero or positive, then the PermMaps are
+   definitely different since input "i" is fed from differing outputs, or
+   one is fed from an input and the other is fed a constant. */
+               if( p1 >= 0 || p2 >= 0 ) {
+                  result = 0;
+                  break;
+
+/* If both "p" values are negative, then both inputs are fed a constant
+   value. The PermMaps differ if these constants differ. */
+               } else if( this->constant[ -p1 - 1 ] != 
+                          that->constant[ -p2 - 1 ] ) {
+                  result = 0;
+                  break;
+               }
+            }
+         }
+
+/* If we have not yet discovered any evidence that the PermMaps differ,
+   go on to check each output in the same way that we have just checked the
+   inputs. */
+         if( result ) {
+            for( i = 0; i < nout; i++ ) {
+               p1 = this_outp ? this_outp[ i ] : i;
+               p2 = that_outp ? that_outp[ i ] : i;
+               if( p1 != p2 ) {
+                  if( p1 >= 0 || p2 >= 0 ) {
+                     result = 0;
+                     break;
+                  } else if( this->constant[ -p1 - 1 ] != 
+                             that->constant[ -p2 - 1 ] ) {
+                     result = 0;
+                     break;
+                  }
+               }
+            }
+         }
+      }
+   }
+   
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static double *GetConstants( AstPermMap *this, int *status ){
 /*
 *+
 *  Name:
@@ -182,7 +390,7 @@ static double *GetConstants( AstPermMap *this ){
    return result;
 }
 
-static int *GetInPerm( AstPermMap *this ){
+static int *GetInPerm( AstPermMap *this, int *status ){
 /*
 *  Name:
 *     GetInPerm
@@ -195,7 +403,7 @@ static int *GetInPerm( AstPermMap *this ){
 
 *  Synopsis:
 *     #include "permmap.h"
-*     int *astGetInPerm( AstPermMap *this )
+*     int *astGetInPerm( AstPermMap *this, int *status )
 
 *  Class Membership:
 *     PermMap method 
@@ -208,6 +416,8 @@ static int *GetInPerm( AstPermMap *this ){
 *  Parameters:
 *     this
 *        Pointer to the PermMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array holding a copy of the 
@@ -259,7 +469,7 @@ static int *GetInPerm( AstPermMap *this ){
    return result;
 }
 
-static int *GetOutPerm( AstPermMap *this ){
+static int *GetOutPerm( AstPermMap *this, int *status ){
 /*
 *  Name:
 *     GetOutPerm
@@ -272,7 +482,7 @@ static int *GetOutPerm( AstPermMap *this ){
 
 *  Synopsis:
 *     #include "permmap.h"
-*     int *astGetOutPerm( AstPermMap *this )
+*     int *astGetOutPerm( AstPermMap *this, int *status )
 
 *  Class Membership:
 *     PermMap method 
@@ -285,6 +495,8 @@ static int *GetOutPerm( AstPermMap *this ){
 *  Parameters:
 *     this
 *        Pointer to the PermMap.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array holding a copy of the 
@@ -336,7 +548,7 @@ static int *GetOutPerm( AstPermMap *this ){
    return result;
 }
 
-void astInitPermMapVtab_(  AstPermMapVtab *vtab, const char *name ) {
+void astInitPermMapVtab_(  AstPermMapVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -373,10 +585,16 @@ void astInitPermMapVtab_(  AstPermMapVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -385,8 +603,8 @@ void astInitPermMapVtab_(  AstPermMapVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAPermMap) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -398,16 +616,17 @@ void astInitPermMapVtab_(  AstPermMapVtab *vtab, const char *name ) {
 
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
+   object = (AstObjectVtab *) vtab;
    mapping = (AstMappingVtab *) vtab;
 
    parent_transform = mapping->Transform;
    mapping->Transform = Transform;
 
-   parent_mapsplit = mapping->MapSplit;
    mapping->MapSplit = MapSplit;
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   object->Equal = Equal;
    mapping->MapMerge = MapMerge;
    mapping->Rate = Rate;
 
@@ -415,10 +634,15 @@ void astInitPermMapVtab_(  AstPermMapVtab *vtab, const char *name ) {
    astSetCopy( vtab, Copy );
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "PermMap", "Coordinate permutation" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
-                     AstMapping ***map_list, int **invert_list ) {
+                     AstMapping ***map_list, int **invert_list, int *status ) {
 /*
 *  Name:
 *     MapMerge
@@ -432,7 +656,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *  Synopsis:
 *     #include "mapping.h"
 *     int MapMerge( AstMapping *this, int where, int series, int *nmap,
-*                   AstMapping ***map_list, int **invert_list )
+*                   AstMapping ***map_list, int **invert_list, int *status )
 
 *  Class Membership:
 *     PermMap method (over-rides the protected astMapMerge method
@@ -535,6 +759,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *        length, the "*invert_list" array will be extended (and its
 *        pointer updated) if necessary to accommodate any new
 *        elements.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     If simplification was possible, the function returns the index
@@ -1042,8 +1268,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    whereas previously it was stored. */
       permmap = (AstPermMap *) ( *map_list )[ where ];
       if ( !simpler ) {
-         simpler = ( !store_in && !NullPerm( permmap, 0 ) ) ||
-                   ( !store_out && !NullPerm( permmap, 1 ) );
+         simpler = ( !store_in && !NullPerm( permmap, 0, status ) ) ||
+                   ( !store_out && !NullPerm( permmap, 1, status ) );
       }
 
 /* If we still haven't detected any simplification, then compare the
@@ -1072,7 +1298,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* If the PermMaps (and UnitMaps) can be replaced by a UnitMap, then
    create the replacement. */
          if ( unit ) {
-            new = (AstMapping *) astUnitMap( nin, "" );
+            new = (AstMapping *) astUnitMap( nin, "", status );
 
 /* Otherwise, create a replacement PermMap, setting as many arguments
    to NULL in the constructor function as can be achieved without
@@ -1080,7 +1306,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          } else {
             new = (AstMapping *) astPermMap( nin, store_in ? inperm : NULL,
                                              nout, store_out ? outperm : NULL,
-                                             ncon ? con : NULL, "" );
+                                             ncon ? con : NULL, "", status );
          }
 
 /* Annul the pointers to all the Mappings that are being replaced. */
@@ -1126,7 +1352,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    return result;
 }
 
-static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map ){
+static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping **map, int *status ){
 /*
 *  Name:
 *     MapSplit
@@ -1140,7 +1366,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 
 *  Synopsis:
 *     #include "permmap.h"
-*     int *MapSplit( AstMapping *this, int nin, int *in, AstMapping **map )
+*     int *MapSplit( AstMapping *this, int nin, const int *in, AstMapping **map, int *status )
 
 *  Class Membership:
 *     PermMap method (over-rides the protected astMapSplit method
@@ -1172,6 +1398,8 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 *        outputs may be different to "nin"). A NULL pointer will be
 *        returned if the supplied PermMap has no subset of outputs which 
 *        depend only on the selected inputs.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
@@ -1189,7 +1417,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 
 /* Local Variables: */
    AstPermMap *this;          /* Pointer to PermMap structure */
-   double *con;               /* Constants array for new PermMap */
+   double *con;               /* Pointer to constants array */
    int *inp;                  /* Input perm array to use with supplied PermMap */
    int *inpm;                 /* Input perm array to use with new PermMap */
    int *outp;                 /* Output perm array to use with supplied PermMap */
@@ -1199,7 +1427,6 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
    int iin;                   /* Mapping input index */
    int iout;                  /* Output index */
    int j;                     /* Loop count */
-   int ncon;                  /* No. of constants in the new PermMap */
    int nout;                  /* No. of outputs in the new PermMap */
    int npin;                  /* No. of inputs in the supplied Mapping */
    int npout;                 /* No. of outputs in the supplied Mapping */
@@ -1212,58 +1439,54 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 /* Check the global error status. */
    if ( !astOK ) return result;
 
-/* Invoke the parent astMapSplit method to see if it can do the job. */
-   result = (*parent_mapsplit)( this_map, nin, in, map );
-
-/* If not, we provide a special implementation here. */
-   if( !result ) {
 
 /* Get a pointer to the PermMap structure. */
-      this = (AstPermMap *) this_map;
+   this = (AstPermMap *) this_map;
 
 /* Get the number of inputs and outputs in the supplied PermMap. */
-      npin = astGetNin( this );
-      npout = astGetNout( this );
+   npin = astGetNin( this );
+   npout = astGetNout( this );
 
 /* Check all input axis indices are valid. */
-      ok = 1;
-      for( i = 0; i < nin; i++ ) {
-         if( in[ i ] < 0 || in[ i ] >= npin ) {
-            ok = 0;
-            break;
-         }
+   ok = 1;
+   for( i = 0; i < nin; i++ ) {
+      if( in[ i ] < 0 || in[ i ] >= npin ) {
+         ok = 0;
+         break;
       }
+   }
 
-/* Get pointers to the input and output permutation arrays taking account
-   of whether the PermMap has been inverted. */
-      if( astGetInvert( this ) ) {
-         outp = this->inperm;
-         inp = this->outperm;
-      } else {
-         outp = this->outperm;
-         inp = this->inperm;
-      }
+/* Get pointers to the input and output permutation arrays and constant
+   array taking account of whether the PermMap has been inverted. */
+   if( astGetInvert( this ) ) {
+      outp = this->inperm;
+      inp = this->outperm;
+   } else {
+      outp = this->outperm;
+      inp = this->inperm;
+   }
+   con = this->constant;
 
 /* Allocate memory for the inperm and outperm arrays of the returned
    PermMap. Make these the largest they could possible need to be. */
-      inpm = astMalloc( sizeof( int )*(size_t) npin );
-      outpm = astMalloc( sizeof( int )*(size_t) npout );
-      con = astMalloc( sizeof( double )*(size_t) ( npout + npin ) );
+   inpm = astMalloc( sizeof( int )*(size_t) npin );
+   outpm = astMalloc( sizeof( int )*(size_t) npout );
 
 /* Allocate memory for the returned array of output indices. */
-      result = astMalloc( sizeof( int )*(size_t) nin );
-      if( astOK ) {
+   result = astMalloc( sizeof( int )*(size_t) npout );
+   if( astOK ) {
 
 /* Initialise number of outputs in returned PermMap. */
-         nout = 0;
+      nout = 0;
 
 /* Loop round each output of the supplied PermMap. */
-         for( iout = 0; iout < npout; iout++ ) {
+      for( iout = 0; iout < npout; iout++ ) {
  
-/* Is this output fed by one of the selected inputs? If so store the
-   input of the returned Mapping which feeds this output and add this
+/* Is this output fed by one of the selected inputs? If so store the input 
+   index of the returned Mapping, which feeds this output and add this 
    output index to the list of returned outputs. */
-            iin = outp ? outp[ iout ] : iout;
+         iin = outp ? outp[ iout ] : iout;
+         if( iin >= 0 && iin < npin ) {
             for( i = 0; i < nin; i++ ) {
                if( in[ i ] == iin ) {
                   outpm[ nout ] = i;
@@ -1273,50 +1496,48 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
                }
             }
          }
+      }
 
 /* We now need to set up the inperm array for the returned PermMap. This
    ensures that the inverse transformation in the returned Mapping provides 
    values for the selected inputs. Loop round all the selected inputs. */
-         ncon = 0;
-         for( i = 0; i < nin; i++ ) {
-            iin = in[ i ];
+      for( i = 0; i < nin; i++ ) {
+         iin = in[ i ];
  
 /* Is this input constant or fed by one of the selected outputs? If so store 
-   the output or constant index in the returned Mapping which feeds this input. */
-            ok = 0;
-            iout = inp ? inp[ iin ] : iin;
-            if( iout >= 0 ) {
-               for( j = 0; j < nout; j++ ) {
-                  if( result[ j ] == iout ) {
-                     ok = 1;
-                     inpm[ i ] = j;
-                     break;
-                  }
+   the output or constant index in the returned Mapping which feeds this 
+   input. */
+         ok = 0;
+         iout = inp ? inp[ iin ] : iin;
+         if( iout >= 0 && iout < npout ) {
+            for( j = 0; j < nout; j++ ) {
+               if( result[ j ] == iout ) {
+                  ok = 1;
+                  inpm[ i ] = j;
+                  break;
                }
-            } else {
-               con[ ncon++ ] = this->constant ? this->constant[ (-iout) - 1 ] : AST__BAD;
-               inpm[ i ] = -ncon;
-               ok = 1;
             }
+         } else {
+            inpm[ i ] = iout;
+            ok = 1;
+         }
 
 /* If this input is fed by an output which has not been selected, then we
    cannot produce the required Mapping. */
-            if( !ok ) break;
-         }
+         if( !ok ) break;
+      }
 
 /* If possible produce the returned PermMap. Otherwise, free the returned
    array. */
-         if( ok ) {
-            *map = (AstMapping *) astPermMap( nin, inpm, nout, outpm, con, "" );
-         } else {
-            result = astFree( result );
-         }
+      if( ok ) {
+         *map = (AstMapping *) astPermMap( nin, inpm, nout, outpm, con, "", status );
+      } else {
+         result = astFree( result );
+      }
 
 /* Free other resources. */
-         inpm = astFree( inpm );
-         outpm = astFree( outpm );
-         con = astFree( con );
-      }
+      inpm = astFree( inpm );
+      outpm = astFree( outpm );
    }
 
 /* Free returned resources if an error has occurred. */
@@ -1329,7 +1550,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
    return result;
 }
 
-static int NullPerm( AstPermMap *this, int forward ){
+static int NullPerm( AstPermMap *this, int forward, int *status ){
 /*
 *  Name:
 *     NullPerm
@@ -1342,7 +1563,7 @@ static int NullPerm( AstPermMap *this, int forward ){
 
 *  Synopsis:
 *     #include "permmap.h"
-*     int NullPerm( AstPermMap *this, int forward )
+*     int NullPerm( AstPermMap *this, int forward, int *status )
 
 *  Class Membership:
 *     PermMap method 
@@ -1358,6 +1579,8 @@ static int NullPerm( AstPermMap *this, int forward ){
 *     forward
 *        Check the forward transformation? Otherise, check the inverse
 *        transformation.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if the specified transformation is a null axis permutation.
@@ -1433,7 +1656,7 @@ static int NullPerm( AstPermMap *this, int forward ){
    return result;
 }
 
-static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
+static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status ){
 /*
 *  Name:
 *     Rate
@@ -1446,7 +1669,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
 
 *  Synopsis:
 *     #include "permmap.h"
-*     result = Rate( AstMapping *this, double *at, int ax1, int ax2 )
+*     result = Rate( AstMapping *this, double *at, int ax1, int ax2, int *status )
 
 *  Class Membership:
 *     PermMap member function (overrides the astRate method inherited
@@ -1472,6 +1695,8 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
 *        The index of the Mapping input which is to be varied in order to
 *        find the rate of change (input numbering starts at 0 for the first 
 *        input).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The rate of change of Mapping output "ax1" with respect to input 
@@ -1509,7 +1734,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
 }
 
 static AstPointSet *Transform( AstMapping *map, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -1523,7 +1748,7 @@ static AstPointSet *Transform( AstMapping *map, AstPointSet *in,
 *  Synopsis:
 *     #include "permmap.h"
 *     AstPointSet *Transform( AstMapping *map, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     PermMap member function (over-rides the astTransform method inherited
@@ -1547,6 +1772,8 @@ static AstPointSet *Transform( AstMapping *map, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -1585,7 +1812,7 @@ static AstPointSet *Transform( AstMapping *map, AstPointSet *in,
    function inherited from the parent Mapping class. This function validates
    all arguments and generates an output PointSet if necessary, but does not
    actually transform any coordinate values. */
-   result = (*parent_transform)( map, in, forward, out );
+   result = (*parent_transform)( map, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    permutation needed to generate the output coordinate values. */
@@ -1651,7 +1878,7 @@ static AstPointSet *Transform( AstMapping *map, AstPointSet *in,
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -1663,7 +1890,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for PermMap objects.
@@ -1673,6 +1900,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -1717,7 +1946,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -1729,7 +1958,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for PermMap objects.
@@ -1737,6 +1966,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -1760,7 +1991,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -1772,7 +2003,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -1783,6 +2014,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the PermMap whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Constants: */
@@ -1978,12 +2211,12 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAPermMap and astCheckPermMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(PermMap,Mapping,check,&class_init)
+astMAKE_ISA(PermMap,Mapping,check,&class_check)
 astMAKE_CHECK(PermMap)
 
 AstPermMap *astPermMap_( int nin, const int inperm[], int nout,
                          const int outperm[], const double constant[],
-                         const char *options, ... ) {
+                         const char *options, int *status, ...) {
 /*
 *++
 *  Name:
@@ -2129,8 +2362,12 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstPermMap *new;              /* Pointer to new PermMap */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -2147,8 +2384,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new PermMap's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -2206,11 +2443,20 @@ AstPermMap *astPermMapId_( int nin, const int inperm[], int nout,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstPermMap *new;              /* Pointer to new PermMap */
    int *inperm1;                 /* Pointer to temporary copy of "inperm" */
    int *outperm1;                /* Pointer to temporary copy of "outperm" */
    int coord;                    /* Loop counter for coordinates */
-   va_list args;                 /* Variable argument list */
+   va_list args;                 /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -2277,7 +2523,7 @@ AstPermMap *astPermMapId_( int nin, const int inperm[], int nout,
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new PermMap's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -2292,7 +2538,7 @@ AstPermMap *astInitPermMap_( void *mem, size_t size, int init,
                              AstPermMapVtab *vtab, const char *name,
                              int nin, const int inperm[],
                              int nout, const int outperm[],
-                             const double constant[] ) {
+                             const double constant[], int *status ) {
 /*
 *+
 *  Name:
@@ -2483,7 +2729,7 @@ AstPermMap *astInitPermMap_( void *mem, size_t size, int init,
 
 AstPermMap *astLoadPermMap_( void *mem, size_t size,
                              AstPermMapVtab *vtab, const char *name,
-                             AstChannel *channel ) {
+                             AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -2558,12 +2804,16 @@ AstPermMap *astLoadPermMap_( void *mem, size_t size,
 */
 
 /* Local Constants: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstPermMap *new;              /* Pointer to the new PermMap */
    char key[ KEY_LEN + 1 ];      /* Buffer for keyword strings */
-   int coord;                    /* Loop counter for coordinates */
+   int coord;                    /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Loop counter for coordinates */
    int iconst;                   /* Loop counter for constants */
    int in_cpy;                   /* Input coordinates obtained by copying? */
    int invert;                   /* Invert attribute value */
@@ -2744,19 +2994,23 @@ AstPermMap *astLoadPermMap_( void *mem, size_t size,
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
 
-double *astGetConstants_( AstPermMap *this ){
+double *astGetConstants_( AstPermMap *this, int *status ){
    if( !astOK ) return NULL;
-   return (**astMEMBER(this,PermMap,GetConstants))( this );
+   return (**astMEMBER(this,PermMap,GetConstants))( this, status );
 }
 
-int *astGetInPerm_( AstPermMap *this ){
+int *astGetInPerm_( AstPermMap *this, int *status ){
    if( !astOK ) return NULL;
-   return (**astMEMBER(this,PermMap,GetInPerm))( this );
+   return (**astMEMBER(this,PermMap,GetInPerm))( this, status );
 }
 
-int *astGetOutPerm_( AstPermMap *this ){
+int *astGetOutPerm_( AstPermMap *this, int *status ){
    if( !astOK ) return NULL;
-   return (**astMEMBER(this,PermMap,GetOutPerm))( this );
+   return (**astMEMBER(this,PermMap,GetOutPerm))( this, status );
 }
+
+
+
+
 
 

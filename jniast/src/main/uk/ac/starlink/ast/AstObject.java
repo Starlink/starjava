@@ -18,6 +18,21 @@ import uk.ac.starlink.util.Loader;
  * behaviour and Object manipulation facilities required throughout
  * the library. There is no Object constructor, however, as Objects
  * on their own are not useful.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Object'>AST Object</a>  
@@ -55,9 +70,9 @@ public class AstObject {
             getAstConstantI( "JNIAST_RELEASE" ),
         };
         JNIAST_JAVA_VERSION = new int[] {
-            4,
-            0,
+            5,
             1,
+            0,
         };
 
         /* Check that the versions look consistent. */
@@ -72,6 +87,9 @@ public class AstObject {
 
     /** Bad coordinate value. */
     public static final double AST__BAD = getAstConstantD( "AST__BAD" );
+
+    /** No-change value for use with {@link #tune tune}. */
+    public static final int AST__TUNULL = getAstConstantI( "AST__TUNULL" );
 
     /**
      * Dummy constructor.  This constructor does not create a valid
@@ -592,6 +610,52 @@ public class AstObject {
      */
     public native boolean test( String attrib );
 
+    /** 
+     * Set or get an AST global tuning parameter.   
+     * This function returns the current value of an AST global tuning 
+     * parameter, optionally storing a new value for the parameter.
+     * <h4>Tuning Parameters</h4>
+     * <br> - ObjectCaching: A boolean flag which indicates what should happen 
+     * to the memory occupied by an AST Object when the Object is deleted 
+     * (i.e. when its reference count falls to zero or it is deleted using 
+     * astDelete). 
+     * If this is zero, the memory is simply freed using the systems "free" 
+     * function. If it is non-zero, the memory is not freed. Instead a pointer 
+     * to it is stored in a pool of such pointers, all of which refer to 
+     * allocated but currently unused blocks of memory. This allows AST to
+     * speed up subsequent Object creation by re-using previously
+     * allocated memory blocks rather than allocating new memory using the
+     * systems malloc function. The default value for this parameter is
+     * zero. Setting it to a non-zero value will result in Object memory
+     * being cached in future. Setting it back to zero causes any memory
+     * blocks currently in the pool to be freed. Note, this tuning parameter 
+     * only controls the caching of memory used to store AST Objects. To 
+     * cache other memory blocks allocated by AST, use MemoryCaching.
+     * <br> - MemoryCaching: A boolean flag similar to ObjectCaching except
+     * that it controls caching of all memory blocks of less than 300 bytes
+     * allocated by AST (whether for internal or external use), not just 
+     * memory used to store AST Objects. 
+     * <h4>Notes</h4>
+     * <br> - This function attempts to execute even if the AST error
+     * status is set
+     * on entry, although no further error report will be
+     * made if it subsequently fails under these circumstances.
+     * <br> - All threads in a process share the same AST tuning parameters
+     * values.
+     * @param   name
+     * The name of the tuning parameter (case-insensitive).
+     * 
+     * @param   value
+     * The new value for the tuning parameter. If this is AST__TUNULL,
+     * the existing current value will be retained.
+     * 
+     * @return  The original value of the tuning parameter. A default value will
+     * be returned if no value has been set for the parameter.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public static native int tune( String name, int value );
+
     /**
      * Get 
      * object identification string.  
@@ -692,6 +756,20 @@ public class AstObject {
      */
     public int getNobject() {
         return getI( "Nobject" );
+    }
+
+    /**
+     * Get 
+     * the in-memory size of the Object.  
+     * This attribute gives the total number of bytes of memory used by
+     * the Object. This includes any Objects which are encapsulated within
+     * the supplied Object.
+     * 
+     *
+     * @return  this object's ObjSize attribute
+     */
+    public int getObjSize() {
+        return getI( "ObjSize" );
     }
 
     /**

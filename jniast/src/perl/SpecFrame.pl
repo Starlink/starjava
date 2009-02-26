@@ -86,24 +86,6 @@ makeGetAttrib( @args );
 makeSetAttrib( @args );
 
 @args = (
-   name => ( $aName = "geoLat" ),
-   type => 'String',
-   purpose => AttPurpose( $aName ),
-   descrip => AttDescrip( $aName ),
-);
-makeGetAttrib( @args );
-makeSetAttrib( @args );
-
-@args = (
-   name => ( $aName = "geoLon" ),
-   type => 'String',
-   purpose => AttPurpose( $aName ),
-   descrip => AttDescrip( $aName ),
-);
-makeGetAttrib( @args );
-makeSetAttrib( @args );
-
-@args = (
    name => ( $aName = "refDec" ),
    type => 'String',
    purpose => AttPurpose( $aName ),
@@ -147,7 +129,47 @@ print <<"__EOT__";
     public void setRestFreq( String restFreq ) {
         set( "RestFreq=" + restFreq );
     }
+
 __EOT__
+
+print <<'__EOT__';
+    /**
+     * Synonym for {@link #setObsLat}.
+     */
+    public void setGeoLat( String geoLat ) {
+        setObsLat( geoLat );
+    }
+
+    /**
+     * Synonym for {@link #getObsLat}.
+     */
+    public String getGeoLat() {
+        return getObsLat();
+    }
+
+    /**
+     * Synonym for {@link #setObsLon}.
+     */
+    public void setGeoLon( String geoLon ) {
+        setObsLon( geoLon );
+    }
+
+    /**
+     * Synonym for {@link #getObsLon}.
+     */
+    public String getGeoLon() {
+        return getObsLon();
+    }
+__EOT__
+
+@args = (
+   name => ( $aName = "sourceSys" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
 
 @args = (
    name => ( $aName = "sourceVel" ),

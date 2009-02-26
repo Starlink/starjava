@@ -71,6 +71,21 @@ package uk.ac.starlink.ast;
  * It is possible to negate an existing Region so that it represents all 
  * areas of the encapsulated Frame except for the area specified when 
  * the Region was created.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Region'>AST Region</a>  
@@ -482,6 +497,31 @@ public abstract class Region extends Frame {
      * @throws  AstException  if an error occurred in the AST library
      */
     public native void setUnc( Region unc );
+
+    /** 
+     * Display a mesh of points covering the surface of a Region.   
+     * This function 
+     * writes a table to standard output containing the axis values at a
+     * mesh of points covering the surface of the supplied Region. Each row
+     * of output contains a tab-separated list of axis values, one for
+     * each axis in the Frame encapsulated by the Region. The number of
+     * points in the mesh is determined by the MeshSize attribute.
+     * <p>
+     * The table is preceeded by a given title string, and followed by a
+     * single line containing the word "ENDMESH".
+     * 
+     * @param   format
+     * A boolean value indicating if the displayed axis values should
+     * be formatted according to the Format attribute associated with
+     * the Frame's axis. Otherwise, they are displayed as simple
+     * floating point values.
+     * 
+     * @param   ttl
+     * A title to display before displaying the first position.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void showMesh( boolean format, String ttl );
 
     /**
      * Get 

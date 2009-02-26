@@ -44,7 +44,24 @@ c     - astGetStcNCoord: Returns the number of AstroCoords elements in an Stc
 f     - AST_GETSTCNCOORD: Returns the number of AstroCoords elements in an Stc
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -52,6 +69,8 @@ f     - AST_GETSTCNCOORD: Returns the number of AstroCoords elements in an Stc
 *  History:
 *     23-NOV-2004 (DSB):
 *        Original version.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
 *class--
 */
 
@@ -70,6 +89,8 @@ f     - AST_GETSTCNCOORD: Returns the number of AstroCoords elements in an Stc
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -96,36 +117,41 @@ f     - AST_GETSTCNCOORD: Returns the number of AstroCoords elements in an Stc
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstStcVtab class_vtab;    /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstMapping *(* parent_simplify)( AstMapping * );
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
-static AstRegion *(* parent_getuncfrm)( AstRegion *, int );
-static const char *(* parent_getattrib)( AstObject *, const char * );
-static int (* parent_equal)( AstObject *, AstObject * );
-static int (* parent_testattrib)( AstObject *, const char * );
-static int (* parent_testunc)( AstRegion * );
-static void (* parent_clearattrib)( AstObject *, const char * );
-static void (* parent_clearunc)( AstRegion * );
-static void (* parent_setattrib)( AstObject *, const char * );
-static void (* parent_setregfs)( AstRegion *, AstFrame * );
-static int (* parent_getusedefs)( AstObject * );
-static void (*parent_regsetattrib)( AstRegion *, const char *, char ** );
-static void (*parent_regclearattrib)( AstRegion *, const char *, char ** );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstMapping *(* parent_simplify)( AstMapping *, int * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static AstRegion *(* parent_getuncfrm)( AstRegion *, int, int * );
+static const char *(* parent_getattrib)( AstObject *, const char *, int * );
+static int (* parent_equal)( AstObject *, AstObject *, int * );
+static int (* parent_testattrib)( AstObject *, const char *, int * );
+static int (* parent_testunc)( AstRegion *, int * );
+static void (* parent_clearattrib)( AstObject *, const char *, int * );
+static void (* parent_clearunc)( AstRegion *, int * );
+static void (* parent_setattrib)( AstObject *, const char *, int * );
+static void (* parent_setregfs)( AstRegion *, AstFrame *, int * );
+static int (* parent_getusedefs)( AstObject *, int * );
+static void (*parent_regsetattrib)( AstRegion *, const char *, char **, int * );
+static void (*parent_regclearattrib)( AstRegion *, const char *, char **, int * );
 
-static void (* parent_clearnegated)( AstRegion * );
-static void (* parent_clearclosed)( AstRegion * );
-static void (* parent_clearfillfactor)( AstRegion * );
-static void (* parent_clearmeshsize)( AstRegion * );
+static void (* parent_clearnegated)( AstRegion *, int * );
+static void (* parent_clearclosed)( AstRegion *, int * );
+static void (* parent_clearfillfactor)( AstRegion *, int * );
+static void (* parent_clearmeshsize)( AstRegion *, int * );
 
-static void (* parent_setclosed)( AstRegion *, int );
-static void (* parent_setfillfactor)( AstRegion *, double );
-static void (* parent_setmeshsize)( AstRegion *, int );
-static void (* parent_setnegated)( AstRegion *, int );
+static void (* parent_setclosed)( AstRegion *, int, int * );
+static void (* parent_setfillfactor)( AstRegion *, double, int * );
+static void (* parent_setmeshsize)( AstRegion *, int, int * );
+static void (* parent_setnegated)( AstRegion *, int, int * );
+
+#if defined(THREAD_SAFE)
+static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
+#endif
 
 /* The keys associated with each component of an AstroCoords element
    within KeyMap */
@@ -144,73 +170,96 @@ static const char *regcom[ NREG ] = { "AstroCoords error region",
                                       "AstroCoords value region" };
 
 
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(Stc)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(Stc,Class_Init)
+#define class_vtab astGLOBAL(Stc,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstStcVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
+
 /* External Interface Function Prototypes. */
 /* ======================================= */
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstMapping *Simplify( AstMapping * );
-static AstPointSet *RegBaseMesh( AstRegion * );
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static AstRegion *GetUncFrm( AstRegion *, int );
-static int Equal( AstObject *, AstObject * );
-static int GetBounded( AstRegion * );
-static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int ** );
-static int TestUnc( AstRegion * );
-static void ClearUnc( AstRegion * );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
-static void GetRegion( AstStc *, AstRegion **, int *);
-static void RegBaseBox( AstRegion *, double *, double * );
-static void SetRegFS( AstRegion *, AstFrame * );
-static void SetFillFactor( AstRegion *, double );
-static void SetClosed( AstRegion *, int );
-static void SetMeshSize( AstRegion *, int );
-static void ClearFillFactor( AstRegion * );
-static void ClearClosed( AstRegion * );
-static void ClearMeshSize( AstRegion * );
-static const char *GetRegionClass( AstStc * );
-static AstRegion *GetStcRegion( AstStc * );
-static AstKeyMap *GetStcCoord( AstStc *, int );
-static int GetStcNCoord( AstStc * );
-static int GetUseDefs( AstObject * );
-static void RegSetAttrib( AstRegion *, const char *, char ** );
-static void RegClearAttrib( AstRegion *, const char *, char ** );
-static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *, AstKeyMap *, const char * );
-static int Overlap( AstRegion *, AstRegion * );
-static int OverlapX( AstRegion *, AstRegion * );
+static AstMapping *Simplify( AstMapping *, int * );
+static AstPointSet *RegBaseMesh( AstRegion *, int * );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static int GetObjSize( AstObject *, int * );
+static AstRegion *GetUncFrm( AstRegion *, int, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static int GetBounded( AstRegion *, int * );
+static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int **, int * );
+static int TestUnc( AstRegion *, int * );
+static void ClearUnc( AstRegion *, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void GetRegion( AstStc *, AstRegion **, int *, int * );
+static void RegBaseBox( AstRegion *, double *, double *, int * );
+static void SetRegFS( AstRegion *, AstFrame *, int * );
+static const char *GetRegionClass( AstStc *, int * );
+static AstRegion *GetStcRegion( AstStc *, int * );
+static AstKeyMap *GetStcCoord( AstStc *, int, int * );
+static int GetStcNCoord( AstStc *, int * );
+static int GetUseDefs( AstObject *, int * );
+static void RegSetAttrib( AstRegion *, const char *, char **, int * );
+static void RegClearAttrib( AstRegion *, const char *, char **, int * );
+static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *, AstKeyMap *, const char *, int * );
+static int Overlap( AstRegion *, AstRegion *, int * );
+static int OverlapX( AstRegion *, AstRegion *, int * );
 
-static void ClearAttrib( AstObject *, const char * );
-static const char *GetAttrib( AstObject *, const char * );
-static void SetAttrib( AstObject *, const char * );
-static int TestAttrib( AstObject *, const char * );
+static void ClearAttrib( AstObject *, const char *, int * );
+static const char *GetAttrib( AstObject *, const char *, int * );
+static void SetAttrib( AstObject *, const char *, int * );
+static int TestAttrib( AstObject *, const char *, int * );
 
-static void ClearClosed( AstRegion * );
-static int GetClosed( AstRegion * );
-static void SetClosed( AstRegion *, int );
-static int TestClosed( AstRegion * );
+static void ClearClosed( AstRegion *, int * );
+static int GetClosed( AstRegion *, int * );
+static void SetClosed( AstRegion *, int, int * );
+static int TestClosed( AstRegion *, int * );
 
-static void ClearMeshSize( AstRegion * );
-static int GetMeshSize( AstRegion * );
-static void SetMeshSize( AstRegion *, int );
-static int TestMeshSize( AstRegion * );
+static void ClearMeshSize( AstRegion *, int * );
+static int GetMeshSize( AstRegion *, int * );
+static void SetMeshSize( AstRegion *, int, int * );
+static int TestMeshSize( AstRegion *, int * );
 
-static void ClearFillFactor( AstRegion * );
-static double GetFillFactor( AstRegion * );
-static void SetFillFactor( AstRegion *, double );
-static int TestFillFactor( AstRegion * );
+static void ClearFillFactor( AstRegion *, int * );
+static double GetFillFactor( AstRegion *, int * );
+static void SetFillFactor( AstRegion *, double, int * );
+static int TestFillFactor( AstRegion *, int * );
 
-static void ClearNegated( AstRegion * );
-static int GetNegated( AstRegion * );
-static void SetNegated( AstRegion *, int );
-static int TestNegated( AstRegion * );
+static void ClearNegated( AstRegion *, int * );
+static int GetNegated( AstRegion *, int * );
+static void SetNegated( AstRegion *, int, int * );
+static int TestNegated( AstRegion *, int * );
 
-
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *, int, int, AstObject **, int * );
+#endif
 
 /* Member functions. */
 /* ================= */
-static void ClearAttrib( AstObject *this_object, const char *attrib ) {
+static void ClearAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     ClearAttrib
@@ -223,7 +272,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     void ClearAttrib( AstObject *this, const char *attrib )
+*     void ClearAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astClearAttrib protected
@@ -240,6 +289,8 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -267,19 +318,19 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
    of this class. If it does, then report an error. */
    if ( !strcmp( attrib, "regionclass" ) ) {
       astError( AST__NOWRT, "astClear: Invalid attempt to clear the \"%s\" "
-                "value for a %s.", attrib, astGetClass( this ) );
-      astError( AST__NOWRT, "This is a read-only attribute." );
+                "value for a %s.", status, attrib, astGetClass( this ) );
+      astError( AST__NOWRT, "This is a read-only attribute." , status);
 
 /* Not recognised. */
 /* --------------- */
 /* If the attribute is still not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      (*parent_clearattrib)( this_object, attrib );
+      (*parent_clearattrib)( this_object, attrib, status );
    }
 }
 
-static void ClearUnc( AstRegion *this_region ){
+static void ClearUnc( AstRegion *this_region, int *status ){
 /*
 *  Name:
 *     ClearUnc
@@ -292,7 +343,7 @@ static void ClearUnc( AstRegion *this_region ){
 
 *  Synopsis:
 *     #include "stc.h"
-*     void ClearUnc( AstRegion *this )
+*     void ClearUnc( AstRegion *this, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astClearUnc protected
@@ -305,6 +356,8 @@ static void ClearUnc( AstRegion *this_region ){
 *  Parameters:
 *     this
 *        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -316,7 +369,7 @@ static void ClearUnc( AstRegion *this_region ){
 
 /* Invoke the implementation inherited form the parent Region class to 
    clear any default uncertainty information. */
-   (* parent_clearunc)( this_region );
+   (* parent_clearunc)( this_region, status );
 
 /* Get a pointer to the Stc structure. */
    this = (AstStc *) this_region;
@@ -326,7 +379,7 @@ static void ClearUnc( AstRegion *this_region ){
 
 }
 
-static int Equal( AstObject *this_object, AstObject *that_object ) {
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
 /*
 *  Name:
 *     Equal
@@ -339,7 +392,7 @@ static int Equal( AstObject *this_object, AstObject *that_object ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     int Equal( AstObject *this_object, AstObject *that_object ) 
+*     int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Class Membership:
 *     Stc member function (over-rides the astEqual protected
@@ -354,6 +407,8 @@ static int Equal( AstObject *this_object, AstObject *that_object ) {
 *        Pointer to the first Stc.
 *     that
 *        Pointer to the second Stc.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if the Stcs are equivalent, zero otherwise.
@@ -380,7 +435,7 @@ static int Equal( AstObject *this_object, AstObject *that_object ) {
 /* Invoke the Equal method inherited from the parent Region class. This checks
    that the Objects are both of the same class, and have the same Negated
    and Closed flags (amongst other things). */
-   if( (*parent_equal)( this_object, that_object ) ) {
+   if( (*parent_equal)( this_object, that_object, status ) ) {
 
 /* Obtain pointers to the two Stc structures. */
       this = (AstStc *) this_object;
@@ -434,7 +489,7 @@ static int Equal( AstObject *this_object, AstObject *that_object ) {
 
 /* Define the macro. */
 #define MAKE_SET(attribute,lattribute,type) \
-static void Set##attribute( AstRegion *this_region, type value ) { \
+static void Set##attribute( AstRegion *this_region, type value, int *status ) { \
 \
 /* Local Variables: */ \
    AstStc *this;         /* Pointer to the Stc structure */ \
@@ -443,7 +498,7 @@ static void Set##attribute( AstRegion *this_region, type value ) { \
    if ( !astOK ) return; \
 \
 /* Use the parent method to set the value in the parent Region structure. */ \
-   (*parent_set##lattribute)( this_region, value ); \
+   (*parent_set##lattribute)( this_region, value, status ); \
 \
 /* Also set the value in the encapsulated Region. */ \
    this = (AstStc *) this_region; \
@@ -495,7 +550,7 @@ MAKE_SET(Negated,negated,int)
 
 /* Define the macro. */
 #define MAKE_CLEAR(attribute,lattribute) \
-static void Clear##attribute( AstRegion *this_region ) { \
+static void Clear##attribute( AstRegion *this_region, int *status ) { \
 \
 /* Local Variables: */ \
    AstStc *this;         /* Pointer to the Stc structure */ \
@@ -504,7 +559,7 @@ static void Clear##attribute( AstRegion *this_region ) { \
    if ( !astOK ) return; \
 \
 /* Use the parent method to clear the value in the parent Region structure. */ \
-   (*parent_clear##lattribute)( this_region ); \
+   (*parent_clear##lattribute)( this_region, status ); \
 \
 /* Also clear the value in the encapsulated Region. */ \
    this = (AstStc *) this_region; \
@@ -559,7 +614,7 @@ MAKE_CLEAR(Negated,negated)
 
 /* Define the macro. */
 #define MAKE_GET(attribute,type,bad) \
-static type Get##attribute( AstRegion *this_region ) { \
+static type Get##attribute( AstRegion *this_region, int *status ) { \
 \
 /* Local Variables: */ \
    AstStc *this;         /* Pointer to the Stc structure */ \
@@ -617,7 +672,7 @@ MAKE_GET(Negated,int,0)
 
 /* Define the macro. */
 #define MAKE_TEST(attribute) \
-static int Test##attribute( AstRegion *this_region ) { \
+static int Test##attribute( AstRegion *this_region, int *status ) { \
 \
 /* Local Variables: */ \
    AstStc *this;         /* Pointer to the Stc structure */ \
@@ -643,7 +698,78 @@ MAKE_TEST(Negated)
 
 
 
-static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "stc.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     Stc member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied Stc,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the Stc.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstStc *this;         /* Pointer to Stc structure */
+   int result;           /* Result value to return */
+   int i;                /* AstroCoords index */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the Stc structure. */
+   this = (AstStc *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+   result += astGetObjSize( this->region );
+
+   if( this->coord ) {
+      for( i = 0; i < this->ncoord; i++ ) {
+         result += astGetObjSize( this->coord[ i ] );
+      }
+      result += astTSizeOf( this->coord );
+   }
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static const char *GetAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     GetAttrib
@@ -656,7 +782,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     const char *GetAttrib( AstObject *this, const char *attrib )
+*     const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the protected astGetAttrib
@@ -673,6 +799,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null-terminated string containing the name of
 *        the attribute whose value is required. This name should be in
 *        lower case, with all white space removed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - Pointer to a null-terminated string containing the attribute
@@ -722,14 +850,14 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute name was not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      result = (*parent_getattrib)( this_object, attrib );
+      result = (*parent_getattrib)( this_object, attrib, status );
    }
 
 /* Return the result. */
    return result;
 }
 
-static int GetBounded( AstRegion *this_region ) {
+static int GetBounded( AstRegion *this_region, int *status ) {
 /*
 *  Name:
 *     GetBounded
@@ -742,7 +870,7 @@ static int GetBounded( AstRegion *this_region ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     int GetBounded( AstRegion *this ) 
+*     int GetBounded( AstRegion *this, int *status ) 
 
 *  Class Membership:
 *     Stc method (over-rides the astGetBounded method inherited from
@@ -758,6 +886,8 @@ static int GetBounded( AstRegion *this_region ) {
 *  Parameters:
 *     this
 *        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the Region is bounded. Zero otherwise.
@@ -785,7 +915,7 @@ static int GetBounded( AstRegion *this_region ) {
    itself been Negated or not. The returned Region represent a region within 
    the base Frame of the FrameSet encapsulated by the parent Region 
    structure. */
-   GetRegion( this, &reg, &neg );
+   GetRegion( this, &reg, &neg, status );
 
 /* Temporarily set the Negated attribute to the required value.*/
    neg_old = astGetNegated( reg );
@@ -808,7 +938,7 @@ static int GetBounded( AstRegion *this_region ) {
    return result;
 }
 
-static void GetRegion( AstStc *this, AstRegion **reg, int *neg ) {
+static void GetRegion( AstStc *this, AstRegion **reg, int *neg, int *status ) {
 /*
 *
 *  Name:
@@ -822,7 +952,7 @@ static void GetRegion( AstStc *this, AstRegion **reg, int *neg ) {
 
 *  Synopsis:
 *     #include "region.h"
-*     void GetRegion( AstStc *this, AstRegion **reg, int *neg ) 
+*     void GetRegion( AstStc *this, AstRegion **reg, int *neg, int *status ) 
 
 *  Class Membership:
 *     Stc member function 
@@ -845,6 +975,8 @@ static void GetRegion( AstStc *this, AstRegion **reg, int *neg ) {
 *        the base Frame in the FrameSet 
 *     neg
 *        The value of the Negated attribute to be used with reg. 
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - Any changes made to the encapsulated Region using the returned
@@ -875,7 +1007,7 @@ static void GetRegion( AstStc *this, AstRegion **reg, int *neg ) {
    if( astGetNegated( this ) && neg ) *neg = *neg ? 0 : 1;
 }
 
-static const char *GetRegionClass( AstStc *this ){
+static const char *GetRegionClass( AstStc *this, int *status ){
 /*
 *+
 *  Name:
@@ -927,7 +1059,7 @@ static const char *GetRegionClass( AstStc *this ){
 }
 
 
-static AstKeyMap *GetStcCoord( AstStc *this, int icoord ){
+static AstKeyMap *GetStcCoord( AstStc *this, int icoord, int *status ){
 /*
 *++
 *  Name:
@@ -995,6 +1127,7 @@ f     function is invoked with STATUS set to an error value, or if it
    AstKeyMap *result;
    AstMapping *map;
    AstMapping *smap;
+   AstObject *obj;
    AstRegion *reg;
    AstRegion *rereg;
    AstRegion *srereg;
@@ -1011,20 +1144,20 @@ f     function is invoked with STATUS set to an error value, or if it
    nc = astGetStcNCoord( this );
    if( icoord < 1 || icoord > nc ) {
       astError( AST__STCIND, "astGetStcCoord(%s): Supplied AstroCoords "
-                "index (%d) is invalid.", astGetClass( this ), icoord );
+                "index (%d) is invalid.", status, astGetClass( this ), icoord );
 
       if( icoord < 1 ) {
          astError( AST__STCIND, "The index of the first AstroCoord "
-                   "element is one, not zero." );
+                   "element is one, not zero." , status);
       } else if( nc == 0 ) {
          astError( AST__STCIND, "There are no AstroCoords elements in "
-                   "the supplied %s.", astGetClass( this ) );
+                   "the supplied %s.", status, astGetClass( this ) );
       } else if( nc == 1 ) {
          astError( AST__STCIND, "There is 1 AstroCoords element in "
-                   "the supplied %s.", astGetClass( this ) );
+                   "the supplied %s.", status, astGetClass( this ) );
       } else {
          astError( AST__STCIND, "There are %d AstroCoords elements in "
-                   "the supplied %s.", nc, astGetClass( this ) );
+                   "the supplied %s.", status, nc, astGetClass( this ) );
       }
 
 /* If the index is OK, initialise the returned KeyMap to be a copy of the 
@@ -1050,7 +1183,8 @@ f     function is invoked with STATUS set to an error value, or if it
       for( ikey = 0; ikey < NREG; ikey++ ) {
 
 /* If the KeyMap contains a Region for this key, get a pointer to it. */
-         if( astMapGet0A( result, regkey[ ikey ], &reg ) ){
+         if( astMapGet0A( result, regkey[ ikey ], &obj ) ){
+            reg = (AstRegion *) obj;
 
 /* Sets its RegionFS attribute so that the encapsulated FrameSet will be
    included in any dump of the Region. This is needed since the returned
@@ -1089,7 +1223,7 @@ f     function is invoked with STATUS set to an error value, or if it
 
 }
 
-static int GetStcNCoord( AstStc *this ){
+static int GetStcNCoord( AstStc *this, int *status ){
 /*
 *++
 *  Name:
@@ -1139,7 +1273,7 @@ f     function is invoked with STATUS set to an error value, or if it
 
 }
 
-static AstRegion *GetStcRegion( AstStc *this ) {
+static AstRegion *GetStcRegion( AstStc *this, int *status ) {
 /*
 *++
 *  Name:
@@ -1192,7 +1326,7 @@ f     function is invoked with STATUS set to an error value, or if it
    return astCopy( this->region );
 }
 
-static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm ) {
+static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm, int *status ) {
 /*
 *  Name:
 *     GetUncFrm
@@ -1205,7 +1339,7 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     AstRegion *GetUncFrm( AstRegion *this, int ifrm ) 
+*     AstRegion *GetUncFrm( AstRegion *this, int ifrm, int *status ) 
 
 *  Class Membership:
 *     Stc method (over-rides the astGetUncFrm method inherited from
@@ -1228,6 +1362,8 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm ) {
 *        The index of a Frame within the FrameSet encapsulated by "this".
 *        The returned Region will refer to the requested Frame. It should
 *        be either AST__CURRENT or AST__BASE.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the Region. This should be annulled (using astAnnul)
@@ -1260,8 +1396,8 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm ) {
 /* If the parent Region structure contains explicit uncertainty information, 
    use it in preference to any uncertainty Region stored in the encapsulated
    Region. */
-   if( (* parent_testunc)( this_region ) ) {
-      bunc = (* parent_getuncfrm)( this_region, AST__BASE );
+   if( (* parent_testunc)( this_region, status ) ) {
+      bunc = (* parent_getuncfrm)( this_region, AST__BASE, status );
 
 /* Otherwise, if the encapsulated Region has a defined uncertainty, use it. 
    The current Frame in the encapsulated Region is equivalent to the base 
@@ -1273,7 +1409,7 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm ) {
 /* Otherwise invoke the astGetUnc method inherited from the parent Region
    class to create a default uncertainty region. */
    } else {
-      bunc = (* parent_getuncfrm)( this_region, AST__BASE );
+      bunc = (* parent_getuncfrm)( this_region, AST__BASE, status );
    }
 
 /* The above code obtains an uncertainty Region in the base Frame of the
@@ -1314,7 +1450,7 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm ) {
    return result;
 }
 
-static int GetUseDefs( AstObject *this_object ) {
+static int GetUseDefs( AstObject *this_object, int *status ) {
 /*
 *  Name:
 *     GetUseDefs
@@ -1327,7 +1463,7 @@ static int GetUseDefs( AstObject *this_object ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     int GetUseDefs( AstObject *this_object ) {
+*     int GetUseDefs( AstObject *this_object, int *status ) {
 
 *  Class Membership:
 *     Stc member function (over-rides the protected astGetUseDefs
@@ -1340,6 +1476,8 @@ static int GetUseDefs( AstObject *this_object ) {
 *  Parameters:
 *     this
 *        Pointer to the Stc.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - The USeDefs value.
@@ -1361,7 +1499,7 @@ static int GetUseDefs( AstObject *this_object ) {
 /* If the UseDefs value for the Stc has been set explicitly, use the
    Get method inherited from the parent Region class to get its value. */
    if( astTestUseDefs( this ) ) {
-      result = (*parent_getusedefs)( this_object );
+      result = (*parent_getusedefs)( this_object, status );
 
 /* Otherwise, supply a default value equal to the UseDefs value of the
    encapsulated Region. */   
@@ -1373,7 +1511,7 @@ static int GetUseDefs( AstObject *this_object ) {
    return result;
 }
 
-void astInitStcVtab_(  AstStcVtab *vtab, const char *name ) {
+void astInitStcVtab_(  AstStcVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -1410,12 +1548,16 @@ void astInitStcVtab_(  AstStcVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
    AstRegionVtab *region;        /* Pointer to Region component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -1424,8 +1566,8 @@ void astInitStcVtab_(  AstStcVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsAStc) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -1442,6 +1584,14 @@ void astInitStcVtab_(  AstStcVtab *vtab, const char *name ) {
    object = (AstObjectVtab *) vtab;
    mapping = (AstMappingVtab *) vtab;
    region = (AstRegionVtab *) vtab;
+
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
+
+#if defined(THREAD_SAFE)
+   parent_managelock = object->ManageLock;
+   object->ManageLock = ManageLock;
+#endif
 
    parent_clearattrib = object->ClearAttrib;
    object->ClearAttrib = ClearAttrib;
@@ -1537,10 +1687,15 @@ void astInitStcVtab_(  AstStcVtab *vtab, const char *name ) {
    astSetCopy( vtab, Copy );
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "Stc", "An IVOA Space-Time-Coords object" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
 static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord, 
-                                         const char *class ){
+                                         const char *class, int *status ){
 /*
 *  Name:
 *     MakeAstroCoordsKeyMap
@@ -1555,7 +1710,7 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
 *  Synopsis:
 *     #include "stc.h"
 *     AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
-*                                       const char *class )
+*                                       const char *class, int *status )
 
 *  Class Membership:
 *     Stc member function 
@@ -1586,6 +1741,8 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
 *        system represented by "region". 
 *     class
 *        Pointer to a string holding the STC class name.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - Pointer to the new KeyMap.
@@ -1620,7 +1777,7 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
 /* Confirm it is a genuine KeyMap pointer. */
    if( !astIsAKeyMap( coord ) && astOK ) {
       astError( AST__STCKEY, "astInitStc(%s): Supplied pointer is for "
-                "a %s, not a KeyMap.", class, astGetClass( coord ) );
+                "a %s, not a KeyMap.", status, class, astGetClass( coord ) );
    }
 
 /* Initialise the new KeyMap to be a copy of the supplied KeyMap. */
@@ -1643,7 +1800,7 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
              strcmp( key, AST__STCSIZE ) &&
              strcmp( key, AST__STCPIXSZ ) ) {
             astError( AST__STCKEY, "astInitStc(%s): Unknown key "
-                      "\"%s\" supplied in an AstroCoords list.",
+                      "\"%s\" supplied in an AstroCoords list.", status,
                       class, key );
             break;
 
@@ -1652,14 +1809,14 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
             if( nv != naxes ) {
                astError( AST__STCKEY, "astInitStc(%s): %d \"%s\" "
                          "values supplied in an AstroCoords list, but "
-                         "the Stc has %d axes. ", class, nv, key,
+                         "the Stc has %d axes. ", status, class, nv, key,
                          naxes );
                break;
    
             } else if( type != AST__STRINGTYPE ) {
                astError( AST__STCKEY, "astInitStc(%s): The \"%s\" "
                          "values supplied in an AstroCoords list are "
-                         "not character strings. ", class, key );
+                         "not character strings. ", status, class, key );
                break;
             }
 
@@ -1667,14 +1824,14 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
          } else if( nv != 1 ) {
             astError( AST__STCKEY, "astInitStc(%s): %d \"%s\" "
                       "values supplied in an AstroCoords list, but "
-                      "only one is allowed. ", class, nv, key );
+                      "only one is allowed. ", status, class, nv, key );
             break;
    
 /* Check that all other elements are AST Object pointers. */   
          } else if( type != AST__OBJECTTYPE ) {
             astError( AST__STCKEY, "astInitStc(%s): The \"%s\" "
                       "value supplied in an AstroCoords list is "
-                      "not an AST Object pointer. ", class, key );
+                      "not an AST Object pointer. ", status, class, key );
             break;
 
 /* Check that the Object pointers are not NULL. */
@@ -1684,16 +1841,16 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
                if( !obj ) {
                   astError( AST__STCKEY, "astInitStc(%s): The \"%s\" "
                             "value supplied in an AstroCoords list is "
-                            "a NULL pointer. ", class, key );
+                            "a NULL pointer. ", status, class, key );
                   break;
 
 /* Check that the Object pointers are Region pointers. */
                } else if( !astIsARegion( obj ) ){
-                  obj = astAnnul( obj );
                   astError( AST__STCKEY, "astInitStc(%s): The \"%s\" "
                             "value supplied in an AstroCoords list is "
-                            "a %s, not a Region. ", class, key,
-                            astGetClass(areg) );
+                            "a %s, not a Region. ", status, class, key,
+                            astGetClass(obj) );
+                  obj = astAnnul( obj );
                   break;
 
 /* Check that the Region pointers can be converted to the coordinate
@@ -1705,7 +1862,7 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
                      astError( AST__STCKEY, "astInitStc(%s): The \"%s\" "
                                "value supplied in an AstroCoords list "
                                "cannot be converted to the coordinate "
-                               "system of its parent Stc object.", class, 
+                               "system of its parent Stc object.", status, class, 
                                key );
                      break;
 
@@ -1747,7 +1904,106 @@ static AstKeyMap *MakeAstroCoordsKeyMap( AstRegion *reg, AstKeyMap *coord,
 
 }
 
-static int Overlap( AstRegion *this, AstRegion *that ){
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *this_object, int mode, int extra, 
+                       AstObject **fail, int *status ) {
+/*
+*  Name:
+*     ManageLock
+
+*  Purpose:
+*     Manage the thread lock on an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "object.h"
+*     AstObject *ManageLock( AstObject *this, int mode, int extra, 
+*                            AstObject **fail, int *status ) 
+
+*  Class Membership:
+*     Stc member function (over-rides the astManageLock protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function manages the thread lock on the supplied Object. The
+*     lock can be locked, unlocked or checked by this function as 
+*     deteremined by parameter "mode". See astLock for details of the way
+*     these locks are used.
+
+*  Parameters:
+*     this
+*        Pointer to the Object.
+*     mode
+*        An integer flag indicating what the function should do:
+*
+*        AST__LOCK: Lock the Object for exclusive use by the calling
+*        thread. The "extra" value indicates what should be done if the
+*        Object is already locked (wait or report an error - see astLock).
+*
+*        AST__UNLOCK: Unlock the Object for use by other threads.
+*
+*        AST__CHECKLOCK: Check that the object is locked for use by the
+*        calling thread (report an error if not).
+*     extra
+*        Extra mode-specific information. 
+*     fail
+*        If a non-zero function value is returned, a pointer to the
+*        Object that caused the failure is returned at "*fail". This may
+*        be "this" or it may be an Object contained within "this". Note,
+*        the Object's reference count is not incremented, and so the
+*        returned pointer should not be annulled. A NULL pointer is 
+*        returned if this function returns a value of zero.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*    A local status value: 
+*        0 - Success
+*        1 - Could not lock or unlock the object because it was already 
+*            locked by another thread.
+*        2 - Failed to lock a POSIX mutex
+*        3 - Failed to unlock a POSIX mutex
+*        4 - Bad "mode" value supplied.
+
+*  Notes:
+*     - This function attempts to execute even if an error has already
+*     occurred.
+*/
+
+/* Local Variables: */
+   AstStc *this;       /* Pointer to STC structure */
+   int i;              /* Loop count */
+   int result;         /* Returned status value */
+
+/* Initialise */
+   result = 0;
+
+/* Check the supplied pointer is not NULL. */
+   if( !this_object ) return result;
+
+/* Obtain a pointers to the STC structure. */
+   this = (AstStc *) this_object;
+
+/* Invoke the ManageLock method inherited from the parent class. */
+   if( !result ) result = (*parent_managelock)( this_object, mode, extra,
+                                                fail, status );
+
+/* Invoke the astManageLock method on any Objects contained within
+   the supplied Object. */
+   if( !result ) result = astManageLock( this->region, mode, extra, fail );
+   for( i = 0; i < this->ncoord; i++ ) {
+      if( !result ) result = astManageLock( this->coord[ i ], mode,
+                                            extra, fail );
+   }
+
+   return result;
+
+}
+#endif
+
+static int Overlap( AstRegion *this, AstRegion *that, int *status ){
 /*
 *  Name:
 *     Overlap
@@ -1760,7 +2016,7 @@ static int Overlap( AstRegion *this, AstRegion *that ){
 
 *  Synopsis:
 *     #include "stc.h"
-*     int Overlap( AstRegion *this, AstRegion *that ) 
+*     int Overlap( AstRegion *this, AstRegion *that, int *status ) 
 
 *  Class Membership:
 *     Stc member function (over-rides the astOverlap method inherited 
@@ -1779,6 +2035,8 @@ static int Overlap( AstRegion *this, AstRegion *that ){
 *        Pointer to the first Region.
 *     that
 *        Pointer to the second Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     astOverlap()
@@ -1816,7 +2074,7 @@ static int Overlap( AstRegion *this, AstRegion *that ){
    return astOverlap( ((AstStc *)this)->region, that );
 }
 
-static int OverlapX( AstRegion *that, AstRegion *this ){
+static int OverlapX( AstRegion *that, AstRegion *this, int *status ){
 /*
 *  Name:
 *     OverlapX
@@ -1867,7 +2125,7 @@ static int OverlapX( AstRegion *that, AstRegion *this ){
    return result;
 }
 
-static void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd ){
+static void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd, int *status ){
 /*
 *  Name:
 *     RegBaseBox
@@ -1881,7 +2139,7 @@ static void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd ){
 
 *  Synopsis:
 *     #include "stc.h"
-*     void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd )
+*     void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astRegBaseBox protected
@@ -1898,7 +2156,7 @@ static void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd ){
 *        Pointer to the Region.
 *     lbnd
 *        Pointer to an array in which to return the lower axis bounds
-*        covered by the Region in the base Frame of the encpauslated
+*        covered by the Region in the base Frame of the encapsulated
 *        FrameSet. It should have at least as many elements as there are 
 *        axes in the base Frame.
 *     ubnd
@@ -1906,6 +2164,8 @@ static void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd ){
 *        covered by the Region in the base Frame of the encapsulated
 *        FrameSet. It should have at least as many elements as there are 
 *        axes in the base Frame.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -1916,7 +2176,7 @@ static void RegBaseBox( AstRegion *this, double *lbnd, double *ubnd ){
    astRegBaseBox( ((AstStc *)this)->region, lbnd, ubnd );
 }
 
-static AstPointSet *RegBaseMesh( AstRegion *this ){
+static AstPointSet *RegBaseMesh( AstRegion *this, int *status ){
 /*
 *  Name:
 *     RegBaseMesh
@@ -1930,7 +2190,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this ){
 
 *  Synopsis:
 *     #include "stc.h"
-*     AstPointSet *astRegBaseMesh( AstRegion *this )
+*     AstPointSet *astRegBaseMesh( AstRegion *this, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astRegBaseMesh protected
@@ -1944,6 +2204,8 @@ static AstPointSet *RegBaseMesh( AstRegion *this ){
 *  Parameters:
 *     this
 *        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the PointSet. Annul the pointer using astAnnul when it 
@@ -1965,7 +2227,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this ){
 }
 
 static void RegClearAttrib( AstRegion *this_region, const char *attrib, 
-                            char **base_attrib ) {
+                            char **base_attrib, int *status ) {
 /*
 *  Name:
 *     RegClearAttrib
@@ -1979,10 +2241,10 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 *  Synopsis:
 *     #include "stc.h"
 *     void RegClearAttrib( AstRegion *this, const char *attrib, 
-*                          char **base_attrib ) 
+*                          char **base_attrib, int *status ) 
 
 *  Class Membership:
-*     CmpRegion method (over-rides the astRegClearAttrib method inherited from
+*     Stc method (over-rides the astRegClearAttrib method inherited from
 *     the Region class).
 
 *  Description:
@@ -2008,6 +2270,8 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 *        axis permutation. The returned pointer should be freed using
 *        astFree when no longer needed. A NULL pointer may be supplied in 
 *        which case no pointer is returned.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -2025,7 +2289,7 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 /* Use the RegClearAttrib method inherited from the parent class to clear 
    the attribute in the current and base Frames in the FrameSet encapsulated 
    by the parent Region structure. */
-   (*parent_regclearattrib)( this_region, attrib, &batt );
+   (*parent_regclearattrib)( this_region, attrib, &batt, status );
 
 /* Now clear the base Frame attribute in the encapsulated Region (the current 
    Frame within the encapsulated Region is equivalent to the base Frame in the
@@ -2047,7 +2311,7 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 }
 
 static int RegPins( AstRegion *this, AstPointSet *pset, AstRegion *unc,
-                    int **mask ){
+                    int **mask, int *status ){
 /*
 *  Name:
 *     RegPins
@@ -2061,7 +2325,7 @@ static int RegPins( AstRegion *this, AstPointSet *pset, AstRegion *unc,
 *  Synopsis:
 *     #include "stc.h"
 *     int RegPins( AstRegion *this, AstPointSet *pset, AstRegion *unc,
-*                  int **mask )
+*                  int **mask, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astRegPins protected
@@ -2095,6 +2359,8 @@ static int RegPins( AstRegion *this, AstPointSet *pset, AstRegion *unc,
 *        and is set to zero otherwise. A NULL value may be supplied
 *        in which case no array is created. If created, the array should
 *        be freed using astFree when no longer needed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the points all fall on the boundary of the given
@@ -2110,7 +2376,7 @@ static int RegPins( AstRegion *this, AstPointSet *pset, AstRegion *unc,
 }
 
 static void RegSetAttrib( AstRegion *this_region, const char *setting, 
-                          char **base_setting ) {
+                          char **base_setting, int *status ) {
 /*
 *  Name:
 *     RegSetAttrib
@@ -2124,7 +2390,7 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 *  Synopsis:
 *     #include "stc.h"
 *     void RegSetAttrib( AstRegion *this, const char *setting, 
-*                        char **base_setting )
+*                        char **base_setting, int *status )
 
 *  Class Membership:
 *     Stc method (over-rides the astRegSetAttrib method inherited from
@@ -2160,11 +2426,14 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 *        axis permutation. The returned pointer should be freed using
 *        astFree when no longer needed. A NULL pointer may be supplied in 
 *        which case no pointer is returned.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
 /* Local Variables: */
    AstKeyMap *keymap;
+   AstObject *obj;
    AstRegion *reg;   
    AstStc *this; 
    char *bset;
@@ -2181,7 +2450,7 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 /* Use the RegSetAttrib method inherited from the parent class to apply the 
    setting to the current and base Frames in the FrameSet encapsulated by the 
    parent Region structure. */
-   (*parent_regsetattrib)( this_region, setting, &bset );
+   (*parent_regsetattrib)( this_region, setting, &bset, status );
 
 /* Now apply the base Frame setting to the encapsulated Region (the current 
    Frame within the encapsulated Region is equivalent to the base Frame in the
@@ -2204,7 +2473,8 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
          for( ikey = 0; ikey < NREG; ikey++ ) {
 
 /* If the KeyMap contains a Region for this key, get a pointer to it. */
-            if( astMapGet0A( keymap, regkey[ ikey ], &reg ) ){
+            if( astMapGet0A( keymap, regkey[ ikey ], &obj ) ){
+               reg = (AstRegion *) obj;
 
 /* Modify it by applying the attribute setting. */
                astRegSetAttrib( reg, bset, NULL );
@@ -2227,7 +2497,7 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
    }
 }
 
-static void SetAttrib( AstObject *this_object, const char *setting ) {
+static void SetAttrib( AstObject *this_object, const char *setting, int *status ) {
 /*
 *  Name:
 *     SetAttrib
@@ -2240,7 +2510,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     void SetAttrib( AstObject *this, const char *setting )
+*     void SetAttrib( AstObject *this, const char *setting, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astSetAttrib method inherited
@@ -2266,6 +2536,8 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 *     setting
 *        Pointer to a null terminated string specifying the new attribute
 *        value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - This function uses one-based axis numbering so that it is
@@ -2305,23 +2577,23 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 /* Use this macro to report an error if a read-only attribute has been
    specified. */
    if ( MATCH( "regionclass" ) ) {
-      astError( AST__NOWRT, "astSet: The setting \"%s\" is invalid for a %s.",
+      astError( AST__NOWRT, "astSet: The setting \"%s\" is invalid for a %s.", status,
                 setting, astGetClass( this ) );
-      astError( AST__NOWRT, "This is a read-only attribute." );
+      astError( AST__NOWRT, "This is a read-only attribute." , status);
 
 /* Not recognised. */
 /* --------------- */
 /* If the attribute is still not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      (*parent_setattrib)( this_object, setting );
+      (*parent_setattrib)( this_object, setting, status );
    }
 
 /* Undefine macros local to this function. */
 #undef MATCH
 }
 
-static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
+static void SetRegFS( AstRegion *this_region, AstFrame *frm, int *status ) {
 /*
 *  Name:
 *     SetRegFS
@@ -2334,7 +2606,7 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     void SetRegFS( AstRegion *this_region, AstFrame *frm )
+*     void SetRegFS( AstRegion *this_region, AstFrame *frm, int *status )
 
 *  Class Membership:
 *     Stc method (over-rides the astSetRegFS method inherited from
@@ -2350,6 +2622,8 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 *        Pointer to the Region.
 *     frm
 *        The Frame to use.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -2361,7 +2635,7 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 
 /* Invoke the parent method to store the FrameSet in the parent Region
    structure. */
-   (* parent_setregfs)( this_region, frm );
+   (* parent_setregfs)( this_region, frm, status );
 
 /* If the encapsulated Region has a dummy FrameSet use this method
    recursively to give it the same FrameSet. */
@@ -2370,7 +2644,7 @@ static void SetRegFS( AstRegion *this_region, AstFrame *frm ) {
 
 }
 
-static AstMapping *Simplify( AstMapping *this_mapping ) {
+static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 /*
 *  Name:
 *     Simplify
@@ -2383,7 +2657,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 *  Synopsis:
 *     #include "region.h"
-*     AstMapping *Simplify( AstMapping *this )
+*     AstMapping *Simplify( AstMapping *this, int *status )
 
 *  Class Membership:
 *     Stc method (over-rides the astSimplify method inherited from
@@ -2397,6 +2671,8 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 *  Parameters:
 *     this
 *        Pointer to the original Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A new pointer to the (possibly simplified) Region.
@@ -2411,6 +2687,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
    AstFrame *frm;                /* Current Frame */
    AstKeyMap *keymap;            /* KeyMap holding stroCoords element */
    AstMapping *map;              /* Base->current Mapping */
+   AstObject *obj;               /* Pointer to object retrieved from keymap */
    AstRegion *newreg;            /* New encapsulated Region */
    AstRegion *reg;               /* AstroCoords Region pointer */
    AstRegion *treg;              /* Temporary Region pointer */
@@ -2424,7 +2701,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 /* Invoke the Simplify method of the parent Region class. This simplifies
    the FrameSet and uncertainty Region in the parent Region structure. */
-   stc = (AstStc *) (AstRegion *) (* parent_simplify)( this_mapping );
+   stc = (AstStc *) (AstRegion *) (* parent_simplify)( this_mapping, status );
 
 /* If the Stc is negated, we can perform a simplication by transferring
    the negated state from the Stc itself to the encapsulated Region. */
@@ -2434,7 +2711,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
    creating a copy of the supplied Stc, if this has not already been done. */
       if( stc == (AstStc *) this_mapping ) {
          temp = (AstStc *) astCopy( stc );
-         astAnnul( stc );
+         (void) astAnnul( stc );
          stc = temp;
       }
 
@@ -2475,13 +2752,13 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
    creating a copy of the supplied Stc, if this has not already been done. */
       if( stc == (AstStc *) this_mapping ) {
          temp = (AstStc *) astCopy( stc );
-         astAnnul( stc );
+         (void) astAnnul( stc );
          stc = temp;
       }
 
 /* Store the new region in "stc", annulling the existing Region. */
       if( stc ) {
-         astAnnul( stc->region );
+         (void) astAnnul( stc->region );
          stc->region = astClone( newreg );
       }
 
@@ -2510,7 +2787,8 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
          for( ikey = 0; ikey < NREG; ikey++ ) {
    
 /* If the KeyMap contains a Region for this key, get a pointer to it. */
-            if( astMapGet0A( keymap, regkey[ ikey ], &reg ) ){
+            if( astMapGet0A( keymap, regkey[ ikey ], &obj ) ){
+               reg = (AstRegion *) obj;
    
 /* We have two tasks now, firstly to ensure that this AstroCoords Region 
    describes an area in the base Frame of the FrameSet in the parent
@@ -2540,7 +2818,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
    
                   if( stc == (AstStc *) this_mapping ) {
                      temp = astCopy( stc );
-                     astAnnul( stc );
+                     (void) astAnnul( stc );
                      stc = temp;
                      keymap = temp->coord[ i ];
                   }
@@ -2570,7 +2848,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
    return (AstMapping *) stc;
 }
 
-static int TestAttrib( AstObject *this_object, const char *attrib ) {
+static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     TestAttrib
@@ -2583,7 +2861,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "stc.h"
-*     int TestAttrib( AstObject *this, const char *attrib )
+*     int TestAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astTestAttrib protected
@@ -2600,6 +2878,8 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if a value has been set, otherwise zero.
@@ -2642,14 +2922,14 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* If the attribute is still not recognised, pass it on to the parent
    method for further interpretation. */
    } else {
-      result = (*parent_testattrib)( this_object, attrib );
+      result = (*parent_testattrib)( this_object, attrib, status );
    }
 
 /* Return the result, */
    return result;
 }
 
-static int TestUnc( AstRegion *this_region ) {
+static int TestUnc( AstRegion *this_region, int *status ) {
 /*
 *  Name:
 *     TestUnc
@@ -2662,7 +2942,7 @@ static int TestUnc( AstRegion *this_region ) {
 
 *  Synopsis:
 *     include "stc.h"
-*     int astTestUnc( AstRegion *this )
+*     int astTestUnc( AstRegion *this, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astTestUnc protected
@@ -2676,6 +2956,8 @@ static int TestUnc( AstRegion *this_region ) {
 *  Parameters:
 *     this
 *        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the uncertainty Region was supplied explicitly.
@@ -2692,7 +2974,7 @@ static int TestUnc( AstRegion *this_region ) {
 /* See if the parent Region structure contains explicit uncertainty
    information. If so this will be used in preference to any uncertainty
    info in the encapsulated Region. */
-   result = (* parent_testunc)( this_region );
+   result = (* parent_testunc)( this_region, status );
 
 /* If not see if the encapsulated Region contains explicit uncertainty 
    information. */
@@ -2703,7 +2985,7 @@ static int TestUnc( AstRegion *this_region ) {
 }
 
 static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -2717,7 +2999,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 *  Synopsis:
 *     #include "stc.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     Stc member function (over-rides the astTransform method inherited
@@ -2742,6 +3024,8 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -2773,7 +3057,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    int npoint;                   /* No. of points */
    int point;                    /* Loop counter for points */
    int rep;                      /* Original error reporting status */
-   int status;                   /* AST status value */
+   int status_value;                   /* AST status value */
 
 /* Initialise. */
    result = NULL;
@@ -2789,7 +3073,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    itself been Negated or not. The returned Region represent a region within 
    the base Frame of the FrameSet encapsulated by the parent Region 
    structure. */
-   GetRegion( this, &reg, &neg );
+   GetRegion( this, &reg, &neg, status );
 
 /* Temporarily set the Negated attribute to the required value.*/
    neg_old = astGetNegated( reg );
@@ -2799,7 +3083,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    function inherited from the parent Region class. This function validates
    all arguments and generates an output PointSet if necessary, containing 
    a copy of the input PointSet. */
-   result = (*parent_transform)( this_mapping, in, forward, out );
+   result = (*parent_transform)( this_mapping, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    calculations needed to generate the output coordinate values. */
@@ -2848,12 +3132,12 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 
 /* Re-instate the original value for the Negated attribute of the 
    encapsulated Region. Do this even if an error has occurred. */
-   status = astStatus;
+   status_value = astStatus;
    astClearStatus;
    rep = astReporting( 0 );
    if( reg ) astSetNegated( reg, neg_old );
    astReporting( rep );
-   astSetStatus( status );
+   astSetStatus( status_value );
    
 /* Free resources. */
    reg = astAnnul( reg );
@@ -2902,7 +3186,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -2914,7 +3198,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for Stc objects.
@@ -2924,6 +3208,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -2969,7 +3255,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -2981,7 +3267,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for Stc objects.
@@ -2989,6 +3275,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3019,7 +3307,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -3031,7 +3319,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -3042,6 +3330,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the Stc whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Constants: */
@@ -3102,12 +3392,12 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsAStc and astCheckStc functions using the
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(Stc,Region,check,&class_init)
+astMAKE_ISA(Stc,Region,check,&class_check)
 astMAKE_CHECK(Stc)
 
 AstStc *astInitStc_( void *mem, size_t size, int init, AstStcVtab *vtab, 
                      const char *name, AstRegion *region, int ncoords, 
-                     AstKeyMap **coords ) {
+                     AstKeyMap **coords, int *status ) {
 /*
 *+
 *  Name:
@@ -3261,7 +3551,7 @@ AstStc *astInitStc_( void *mem, size_t size, int init, AstStcVtab *vtab,
          if( new->coord ) {
             for( i = 0; i < ncoords; i++ ) {      
                new->coord[ i ] = MakeAstroCoordsKeyMap( reg, coords[ i ],
-                                                        name );
+                                                        name, status );
             }
          }
       }
@@ -3278,7 +3568,7 @@ AstStc *astInitStc_( void *mem, size_t size, int init, AstStcVtab *vtab,
 }
 
 AstStc *astLoadStc_( void *mem, size_t size, AstStcVtab *vtab, 
-                     const char *name, AstChannel *channel ) {
+                     const char *name, AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -3352,11 +3642,16 @@ AstStc *astLoadStc_( void *mem, size_t size, AstStcVtab *vtab,
 
 
 /* Local Constants: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstFrame *f1;                 /* Base Frame in parent Region */
-   AstRegion *creg;              /* Pointer to encapsulated Region */
+   AstObject *obj;               /* Pointer to Object retrieved from KeyMap */
+   AstRegion *creg;              /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Pointer to encapsulated Region */
    AstStc *new;                  /* Pointer to the new Stc */
    char key[ KEY_LEN + 1 ];      /* Buffer for keyword string */
    int ico;                      /* Loop counter for AstroCoords */
@@ -3442,7 +3737,8 @@ AstStc *astLoadStc_( void *mem, size_t size, AstStcVtab *vtab,
 /* Ensure the Regions within the KeyMap do not have dummy FrameSets. */
          if( new->coord[ ico - 1 ] && !astRegDummyFS( new ) ) {
             for( ikey = 0; ikey < NREG; ikey++ ) {
-               if( astMapGet0A( new->coord[ ico - 1 ], regkey[ ikey ], &creg ) ){
+               if( astMapGet0A( new->coord[ ico - 1 ], regkey[ ikey ], &obj ) ){
+                  creg = (AstRegion *) obj;
                   if( astRegDummyFS( creg ) ) {
                      astSetRegFS( creg, f1 );
                      astMapPut0A( new->coord[ ico - 1 ], regkey[ ikey ], creg, 
@@ -3480,25 +3776,29 @@ AstStc *astLoadStc_( void *mem, size_t size, AstStcVtab *vtab,
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
 
-const char *astGetRegionClass_( AstStc *this ){
+const char *astGetRegionClass_( AstStc *this, int *status ){
    if ( !astOK ) return NULL;
-   return (**astMEMBER(this,Stc,GetRegionClass))( this );
+   return (**astMEMBER(this,Stc,GetRegionClass))( this, status );
 }
 
-AstRegion *astGetStcRegion_( AstStc *this ){
+AstRegion *astGetStcRegion_( AstStc *this, int *status ){
    if ( !astOK ) return NULL;
-   return (**astMEMBER(this,Stc,GetStcRegion))( this );
+   return (**astMEMBER(this,Stc,GetStcRegion))( this, status );
 }
 
-AstKeyMap *astGetStcCoord_( AstStc *this, int icoord ){
+AstKeyMap *astGetStcCoord_( AstStc *this, int icoord, int *status ){
    if ( !astOK ) return NULL;
-   return (**astMEMBER(this,Stc,GetStcCoord))( this, icoord );
+   return (**astMEMBER(this,Stc,GetStcCoord))( this, icoord, status );
 }
 
-int astGetStcNCoord_( AstStc *this ){
+int astGetStcNCoord_( AstStc *this, int *status ){
    if ( !astOK ) return 0;
-   return (**astMEMBER(this,Stc,GetStcNCoord))( this );
+   return (**astMEMBER(this,Stc,GetStcNCoord))( this, status );
 }
+
+
+
+
 
 
 

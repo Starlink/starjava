@@ -117,6 +117,35 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "intersect" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'double[]', descrip => ArgDescrip( $fName, "cross" ) },
+   params => [
+      {
+         name => ( $aName = "a1" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "a2" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "b1" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "b2" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
+makeNativeMethod(
    name => ( $fName = "axOffset" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),
@@ -433,6 +462,15 @@ makeGetAttrib( @args );
 makeSetAttrib( @args );
 
 @args = (
+   name => ( $aName = "dut1" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "epoch" ),
    type => 'double',
    purpose => AttPurpose( $aName ),
@@ -503,6 +541,26 @@ makeSetAttrib( @args );
 makeGetAttrib( @args );
 
 @args = (
+   name => ( $aName = "obsLat" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "obsLon" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+   applic => AttApplic( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "permute" ),
    type => "boolean",
    purpose => AttPurpose( $aName ),
@@ -570,5 +628,13 @@ makeSetAttribByAxis( @args );
 );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
+
+@args = (
+   name => ( $aName = "normUnit" ),
+   type => "String",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
 
 print "}\n";

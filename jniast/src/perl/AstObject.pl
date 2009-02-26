@@ -59,9 +59,9 @@ print <<'__EOT__';
             getAstConstantI( "JNIAST_RELEASE" ),
         };
         JNIAST_JAVA_VERSION = new int[] {
-            4,
-            0,
+            5,
             1,
+            0,
         };
 
         /* Check that the versions look consistent. */
@@ -76,6 +76,9 @@ print <<'__EOT__';
 
     /** Bad coordinate value. */
     public static final double AST__BAD = getAstConstantD( "AST__BAD" );
+
+    /** No-change value for use with {@link #tune tune}. */
+    public static final int AST__TUNULL = getAstConstantI( "AST__TUNULL" );
 
     /**
      * Dummy constructor.  This constructor does not create a valid
@@ -481,6 +484,25 @@ makeNativeMethod(
    ],
 );
 
+makeStaticNativeMethod(
+   name => ( $fName = "tune" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'int', descrip => ReturnDescrip( $fName ), },
+   params => [
+      {
+         name => ( $aName = "name" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "value" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
 
 my( @args );
 
@@ -507,6 +529,14 @@ makeSetAttrib( @args );
    type => 'int',
    purpose => AttPurpose( $aName ),
    descrip => AttPurpose( $aName ),
+);
+makeGetAttrib( @args );
+
+@args = (
+   name => ( $aName = "objSize" ),
+   type => 'int',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
 );
 makeGetAttrib( @args );
 

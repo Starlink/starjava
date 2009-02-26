@@ -18,8 +18,8 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
 /**
  * Java interface to the AST Plot class
- *  - provide facilities for graphical output. 
- * This class provides facilities for producing graphical output.
+ *  - provide facilities for 2D graphical output. 
+ * This class provides facilities for producing 2D graphical output.
  * A Plot is a specialised form of FrameSet, in which the base
  * Frame describes a "graphical" coordinate system and is
  * associated with a rectangular plotting area in the underlying
@@ -96,6 +96,21 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * <br> - Ticks1: Tick marks (both major and minor) for axis 1 drawn using astGrid
  * <br> - Ticks2: Tick marks (both major and minor) for axis 2 drawn using astGrid
  * <br> - Title: The Plot title drawn using astGrid
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * <p>
  *       <h4>Usage</h4>
@@ -337,12 +352,20 @@ public class Plot extends FrameSet {
      * If the entire plotting area contains valid, unclipped physical
      * coordinates, then the boundary will just be a rectangular box
      * around the edges of the plotting area.
+     * <p>
+     * If the Plot is a Plot3D, this method is applied individually to
+     * each of the three 2D Plots encapsulated within the Plot3D (each of
+     * these Plots corresponds to a single 2D plane in the 3D graphics
+     * system). In addition, if the entire plotting volume has valid 
+     * coordinates in the 3D current Frame of the Plot3D, then additional 
+     * lines are drawn along the edges of the 3D plotting volume so that 
+     * the entire plotting volume is enclosed within a cuboid grid.
      * <h4>Notes</h4>
      * <br> - A value of zero will be returned if this function is invoked
      * with the AST error status set, or if it should fail for any
      * reason.
      * <br> - An error results if either the current Frame or the base Frame
-     * of the Plot is not 2-dimensional.
+     * of the Plot is not 2-dimensional or (for a Plot3D) 3-dimensional.
      * <br> - An error also results if the transformation between the base
      * and current Frames of the Plot is not defined (i.e. the Plot's
      * TranForward attribute is zero).
@@ -524,14 +547,20 @@ public class Plot extends FrameSet {
 
     /** 
      * Draw a set of labelled coordinate axes.   
-     * This function draws a complete annotated set of 2-dimensional
+     * This function draws a complete annotated set of 
      * coordinate axes for a Plot with (optionally) a coordinate grid
      * superimposed. Details of the axes and grid can be controlled by
      * setting values for the various attributes defined by the Plot
      * class (q.v.).
      * <h4>Notes</h4>
+     * <br> - If the supplied Plot is a Plot3D, the axes will be annotated
+     * using three 2-dimensional Plots, one for each 2D plane in the 3D 
+     * current coordinate system. The plots will be "pasted" onto 3 faces
+     * of the cuboid graphics volume specified when the Plot3D was
+     * constructed. The faces to be used can be controlled by the "RootCorner"
+     * attribute.
      * <br> - An error results if either the current Frame or the base Frame
-     * of the Plot is not 2-dimensional.
+     * of the Plot is not 2-dimensional or (for a Plot3D) 3-dimensional.
      * <br> - An error also results if the transformation between the base
      * and current Frames of the Plot is not defined in either
      * direction (i.e. the Plot's TranForward or TranInverse attribute
@@ -673,6 +702,8 @@ public class Plot extends FrameSet {
      * is transformed into graphical coordinates to determine where the
      * text should appear within the plotting area.
      * <h4>Notes</h4>
+     * <br> - The Plot3D class currently does not interpret graphical escape 
+     * sequences contained within text displayed using this method.
      * <br> - Text is not drawn at positions which have any coordinate equal
      * to the value AST__BAD (or where the transformation into
      * graphical coordinates yields coordinates containing the value
@@ -680,7 +711,7 @@ public class Plot extends FrameSet {
      * <br> - If the plotting position is clipped (see astClip), then no
      * text is drawn.
      * <br> - An error results if the base Frame of the Plot is not
-     * 2-dimensional.
+     * 2-dimensional or (for a Plot3D) 3-dimensional.
      * <br> - An error also results if the transformation between the
      * current and base Frames of the Plot is not defined (i.e. the
      * Plot's TranInverse attribute is zero).
@@ -697,7 +728,10 @@ public class Plot extends FrameSet {
      * An array holding the components of a vector in the "up"
      * direction of the text (in graphical coordinates). For
      * example, to get horizontal text, the vector {0.0f,1.0f} should
-     * be supplied.
+     * be supplied. For a basic Plot, 2 values should be supplied. For 
+     * a Plot3D, 3 values should be supplied, and the actual up vector
+     * used is the projection of the supplied up vector onto the text plane
+     * specified by the current value of the Plot3D's Norm attribute.
      * 
      * @param   just
      * Pointer to a null-terminated character string identifying the
@@ -1440,11 +1474,13 @@ public class Plot extends FrameSet {
     /**
      * Get 
      * allow changes of character attributes within strings.  
-     * This attribute controls the appearance of text strings and
-     * numerical labels drawn by the astGrid and astText functions,
+     * This attribute controls the appearance of text strings and numerical
+     * labels drawn by the astGrid and (for the Plot class) astText functions,
      * by determining if any escape sequences contained within the strings
      * should be used to control the appearance of the text, or should
-     * be printed literally. 
+     * be printed literally. Note, the Plot3D class only interprets escape
+     * sequences within the 
+     * astGrid function.
      * <p>
      * If the Escape value of a Plot is one (the default), then any
      * escape sequences in text strings produce the effects described
@@ -1514,6 +1550,10 @@ public class Plot extends FrameSet {
      *             digits "..." give the new Style value.
      * <p>
      *   %t+     - Reset the Style attribute to its "normal" value.
+     * <p>
+     *   %h+     - Remember the current horizontal position (see "%g+")
+     * <p>
+     *   %g+     - Go to the horizontal position of the previous "%h+" (if any).
      * <p>
      *   %-      - Push the current graphics attribute values onto the top of 
      *             the stack (see "%+").
@@ -1534,11 +1574,13 @@ public class Plot extends FrameSet {
     /**
      * Set 
      * allow changes of character attributes within strings.  
-     * This attribute controls the appearance of text strings and
-     * numerical labels drawn by the astGrid and astText functions,
+     * This attribute controls the appearance of text strings and numerical
+     * labels drawn by the astGrid and (for the Plot class) astText functions,
      * by determining if any escape sequences contained within the strings
      * should be used to control the appearance of the text, or should
-     * be printed literally. 
+     * be printed literally. Note, the Plot3D class only interprets escape
+     * sequences within the 
+     * astGrid function.
      * <p>
      * If the Escape value of a Plot is one (the default), then any
      * escape sequences in text strings produce the effects described
@@ -1608,6 +1650,10 @@ public class Plot extends FrameSet {
      *             digits "..." give the new Style value.
      * <p>
      *   %t+     - Reset the Style attribute to its "normal" value.
+     * <p>
+     *   %h+     - Remember the current horizontal position (see "%g+")
+     * <p>
+     *   %g+     - Go to the horizontal position of the previous "%h+" (if any).
      * <p>
      *   %-      - Push the current graphics attribute values onto the top of 
      *             the stack (see "%+").
@@ -2371,8 +2417,13 @@ public class Plot extends FrameSet {
      * <p>
      * If the LabelUp value of a Plot axis is non-zero, it causes
      * numerical labels for that axis to be plotted upright (i.e. as
-     * normal, horizontal text), otherwise (the default) these labels
-     * rotate to follow the axis to which they apply.
+     * normal, horizontal text), otherwise labels are drawn parallel to 
+     * the axis to which they apply.
+     * <p>
+     * The default is to produce upright labels if the labels are placed
+     * around the edge of the plot, and to produce labels that follow the 
+     * axes if the labels are placed within the interior of the plot (see
+     * attribute Labelling).
      * <h4>Notes</h4>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn around the edges of the plotting area (see the Labelling
@@ -2414,8 +2465,13 @@ public class Plot extends FrameSet {
      * <p>
      * If the LabelUp value of a Plot axis is non-zero, it causes
      * numerical labels for that axis to be plotted upright (i.e. as
-     * normal, horizontal text), otherwise (the default) these labels
-     * rotate to follow the axis to which they apply.
+     * normal, horizontal text), otherwise labels are drawn parallel to 
+     * the axis to which they apply.
+     * <p>
+     * The default is to produce upright labels if the labels are placed
+     * around the edge of the plot, and to produce labels that follow the 
+     * axes if the labels are placed within the interior of the plot (see
+     * attribute Labelling).
      * <h4>Notes</h4>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn around the edges of the plotting area (see the Labelling
@@ -2458,8 +2514,13 @@ public class Plot extends FrameSet {
      * <p>
      * If the LabelUp value of a Plot axis is non-zero, it causes
      * numerical labels for that axis to be plotted upright (i.e. as
-     * normal, horizontal text), otherwise (the default) these labels
-     * rotate to follow the axis to which they apply.
+     * normal, horizontal text), otherwise labels are drawn parallel to 
+     * the axis to which they apply.
+     * <p>
+     * The default is to produce upright labels if the labels are placed
+     * around the edge of the plot, and to produce labels that follow the 
+     * axes if the labels are placed within the interior of the plot (see
+     * attribute Labelling).
      * <h4>Notes</h4>
      * <br> - In some circumstances, numerical labels and tick marks are
      * drawn around the edges of the plotting area (see the Labelling

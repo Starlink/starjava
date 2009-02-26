@@ -59,7 +59,24 @@ c     - astSpecAdd: Add a spectral coordinate conversion to an SpecMap
 f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -73,6 +90,13 @@ f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 *        - Improve FRTOAW accuracy by iterating.
 *        - Changed Refrac to use algorithm given in FITS-WCS paper 3
 *        version dated 21/9/03.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
+*     10-MAY-2006 (DSB):
+*        Override astEqual.
+*     15-NOV-2006 (DSB):
+*        Guard against division by zero when converting freq to wave in
+*        SystemChange.
 *class--
 */
 
@@ -145,7 +169,9 @@ f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
-#include "slalib.h"              /* SLALIB interface */
+#include "pal.h"              /* SLALIB interface */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -168,14 +194,42 @@ f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstSpecMapVtab class_vtab; /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
-static double (* parent_rate)( AstMapping *, double *, int, int );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static double (* parent_rate)( AstMapping *, double *, int, int, int * );
+
+
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(SpecMap)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(SpecMap,Class_Init)
+#define class_vtab astGLOBAL(SpecMap,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstSpecMapVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* Structure to hold parameters and intermediate values describing a
    reference frame */
@@ -202,31 +256,218 @@ AstSpecMap *astSpecMapId_( int, int, const char *, ... );
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static const char *CvtString( int, const char **, int *, int *, int *, int *, const char *[ MAX_ARGS ] );
-static double BaryVel( double, double, FrameDef * );
-static double GalVel( double, double, FrameDef * );
-static double GeoVel( double, double, FrameDef * );
-static double LgVel( double, double, FrameDef * );
-static double LsrdVel( double, double, FrameDef * );
-static double LsrkVel( double, double, FrameDef * );
-static double Rate( AstMapping *, double *, int, int );
-static double Refrac( double );
-static double TopoVel( double, double, FrameDef * );
-static double UserVel( double, double, FrameDef * );
-static int CvtCode( const char * );
-static int FrameChange( int, int, double *, double *, double *, double *, int );
-static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int ** );
-static int SystemChange( int, int, double *, double *, int );
-static void AddSpecCvt( AstSpecMap *, int, const double * );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
-static void SpecAdd( AstSpecMap *, const char *, const double[] );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static const char *CvtString( int, const char **, int *, int *, int *, int *, const char *[ MAX_ARGS ], int * );
+static double BaryVel( double, double, FrameDef *, int * );
+static double GalVel( double, double, FrameDef *, int * );
+static double GeoVel( double, double, FrameDef *, int * );
+static double LgVel( double, double, FrameDef *, int * );
+static double LsrdVel( double, double, FrameDef *, int * );
+static double LsrkVel( double, double, FrameDef *, int * );
+static double Rate( AstMapping *, double *, int, int, int * );
+static double Refrac( double, int * );
+static double TopoVel( double, double, FrameDef *, int * );
+static double UserVel( double, double, FrameDef *, int * );
+static int CvtCode( const char *, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static int FrameChange( int, int, double *, double *, double *, double *, int, int * );
+static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
+static int SystemChange( int, int, double *, double *, int, int * );
+static void AddSpecCvt( AstSpecMap *, int, const double *, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void SpecAdd( AstSpecMap *, const char *, const double[], int * );
 
+static int GetObjSize( AstObject *, int * );
 /* Member functions. */
 /* ================= */
-static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args ) {
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two SpecMaps are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "specmap.h"
+*     int Equal( AstObject *this, AstObject *that, int *status ) 
+
+*  Class Membership:
+*     SpecMap member function (over-rides the astEqual protected
+*     method inherited from the astMapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two SpecMaps are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Object (a SpecMap).
+*     that
+*        Pointer to the second Object.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     One if the SpecMaps are equivalent, zero otherwise.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstSpecMap *that;        
+   AstSpecMap *this;        
+   const char *argdesc[ MAX_ARGS ]; 
+   const char *comment;      
+   int argdec;             
+   int argra;              
+   int i, j;           
+   int nargs;              
+   int nin;
+   int nout;
+   int result;
+   int szargs;             
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain pointers to the two SpecMap structures. */
+   this = (AstSpecMap *) this_object;
+   that = (AstSpecMap *) that_object;
+
+/* Check the second object is a SpecMap. We know the first is a
+   SpecMap since we have arrived at this implementation of the virtual
+   function. */
+   if( astIsASpecMap( that ) ) {
+
+/* Get the number of inputs and outputs and check they are the same for both. */
+      nin = astGetNin( this );
+      nout = astGetNout( this );
+      if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
+
+/* If the Invert flags for the two SpecMaps differ, it may still be possible 
+   for them to be equivalent. First compare the SpecMaps if their Invert 
+   flags are the same. In this case all the attributes of the two SpecMaps 
+   must be identical. */
+         if( astGetInvert( this ) == astGetInvert( that ) ) {
+            if( this->ncvt == that->ncvt ) {
+               result = 1;
+               for( i = 0; i < this->ncvt && result; i++ ) {
+                  if( this->cvttype[ i ] != that->cvttype[ i ] ) {
+                     result = 0;
+                  } else {
+                     CvtString( this->cvttype[ i ], &comment, &argra, 
+                                &argdec, &nargs, &szargs, argdesc, status );
+                     for( j = 0; j < nargs; j++ ) {
+                        if( !astEQUAL( this->cvtargs[ i ][ j ],
+                                       that->cvtargs[ i ][ j ] ) ){
+                           result = 0;
+                           break;
+                        }
+                     }
+                  }
+               }
+            }
+
+/* If the Invert flags for the two SpecMaps differ, the attributes of the two 
+   SpecMaps must be inversely related to each other. */
+         } else {
+
+/* In the specific case of a SpecMap, Invert flags must be equal. */
+            result = 0;
+
+         }
+      }
+   }
+   
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "specmap.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     SpecMap member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied SpecMap,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the SpecMap.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstSpecMap *this;         /* Pointer to SpecMap structure */
+   int result;               /* Result value to return */
+   int cvt;                  /* Loop counter for coordinate conversions */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the SpecMap structure. */
+   this = (AstSpecMap *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+
+   for ( cvt = 0; cvt < this->ncvt; cvt++ ) {
+      result += astTSizeOf( this->cvtargs[ cvt ] );
+   }
+
+   result += astTSizeOf( this->cvtargs );
+   result += astTSizeOf( this->cvttype );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *status ) {
 /*
 *  Name:
 *     AddSpecCvt
@@ -406,14 +647,14 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args ) {
    to put the user-supplied arguments (the array meay leave room after
    the user-supplied arguments for various useful pre-calculated values). */
    cvt_string = CvtString( cvttype, &comment, &argra, &argdec, &nargs, 
-                           &szargs, argdesc );
+                           &szargs, argdesc, status );
 
 /* If the coordinate conversion type was not valid, then report an
    error. */
    if ( astOK && !cvt_string ) {
-      astError( AST__SPCIN,
-                "Invalid spectral coordinate conversion type (%d).",
-                astGetClass( this ), (int) cvttype );
+      astError( AST__SPCIN, "AddSpecCvt(%s): Invalid spectral coordinate "
+                "conversion type (%d).", status, astGetClass( this ),     
+                (int) cvttype );
    }
 
 /* Note the number of coordinate conversions already stored in the SpecMap. */
@@ -447,7 +688,7 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args ) {
    }
 }
 
-static double BaryVel( double ra, double dec, FrameDef *def ) {
+static double BaryVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     BaryVel
@@ -460,7 +701,7 @@ static double BaryVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double BaryVel( double ra, double dec, FrameDef *def ) 
+*     double BaryVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -478,6 +719,8 @@ static double BaryVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -497,13 +740,13 @@ static double BaryVel( double ra, double dec, FrameDef *def ) {
 
 /* Get the Cartesian vector towards the source, in the Cartesian FK5
    J2000 system. */
-   slaDcs2c( ra, dec, v );
+   palSlaDcs2c( ra, dec, v );
 
 /* If not already done so, get the Earth/Sun velocity and position vectors in 
    the same system. Speed is returned in units of AU/s. Store in the supplied 
    frame definition structure. */
    if( def->dvb[ 0 ] == AST__BAD ) {
-      slaEvp( def->epoch, 2000.0, def->dvb, dpb, dvh, dph );
+      palSlaEvp( def->epoch, 2000.0, def->dvb, dpb, dvh, dph );
   
 /* Change the barycentric velocity of the earth into the heliocentric 
    velocity of the barycentre. */
@@ -514,11 +757,11 @@ static double BaryVel( double ra, double dec, FrameDef *def ) {
 
 /* Return the component away from the source, of the velocity of the
    barycentre relative to the sun (in m/s). */
-   return -slaDvdv( v, def->dvb )*149.597870E9;
+   return -palSlaDvdv( v, def->dvb )*149.597870E9;
 
 }
 
-static int CvtCode( const char *cvt_string ) {
+static int CvtCode( const char *cvt_string, int *status ) {
 /*
 *  Name:
 *     CvtCode
@@ -531,7 +774,7 @@ static int CvtCode( const char *cvt_string ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     int CvtCode( const char *cvt_string )
+*     int CvtCode( const char *cvt_string, int *status )
 
 *  Class Membership:
 *     SpecMap member function.
@@ -546,6 +789,8 @@ static int CvtCode( const char *cvt_string ) {
 *        Pointer to a constant null-terminated string representing a
 *        spectral coordinate conversion. This is case sensitive and should
 *        contain no unnecessary white space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The equivalent conversion code. If the string was not
@@ -681,7 +926,7 @@ static int CvtCode( const char *cvt_string ) {
 
 static const char *CvtString( int cvt_code, const char **comment,
                               int *argra, int *argdec, int *nargs, int *szargs,
-                              const char *arg[ MAX_ARGS ] ) {
+                              const char *arg[ MAX_ARGS ], int *status ) {
 /*
 *  Name:
 *     CvtString
@@ -696,7 +941,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 *     #include "specmap.h"
 *     const char *CvtString( int cvt_code, const char **comment,
 *                            int *argra, int *argdec, int *nargs, 
-*                            int *szargs, const char *arg[ MAX_ARGS ] )
+*                            int *szargs, const char *arg[ MAX_ARGS ], int *status )
 
 *  Class Membership:
 *     SpecMap member function.
@@ -738,6 +983,8 @@ static const char *CvtString( int cvt_code, const char **comment,
 *        null-terminated string for each argument (above) containing a
 *        description of what each argument represents. This includes both
 *        user-supplied arguments and pre-calculated values.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string representation of
@@ -1106,7 +1353,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 }
 
 static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *freq,
-                        double *args, int forward ){ 
+                        double *args, int forward, int *status ){ 
 /*
 *  Name:
 *     FrameChange
@@ -1120,7 +1367,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 *  Synopsis:
 *     #include "specmap.h"
 *     int FrameChange( int cvt_code, int np, double *ra, double *dec, 
-*                      double *freq, double *args, int forward )
+*                      double *freq, double *args, int forward, int *status )
 
 *  Class Membership:
 *     SpecMap method.
@@ -1158,6 +1405,8 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 *     forward
 *        Should the conversion be applied in the forward or inverse
 *        direction? Non-zero for forward, zero for inverse.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the supplied conversion code corresponds to a change of
@@ -1176,7 +1425,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 
 /* Local Variables: */
    FrameDef def;      /* Structure holding frame parameters */
-   double (* cvtFunc)( double, double, FrameDef * ); /* Pointer to conversion function */
+   double (* cvtFunc)( double, double, FrameDef *, int * ); /* Pointer to conversion function */
    double *fcorr;     /* Pointer to frequency correction factor */   
    double *pdec;      /* Pointer to next Dec value */   
    double *pf;        /* Pointer to next frequency value */   
@@ -1375,7 +1624,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 
 /* Get the velocity correction. This is the component of the velocity of the 
    output system, away from the source, as measured in the input system. */
-            s = sign*cvtFunc( def.refra, def.refdec, &def );
+            s = sign*cvtFunc( def.refra, def.refdec, &def, status );
 
 /* Find the factor by which to correct supplied frequencies. If the
    velocity correction is positive, the output frequency wil be lower than
@@ -1420,7 +1669,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
             } else {
 
 /* Get the velocity correction. */
-               s = sign*cvtFunc( *pra, *pdec, &def );
+               s = sign*cvtFunc( *pra, *pdec, &def, status );
 
 /* Correct this frequency, if possible. Otherwise set bad. */
                if( s < AST__C && s > -AST__C ) {
@@ -1442,7 +1691,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
    return result;
 }
 
-static double GalVel( double ra, double dec, FrameDef *def ) {
+static double GalVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     GalVel
@@ -1455,7 +1704,7 @@ static double GalVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double GalVel( double ra, double dec, FrameDef *def ) 
+*     double GalVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -1473,6 +1722,8 @@ static double GalVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -1489,18 +1740,18 @@ static double GalVel( double ra, double dec, FrameDef *def ) {
 
 /* Get the component away from the source, of the velocity of the sun
    relative to the dynamic LSR (in km/s). */
-   s1 = (double) slaRvlsrd( (float) ra, (float) dec );
+   s1 = (double) palSlaRvlsrd( (float) ra, (float) dec );
 
 /* Get the component away from the source, of the velocity of the
    dynamic LSR relative to the galactic centre (in km/s). */
-   s2 = (double) slaRvgalc( (float) ra, (float) dec );
+   s2 = (double) palSlaRvgalc( (float) ra, (float) dec );
 
 /* Return the total velocity of the galactic centre away from the source,
    relative to the sun, in m/s. */
    return -1000.0*( s1 + s2 );
 }
 
-static double GeoVel( double ra, double dec, FrameDef *def ) {
+static double GeoVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     GeoVel
@@ -1513,7 +1764,7 @@ static double GeoVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double GeoVel( double ra, double dec, FrameDef *def ) 
+*     double GeoVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -1531,6 +1782,8 @@ static double GeoVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -1550,20 +1803,20 @@ static double GeoVel( double ra, double dec, FrameDef *def ) {
 
 /* Get the Cartesian vector towards the source, in the Cartesian FK5
    J2000 system. */
-   slaDcs2c( ra, dec, v );
+   palSlaDcs2c( ra, dec, v );
 
 /* If not already done so, get the Earth/Sun velocity and position vectors in 
    the same system. Speed is returned in units of AU/s. Store in the supplied 
    frame definition structure. */
-   if( def->dvh[ 0 ] == AST__BAD ) slaEvp( def->epoch, 2000.0, dvb, dpb,
+   if( def->dvh[ 0 ] == AST__BAD ) palSlaEvp( def->epoch, 2000.0, dvb, dpb,
                                            def->dvh, dph );
   
 /* Return the component away from the source, of the velocity of the earths
    centre relative to the sun (in m/s). */
-   return -slaDvdv( v, def->dvh )*149.597870E9;
+   return -palSlaDvdv( v, def->dvh )*149.597870E9;
 }
 
-void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name ) {
+void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -1600,10 +1853,15 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -1612,8 +1870,8 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsASpecMap) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -1623,7 +1881,10 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name ) {
 
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
+   object = (AstObjectVtab *) vtab;
    mapping = (AstMappingVtab *) vtab;
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
 
    parent_transform = mapping->Transform;
    mapping->Transform = Transform;
@@ -1633,6 +1894,7 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name ) {
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   object->Equal = Equal;
    mapping->MapMerge = MapMerge;
 
 /* Declare the copy constructor, destructor and class dump
@@ -1641,9 +1903,14 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name ) {
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "SpecMap",
                "Conversion between spectral coordinate systems" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
-static double LgVel( double ra, double dec, FrameDef *def ) {
+static double LgVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     LgVel
@@ -1656,7 +1923,7 @@ static double LgVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double LgVel( double ra, double dec, FrameDef *def ) 
+*     double LgVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -1673,6 +1940,8 @@ static double LgVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -1683,10 +1952,10 @@ static double LgVel( double ra, double dec, FrameDef *def ) {
 
 /* Return the component away from the source, of the velocity of the
    local group relative to the sun (in m/s). */
-   return -1000.0*slaRvlg( (float) ra, (float) dec );
+   return -1000.0*palSlaRvlg( (float) ra, (float) dec );
 }
 
-static double LsrdVel( double ra, double dec, FrameDef *def ) {
+static double LsrdVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     LsrdVel
@@ -1699,7 +1968,7 @@ static double LsrdVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double LsrdVel( double ra, double dec, FrameDef *def ) 
+*     double LsrdVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -1717,6 +1986,8 @@ static double LsrdVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -1731,10 +2002,10 @@ static double LsrdVel( double ra, double dec, FrameDef *def ) {
    relative to the dynamical LSR (in m/s). This can also be thought of as the 
    velocity of the LSR towards the source relative to the sun. Return the
    negated value (i.e. velocity of lsrd *away from* the source. */
-   return -1000.0*slaRvlsrd( (float) ra, (float) dec );
+   return -1000.0*palSlaRvlsrd( (float) ra, (float) dec );
 }
 
-static double LsrkVel( double ra, double dec, FrameDef *def ) {
+static double LsrkVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     LsrkVel
@@ -1747,7 +2018,7 @@ static double LsrkVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double LsrkVel( double ra, double dec, FrameDef *def ) 
+*     double LsrkVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -1765,6 +2036,8 @@ static double LsrkVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -1779,11 +2052,11 @@ static double LsrkVel( double ra, double dec, FrameDef *def ) {
    relative to the kinematic LSR (in m/s). This can also be thought of as the 
    velocity of the LSR towards the source relative to the sun. Return the
    negated value (i.e. velocity of lsrk *away from* the source. */
-   return -1000.0*slaRvlsrk( (float) ra, (float) dec );
+   return -1000.0*palSlaRvlsrk( (float) ra, (float) dec );
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
-                     AstMapping ***map_list, int **invert_list ) {
+                     AstMapping ***map_list, int **invert_list, int *status ) {
 /*
 *  Name:
 *     MapMerge
@@ -1797,7 +2070,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *  Synopsis:
 *     #include "mapping.h
 *     int MapMerge( AstMapping *this, int where, int series, int *nmap,
-*                   AstMapping ***map_list, int **invert_list )
+*                   AstMapping ***map_list, int **invert_list, int *status )
 
 *  Class Membership:
 *     SpecMap method (over-rides the protected astMapMerge method
@@ -1900,6 +2173,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *        length, the "*invert_list" array will be extended (and its
 *        pointer updated) if necessary to accommodate any new
 *        elements.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     If simplification was possible, the function returns the index
@@ -2019,7 +2294,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    the associated number of arguments. Then store these arguments. */
             cvttype[ nstep ] = specmap->cvttype[ icvt ];
             (void) CvtString( cvttype[ nstep ], &comment, &argra, &argdec, 
-                              &narg, szarg + nstep, argdesc );
+                              &narg, szarg + nstep, argdesc, status );
             if ( !astOK ) break;
             for ( iarg = 0; iarg < szarg[ nstep ]; iarg++ ) {
                cvtargs[ nstep ][ iarg ] = specmap->cvtargs[ icvt ][ iarg ];
@@ -2267,15 +2542,15 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* If the replacement Mapping is a UnitMap, then create it. */
             if ( unit ) {
                new = (AstMapping *)
-                        astUnitMap( astGetNin( ( *map_list )[ where ] ), "" );
+                        astUnitMap( astGetNin( ( *map_list )[ where ] ), "", status );
 
 /* Otherwise, create a replacement SpecMap and add each of the
    remaining transformation steps to it. */
             } else {
-               new = (AstMapping *) astSpecMap( nin, 0, "" );
+               new = (AstMapping *) astSpecMap( nin, 0, "", status );
                for ( istep = 0; istep < nstep; istep++ ) {
                   AddSpecCvt( (AstSpecMap *) new, cvttype[ istep ],
-                             cvtargs[ istep ] );
+                             cvtargs[ istep ], status );
                }
             }
 
@@ -2326,7 +2601,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    return result;
 }
 
-static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
+static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status ){
 /*
 *  Name:
 *     Rate
@@ -2339,7 +2614,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
 
 *  Synopsis:
 *     #include "specmap.h"
-*     result = Rate( AstMapping *this, double *at, int ax1, int ax2 )
+*     result = Rate( AstMapping *this, double *at, int ax1, int ax2, int *status )
 
 *  Class Membership:
 *     SpecMap member function (overrides the astRate method inherited
@@ -2365,6 +2640,8 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
 *        The index of the Mapping input which is to be varied in order to
 *        find the rate of change (input numbering starts at 0 for the first 
 *        input).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The rate of change of Mapping output "ax1" with respect to input 
@@ -2404,7 +2681,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
    astRate method inherited form the parent Mapping class. */
    if( astGetNin( map ) != 1 || map->ncvt != 1 || 
        ( cvt != AST__WVTOFR && cvt != AST__FRTOWV ) ) {
-      result = (*parent_rate)( this, at, ax1, ax2 );
+      result = (*parent_rate)( this, at, ax1, ax2, status );
 
 /* Otherwise, evaluate the known analytical expressions for the rate of
    change of frequency with respect to wavelength or wavelength with
@@ -2417,7 +2694,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2 ){
    return result;
 }
 
-static double Refrac( double wavelen ){
+static double Refrac( double wavelen, int *status ){
 /*
 *  Name:
 *     Refrac
@@ -2430,7 +2707,7 @@ static double Refrac( double wavelen ){
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double Refrac( double wavelen )
+*     double Refrac( double wavelen, int *status )
 
 *  Class Membership:
 *     SpecMap method.
@@ -2446,6 +2723,8 @@ static double Refrac( double wavelen ){
 *        The wavelength, in metres. This should be the air wavelength,
 *        but supplying the vacuum wavelength will make no significant
 *        difference.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The refractive index. A value of 1.0 is returned if an error
@@ -2467,7 +2746,7 @@ static double Refrac( double wavelen ){
    return 1.0 + 1.0E-6*( 287.6155 + 1.62887*w2 + 0.01360*w2*w2 );
 }
 
-static void SpecAdd( AstSpecMap *this, const char *cvt, const double args[] ) {
+static void SpecAdd( AstSpecMap *this, const char *cvt, const double args[], int *status ) {
 /*
 *++
 *  Name:
@@ -2660,21 +2939,21 @@ f     these arguments should be given, via the ARGS array, in the
 
 /* Validate the type string supplied and obtain the equivalent
    conversion type code. */
-   cvttype = CvtCode( cvt );
+   cvttype = CvtCode( cvt, status );
 
 /* If the string was not recognised, then report an error. */
    if ( astOK && ( cvttype == AST__SPEC_NULL ) ) {
       astError( AST__SPCIN,
                 "%s(%s): Invalid SpecMap spectral coordinate "
-                "conversion type \"%s\".", "astAddSpec", astGetClass( this ), cvt );
+                "conversion type \"%s\".", status, "astAddSpec", astGetClass( this ), cvt );
    }
 
 /* Add the new conversion to the SpecMap. */
-   AddSpecCvt( this, cvttype, args );
+   AddSpecCvt( this, cvttype, args, status );
 }
 
 static int SystemChange( int cvt_code, int np, double *values, double *args, 
-                         int forward ){ 
+                         int forward, int *status ){ 
 /*
 *  Name:
 *     SystemChange
@@ -2688,7 +2967,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 *  Synopsis:
 *     #include "specmap.h"
 *     int SystemChange( int cvt_code, int np, double *values, double *args, 
-*                       int forward )
+*                       int forward, int *status )
 
 *  Class Membership:
 *     SpecMap method.
@@ -2716,6 +2995,8 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 *     forward
 *        Should the conversion be applied in the forward or inverse
 *        direction? Non-zero for forward, zero for inverse.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Non-zero if the supplied conversion code corresponds to a change of
@@ -2767,7 +3048,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             for( i = 0; i < np; i++ ) *( pv++ ) = AST__BAD;
          }
       } else {
-         SystemChange( AST__VLTOFR, np, values, args, 1 );
+         SystemChange( AST__VLTOFR, np, values, args, 1, status );
       }
       break;
 
@@ -2799,7 +3080,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             for( i = 0; i < np; i++ ) *( pv++ ) = AST__BAD;
          }
       } else {
-         SystemChange( AST__FRTOVL, np, values, args, 1 );
+         SystemChange( AST__FRTOVL, np, values, args, 1, status );
       }
       break;
 
@@ -2814,7 +3095,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__FRTOEN, np, values, args, 1 );
+         SystemChange( AST__FRTOEN, np, values, args, 1, status );
       }
       break;
 
@@ -2829,7 +3110,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__ENTOFR, np, values, args, 1 );
+         SystemChange( AST__ENTOFR, np, values, args, 1, status );
       }
       break;
 
@@ -2844,7 +3125,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__FRTOWN, np, values, args, 1 );
+         SystemChange( AST__FRTOWN, np, values, args, 1, status );
       }
       break;
 
@@ -2859,7 +3140,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__WNTOFR, np, values, args, 1 );
+         SystemChange( AST__WNTOFR, np, values, args, 1, status );
       }
       break;
 
@@ -2877,7 +3158,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__FRTOWV, np, values, args, 1 );
+         SystemChange( AST__FRTOWV, np, values, args, 1, status );
       }
       break;
 
@@ -2887,7 +3168,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
          pv = values - 1;
          for( i = 0; i < np; i++ ) {
             pv++;
-            if( *pv != AST__BAD ) {
+            if( *pv != AST__BAD && *pv != 0.0 ) {
                *pv = AST__C/( *pv );
                if( astISNAN( *pv ) ) *pv = AST__BAD;
             } else {
@@ -2895,7 +3176,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__WVTOFR, np, values, args, 1 );
+         SystemChange( AST__WVTOFR, np, values, args, 1, status );
       }
       break;
 
@@ -2906,14 +3187,14 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
          for( i = 0; i < np; i++ ) {
             pv++;
             if( *pv != AST__BAD && *pv != 0.0 ) {
-               *pv = AST__C/( ( *pv )*Refrac( *pv ) );
+               *pv = AST__C/( ( *pv )*Refrac( *pv, status ) );
                if( astISNAN( *pv ) ) *pv = AST__BAD;
             } else {
                *pv = AST__BAD;
             }
          }
       } else {
-         SystemChange( AST__FRTOAW, np, values, args, 1 );
+         SystemChange( AST__FRTOAW, np, values, args, 1, status );
       }
       break;
 
@@ -2936,7 +3217,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
    few times. */
                *pv = temp;
                for( iter = 0; iter < 3; iter++ ) {
-                  *pv = temp/Refrac( *pv );
+                  *pv = temp/Refrac( *pv, status );
                   if( astISNAN( *pv ) ) {
                      *pv = AST__BAD;
                      break;
@@ -2948,7 +3229,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__AWTOFR, np, values, args, 1 );
+         SystemChange( AST__AWTOFR, np, values, args, 1, status );
       }
       break;
 
@@ -2966,7 +3247,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__VLTOVR, np, values, args, 1 );
+         SystemChange( AST__VLTOVR, np, values, args, 1, status );
       }
       break;
 
@@ -2992,7 +3273,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__VRTOVL, np, values, args, 1 );
+         SystemChange( AST__VRTOVL, np, values, args, 1, status );
       }
       break;
 
@@ -3010,7 +3291,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__VLTOVO, np, values, args, 1 );
+         SystemChange( AST__VLTOVO, np, values, args, 1, status );
       }
       break;
 
@@ -3036,7 +3317,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__VOTOVL, np, values, args, 1 );
+         SystemChange( AST__VOTOVL, np, values, args, 1, status );
       }
       break;
 
@@ -3054,7 +3335,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__VLTOZO, np, values, args, 1 );
+         SystemChange( AST__VLTOZO, np, values, args, 1, status );
       }
       break;
 
@@ -3080,7 +3361,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__ZOTOVL, np, values, args, 1 );
+         SystemChange( AST__ZOTOVL, np, values, args, 1, status );
       }
       break;
 
@@ -3095,7 +3376,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__VLTOBT, np, values, args, 1 );
+         SystemChange( AST__VLTOBT, np, values, args, 1, status );
       }
       break;
 
@@ -3110,7 +3391,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
             }
          }
       } else {
-         SystemChange( AST__BTTOVL, np, values, args, 1 );
+         SystemChange( AST__BTTOVL, np, values, args, 1, status );
       }
       break;
 
@@ -3124,7 +3405,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
    return result;
 }
 
-static double TopoVel( double ra, double dec, FrameDef *def ) {
+static double TopoVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     TopoVel
@@ -3137,7 +3418,7 @@ static double TopoVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double TopoVel( double ra, double dec, FrameDef *def ) 
+*     double TopoVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -3155,6 +3436,8 @@ static double TopoVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -3175,26 +3458,26 @@ static double TopoVel( double ra, double dec, FrameDef *def ) {
 /* If not already done so, get the parameters defining the transformation
    of mean ra and dec to apparent ra and dec, and store in the supplied frame 
    definition structure. */
-   if( def->amprms[ 0 ] == AST__BAD ) slaMappa( 2000.0, def->epoch, 
+   if( def->amprms[ 0 ] == AST__BAD ) palSlaMappa( 2000.0, def->epoch, 
                                                 def->amprms );
 
 /* Convert the source position from mean ra and dec to apparent ra and dec. */
-   slaMapqkz( ra, dec, def->amprms, &raa, &deca );
+   palSlaMapqkz( ra, dec, def->amprms, &raa, &deca );
 
 /* If not already done so, get the local apparent siderial time (in radians)
    and store in the supplied frame definition structure. */
-   if( def->last == AST__BAD ) def->last = slaGmst( def->epoch ) + 
-                                           slaEqeqx( def->epoch ) +
+   if( def->last == AST__BAD ) def->last = palSlaGmst( def->epoch ) + 
+                                           palSlaEqeqx( def->epoch ) +
                                            def->geolon;
 
 /* Get the component away from the source, of the velocity of the observer 
    relative to the centre of the earth (in m/s). */
-   vobs = 1000.0*slaRverot( (float) def->geolat, (float) raa, (float) deca, 
+   vobs = 1000.0*palSlaRverot( (float) def->geolat, (float) raa, (float) deca, 
                             (float) def->last );
 
 /* Get the component away from the source, of the velocity of the earth's 
    centre relative to the Sun, in m/s. */
-   vearth = GeoVel( ra, dec, def );
+   vearth = GeoVel( ra, dec, def, status );
 
 /* Return the total velocity of the observer away from the source in the
    frame of the sun. */
@@ -3202,7 +3485,7 @@ static double TopoVel( double ra, double dec, FrameDef *def ) {
 }
 
 static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -3216,7 +3499,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *  Synopsis:
 *     #include "specmap.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     SpecMap member function (over-rides the astTransform method inherited
@@ -3241,6 +3524,8 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -3281,7 +3566,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    function inherited from the parent Mapping class. This function validates
    all arguments and generates an output PointSet if necessary, but does not
    actually transform any coordinate values. */
-   result = (*parent_transform)( this, in, forward, out );
+   result = (*parent_transform)( this, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    coordinate conversions needed to generate the output coordinate values. */
@@ -3337,12 +3622,12 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 /* Process conversions which correspond to changes of reference frames. */
          if( !FrameChange( map->cvttype[ cvt ], npoint, alpha, beta, spec,
-                          map->cvtargs[ cvt ], forward ) ) {
+                          map->cvtargs[ cvt ], forward, status ) ) {
 
 /* If this conversion was not a change of reference frame, it must be a
    change of system. */
             SystemChange( map->cvttype[ cvt ], npoint, spec,
-                          map->cvtargs[ cvt ], forward );
+                          map->cvtargs[ cvt ], forward, status );
          }
       }
    }
@@ -3360,7 +3645,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 }
 
-static double UserVel( double ra, double dec, FrameDef *def ) {
+static double UserVel( double ra, double dec, FrameDef *def, int *status ) {
 /*
 *  Name:
 *     UserVel
@@ -3374,7 +3659,7 @@ static double UserVel( double ra, double dec, FrameDef *def ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double UserVel( double ra, double dec, FrameDef *def ) 
+*     double UserVel( double ra, double dec, FrameDef *def, int *status ) 
 
 *  Class Membership:
 *     SpecMap method.
@@ -3394,6 +3679,8 @@ static double UserVel( double ra, double dec, FrameDef *def ) {
 *     def
 *        Pointer to a FrameDef structure which holds the parameters which
 *        define the frame, together with cached intermediate results.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returns:
 *     The component of the frame's velocity away from the position given by
@@ -3424,17 +3711,17 @@ static double UserVel( double ra, double dec, FrameDef *def ) {
    }
 
 /* Convert given J2000 RA,Dec to x,y,z. */
-   slaDcs2c( ra, dec, vb );
+   palSlaDcs2c( ra, dec, vb );
 
 /* Return the dot product with the user velocity. Invert it to get the
    velocity towards the observer (the def->veluser value is supposed to be
    positive if the source is moving away from the observer). */
-   return -slaDvdv( def->vuser, vb );
+   return -palSlaDvdv( def->vuser, vb );
 }
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -3446,7 +3733,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for SpecMap objects.
@@ -3456,6 +3743,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3518,7 +3807,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -3530,7 +3819,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for SpecMap objects.
@@ -3538,6 +3827,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -3568,7 +3859,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -3581,7 +3872,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -3592,6 +3883,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the SpecMap whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Constants: */
@@ -3651,11 +3944,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
    was not recognised, report an error and give up. */
       if ( astOK ) {
          sval = CvtString( this->cvttype[ icvt ], &comment, &argra, &argdec, 
-                           &nargs, &szargs, argdesc );
+                           &nargs, &szargs, argdesc, status );
          if ( astOK && !sval ) {
             astError( AST__SPCIN,
                       "astWrite(%s): Corrupt %s contains invalid SpecMap "
-                      "spectral coordinate conversion code (%d).",
+                      "spectral coordinate conversion code (%d).", status,
                       astGetClass( channel ), astGetClass( this ),
                       (int) this->cvttype[ icvt ] );
             break;
@@ -3693,10 +3986,10 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsASpecMap and astCheckSpecMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(SpecMap,Mapping,check,&class_init)
+astMAKE_ISA(SpecMap,Mapping,check,&class_check)
 astMAKE_CHECK(SpecMap)
 
-AstSpecMap *astSpecMap_( int nin, int flags, const char *options, ... ) {
+AstSpecMap *astSpecMap_( int nin, int flags, const char *options, int *status, ...) {
 /*
 *++
 *  Name:
@@ -3823,8 +4116,12 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstSpecMap *new;              /* Pointer to the new SpecMap */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -3840,8 +4137,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new SpecMap's attributes. */
-      va_start( args, options );
-      astVSet( new, options, args );
+      va_start( args, status );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -3891,8 +4188,17 @@ AstSpecMap *astSpecMapId_( int nin, int flags, const char *options, ... ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstSpecMap *new;              /* Pointer to the new SpecMap */
    va_list args;                 /* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -3909,7 +4215,7 @@ AstSpecMap *astSpecMapId_( int nin, int flags, const char *options, ... ) {
 /* Obtain the variable argument list and pass it along with the options string
    to the astVSet method to initialise the new SpecMap's attributes. */
       va_start( args, options );
-      astVSet( new, options, args );
+      astVSet( new, options, NULL, args );
       va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -3922,7 +4228,7 @@ AstSpecMap *astSpecMapId_( int nin, int flags, const char *options, ... ) {
 
 AstSpecMap *astInitSpecMap_( void *mem, size_t size, int init,
                              AstSpecMapVtab *vtab, const char *name,
-                             int nin, int flags ) {
+                             int nin, int flags, int *status ) {
 /*
 *+
 *  Name:
@@ -4000,7 +4306,7 @@ AstSpecMap *astInitSpecMap_( void *mem, size_t size, int init,
 /* Check nin is OK (1 or 3). */
    if( nin != 1 && nin != 3 ) {
       astError( AST__BADNI, "astInitSpecMap(SpecMap): Supplied number of "
-                "SpecMap axes (%d) is illegal; it should be 1 or 2. ",
+                "SpecMap axes (%d) is illegal; it should be 1 or 2. ", status,
                 nin );
    }
 
@@ -4034,7 +4340,7 @@ AstSpecMap *astInitSpecMap_( void *mem, size_t size, int init,
 
 AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
                            AstSpecMapVtab *vtab, const char *name,
-                           AstChannel *channel ) {
+                           AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -4109,12 +4415,16 @@ AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
 */
 
 /* Local Constants: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstSpecMap *new;              /* Pointer to the new SpecMap */
    char *sval;                   /* Pointer to string value */
-   char key[ KEY_LEN + 1 ];      /* Buffer for keyword string */
+   char key[ KEY_LEN + 1 ];      /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Buffer for keyword string */
    const char *argdesc[ MAX_ARGS ]; /* Pointers to argument descriptions */
    const char *comment;          /* Pointer to comment string */
    int argdec;                   /* Index of DEC argument */
@@ -4203,19 +4513,19 @@ AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
                if ( !sval ) {
                   astError( AST__BADIN,
                             "astRead(%s): A spectral coordinate conversion "
-                            "type is missing from the input SpecMap data.",
+                            "type is missing from the input SpecMap data.", status,
                             astGetClass( channel ) );
 
 /* Otherwise, convert the string representation into the required
    conversion type code. */
                } else {
-                  new->cvttype[ icvt ] = CvtCode( sval );
+                  new->cvttype[ icvt ] = CvtCode( sval, status );
 
 /* If the string was not recognised, report an error. */
                   if ( new->cvttype[ icvt ] == AST__SPEC_NULL ) {
                      astError( AST__BADIN,
                               "astRead(%s): Invalid spectral conversion "
-                              "type \"%s\" in SpecMap data.",
+                              "type \"%s\" in SpecMap data.", status,
                               astGetClass( channel ), sval );
                   }
                }
@@ -4227,7 +4537,7 @@ AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
 /* Obtain the number of arguments associated with the conversion and
    allocate memory to hold them. */
             (void) CvtString( new->cvttype[ icvt ], &comment, &argra,
-                              &argdec, &nargs, &szargs, argdesc );
+                              &argdec, &nargs, &szargs, argdesc, status );
             new->cvtargs[ icvt ] = astMalloc( sizeof( double ) *
                                               (size_t) szargs );
 
@@ -4271,7 +4581,11 @@ AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
-void astSpecAdd_( AstSpecMap *this, const char *cvt, const double args[] ) {
+void astSpecAdd_( AstSpecMap *this, const char *cvt, const double args[], int *status ) {
    if ( !astOK ) return;
-   (**astMEMBER(this,SpecMap,SpecAdd))( this, cvt, args );
+   (**astMEMBER(this,SpecMap,SpecAdd))( this, cvt, args, status );
 }
+
+
+
+

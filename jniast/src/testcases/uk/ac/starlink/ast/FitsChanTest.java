@@ -16,9 +16,14 @@ public class FitsChanTest extends TestCase {
         fc.setFits( "FVAL", 0.25, "more commentary, but this time it's far "
                                 + "too long to fit into a FITS header card",
                     false );
+        assertTrue( ! fc.testFits( "LVAL" ) );
         fc.setFits( "LVAL", true, "Fishfinger", true );
+        assertTrue( fc.testFits( "LVAL" ) );
         fc.setFits( "SVAL", "Captain Starlink", "R.I.P.", false );
         fc.setFitsContinue( "CNVAL", "Muon", null, true );
+
+        fc.putFits( "XXXCARD = 'Xxx data'           / Xxx comment", true );
+        fc.retainFits();
 
         fc.setCard( 0 );
         assertContains( fc.findFits( "CFVAL", false ), "3.1415" );
@@ -30,6 +35,9 @@ public class FitsChanTest extends TestCase {
         assertContains( fc.findFits( "LVAL", false ), "Fishfinger" );
         assertContains( fc.findFits( "SVAL", false ), "Starlink" );
         assertContains( fc.findFits( "CNVAL", false ), "Muon" );
+        assertContains( fc.findFits( "XXXCARD", false ), "Xxx" );
+
+        fc.purgeWCS();
 
         try {
             fc.setFits( null, false, "dummy", true );

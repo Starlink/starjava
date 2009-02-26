@@ -52,7 +52,24 @@ f     The CmpFrame class does not define any new routines beyond those
 *     which are applicable to all Frames.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -119,6 +136,31 @@ f     The CmpFrame class does not define any new routines beyond those
 *        Correct error checking in Clear/Get/Set/TestAttrib.
 *     12-MAY-2005 (DSB):
 *        Override astNormBox method.
+*     12-AUG-2005 (DSB):
+*        Override astSetObsLat/Lon and astClearObslat/Lon by implementations 
+*        which propagate the changed value to the component Frames.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
+*     3-APR-2006 (DSB):
+*        Modify Match so that an attempt is made to align the target with
+*        each of the two component Frames if the target cannot be matched
+*        with the CmpFrame as a whole.
+*     3-MAY-2006 (DSB):
+*        Fix bug in Match that could cause segvio when matching a target
+*        against the second component of a CmpFrame.
+*     31-OCT-2006 (DSB):
+*        Over-ride the SetFrameFlags method.
+*     1-NOV-2005 (DSB):
+*        Override astSetDut1, astGetDut1 and astClearDut1.
+*     15-MAR-2007 (DSB):
+*        Override astClearAlignSystem by an implementation that clears 
+*        AlignSystem in the component Frames.
+*     7-FEB-2008 (DSB):
+*        Allow the MaxAxes and MinAxes attributes to be specified for a
+*        CmpFrame (rather than just being the sum of the attribute values
+*        in the component frames). This enables, for instance, a (detector 
+*        index,mjd) frame to match with a ((velocity,detector index),mjd) 
+*        frame.
 *class--
 */
 
@@ -132,10 +174,6 @@ f     The CmpFrame class does not define any new routines beyond those
 /* Define the first and last acceptable System values. */
 #define FIRST_SYSTEM AST__COMP
 #define LAST_SYSTEM AST__COMP
-
-/* Define numerical constants for use in this module. */
-#define LABEL_BUFF_LEN 100       /* Max length of default axis Label string */
-#define SYMBOL_BUFF_LEN 50       /* Max length of default axis Symbol string */
 
 /* Define macros to implement member functions for accessing axis
    attributes. */
@@ -181,7 +219,7 @@ f     The CmpFrame class does not define any new routines beyond those
 
 /* Define the macro. */
 #define MAKE_CLEAR(attribute) \
-static void Clear##attribute( AstFrame *this_frame, int axis ) { \
+static void Clear##attribute( AstFrame *this_frame, int axis, int *status ) { \
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */ \
    int naxes1;                   /* Number of axes in frame1 */ \
 \
@@ -191,7 +229,7 @@ static void Clear##attribute( AstFrame *this_frame, int axis ) { \
 /* Obtain a pointer to the CmpFrame structure. */ \
    this = (AstCmpFrame *) this_frame; \
 \
-/* Validate and permute the axis index supplied. */ \
+/* Validate and alidateAxispermute the axis index supplied. */ \
    axis = astValidateAxis( this, axis, "astSet" #attribute ); \
 \
 /* Determine the number of axes in the first component Frame. */ \
@@ -266,7 +304,8 @@ static void Clear##attribute( AstFrame *this_frame, int axis ) { \
 
 /* Define the macro. */
 #define MAKE_GET(attribute,type,bad_value,default,assign_default) \
-static type Get##attribute( AstFrame *this_frame, int axis ) { \
+static type Get##attribute( AstFrame *this_frame, int axis, int *status ) { \
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */ \
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */ \
    AstFrame *frame;              /* Pointer to Frame containing axis */\
    int axis_p;                   /* Permuted axis index */ \
@@ -279,6 +318,9 @@ static type Get##attribute( AstFrame *this_frame, int axis ) { \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return result; \
+\
+/* Get a pointer to the structure holding thread-specific global data. */ \
+   astGET_GLOBALS(this_frame); \
 \
 /* Obtain a pointer to the CmpFrame structure. */ \
    this = (AstCmpFrame *) this_frame; \
@@ -369,7 +411,7 @@ static type Get##attribute( AstFrame *this_frame, int axis ) { \
 
 /* Define the macro. */
 #define MAKE_SET(attribute,type) \
-static void Set##attribute( AstFrame *this_frame, int axis, type value ) { \
+static void Set##attribute( AstFrame *this_frame, int axis, type value, int *status ) { \
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */ \
    int naxes1;                   /* Number of axes in frame1 */ \
 \
@@ -439,7 +481,7 @@ static void Set##attribute( AstFrame *this_frame, int axis, type value ) { \
 
 /* Define the macro. */
 #define MAKE_TEST(attribute) \
-static int Test##attribute( AstFrame *this_frame, int axis ) { \
+static int Test##attribute( AstFrame *this_frame, int axis, int *status ) { \
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */ \
    int naxes1;                   /* Number of axes in frame1 */ \
    int result;                   /* Result value to return */ \
@@ -477,8 +519,11 @@ static int Test##attribute( AstFrame *this_frame, int axis ) { \
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
+#include "pointset.h"            /* Sets of points */
 #include "object.h"              /* Base Object class */
 #include "mapping.h"             /* Coordinate Mappings */
 #include "unitmap.h"             /* Unit Mappings */
@@ -487,6 +532,7 @@ static int Test##attribute( AstFrame *this_frame, int axis ) { \
 #include "axis.h"                /* Coordinate axes */
 #include "frame.h"               /* Parent Frame class */
 #include "cmpframe.h"            /* Interface definition for this class */
+#include "globals.h"             /* Thread-safe global data access */
 
 /* Error code definitions. */
 /* ----------------------- */
@@ -494,6 +540,7 @@ static int Test##attribute( AstFrame *this_frame, int axis ) { \
 
 /* C header files. */
 /* --------------- */
+#include <limits.h>
 #include <float.h>
 #include <math.h>
 #include <stdarg.h>
@@ -504,35 +551,100 @@ static int Test##attribute( AstFrame *this_frame, int axis ) { \
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   static variables. */
-static AstCmpFrameVtab class_vtab; /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstSystemType (* parent_getalignsystem)( AstFrame * );
-static AstSystemType (* parent_getsystem)( AstFrame * );
-static const char *(* parent_getattrib)( AstObject *, const char * );
-static const char *(* parent_getdomain)( AstFrame * );
-static const char *(* parent_gettitle)( AstFrame * );
-static double (* parent_angle)( AstFrame *, const double[], const double[], const double[] );
-static double (* parent_getepoch)( AstFrame * );
-static int (* parent_getactiveunit)( AstFrame * );
-static int (* parent_getusedefs)( AstObject * );
-static int (* parent_testattrib)( AstObject *, const char * );
-static void (* parent_clearattrib)( AstObject *, const char * );
-static void (* parent_clearepoch)( AstFrame * );
-static void (* parent_overlay)( AstFrame *, const int *, AstFrame * );
-static void (* parent_setactiveunit)( AstFrame *, int );
-static void (* parent_setattrib)( AstObject *, const char * );
-static void (* parent_setepoch)( AstFrame *, double );
+static int (* parent_getmaxaxes)( AstFrame *, int * );
+static int (* parent_getminaxes)( AstFrame *, int * );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstSystemType (* parent_getalignsystem)( AstFrame *, int * );
+static AstSystemType (* parent_getsystem)( AstFrame *, int * );
+static const char *(* parent_getattrib)( AstObject *, const char *, int * );
+static const char *(* parent_getdomain)( AstFrame *, int * );
+static const char *(* parent_gettitle)( AstFrame *, int * );
+static double (* parent_angle)( AstFrame *, const double[], const double[], const double[], int * );
+static double (* parent_getepoch)( AstFrame *, int * );
+static double (* parent_getobslat)( AstFrame *, int * );
+static double (* parent_getobslon)( AstFrame *, int * );
+static int (* parent_getactiveunit)( AstFrame *, int * );
+static int (* parent_getusedefs)( AstObject *, int * );
+static int (* parent_testattrib)( AstObject *, const char *, int * );
+static void (* parent_clearattrib)( AstObject *, const char *, int * );
+static void (* parent_clearepoch)( AstFrame *, int * );
+static void (* parent_clearobslat)( AstFrame *, int * );
+static void (* parent_clearobslon)( AstFrame *, int * );
+static void (* parent_overlay)( AstFrame *, const int *, AstFrame *, int * );
+static void (* parent_setactiveunit)( AstFrame *, int, int * );
+static void (* parent_setframeflags)( AstFrame *, int, int * );
+static void (* parent_setattrib)( AstObject *, const char *, int * );
+static void (* parent_setepoch)( AstFrame *, double, int * );
+static void (* parent_setobslat)( AstFrame *, double, int * );
+static void (* parent_setobslon)( AstFrame *, double, int * );
+static void (* parent_setdut1)( AstFrame *, double, int * );
+static void (* parent_cleardut1)( AstFrame *, int * );
+static double (* parent_getdut1)( AstFrame *, int * );
+static void (* parent_clearalignsystem)( AstFrame *, int * );
+
+#if defined(THREAD_SAFE)
+static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
+#endif
+
+
+/* Define macros for accessing each item of thread specific global data. */
+#ifdef THREAD_SAFE
+
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; \
+   globals->Label_Buff[ 0 ] = 0; \
+   globals->Symbol_Buff[ 0 ] = 0; \
+   globals->GetDomain_Buff[ 0 ] = 0; \
+   globals->GetTitle_Buff[ 0 ] = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(CmpFrame)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(CmpFrame,Class_Init)
+#define class_vtab astGLOBAL(CmpFrame,Class_Vtab)
+#define getdomain_buff astGLOBAL(CmpFrame,GetDomain_Buff)
+#define gettitle_buff astGLOBAL(CmpFrame,GetTitle_Buff)
+#define label_buff astGLOBAL(CmpFrame,Label_Buff)
+#define symbol_buff astGLOBAL(CmpFrame,Symbol_Buff)
+#define qsort_axes astGLOBAL(CmpFrame,qsort_axes)
+
+
+
+/* If thread safety is not needed, declare and initialise globals at static 
+   variables. */ 
+#else
 
 /* Pointer to axis index array accessed by "qsort". */
 static int *qsort_axes;
 
-/* Define other static variables. */
-static char label_buff[ LABEL_BUFF_LEN + 1 ]; /* Default Label string buffer */
-static char symbol_buff[ SYMBOL_BUFF_LEN + 1 ]; /* Default Symbol buffer */
+/* Default Label string buffer */
+static char label_buff[ 101 ];
+
+/* Default Symbol buffer */
+static char symbol_buff[ 51 ];
+
+/* Buffer for returned domain name in GetDomain */
+static char getdomain_buff[ 101 ];
+
+/* Buffer for returned title in GetTitle */
+static char gettitle_buff[ 101 ];
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstCmpFrameVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
+
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -543,92 +655,107 @@ AstCmpFrame *astCmpFrameId_( void *, void *, const char *, ... );
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstAxis *GetAxis( AstFrame *, int );
-static AstMapping *Simplify( AstMapping * );
-static AstPointSet *ResolvePoints( AstFrame *, const double [], const double [], AstPointSet *, AstPointSet * );
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static AstSystemType GetAlignSystem( AstFrame * );
-static AstSystemType GetSystem( AstFrame * );
-static AstSystemType SystemCode( AstFrame *, const char * );
-static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char * );
-static const char *Abbrev( AstFrame *, int, const char *, const char *, const char * );
-static const char *Format( AstFrame *, int, double );
-static const char *GetDomain( AstFrame * );
-static const char *GetFormat( AstFrame *, int );
-static const char *GetLabel( AstFrame *, int );
-static const char *GetSymbol( AstFrame *, int );
-static const char *GetTitle( AstFrame * );
-static const char *GetUnit( AstFrame *, int );
-static const char *SystemString( AstFrame *, AstSystemType );
-static const int *GetPerm( AstFrame * );
-static double Angle( AstFrame *, const double[], const double[], const double[] );
-static double Distance( AstFrame *, const double[], const double[] );
-static double Gap( AstFrame *, int, double, int * );
-static double GetEpoch( AstFrame * );
-static void ClearEpoch( AstFrame * );
-static void SetEpoch( AstFrame *, double );
-static int Fields( AstFrame *, int, const char *, const char *, int, char **, int *, double * );
-static int GenAxisSelection( int, int, int [] );
-static int GetDirection( AstFrame *, int );
-static int GetMaxAxes( AstFrame * );
-static int GetMinAxes( AstFrame * );
-static int GetNaxes( AstFrame * );
-static int GoodPerm( int, const int [], int, const int [] );
-static int IsUnitFrame( AstFrame * );
-static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame ** );
-static int PartMatch( AstCmpFrame *, AstFrame *, int, const int [], int, const int [], int **, int **, AstMapping **, AstFrame ** );
+static int GetObjSize( AstObject *, int * );
+static AstAxis *GetAxis( AstFrame *, int, int * );
+static AstMapping *Simplify( AstMapping *, int * );
+static AstPointSet *ResolvePoints( AstFrame *, const double [], const double [], AstPointSet *, AstPointSet *, int * );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static AstSystemType GetAlignSystem( AstFrame *, int * );
+static AstSystemType GetSystem( AstFrame *, int * );
+static AstSystemType SystemCode( AstFrame *, const char *, int * );
+static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char *, int * );
+static const char *Abbrev( AstFrame *, int, const char *, const char *, const char *, int * );
+static const char *Format( AstFrame *, int, double, int * );
+static const char *GetDomain( AstFrame *, int * );
+static const char *GetFormat( AstFrame *, int, int * );
+static const char *GetLabel( AstFrame *, int, int * );
+static const char *GetSymbol( AstFrame *, int, int * );
+static const char *GetTitle( AstFrame *, int * );
+static const char *GetUnit( AstFrame *, int, int * );
+static const char *SystemString( AstFrame *, AstSystemType, int * );
+static const int *GetPerm( AstFrame *, int * );
+static double Angle( AstFrame *, const double[], const double[], const double[], int * );
+static double Distance( AstFrame *, const double[], const double[], int * );
+static double Gap( AstFrame *, int, double, int *, int * );
+static int Fields( AstFrame *, int, const char *, const char *, int, char **, int *, double *, int * );
+static int GenAxisSelection( int, int, int [], int * );
+static int GetDirection( AstFrame *, int, int * );
+static int GetMaxAxes( AstFrame *, int * );
+static int GetMinAxes( AstFrame *, int * );
+static int GetNaxes( AstFrame *, int * );
+static int GoodPerm( int, const int [], int, const int [], int * );
+static int IsUnitFrame( AstFrame *, int * );
+static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int PartMatch( AstCmpFrame *, AstFrame *, int, const int [], int, const int [], int **, int **, AstMapping **, AstFrame **, int * );
 static int QsortCmpAxes( const void *, const void * );
-static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame ** );
-static int TestDirection( AstFrame *, int );
-static int TestFormat( AstFrame *, int );
-static int TestLabel( AstFrame *, int );
-static int TestMaxAxes( AstFrame * );
-static int TestMinAxes( AstFrame * );
-static int TestSymbol( AstFrame *, int );
-static int TestUnit( AstFrame *, int );
-static int Unformat( AstFrame *, int, const char *, double * );
-static void AddExtraAxes( int, int [], int, int, int );
-static void ClearDirection( AstFrame *, int );
-static void ClearFormat( AstFrame *, int );
-static void ClearLabel( AstFrame *, int );
-static void ClearMaxAxes( AstFrame * );
-static void ClearMinAxes( AstFrame * );
-static void ClearSymbol( AstFrame *, int );
-static void ClearUnit( AstFrame *, int );
-static void Copy( const AstObject *, AstObject * );
-static void Decompose( AstMapping *, AstMapping **, AstMapping **, int *, int *, int * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
-static void Norm( AstFrame *, double [] );
-static void NormBox( AstFrame *, double[], double[], AstMapping * );
-static void Offset( AstFrame *, const double [], const double [], double, double [] );
-static void PartitionSelection( int, const int [], const int [], int, int, int [], int );
-static void PermAxes( AstFrame *, const int[] );
-static void PrimaryFrame( AstFrame *, int, AstFrame **, int * );
-static void RenumberAxes( int, int [] );
-static void Resolve( AstFrame *, const double [], const double [], const double [], double [], double *, double * );
-static void SetAxis( AstFrame *, int, AstAxis * );
-static int GetActiveUnit( AstFrame * );
-static void SetActiveUnit( AstFrame *, int );
-static void SetDirection( AstFrame *, int, int );
-static void SetFormat( AstFrame *, int, const char * );
-static void SetLabel( AstFrame *, int, const char * );
-static void SetMaxAxes( AstFrame *, int );
-static void SetMinAxes( AstFrame *, int );
-static void SetSymbol( AstFrame *, int, const char * );
-static void SetUnit( AstFrame *, int, const char * );
-static void Overlay( AstFrame *, const int *, AstFrame * );
-static int GetUseDefs( AstObject * );
+static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
+static int TestDirection( AstFrame *, int, int * );
+static int TestFormat( AstFrame *, int, int * );
+static int TestLabel( AstFrame *, int, int * );
+static int TestSymbol( AstFrame *, int, int * );
+static int TestUnit( AstFrame *, int, int * );
+static int Unformat( AstFrame *, int, const char *, double *, int * );
+static void AddExtraAxes( int, int [], int, int, int, int * );
+static void ClearDirection( AstFrame *, int, int * );
+static void ClearFormat( AstFrame *, int, int * );
+static void ClearLabel( AstFrame *, int, int * );
+static void ClearSymbol( AstFrame *, int, int * );
+static void ClearUnit( AstFrame *, int, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Decompose( AstMapping *, AstMapping **, AstMapping **, int *, int *, int *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static void Norm( AstFrame *, double [], int * );
+static void NormBox( AstFrame *, double[], double[], AstMapping *, int * );
+static void Offset( AstFrame *, const double [], const double [], double, double [], int * );
+static void PartitionSelection( int, const int [], const int [], int, int, int [], int, int * );
+static void PermAxes( AstFrame *, const int[], int * );
+static void PrimaryFrame( AstFrame *, int, AstFrame **, int *, int * );
+static void RenumberAxes( int, int [], int * );
+static void Resolve( AstFrame *, const double [], const double [], const double [], double [], double *, double *, int * );
+static void SetAxis( AstFrame *, int, AstAxis *, int * );
+static int GetActiveUnit( AstFrame *, int * );
+static void SetActiveUnit( AstFrame *, int, int * );
+static void SetFrameFlags( AstFrame *, int, int * );
+static void SetDirection( AstFrame *, int, int, int * );
+static void SetFormat( AstFrame *, int, const char *, int * );
+static void SetLabel( AstFrame *, int, const char *, int * );
+static void SetSymbol( AstFrame *, int, const char *, int * );
+static void SetUnit( AstFrame *, int, const char *, int * );
+static void Overlay( AstFrame *, const int *, AstFrame *, int * );
+static int GetUseDefs( AstObject *, int * );
 
-static const char *GetAttrib( AstObject *, const char * );
-static int TestAttrib( AstObject *, const char * );
-static void ClearAttrib( AstObject *, const char * );
-static void SetAttrib( AstObject *, const char * );
+static const char *GetAttrib( AstObject *, const char *, int * );
+static int TestAttrib( AstObject *, const char *, int * );
+static void ClearAttrib( AstObject *, const char *, int * );
+static void SetAttrib( AstObject *, const char *, int * );
+
+static double GetEpoch( AstFrame *, int * );
+static void ClearEpoch( AstFrame *, int * );
+static void SetEpoch( AstFrame *, double, int * );
+
+static double GetDut1( AstFrame *, int * );
+static void ClearDut1( AstFrame *, int * );
+static void SetDut1( AstFrame *, double, int * );
+
+static double GetObsLon( AstFrame *, int * );
+static void ClearObsLon( AstFrame *, int * );
+static void SetObsLon( AstFrame *, double, int * );
+
+static double GetObsLat( AstFrame *, int * );
+static void ClearObsLat( AstFrame *, int * );
+static void SetObsLat( AstFrame *, double, int * );
+
+static void ClearAlignSystem( AstFrame *, int * );
+
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *, int, int, AstObject **, int * );
+#endif
 
 /* Member functions. */
 /* ================= */
 static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
-                           const char *str1, const char *str2 ) {
+                           const char *str1, const char *str2, int *status ) {
 /*
 *  Name:
 *     Abbrev
@@ -642,7 +769,7 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     const char *Abbrev( AstFrame *this, int axis,  const char *fmt,
-*                         const char *str1, const char *str2 )
+*                         const char *str1, const char *str2, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astAbbrev
@@ -667,10 +794,13 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
 *        format specification used to format the two values.
 *     str1
 *        Pointer to a constant null-terminated string containing the
-*        first formatted value.
-*     str1
+*        first formatted value. If this is null, the returned pointer
+*        points to the start of the final field in str2.
+*     str2
 *        Pointer to a constant null-terminated string containing the
 *        second formatted value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer into the "str2" string which locates the first
@@ -742,7 +872,7 @@ static const char *Abbrev( AstFrame *this_frame, int axis,  const char *fmt,
 }
 
 static void AddExtraAxes( int naxes, int axes[], int i1, int i2,
-                          int following ) {
+                          int following, int *status ) {
 /*
 *  Name:
 *     AddExtraAxes
@@ -756,7 +886,7 @@ static void AddExtraAxes( int naxes, int axes[], int i1, int i2,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     void AddExtraAxes( int naxes, int axes[], int i1, int i2,
-*                        int following )
+*                        int following, int *status )
 
 *  Class Membership:
 *     CmpFrame member function.
@@ -795,6 +925,8 @@ static void AddExtraAxes( int naxes, int axes[], int i1, int i2,
 *        Boolean flag to determine if new indices are associated with
 *        the preceding index (if zero) or the following index (if
 *        non-zero).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - The values of "i1" and "i2" dictate the range of array
@@ -916,7 +1048,7 @@ static void AddExtraAxes( int naxes, int axes[], int i1, int i2,
 }
 
 static double Angle( AstFrame *this_frame, const double a[], 
-                     const double b[], const double c[] ) {
+                     const double b[], const double c[], int *status ) {
 /*
 *  Name:
 *     Angle
@@ -930,7 +1062,7 @@ static double Angle( AstFrame *this_frame, const double a[],
 *  Synopsis:
 *     #include "cmpframe.h"
 *     double Angle( AstFrame *this_frame, const double a[], 
-*                   const double b[], const double c[] )
+*                   const double b[], const double c[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astAngle method
@@ -953,6 +1085,8 @@ static double Angle( AstFrame *this_frame, const double a[],
 *     c 
 *        An array of double, with one element for each CmpFrame axis,
 *        containing the coordinates of the third point.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The required angle, or AST__BAD if the angle is undefined.
@@ -991,7 +1125,7 @@ static double Angle( AstFrame *this_frame, const double a[],
    case we assume that the CmpFrame describes a Cartesian coordinate system. */
    iscart = 1;
    for( axis = 0; axis < naxes; axis++ ){
-      PrimaryFrame( this_frame, axis, &pframe, &paxis );
+      PrimaryFrame( this_frame, axis, &pframe, &paxis, status );
       if( strcmp( astGetClass( pframe ), "Frame" ) ) {
          iscart = 0;
          pframe = astAnnul( pframe );
@@ -1003,7 +1137,7 @@ static double Angle( AstFrame *this_frame, const double a[],
 /* If the CmpFrame describes a Cartesian coordinate system, we can use the 
    Angle method from the parent Frame class. */
    if( iscart ) {
-      result = (*parent_angle)( this_frame, a, b, c ); 
+      result = (*parent_angle)( this_frame, a, b, c, status ); 
 
 /* If the CmpFrame is not Cartesian... */
    } else {
@@ -1053,7 +1187,55 @@ static double Angle( AstFrame *this_frame, const double a[],
    return result;
 }
 
-static void ClearAttrib( AstObject *this_object, const char *attrib ) {
+static void ClearAlignSystem( AstFrame *this_frame, int *status ) {
+/*
+*  Name:
+*     ClearAlignSystem
+
+*  Purpose:
+*     Clear the value of the AlignSystem attribute for a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void ClearAlignSystem( AstFrame *this, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astClearAlignSystem method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function clears the AlignSystem value in the component Frames as
+*     well as this CmpFrame.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to clear the CmpFrame AlignSystem value. */
+   (*parent_clearalignsystem)( this_frame, status );
+
+/* Now clear the AlignSystem attribute in the two component Frames. */
+   astClearAlignSystem( this->frame1 );
+   astClearAlignSystem( this->frame2 );
+}
+
+static void ClearAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     ClearAttrib
@@ -1066,7 +1248,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void ClearAttrib( AstObject *this, const char *attrib )
+*     void ClearAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astClearAttrib protected
@@ -1083,6 +1265,8 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - This function uses one-based axis numbering so that it is
@@ -1134,7 +1318,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
       
 /* Our first attempt is to see if the attribute is recognised by the parent
    class (Frame). */
-      (*parent_clearattrib)( this_object, attrib );
+      (*parent_clearattrib)( this_object, attrib, status );
 
 /* Indicate success. */
       if( astOK ) {
@@ -1217,12 +1401,60 @@ static void ClearAttrib( AstObject *this_object, const char *attrib ) {
 /* Report an error if the attribute could not be accessed. */
    if( !ok && astOK ) {
       astError( AST__BADAT, "astClear: The %s given does not have an attribute "
-                "called \"%s\".", astGetClass( this ), attrib );
+                "called \"%s\".", status, astGetClass( this ), attrib );
    }
 
 }
 
-static void ClearEpoch( AstFrame *this_frame ) {
+static void ClearDut1( AstFrame *this_frame, int *status ) {
+/*
+*  Name:
+*     ClearDut1
+
+*  Purpose:
+*     Clear the value of the Dut1 attribute for a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void ClearDut1( AstFrame *this, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astClearDut1 method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function clears the Dut1 value in the component Frames as
+*     well as this CmpFrame.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to clear the CmpFrame Dut1 value. */
+   (*parent_cleardut1)( this_frame, status );
+
+/* Now clear the Dut1 attribute in the two component Frames. */
+   astClearDut1( this->frame1 );
+   astClearDut1( this->frame2 );
+}
+
+static void ClearEpoch( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     ClearEpoch
@@ -1235,7 +1467,7 @@ static void ClearEpoch( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void ClearEpoch( AstFrame *this )
+*     void ClearEpoch( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astClearEpoch method
@@ -1248,6 +1480,8 @@ static void ClearEpoch( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -1261,86 +1495,112 @@ static void ClearEpoch( AstFrame *this_frame ) {
    this = (AstCmpFrame *) this_frame;
 
 /* Invoke the parent method to clear the CmpFrame epoch. */
-   (*parent_clearepoch)( this_frame );
+   (*parent_clearepoch)( this_frame, status );
 
 /* Now clear the Epoch attribute in the two component Frames. */
    astClearEpoch( this->frame1 );
    astClearEpoch( this->frame2 );
 }
 
-static void ClearMaxAxes( AstFrame *this_frame ) {
+static void ClearObsLat( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
-*     ClearMaxAxes
+*     ClearObsLat
 
 *  Purpose:
-*     Clear the value of the MaxAxes attribute for a CmpFrame.
+*     Clear the value of the ObsLat attribute for a CmpFrame.
 
 *  Type:
 *     Private function.
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void ClearMaxAxes( AstFrame *this )
+*     void ClearObsLat( AstFrame *this, int *status )
 
 *  Class Membership:
-*     CmpFrame member function (over-rides the astClearMaxAxes method
+*     CmpFrame member function (over-rides the astClearObsLat method
 *     inherited from the Frame class).
 
 *  Description:
-*     This function does nothing because the MaxAxes attribute for a
-*     CmpFrame is determined by the Frames it contains and cannot be
-*     altered independently.
+*     This function clears the ObsLat value in the component Frames as
+*     well as this CmpFrame.
 
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
-*  Returned Value:
-*     void.
 */
 
-/* Do nothing. */
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to clear the CmpFrame ObsLat. */
+   (*parent_clearobslat)( this_frame, status );
+
+/* Now clear the ObsLat attribute in the two component Frames. */
+   astClearObsLat( this->frame1 );
+   astClearObsLat( this->frame2 );
 }
 
-static void ClearMinAxes( AstFrame *this_frame ) {
+static void ClearObsLon( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
-*     ClearMinAxes
+*     ClearObsLon
 
 *  Purpose:
-*     Clear the value of the MinAxes attribute for a CmpFrame.
+*     Clear the value of the ObsLon attribute for a CmpFrame.
 
 *  Type:
 *     Private function.
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void ClearMinAxes( AstFrame *this )
+*     void ClearObsLon( AstFrame *this, int *status )
 
 *  Class Membership:
-*     CmpFrame member function (over-rides the astClearMinAxes method
+*     CmpFrame member function (over-rides the astClearObsLon method
 *     inherited from the Frame class).
 
 *  Description:
-*     This function does nothing because the MinAxes attribute for a
-*     CmpFrame is determined by the Frames it contains and cannot be
-*     altered independently.
+*     This function clears the ObsLon value in the component Frames as
+*     well as this CmpFrame.
 
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
-*  Returned Value:
-*     void.
 */
 
-/* Do nothing. */
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to clear the CmpFrame ObsLon. */
+   (*parent_clearobslon)( this_frame, status );
+
+/* Now clear the ObsLon attribute in the two component Frames. */
+   astClearObsLon( this->frame1 );
+   astClearObsLon( this->frame2 );
 }
 
 static void Decompose( AstMapping *this_cmpframe, AstMapping **map1, 
                        AstMapping **map2, int *series, int *invert1, 
-                       int *invert2 ) {
+                       int *invert2, int *status ) {
 /*
 *
 *  Name:
@@ -1356,7 +1616,7 @@ static void Decompose( AstMapping *this_cmpframe, AstMapping **map1,
 *     #include "mapping.h"
 *     void Decompose( AstMapping *this, AstMapping **map1, 
 *                     AstMapping **map2, int *series,
-*                     int *invert1, int *invert2 )
+*                     int *invert1, int *invert2, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astDecompose
@@ -1390,6 +1650,8 @@ static void Decompose( AstMapping *this_cmpframe, AstMapping **map1,
 *        The value of the Invert attribute to be used with map1. 
 *     invert2
 *        The value of the Invert attribute to be used with map2. 
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - Any changes made to the component rames using the returned
@@ -1430,7 +1692,7 @@ static void Decompose( AstMapping *this_cmpframe, AstMapping **map1,
 }
 
 static double Distance( AstFrame *this_frame,
-                        const double point1[], const double point2[] ) {
+                        const double point1[], const double point2[], int *status ) {
 /*
 *  Name:
 *     Distance
@@ -1444,7 +1706,7 @@ static double Distance( AstFrame *this_frame,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     double Distance( AstFrame *this,
-*                      const double point1[], const double point2[] )
+*                      const double point1[], const double point2[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astDistance method
@@ -1467,6 +1729,8 @@ static double Distance( AstFrame *this_frame,
 *     point2
 *        An array of double, with one element for each CmpFrame axis,
 *        containing the coordinates of the second point.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The distance between the two points.
@@ -1560,7 +1824,7 @@ static double Distance( AstFrame *this_frame,
 
 static int Fields( AstFrame *this_frame, int axis, const char *fmt, 
                    const char *str, int maxfld, char **fields, 
-                   int *nc, double *val ) {
+                   int *nc, double *val, int *status ) {
 /*
 *+
 *  Name:
@@ -1675,7 +1939,7 @@ static int Fields( AstFrame *this_frame, int axis, const char *fmt,
    return result;
 }
 
-static const char *Format( AstFrame *this_frame, int axis, double value ) {
+static const char *Format( AstFrame *this_frame, int axis, double value, int *status ) {
 /*
 *  Name:
 *     Format
@@ -1688,7 +1952,7 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     const char *Format( AstFrame *this, int axis, double value )
+*     const char *Format( AstFrame *this, int axis, double value, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astFormat method
@@ -1709,6 +1973,8 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
 *        to be performed.
 *     value
 *        The coordinate value to be formatted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a null-terminated string containing the formatted
@@ -1770,7 +2036,7 @@ static const char *Format( AstFrame *this_frame, int axis, double value ) {
    return result;
 }
 
-static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
+static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick, int *status ) {
 /*
 *  Name:
 *     Gap
@@ -1783,7 +2049,7 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     double Gap( AstFrame *this, int axis, double gap, int *ntick )
+*     double Gap( AstFrame *this, int axis, double gap, int *ntick, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astGap method
@@ -1806,6 +2072,8 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
 *     ntick
 *        Address of an int in which to return a convenient number of
 *        divisions into which the gap can be divided.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The nice gap size.
@@ -1868,7 +2136,73 @@ static double Gap( AstFrame *this_frame, int axis, double gap, int *ntick ) {
    return result;
 }
 
-static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied CmpFrame,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;         /* Pointer to CmpFrame structure */
+   int result;                /* Result value to return */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+
+   result += astGetObjSize( this->frame1 );
+   result += astGetObjSize( this->frame2 );
+   result += astTSizeOf( this->perm );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static AstSystemType GetAlignSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetAlignSystem
@@ -1881,7 +2215,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     AstSystemType GetAlignSystem( AstFrame *this_frame )
+*     AstSystemType GetAlignSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetAlignSystem protected
@@ -1893,6 +2227,8 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The AlignSystem value.
@@ -1915,7 +2251,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
 /* If a AlignSystem attribute has been set, invoke the parent method to obtain 
    it. */
    if ( astTestAlignSystem( this ) ) {
-      result = (*parent_getalignsystem)( this_frame );
+      result = (*parent_getalignsystem)( this_frame, status );
 
 /* Otherwise, provide a suitable default. */
    } else {
@@ -1926,7 +2262,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame ) {
    return result;
 }
 
-static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
+static const char *GetAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     GetAttrib
@@ -1939,7 +2275,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "CmpFrame.h"
-*     const char *GetAttrib( AstObject *this, const char *attrib )
+*     const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astGetAttrib
@@ -1956,6 +2292,8 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null-terminated string containing the name of
 *        the attribute whose value is required. This name should be in
 *        lower case, with all white space removed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     - Pointer to a null-terminated string containing the attribute
@@ -2021,7 +2359,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
       
 /* Our first attempt is to see if the attribute is recognised by the parent
    class (Frame). */
-      result = (*parent_getattrib)( this_object, attrib );
+      result = (*parent_getattrib)( this_object, attrib, status );
 
 /* Indicate success. */
       if( astOK ) {
@@ -2106,7 +2444,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 /* Report an error if the attribute could not be accessed. */
    if( !ok && astOK ) {
       astError( AST__BADAT, "astGet: The %s given does not have an attribute "
-                "called \"%s\".", astGetClass( this ), attrib );
+                "called \"%s\".", status, astGetClass( this ), attrib );
    }
 
 /* Return the result. */
@@ -2114,7 +2452,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib ) {
 
 }
 
-static int GenAxisSelection( int naxes, int nselect, int axes[] ) {
+static int GenAxisSelection( int naxes, int nselect, int axes[], int *status ) {
 /*
 *  Name:
 *     GenAxisSelection
@@ -2127,7 +2465,7 @@ static int GenAxisSelection( int naxes, int nselect, int axes[] ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int GenAxisSelection( int naxes, int nselect, int axes[] )
+*     int GenAxisSelection( int naxes, int nselect, int axes[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function.
@@ -2152,6 +2490,8 @@ static int GenAxisSelection( int naxes, int nselect, int axes[] ) {
 *
 *        By invoking the function repeatedly, and passing this array
 *        each time, all possible selections will be covered.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if a new axis selection has been returned. Zero if all
@@ -2201,7 +2541,7 @@ static int GenAxisSelection( int naxes, int nselect, int axes[] ) {
    return ( nselect > 0 ) && ( axes[ nselect - 1 ] < naxes );
 }
 
-static AstAxis *GetAxis( AstFrame *this_frame, int axis ) {
+static AstAxis *GetAxis( AstFrame *this_frame, int axis, int *status ) {
 /*
 *  Name:
 *     GetAxis
@@ -2214,7 +2554,7 @@ static AstAxis *GetAxis( AstFrame *this_frame, int axis ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     AstAxis *GetAxis( AstFrame *this, int axis )
+*     AstAxis *GetAxis( AstFrame *this, int axis, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetAxis method
@@ -2230,6 +2570,8 @@ static AstAxis *GetAxis( AstFrame *this_frame, int axis ) {
 *     axis
 *        The number of the axis (zero-based) for which an Axis pointer
 *        is required.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the requested Axis object.
@@ -2275,7 +2617,7 @@ static AstAxis *GetAxis( AstFrame *this_frame, int axis ) {
    return result;
 }
 
-static const char *GetDomain( AstFrame *this_frame ) {
+static const char *GetDomain( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetDomain
@@ -2288,7 +2630,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     const char *GetDomain( AstFrame *this )
+*     const char *GetDomain( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetDomain protected
@@ -2301,6 +2643,8 @@ static const char *GetDomain( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a constant null-terminated string containing the
@@ -2315,12 +2659,12 @@ static const char *GetDomain( AstFrame *this_frame ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */
    char *dom1;                   /* Pointer to first sub domain */
    char *dom2;                   /* Pointer to second sub domain */
    const char *result;           /* Pointer value to return */
    const char *t;                /* Temporary pointer */
-   static char buff[ 100 ];      /* Buffer for returned domain name */
 
 /* Initialise. */
    result = NULL;
@@ -2328,13 +2672,16 @@ static const char *GetDomain( AstFrame *this_frame ) {
 /* Check the global error status. */
    if ( !astOK ) return result;
 
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_frame);
+
 /* Obtain a pointer to the CmpFrame structure. */
    this = (AstCmpFrame *) this_frame;
 
 /* If a Domain attribute string has been set, invoke the parent method
    to obtain a pointer to it. */
    if ( astTestDomain( this ) ) {
-      result = (*parent_getdomain)( this_frame );
+      result = (*parent_getdomain)( this_frame, status );
 
 /* Otherwise, provide a pointer to a suitable default string. */
    } else {
@@ -2342,7 +2689,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
 /* Get the Domain value for the two component Frames and store new
    copies of them. This is necessary because the component Frames may
    themselves be CmpFrames, resulting in this function being called
-   recursively and so causing the static "buff" array to be used in
+   recursively and so causing the static "getdomain_buff" array to be used in
    multiple contexts. */
       t = astGetDomain( this->frame1 );
       dom1 = t ? astStore( NULL, t, strlen(t) + 1 ) : NULL;
@@ -2351,8 +2698,8 @@ static const char *GetDomain( AstFrame *this_frame ) {
 
       if( dom2 ) {
          if( strlen( dom1 ) > 0 || strlen( dom2 ) > 0 ) {
-            sprintf( (char *) buff, "%s-%s", dom1, dom2 );
-            result = buff;         
+            sprintf( (char *) getdomain_buff, "%s-%s", dom1, dom2 );
+            result = getdomain_buff;         
          } else {
             result = "CMP";
          }
@@ -2366,7 +2713,7 @@ static const char *GetDomain( AstFrame *this_frame ) {
    return result;
 }
 
-static int GetMaxAxes( AstFrame *this_frame ) {
+static int GetMaxAxes( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetMaxAxes
@@ -2379,7 +2726,7 @@ static int GetMaxAxes( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int GetMaxAxes( AstFrame *this )
+*     int GetMaxAxes( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetMaxAxes method
@@ -2387,12 +2734,14 @@ static int GetMaxAxes( AstFrame *this_frame ) {
 
 *  Description:
 *     This function returns a value for the MaxAxes attribute of a
-*     CmpFrame.  This will be the sum of the MaxAxes attributes for
-*     each of its component Frames.
+*     CmpFrame.  A large default value is supplied that is much larger 
+*     than the maximum likely number of axes in a Frame.
 
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The MaxAxes attribute value.
@@ -2405,8 +2754,6 @@ static int GetMaxAxes( AstFrame *this_frame ) {
 
 /* Local Variables: */
    AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
-   int max_axes1;                /* MaxAxes attribute for frame1 */
-   int max_axes2;                /* MaxAxes attribute for frame2 */
    int result;                   /* Result value to return */
 
 /* Initialise. */
@@ -2418,18 +2765,19 @@ static int GetMaxAxes( AstFrame *this_frame ) {
 /* Obtain a pointer to the CmpFrame structure. */
    this = (AstCmpFrame *) this_frame;
 
-/* Obtain the MaxAxes attribute value for each component Frame. */
-   max_axes1 = astGetMaxAxes( this->frame1 );
-   max_axes2 = astGetMaxAxes( this->frame2 );
-
-/* If OK, sum these values. */
-   if ( astOK ) result = max_axes1 + max_axes2;
+/* If a value has been set explicitly for the CmpFrame, return it.
+   Otherwise returned a large default value. */
+   if( astTestMaxAxes( this ) ) {
+      result = (*parent_getmaxaxes)( this_frame, status );
+   } else {
+      result = 1000000;
+   }
 
 /* Return the result. */
    return result;
 }
 
-static int GetMinAxes( AstFrame *this_frame ) {
+static int GetMinAxes( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetMinAxes
@@ -2442,7 +2790,7 @@ static int GetMinAxes( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int GetMinAxes( AstFrame *this )
+*     int GetMinAxes( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetMinAxes method
@@ -2450,12 +2798,13 @@ static int GetMinAxes( AstFrame *this_frame ) {
 
 *  Description:
 *     This function returns a value for the MinAxes attribute of a
-*     CmpFrame.  This will be the sum of the MinAxes attributes for
-*     each of its component Frames.
+*     CmpFrame.  A default value of zero is used.
 
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The MinAxes attribute value.
@@ -2468,8 +2817,6 @@ static int GetMinAxes( AstFrame *this_frame ) {
 
 /* Local Variables: */
    AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
-   int min_axes1;                /* MinAxes attribute for frame1 */
-   int min_axes2;                /* MinAxes attribute for frame2 */
    int result;                   /* Result value to return */
 
 /* Initialise. */
@@ -2481,18 +2828,95 @@ static int GetMinAxes( AstFrame *this_frame ) {
 /* Obtain a pointer to the CmpFrame structure. */
    this = (AstCmpFrame *) this_frame;
 
-/* Obtain the MinAxes attribute value for each component Frame. */
-   min_axes1 = astGetMinAxes( this->frame1 );
-   min_axes2 = astGetMinAxes( this->frame2 );
-
-/* If OK, sum these values. */
-   if ( astOK ) result = min_axes1 + min_axes2;
+/* If a value has been set explicitly for the CmpFrame, return it.
+   Otherwise returned a default value of zero. */
+   if( astTestMinAxes( this ) ) {
+      result = (*parent_getminaxes)( this_frame, status );
+   } else {
+      result = 0;
+   }
 
 /* Return the result. */
    return result;
 }
 
-static double GetEpoch( AstFrame *this_frame ) {
+static double GetDut1( AstFrame *this_frame, int *status ) {
+/*
+*  Name:
+*     GetDut1
+
+*  Purpose:
+*     Get a value for the Dut1 attribute of a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     double GetDut1( AstFrame *this, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astGetDut1 method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function returns a value for the Dut1 attribute of a
+*     CmpFrame.  
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Dut1 attribute value.
+
+*  Notes:
+*     - A value of AST__BAD will be returned if this function is invoked
+*     with the global error status set or if it should fail for any
+*     reason.
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+   double result;                /* Result value to return */
+
+/* Initialise. */
+   result = AST__BAD;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* If an Dut1 attribute value has been set, invoke the parent method
+   to obtain it. */
+   if ( astTestDut1( this ) ) {
+      result = (*parent_getdut1)( this_frame, status );
+
+/* Otherwise, if the Dut1 value is set in the first component Frame,
+   return it. */
+   } else if( astTestDut1( this->frame1 ) ){
+      result = astGetDut1( this->frame1 );
+
+/* Otherwise, if the Dut1 value is set in the second component Frame,
+   return it. */
+   } else if( astTestDut1( this->frame2 ) ){
+      result = astGetDut1( this->frame2 );
+
+/* Otherwise, return the default Dut1 value from the first component
+   Frame. */
+   } else {
+      result = astGetDut1( this->frame1 );
+   }
+
+/* Return the result. */
+   return result;
+}
+
+static double GetEpoch( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetEpoch
@@ -2505,7 +2929,7 @@ static double GetEpoch( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     double GetEpoch( AstFrame *this )
+*     double GetEpoch( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetEpoch method
@@ -2518,6 +2942,8 @@ static double GetEpoch( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The Epoch attribute value.
@@ -2544,7 +2970,7 @@ static double GetEpoch( AstFrame *this_frame ) {
 /* If an Epoch attribute value has been set, invoke the parent method
    to obtain it. */
    if ( astTestEpoch( this ) ) {
-      result = (*parent_getepoch)( this_frame );
+      result = (*parent_getepoch)( this_frame, status );
 
 /* Otherwise, if the Epoch value is set in the first component Frame,
    return it. */
@@ -2566,7 +2992,159 @@ static double GetEpoch( AstFrame *this_frame ) {
    return result;
 }
 
-static int GetNaxes( AstFrame *this_frame ) {
+static double GetObsLat( AstFrame *this_frame, int *status ) {
+/*
+*  Name:
+*     GetObsLat
+
+*  Purpose:
+*     Get a value for the ObsLat attribute of a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     double GetObsLat( AstFrame *this, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astGetObsLat method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function returns a value for the ObsLat attribute of a
+*     CmpFrame.  
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The ObsLat attribute value.
+
+*  Notes:
+*     - A value of AST__BAD will be returned if this function is invoked
+*     with the global error status set or if it should fail for any
+*     reason.
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+   double result;                /* Result value to return */
+
+/* Initialise. */
+   result = AST__BAD;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* If an ObsLat attribute value has been set, invoke the parent method
+   to obtain it. */
+   if ( astTestObsLat( this ) ) {
+      result = (*parent_getobslat)( this_frame, status );
+
+/* Otherwise, if the ObsLat value is set in the first component Frame,
+   return it. */
+   } else if( astTestObsLat( this->frame1 ) ){
+      result = astGetObsLat( this->frame1 );
+
+/* Otherwise, if the ObsLat value is set in the second component Frame,
+   return it. */
+   } else if( astTestObsLat( this->frame2 ) ){
+      result = astGetObsLat( this->frame2 );
+
+/* Otherwise, return the default ObsLat value from the first component
+   Frame. */
+   } else {
+      result = astGetObsLat( this->frame1 );
+   }
+
+/* Return the result. */
+   return result;
+}
+
+static double GetObsLon( AstFrame *this_frame, int *status ) {
+/*
+*  Name:
+*     GetObsLon
+
+*  Purpose:
+*     Get a value for the ObsLon attribute of a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     double GetObsLon( AstFrame *this, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astGetObsLon method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function returns a value for the ObsLon attribute of a
+*     CmpFrame.  
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The ObsLon attribute value.
+
+*  Notes:
+*     - A value of AST__BAD will be returned if this function is invoked
+*     with the global error status set or if it should fail for any
+*     reason.
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+   double result;                /* Result value to return */
+
+/* Initialise. */
+   result = AST__BAD;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* If an ObsLon attribute value has been set, invoke the parent method
+   to obtain it. */
+   if ( astTestObsLon( this ) ) {
+      result = (*parent_getobslon)( this_frame, status );
+
+/* Otherwise, if the ObsLon value is set in the first component Frame,
+   return it. */
+   } else if( astTestObsLon( this->frame1 ) ){
+      result = astGetObsLon( this->frame1 );
+
+/* Otherwise, if the ObsLon value is set in the second component Frame,
+   return it. */
+   } else if( astTestObsLon( this->frame2 ) ){
+      result = astGetObsLon( this->frame2 );
+
+/* Otherwise, return the default ObsLon value from the first component
+   Frame. */
+   } else {
+      result = astGetObsLon( this->frame1 );
+   }
+
+/* Return the result. */
+   return result;
+}
+
+static int GetNaxes( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetNaxes
@@ -2579,7 +3157,7 @@ static int GetNaxes( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int GetNaxes( AstFrame *this )
+*     int GetNaxes( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetNaxes method
@@ -2591,6 +3169,8 @@ static int GetNaxes( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The number of CmpFrame axes.
@@ -2627,7 +3207,7 @@ static int GetNaxes( AstFrame *this_frame ) {
    return result;
 }
 
-static const int *GetPerm( AstFrame *this_frame ) {
+static const int *GetPerm( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetPerm
@@ -2640,7 +3220,7 @@ static const int *GetPerm( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     const int *astGetPerm( AstFrame *this )
+*     const int *astGetPerm( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astGetPerm
@@ -2655,6 +3235,8 @@ static const int *GetPerm( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the CmpFrame's axis permutation array (a constant
@@ -2702,7 +3284,7 @@ static const int *GetPerm( AstFrame *this_frame ) {
    return this->perm;
 }
 
-static AstSystemType GetSystem( AstFrame *this_frame ) {
+static AstSystemType GetSystem( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetSystem
@@ -2715,7 +3297,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     AstSystemType GetSystem( AstFrame *this_frame )
+*     AstSystemType GetSystem( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetSystem protected
@@ -2727,6 +3309,8 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The System value.
@@ -2752,7 +3336,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
 /* If a System attribute has been set, invoke the parent method to obtain 
    it. */
    if ( astTestSystem( this ) ) {
-      result = (*parent_getsystem)( this_frame );
+      result = (*parent_getsystem)( this_frame, status );
 
 /* Otherwise, provide a suitable default. */
    } else {
@@ -2763,7 +3347,7 @@ static AstSystemType GetSystem( AstFrame *this_frame ) {
    return result;
 }
 
-static const char *GetTitle( AstFrame *this_frame ) {
+static const char *GetTitle( AstFrame *this_frame, int *status ) {
 /*
 *  Name:
 *     GetTitle
@@ -2776,7 +3360,7 @@ static const char *GetTitle( AstFrame *this_frame ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     const char *GetTitle( AstFrame *this )
+*     const char *GetTitle( AstFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetTitle protected
@@ -2789,6 +3373,8 @@ static const char *GetTitle( AstFrame *this_frame ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a constant null-terminated string containing the
@@ -2802,13 +3388,10 @@ static const char *GetTitle( AstFrame *this_frame ) {
 *     the global error status set or if it should fail for any reason.
 */
 
-/* Local Constants: */
-#define BUFF_LEN 100             /* Length of formatting buffer */
-
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    AstCmpFrame *this;            /* Pointer to CmpFrame structure */
    const char *result;           /* Pointer value to return */
-   static char buff[ BUFF_LEN + 1 ]; /* Formatting buffer */
 
 /* Initialise. */
    result = NULL;
@@ -2816,30 +3399,31 @@ static const char *GetTitle( AstFrame *this_frame ) {
 /* Check the global error status. */
    if ( !astOK ) return result;
 
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(this_frame);
+
 /* Obtain a pointer to the CmpFrame structure. */
    this = (AstCmpFrame *) this_frame;
 
 /* If a Title attribute string has been set, invoke the parent method
    to obtain a pointer to it. */
    if ( astTestTitle( this ) ) {
-      result = (*parent_gettitle)( this_frame );
+      result = (*parent_gettitle)( this_frame, status );
 
 /* Otherwise, create a suitable default string and return a pointer to
    this. */
    } else {
-      (void) sprintf( buff, "%d-d compound coordinate system",
+      (void) sprintf( gettitle_buff, "%d-d compound coordinate system",
                       astGetNaxes( this ) );
-      if ( astOK ) result = buff;
+      if ( astOK ) result = gettitle_buff;
    }
 
 /* Return the result. */
    return result;
 
-/* Undefine macros local to this function. */
-#undef BUFF_LEN
 }
 
-static int GetUseDefs( AstObject *this_object ) {
+static int GetUseDefs( AstObject *this_object, int *status ) {
 /*
 *  Name:
 *     GetUseDefs
@@ -2852,7 +3436,7 @@ static int GetUseDefs( AstObject *this_object ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int GetUseDefs( AstCmpFrame *this )
+*     int GetUseDefs( AstCmpFrame *this, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetUseDefs method
@@ -2865,6 +3449,8 @@ static int GetUseDefs( AstObject *this_object ) {
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The UseDefs attribute value.
@@ -2887,12 +3473,12 @@ static int GetUseDefs( AstObject *this_object ) {
 /* If an UseDefs attribute value has been set, invoke the parent method
    to obtain it. */
    if ( astTestUseDefs( this ) ) {
-      result = (*parent_getusedefs)( this_object );
+      result = (*parent_getusedefs)( this_object, status );
 
 /* Otherwise, use the UseDefs value in the first component Frame as the
    default. */
    } else {
-      result = (*parent_getusedefs)( (AstObject *) this->frame1 );
+      result = (*parent_getusedefs)( (AstObject *) this->frame1, status );
    }
 
 /* Return the result. */
@@ -2900,7 +3486,7 @@ static int GetUseDefs( AstObject *this_object ) {
 }
 
 static int GoodPerm( int ncoord_in, const int inperm[],
-                     int ncoord_out, const int outperm[] ) {
+                     int ncoord_out, const int outperm[], int *status ) {
 /*
 *  Name:
 *     GoodPerm
@@ -2914,7 +3500,7 @@ static int GoodPerm( int ncoord_in, const int inperm[],
 *  Synopsis:
 *     #include "cmpframe.h"
 *     int GoodPerm( int ncoord_in, const int inperm[],
-*                   int ncoord_out, const int outperm[] )
+*                   int ncoord_out, const int outperm[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function.
@@ -2936,6 +3522,8 @@ static int GoodPerm( int ncoord_in, const int inperm[],
 *     outperm
 *        The output permutation array for the PermMap (with
 *        "ncoord_out" elements).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Zero if the PermMap would be equivalent to a unit Mapping,
@@ -2990,7 +3578,7 @@ static int GoodPerm( int ncoord_in, const int inperm[],
    return result;
 }
 
-void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
+void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -3027,12 +3615,16 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstFrameVtab *frame;          /* Pointer to Frame component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -3041,8 +3633,8 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsACmpFrame) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -3053,6 +3645,8 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    replace them with pointers to the new member functions. */
    object = (AstObjectVtab *) vtab;
    frame = (AstFrameVtab *) vtab;
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
    mapping = (AstMappingVtab *) vtab;
 
    parent_clearattrib = object->ClearAttrib;
@@ -3066,6 +3660,11 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
 
    parent_getusedefs = object->GetUseDefs;
    object->GetUseDefs = GetUseDefs;
+
+#if defined(THREAD_SAFE)
+   parent_managelock = object->ManageLock;
+   object->ManageLock = ManageLock;
+#endif
 
    mapping->Simplify = Simplify;
    mapping->Transform = Transform;
@@ -3085,6 +3684,33 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    parent_clearepoch = frame->ClearEpoch;
    frame->ClearEpoch = ClearEpoch;
 
+   parent_getdut1 = frame->GetDut1;
+   frame->GetDut1 = GetDut1;
+
+   parent_setdut1 = frame->SetDut1;
+   frame->SetDut1 = SetDut1;
+
+   parent_cleardut1 = frame->ClearDut1;
+   frame->ClearDut1 = ClearDut1;
+
+   parent_getobslon = frame->GetObsLon;
+   frame->GetObsLon = GetObsLon;
+
+   parent_setobslon = frame->SetObsLon;
+   frame->SetObsLon = SetObsLon;
+
+   parent_clearobslon = frame->ClearObsLon;
+   frame->ClearObsLon = ClearObsLon;
+
+   parent_getobslat = frame->GetObsLat;
+   frame->GetObsLat = GetObsLat;
+
+   parent_setobslat = frame->SetObsLat;
+   frame->SetObsLat = SetObsLat;
+
+   parent_clearobslat = frame->ClearObsLat;
+   frame->ClearObsLat = ClearObsLat;
+
    parent_angle = frame->Angle;
    frame->Angle = Angle;
 
@@ -3093,6 +3719,9 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
 
    parent_getalignsystem = frame->GetAlignSystem;
    frame->GetAlignSystem = GetAlignSystem;
+
+   parent_clearalignsystem = frame->ClearAlignSystem;
+   frame->ClearAlignSystem = ClearAlignSystem;
 
    parent_overlay = frame->Overlay;
    frame->Overlay = Overlay;
@@ -3103,14 +3732,21 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    parent_getactiveunit = frame->GetActiveUnit;
    frame->GetActiveUnit = GetActiveUnit;
 
+   parent_setframeflags = frame->SetFrameFlags;
+   frame->SetFrameFlags = SetFrameFlags;
+
+   parent_getmaxaxes = frame->GetMaxAxes;
+   frame->GetMaxAxes = GetMaxAxes;
+
+   parent_getminaxes = frame->GetMinAxes;
+   frame->GetMinAxes = GetMinAxes;
+
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
    frame->Abbrev = Abbrev;
    frame->ClearDirection = ClearDirection;
    frame->ClearFormat = ClearFormat;
    frame->ClearLabel = ClearLabel;
-   frame->ClearMaxAxes = ClearMaxAxes;
-   frame->ClearMinAxes = ClearMinAxes;
    frame->ClearSymbol = ClearSymbol;
    frame->ClearUnit = ClearUnit;
    mapping->Decompose = Decompose;
@@ -3122,8 +3758,6 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    frame->GetDirection = GetDirection;
    frame->GetFormat = GetFormat;
    frame->GetLabel = GetLabel;
-   frame->GetMaxAxes = GetMaxAxes;
-   frame->GetMinAxes = GetMinAxes;
    frame->GetNaxes = GetNaxes;
    frame->GetPerm = GetPerm;
    frame->GetSymbol = GetSymbol;
@@ -3141,16 +3775,12 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    frame->SetDirection = SetDirection;
    frame->SetFormat = SetFormat;
    frame->SetLabel = SetLabel;
-   frame->SetMaxAxes = SetMaxAxes;
-   frame->SetMinAxes = SetMinAxes;
    frame->SetSymbol = SetSymbol;
    frame->SetUnit = SetUnit;
    frame->SubFrame = SubFrame;
    frame->TestDirection = TestDirection;
    frame->TestFormat = TestFormat;
    frame->TestLabel = TestLabel;
-   frame->TestMaxAxes = TestMaxAxes;
-   frame->TestMinAxes = TestMinAxes;
    frame->TestSymbol = TestSymbol;
    frame->TestUnit = TestUnit;
    frame->Unformat = Unformat;
@@ -3164,9 +3794,14 @@ void astInitCmpFrameVtab_(  AstCmpFrameVtab *vtab, const char *name ) {
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "CmpFrame",
                "Compound coordinate system description" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
-static int IsUnitFrame( AstFrame *this_frame ){
+static int IsUnitFrame( AstFrame *this_frame, int *status ){
 /*
 *  Name:
 *     IsUnitFrame
@@ -3179,7 +3814,7 @@ static int IsUnitFrame( AstFrame *this_frame ){
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int IsUnitFrame( AstFrame *this )
+*     int IsUnitFrame( AstFrame *this, int *status )
 
 *  Class Membership:
 *     Region member function (over-rides the protected astIsUnitFrame
@@ -3193,6 +3828,8 @@ static int IsUnitFrame( AstFrame *this_frame ){
 *  Parameters:
 *     this 
 *        Pointer to the Frame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if the supplied Frame is equivalent to
@@ -3214,9 +3851,104 @@ static int IsUnitFrame( AstFrame *this_frame ){
    return astIsUnitFrame( this->frame1 ) && astIsUnitFrame( this->frame2 );
 }
 
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *this_object, int mode, int extra, 
+                       AstObject **fail, int *status ) {
+/*
+*  Name:
+*     ManageLock
+
+*  Purpose:
+*     Manage the thread lock on an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "object.h"
+*     AstObject *ManageLock( AstObject *this, int mode, int extra, 
+*                            AstObject **fail, int *status ) 
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astManageLock protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function manages the thread lock on the supplied Object. The
+*     lock can be locked, unlocked or checked by this function as 
+*     deteremined by parameter "mode". See astLock for details of the way
+*     these locks are used.
+
+*  Parameters:
+*     this
+*        Pointer to the Object.
+*     mode
+*        An integer flag indicating what the function should do:
+*
+*        AST__LOCK: Lock the Object for exclusive use by the calling
+*        thread. The "extra" value indicates what should be done if the
+*        Object is already locked (wait or report an error - see astLock).
+*
+*        AST__UNLOCK: Unlock the Object for use by other threads.
+*
+*        AST__CHECKLOCK: Check that the object is locked for use by the
+*        calling thread (report an error if not).
+*     extra
+*        Extra mode-specific information. 
+*     fail
+*        If a non-zero function value is returned, a pointer to the
+*        Object that caused the failure is returned at "*fail". This may
+*        be "this" or it may be an Object contained within "this". Note,
+*        the Object's reference count is not incremented, and so the
+*        returned pointer should not be annulled. A NULL pointer is 
+*        returned if this function returns a value of zero.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*    A local status value: 
+*        0 - Success
+*        1 - Could not lock or unlock the object because it was already 
+*            locked by another thread.
+*        2 - Failed to lock a POSIX mutex
+*        3 - Failed to unlock a POSIX mutex
+*        4 - Bad "mode" value supplied.
+
+*  Notes:
+*     - This function attempts to execute even if an error has already
+*     occurred.
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;       /* Pointer to CmpFrame structure */
+   int result;              /* Returned status value */
+
+/* Initialise */
+   result = 0;
+
+/* Check the supplied pointer is not NULL. */
+   if( !this_object ) return result;
+
+/* Obtain a pointers to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_object;
+
+/* Invoke the ManageLock method inherited from the parent class. */
+   if( !result ) result = (*parent_managelock)( this_object, mode, extra,
+                                                fail, status );
+
+/* Invoke the astManageLock method on any Objects contained within
+   the supplied Object. */
+   if( !result ) result = astManageLock( this->frame1, mode, extra, fail );
+   if( !result ) result = astManageLock( this->frame2, mode, extra, fail );
+
+   return result;
+
+}
+#endif
+
 static int Match( AstFrame *template_frame, AstFrame *target,
                   int **template_axes, int **target_axes,
-                  AstMapping **map, AstFrame **result ) {
+                  AstMapping **map, AstFrame **result, int *status ) {
 /*
 *  Name:
 *     Match
@@ -3231,7 +3963,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *     #include "cmpframe.h"
 *     int Match( AstFrame *template, AstFrame *target,
 *                int **template_axes, int **target_axes,
-*                AstMapping **map, AstFrame **result )
+*                AstMapping **map, AstFrame **result, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astMatch
@@ -3302,6 +4034,8 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *        possibility of transformaing to any one of a set of
 *        alternative coordinate systems, the "result" Frame will
 *        indicate which of the alternatives was used.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if the requested coordinate
@@ -3347,6 +4081,20 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    int naxes_min;                /* Min number of axes to match component 1 */
    int permute;                  /* Permute attribute for template */
    int result_naxes;             /* Number of result Frame axes */
+   const int *perm;
+   int *operm;
+   int template_naxes;
+   int *ftemplate_axes;
+   int *ftarget_axes;
+   AstMapping *fmap;
+   AstFrame *fother;
+   AstFrame *fresult;
+   int naxr;
+   int nax1;
+   int nax2;
+   int *inperm;
+   int *outperm;
+   AstPermMap *pm;
 
 /* Initialise the returned values. */
    *template_axes = NULL;
@@ -3354,6 +4102,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    *map = NULL;
    *result = NULL;
    match = 0;
+   pm = NULL;
 
 /* Check the global error status. */
    if ( !astOK ) return match;
@@ -3364,8 +4113,8 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 /* Obtain the minimum and maximum number of axes that each component
    Frame of the template CmpFrame can match. */
    minax1 = astGetMinAxes( template->frame1 );
-   minax2 = astGetMinAxes( template->frame2 );
    maxax1 = astGetMaxAxes( template->frame1 );
+   minax2 = astGetMinAxes( template->frame2 );
    maxax2 = astGetMaxAxes( template->frame2 );
 
 /* Obtain the number of axes in the target Frame and test to see if it
@@ -3460,7 +4209,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    template components. */
                match = PartMatch( template, target,
                                   naxes1, axes1, naxes2, axes2,
-                                  template_axes, target_axes, map, result );
+                                  template_axes, target_axes, map, result, status );
 
 /* If a match was obtained but the template's Permute attribute is zero,
    then we must check to see if the match involves permuting the target
@@ -3517,7 +4266,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    otherwise generate the next axis selection and try that
    instead. Quit if there are no more selections to try. */
                if ( !astOK || match || 
-                    !GenAxisSelection( naxes, naxes1, axes1 ) ) break;
+                    !GenAxisSelection( naxes, naxes1, axes1, status ) ) break;
             }
 
 /* Quit the outer loop if an error occurs or a match is found. */
@@ -3529,6 +4278,175 @@ static int Match( AstFrame *template_frame, AstFrame *target,
       axes1 = astFree( axes1 );
       axes2 = astFree( axes2 );
       used = astFree( used );
+   }
+
+/* If the target did not match the supplied template CmpFrame, see if it
+   will match either of the component Frames. */
+   if( astOK && !match ) {
+
+/* First try matching it against the first component Frame. */
+      match = astMatch( template->frame1, target, &ftemplate_axes, &ftarget_axes,
+                        &fmap, &fresult );
+
+/* If a match was found, we need to adjust the values returned by the
+   above call to astMatch so that they refer to the supplied template
+   CmpFrame rather than to the first component Frame. */
+      if( match ) {
+         naxr = astGetNaxes( fresult );
+         nax1 = astGetNaxes( template->frame1 );
+         nax2 = astGetNaxes( template->frame2 );
+         result_naxes = naxr + nax2;
+         template_naxes = nax1 + nax2;
+
+/* Create the full result Frame by combining the partial result Frame 
+   returned by astMatch above with the other component Frame from the 
+   template. */
+         fother = astCopy( template->frame2 );
+         *result = (AstFrame *) astCmpFrame( fresult, fother, "", status );
+
+/* Modify the Mapping returned by the above call to astMatch so that it
+   produces positions within the full result Frame created above. */
+         pm = astPermMap( naxr, NULL, result_naxes, NULL, NULL, "", status );
+         *map = (AstMapping *) astCmpMap( fmap, pm, 1, "", status );
+
+/* Allocate memory for the returned list of axes. */
+         *template_axes = astMalloc( sizeof( int )*(size_t)result_naxes );
+         *target_axes = astMalloc( sizeof( int )*(size_t)result_naxes );
+
+/* The axis indices returned by astMatch above will refer to the first
+   component Frame rather than the permuted axis indices for the template
+   Frame. So we will need the CmpFrame axis permutation array. Also
+   allocate memory for the inverse of the axis permutation array. */
+         perm = astGetPerm( template );
+         operm = astMalloc( sizeof( int )*(size_t)template_naxes );
+         if( astOK ) {
+
+/* Create the inverse of the axis permutation array. */
+            for( axis = 0; axis < template_naxes; axis++ ) {
+               operm[ perm[ axis ] ] = axis;
+            }
+
+/* Change the template axes list so that they describe the axes in the
+   full result Frame in terms of the external template axis numbering. */
+            for( axis = 0; axis < naxr; axis++ ) {
+               (*template_axes)[ axis ] = operm[ ftemplate_axes[ axis ] ];
+            }
+
+            for( ; axis < result_naxes; axis++ ) {
+               (*template_axes)[ axis ] = operm[ nax1 + axis - naxr ];
+            }
+
+/* Change the target axes list so that they describe the axes in the
+   full result Frame (this just means padding with -1 to indicate that 
+   the extra axes do not correspond to any axis in the target). */
+            for( axis = 0; axis < naxr; axis++ ) {
+               (*target_axes)[ axis ] = ftarget_axes[ axis ];
+            }
+
+            for( ; axis < result_naxes; axis++ ) {
+               (*target_axes)[ axis ] = -1;
+            }
+
+         }
+
+/* Free resources */
+         ftemplate_axes = astFree( ftemplate_axes );
+         ftarget_axes = astFree( ftarget_axes );
+         fmap = astAnnul( fmap );
+         fresult = astAnnul( fresult );
+         fother = astAnnul( fother );
+         pm = astAnnul( pm );
+         operm = astFree( operm );
+
+/* If the target did not match the first component in the template
+   CmpFrame, try matching it against the second component. */
+      } else {
+         match = astMatch( template->frame2, target, &ftemplate_axes, &ftarget_axes,
+                           &fmap, &fresult );
+
+/* If a match was found, we need to adjust the values returned by the
+   above call to astMatch so that they refer to the supplied template
+   CmpFrame rather than to the first component Frame. */
+         if( match ) {
+            naxr = astGetNaxes( fresult );
+            nax1 = astGetNaxes( template->frame1 );
+            nax2 = astGetNaxes( template->frame2 );
+            result_naxes = nax1 + naxr;
+            template_naxes = nax1 + nax2;
+   
+/* Create the full result Frame by combining the partial result Frame 
+   returned by astMatch above with the other component Frame from the 
+   template. */
+            fother = astCopy( template->frame1 );
+            *result = (AstFrame *) astCmpFrame( fother, fresult, "", status );
+
+/* Modify the Mapping returned by the above call to astMatch so that it
+   produces positions within the full result Frame created above. */
+            inperm = astMalloc( sizeof( int )*(size_t) naxr );
+            outperm = astMalloc( sizeof( int )*(size_t) result_naxes );
+            if( astOK ) {
+               for( axis = 0; axis < nax1; axis++ ) outperm[ axis ] = -1;
+               for( axis = 0; axis < naxr; axis++ ) {
+                  outperm[ axis + nax1 ] = axis;
+                  inperm[ axis ] = axis + nax1;
+               }
+               pm = astPermMap( naxr, inperm, result_naxes, outperm, NULL, "", status );
+               *map = (AstMapping *) astCmpMap( fmap, pm, 1, "", status );
+            }
+
+/* Allocate memory for the returned list of axes. */
+            *template_axes = astMalloc( sizeof( int )*(size_t)result_naxes );
+            *target_axes = astMalloc( sizeof( int )*(size_t)result_naxes );
+   
+/* The axis indices returned by astMatch above will refer to the second
+   component Frame rather than the permuted axis indices for the template
+   Frame. So we will need the CmpFrame axis permutation array. Also
+   allocate memory for the inverse of the axis permutation array. */
+            perm = astGetPerm( template );
+            operm = astMalloc( sizeof( int )*(size_t)template_naxes );
+            if( astOK) {
+
+/* Create the inverse of the axis permutation array. */
+               for( axis = 0; axis < template_naxes; axis++ ) {
+                  operm[ perm[ axis ] ] = axis;
+               }
+   
+/* Change the template axes list so that they describe the axes in the
+   full result Frame in terms of the external template axis numbering. */
+               for( axis = 0; axis < nax1; axis++ ) {
+                  (*template_axes)[ axis ] = operm[ axis ];
+               }
+   
+               for( ; axis < result_naxes; axis++ ) {
+                  (*template_axes)[ axis ] = operm[ nax1 + ftemplate_axes[ axis - nax1 ] ];
+               }
+   
+/* Change the target axes list so that they describe the axes in the
+   full result Frame (this just means padding with -1 to indicate that 
+   the extra axes do not correspond to any axis in the target). */
+               for( axis = 0; axis < naxr; axis++ ) {
+                  (*target_axes)[ axis ] = ftarget_axes[ axis ];
+               }
+   
+               for( ; axis < result_naxes; axis++ ) {
+                  (*target_axes)[ axis ] = -1;
+               }
+   
+            }
+   
+   
+/* Free resources */
+            ftemplate_axes = astFree( ftemplate_axes );
+            ftarget_axes = astFree( ftarget_axes );
+            fmap = astAnnul( fmap );
+            fresult = astAnnul( fresult );
+            fother = astAnnul( fother );
+            pm = astAnnul( pm );
+            operm = astFree( operm );
+            inperm = astFree( inperm);
+            outperm = astFree( outperm);
+         }
+      }
    }
 
 /* If an error occurred, free all allocated memory, annul the result
@@ -3545,7 +4463,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    return match;
 }
 
-static void Norm( AstFrame *this_frame, double value[] ) {
+static void Norm( AstFrame *this_frame, double value[], int *status ) {
 /*
 *  Name:
 *     Norm
@@ -3558,7 +4476,7 @@ static void Norm( AstFrame *this_frame, double value[] ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void Norm( AstAxis *this, double value[] )
+*     void Norm( AstAxis *this, double value[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astNorm method
@@ -3577,6 +4495,8 @@ static void Norm( AstFrame *this_frame, double value[] ) {
 *        An array of double, with one element for each CmpFrame axis.
 *        This should contain the initial set of coordinate values,
 *        which will be modified in place.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -3625,7 +4545,7 @@ static void Norm( AstFrame *this_frame, double value[] ) {
 }
 
 static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
-                     AstMapping *reg ) {
+                     AstMapping *reg, int *status ) {
 /*
 *  Name:
 *     NormBox
@@ -3639,7 +4559,7 @@ static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
 *  Synopsis:
 *     #include "cmpframe.h"
 *     void astNormBox( AstFrame *this, double lbnd[], double ubnd[],
-*                      AstMapping *reg )
+*                      AstMapping *reg, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astNormBox method inherited
@@ -3671,6 +4591,8 @@ static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
 *        inside or outside the box. The Mapping should leave an input
 *        position unchanged if the point is inside the box, and should
 *        set all bad if the point is outside the box.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -3723,28 +4645,28 @@ static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
 /* Create a PermMap with a forward transformation which reorders a position 
    which uses internal axis ordering into a position which uses external axis 
    ordering. */
-      pm1 = astPermMap( naxes, NULL, naxes, perm, NULL, "" );
+      pm1 = astPermMap( naxes, NULL, naxes, perm, NULL, "", status );
 
 /* Put it in front of the supplied Mapping. The combination transforms an
    input internal position into an output external position.  */
-      m1 = astCmpMap( pm1, reg, 1, "" );
+      m1 = astCmpMap( pm1, reg, 1, "", status );
 
 /* Invert it and add it to the end. This combination now transforms an
    input internal position into an output internal position.  */
       astInvert( pm1 );
-      m2 = astCmpMap( m1, pm1, 1, "" );
+      m2 = astCmpMap( m1, pm1, 1, "", status );
 
 /* Create a PermMap with a forward transformation which copies the lower
    naxes1 inputs to the same outputs, and supplies AST__BAD for the other
    outputs. */
       for( axis = 0; axis < naxes1; axis++ ) inperm[ axis ] = axis;
-      pm2 = astPermMap( naxes1, inperm, naxes, NULL, NULL, "" );
+      pm2 = astPermMap( naxes1, inperm, naxes, NULL, NULL, "", status );
 
 /* Put it in front of the Mapping created above, then invert it and add
    it at the end. */
-      m3 = astCmpMap( pm2, m2, 1, "" );
+      m3 = astCmpMap( pm2, m2, 1, "", status );
       astInvert( pm2 );
-      m4 = astCmpMap( m3, pm2, 1, "" );
+      m4 = astCmpMap( m3, pm2, 1, "", status );
 
 /* Invoke the astNormBox method of the first component Frame, passing the
    relevant (permuted) coordinate values for normalisation. */
@@ -3754,13 +4676,13 @@ static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
    inputs to the same outputs, and supplied AST__BAD for the other
    outputs. */
       for( axis = 0; axis < naxes - naxes1; axis++ ) inperm[ axis ] = naxes1 + axis;
-      pm3 = astPermMap( naxes1, inperm, naxes, NULL, NULL, "" );
+      pm3 = astPermMap( naxes1, inperm, naxes, NULL, NULL, "", status );
 
 /* Put it in front of the Mapping created above, then invert it and add
    it at the end. */
-      m5 = astCmpMap( pm3, m2, 1, "" );
+      m5 = astCmpMap( pm3, m2, 1, "", status );
       astInvert( pm3 );
-      m6 = astCmpMap( m5, pm3, 1, "" );
+      m6 = astCmpMap( m5, pm3, 1, "", status );
 
 /* Invoke the astNormBox method of the seond component Frame, passing the
    relevant (permuted) coordinate values for normalisation. */
@@ -3790,7 +4712,7 @@ static void NormBox( AstFrame *this_frame, double lbnd[], double ubnd[],
 }
 
 static void Offset( AstFrame *this_frame, const double point1[],
-                    const double point2[], double offset, double point3[] ) {
+                    const double point2[], double offset, double point3[], int *status ) {
 /*
 *  Name:
 *     Offset
@@ -3805,7 +4727,7 @@ static void Offset( AstFrame *this_frame, const double point1[],
 *     #include "cmpframe.h"
 *     void Offset( AstFrame *this,
 *                  const double point1[], const double point2[],
-*                  double offset, double point3[] )
+*                  double offset, double point3[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astOffset method
@@ -3838,6 +4760,8 @@ static void Offset( AstFrame *this_frame, const double point1[],
 *        An array of double, with one element for each CmpFrame axis
 *        in which the coordinates of the required point will be
 *        returned.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - The geodesic curve used by this function is the path of
@@ -3986,7 +4910,7 @@ static void Offset( AstFrame *this_frame, const double point1[],
 }
 
 static void Overlay( AstFrame *template_frame, const int *template_axes,
-                     AstFrame *result ) {
+                     AstFrame *result, int *status ) {
 /*
 *  Name:
 *     Overlay
@@ -4000,7 +4924,7 @@ static void Overlay( AstFrame *template_frame, const int *template_axes,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     void Overlay( AstFrame *template, const int *template_axes,
-*                   AstFrame *result )
+*                   AstFrame *result, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astOverlay
@@ -4034,6 +4958,8 @@ static void Overlay( AstFrame *template_frame, const int *template_axes,
 *        should be set to -1.
 *     result
 *        Pointer to the Frame which is to receive the new attribute values.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -4243,7 +5169,7 @@ static void Overlay( AstFrame *template_frame, const int *template_axes,
 
 static void PartitionSelection( int nselect, const int select[],
                                 const int perm[], int naxes1, int naxes2,
-                                int iframe[], int following ) {
+                                int iframe[], int following, int *status ) {
 /*
 *  Name:
 *     PartitionSelection
@@ -4258,7 +5184,7 @@ static void PartitionSelection( int nselect, const int select[],
 *     #include "cmpframe.h"
 *     void PartitionSelection( int nselect, const int select[],
 *                              const int perm[], int naxes1, int naxes2,
-*                              int iframe[], int following )
+*                              int iframe[], int following, int *status )
 
 *  Class Membership:
 *     CmpFrame member function.
@@ -4300,6 +5226,8 @@ static void PartitionSelection( int nselect, const int select[],
 *        preceding normal selected axis which appears in the "select"
 *        array (if any), otherwise they will be associated with the
 *        following normal selected axis.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -4378,7 +5306,7 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
                       int naxes1, const int axes1[],
                       int naxes2, const int axes2[],
                       int **template_axes, int **target_axes,
-                      AstMapping **map, AstFrame **result ) {
+                      AstMapping **map, AstFrame **result, int *status ) {
 /*
 *  Name:
 *     PartMatch
@@ -4395,7 +5323,7 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
 *                    int naxes1, const int axes1[],
 *                    int naxes2, const int axes2[],
 *                    int **template_axes, int **target_axes,
-*                    AstMapping **map, AstFrame **result )
+*                    AstMapping **map, AstFrame **result, int *status )
 
 *  Class Membership:
 *     CmpFrame member function.
@@ -4488,6 +5416,8 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
 *        possibility of transformaing to any one of a set of
 *        alternative coordinate systems, the "result" Frame will
 *        indicate which of the alternatives was used.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if the requested coordinate
@@ -4784,7 +5714,7 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
    individual result Frames (from the matching process) using a
    CmpFrame. */
       if ( astOK ) {
-         *result = (AstFrame *) astCmpFrame( result1, result2, "" );
+         *result = (AstFrame *) astCmpFrame( result1, result2, "", status );
 
 /* The next step is to permute the result Frame's axis order so that
    it corresponds with the axis order of the "reference Frame". The
@@ -4823,15 +5753,15 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
    so we handle the associations for each of these components
    separately. */
          AddExtraAxes( result_naxes, result_order,
-                       0, result_naxes1 - 1, match_end1 );
+                       0, result_naxes1 - 1, match_end1, status );
          AddExtraAxes( result_naxes, result_order,
-                       result_naxes1, result_naxes - 1, match_end2 );
+                       result_naxes1, result_naxes - 1, match_end2, status );
 
 /* There may now be some reference Frame axes which are not referenced
    in this array, so we renumber the entries starting at zero (but
    preserving their relative order) so that there are no missing
    values due to these. */
-         RenumberAxes( result_naxes, result_order );
+         RenumberAxes( result_naxes, result_order, status );
 
 /* The resulting "result_order" array no longer describes the original
    reference Frame axis associations, but is now suitable for
@@ -4940,7 +5870,7 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
 /* Construct the basis of the final output Mapping by combining the
    Mappings produced by the individual matching processes in parallel,
    using a CmpMap. */
-      *map = (AstMapping *) astCmpMap( map1, map2, 0, "" );
+      *map = (AstMapping *) astCmpMap( map1, map2, 0, "", status );
 
 /* It is now necessary to prefix and suffix this CmpMap with two
    PermMaps, which correct the input and output axis order to
@@ -4985,14 +5915,14 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
 
 /* If the permutation is not null, use these permutation arrays to
    construct the required prefix PermMap. */
-      if ( GoodPerm( target_naxes, inperm, target_naxes, outperm ) ) {
+      if ( GoodPerm( target_naxes, inperm, target_naxes, outperm, status ) ) {
          permmap = (AstMapping *) astPermMap( target_naxes, inperm,
                                               target_naxes, outperm,
-                                              NULL, "" );
+                                              NULL, "", status );
 
 /* Add the PermMap as a prefix to the result Mapping and then annul
    the original Mapping pointers. */
-         tmp_map = (AstMapping *) astCmpMap( permmap, *map, 1, "" );
+         tmp_map = (AstMapping *) astCmpMap( permmap, *map, 1, "", status );
          (void) astAnnul( *map );
          *map = tmp_map;
          permmap = astAnnul( permmap );
@@ -5036,14 +5966,14 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
 
 /* If the permutation is not null, use these permutation arrays to
    construct the required suffix PermMap. */
-      if ( GoodPerm( target_naxes, inperm, target_naxes, outperm ) ) {
+      if ( GoodPerm( target_naxes, inperm, target_naxes, outperm, status ) ) {
          permmap = (AstMapping *) astPermMap( result_naxes, inperm,
                                               ref_naxes, outperm,
-                                              NULL, "" );
+                                              NULL, "", status );
 
 /* Add the PermMap as a suffix to the result Mapping and then annul
    the original Mapping pointers. */
-         tmp_map = (AstMapping *) astCmpMap( *map, permmap, 1, "" );
+         tmp_map = (AstMapping *) astCmpMap( *map, permmap, 1, "", status );
          (void) astAnnul( *map );
          *map = tmp_map;
          permmap = astAnnul( permmap );
@@ -5092,7 +6022,7 @@ static int PartMatch( AstCmpFrame *template, AstFrame *target,
    return match;
 }
 
-static void PermAxes( AstFrame *this_frame, const int perm[] ) {
+static void PermAxes( AstFrame *this_frame, const int perm[], int *status ) {
 /*
 *  Name:
 *     PermAxes
@@ -5105,7 +6035,7 @@ static void PermAxes( AstFrame *this_frame, const int perm[] ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void astPermAxes( AstFrame *this, const int perm[] )
+*     void astPermAxes( AstFrame *this, const int perm[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astPermAxes method
@@ -5123,6 +6053,8 @@ static void PermAxes( AstFrame *this_frame, const int perm[] ) {
 *        element of this array should be a (zero-based) axis index
 *        identifying the axes according to their old (un-permuted)
 *        order.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - Only genuine permutations of the axis order are permitted, so
@@ -5177,7 +6109,7 @@ static void PermAxes( AstFrame *this_frame, const int perm[] ) {
 }
 
 static void PrimaryFrame( AstFrame *this_frame, int axis1,
-                          AstFrame **frame, int *axis2 ) {
+                          AstFrame **frame, int *axis2, int *status ) {
 /*
 *  Name:
 *     PrimaryFrame
@@ -5191,7 +6123,7 @@ static void PrimaryFrame( AstFrame *this_frame, int axis1,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     void astPrimaryFrame( AstFrame *this, int axis1, AstFrame **frame,
-*                           int *axis2 )
+*                           int *axis2, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected
@@ -5219,6 +6151,8 @@ static void PrimaryFrame( AstFrame *this_frame, int axis1,
 *        subsequent axis pemutations and the effects of combining
 *        Frames, in order to reveal the original underlying axis
 *        order).
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - This protected method is provided so that class
@@ -5294,9 +6228,13 @@ static int QsortCmpAxes( const void *a, const void *b ) {
 */
 
 /* Local Variables. */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    int result;                   /* Result value to return */
    int val_a;                    /* First axis index */
    int val_b;                    /* Second axis index */
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(NULL);
 
 /* Convert the values passed by "qsort" into integer array indices and
    use these to access the "qsort_axes" array (this pointer to the
@@ -5318,7 +6256,7 @@ static int QsortCmpAxes( const void *a, const void *b ) {
    return result;
 }
 
-static void RenumberAxes( int naxes, int axes[] ) {
+static void RenumberAxes( int naxes, int axes[], int *status ) {
 /*
 *  Name:
 *     RenumberAxes
@@ -5331,7 +6269,7 @@ static void RenumberAxes( int naxes, int axes[] ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void RenumberAxes( int naxes, int axes[] )
+*     void RenumberAxes( int naxes, int axes[], int *status )
 
 *  Class Membership:
 *     CmpFrame member function.
@@ -5351,14 +6289,20 @@ static void RenumberAxes( int naxes, int axes[] ) {
 *     axes
 *        An array, with "naxes" elements, containing the indices. This
 *        is modified by this function to contain the new indices.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
    int *work;                    /* Pointer to workspace array */
    int i;                        /* Loop counter */
 
 /* Check the global error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the structure holding thread-specific global data. */   
+   astGET_GLOBALS(NULL);
 
 /* Allocate workspace. */
    work = astMalloc( sizeof( int ) * (size_t) naxes );
@@ -5386,7 +6330,7 @@ static void RenumberAxes( int naxes, int axes[] ) {
 
 static void Resolve( AstFrame *this_frame, const double point1[], 
                      const double point2[], const double point3[],
-                     double point4[], double *d1, double *d2 ){
+                     double point4[], double *d1, double *d2, int *status ){
 /*
 *  Name:
 *     Resolve
@@ -5401,7 +6345,7 @@ static void Resolve( AstFrame *this_frame, const double point1[],
 *     #include "cmpframe.h"
 *     void Resolve( AstFrame *this, const double point1[], 
 *                   const double point2[], const double point3[],
-*                   double point4[], double *d1, double *d2 );
+*                   double point4[], double *d1, double *d2, int *status );
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astOffset method
@@ -5443,6 +6387,8 @@ static void Resolve( AstFrame *this_frame, const double point1[],
 *        point 4 to point 3 (that is, the length of the component
 *        perpendicular to the basis vector). The returned value is always
 *        positive.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     - Each vector used in this function is the path of
@@ -5593,7 +6539,7 @@ static void Resolve( AstFrame *this_frame, const double point1[],
 
 static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[], 
                                    const double point2[], AstPointSet *in,
-                                   AstPointSet *out ) {
+                                   AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     ResolvePoints
@@ -5724,10 +6670,10 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
    required by the Frame. Report an error if these numbers do not match. */
    if ( astOK && ( ncoord_in != nax ) ) {
       astError( AST__NCPIN, "astResolvePoints(%s): Bad number of coordinate "
-                "values (%d) in input %s.", astGetClass( this ), ncoord_in,
+                "values (%d) in input %s.", status, astGetClass( this ), ncoord_in,
                 astGetClass( in ) );
       astError( AST__NCPIN, "The %s given requires %d coordinate value(s) for "
-                "each input point.", astGetClass( this ), nax );
+                "each input point.", status, astGetClass( this ), nax );
    }
 
 /* If still OK, and a non-NULL pointer has been given for the output PointSet,
@@ -5742,16 +6688,16 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
       if ( astOK ) {
          if ( npoint_out < npoint ) {
             astError( AST__NOPTS, "astResolvePoints(%s): Too few points (%d) in "
-                      "output %s.", astGetClass( this ), npoint_out,
+                      "output %s.", status, astGetClass( this ), npoint_out,
                       astGetClass( out ) );
             astError( AST__NOPTS, "The %s needs space to hold %d transformed "
-                      "point(s).", astGetClass( this ), npoint );
+                      "point(s).", status, astGetClass( this ), npoint );
          } else if ( ncoord_out < 2 ) {
             astError( AST__NOCTS, "astResolvePoints(%s): Too few coordinate "
-                      "values per point (%d) in output %s.",
+                      "values per point (%d) in output %s.", status,
                       astGetClass( this ), ncoord_out, astGetClass( out ) );
             astError( AST__NOCTS, "The %s supplied needs space to store 2 "
-                      "coordinate value(s) per transformed point.",
+                      "coordinate value(s) per transformed point.", status,
                       astGetClass( this ) );
          }
       }
@@ -5762,7 +6708,7 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
    coordinate data. */
    if ( astOK ) {
       if ( !out ) {
-         result = astPointSet( npoint, 2, "" );
+         result = astPointSet( npoint, 2, "", status );
 
 /* Otherwise, use the PointSet supplied. */
       } else {
@@ -5818,8 +6764,8 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
 
 /* Create PointSets holding the input values which refer to each of the
    two component Frames. */
-      in1 = astPointSet( npoint, naxes1, "" );
-      in2 = astPointSet( npoint, naxes2, "" );
+      in1 = astPointSet( npoint, naxes1, "", status );
+      in2 = astPointSet( npoint, naxes2, "", status );
 
 /* Associated the appropriate subset of the data in the supplied input 
    PointSet with each of these two PointSets. */ 
@@ -5909,7 +6855,7 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
    return result;
 }
 
-static void SetActiveUnit( AstFrame *this_frame, int value ){
+static void SetActiveUnit( AstFrame *this_frame, int value, int *status ){
 /*
 *  Name:
 *     SetActiveUnit
@@ -5922,7 +6868,7 @@ static void SetActiveUnit( AstFrame *this_frame, int value ){
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void SetActiveUnit( AstFrame *this, int value )
+*     void SetActiveUnit( AstFrame *this, int value, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astSetActiveUnit method
@@ -5941,6 +6887,8 @@ static void SetActiveUnit( AstFrame *this_frame, int value ){
 *        Pointer to the CmpFrame.
 *     value
 *        The new value to use.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Check the global error status. */
@@ -5948,12 +6896,55 @@ static void SetActiveUnit( AstFrame *this_frame, int value ){
 
 /* Invoke the parent method to set the ActiveUnitFlag for the CmpFrame,
    then set the same value for the component Frames. */
-   (*parent_setactiveunit)( this_frame, value );
+   (*parent_setactiveunit)( this_frame, value, status );
    astSetActiveUnit( ((AstCmpFrame *)this_frame)->frame1, value );
    astSetActiveUnit( ((AstCmpFrame *)this_frame)->frame2, value );
 }
 
-static int GetActiveUnit( AstFrame *this_frame ){
+static void SetFrameFlags( AstFrame *this_frame, int value, int *status ){
+/*
+*  Name:
+*     SetFrameFlags
+
+*  Purpose:
+*     Set flags that control current Frame behaviour.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void SetFrameFlags( AstFrame *this, int value, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astSetFrameFlags method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function sets values for the bit mask of flags that control
+*     how the CmpFrame behaves. It ensures that both component Frames use
+*     the the same bitmask as the parent CmpFrame.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     value
+*        The new value to use.
+*     status
+*        Pointer to the inherited status variable.
+*/
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Invoke the parent method to set the FrameFlags for the CmpFrame,
+   then set the same value for the component Frames. */
+   (*parent_setframeflags)( this_frame, value, status );
+   astSetFrameFlags( ((AstCmpFrame *)this_frame)->frame1, value );
+   astSetFrameFlags( ((AstCmpFrame *)this_frame)->frame2, value );
+}
+
+static int GetActiveUnit( AstFrame *this_frame, int *status ){
 /*
 *  Name:
 *     GetActiveUnit
@@ -5966,7 +6957,7 @@ static int GetActiveUnit( AstFrame *this_frame ){
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int GetActiveUnit( AstFrame *this_frame )
+*     int GetActiveUnit( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astGetActiveUnit method
@@ -5980,6 +6971,8 @@ static int GetActiveUnit( AstFrame *this_frame ){
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The current value of the ActiveUnit flag.
@@ -5995,7 +6988,7 @@ static int GetActiveUnit( AstFrame *this_frame ){
 /* If the ActiveUnit value has been set for the CmpFrame use the parent
    implementation to get its value. */
    if( astTestActiveUnit( this_frame ) ) {
-      result = (*parent_getactiveunit)( this_frame );
+      result = (*parent_getactiveunit)( this_frame, status );
 
 /* Otherwise, the default is determined by the component Frames. If both
    components have active units, the default for the CmpFrame is "on" */
@@ -6008,7 +7001,7 @@ static int GetActiveUnit( AstFrame *this_frame ){
    return result;
 }
 
-static void SetAttrib( AstObject *this_object, const char *setting ) {
+static void SetAttrib( AstObject *this_object, const char *setting, int *status ) {
 /*
 *  Name:
 *     SetAttrib
@@ -6021,7 +7014,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void SetAttrib( AstObject *this, const char *setting )
+*     void SetAttrib( AstObject *this, const char *setting, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (extends the astSetAttrib method inherited from
@@ -6046,6 +7039,8 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 *     setting
 *        Pointer to a null terminated string specifying the new attribute
 *        value.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -6100,7 +7095,7 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
       
 /* Our first attempt is to see if the attribute is recognised by the parent
    class (Frame). */
-      (*parent_setattrib)( this_object, setting );
+      (*parent_setattrib)( this_object, setting, status );
 
 /* Indicate success. */
       if( astOK ) {
@@ -6184,11 +7179,11 @@ static void SetAttrib( AstObject *this_object, const char *setting ) {
 /* Report an error if the attribute could not be accessed. */
    if( !ok && astOK ) {
       astError( AST__BADAT, "astSet: The attribute setting \"%s\" is invalid "
-               "for the given %s.", setting, astGetClass( this ) );
+               "for the given %s.", status, setting, astGetClass( this ) );
    }
 }
 
-static void SetAxis( AstFrame *this_frame, int axis, AstAxis *newaxis ) {
+static void SetAxis( AstFrame *this_frame, int axis, AstAxis *newaxis, int *status ) {
 /*
 *  Name:
 *     SetAxis
@@ -6201,7 +7196,7 @@ static void SetAxis( AstFrame *this_frame, int axis, AstAxis *newaxis ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void astSetAxis( AstFrame *this, int axis, AstAxis *newaxis )
+*     void astSetAxis( AstFrame *this, int axis, AstAxis *newaxis, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astSetAxis method
@@ -6222,6 +7217,8 @@ static void SetAxis( AstFrame *this_frame, int axis, AstAxis *newaxis ) {
 *        Axis object is to be replaced.
 *     newaxis
 *        Pointer to the new Axis object.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -6251,7 +7248,57 @@ static void SetAxis( AstFrame *this_frame, int axis, AstAxis *newaxis ) {
    }
 }
 
-static void SetEpoch( AstFrame *this_frame, double val ) {
+static void SetDut1( AstFrame *this_frame, double val, int *status ) {
+/*
+*  Name:
+*     SetDut1
+
+*  Purpose:
+*     Set the value of the Dut1 attribute for a CmpFrame.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpframe.h"
+*     void SetDut1( AstFrame *this, double val, int *status )
+
+*  Class Membership:
+*     CmpFrame member function (over-rides the astSetDut1 method
+*     inherited from the Frame class).
+
+*  Description:
+*     This function sets the Dut1 value in the component Frames as
+*     well as this CmpFrame.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpFrame.
+*     val
+*        New Dut1 value.
+*     status
+*        Pointer to the inherited status variable.
+
+*/
+
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to set the CmpFrame Dut1 value. */
+   (*parent_setdut1)( this_frame, val, status );
+
+/* Now set the Dut1 attribute in the two component Frames. */
+   astSetDut1( this->frame1, val );
+   astSetDut1( this->frame2, val );
+}
+
+static void SetEpoch( AstFrame *this_frame, double val, int *status ) {
 /*
 *  Name:
 *     SetEpoch
@@ -6264,7 +7311,7 @@ static void SetEpoch( AstFrame *this_frame, double val ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void SetEpoch( AstFrame *this, double val )
+*     void SetEpoch( AstFrame *this, double val, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astSetEpoch method
@@ -6279,6 +7326,8 @@ static void SetEpoch( AstFrame *this_frame, double val ) {
 *        Pointer to the CmpFrame.
 *     val
 *        New Epoch value.
+*     status
+*        Pointer to the inherited status variable.
 
 */
 
@@ -6292,88 +7341,114 @@ static void SetEpoch( AstFrame *this_frame, double val ) {
    this = (AstCmpFrame *) this_frame;
 
 /* Invoke the parent method to set the CmpFrame epoch. */
-   (*parent_setepoch)( this_frame, val );
+   (*parent_setepoch)( this_frame, val, status );
 
 /* Now set the Epoch attribute in the two component Frames. */
    astSetEpoch( this->frame1, val );
    astSetEpoch( this->frame2, val );
 }
 
-static void SetMaxAxes( AstFrame *this_frame, int maxaxes ) {
+static void SetObsLat( AstFrame *this_frame, double val, int *status ) {
 /*
 *  Name:
-*     SetMaxAxes
+*     SetObsLat
 
 *  Purpose:
-*     Set a value for the MaxAxes attribute of a CmpFrame.
+*     Set the value of the ObsLat attribute for a CmpFrame.
 
 *  Type:
 *     Private function.
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void SetMaxAxes( AstFrame *this, int maxaxes )
+*     void SetObsLat( AstFrame *this, double val, int *status )
 
 *  Class Membership:
-*     CmpFrame member function (over-rides the astSetMaxAxes method
+*     CmpFrame member function (over-rides the astSetObsLat method
 *     inherited from the Frame class).
 
 *  Description:
-*     This function does nothing because the MaxAxes attribute for a
-*     CmpFrame is determined by the Frames it contains and cannot be
-*     altered independently.
+*     This function sets the ObsLat value in the component Frames as
+*     well as this CmpFrame.
 
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
-*     maxaxes
-*        The new value to be set (ignored).
+*     val
+*        New ObsLat value.
+*     status
+*        Pointer to the inherited status variable.
 
-*  Returned Value:
-*     void.
 */
 
-/* Do nothing. */
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to set the CmpFrame ObsLat. */
+   (*parent_setobslat)( this_frame, val, status );
+
+/* Now set the ObsLat attribute in the two component Frames. */
+   astSetObsLat( this->frame1, val );
+   astSetObsLat( this->frame2, val );
 }
 
-static void SetMinAxes( AstFrame *this_frame, int minaxes ) {
+static void SetObsLon( AstFrame *this_frame, double val, int *status ) {
 /*
 *  Name:
-*     SetMinAxes
+*     SetObsLon
 
 *  Purpose:
-*     Set a value for the MinAxes attribute of a CmpFrame.
+*     Set the value of the ObsLon attribute for a CmpFrame.
 
 *  Type:
 *     Private function.
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     void SetMinAxes( AstFrame *this, int minaxes )
+*     void SetObsLon( AstFrame *this, double val, int *status )
 
 *  Class Membership:
-*     CmpFrame member function (over-rides the astSetMinAxes method
+*     CmpFrame member function (over-rides the astSetObsLon method
 *     inherited from the Frame class).
 
 *  Description:
-*     This function does nothing because the MinAxes attribute for a
-*     CmpFrame is determined by the Frames it contains and cannot be
-*     altered independently.
+*     This function sets the ObsLon value in the component Frames as
+*     well as this CmpFrame.
 
 *  Parameters:
 *     this
 *        Pointer to the CmpFrame.
-*     minaxes
-*        The new value to be set (ignored).
+*     val
+*        New ObsLon value.
+*     status
+*        Pointer to the inherited status variable.
 
-*  Returned Value:
-*     void.
 */
 
-/* Do nothing. */
+/* Local Variables: */
+   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Obtain a pointer to the CmpFrame structure. */
+   this = (AstCmpFrame *) this_frame;
+
+/* Invoke the parent method to set the CmpFrame ObsLon. */
+   (*parent_setobslon)( this_frame, val, status );
+
+/* Now set the ObsLon attribute in the two component Frames. */
+   astSetObsLon( this->frame1, val );
+   astSetObsLon( this->frame2, val );
 }
 
-static AstMapping *Simplify( AstMapping *this_mapping ) {
+static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 /*
 *  Name:
 *     Simplify
@@ -6386,7 +7461,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     AstMapping *Simplify( AstMapping *this )
+*     AstMapping *Simplify( AstMapping *this, int *status )
 
 *  Class Membership:
 *     CmpFrame method (over-rides the astSimplify method inherited
@@ -6399,7 +7474,9 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
 
 *  Parameters:
 *     this
-*        Pointer to the original FrameSet.
+*        Pointer to the original CmpFrame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A new pointer to the simplified CmpFrame. 
@@ -6440,8 +7517,8 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
       result = (AstMapping *) new;
 
 /* Replace the two component Frames with the simplified Frames. */
-      astAnnul( new->frame1 );
-      astAnnul( new->frame2 );
+      (void) astAnnul( new->frame1 );
+      (void) astAnnul( new->frame2 );
       new->frame1 = (AstFrame *) map1;
       new->frame2 = (AstFrame *) map2;
 
@@ -6460,7 +7537,7 @@ static AstMapping *Simplify( AstMapping *this_mapping ) {
    return result;
 }
 
-static AstSystemType SystemCode( AstFrame *this, const char *system ) {
+static AstSystemType SystemCode( AstFrame *this, const char *system, int *status ) {
 /*
 *  Name:
 *     SystemCode
@@ -6473,7 +7550,7 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     AstSystemType SystemCode( AstFrame *this, const char *system )
+*     AstSystemType SystemCode( AstFrame *this, const char *system, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astSystemCode method
@@ -6491,6 +7568,8 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
 *     system
 *        Pointer to a constant null-terminated string containing the
 *        external description of the coordinate system.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The System type code.
@@ -6523,7 +7602,7 @@ static AstSystemType SystemCode( AstFrame *this, const char *system ) {
    return result;
 }
 
-static const char *SystemString( AstFrame *this, AstSystemType system ) {
+static const char *SystemString( AstFrame *this, AstSystemType system, int *status ) {
 /*
 *  Name:
 *     SystemString
@@ -6536,7 +7615,7 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     const char *SystemString( AstFrame *this, AstSystemType system )
+*     const char *SystemString( AstFrame *this, AstSystemType system, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astSystemString method
@@ -6552,6 +7631,8 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 *        The Frame.
 *     system
 *        The coordinate system type code.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to a constant null-terminated string containing the
@@ -6591,7 +7672,7 @@ static const char *SystemString( AstFrame *this, AstSystemType system ) {
 static int SubFrame( AstFrame *target_frame, AstFrame *template,
                      int result_naxes, const int *target_axes,
                      const int *template_axes, AstMapping **map,
-                     AstFrame **result ) {
+                     AstFrame **result, int *status ) {
 /*
 *  Name:
 *     SubFrame
@@ -6607,7 +7688,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *     int SubFrame( AstFrame *target, AstFrame *template,
 *                   int result_naxes, const int *target_axes,
 *                   const int *template_axes, AstMapping **map,
-*                   AstFrame **result )
+*                   AstFrame **result, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the protected astSubFrame
@@ -6666,6 +7747,8 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *        the opposite direction.
 *     result
 *        Address of a location to receive a pointer to the result Frame.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A non-zero value is returned if coordinate conversion is
@@ -6762,7 +7845,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    axis should be obtained from the first or second component
    Frame. */
    PartitionSelection( result_naxes, target_axes, perm, naxes1, naxes2,
-                       frame_choice, following );
+                       frame_choice, following, status );
 
 /* Allocate two arrays to hold the axis indices that refer to each of
    the component Frames. The maximum number of indices is given by
@@ -6867,8 +7950,8 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    returned. */
                permmap_pref =
                   (AstMapping *) astPermMap( naxes, inperm_pref,
-                                             naxes1, outperm_pref, NULL, "" );
-               *map = (AstMapping *) astCmpMap( permmap_pref, sub_map1, 1, "" );
+                                             naxes1, outperm_pref, NULL, "", status );
+               *map = (AstMapping *) astCmpMap( permmap_pref, sub_map1, 1, "", status );
 
 /* Annul the PermMap pointer. */
                permmap_pref = astAnnul( permmap_pref );
@@ -6928,9 +8011,9 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    returned. */
                permmap_pref =
                   (AstMapping *) astPermMap( naxes, inperm_pref,
-                                             naxes2, outperm_pref, NULL, "" );
+                                             naxes2, outperm_pref, NULL, "", status );
 
-               *map = (AstMapping *) astCmpMap( permmap_pref, sub_map2, 1, "" );
+               *map = (AstMapping *) astCmpMap( permmap_pref, sub_map2, 1, "", status );
 
 /* Annul the PermMap pointer. */
                permmap_pref = astAnnul( permmap_pref );
@@ -7017,21 +8100,21 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 
 /* Combine the Mappings supplied by the two component Frames in
    parallel. */
-               sub_map = (AstMapping *) astCmpMap( sub_map1, sub_map2, 0, "" );
+               sub_map = (AstMapping *) astCmpMap( sub_map1, sub_map2, 0, "", status );
 
 /* Create the PermMaps which are to be used as a prefix and a suffix. */
                permmap_pref =
                   (AstMapping *) astPermMap( naxes, inperm_pref,
-                                             naxes, outperm_pref, NULL, "" );
+                                             naxes, outperm_pref, NULL, "", status );
                permmap_suff =
                   (AstMapping *) astPermMap( result_naxes, inperm_suff,
                                              result_naxes, outperm_suff,
-                                             NULL, "" );
+                                             NULL, "", status );
 
 /* Add the prefix and suffix PermMaps. */
                tmp_map = (AstMapping *) astCmpMap( permmap_pref, sub_map,
-                                                   1, "" );
-               *map = (AstMapping *) astCmpMap( tmp_map, permmap_suff, 1, "" );
+                                                   1, "", status );
+               *map = (AstMapping *) astCmpMap( tmp_map, permmap_suff, 1, "", status );
 
 /* Annul the Mapping pointers that are no longer required. */
                sub_map = astAnnul( sub_map );
@@ -7042,7 +8125,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 /* Create the result CmpFrame by combining the two component result
    Frames and permuting the resulting axes into the required order. */
                *result = (AstFrame *) astCmpFrame( sub_result1, sub_result2,
-                                                   "" );
+                                                   "", status );
                astPermAxes( *result, outperm_suff );
 
 /* ADDED BY DSB (5-FEB-2001). Without this, properties of the target frame
@@ -7109,7 +8192,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    return match;
 }
 
-static int TestAttrib( AstObject *this_object, const char *attrib ) {
+static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
 *     TestAttrib
@@ -7122,7 +8205,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 *  Synopsis:
 *     #include "cmpframe.h"
-*     int TestAttrib( AstObject *this, const char *attrib )
+*     int TestAttrib( AstObject *this, const char *attrib, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astTestAttrib protected
@@ -7139,6 +8222,8 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 *        Pointer to a null terminated string specifying the attribute
 *        name.  This should be in lower case with no surrounding white
 *        space.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     One if a value has been set, otherwise zero.
@@ -7198,7 +8283,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
       
 /* Our first attempt is to see if the attribute is recognised by the parent
    class (Frame). */
-      result = (*parent_testattrib)( this_object, attrib );
+      result = (*parent_testattrib)( this_object, attrib, status );
 
 /* Indicate success. */
       if( astOK ) {
@@ -7283,7 +8368,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 /* Report an error if the attribute could not be accessed. */
    if( !ok && astOK ) {
       astError( AST__BADAT, "astTest: The %s given does not have an attribute "
-                "called \"%s\".", astGetClass( this ), attrib );
+                "called \"%s\".", status, astGetClass( this ), attrib );
    }
 
 /* Return the result. */
@@ -7291,120 +8376,8 @@ static int TestAttrib( AstObject *this_object, const char *attrib ) {
 
 }
 
-static int TestMaxAxes( AstFrame *this_frame ) {
-/*
-*  Name:
-*     TestMaxAxes
-
-*  Purpose:
-*     Test if a value has been set for the MaxAxes attribute of a CmpFrame.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "cmpframe.h"
-*     int TestMaxAxes( AstFrame *this )
-
-*  Class Membership:
-*     CmpFrame member function (over-rides the astTestMaxAxes method
-*     inherited from the Frame class).
-
-*  Description:
-*     This function returns a boolean value indicating if a value has
-*     been set for the MaxAxes attribute of a CmpFrame. This will be 1
-*     if a value has been set for the MaxAxes attribute of either of
-*     its component Frames, otherwise it will be zero.
-
-*  Parameters:
-*     this
-*        Pointer to the CmpFrame.
-
-*  Returned Value:
-*     1 if a MaxAxes value has been set for either component Frame,
-*     otherwise zero.
-
-*  Notes:
-*     - A value of zero will be returned if this function is invoked
-*     with the global error status set or if it should fail for any
-*     reason.
-*/
-
-/* Local Variables: */
-   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
-   int result;                   /* Result value to return */
-
-/* Check the global error status. */
-   if ( !astOK ) return 0;
-
-/* Obtain a pointer to the CmpFrame structure. */
-   this = (AstCmpFrame *) this_frame;
-
-/* See if a MaxAxes attribute value is set for either component Frame. */
-   result = astTestMaxAxes( this->frame1 ) || astTestMaxAxes( this->frame2 );
-
-/* Return the result. */
-   return result;
-}
-
-static int TestMinAxes( AstFrame *this_frame ) {
-/*
-*  Name:
-*     TestMinAxes
-
-*  Purpose:
-*     Test if a value has been set for the MinAxes attribute of a CmpFrame.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "cmpframe.h"
-*     int TestMinAxes( AstFrame *this )
-
-*  Class Membership:
-*     CmpFrame member function (over-rides the astTestMinAxes method
-*     inherited from the Frame class).
-
-*  Description:
-*     This function returns a boolean value indicating if a value has
-*     been set for the MinAxes attribute of a CmpFrame. This will be 1
-*     if a value has been set for the MinAxes attribute of either of
-*     its component Frames, otherwise it will be zero.
-
-*  Parameters:
-*     this
-*        Pointer to the CmpFrame.
-
-*  Returned Value:
-*     1 if a MinAxes value has been set for either component Frame,
-*     otherwise zero.
-
-*  Notes:
-*     - A value of zero will be returned if this function is invoked
-*     with the global error status set or if it should fail for any
-*     reason.
-*/
-
-/* Local Variables: */
-   AstCmpFrame *this;            /* Pointer to the CmpFrame structure */
-   int result;                   /* Result value to return */
-
-/* Check the global error status. */
-   if ( !astOK ) return 0;
-
-/* Obtain a pointer to the CmpFrame structure. */
-   this = (AstCmpFrame *) this_frame;
-
-/* See if a MinAxes attribute value is set for either component Frame. */
-   result = astTestMinAxes( this->frame1 ) || astTestMinAxes( this->frame2 );
-
-/* Return the result. */
-   return result;
-}
-
 static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -7418,7 +8391,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astTransform method
@@ -7443,6 +8416,8 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -7478,7 +8453,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    this = (AstCmpFrame *) this_mapping;
 
 /* Form a parallel CmpMap from the two component Frames. */
-   map = astCmpMap( this->frame1, this->frame2, 0, "" );
+   map = astCmpMap( this->frame1, this->frame2, 0, "", status );
 
 /* The above CmpMap does not take into account any axis permutation 
    which has been applied to the CmpFrame as a whole (as opposed to axis
@@ -7512,15 +8487,15 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 /* Create a PermMap from these permutation arrays. The forward
    transformation maps from external axis indices to internal axis 
    indices. */
-      pmap = astPermMap( naxes, inperm, naxes, outperm, NULL, "" );
+      pmap = astPermMap( naxes, inperm, naxes, outperm, NULL, "", status );
       outperm = astFree( outperm );
 
 /* Combine this PermMap with the CmpMap created above, adding it in the
    forward direction at the start and in the inverse direction at the end. */
-      map2 = astCmpMap( pmap, map, 1, "" );
+      map2 = astCmpMap( pmap, map, 1, "", status );
       map = astAnnul( map );
       astInvert( pmap );
-      map = astCmpMap( map2, pmap, 1, "" );
+      map = astCmpMap( map2, pmap, 1, "", status );
       map2 = astAnnul( map2 );
       pmap = astAnnul( pmap );
 
@@ -7545,7 +8520,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 }
 
 static int Unformat( AstFrame *this_frame, int axis, const char *string,
-                     double *value ) {
+                     double *value, int *status ) {
 /*
 *  Name:
 *     Unformat
@@ -7559,7 +8534,7 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     int Unformat( AstFrame *this, int axis, const char *string,
-*                   double *value )
+*                   double *value, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the public astUnformat
@@ -7584,6 +8559,8 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
 *     value
 *        Pointer to a double in which the coordinate value read will be
 *        returned.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The number of characters read from the string to obtain the
@@ -7664,7 +8641,7 @@ static int Unformat( AstFrame *this_frame, int axis, const char *string,
    return nc;
 }
 
-static int ValidateSystem( AstFrame *this, AstSystemType system, const char *method ) {
+static int ValidateSystem( AstFrame *this, AstSystemType system, const char *method, int *status ) {
 /*
 *
 *  Name:
@@ -7679,7 +8656,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *  Synopsis:
 *     #include "cmpframe.h"
 *     int ValidateSystem( AstFrame *this, AstSystemType system, 
-*                         const char *method )
+*                         const char *method, int *status )
 
 *  Class Membership:
 *     CmpFrame member function (over-rides the astValidateSystem method
@@ -7700,6 +8677,8 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *        containing the name of the method that invoked this function
 *        to validate an axis index. This method name is used solely
 *        for constructing error messages.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     The validated system value.
@@ -7722,7 +8701,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 /* If the value is out of bounds, report an error. */
    if ( system < FIRST_SYSTEM || system > LAST_SYSTEM ) {
          astError( AST__AXIIN, "%s(%s): Bad value (%d) given for the System "
-                   "attribute of a %s.", method, astGetClass( this ),
+                   "attribute of a %s.", status, method, astGetClass( this ),
                    (int) system, astGetClass( this ) );
 
 /* Otherwise, return the supplied value. */
@@ -7793,7 +8772,7 @@ MAKE_TEST(Unit)
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -7805,7 +8784,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for CmpFrame objects.
@@ -7815,6 +8794,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     -  This constructor makes a deep copy.
@@ -7838,12 +8819,12 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 /* Determine the number of axes and copy the axis permutation
    array. */
    out->perm = astStore( NULL, in->perm, sizeof( int ) *
-                         (size_t) GetNaxes( (AstFrame *) in ) );
+                         (size_t) GetNaxes( (AstFrame *) in, status ) );
 }
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -7855,7 +8836,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for CmpFrame objects.
@@ -7863,6 +8844,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Notes:
 *     This function attempts to execute even if the global error
@@ -7885,7 +8868,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -7897,7 +8880,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -7908,6 +8891,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the CmpFrame whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Constants: */
@@ -7950,7 +8935,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* Axis permutation array. */
 /* ----------------------- */
 /* Obtain the number of CmpFrame axes. */
-   naxes = GetNaxes( (AstFrame *) this );
+   naxes = GetNaxes( (AstFrame *) this, status );
 
 /* Write out the CmpFrame axis permutation array value for each axis,
    converting to 1-based axis numbering. */
@@ -8004,11 +8989,11 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsACmpFrame and astCheckCmpFrame functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(CmpFrame,Frame,check,&class_init)
+astMAKE_ISA(CmpFrame,Frame,check,&class_check)
 astMAKE_CHECK(CmpFrame)
 
 AstCmpFrame *astCmpFrame_( void *frame1_void, void *frame2_void,
-                           const char *options, ... ) {
+                           const char *options, int *status, ...) {
 /*
 *++
 *  Name:
@@ -8091,6 +9076,13 @@ f     AST_CMPFRAME = INTEGER
 c     function is invoked with the AST error status set, or if it
 f     function is invoked with STATUS set to an error value, or if it
 *     should fail for any reason.
+
+*  Status Handling:
+*     The protected interface to this function includes an extra
+*     parameter at the end of the parameter list descirbed above. This
+*     parameter is a pointer to the integer inherited status
+*     variable: "int *status".
+
 *--
 
 *  Implementation Notes:
@@ -8106,10 +9098,14 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstCmpFrame *new;             /* Pointer to new CmpFrame */
    AstFrame *frame1;             /* Pointer to first Frame structure */
    AstFrame *frame2;             /* Pointer to second Frame structure */
    va_list args;                 /* Variable argument list */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    new = NULL;
@@ -8133,8 +9129,8 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Obtain the variable argument list and pass it along with the
    options string to the astVSet method to initialise the new
    CmpFrame's attributes. */
-         va_start( args, options );
-         astVSet( new, options, args );
+         va_start( args, status );
+         astVSet( new, options, NULL, args );
          va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -8189,10 +9185,19 @@ AstCmpFrame *astCmpFrameId_( void *frame1_void, void *frame2_void,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstCmpFrame *new;             /* Pointer to new CmpFrame */
    AstFrame *frame1;             /* Pointer to first Frame structure */
    AstFrame *frame2;             /* Pointer to second Frame structure */
    va_list args;                 /* Variable argument list */
+
+   int *status;                  /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
 
 /* Check the global status. */
    new = NULL;
@@ -8200,8 +9205,8 @@ AstCmpFrame *astCmpFrameId_( void *frame1_void, void *frame2_void,
 
 /* Obtain the Frame pointers from the ID's supplied and validate the
    pointers to ensure they identify valid Frames. */
-   frame1 = astCheckFrame( astMakePointer( frame1_void ) );
-   frame2 = astCheckFrame( astMakePointer( frame2_void ) );
+   frame1 = astVerifyFrame( astMakePointer( frame1_void ) );
+   frame2 = astVerifyFrame( astMakePointer( frame2_void ) );
    if ( astOK ) {
 
 /* Initialise the CmpFrame, allocating memory and initialising the
@@ -8218,7 +9223,7 @@ AstCmpFrame *astCmpFrameId_( void *frame1_void, void *frame2_void,
    options string to the astVSet method to initialise the new
    CmpFrame's attributes. */
          va_start( args, options );
-         astVSet( new, options, args );
+         astVSet( new, options, NULL, args );
          va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -8232,7 +9237,7 @@ AstCmpFrame *astCmpFrameId_( void *frame1_void, void *frame2_void,
 
 AstCmpFrame *astInitCmpFrame_( void *mem, size_t size, int init,
                                AstCmpFrameVtab *vtab, const char *name,
-                               AstFrame *frame1, AstFrame *frame2 ) {
+                               AstFrame *frame1, AstFrame *frame2, int *status ) {
 /*
 *+
 *  Name:
@@ -8247,7 +9252,8 @@ AstCmpFrame *astInitCmpFrame_( void *mem, size_t size, int init,
 *  Synopsis:
 *     #include "cmpframe.h"
 *     AstCmpFrame *astInitCmpFrame( void *mem, size_t size, int init,
-*                                   AstCmpFrameVtab *vtab, const char *name )
+*                                   AstCmpFrameVtab *vtab, const char *name,
+*                                   AstFrame *frame1, AstFrame *frame2 )
 
 *  Class Membership:
 *     CmpFrame initialiser.
@@ -8288,6 +9294,10 @@ AstCmpFrame *astInitCmpFrame_( void *mem, size_t size, int init,
 *        contains the name of the class to which the new object
 *        belongs (it is this pointer value that will subsequently be
 *        returned by the Object astClass function).
+*     frame1
+*        Pointer to the first Frame to be included in the new CmpFrame.
+*     frame2
+*        Pointer to the second Frame to be included in the new CmpFrame.
 
 *  Returned Value:
 *     A pointer to the new CmpFrame.
@@ -8345,7 +9355,7 @@ AstCmpFrame *astInitCmpFrame_( void *mem, size_t size, int init,
 
 AstCmpFrame *astLoadCmpFrame_( void *mem, size_t size,
                                AstCmpFrameVtab *vtab, const char *name,
-                               AstChannel *channel ) {
+                               AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -8415,12 +9425,16 @@ AstCmpFrame *astLoadCmpFrame_( void *mem, size_t size,
 */
 
 /* Local Constants: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstCmpFrame *new;             /* Pointer to the new CmpFrame */
    char key[ KEY_LEN + 1 ];      /* Buffer for keywords */
-   int axis;                     /* Loop counter for axes */
+   int axis;                     /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
+
+/* Loop counter for axes */
    int naxes;                    /* Number of CmpFrame axes */
 
 /* Initialise. */
@@ -8472,16 +9486,16 @@ AstCmpFrame *astLoadCmpFrame_( void *mem, size_t size,
 /* Read both component Frames, supplying a default 1-dimensional Frame
    if necessary. */
       new->frame1 = astReadObject( channel, "framea", NULL );
-      if ( !new->frame1 ) new->frame1 = astFrame( 1, "" );
+      if ( !new->frame1 ) new->frame1 = astFrame( 1, "", status );
 
       new->frame2 = astReadObject( channel, "frameb", NULL );
-      if ( !new->frame2 ) new->frame2 = astFrame( 1, "" );
+      if ( !new->frame2 ) new->frame2 = astFrame( 1, "", status );
 
 /* Axis permutation array. */
 /* ----------------------- */
 /* Obtain the number of CmpFrame axes and allocate memory to hold the
    axis permutation array. */
-      naxes = GetNaxes( (AstFrame *) new );
+      naxes = GetNaxes( (AstFrame *) new, status );
       new->perm = astMalloc( sizeof( int ) * (size_t) naxes );
 
 /* If OK, loop to read the array value for each axis. */
@@ -8520,3 +9534,8 @@ AstCmpFrame *astLoadCmpFrame_( void *mem, size_t size,
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
+
+
+
+
+

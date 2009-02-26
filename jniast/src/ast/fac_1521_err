@@ -33,93 +33,103 @@ FACILITY AST
 331,INNCO,incompatible numbers of coordinates
 332,INTER,internal programming error
 333,INTRD,incompatible transformation directions
-334,LDERR,class loader error
-335,LUTII,invalid lookup table increment
-336,LUTIN,invalid number of lookup table elements
-337,MEMIN,requested memory size invalid
-338,MTR23,not a 2d or 3d MatrixMap
-339,MTRAX,null rotation axis supplied
-340,MTRML,bad matrix shapes for multiplication
-341,MTRMT,null matrix supplied
-342,NAXIN,number of axes invalid
-343,NCHIN,number of characters invalid
-344,NCOIN,number of coordinates invalid
-345,NCPIN,number of coordinates per point invalid
-346,NELIN,number of array elements invalid
-347,NOCTS,number of output coordinates too small
-348,NODEF,transformation not defined
-349,NOFTS,required FITS keywords missing
-350,NOMEM,unable to allocate memory
-351,NOPTS,number of output points too small
-352,NOWRT,attribute is read-only
-353,NPTIN,number of points invalid
-354,OBJIN,Object invalid
-355,OPT,invalid Plot option
-356,PDSIN,points data structure invalid
-357,PLFMT,no numerical labels can be produced
-358,PRMIN,permutation invalid
-359,PTRIN,pointer invalid
-360,PTRNG,range of points invalid
-361,RDERR,read error
-362,REGIN,invalid or corrupted Region structure supplied
-363,REMIN,invalid attempt to remove last Frame
-364,SCSIN,sky coordinate system invalid
-365,SELIN,axis selection invalid
-366,SLAIN,bad SLALIB transformation type
-367,TRNND,coordinate transformation not defined
-368,UNMQT,unmatched quotes
-369,VSMAL,valid area too small
-370,WCSAX,non-existent longitude or latitude axis
-371,WCSNC,too few mapping coordinates
-372,WCSPA,invalid projection parameters
-373,WCSTY,unknown projection type
-374,XSOBJ,too many Objects in use at once
-375,ZOOMI,zoom factor invalid
-376,BADCI,bad coordinate index
-377,ILOST,FrameSet integrity lost
-378,ITFER,error in IntraMap transformation function
-379,ITFNI,IntraMap transformation function name invalid
-380,MBBNF,Mapping bounding box not found
-381,MRITF,multiple registration of IntraMap transformation function
-382,OCLUK,Object class unknown
-383,UNFER,error while unformatting a coordinate value
-384,URITF,unregistered IntraMap transformation function
-385,GBDIN,grid bounds invalid
-386,NGDIN,number of grid dimensions invalid
-387,PATIN,positional accuracy tolerance invalid
-388,SISIN,sub-pixel interpolation scheme invalid
-389,SSPIN,scale size in pixels invalid
-390,UINER,error in user-supplied sub-pixel interpolation function
-391,UK1ER,error in user-supplied 1-d sub-pixel interpolation kernel
-392,COMIN,invalid comma in expression
-393,CONIN,invalid constant in expression
-394,DUVAR,duplicate variable name
-395,INNTF,invalid number of transformation functions
-396,MIOPA,missing or invalid operand in expression
-397,MIOPR,missing or invalid operator in expression
-398,MISVN,missing variable name
-399,MLPAR,missing left parenthesis in expression
-400,MRPAR,missing right parenthesis in expression
-401,NORHS,missing right hand side in function
-402,UDVOF,undefined variable or function in expression
-403,VARIN,variable name invalid
-404,WRNFA,wrong number of function arguments in expression
-405,BADUN,invalid units specification
-406,NORSF,no rest frequency is defined
-407,NOSOR,no standard of rest is defined
-408,SPCIN,invalid SpecMap
-409,XMLNM,invalid XML name or prefix
-410,XMLCM,invalid XML comment text
-411,XMLPT,invalid XML processing instruction target text
-412,XMLIT,invalid XML content item index
-413,XMLWF,supplied XML document is not well formed
-414,ZERAX,Range of log axis scale includes zero
-415,BADOC,Invalid parameters for offset sky coordinate system
-416,MPGER,error getting a named value from a KeyMap
-417,MPIND,invalid integer index supplied for a KeyMap entry
-418,REGCN,region cannot be re-centred
-419,NOVAL,attribute has no usable value
-420,INCTS,incompatible time scales
-421,TIMIN,invalid TimeMap
-422,STCKEY,cannot use supplied AstroCoords info
-423,STCIND,invalid AstroCoords index
+334,KYCIR,Circular dependency between KeyMaps
+335,LDERR,class loader error
+336,LUTII,invalid lookup table increment
+337,LUTIN,invalid number of lookup table elements
+338,MEMIN,requested memory size invalid
+339,MTR23,not a 2d or 3d MatrixMap
+340,MTRAX,null rotation axis supplied
+341,MTRML,bad matrix shapes for multiplication
+342,MTRMT,null matrix supplied
+343,NAXIN,number of axes invalid
+344,NCHIN,number of characters invalid
+345,NCOIN,number of coordinates invalid
+346,NCPIN,number of coordinates per point invalid
+347,NELIN,number of array elements invalid
+348,NOCTS,number of output coordinates too small
+349,NODEF,transformation not defined
+350,NOFTS,required FITS keywords missing
+351,NOMEM,unable to allocate memory
+352,NOPTS,number of output points too small
+353,NOWRT,attribute is read-only
+354,NPTIN,number of points invalid
+355,OBJIN,Object invalid
+356,OPT,invalid Plot option
+357,PDSIN,points data structure invalid
+358,PLFMT,no numerical labels can be produced
+359,PRMIN,permutation invalid
+360,PTRIN,pointer invalid
+361,PTRNG,range of points invalid
+362,RDERR,read error
+363,REGIN,invalid or corrupted Region structure supplied
+364,REMIN,invalid attempt to remove last Frame
+365,SCSIN,sky coordinate system invalid
+366,SELIN,axis selection invalid
+367,SLAIN,bad SLALIB transformation type
+368,TRNND,coordinate transformation not defined
+369,UNMQT,unmatched quotes
+370,VSMAL,valid area too small
+371,WCSAX,non-existent longitude or latitude axis
+372,WCSNC,too few mapping coordinates
+373,WCSPA,invalid projection parameters
+374,WCSTY,unknown projection type
+375,XSOBJ,too many Objects in use at once
+376,ZOOMI,zoom factor invalid
+377,BADCI,bad coordinate index
+378,ILOST,FrameSet integrity lost
+379,ITFER,error in IntraMap transformation function
+380,ITFNI,IntraMap transformation function name invalid
+381,MBBNF,Mapping bounding box not found
+382,MRITF,multiple registration of IntraMap transformation function
+383,OCLUK,Object class unknown
+384,UNFER,error while unformatting a coordinate value
+385,URITF,unregistered IntraMap transformation function
+386,GBDIN,grid bounds invalid
+387,NGDIN,number of grid dimensions invalid
+388,PATIN,positional accuracy tolerance invalid
+389,SISIN,sub-pixel interpolation scheme invalid
+390,SSPIN,scale size in pixels invalid
+391,UINER,error in user-supplied sub-pixel interpolation function
+392,UK1ER,error in user-supplied 1-d sub-pixel interpolation kernel
+393,COMIN,invalid comma in expression
+394,CONIN,invalid constant in expression
+395,DUVAR,duplicate variable name
+396,INNTF,invalid number of transformation functions
+397,MIOPA,missing or invalid operand in expression
+398,MIOPR,missing or invalid operator in expression
+399,MISVN,missing variable name
+400,MLPAR,missing left parenthesis in expression
+401,MRPAR,missing right parenthesis in expression
+402,NORHS,missing right hand side in function
+403,UDVOF,undefined variable or function in expression
+404,VARIN,variable name invalid
+405,WRNFA,wrong number of function arguments in expression
+406,BADUN,invalid units specification
+407,NORSF,no rest frequency is defined
+408,NOSOR,no standard of rest is defined
+409,SPCIN,invalid SpecMap
+410,XMLNM,invalid XML name or prefix
+411,XMLCM,invalid XML comment text
+412,XMLPT,invalid XML processing instruction target text
+413,XMLIT,invalid XML content item index
+414,XMLWF,supplied XML document is not well formed
+415,ZERAX,Range of log axis scale includes zero
+416,BADOC,Invalid parameters for offset sky coordinate system
+417,MPGER,error getting a named value from a KeyMap
+418,MPIND,invalid integer index supplied for a KeyMap entry
+419,REGCN,region cannot be re-centred
+420,NOVAL,attribute has no usable value
+421,INCTS,incompatible time scales
+422,TIMIN,invalid TimeMap
+423,STCKEY,cannot use supplied AstroCoords info
+424,STCIND,invalid AstroCoords index
+425,CNFLX,cannot conserve flux whilst resampling an array of data
+426,TUNAM,Unknown AST tuning parameter name supplied
+427,BDPAR,Bad value supplied for a public function parameter
+428,3DFSET,Supplied FrameSet does not contain any independent axes
+429,PXFRRM,Attempt to delete original Plot3D base Frame
+430,BADSUB,Illegal syntax for string substitution template
+431,BADFLG,Incompatible flags for re-sampling or re-binning
+432,LCKERR,Error locking or unlocking an AST Object
+433,FUNDEF,FITS keyword had undefined value

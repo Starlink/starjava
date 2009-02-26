@@ -18,6 +18,26 @@ package uk.ac.starlink.ast;
  * neither. If both limits are supplied but are in reverse order (so
  * that the lower limit is greater than the upper limit), then the
  * interval is an excluded interval, rather than an included interval.
+ * <p>
+ * Note, The Interval class makes no allowances for cyclic nature of
+ * some coordinate systems (such as SkyFrame coordinates). A Box
+ * should usually be used in these cases since this requires the user 
+ * to think about suitable upper and lower limits,
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Interval'>AST Interval</a>  
@@ -39,10 +59,21 @@ public class Interval extends Region {
      * interval, rather than an included interval.
      * <p>
      * At least one axis limit must be supplied.
+     * <p>
+     * Note, The Interval class makes no allowances for cyclic nature of
+     * some coordinate systems (such as SkyFrame coordinates). A Box
+     * should usually be used in these cases since this requires the user 
+     * to think about suitable upper and lower limits,
      * <h4>Notes</h4>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
+     * <h4>Status Handling</h4>
+     * The protected interface to this function includes an extra
+     * parameter at the end of the parameter list descirbed above. This
+     * parameter is a pointer to the integer inherited status
+     * variable: "int *status".
+     * 
      * @param  frame  A pointer to the Frame in which the region is defined. A deep
      * copy is taken of the supplied Frame. This means that any
      * subsequent changes made to the Frame using the supplied pointer

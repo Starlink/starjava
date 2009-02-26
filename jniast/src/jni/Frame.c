@@ -175,6 +175,48 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axDistance(
    return (jdouble) result;
 }
 
+JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_intersect(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jdoubleArray jA1,     /* Coords of first point on first curve */
+   jdoubleArray jA2,     /* Coords of second point on first curve */
+   jdoubleArray jB1,     /* Coords of first point on second curve */
+   jdoubleArray jB2      /* Coords of second point on second curve */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   double *a1 = NULL;
+   double *a2 = NULL;
+   double *b1 = NULL;
+   double *b2 = NULL;
+   jdoubleArray jCross = NULL;
+   double *cross = NULL;
+
+   ENSURE_SAME_TYPE(jdouble,double)
+
+   if ( jniastCheckArrayLength( env, jA1, 2 ) &&
+        jniastCheckArrayLength( env, jA2, 2 ) &&
+        jniastCheckArrayLength( env, jB1, 2 ) &&
+        jniastCheckArrayLength( env, jB2, 2 ) &&
+        ( a1 = (*env)->GetDoubleArrayElements( env, jA1, NULL ) ) &&
+        ( a2 = (*env)->GetDoubleArrayElements( env, jA2, NULL ) ) &&
+        ( b1 = (*env)->GetDoubleArrayElements( env, jB1, NULL ) ) &&
+        ( b2 = (*env)->GetDoubleArrayElements( env, jB2, NULL ) ) &&
+        ( jCross = (*env)->NewDoubleArray( env, 2 ) ) &&
+        ( cross = (*env)->GetDoubleArrayElements( env, jCross, NULL ) ) ) {
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astIntersect( pointer.Frame, a1, a2, b1, b2, cross );
+      )
+      ALWAYS(
+         (*env)->ReleaseDoubleArrayElements( env, jA1, a1, JNI_ABORT );
+         (*env)->ReleaseDoubleArrayElements( env, jA2, a2, JNI_ABORT );
+         (*env)->ReleaseDoubleArrayElements( env, jB1, b1, JNI_ABORT );
+         (*env)->ReleaseDoubleArrayElements( env, jB2, b2, JNI_ABORT );
+         (*env)->ReleaseDoubleArrayElements( env, jCross, cross, 0 );
+      )
+   }
+   return jCross;
+}
+
 JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_convert(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */

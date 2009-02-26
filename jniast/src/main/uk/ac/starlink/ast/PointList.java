@@ -11,6 +11,21 @@ package uk.ac.starlink.ast;
  *  - a collection of points in a Frame. 
  * The PointList class implements a Region which represents a collection
  * of points in a Frame.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_PointList'>AST PointList</a>  
@@ -27,6 +42,12 @@ public class PointList extends Region {
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
+     * <h4>Status Handling</h4>
+     * The protected interface to this function includes an extra
+     * parameter at the end of the parameter list descirbed above. This
+     * parameter is a pointer to the integer inherited status
+     * variable: "int *status".
+     * 
      * @param  frame  A pointer to the Frame in which the region is defined. A deep
      * copy is taken of the supplied Frame. This means that any
      * subsequent changes made to the Frame using the supplied pointer
@@ -80,5 +101,38 @@ public class PointList extends Region {
         construct( frame, npnt, points, unc );
     }
     private native void construct( Frame frame, int npnt, double[][] points, Region unc );
+
+    /** 
+     * Return the axis values in a PointList.   
+     * This function 
+     * returns the PointList axis values in a supplied array.
+     * <h4>Notes</h4>
+     * <br> - The number of axes spanned by the PointList is given by the Naxes
+     * attribute.
+     * <br> - The number of points in the PointList is given by the ListSize
+     * attribute.
+     * @return  The address of the first element in a 2-dimensional array of 
+     * shape "[max_coord][max_point]", into
+     * which the coordinates of the points will
+     * be written. These will be stored such that the value of
+     * coordinate number "coord" for point number "point"
+     * will be found in element "out[coord][point]".
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[][] points(  );
+
+    /**
+     * Get 
+     * number of points in a PointList.  
+     * This is a read-only attribute giving the number of points in a
+     * PointList. This value is determined when the PointList is created.
+     * 
+     *
+     * @return  this object's ListSize attribute
+     */
+    public int getListSize() {
+        return getI( "ListSize" );
+    }
 
 }

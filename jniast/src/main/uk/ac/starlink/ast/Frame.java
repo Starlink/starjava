@@ -29,6 +29,21 @@ package uk.ac.starlink.ast;
  * transformation in both the forward and inverse directions
  * (equivalent to a UnitMap). The Nin and Nout attribute values are
  * both equal to the number of Frame axes.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Frame'>AST Frame</a>  
@@ -117,11 +132,11 @@ public class Frame extends Mapping {
      * 
      * @return  The angle in radians, from the positive direction of the
      * specified axis, to the line AB. If the Frame is 2-dimensional,
-     * it will be in the range $\pm \pi$, and positive rotation is in
+     * it will be in the range [-PI/2,+PI/2], and positive rotation is in
      * the same sense as rotation from the positive direction of axis 2
      * to the positive direction of axis 1. If the Frame has more than 2
      * axes, a positive value will always be returned in the range zero
-     * to $\pi$.
+     * to PI.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -137,7 +152,7 @@ public class Frame extends Mapping {
      * of Frame (such as a SkyFrame) this is not the case.
      * <h4>Notes</h4>
      * <br> - This function will return a "bad" result value (AST__BAD) if
-     * any of the input vaues has this value.
+     * any of the input values has this value.
      * <br> - A "bad" value will also be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
@@ -158,6 +173,60 @@ public class Frame extends Mapping {
     public native double axDistance( int axis, double v1, double v2 );
 
     /** 
+     * Find the point of intersection between two geodesic curves.   
+     * This function 
+     * finds the coordinate values at the point of intersection between
+     * two geodesic curves. Each curve is specified by two points on 
+     * the curve.  It can only be used with 2-dimensional Frames.
+     * <p>
+     * For example, in a basic Frame, it will find the point of
+     * intersection between two straight lines. But for a SkyFrame it 
+     * will find an intersection of two great circles.
+     * <h4>Notes</h4>
+     * <br> - For SkyFrames each curve will be a great circle, and in general
+     * each pair of curves will intersect at two diametrically opposite 
+     * points on the sky. The returned position is the one which is
+     * closest to point 
+     * "a1".
+     * <br> - This function will return "bad" coordinate values (AST__BAD)
+     * if any of the input coordinates has this value, or if the two
+     * points defining either geodesic are co-incident, or if the two
+     * curves do not intersect.
+     * <br> - The geodesic curve used by this function is the path of
+     * shortest distance between two points, as defined by the
+     * astDistance function.
+     * <br> - An error will be reported if the Frame is not 2-dimensional.
+     * @param   a1
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of the
+     * first point on the first geodesic curve.
+     * 
+     * @param   a2
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of a
+     * second point on the first geodesic curve. It should not be 
+     * co-incident with the first point.
+     * 
+     * @param   b1
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of the
+     * first point on the second geodesic curve.
+     * 
+     * @param   b2
+     * An array of double, with one element for each Frame axis
+     * (Naxes attribute). This should contain the coordinates of a
+     * second point on the second geodesic curve. It should not be 
+     * co-incident with the first point.
+     * 
+     * @return  An array of double, with one element for each Frame axis
+     * in which the coordinates of the required intersection will 
+     * be returned.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[] intersect( double[] a1, double[] a2, double[] b1, double[] b2 );
+
+    /** 
      * Add an increment onto a supplied axis value.   
      * This function returns an axis value formed by adding a signed axis
      * increment onto a supplied axis value.
@@ -167,7 +236,7 @@ public class Frame extends Mapping {
      * of Frame (such as a SkyFrame) this is not the case.
      * <h4>Notes</h4>
      * <br> - This function will return a "bad" result value (AST__BAD) if
-     * any of the input vaues has this value.
+     * any of the input values has this value.
      * <br> - A "bad" value will also be returned if this function is
      * invoked with the AST error status set, or if it should fail for
      * any reason.
@@ -241,8 +310,7 @@ public class Frame extends Mapping {
      * coordinate system. Note that the Base attribute of this
      * FrameSet may be modified by this function to indicate which
      * intermediate coordinate system was used (see under
-     * "FrameSets" in the "Class Applicability" section for
-     * details).
+     * "FrameSets" in the "Applicability" section for details).
      * 
      * @param   domainlist
      * Pointer to a null-terminated character string containing a
@@ -401,7 +469,22 @@ public class Frame extends Mapping {
      * any other SkyFrame, but will not match a basic
      * Frame. Conversely, a basic Frame template will match any class
      * of Frame.
-     * <br> - If a template has a value set for any of its attributes, then
+     * <br> - The exception to this is that a Frame of any class can be used to
+     * match a CmpFrame, if that CmpFrame contains a Frame of the same
+     * class as the template. Note however, the MaxAxes and MinAxes
+     * attributes of the template must be set to suitable values to allow
+     * it to match the CmpFrame. That is, the MinAxes attribute must be
+     * less than or equal to the number of axes in the target, and the MaxAxes 
+     * attribute must be greater than or equal to the number of axes in
+     * the target.
+     * <br> - If using a CmpFrame as a template frame, the MinAxes and MaxAxes 
+     * for the template are determined by the MinAxes and MaxAxes values of 
+     * the component Frames within the template. So if you want a template 
+     * CmpFrame to be able to match Frames with different numbers of axes,
+     * then you must set the MaxAxes and/or MinAxes attributes in the component
+     * template Frames, before combining them together into the template 
+     * CmpFrame.
+     * <br> - If a template has a value set for any of its main attributes, then
      * it will only match Frames which have an identical value for that
      * attribute (or which can be transformed, using a built-in
      * conversion, so that they have the required value for that
@@ -409,7 +492,8 @@ public class Frame extends Mapping {
      * then Frames are matched regardless of the value they may have
      * for that attribute. You may therefore make a template more or
      * less specific by choosing the attributes for which you set
-     * values.
+     * values. This requirement does not apply to 'descriptive' attributes
+     * such as titles, labels, symbols, etc.
      * <br> - An important application of this principle involves the Domain
      * attribute. Setting the Domain attribute of the template has the
      * effect of restricting the search to a particular type of Frame
@@ -546,6 +630,10 @@ public class Frame extends Mapping {
      * quantities (such as angles or positions on the sky), coordinates
      * will typically be wrapped into an appropriate standard range,
      * such as zero to 2*pi.
+     * <br> - The NormMap class is a Mapping which can be used to normalise a
+     * set of points using the 
+     * astNorm function
+     * of a specified Frame.
      * <br> - It is intended to be possible to put any set of coordinates
      * into a form suitable for display by using this function to
      * normalise them, followed by appropriate formatting
@@ -687,11 +775,6 @@ public class Frame extends Mapping {
      * Optionally, a Mapping that converts between the coordinate
      * systems described by the two Frames will also be returned.
      * <h4>Notes</h4>
-     * <br> - The class of Frame returned may differ from that of the
-     * original Frame, depending on which axes are selected. For
-     * example, if a single axis is picked from a SkyFrame (which must
-     * always have two axes) then the resulting Frame cannot be a valid
-     * SkyFrame, so will revert to the parent class (Frame) instead.
      * <br> - The new Frame will contain a "deep" copy (c.f. astCopy) of all
      * the data selected from the original Frame. Modifying any aspect
      * of the new Frame will therefore not affect the original one.
@@ -1192,9 +1275,10 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis. However, if the Format string
-     * includes a precision given by ".*" then the Digits attribute is
-     * used to determine the number of decimal placs to produce.
+     * string is set explicitly for an axis. However, if the Format
+     * attribute specifies the precision using the string ".*", then 
+     * the Digits attribute is used to determine the number of decimal 
+     * places to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1234,9 +1318,10 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis. However, if the Format string
-     * includes a precision given by ".*" then the Digits attribute is
-     * used to determine the number of decimal placs to produce.
+     * string is set explicitly for an axis. However, if the Format
+     * attribute specifies the precision using the string ".*", then 
+     * the Digits attribute is used to determine the number of decimal 
+     * places to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1276,9 +1361,10 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis. However, if the Format string
-     * includes a precision given by ".*" then the Digits attribute is
-     * used to determine the number of decimal placs to produce.
+     * string is set explicitly for an axis. However, if the Format
+     * attribute specifies the precision using the string ".*", then 
+     * the Digits attribute is used to determine the number of decimal 
+     * places to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1330,9 +1416,10 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis. However, if the Format string
-     * includes a precision given by ".*" then the Digits attribute is
-     * used to determine the number of decimal placs to produce.
+     * string is set explicitly for an axis. However, if the Format
+     * attribute specifies the precision using the string ".*", then 
+     * the Digits attribute is used to determine the number of decimal 
+     * places to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1406,6 +1493,10 @@ public class Frame extends Mapping {
      *    The Direction attribute of a FrameSet axis is the same as
      *    that of its current Frame (as specified by the Current
      *    attribute).
+     * <dt>Plot</dt><dd>
+     *    The Direction attribute of the base Frame in a Plot is set to
+     *    indicate the sense of the two graphics axes, as implied by the 
+     *    graphics bounding box supplied when the Plot was created.
      * <p>
      * </dl>
      * 
@@ -1462,6 +1553,10 @@ public class Frame extends Mapping {
      *    The Direction attribute of a FrameSet axis is the same as
      *    that of its current Frame (as specified by the Current
      *    attribute).
+     * <dt>Plot</dt><dd>
+     *    The Direction attribute of the base Frame in a Plot is set to
+     *    indicate the sense of the two graphics axes, as implied by the 
+     *    graphics bounding box supplied when the Plot was created.
      * <p>
      * </dl>
      * 
@@ -1521,6 +1616,9 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The SpecFrame class re-defines the default Domain value to be
      *    "SPECTRUM".
+     * <dt>DSBSpecFrame</dt><dd>
+     *    The DSBSpecFrame class re-defines the default Domain value to be
+     *    "DSBSPECTRUM".
      * <dt>FluxFrame</dt><dd>
      *    The FluxFrame class re-defines the default Domain value to be
      *    "FLUX".
@@ -1576,6 +1674,9 @@ public class Frame extends Mapping {
      * <dt>SpecFrame</dt><dd>
      *    The SpecFrame class re-defines the default Domain value to be
      *    "SPECTRUM".
+     * <dt>DSBSpecFrame</dt><dd>
+     *    The DSBSpecFrame class re-defines the default Domain value to be
+     *    "DSBSPECTRUM".
      * <dt>FluxFrame</dt><dd>
      *    The FluxFrame class re-defines the default Domain value to be
      *    "FLUX".
@@ -1597,6 +1698,64 @@ public class Frame extends Mapping {
 
     /**
      * Get 
+     * the UT1-UTC correction.  
+     * This attribute is used when calculating the Local Apparent Sidereal
+     * Time corresponding to SkyFrame's Epoch value (used when converting
+     * positions to or from the "AzEl" system). It should be set to the 
+     * difference, in seconds, between the UT1 and UTC timescales at the 
+     * moment in time represented by the SkyFrame's Epoch attribute. The 
+     * value to use is unpredictable and depends on changes in the earth's 
+     * rotation speed. Values for UT1-UTC can be obtained from the 
+     * International Earth Rotation and Reference Systems Service 
+     * (IERS) at http://www.iers.org/.
+     * <p>
+     * Currently, the correction is always less than 1 second. This is
+     * ensured by the occasional introduction of leap seconds into the UTC
+     * timescale. Therefore no great error will usually result if no value
+     * is assigned to this attribute (in which case a default value of
+     * zero is used). However, it is possible that a decision may be taken
+     * at some time in the future to abandon the introduction of leap
+     * seconds, in which case the DUT correction could grow to significant 
+     * sizes.
+     * 
+     *
+     * @return  this object's Dut1 attribute
+     */
+    public double getDut1() {
+        return getD( "Dut1" );
+    }
+
+    /**
+     * Set 
+     * the UT1-UTC correction.  
+     * This attribute is used when calculating the Local Apparent Sidereal
+     * Time corresponding to SkyFrame's Epoch value (used when converting
+     * positions to or from the "AzEl" system). It should be set to the 
+     * difference, in seconds, between the UT1 and UTC timescales at the 
+     * moment in time represented by the SkyFrame's Epoch attribute. The 
+     * value to use is unpredictable and depends on changes in the earth's 
+     * rotation speed. Values for UT1-UTC can be obtained from the 
+     * International Earth Rotation and Reference Systems Service 
+     * (IERS) at http://www.iers.org/.
+     * <p>
+     * Currently, the correction is always less than 1 second. This is
+     * ensured by the occasional introduction of leap seconds into the UTC
+     * timescale. Therefore no great error will usually result if no value
+     * is assigned to this attribute (in which case a default value of
+     * zero is used). However, it is possible that a decision may be taken
+     * at some time in the future to abandon the introduction of leap
+     * seconds, in which case the DUT correction could grow to significant 
+     * sizes.
+     * 
+     *
+     * @param  dut1   the Dut1 attribute of this object
+     */
+    public void setDut1( double dut1 ) {
+       setD( "Dut1", dut1 );
+    }
+
+    /**
+     * Get 
      * epoch of observation.  
      * This attribute is used to qualify the coordinate systems described by
      * a Frame, by giving the moment in time when the coordinates are known
@@ -1607,6 +1766,10 @@ public class Frame extends Mapping {
      * The Epoch attribute is stored as a Modified Julian Date, but
      * when setting its value it may be given in a variety of
      * formats. See the "Input Formats" section (below) for details.
+     * Strictly, the Epoch value should be supplied in the TDB timescale,
+     * but for some purposes (for instance, for converting sky positions 
+     * between different types of equatorial system) the timescale is not
+     * significant, and UTC may be used.   
      * <h4>Input Formats</h4>
      * The formats accepted when setting an Epoch value are listed
      * below. They are all case-insensitive and are generally tolerant
@@ -1724,6 +1887,10 @@ public class Frame extends Mapping {
      * The Epoch attribute is stored as a Modified Julian Date, but
      * when setting its value it may be given in a variety of
      * formats. See the "Input Formats" section (below) for details.
+     * Strictly, the Epoch value should be supplied in the TDB timescale,
+     * but for some purposes (for instance, for converting sky positions 
+     * between different types of equatorial system) the timescale is not
+     * significant, and UTC may be used.   
      * <h4>Input Formats</h4>
      * The formats accepted when setting an Epoch value are listed
      * below. They are all case-insensitive and are generally tolerant
@@ -1841,6 +2008,10 @@ public class Frame extends Mapping {
      * The Epoch attribute is stored as a Modified Julian Date, but
      * when setting its value it may be given in a variety of
      * formats. See the "Input Formats" section (below) for details.
+     * Strictly, the Epoch value should be supplied in the TDB timescale,
+     * but for some purposes (for instance, for converting sky positions 
+     * between different types of equatorial system) the timescale is not
+     * significant, and UTC may be used.   
      * <h4>Input Formats</h4>
      * The formats accepted when setting an Epoch value are listed
      * below. They are all case-insensitive and are generally tolerant
@@ -2474,14 +2645,16 @@ public class Frame extends Mapping {
      * <dt>Frame</dt><dd>
      *    The default MaxAxes value for a Frame is equal to the number
      *    of Frame axes (Naxes attribute).
-     * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class constrains the MaxAxes value to be 2.  Any
-     *    attempt to alter this value is simply ignored.
      * <dt>CmpFrame</dt><dd>
-     *    The MaxAxes attribute of a CmpFrame is equal to the sum of
-     *    the MaxAxes values of its two component Frames. Any attempt
-     *    to alter this value (other than through the component Frames)
-     *    is simply ignored.
+     *    The MaxAxes attribute of a CmpFrame defaults to a large number
+     *    (1000000) which is much larger than any likely number of axes in
+     *    a Frame. Combined with the MinAxes default of zero (for a
+     *    CmpFrame), this means that the default behaviour for a CmpFrame 
+     *    is to match any target Frame that consists of a subset of the 
+     *    axes in the template CmpFrame. To change this so that a CmpFrame
+     *    will only match Frames that have the same number of axes, you
+     *    should set the CmpFrame MaxAxes and MinAxes attributes to the 
+     *    number of axes in the CmpFrame.
      * <dt>FrameSet</dt><dd>
      *    The MaxAxes attribute of a FrameSet is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -2522,14 +2695,16 @@ public class Frame extends Mapping {
      * <dt>Frame</dt><dd>
      *    The default MaxAxes value for a Frame is equal to the number
      *    of Frame axes (Naxes attribute).
-     * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class constrains the MaxAxes value to be 2.  Any
-     *    attempt to alter this value is simply ignored.
      * <dt>CmpFrame</dt><dd>
-     *    The MaxAxes attribute of a CmpFrame is equal to the sum of
-     *    the MaxAxes values of its two component Frames. Any attempt
-     *    to alter this value (other than through the component Frames)
-     *    is simply ignored.
+     *    The MaxAxes attribute of a CmpFrame defaults to a large number
+     *    (1000000) which is much larger than any likely number of axes in
+     *    a Frame. Combined with the MinAxes default of zero (for a
+     *    CmpFrame), this means that the default behaviour for a CmpFrame 
+     *    is to match any target Frame that consists of a subset of the 
+     *    axes in the template CmpFrame. To change this so that a CmpFrame
+     *    will only match Frames that have the same number of axes, you
+     *    should set the CmpFrame MaxAxes and MinAxes attributes to the 
+     *    number of axes in the CmpFrame.
      * <dt>FrameSet</dt><dd>
      *    The MaxAxes attribute of a FrameSet is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -2570,14 +2745,14 @@ public class Frame extends Mapping {
      * <dt>Frame</dt><dd>
      *    The default MinAxes value for a Frame is equal to the number
      *    of Frame axes (Naxes attribute).
-     * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class constrains the MinAxes value to be 2. Any
-     *    attempt to alter this value is simply ignored.
      * <dt>CmpFrame</dt><dd>
-     *    The MinAxes attribute of a CmpFrame is equal to the sum of
-     *    the MinAxes values of its two component Frames. Any attempt
-     *    to alter this value (other than through the component Frames)
-     *    is simply ignored.
+     *    The MinAxes attribute of a CmpFrame defaults to zero. Combined 
+     *    with the MaxAxes default of 1000000 (for a CmpFrame), this means 
+     *    that the default behaviour for a CmpFrame is to match any target 
+     *    Frame that consists of a subset of the axes in the template 
+     *    CmpFrame. To change this so that a CmpFrame will only match Frames 
+     *    that have the same number of axes, you should set the CmpFrame 
+     *    MinAxes and MaxAxes attributes to the number of axes in the CmpFrame.
      * <dt>FrameSet</dt><dd>
      *    The MinAxes attribute of a FrameSet is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -2618,14 +2793,14 @@ public class Frame extends Mapping {
      * <dt>Frame</dt><dd>
      *    The default MinAxes value for a Frame is equal to the number
      *    of Frame axes (Naxes attribute).
-     * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class constrains the MinAxes value to be 2. Any
-     *    attempt to alter this value is simply ignored.
      * <dt>CmpFrame</dt><dd>
-     *    The MinAxes attribute of a CmpFrame is equal to the sum of
-     *    the MinAxes values of its two component Frames. Any attempt
-     *    to alter this value (other than through the component Frames)
-     *    is simply ignored.
+     *    The MinAxes attribute of a CmpFrame defaults to zero. Combined 
+     *    with the MaxAxes default of 1000000 (for a CmpFrame), this means 
+     *    that the default behaviour for a CmpFrame is to match any target 
+     *    Frame that consists of a subset of the axes in the template 
+     *    CmpFrame. To change this so that a CmpFrame will only match Frames 
+     *    that have the same number of axes, you should set the CmpFrame 
+     *    MinAxes and MaxAxes attributes to the number of axes in the CmpFrame.
      * <dt>FrameSet</dt><dd>
      *    The MinAxes attribute of a FrameSet is the same as that of
      *    its current Frame (as specified by the Current attribute).
@@ -2664,6 +2839,174 @@ public class Frame extends Mapping {
      */
     public int getNaxes() {
         return getI( "Naxes" );
+    }
+
+    /**
+     * Get 
+     * the geodetic latitude of the observer.  
+     * This attribute specifies the geodetic latitude of the observer, in
+     * degrees. The basic Frame class makes no use of this attribute, but
+     * specialised subclasses of Frame may use it. For instance, the
+     * SpecFrame, SkyFrame and TimeFrame classes use it. The default value
+     * is zero.
+     * <p>
+     * The value is stored internally in radians, but is converted to and 
+     * from a degrees string for access. Some example input formats are: 
+     * "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
+     * "-45.6", "S45.6". As indicated, the sign of the latitude can 
+     * optionally be indicated using characters "N" and "S" in place of the 
+     * usual "+" and "-". When converting the stored value to a string, the 
+     * format "[s]dd:mm:ss.ss" is used, when "[s]" is "N" or "S".
+     * 
+     * <h4>Class Applicability</h4>
+     * <dl>
+     * <dt>Frame</dt><dd>
+     *    All Frames have this attribute.
+     * <dt>SpecFrame</dt><dd>
+     *    Together with the ObsLon, Epoch, RefRA and RefDec attributes, 
+     *    it defines the Doppler shift introduced by the observers diurnal 
+     *    motion around the earths axis, which is needed when converting to 
+     *    or from the topocentric standard of rest. The maximum velocity
+     *    error which can be caused by an incorrect value is 0.5 km/s. The 
+     *    default value for the attribute is zero.
+     * <dt>TimeFrame</dt><dd>
+     *    Together with the ObsLon attribute, it is used when converting
+     *    between certain time scales (TDB, TCB, LMST, LAST)
+     * <p>
+     * </dl>
+     * 
+     *
+     * @return  this object's ObsLat attribute
+     */
+    public String getObsLat() {
+        return getC( "ObsLat" );
+    }
+
+    /**
+     * Set 
+     * the geodetic latitude of the observer.  
+     * This attribute specifies the geodetic latitude of the observer, in
+     * degrees. The basic Frame class makes no use of this attribute, but
+     * specialised subclasses of Frame may use it. For instance, the
+     * SpecFrame, SkyFrame and TimeFrame classes use it. The default value
+     * is zero.
+     * <p>
+     * The value is stored internally in radians, but is converted to and 
+     * from a degrees string for access. Some example input formats are: 
+     * "22:19:23.2", "22 19 23.2", "22:19.387", "22.32311", "N22.32311", 
+     * "-45.6", "S45.6". As indicated, the sign of the latitude can 
+     * optionally be indicated using characters "N" and "S" in place of the 
+     * usual "+" and "-". When converting the stored value to a string, the 
+     * format "[s]dd:mm:ss.ss" is used, when "[s]" is "N" or "S".
+     * 
+     * <h4>Class Applicability</h4>
+     * <dl>
+     * <dt>Frame</dt><dd>
+     *    All Frames have this attribute.
+     * <dt>SpecFrame</dt><dd>
+     *    Together with the ObsLon, Epoch, RefRA and RefDec attributes, 
+     *    it defines the Doppler shift introduced by the observers diurnal 
+     *    motion around the earths axis, which is needed when converting to 
+     *    or from the topocentric standard of rest. The maximum velocity
+     *    error which can be caused by an incorrect value is 0.5 km/s. The 
+     *    default value for the attribute is zero.
+     * <dt>TimeFrame</dt><dd>
+     *    Together with the ObsLon attribute, it is used when converting
+     *    between certain time scales (TDB, TCB, LMST, LAST)
+     * <p>
+     * </dl>
+     * 
+     *
+     * @param  obsLat   the ObsLat attribute of this object
+     */
+    public void setObsLat( String obsLat ) {
+       setC( "ObsLat", obsLat );
+    }
+
+    /**
+     * Get 
+     * the geodetic longitude of the observer.  
+     * This attribute specifies the geodetic (or equivalently, geocentric)
+     * longitude of the observer, in degrees, measured positive eastwards. 
+     * See also attribute ObsLat. The basic Frame class makes no use of this 
+     * attribute, but specialised subclasses of Frame may use it. For instance, 
+     * the SpecFrame, SkyFrame and TimeFrame classes use it. The default value
+     * is zero.
+     * <p>
+     * The value is stored internally in radians, but is converted to and 
+     * from a degrees string for access. Some example input formats are: 
+     * "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
+     * "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
+     * optionally be indicated using characters "E" and "W" in place of the 
+     * usual "+" and "-". When converting the stored value to a string, the 
+     * format "[s]ddd:mm:ss.ss" is used, when "[s]" is "E" or "W" and the 
+     * numerical value is chosen to be less than 180 degrees.
+     * 
+     * <h4>Class Applicability</h4>
+     * <dl>
+     * <dt>Frame</dt><dd>
+     *    All Frames have this attribute.
+     * <dt>SpecFrame</dt><dd>
+     *    Together with the ObsLon, Epoch, RefRA and RefDec attributes, 
+     *    it defines the Doppler shift introduced by the observers diurnal 
+     *    motion around the earths axis, which is needed when converting to 
+     *    or from the topocentric standard of rest. The maximum velocity
+     *    error which can be caused by an incorrect value is 0.5 km/s. The 
+     *    default value for the attribute is zero.
+     * <dt>TimeFrame</dt><dd>
+     *    Together with the ObsLon attribute, it is used when converting
+     *    between certain time scales (TDB, TCB, LMST, LAST)
+     * <p>
+     * </dl>
+     * 
+     *
+     * @return  this object's ObsLon attribute
+     */
+    public String getObsLon() {
+        return getC( "ObsLon" );
+    }
+
+    /**
+     * Set 
+     * the geodetic longitude of the observer.  
+     * This attribute specifies the geodetic (or equivalently, geocentric)
+     * longitude of the observer, in degrees, measured positive eastwards. 
+     * See also attribute ObsLat. The basic Frame class makes no use of this 
+     * attribute, but specialised subclasses of Frame may use it. For instance, 
+     * the SpecFrame, SkyFrame and TimeFrame classes use it. The default value
+     * is zero.
+     * <p>
+     * The value is stored internally in radians, but is converted to and 
+     * from a degrees string for access. Some example input formats are: 
+     * "155:19:23.2", "155 19 23.2", "155:19.387", "155.32311", "E155.32311", 
+     * "-204.67689", "W204.67689". As indicated, the sign of the longitude can 
+     * optionally be indicated using characters "E" and "W" in place of the 
+     * usual "+" and "-". When converting the stored value to a string, the 
+     * format "[s]ddd:mm:ss.ss" is used, when "[s]" is "E" or "W" and the 
+     * numerical value is chosen to be less than 180 degrees.
+     * 
+     * <h4>Class Applicability</h4>
+     * <dl>
+     * <dt>Frame</dt><dd>
+     *    All Frames have this attribute.
+     * <dt>SpecFrame</dt><dd>
+     *    Together with the ObsLon, Epoch, RefRA and RefDec attributes, 
+     *    it defines the Doppler shift introduced by the observers diurnal 
+     *    motion around the earths axis, which is needed when converting to 
+     *    or from the topocentric standard of rest. The maximum velocity
+     *    error which can be caused by an incorrect value is 0.5 km/s. The 
+     *    default value for the attribute is zero.
+     * <dt>TimeFrame</dt><dd>
+     *    Together with the ObsLon attribute, it is used when converting
+     *    between certain time scales (TDB, TCB, LMST, LAST)
+     * <p>
+     * </dl>
+     * 
+     *
+     * @param  obsLon   the ObsLon attribute of this object
+     */
+    public void setObsLon( String obsLon ) {
+       setC( "ObsLon", obsLon );
     }
 
     /**
@@ -2940,13 +3283,28 @@ public class Frame extends Mapping {
      *    The SkyFrame class supports the following System values and
      *    associated celestial coordinate systems:
      * <p>
-     *    - "ICRS": The Internation Celestial Reference System, realised
-     *    through the Hipparcos catalogue. Whilst not an equatorial system
-     *    by definition, the ICRS is very close to the FK5 (J2000) system
-     *    and is usually treated as an equatorial system. The distinction
-     *    between ICRS and FK5 (J2000) only becomes important when accuracies
-     *    of 50 milli-arcseconds or better are required. ICRS need not be
-     *    qualified by an Equinox value.
+     *    - "AZEL": Horizon coordinates. The longitude axis is azimuth
+     *    such that geographic north has an azimuth of zero and geographic 
+     *    east has an azimuth of +PI/2 radians. The zenith has elevation
+     *    +PI/2. When converting to and from other celestial coordinate 
+     *    systems, no corrections are applied for atmospheric refraction
+     *    or polar motion (however, a correction for diurnal aberattion is
+     *    applied). Note, unlike most other
+     *    celestial coordinate systems, this system is right handed. Also,
+     *    unlike other SkyFrame systems, the AzEl system is sensitive to
+     *    the timescale in which the Epoch value is supplied. This is
+     *    because of the gross diurnal rotation which this system undergoes,
+     *    causing a small change in time to translate to a large rotation.
+     *    When converting to or from an AzEl system, the Epoch value for
+     *    both source and destination SkyFrames should be supplied in the 
+     *    TDB timescale. The difference between TDB and TT is between 1
+     *    and 2 milliseconds, and so a TT value can usually be supplied in
+     *    place of a TDB value. The TT timescale is related to TAI via
+     *    TT = TAI + 32.184 seconds.
+     * <p>
+     *    - "ECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
+     *    ecliptic and mean equinox specified by the qualifying Equinox
+     *    value.
      * <p>
      *    - "FK4": The old FK4 (barycentric) equatorial coordinate system,
      *    which should be qualified by an Equinox value. The underlying
@@ -2962,12 +3320,7 @@ public class Frame extends Mapping {
      *    - "FK5" or "EQUATORIAL": The modern FK5 (barycentric) equatorial
      *    coordinate system. This should be qualified by an Equinox value.
      * <p>
-     *    - "J2000": An equatorial coordinate system based on the mean
-     *    dynamical equator and equinox of the J2000 epoch. The dynamical
-     *    equator and equinox differ slightly from those used by the FK5
-     *    model, and so a "J2000" SkyFrame will differ slightly from an
-     *    "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
-     *    qualified by an Equinox value
+     *    - "GALACTIC": Galactic coordinates (IAU 1958).
      * <p>
      *    - "GAPPT", "GEOCENTRIC" or "APPARENT": The geocentric apparent
      *    equatorial coordinate system, which gives the apparent positions
@@ -2990,10 +3343,6 @@ public class Frame extends Mapping {
      *    (larger), and the precession and nutation of the Earth's spin
      *    axis (normally larger still).
      * <p>
-     *    - "ECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
-     *    ecliptic and mean equinox specified by the qualifying Equinox
-     *    value.
-     * <p>
      *    - "HELIOECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
      *    ecliptic and mean equinox of J2000.0, in which an offset is added to
      *    the longitude value which results in the centre of the sun being at 
@@ -3001,7 +3350,20 @@ public class Frame extends Mapping {
      *    set a value for the Equinox attribute will be ignored, since this 
      *    system is always referred to J2000.0.
      * <p>
-     *    - "GALACTIC": Galactic coordinates (IAU 1958).
+     *    - "ICRS": The Internation Celestial Reference System, realised
+     *    through the Hipparcos catalogue. Whilst not an equatorial system
+     *    by definition, the ICRS is very close to the FK5 (J2000) system
+     *    and is usually treated as an equatorial system. The distinction
+     *    between ICRS and FK5 (J2000) only becomes important when accuracies
+     *    of 50 milli-arcseconds or better are required. ICRS need not be
+     *    qualified by an Equinox value.
+     * <p>
+     *    - "J2000": An equatorial coordinate system based on the mean
+     *    dynamical equator and equinox of the J2000 epoch. The dynamical
+     *    equator and equinox differ slightly from those used by the FK5
+     *    model, and so a "J2000" SkyFrame will differ slightly from an
+     *    "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
+     *    qualified by an Equinox value
      * <p>
      *    - "SUPERGALACTIC": De Vaucouleurs Supergalactic coordinates.
      * <p>
@@ -3131,13 +3493,28 @@ public class Frame extends Mapping {
      *    The SkyFrame class supports the following System values and
      *    associated celestial coordinate systems:
      * <p>
-     *    - "ICRS": The Internation Celestial Reference System, realised
-     *    through the Hipparcos catalogue. Whilst not an equatorial system
-     *    by definition, the ICRS is very close to the FK5 (J2000) system
-     *    and is usually treated as an equatorial system. The distinction
-     *    between ICRS and FK5 (J2000) only becomes important when accuracies
-     *    of 50 milli-arcseconds or better are required. ICRS need not be
-     *    qualified by an Equinox value.
+     *    - "AZEL": Horizon coordinates. The longitude axis is azimuth
+     *    such that geographic north has an azimuth of zero and geographic 
+     *    east has an azimuth of +PI/2 radians. The zenith has elevation
+     *    +PI/2. When converting to and from other celestial coordinate 
+     *    systems, no corrections are applied for atmospheric refraction
+     *    or polar motion (however, a correction for diurnal aberattion is
+     *    applied). Note, unlike most other
+     *    celestial coordinate systems, this system is right handed. Also,
+     *    unlike other SkyFrame systems, the AzEl system is sensitive to
+     *    the timescale in which the Epoch value is supplied. This is
+     *    because of the gross diurnal rotation which this system undergoes,
+     *    causing a small change in time to translate to a large rotation.
+     *    When converting to or from an AzEl system, the Epoch value for
+     *    both source and destination SkyFrames should be supplied in the 
+     *    TDB timescale. The difference between TDB and TT is between 1
+     *    and 2 milliseconds, and so a TT value can usually be supplied in
+     *    place of a TDB value. The TT timescale is related to TAI via
+     *    TT = TAI + 32.184 seconds.
+     * <p>
+     *    - "ECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
+     *    ecliptic and mean equinox specified by the qualifying Equinox
+     *    value.
      * <p>
      *    - "FK4": The old FK4 (barycentric) equatorial coordinate system,
      *    which should be qualified by an Equinox value. The underlying
@@ -3153,12 +3530,7 @@ public class Frame extends Mapping {
      *    - "FK5" or "EQUATORIAL": The modern FK5 (barycentric) equatorial
      *    coordinate system. This should be qualified by an Equinox value.
      * <p>
-     *    - "J2000": An equatorial coordinate system based on the mean
-     *    dynamical equator and equinox of the J2000 epoch. The dynamical
-     *    equator and equinox differ slightly from those used by the FK5
-     *    model, and so a "J2000" SkyFrame will differ slightly from an
-     *    "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
-     *    qualified by an Equinox value
+     *    - "GALACTIC": Galactic coordinates (IAU 1958).
      * <p>
      *    - "GAPPT", "GEOCENTRIC" or "APPARENT": The geocentric apparent
      *    equatorial coordinate system, which gives the apparent positions
@@ -3181,10 +3553,6 @@ public class Frame extends Mapping {
      *    (larger), and the precession and nutation of the Earth's spin
      *    axis (normally larger still).
      * <p>
-     *    - "ECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
-     *    ecliptic and mean equinox specified by the qualifying Equinox
-     *    value.
-     * <p>
      *    - "HELIOECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
      *    ecliptic and mean equinox of J2000.0, in which an offset is added to
      *    the longitude value which results in the centre of the sun being at 
@@ -3192,7 +3560,20 @@ public class Frame extends Mapping {
      *    set a value for the Equinox attribute will be ignored, since this 
      *    system is always referred to J2000.0.
      * <p>
-     *    - "GALACTIC": Galactic coordinates (IAU 1958).
+     *    - "ICRS": The Internation Celestial Reference System, realised
+     *    through the Hipparcos catalogue. Whilst not an equatorial system
+     *    by definition, the ICRS is very close to the FK5 (J2000) system
+     *    and is usually treated as an equatorial system. The distinction
+     *    between ICRS and FK5 (J2000) only becomes important when accuracies
+     *    of 50 milli-arcseconds or better are required. ICRS need not be
+     *    qualified by an Equinox value.
+     * <p>
+     *    - "J2000": An equatorial coordinate system based on the mean
+     *    dynamical equator and equinox of the J2000 epoch. The dynamical
+     *    equator and equinox differ slightly from those used by the FK5
+     *    model, and so a "J2000" SkyFrame will differ slightly from an
+     *    "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
+     *    qualified by an Equinox value
      * <p>
      *    - "SUPERGALACTIC": De Vaucouleurs Supergalactic coordinates.
      * <p>
@@ -3546,6 +3927,38 @@ public class Frame extends Mapping {
         else {
             throw new IndexOutOfBoundsException( 
                 "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Get 
+     * normalised Axis physical units by axis.  
+     * The value of this read-only attribute is derived from the current
+     * value of the Unit attribute. It will represent an equivalent system
+     * of units to the Unit attribute, but will potentially be simplified.
+     * For instance, if Unit is set to "s*(m/s)", the NormUnit value will
+     * be "m". If no simplification can be performed, the value of the
+     * NormUnit attribute will equal that of the Unit attribute.
+     * <h4>Notes</h4>
+     * <br> - When specifying this attribute by name, it should be
+     * subscripted with the number of the Frame axis to which it
+     * applies.
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the NormUnit attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public String getNormUnit( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getC( "NormUnit" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
         }
     }
 

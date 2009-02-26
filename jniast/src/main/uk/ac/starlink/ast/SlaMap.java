@@ -24,6 +24,21 @@ package uk.ac.starlink.ast;
  * <p>
  * For details of the individual coordinate conversions available,
  * see the description of the astSlaAdd function.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * @see <a href="http://star-www.rl.ac.uk/star/docs/sun67.htx/sun67.html">SUN/67 - SLALIB</a>
  * 
@@ -125,6 +140,8 @@ public class SlaMap extends Mapping {
      * <br> - "SUPGAL": Convert supergalactic coordinates to galactic.
      * <br> - "J2000H": Convert dynamical J2000.0 to ICRS.
      * <br> - "HJ2000": Convert ICRS to dynamical J2000.0.
+     * <br> - "R2H" (LAST): Convert RA to Hour Angle.
+     * <br> - "H2R" (LAST): Convert Hour Angle to RA.
      * <p>
      * For example, to use the "ADDET" conversion, which takes a single
      * argument EQ, you should consult the documentation for the SLALIB
@@ -135,8 +152,9 @@ public class SlaMap extends Mapping {
      * <p>
      * In addition the following strings may be supplied for more complex
      * conversions which do not correspond to any one single SLALIB routine
-     * (DATE is the Modified Julian Date of the observation, and
-     * (OBSX,OBSY,OBZ) are the Heliocentric-Aries-Ecliptic cartesian
+     * (DIURAB is the magnitude of the diurnal aberration vector in units
+     * of "day/(2.PI)", DATE is the Modified Julian Date of the observation, 
+     * and (OBSX,OBSY,OBZ) are the Heliocentric-Aries-Ecliptic cartesian 
      * coordinates, in metres, of the observer):
      * <p>
      * <br> - "HPCEQ" (DATE,OBSX,OBSY,OBSZ): Convert Helioprojective-Cartesian coordinates to J2000.0 equatorial.
@@ -145,7 +163,14 @@ public class SlaMap extends Mapping {
      * <br> - "EQHPR" (DATE,OBSX,OBSY,OBSZ): Convert J2000.0 equatorial coordinates to Helioprojective-Radial.
      * <br> - "HEEQ" (DATE): Convert helio-ecliptic coordinates to J2000.0 equatorial.
      * <br> - "EQHE" (DATE): Convert J2000.0 equatorial coordinates to helio-ecliptic.
+     * <br> - "H2E" (LAT,DIRUAB): Convert horizon coordinates to equatorial.
+     * <br> - "E2H" (LAT,DIURAB): Convert equatorial coordinates to horizon.
      * <p>
+     * Note, the "H2E" and "E2H" conversions convert between topocentric
+     * horizon coordinates (azimuth,elevation), and apparent local equatorial
+     * coordinates (hour angle,declination). Thus, the effects of diurnal
+     * aberration are taken into account in the conversions but the effects 
+     * of atmospheric refraction are not.
      * 
      * @see <a href="http://star-www.rl.ac.uk/star/docs/sun67.htx/sun67.html">SUN/67 - SLALIB</a>
      * @param   cvt

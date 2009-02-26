@@ -40,7 +40,24 @@ f     The RateMap class does not define any new routines beyond those
 *     which are applicable to all Mappings.
 
 *  Copyright:
-*     <COPYRIGHT_STATEMENT>
+*     Copyright (C) 1997-2006 Council for the Central Laboratory of the
+*     Research Councils
+
+*  Licence:
+*     This program is free software; you can redistribute it and/or
+*     modify it under the terms of the GNU General Public Licence as
+*     published by the Free Software Foundation; either version 2 of
+*     the Licence, or (at your option) any later version.
+*     
+*     This program is distributed in the hope that it will be
+*     useful,but WITHOUT ANY WARRANTY; without even the implied
+*     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+*     PURPOSE. See the GNU General Public Licence for more details.
+*     
+*     You should have received a copy of the GNU General Public Licence
+*     along with this program; if not, write to the Free Software
+*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+*     02111-1307, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -48,6 +65,10 @@ f     The RateMap class does not define any new routines beyond those
 *  History:
 *     10-FEB-2004 (DSB):
 *        Original version.
+*     14-FEB-2006 (DSB):
+*        Override astGetObjSize.
+*     10-MAY-2006 (DSB):
+*        Override astEqual.
 *class--
 */
 
@@ -62,6 +83,8 @@ f     The RateMap class does not define any new routines beyond those
 /* ============== */
 /* Interface definitions. */
 /* ---------------------- */
+
+#include "globals.h"             /* Thread-safe global data access */
 #include "error.h"               /* Error reporting facilities */
 #include "memory.h"              /* Memory allocation facilities */
 #include "object.h"              /* Base Object class */
@@ -83,14 +106,46 @@ f     The RateMap class does not define any new routines beyond those
 
 /* Module Variables. */
 /* ================= */
-/* Define the class virtual function table and its initialisation flag
-   as static variables. */
-static AstRateMapVtab class_vtab; /* Virtual function table */
-static int class_init = 0;       /* Virtual function table initialised? */
+
+/* Address of this static variable is used as a unique identifier for
+   member of this class. */
+static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
-static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet * );
-static int *(* parent_mapsplit)( AstMapping *, int, int *, AstMapping ** );
+static int (* parent_getobjsize)( AstObject *, int * );
+static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static int *(* parent_mapsplit)( AstMapping *, int, const int *, AstMapping **, int * );
+
+#if defined(THREAD_SAFE)
+static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
+#endif
+
+
+#ifdef THREAD_SAFE
+/* Define how to initialise thread-specific globals. */ 
+#define GLOBAL_inits \
+   globals->Class_Init = 0; 
+
+/* Create the function that initialises global data for this module. */
+astMAKE_INITGLOBALS(RateMap)
+
+/* Define macros for accessing each item of thread specific global data. */
+#define class_init astGLOBAL(RateMap,Class_Init)
+#define class_vtab astGLOBAL(RateMap,Class_Vtab)
+
+
+#include <pthread.h>
+
+
+#else
+
+
+/* Define the class virtual function table and its initialisation flag
+   as static variables. */
+static AstRateMapVtab class_vtab;   /* Virtual function table */
+static int class_init = 0;       /* Virtual function table initialised? */
+
+#endif
 
 /* External Interface Function Prototypes. */
 /* ======================================= */
@@ -101,16 +156,193 @@ AstRateMap *astRateMapId_( void *, int, int, const char *, ... );
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet * );
-static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int ** );
-static void Copy( const AstObject *, AstObject * );
-static void Delete( AstObject * );
-static void Dump( AstObject *, AstChannel * );
-static int *MapSplit( AstMapping *, int, int *, AstMapping ** );
+static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
+static void Copy( const AstObject *, AstObject *, int * );
+static void Delete( AstObject *, int * );
+static void Dump( AstObject *, AstChannel *, int * );
+static int *MapSplit( AstMapping *, int, const int *, AstMapping **, int * );
+static int Equal( AstObject *, AstObject *, int * );
+static int GetObjSize( AstObject *, int * );
+
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *, int, int, AstObject **, int * );
+#endif
 
 /* Member functions. */
 /* ================= */
-void astInitRateMapVtab_(  AstRateMapVtab *vtab, const char *name ) {
+static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
+/*
+*  Name:
+*     Equal
+
+*  Purpose:
+*     Test if two RateMaps are equivalent.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "ratemap.h"
+*     int Equal( AstObject *this, AstObject *that, int *status ) 
+
+*  Class Membership:
+*     RateMap member function (over-rides the astEqual protected
+*     method inherited from the astMapping class).
+
+*  Description:
+*     This function returns a boolean result (0 or 1) to indicate whether
+*     two RateMaps are equivalent.
+
+*  Parameters:
+*     this
+*        Pointer to the first Object (a RateMap).
+*     that
+*        Pointer to the second Object.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     One if the RateMaps are equivalent, zero otherwise.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstRateMap *that;        
+   AstRateMap *this;        
+   int nin;
+   int nout;
+   int result;
+   int that_inv;
+   int this_inv;
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain pointers to the two RateMap structures. */
+   this = (AstRateMap *) this_object;
+   that = (AstRateMap *) that_object;
+
+/* Check the second object is a RateMap. We know the first is a
+   RateMap since we have arrived at this implementation of the virtual
+   function. */
+   if( astIsARateMap( that ) ) {
+
+/* Get the number of inputs and outputs and check they are the same for both. */
+      nin = astGetNin( this );
+      nout = astGetNout( this );
+      if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
+
+/* If the Invert flags for the two RateMaps differ, it may still be possible 
+   for them to be equivalent. First compare the RateMaps if their Invert 
+   flags are the same. In this case all the attributes of the two RateMaps 
+   must be identical. */
+         if( astGetInvert( this ) == astGetInvert( that ) ) {
+
+/* Temporarily re-instate the original Invert flag values. */
+            this_inv = astGetInvert( this->map );
+            that_inv = astGetInvert( that->map );
+            astSetInvert( this->map, this->invert );
+            astSetInvert( that->map, that->invert );
+
+            if( astEqual( this->map, that->map ) &&
+                this->iin == that->iin &&
+                this->iout == that->iout ){
+               result = 1;
+            }
+
+/* Restore the original Invert flag values. */
+            astSetInvert( this->map, this_inv );
+            astSetInvert( that->map, that_inv );
+
+/* If the Invert flags for the two RateMaps differ, the attributes of the two 
+   RateMaps must be inversely related to each other. */
+         } else {
+
+/* In the specific case of a RateMap, Invert flags must be equal. */
+            result = 0;
+
+         }
+      }
+   }
+   
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "ratemap.h"
+*     int GetObjSize( AstObject *this, int *status ) 
+
+*  Class Membership:
+*     RateMap member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied RateMap,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the RateMap.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstRateMap *this;         /* Pointer to RateMap structure */
+   int result;                /* Result value to return */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the RateMap structure. */
+   this = (AstRateMap *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by thsi class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+   result += astGetObjSize( this->map );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
+   return result;
+}
+
+void astInitRateMapVtab_(  AstRateMapVtab *vtab, const char *name, int *status ) {
 /*
 *+
 *  Name:
@@ -147,10 +379,15 @@ void astInitRateMapVtab_(  AstRateMapVtab *vtab, const char *name ) {
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
 /* Check the local error status. */
    if ( !astOK ) return;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Initialize the component of the virtual function table used by the
    parent class. */
@@ -159,8 +396,8 @@ void astInitRateMapVtab_(  AstRateMapVtab *vtab, const char *name ) {
 /* Store a unique "magic" value in the virtual function table. This
    will be used (by astIsARateMap) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
-   class_init variable to generate this unique value. */
-   vtab->check = &class_init;
+   class_check variable to generate this unique value. */
+   vtab->check = &class_check;
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -171,7 +408,15 @@ void astInitRateMapVtab_(  AstRateMapVtab *vtab, const char *name ) {
 
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
+   object = (AstObjectVtab *) vtab;
    mapping = (AstMappingVtab *) vtab;
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
+
+#if defined(THREAD_SAFE)
+   parent_managelock = object->ManageLock;
+   object->ManageLock = ManageLock;
+#endif
 
    parent_transform = mapping->Transform;
    mapping->Transform = Transform;
@@ -181,16 +426,116 @@ void astInitRateMapVtab_(  AstRateMapVtab *vtab, const char *name ) {
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   object->Equal = Equal;
    mapping->MapMerge = MapMerge;
 
 /* Declare the copy constructor, destructor and class dump function. */
    astSetCopy( vtab, Copy );
    astSetDelete( vtab, Delete );
    astSetDump( vtab, Dump, "RateMap", "Differential Mapping" );
+
+/* If we have just initialised the vtab for the current class, indicate
+   that the vtab is now initialised. */
+   if( vtab == &class_vtab ) class_init = 1;
+
 }
 
+#if defined(THREAD_SAFE)
+static int ManageLock( AstObject *this_object, int mode, int extra, 
+                       AstObject **fail, int *status ) {
+/*
+*  Name:
+*     ManageLock
+
+*  Purpose:
+*     Manage the thread lock on an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "object.h"
+*     AstObject *ManageLock( AstObject *this, int mode, int extra, 
+*                            AstObject **fail, int *status ) 
+
+*  Class Membership:
+*     RateMap member function (over-rides the astManageLock protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function manages the thread lock on the supplied Object. The
+*     lock can be locked, unlocked or checked by this function as 
+*     deteremined by parameter "mode". See astLock for details of the way
+*     these locks are used.
+
+*  Parameters:
+*     this
+*        Pointer to the Object.
+*     mode
+*        An integer flag indicating what the function should do:
+*
+*        AST__LOCK: Lock the Object for exclusive use by the calling
+*        thread. The "extra" value indicates what should be done if the
+*        Object is already locked (wait or report an error - see astLock).
+*
+*        AST__UNLOCK: Unlock the Object for use by other threads.
+*
+*        AST__CHECKLOCK: Check that the object is locked for use by the
+*        calling thread (report an error if not).
+*     extra
+*        Extra mode-specific information. 
+*     fail
+*        If a non-zero function value is returned, a pointer to the
+*        Object that caused the failure is returned at "*fail". This may
+*        be "this" or it may be an Object contained within "this". Note,
+*        the Object's reference count is not incremented, and so the
+*        returned pointer should not be annulled. A NULL pointer is 
+*        returned if this function returns a value of zero.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*    A local status value: 
+*        0 - Success
+*        1 - Could not lock or unlock the object because it was already 
+*            locked by another thread.
+*        2 - Failed to lock a POSIX mutex
+*        3 - Failed to unlock a POSIX mutex
+*        4 - Bad "mode" value supplied.
+
+*  Notes:
+*     - This function attempts to execute even if an error has already
+*     occurred.
+*/
+
+/* Local Variables: */
+   AstRateMap *this;       /* Pointer to RateMap structure */
+   int result;             /* Returned status value */
+
+/* Initialise */
+   result = 0;
+
+/* Check the supplied pointer is not NULL. */
+   if( !this_object ) return result;
+
+/* Obtain a pointers to the RateMap structure. */
+   this = (AstRateMap *) this_object;
+
+/* Invoke the ManageLock method inherited from the parent class. */
+   if( !result ) result = (*parent_managelock)( this_object, mode, extra,
+                                                fail, status );
+
+/* Invoke the astManageLock method on any Objects contained within
+   the supplied Object. */
+   if( !result ) result = astManageLock( this->map, mode, extra, fail );
+
+   return result;
+
+}
+#endif
+
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
-                     AstMapping ***map_list, int **invert_list ) {
+                     AstMapping ***map_list, int **invert_list, int *status ) {
 /*
 *  Name:
 *     MapMerge
@@ -204,7 +549,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *  Synopsis:
 *     #include "mapping.h"
 *     int MapMerge( AstMapping *this, int where, int series, int *nmap,
-*                   AstMapping ***map_list, int **invert_list )
+*                   AstMapping ***map_list, int **invert_list, int *status )
 
 *  Class Membership:
 *     RateMap method (over-rides the protected astMapMerge method
@@ -307,6 +652,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 *        length, the "*invert_list" array will be extended (and its
 *        pointer updated) if necessary to accommodate any new
 *        elements.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     If simplification was possible, the function returns the index
@@ -367,7 +714,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    simplified mapping. */
    if( smap != emap ) {
       (void) astAnnul( ( *map_list )[ where ] );
-      ( *map_list )[ where ] = (AstMapping *) astRateMap( smap, map->iout, map->iin, "" );
+      ( *map_list )[ where ] = (AstMapping *) astRateMap( smap, map->iout, map->iin, "", status );
       result = where;
     
 /* The only other simplication which can be performed is to cancel a RateMap
@@ -437,9 +784,9 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
       if( cancel != -1 ) {
          (void) astAnnul( ( *map_list )[ where ] );
          (void) astAnnul( ( *map_list )[ cancel ] );
-         ( *map_list )[ where ] = (AstMapping *) astUnitMap( nax, "" );
+         ( *map_list )[ where ] = (AstMapping *) astUnitMap( nax, "", status );
          ( *invert_list )[ where ] = 0;
-         ( *map_list )[ cancel ] = (AstMapping *) astUnitMap( nax, "" );
+         ( *map_list )[ cancel ] = (AstMapping *) astUnitMap( nax, "", status );
          ( *invert_list )[ cancel ] = 0;
           result = ( cancel < where ) ? cancel : where;
       }
@@ -461,7 +808,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    return result;
 }
 
-static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map ){
+static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping **map, int *status ){
 /*
 *  Name:
 *     MapSplit
@@ -475,7 +822,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 
 *  Synopsis:
 *     #include "ratemap.h"
-*     int *MapSplit( AstMapping *this, int nin, int *in, AstMapping **map )
+*     int *MapSplit( AstMapping *this, int nin, const int *in, AstMapping **map, int *status )
 
 *  Class Membership:
 *     RateMap method (over-rides the protected astMapSplit method
@@ -507,6 +854,8 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 *        outputs may be different to "nin"). A NULL pointer will be
 *        returned if the supplied RateMap has no subset of outputs which 
 *        depend only on the selected inputs.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
@@ -542,7 +891,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
    if ( !astOK ) return result;
 
 /* Invoke the parent astMapSplit method to see if it can do the job. */
-   result = (*parent_mapsplit)( this_map, nin, in, map );
+   result = (*parent_mapsplit)( this_map, nin, in, map, status );
 
 /* If not, we provide a special implementation here. Note we cannot
    produce the Mapping if the RaterMap has been inverted. */
@@ -586,7 +935,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 
 /* If possible create the required Mapping and returned array. */
          if( ax1 != -1 && ax2 != -1 ) {
-            *map = (AstMapping *) astRateMap( remap, ax1, ax2, "" );
+            *map = (AstMapping *) astRateMap( remap, ax1, ax2, "", status );
             result = astMalloc( sizeof( int ) );
             if( astOK ) *result= 0;
          }
@@ -612,7 +961,7 @@ static int *MapSplit( AstMapping *this_map, int nin, int *in, AstMapping **map )
 }
 
 static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-                               int forward, AstPointSet *out ) {
+                               int forward, AstPointSet *out, int *status ) {
 /*
 *  Name:
 *     Transform
@@ -626,7 +975,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *  Synopsis:
 *     #include "ratemap.h"
 *     AstPointSet *Transform( AstMapping *this, AstPointSet *in,
-*                             int forward, AstPointSet *out )
+*                             int forward, AstPointSet *out, int *status )
 
 *  Class Membership:
 *     RateMap member function (over-rides the astTransform method inherited
@@ -651,6 +1000,8 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 *        Pointer to a PointSet which will hold the transformed (output)
 *        coordinate values. A NULL value may also be given, in which case a
 *        new PointSet will be created by this function.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     Pointer to the output (possibly new) PointSet.
@@ -691,7 +1042,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    function inherited from the parent Mapping class. This function validates
    all arguments and generates an output PointSet if necessary, but does not
    actually transform any coordinate values. */
-   result = (*parent_transform)( this, in, forward, out );
+   result = (*parent_transform)( this, in, forward, out, status );
 
 /* We now extend the parent astTransform method by applying the component
    Mappings of the RateMap to generate the output coordinate values. */
@@ -703,7 +1054,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* The RateMap class does not have an inverse transformation. */
    if( !forward ) {
       astError( AST__INTER, "astTransform(%s): The %s class does not have "
-                "an inverse transformation (AST internal programming error).",
+                "an inverse transformation (AST internal programming error).", status,
                 astGetClass( this ), astGetClass( this ) );
 
 /* Otherwise use the astRate method on the encapsulated Maping to
@@ -766,7 +1117,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 /* Copy constructor. */
 /* ----------------- */
-static void Copy( const AstObject *objin, AstObject *objout ) {
+static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /*
 *  Name:
 *     Copy
@@ -778,7 +1129,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *     Private function.
 
 *  Synopsis:
-*     void Copy( const AstObject *objin, AstObject *objout )
+*     void Copy( const AstObject *objin, AstObject *objout, int *status )
 
 *  Description:
 *     This function implements the copy constructor for RateMap objects.
@@ -788,6 +1139,8 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 *        Pointer to the object to be copied.
 *     objout
 *        Pointer to the object being constructed.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -819,7 +1172,7 @@ static void Copy( const AstObject *objin, AstObject *objout ) {
 
 /* Destructor. */
 /* ----------- */
-static void Delete( AstObject *obj ) {
+static void Delete( AstObject *obj, int *status ) {
 /*
 *  Name:
 *     Delete
@@ -831,7 +1184,7 @@ static void Delete( AstObject *obj ) {
 *     Private function.
 
 *  Synopsis:
-*     void Delete( AstObject *obj )
+*     void Delete( AstObject *obj, int *status )
 
 *  Description:
 *     This function implements the destructor for RateMap objects.
@@ -839,6 +1192,8 @@ static void Delete( AstObject *obj ) {
 *  Parameters:
 *     obj
 *        Pointer to the object to be deleted.
+*     status
+*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     void
@@ -865,7 +1220,7 @@ static void Delete( AstObject *obj ) {
 
 /* Dump function. */
 /* -------------- */
-static void Dump( AstObject *this_object, AstChannel *channel ) {
+static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /*
 *  Name:
 *     Dump
@@ -877,7 +1232,7 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *     Private function.
 
 *  Synopsis:
-*     void Dump( AstObject *this, AstChannel *channel )
+*     void Dump( AstObject *this, AstChannel *channel, int *status )
 
 *  Description:
 *     This function implements the Dump function which writes out data
@@ -888,6 +1243,8 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 *        Pointer to the RateMap whose data are being written.
 *     channel
 *        Pointer to the Channel to which the data are being written.
+*     status
+*        Pointer to the inherited status variable.
 */
 
 /* Local Variables: */
@@ -948,10 +1305,10 @@ static void Dump( AstObject *this_object, AstChannel *channel ) {
 /* ========================= */
 /* Implement the astIsARateMap and astCheckRateMap functions using the
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(RateMap,Mapping,check,&class_init)
+astMAKE_ISA(RateMap,Mapping,check,&class_check)
 astMAKE_CHECK(RateMap)
 
-AstRateMap *astRateMap_( void *map_void, int ax1, int ax2, const char *options, ... ) {
+AstRateMap *astRateMap_( void *map_void, int ax1, int ax2, const char *options, int *status, ...) {
 /*
 *+
 *  Name:
@@ -965,7 +1322,7 @@ AstRateMap *astRateMap_( void *map_void, int ax1, int ax2, const char *options, 
 
 *  Synopsis:
 *     #include "ratemap.h"
-*     AstRateMap *astRateMap( AstMapping *map, int ax1, int ax2, const char *options, ... )
+*     AstRateMap *astRateMap( AstMapping *map, int ax1, int ax2, const char *options, int *status, ... )
 
 *  Class Membership:
 *     RateMap constructor.
@@ -987,6 +1344,8 @@ AstRateMap *astRateMap_( void *map_void, int ax1, int ax2, const char *options, 
 *        initialising the new RateMap. The syntax used is the same as for the
 *        astSet method and may include "printf" format specifiers identified
 *        by "%" symbols in the normal way.
+*     status
+*        Pointer to the inherited status variable.
 *     ...
 *        If the "options" string contains "%" format specifiers, then an
 *        optional list of arguments may follow it in order to supply values to
@@ -1016,12 +1375,16 @@ AstRateMap *astRateMap_( void *map_void, int ax1, int ax2, const char *options, 
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstRateMap *new;              /* Pointer to new RateMap */
    AstMapping *map;              /* Pointer to Mapping structure */
    va_list args;                 /* Variable argument list */
 
 /* Initialise. */
    new = NULL;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Check the global status. */
    if ( !astOK ) return new;
@@ -1043,8 +1406,8 @@ AstRateMap *astRateMap_( void *map_void, int ax1, int ax2, const char *options, 
 /* Obtain the variable argument list and pass it along with the
    options string to the astVSet method to initialise the new RateMap's
    attributes. */
-         va_start( args, options );
-         astVSet( new, options, args );
+         va_start( args, status );
+         astVSet( new, options, NULL, args );
          va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -1180,6 +1543,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstRateMap *new;              /* Pointer to new RateMap */
    AstMapping *map;              /* Pointer to Mapping structure */
    va_list args;                 /* Variable argument list */
@@ -1187,12 +1551,20 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Initialise. */
    new = NULL;
 
+   int *status;                  /* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
+
+/* Pointer to inherited status value */
+
+/* Get a pointer to the inherited status value. */
+   status = astGetStatusPtr;
+
 /* Check the global status. */
    if ( !astOK ) return new;
 
 /* Obtain the Mapping pointer from the ID supplied and validate the
    pointer to ensure it identifies a valid Mapping. */
-   map = astCheckMapping( astMakePointer( map_void ) );
+   map = astVerifyMapping( astMakePointer( map_void ) );
    if ( astOK ) {
 
 /* Initialise the RateMap, allocating memory and initialising the
@@ -1208,7 +1580,7 @@ f     function is invoked with STATUS set to an error value, or if it
    options string to the astVSet method to initialise the new RateMap's
    attributes. */
          va_start( args, options );
-         astVSet( new, options, args );
+         astVSet( new, options, NULL, args );
          va_end( args );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -1222,7 +1594,7 @@ f     function is invoked with STATUS set to an error value, or if it
 
 AstRateMap *astInitRateMap_( void *mem, size_t size, int init,
                            AstRateMapVtab *vtab, const char *name,
-                           AstMapping *map, int ax1, int ax2 ) {
+                           AstMapping *map, int ax1, int ax2, int *status ) {
 /*
 *+
 *  Name:
@@ -1310,7 +1682,7 @@ AstRateMap *astInitRateMap_( void *mem, size_t size, int init,
 /* Report an error if "map" has no forward transformation. */
    if( !astGetTranForward( map ) && astOK ) {
       astError( AST__INTRD, "astInitRateMap(%s): The supplied Mapping "
-              "is not able to transform coordinates in the forward direction.",
+              "is not able to transform coordinates in the forward direction.", status,
               name );
    }
 
@@ -1319,12 +1691,12 @@ AstRateMap *astInitRateMap_( void *mem, size_t size, int init,
    nout = astGetNout( map );
    if( ( ax1 < 0 || ax1 >= nout ) && astOK ) {
       astError( AST__INNCO, "astInitRateMap(%s): The output axis %d is out "
-                "of range - it should be in the range 1 to %d.", name, 
+                "of range - it should be in the range 1 to %d.", status, name, 
                 ax1 + 1, nout );
    }
    if( ( ax2 < 0 || ax2 >= nin ) && astOK ) {
       astError( AST__INNCO, "astInitRateMap(%s): The input axis %d is out "
-                "of range - it should be in the range 1 to %d.", name, 
+                "of range - it should be in the range 1 to %d.", status, name, 
                 ax2 + 1, nin );
    }
 
@@ -1366,7 +1738,7 @@ AstRateMap *astInitRateMap_( void *mem, size_t size, int init,
 
 AstRateMap *astLoadRateMap_( void *mem, size_t size,
                              AstRateMapVtab *vtab, const char *name,
-                             AstChannel *channel ) {
+                             AstChannel *channel, int *status ) {
 /*
 *+
 *  Name:
@@ -1441,6 +1813,7 @@ AstRateMap *astLoadRateMap_( void *mem, size_t size,
 */
 
 /* Local Variables: */
+   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
    AstRateMap *new;               /* Pointer to the new RateMap */
 
 /* Initialise. */
@@ -1448,6 +1821,9 @@ AstRateMap *astLoadRateMap_( void *mem, size_t size,
 
 /* Check the global error status. */
    if ( !astOK ) return new;
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
 
 /* If a NULL virtual function table has been supplied, then this is
    the first loader to be invoked for this RateMap. In this case the
@@ -1522,3 +1898,7 @@ AstRateMap *astLoadRateMap_( void *mem, size_t size,
    same interface. */
 
 /* None. */
+
+
+
+

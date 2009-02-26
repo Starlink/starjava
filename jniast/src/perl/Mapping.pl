@@ -168,6 +168,30 @@ makeNativeMethod(
    ],
 );
 
+makeNativeMethod(
+   name => ( $fName = "mapSplit" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => {
+      type => 'Mapping',
+      descrip => q{
+         the returned mapping
+      },
+   },
+   params => [
+      {
+         name => ( $aName = "in" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "out" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
 $fName = "resample<X>";
 makeJavaMethodHeader(
    name => ( "resample" ),
@@ -210,18 +234,11 @@ makeJavaMethodHeader(
          },
       },
       {
-         name => "usebad",
-         type => 'boolean',
+         name => "flags",
+         type => 'ResampleFlags',
          descrip => q{
-            if true, indicates that there may be bad
-            pixels in the input array(s) which must be
-            recognised by comparing with the value given for
-            <code>badval</code> and propagated to the
-            output array(s). If
-            this flag is not set, all input values are treated
-            literally and the <code>badval</code>
-            value is only used for
-            flagging output array values.
+            flags object giving additional details about the resampling
+            procedure
          },
       },
       {
@@ -284,7 +301,7 @@ print <<'__EOT__';
             if ( type == byte.class ) {
                 return resampleB( ndim_in, lbnd_in, ubnd_in,
                                   (byte[]) in, (byte[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Byte) badval).byteValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (byte[]) out, (byte[]) out_var );
@@ -292,7 +309,7 @@ print <<'__EOT__';
             else if ( type == short.class ) {
                 return resampleS( ndim_in, lbnd_in, ubnd_in,
                                   (short[]) in, (short[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Short) badval).shortValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (short[]) out, (short[]) out_var );
@@ -300,7 +317,7 @@ print <<'__EOT__';
             else if ( type == int.class ) {
                 return resampleI( ndim_in, lbnd_in, ubnd_in,
                                   (int[]) in, (int[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Integer) badval).intValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (int[]) out, (int[]) out_var );
@@ -308,7 +325,7 @@ print <<'__EOT__';
             else if ( type == long.class ) {
                 return resampleL( ndim_in, lbnd_in, ubnd_in,
                                   (long[]) in, (long[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Long) badval).longValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (long[]) out, (long[]) out_var );
@@ -316,7 +333,7 @@ print <<'__EOT__';
             else if ( type == float.class ) {
                 return resampleF( ndim_in, lbnd_in, ubnd_in,
                                   (float[]) in, (float[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Float) badval).floatValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (float[]) out, (float[]) out_var );
@@ -324,7 +341,7 @@ print <<'__EOT__';
             else if ( type == double.class ) {
                 return resampleD( ndim_in, lbnd_in, ubnd_in,
                                   (double[]) in, (double[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Double) badval).doubleValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (double[]) out, (double[]) out_var );
@@ -358,7 +375,8 @@ foreach $Xtype (
     public native int resample$Xletter( 
         int ndim_in, int\[\] lbnd_in, int\[\] ubnd_in,
         $Xjtype\[\] in, $Xjtype\[\] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         $Xjtype badval, int ndim_out, int\[\] lbnd_out, int\[\] ubnd_out,
         int\[\] lbnd, int\[\] ubnd,
         $Xjtype\[\] out, $Xjtype\[\] out_var );
@@ -827,6 +845,50 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "tranGrid" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'double[][]', descrip => ArgDescrip( $fName, "out" ), },
+   params => [
+      {
+         name => ( $aName = "ncoord_in" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "lbnd" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ubnd" ),
+         type => 'int[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "tol" ),
+         type => 'double',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "maxpix" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "forward" ),
+         type => 'boolean',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ncoord_out" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+);
+
+makeNativeMethod(
    name => ( $fName = "rate" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),
@@ -981,6 +1043,10 @@ print <<'__EOT__';
                 getAstConstantI( "AST__SINCSINC" );
         private static final int AST__SINCCOS =
                 getAstConstantI( "AST__SINCCOS" );
+        private static final int AST__SOMB =
+                getAstConstantI( "AST__SOMB" );
+        private static final int AST__SOMBCOS =
+                getAstConstantI( "AST__SOMBCOS" );
         private static final int AST__SINCGAUSS =
                 getAstConstantI( "AST__SINCGAUSS" );
         private static final int AST__BLOCKAVE =
@@ -1089,6 +1155,54 @@ print <<'__EOT__';
          */
         public static Interpolator sincCos( int npix, double width ) {
             return new Interpolator( AST__SINCCOS,
+                                     new double[] { (double) npix, width } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x)</code> 1-dimensional kernel 
+         * (a "sombrero" function).
+         * <code>x</code> is the pixel offset from the interpolation point
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @return  a somb-type resampling Interpolator
+         */
+        public static Interpolator somb( int npix ) {
+            return new Interpolator( AST__SOMB,
+                                     new double[] { (double) npix } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
+         * <code>k</code> is a constant, out to the point where
+         * <code>cos(k*pi*x) goes to zero, and zero beyond,
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  width  the number of pixels at which the envelope goes
+         *                to zero.  Should be at least 1.0.
+         * @return  a sinc-cos-type resampling Interpolator
+         */
+        public static Interpolator sombCos( int npix, double width ) {
+            return new Interpolator( AST__SOMBCOS,
                                      new double[] { (double) npix, width } );
         }
 

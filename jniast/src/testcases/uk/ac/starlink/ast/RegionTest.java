@@ -92,9 +92,13 @@ public class RegionTest extends TestCase {
 
     public void testPointList() {
         Frame frm = new Frame( 2 );
-        double[][] points = { { 1, 2, 3, 4 }, { 1, 2, 3, 4 } };
+        double[][] points = { { 1, 2, 3, 4 }, { 101, 102, 103, 104 } };
         PointList plist = new PointList( frm, 4, points, null );
-        assertBounds( plist, 1, 1, 4, 4 );
+        assertEquals( 4, plist.getListSize() );
+        assertArrayEquals( points[ 0 ], plist.points()[ 0 ] );
+        assertArrayEquals( points[ 1 ], plist.points()[ 1 ] );
+        assertEquals( 2, plist.points().length );
+        assertBounds( plist, 1, 101, 4, 104 );
         plist = new PointList( frm, 4, points, box( .01, .01, .01, .01 ) );
 
         try {
@@ -267,6 +271,14 @@ public class RegionTest extends TestCase {
         catch ( IllegalArgumentException e ) {
             // not enough arguments in in array
         }
+    }
+
+    /*
+     * Don't run this one - it generates messy output to stdout.
+     */
+    public void noTestShowMesh() {
+        Box box = box( 0, 0, 2, 2 );
+        box.showMesh( true, "Mesh" );
     }
 
     private static Box box( double x1, double y1, double x2, double y2 ) {

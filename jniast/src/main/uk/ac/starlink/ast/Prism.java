@@ -10,18 +10,32 @@ package uk.ac.starlink.ast;
  * Java interface to the AST Prism class
  *  - an extrusion of a region into higher dimensions. 
  * A Prism is a Region which represents an extrusion of an existing Region 
- * into one or more orthogonal dimensions (specified by an Interval or
- * Box). If the Region to be extruded has N axes, and the Interval or Box 
- * defining the extrusion has M axes, then the resulting Prism will have 
- * (M+N) axes. A point is inside the Prism if the first N axis values 
- * correspond to a point which is inside the Region being extruded, and the 
- * remaining M axis values correspond to a point which inside the supplied 
- * Interval or Box.
+ * into one or more orthogonal dimensions (specified by another Region).
+ * If the Region to be extruded has N axes, and the Region defining the 
+ * extrusion has M axes, then the resulting Prism will have (M+N) axes. 
+ * A point is inside the Prism if the first N axis values correspond to 
+ * a point inside the Region being extruded, and the remaining M axis 
+ * values correspond to a point inside the Region defining the extrusion.
  * <p>
  * As an example, a cylinder can be represented by extruding an existing 
- * Circle. In this case the supplied Interval would have a single axis and 
- * would specify the upper and lower limits of the cylinder along its 
- * length.
+ * Circle, using an Interval to define the extrusion. Ih this case, the
+ * Interval would have a single axis and would specify the upper and 
+ * lower limits of the cylinder along its length.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Prism'>AST Prism</a>  
@@ -33,18 +47,17 @@ public class Prism extends Region {
      * its attributes.
      * <p>
      * A Prism is a Region which represents an extrusion of an existing Region 
-     * into one or more orthogonal dimensions (specified by an Interval or
-     * Box). If the Region to be extruded has N axes, and the Interval or Box 
-     * defining the extrusion has M axes, then the resulting Prism will have 
-     * (M+N) axes. A point is inside the Prism if the first N axis values 
-     * correspond to a point which is inside the Region being extruded, and the 
-     * remaining M axis values correspond to a point which inside the supplied 
-     * Interval or Box.
+     * into one or more orthogonal dimensions (specified by another Region).
+     * If the Region to be extruded has N axes, and the Region defining the 
+     * extrusion has M axes, then the resulting Prism will have (M+N) axes. 
+     * A point is inside the Prism if the first N axis values correspond to 
+     * a point inside the Region being extruded, and the remaining M axis 
+     * values correspond to a point inside the Region defining the extrusion.
      * <p>
      * As an example, a cylinder can be represented by extruding an existing 
-     * Circle. In this case the supplied Interval would have a single axis and 
-     * would specify the upper and lower limits of the cylinder along its 
-     * length.
+     * Circle, using an Interval to define the extrusion. Ih this case, the
+     * Interval would have a single axis and would specify the upper and 
+     * lower limits of the cylinder along its length.
      * <h4>Notes</h4>
      * <br> - Deep copies are taken of the supplied Regions. This means that
      * any subsequent changes made to the component Regions using the 
@@ -54,7 +67,7 @@ public class Prism extends Region {
      * should fail for any reason.
      * @param  region1  Pointer to the Region to be extruded.
      * 
-     * @param  region2  Pointer to the Interval or Box defining the extent of the extrusion.
+     * @param  region2  Pointer to the Region defining the extent of the extrusion.
      * 
      * @throws  AstException  if an error occurred in the AST library
     */

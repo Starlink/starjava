@@ -87,7 +87,7 @@
    !   not installed (is this sensible behaviour?) -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="4.0"/>
+  <property name="version" value="5.1"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>
@@ -458,6 +458,10 @@
       <param name="pj.cfile" value="box.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="Channel"/>
+      <param name="pj.cfile" value="channel.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="Circle"/>
       <param name="pj.cfile" value="circle.c"/>
     </antcall>
@@ -566,6 +570,10 @@
       <param name="pj.cfile" value="region.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="SelectorMap"/>
+      <param name="pj.cfile" value="selectormap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="ShiftMap"/>
       <param name="pj.cfile" value="shiftmap.c"/>
     </antcall>
@@ -612,6 +620,10 @@
     <antcall target="perl_to_java">
       <param name="pj.class" value="StcSearchLocation"/>
       <param name="pj.cfile" value="stcsearchlocation.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SwitchMap"/>
+      <param name="pj.cfile" value="switchmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
       <param name="pj.class" value="TimeFrame"/>
@@ -880,6 +892,7 @@
       <class name="${package.name}.Prism"/>
       <class name="${package.name}.RateMap"/>
       <class name="${package.name}.Region"/>
+      <class name="${package.name}.SelectorMap"/>
       <class name="${package.name}.ShiftMap"/>
       <class name="${package.name}.SkyFrame"/>
       <class name="${package.name}.SlaMap"/>
@@ -892,6 +905,7 @@
       <class name="${package.name}.StcObsDataLocation"/>
       <class name="${package.name}.StcResourceProfile"/>
       <class name="${package.name}.StcSearchLocation"/>
+      <class name="${package.name}.SwitchMap"/>
       <class name="${package.name}.TimeFrame"/>
       <class name="${package.name}.TimeMap"/>
       <class name="${package.name}.TranMap"/>

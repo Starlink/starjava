@@ -19,6 +19,21 @@ package uk.ac.starlink.ast;
  * function of its own, as it is simply a container class for a
  * family of specialised Mappings which implement particular types
  * of coordinate transformation.
+ * <h4>Licence</h4>
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public Licence as
+ * published by the Free Software Foundation; either version 2 of
+ * the Licence, or (at your option) any later version.
+ * <p>
+ * This program is distributed in the hope that it will be
+ * useful,but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public Licence for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public Licence
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
+ * 02111-1307, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Mapping'>AST Mapping</a>  
@@ -249,6 +264,53 @@ public class Mapping extends AstObject {
     public native double[] mapBox( double[] lbnd_in, double[] ubnd_in, boolean forward, int coord_out, double[] xl, double[] xu );
 
     /** 
+     * Split a Mapping up into parallel component Mappings.   
+     * This function 
+     * creates a new Mapping which connects specified inputs within a
+     * supplied Mapping to the corresponding outputs of the supplied Mapping. 
+     * This is only possible if the specified inputs correspond to some 
+     * subset of the Mapping outputs. That is, there must exist a subset of 
+     * the Mapping outputs for which each output depends only on the selected 
+     * Mapping inputs, and not on any of the inputs which have not been 
+     * selected. If this condition is not met by the supplied Mapping, then
+     * a NULL 
+     * Mapping pointer is returned.
+     * <h4>Notes</h4>
+     * <br> - If this 
+     * function 
+     * is invoked with the global error status set, or if it should fail for 
+     * any reason, then 
+     * a NULL value
+     * will be returned for 
+     * the "map" pointer.
+     * @param   in
+     * Pointer to an 
+     * array holding the indices within the supplied Mapping of the inputs 
+     * which are to be picked from the Mapping. 
+     * This array should have "nin" elements. 
+     * If "Nin" is the number of inputs of the supplied Mapping, then each 
+     * element should have a value in the range 1 to Nin.
+     * 
+     * @param   out
+     * Pointer to an 
+     * array in which to return the indices of the outputs of the supplied 
+     * Mapping which are fed by the picked inputs. A value of one is
+     * used to refer to the first Mapping output. The supplied array should 
+     * have a length at least equal to the number of outputs in the
+     * supplied Mapping. The number of values stored in the array on
+     * exit will equal the number of outputs in the returned Mapping.
+     * The i'th element in the returned array holds the index within
+     * the supplied Mapping which corresponds to the i'th output of 
+     * the returned Mapping.
+     * 
+     * @return  
+     *          the returned mapping
+     *       
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native Mapping mapSplit( int[] in, int[] out );
+
+    /** 
      * Resample a region of a data grid.   
      * This is a set of functions for resampling gridded data (e.g. an
      * image) under the control of a geometrical transformation, which
@@ -278,6 +340,16 @@ public class Mapping extends AstObject {
      * resampled value which is then assigned to the output pixel. A
      * choice of sub-pixel interpolation schemes is provided, but you
      * may also implement your own.
+     * <p>
+     * This algorithm samples the input data value, it does not integrate 
+     * it. Thus total data value in the input image will not, in general,
+     * be conserved. However, an option is provided (see the "Control Flags"
+     * section below) which can produce approximate flux conservation by 
+     * scaling the output values using the ratio of the output pixel size
+     * to the input pixel size. However, if accurate flux conservation is
+     * important to you, consder using the
+     * astRebin<X> or astRebinSeq<X> family of functions
+     * instead.
      * <p>
      * Output pixel coordinates are transformed into the coordinate
      * system of the input grid using the inverse transformation of the
@@ -313,7 +385,8 @@ public class Mapping extends AstObject {
      * with the global error status set, or if it should fail for any
      * reason.
      * <h4>Propagation of Missing Data</h4>
-     * Instances of missing data (bad pixels) in the output grid are
+     * Unless the AST__NOBAD flag is specified, instances of missing data 
+     * (bad pixels) in the output grid are
      * identified by occurrences of the "badval" value in the "out"
      * array. These may be produced if any of the following happen:
      * <p>
@@ -352,6 +425,14 @@ public class Mapping extends AstObject {
      * interpolation scheme in use.
      * <br> - The variance value lies outside the range which can be
      * represented using the data type of the "out_var" array.
+     * <p>
+     * If the AST__NOBAD flag is specified via
+     * parameter "flags",
+     * then output array elements that would otherwise be set to 
+     * "badval"
+     * are instead left holding the value they had on entry to this
+     * function. The number of such array elements is returned as
+     * the function value.
      * @param   ndim_in
      * The number of dimensions in the input grid. This should be at
      * least one.
@@ -404,16 +485,9 @@ public class Mapping extends AstObject {
      *             sub-pixel interpolation scheme should be used for the
      *             resampling
      *          
-     * @param   usebad
-     * if true, indicates that there may be bad
-     *             pixels in the input array(s) which must be
-     *             recognised by comparing with the value given for
-     *             <code>badval</code> and propagated to the
-     *             output array(s). If
-     *             this flag is not set, all input values are treated
-     *             literally and the <code>badval</code>
-     *             value is only used for
-     *             flagging output array values.
+     * @param   flags
+     * flags object giving additional details about the resampling
+     *             procedure
      *          
      * @param   tol
      * The maximum tolerable geometrical distortion which may be
@@ -463,13 +537,16 @@ public class Mapping extends AstObject {
      * then this value is used to test for bad pixels in the "in"
      * (and "in_var") array(s).
      * <p>
-     * In all cases, this value is also used to flag any output
+     * Unless the AST__NOBAD flag is set via the "flags" parameter,
+     * this value is also used to flag any output
      * elements in the "out" (and "out_var") array(s) for which
      * resampled values could not be obtained (see the "Propagation
      * of Missing Data" section below for details of the
      * circumstances under which this may occur). The astResample<X>
      * function return value indicates whether any such values have
-     * been produced.
+     * been produced. If the AST__NOBAD flag is set. then output array
+     * elements for which no resampled value could be obtained are
+     * left set to the value they had on entry to this function.
      * 
      * @param   ndim_out
      * The number of dimensions in the output grid. This should be
@@ -543,22 +620,21 @@ public class Mapping extends AstObject {
      * If no output variance estimates are required, a NULL pointer
      * should be given.
      * 
-     * @return  The number of output pixels to which a data value (or a
-     * variance value if relevant) equal to "badval" has been
-     * assigned because no valid resampled value could be obtained.
-     * Thus, in the absence of any error, a returned value of zero
-     * indicates that all the required output pixels received valid
-     * resampled data values (and variances).
+     * @return  The number of output pixels for which no valid resampled value
+     * could be obtained. Thus, in the absence of any error, a returned 
+     * value of zero indicates that all the required output pixels 
+     * received valid resampled data values (and variances). See the
+     * "badval" and "flags" parameters.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
-    public int resample( int ndim_in, int[] lbnd_in, int[] ubnd_in, Object in, Object in_var, Mapping.Interpolator interp, boolean usebad, double tol, int maxpix, Number badval, int ndim_out, int[] lbnd_out, int[] ubnd_out, int[] lbnd, int[] ubnd, Object out, Object out_var ){
+    public int resample( int ndim_in, int[] lbnd_in, int[] ubnd_in, Object in, Object in_var, Mapping.Interpolator interp, ResampleFlags flags, double tol, int maxpix, Number badval, int ndim_out, int[] lbnd_out, int[] ubnd_out, int[] lbnd, int[] ubnd, Object out, Object out_var ){
         Class type = in.getClass().getComponentType();
         try {
             if ( type == byte.class ) {
                 return resampleB( ndim_in, lbnd_in, ubnd_in,
                                   (byte[]) in, (byte[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Byte) badval).byteValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (byte[]) out, (byte[]) out_var );
@@ -566,7 +642,7 @@ public class Mapping extends AstObject {
             else if ( type == short.class ) {
                 return resampleS( ndim_in, lbnd_in, ubnd_in,
                                   (short[]) in, (short[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Short) badval).shortValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (short[]) out, (short[]) out_var );
@@ -574,7 +650,7 @@ public class Mapping extends AstObject {
             else if ( type == int.class ) {
                 return resampleI( ndim_in, lbnd_in, ubnd_in,
                                   (int[]) in, (int[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Integer) badval).intValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (int[]) out, (int[]) out_var );
@@ -582,7 +658,7 @@ public class Mapping extends AstObject {
             else if ( type == long.class ) {
                 return resampleL( ndim_in, lbnd_in, ubnd_in,
                                   (long[]) in, (long[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Long) badval).longValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (long[]) out, (long[]) out_var );
@@ -590,7 +666,7 @@ public class Mapping extends AstObject {
             else if ( type == float.class ) {
                 return resampleF( ndim_in, lbnd_in, ubnd_in,
                                   (float[]) in, (float[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Float) badval).floatValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (float[]) out, (float[]) out_var );
@@ -598,7 +674,7 @@ public class Mapping extends AstObject {
             else if ( type == double.class ) {
                 return resampleD( ndim_in, lbnd_in, ubnd_in,
                                   (double[]) in, (double[]) in_var,
-                                  interp, usebad, tol, maxpix,
+                                  interp, flags, tol, maxpix,
                                   ((Double) badval).doubleValue(),
                                   ndim_out, lbnd_out, ubnd_out, lbnd, ubnd,
                                   (double[]) out, (double[]) out_var );
@@ -619,7 +695,8 @@ public class Mapping extends AstObject {
     public native int resampleB( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         byte[] in, byte[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         byte badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         byte[] out, byte[] out_var );
@@ -630,7 +707,8 @@ public class Mapping extends AstObject {
     public native int resampleS( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         short[] in, short[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         short badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         short[] out, short[] out_var );
@@ -641,7 +719,8 @@ public class Mapping extends AstObject {
     public native int resampleI( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         int[] in, int[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         int badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         int[] out, int[] out_var );
@@ -652,7 +731,8 @@ public class Mapping extends AstObject {
     public native int resampleL( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         long[] in, long[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         long badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         long[] out, long[] out_var );
@@ -663,7 +743,8 @@ public class Mapping extends AstObject {
     public native int resampleF( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         float[] in, float[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         float badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         float[] out, float[] out_var );
@@ -674,7 +755,8 @@ public class Mapping extends AstObject {
     public native int resampleD( 
         int ndim_in, int[] lbnd_in, int[] ubnd_in,
         double[] in, double[] in_var,
-        Mapping.Interpolator interp, boolean usebad, double tol, int maxpix,
+        Mapping.Interpolator interp, ResampleFlags flags, double tol,
+        int maxpix,
         double badval, int ndim_out, int[] lbnd_out, int[] ubnd_out,
         int[] lbnd, int[] ubnd,
         double[] out, double[] out_var );
@@ -691,6 +773,11 @@ public class Mapping extends AstObject {
      * of variance values), so as to produce error estimates for the
      * rebined output data. Propagation of missing data (bad pixels)
      * is supported.
+     * <p>
+     * Note, if you will be rebining a sequence of input arrays and then 
+     * co-adding them into a single array, the alternative 
+     * astRebinSeq<X> functions
+     * will in general be more efficient.
      * <p>
      * You should use a rebinning function which matches the numerical
      * type of the data you are processing by replacing <X> in
@@ -760,6 +847,17 @@ public class Mapping extends AstObject {
      * astResample<X> 
      * documentation for further discussion.
      * <p>
+     * The binning algorithm used has the ability to introduce artifacts
+     * not seen when using a resampling algorithm. Particularly, when
+     * viewing the output image at high contrast, systems of curves lines
+     * covering the entire image may be visible. These are caused by a
+     * beating effect between the input pixel positions and the output pixels
+     * position, and their nature and strength depend critically upon the
+     * nature of the Mapping and the spreading function being used. In
+     * general, the nearest neighbour spreading function demonstrates this
+     * effect more clearly than the other functions, and for this reason
+     * should be used with caution.
+     * <p>
      * The following values (defined in the 
      * "ast.h" header file)
      * may be assigned to the 
@@ -775,6 +873,7 @@ public class Mapping extends AstObject {
      * <br> - AST__SINCSINC
      * <br> - AST__SINCCOS
      * <br> - AST__SINCGAUSS
+     * <br> - AST__SOMBCOS
      * <p>
      * In addition, the following schemes can be used with 
      * astRebin<X> but not with astResample<X>:
@@ -887,6 +986,12 @@ public class Mapping extends AstObject {
      * of zero may be given. This will ensure that the Mapping is
      * used without any approximation, but may increase execution
      * time.
+     * <p>
+     * If the value is too high, discontinuities between the linear
+     * approximations used in adjacent panel will be higher, and may
+     * cause the edges of the panel to be visible when viewing the output 
+     * image at high contrast. If this is a problem, reduce the
+     * tolerance value used.
      * 
      * @param   maxpix
      * A value which specifies an initial scale size (in pixels) for
@@ -928,9 +1033,7 @@ public class Mapping extends AstObject {
      * elements in the "out" (and "out_var") array(s) for which
      * rebined values could not be obtained (see the "Propagation
      * of Missing Data" section below for details of the
-     * circumstances under which this may occur). The astRebin<X>
-     * function return value indicates whether any such values have
-     * been produced.
+     * circumstances under which this may occur). 
      * 
      * @param   ndim_out
      * The number of dimensions in the output grid. This should be
@@ -1255,6 +1358,118 @@ public class Mapping extends AstObject {
     public native double[][] tranP( int npoint, int ncoord_in, double[][] in, boolean forward, int ncoord_out );
 
     /** 
+     * Transform a grid of positions.   
+     * This function uses the supplied Mapping to transforms a regular square 
+     * grid of points covering a specified box. It attempts to do this
+     * quickly by first approximating the Mapping with a linear transformation 
+     * applied over the whole region of the input grid which is being used. 
+     * If this proves to be insufficiently accurate, the input region is 
+     * sub-divided into two along its largest dimension and the process is 
+     * repeated within each of the resulting sub-regions. This process of
+     * sub-division continues until a sufficiently good linear approximation 
+     * is found, or the region to which it is being applied becomes too small 
+     * (in which case the original Mapping is used directly).
+     * <h4>Notes</h4>
+     * <br> - If the forward coordinate transformation is being applied, the
+     * Mapping supplied must have the value of "ncoord_in" for its Nin
+     * attribute and the value of "ncoord_out" for its Nout attribute. If
+     * the inverse transformation is being applied, these values should
+     * be reversed.
+     * @param   ncoord_in
+     * The number of coordinates being supplied for each box corner
+     * (i.e. the number of dimensions of the space in which the
+     * input points reside).
+     * 
+     * @param   lbnd
+     * Pointer to an array of integers, with "ncoord_in" elements,
+     * containing the coordinates of the centre of the first pixel
+     * in the input grid along each dimension.
+     * 
+     * @param   ubnd
+     * Pointer to an array of integers, with "ncoord_in" elements,
+     * containing the coordinates of the centre of the last pixel in
+     * the input grid along each dimension.
+     * <p>
+     * Note that "lbnd" and "ubnd" together define the shape
+     * and size of the input grid, its extent along a particular
+     * (j'th) dimension being ubnd[j]-lbnd[j]+1 (assuming the
+     * index "j" to be zero-based). They also define
+     * the input grid's coordinate system, each pixel having unit
+     * extent along each dimension with integral coordinate values
+     * at its centre.
+     * 
+     * @param   tol
+     * The maximum tolerable geometrical distortion which may be
+     * introduced as a result of approximating non-linear Mappings
+     * by a set of piece-wise linear transformations. This should be
+     * expressed as a displacement within the output coordinate system
+     * of the Mapping.
+     * <p>
+     * If piece-wise linear approximation is not required, a value
+     * of zero may be given. This will ensure that the Mapping is
+     * used without any approximation, but may increase execution
+     * time.
+     * <p>
+     * If the value is too high, discontinuities between the linear
+     * approximations used in adjacent panel will be higher. If this 
+     * is a problem, reduce the tolerance value used.
+     * 
+     * @param   maxpix
+     * A value which specifies an initial scale size (in input grid points) 
+     * for the adaptive algorithm which approximates non-linear Mappings
+     * with piece-wise linear transformations. Normally, this should
+     * be a large value (larger than any dimension of the region of
+     * the input grid being used). In this case, a first attempt to
+     * approximate the Mapping by a linear transformation will be
+     * made over the entire input region.
+     * <p>
+     * If a smaller value is used, the input region will first be
+     * divided into sub-regions whose size does not exceed "maxpix"
+     * grid points in any dimension. Only at this point will attempts
+     * at approximation commence.
+     * <p>
+     * This value may occasionally be useful in preventing false
+     * convergence of the adaptive algorithm in cases where the
+     * Mapping appears approximately linear on large scales, but has
+     * irregularities (e.g. holes) on smaller scales. A value of,
+     * say, 50 to 100 grid points can also be employed as a safeguard 
+     * in general-purpose software, since the effect on performance is
+     * minimal.
+     * <p>
+     * If too small a value is given, it will have the effect of
+     * inhibiting linear approximation altogether (equivalent to
+     * setting "tol" to zero). Although this may degrade
+     * performance, accurate results will still be obtained.
+     * 
+     * @param   forward
+     * A non-zero value indicates that the Mapping's forward
+     * coordinate transformation is to be applied, while a zero
+     * value indicates that the inverse transformation should be
+     * used.
+     * 
+     * @param   ncoord_out
+     * The number of coordinates being generated by the Mapping for
+     * each output point (i.e. the number of dimensions of the
+     * space in which the output points reside). This need not be
+     * the same as "ncoord_in".
+     * 
+     * @return  The address of the first element in a 2-dimensional array of 
+     * shape "[ncoord_out][outdim]", into
+     * which the coordinates of the output (transformed) points will
+     * be written. These will be stored such that the value of
+     * coordinate number "coord" for output point number "point"
+     * will be found in element "out[coord][point]".
+     * The points are ordered such that the first axis of the input
+     * grid changes most rapidly. For example, if the input grid is 
+     * 2-dimensional and extends from (2,-1) to (3,1), the output
+     * points will be stored in the order (2,-1), (3, -1), (2,0), (3,0),
+     * (2,1), (3,1).
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[][] tranGrid( int ncoord_in, int[] lbnd, int[] ubnd, double tol, int maxpix, boolean forward, int ncoord_out );
+
+    /** 
      * Calculate the rate of change of a Mapping output.   
      * This function 
      * evaluates the rate of change of a specified output of the supplied
@@ -1347,11 +1562,11 @@ public class Mapping extends AstObject {
      * and 3 outputs the linear approximation to the forward transformation 
      * is:
      * <p>
-     *    X_out = result[0] + result[3]*X_in + result[4]*Y_in 
+     *    X_out = fit[0] + fit[3]*X_in + fit[4]*Y_in 
      * <p>
-     *    Y_out = result[1] + result[5]*X_in + result[6]*Y_in 
+     *    Y_out = fit[1] + fit[5]*X_in + fit[6]*Y_in 
      * <p>
-     *    Z_out = result[2] + result[7]*X_in + result[8]*Y_in
+     *    Z_out = fit[2] + fit[7]*X_in + fit[8]*Y_in
      * <p>
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -1734,6 +1949,10 @@ public class Mapping extends AstObject {
                 getAstConstantI( "AST__SINCSINC" );
         private static final int AST__SINCCOS =
                 getAstConstantI( "AST__SINCCOS" );
+        private static final int AST__SOMB =
+                getAstConstantI( "AST__SOMB" );
+        private static final int AST__SOMBCOS =
+                getAstConstantI( "AST__SOMBCOS" );
         private static final int AST__SINCGAUSS =
                 getAstConstantI( "AST__SINCGAUSS" );
         private static final int AST__BLOCKAVE =
@@ -1842,6 +2061,54 @@ public class Mapping extends AstObject {
          */
         public static Interpolator sincCos( int npix, double width ) {
             return new Interpolator( AST__SINCCOS,
+                                     new double[] { (double) npix, width } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x)</code> 1-dimensional kernel 
+         * (a "sombrero" function).
+         * <code>x</code> is the pixel offset from the interpolation point
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @return  a somb-type resampling Interpolator
+         */
+        public static Interpolator somb( int npix ) {
+            return new Interpolator( AST__SOMB,
+                                     new double[] { (double) npix } );
+        }
+
+        /**
+         * Returns a resampling interpolator which uses a
+         * <code>somb(pi*x).cos(k*pi*x)</code> 1-dimensional kernel.
+         * <code>k</code> is a constant, out to the point where
+         * <code>cos(k*pi*x) goes to zero, and zero beyond,
+         * and <code>somb(z)=2*1(z)/z</code> (J1 is a Bessel function
+         * of the first kind of order 1).
+         *
+         * @param   npix  the number of pixels to contribute to the 
+         *                interpolated result on either side of the
+         *                interpolation point in each dimension.
+         *                Execution time increases rapidly with this number.
+         *                Typically, a value of 2 is appropriate and the
+         *                minimum value used will be 1.  A value of zero
+         *                or less may be given to indicate that a suitable
+         *                number of pixels should be calculated automatically.
+         * @param  width  the number of pixels at which the envelope goes
+         *                to zero.  Should be at least 1.0.
+         * @return  a sinc-cos-type resampling Interpolator
+         */
+        public static Interpolator sombCos( int npix, double width ) {
+            return new Interpolator( AST__SOMBCOS,
                                      new double[] { (double) npix, width } );
         }
 
