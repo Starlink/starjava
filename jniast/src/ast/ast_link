@@ -213,7 +213,7 @@
 #  from libraries written in Fortran which the AST library (or the C
 #  program) calls.  The value here is worked out by the autoconf macro
 #  AC_FC_LIBRARY_LDFLAGS.
-      flibs=' -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/../../../../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/../../.. -L/lib/../lib64 -L/usr/lib/../lib64 -lfrtbegin -lg2c -lm -lgcc_s'
+      flibs=' -L/usr/X11R6/lib -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/32 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/../../../../lib -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/../../.. -L/lib/../lib -L/usr/lib/../lib -lpthread -lfrtbegin -lg2c -lm -lgcc_s_32'
 
 #  This function searches the directory path specified in PATH, looking for
 #  an executable file which is not a directory. If found, it echos the full

@@ -606,7 +606,6 @@ public class FitsChan extends Channel {
      * <br> -  An error will be reported if the keyword name does not conform
      * to FITS requirements.
      * <br> -  Zero 
-     * <br> -  .FALSE.
      * is returned as the function value if an error has already occurred, 
      * or if this function should fail for any reason.
      * @param   name
