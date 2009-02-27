@@ -11805,6 +11805,8 @@ introduced since the last version:
        <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
        </ul></li>
     <li>Added documentation section <ref id="columnSelector"/>.</li>
+    <li>Fix bug when decoding <code>file:</code>-type URLs
+        containing %xx escapes.</li>
     </ul>
     </p></dd>
 

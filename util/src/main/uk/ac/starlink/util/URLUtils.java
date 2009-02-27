@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLStreamHandlerFactory;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -335,6 +336,12 @@ public class URLUtils {
         if ( u.getProtocol().equals( "file" ) && u.getRef() == null
                                               && u.getQuery() == null ) {
             String path = u.getPath();
+            try {
+                path = URLDecoder.decode( path );
+            }
+            catch ( IllegalArgumentException e ) {
+                // probably a badly-formed URL - try with the undecoded form
+            }
             String filename = File.separatorChar == '/'
                             ? path
                             : path.replace( '/', File.separatorChar );
