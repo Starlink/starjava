@@ -447,7 +447,6 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" value="${jar.class.path}"/>
         <attribute name="Main-Class"
                    value="net.ivoa.registry.search.test.TestRegistryClient"/>
       </manifest>
