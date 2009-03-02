@@ -6179,6 +6179,8 @@ but my thanks are especially due to the following:
        <li>More comprehensive testing.</li> 
        <li>Fixed bug in calculating value scaled double ('D') values.</li>
        <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
+       <li>Fixed bug which caused registry queries (<code>regquery</code>) 
+           to fail for Java 1.6.</li>
        </ul></li>
     </ul>
     </p></dd>
