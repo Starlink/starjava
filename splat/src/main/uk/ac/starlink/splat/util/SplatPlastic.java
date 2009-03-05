@@ -13,16 +13,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
-import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.plastic.HubManager;
 import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 
 /**
@@ -47,9 +44,9 @@ public class SplatPlastic
     };
 
     /**
-     * Controlling browser object.
+     * PlasticCommunicator object associated with this.
      */
-    protected SplatBrowser browser;
+    private PlasticCommunicator communicator;
 
     /**
      * SpecDataFactory instance.
@@ -70,10 +67,10 @@ public class SplatPlastic
     /**
      * Create a new plastic listener for SPLAT.
      */
-    public SplatPlastic( SplatBrowser browser )
+    public SplatPlastic( PlasticCommunicator communicator )
     {
         super( "splat-vo", SUPPORTED_MESSAGES );
-        this.browser = browser;
+        this.communicator = communicator;
         acceptSpectrumModel.setSelected( true );
         acceptFITSLineModel.setSelected( true );
     }
@@ -109,7 +106,7 @@ public class SplatPlastic
                 String id = args.get( 1 ).toString();
                 Map meta = (Map) args.get( 2 );
                 SpectrumIO.Props props = getProps( location, meta );
-                return Boolean.valueOf( addSpectrum( props ) );
+                return Boolean.valueOf( communicator.addSpectrum( props ) );
             }
             else {
                 return Boolean.FALSE;
@@ -121,7 +118,8 @@ public class SplatPlastic
                   checkArgs( args, new Class[] { Object.class } ) ) {
             if ( acceptFITSLineModel.isSelected() ) {
                 String location = args.get( 0 ).toString();
-                return Boolean.valueOf( addSpectrum( location,
+                return Boolean.valueOf( communicator
+                                       .addSpectrum( location,
                                                      SpecDataFactory.FITS ) );
             }
             else {
@@ -214,99 +212,5 @@ public class SplatPlastic
             }
         }
         return props;
-    }
-
-    /**
-     * Adds a spectrum to the browser given a name and type.
-     * This invokes a suitable method on the SplatBrowser synchronously
-     * on the event dispatch thread and returns a success flag.
-     *
-     * @param name the name (i.e. file specification) of the spectrum
-     *             to add.
-     * @param usertype index of the type of spectrum, 0 for default
-     *                 based on file extension, otherwise this is an
-     *                 index of the knownTypes array in
-     *                 {@link SpecDataFactory}.
-     * @return  true  iff the load was successful
-     */
-    private boolean addSpectrum( final String name, final int usertype )
-    {
-        if ( SwingUtilities.isEventDispatchThread() ) {
-            throw new IllegalStateException(
-                "Don't call from event dispatch thread" );
-        }
-        final Boolean[] result = new Boolean[ 1 ];
-        try {
-            SwingUtilities.invokeAndWait( new Runnable() {
-                public void run() {
-                    boolean success;
-                    try {
-                        browser.tryAddSpectrum( name, usertype );
-                        success = true;
-                    }
-                    catch ( SplatException e ) {
-                        success = false;
-                    }
-                    catch ( Throwable e ) {
-                        e.printStackTrace();
-                        success = false;
-                    }
-                    result[ 0 ] = Boolean.valueOf( success );
-                }
-            } );
-        }
-        catch ( InterruptedException e ) {
-            result[ 0 ] = Boolean.FALSE;
-        }
-        catch ( InvocationTargetException e ) {
-            result[ 0 ] = Boolean.FALSE;
-        }
-        assert result[ 0 ] != null;
-        return result[ 0 ].booleanValue();
-    }
-
-    /**
-     * Adds a spectrum to the browser given a spectral properties object.
-     * This invokes a suitable method on the SplatBrowser synchronously 
-     * on the event dispatch thread and returns a success flag.
-     *
-     * @param props a container class for the spectrum properties, including
-     *              the specification (i.e. file name etc.) of the spectrum
-     * @return  true  iff the load was successful
-     */
-    private boolean addSpectrum( final SpectrumIO.Props props )
-    {
-        if ( SwingUtilities.isEventDispatchThread() ) {
-            throw new IllegalStateException(
-                "Don't call from event dispatch thread" );
-        }
-        final Boolean[] result = new Boolean[ 1 ];
-        try {
-            SwingUtilities.invokeAndWait( new Runnable() {
-                public void run() {
-                    boolean success;
-                    try {
-                        browser.tryAddSpectrum( props );
-                        success = true;
-                    }
-                    catch ( SplatException e ) {
-                        success = false;
-                    }
-                    catch ( Throwable e ) {
-                        e.printStackTrace();
-                        success = false;
-                    }
-                    result[ 0 ] = Boolean.valueOf( success );
-                }
-            } );
-        }
-        catch ( InterruptedException e ) {
-            result[ 0 ] = Boolean.FALSE;
-        }
-        catch ( InvocationTargetException e ) {
-            result[ 0 ] = Boolean.FALSE;
-        }
-        assert result[ 0 ] != null;
-        return result[ 0 ].booleanValue();
     }
 }

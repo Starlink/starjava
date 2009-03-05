@@ -59,7 +59,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.gui.ScientificFormat;
-import uk.ac.starlink.plastic.NoHubException;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -67,13 +66,14 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SpecTransmitter;
+import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
-import uk.ac.starlink.splat.util.SplatPlastic;
-import uk.ac.starlink.splat.util.MathUtils;
+import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
@@ -345,9 +345,9 @@ public class SplatBrowser
     protected JCheckBoxMenuItem searchCoordsItem = null;
 
     /**
-     * Controls communication with the PLASTIC hub.
+     * Controls communications for interoperability (PLASTIC/SAMP).
      */
-    protected SplatPlastic plasticServer = null;
+    protected SplatCommunicator communicator = null;
 
     /**
      * A long filename to use for setting the default size of a cell
@@ -361,7 +361,7 @@ public class SplatBrowser
      */
     public SplatBrowser()
     {
-        this( null, false, null, null, null, null );
+        this( null, false, null, null, null, null, null );
     }
 
     /**
@@ -370,7 +370,7 @@ public class SplatBrowser
      */
     public SplatBrowser( boolean embedded )
     {
-        this( null, embedded, null, null, null, null );
+        this( null, embedded, null, null, null, null, null );
     }
 
     /**
@@ -382,7 +382,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec )
     {
-        this( inspec, false, null, null, null, null );
+        this( inspec, false, null, null, null, null, null );
     }
 
     /**
@@ -395,7 +395,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec, boolean embedded )
     {
-        this( inspec, embedded, null, null, null, null );
+        this( inspec, embedded, null, null, null, null, null );
     }
 
     /**
@@ -416,19 +416,21 @@ public class SplatBrowser
      *  @param selectAxis the axis to step along during collapse/extract,
      *                    if any of the spectra are 3D. If null then an axis
      *                    will be selected automatically.
+     *  @param communicator object which provides inter-client communications
+     *                      (SAMP or PLASTIC)
      */
     public SplatBrowser( String[] inspec, boolean embedded, String type,
                          String ndAction, Integer dispAxis, 
-                         Integer selectAxis )
+                         Integer selectAxis, SplatCommunicator communicator )
     {
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
         //  Don't know where to put this though.
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
         setEmbedded( embedded );
+        communicator.setBrowser( this );
+        this.communicator = communicator;
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
-        this.plasticServer = new SplatPlastic( this );
-        plasticServer.setAutoRegister( 2000 );
         try {
             initComponents();
         }
@@ -1035,58 +1037,20 @@ public class SplatBrowser
         interopMenu.setMnemonic( KeyEvent.VK_I );
         menuBar.add( interopMenu );
 
-        // Add server registration options.
-        JMenuItem plasticReg =
-            interopMenu.add( plasticServer.getRegisterAction( true ) );
-        plasticReg.setMnemonic( KeyEvent.VK_R );
-        plasticReg.setAccelerator( KeyStroke.getKeyStroke( "control P" ) );
-        interopMenu.add( plasticServer.getRegisterAction( false ) )
-            .setMnemonic( KeyEvent.VK_U );
-
-        // Add hub start options.
-        interopMenu.add( plasticServer.getHubStartAction( true ) )
-            .setMnemonic( KeyEvent.VK_I );
-        interopMenu.add( plasticServer.getHubStartAction( false ) )
-            .setMnemonic( KeyEvent.VK_E );
-
-        // Add registered application window option.
-        interopMenu.add( plasticServer.getHubWatchAction() )
-            .setMnemonic( KeyEvent.VK_H );
-
-        // Add spectrum type acceptance options.
-        JMenuItem acceptSpectrum =
-            new JCheckBoxMenuItem( "Accept spectra", true );
-        JMenuItem acceptFITSLine =
-            new JCheckBoxMenuItem( "Accept 1d FITS", true );
-        plasticServer.setAcceptSpectrumModel( acceptSpectrum.getModel() );
-        plasticServer.setAcceptFITSLineModel( acceptFITSLine.getModel() );
-        interopMenu.addSeparator();
-        interopMenu.add( acceptSpectrum ).setMnemonic( KeyEvent.VK_S );
-        interopMenu.add( acceptFITSLine ).setMnemonic( KeyEvent.VK_F );
-
+        // Add protocol-specific actions.
+        Action[] interopActions = communicator.getInteropActions();
+        for ( int i = 0; i < interopActions.length; i++ ) {
+            interopMenu.add( interopActions[ i ] );
+        }
 
         // Add spectrum transmit menus items.
+        Transmitter specTransmitter =
+            communicator.createSpecTransmitter( specList );
         interopMenu.addSeparator();
-        SpecTransmitter specTransmitter = SpecTransmitter
-            .createSpectrumTransmitter( plasticServer, specList );
         interopMenu.add( specTransmitter.getBroadcastAction() )
             .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
-
-        // Could add facilities to transmit as FITS and VOTable here.
-        // Don't currently provide this as it clutters the menu and it's
-        // not clear whether it is useful or not.
-        if ( false ) {
-            SpecTransmitter fitsTransmitter = SpecTransmitter
-                .createFitsTransmitter( plasticServer, specList );
-            interopMenu.add( fitsTransmitter.getBroadcastAction() );
-            interopMenu.add( fitsTransmitter.createSendMenu() );
-            SpecTransmitter votTransmitter = SpecTransmitter
-                .createVOTableTransmitter( plasticServer, specList );
-            interopMenu.add( votTransmitter.getBroadcastAction() );
-            interopMenu.add( votTransmitter.createSendMenu() );
-        }
 
         // Add help option.
         interopMenu.addSeparator();
@@ -1095,14 +1059,11 @@ public class SplatBrowser
     }
 
     /**
-     * Return the instance of {@link PlasticServer} to use.
+     * Return the instance of {@link SplatCommunicator} to use.
      */
-    public SplatPlastic getPlasticServer()
+    public SplatCommunicator getCommunicator()
     {
-        if ( plasticServer == null ) {
-            plasticServer = new SplatPlastic( this );
-        }
-        return plasticServer;
+        return communicator;
     }
 
     /**
@@ -1269,16 +1230,17 @@ public class SplatBrowser
     {
         if ( ! embedded ) {
 
-            //  PLASTIC registration.
+            //  Client interop registration.
             try {
-                plasticServer.register();
-                logger.info( "Registered with PLASTIC hub" );
-            }
-            catch ( NoHubException e ) {
-                logger.config( "No PLASTIC hub running" );
+                String msg = "Attempting registration with "
+                           + communicator.getProtocolName()
+                           + " hub: ";
+                boolean isReg = communicator.setActive();
+                msg += isReg ? "success" : "failure";
+                logger.info( msg );
             }
             catch ( Exception e ) {
-                logger.warning( "PLASTIC registration failed: " + e );
+                logger.warning( "Unexpected registration failure: " + e );
             }
 
             try {

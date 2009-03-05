@@ -17,10 +17,11 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
-import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.NameParser;
+import uk.ac.starlink.splat.util.PlasticCommunicator;
+import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.Loader;
@@ -38,6 +39,7 @@ import uk.ac.starlink.util.ProxySetup;
  * ability.
  *
  * @author Peter W. Draper (Starlink, Durham University)
+ * @author Mark Taylor
  * @version $Id$
  */
 public class SplatBrowserMain
@@ -79,6 +81,8 @@ public class SplatBrowserMain
         String[] spectraArgs = null;
         String defaultType = null;
         String ndAction = null;
+        Boolean intHub = null;
+        Boolean extHub = null;
         Integer dispersionAxis = null;
         Integer selectAxis = null;
         Boolean clearPrefs = Boolean.FALSE;
@@ -146,23 +150,9 @@ public class SplatBrowserMain
                 ignoreErrors = Boolean.FALSE;
             }
 
-            //  PLASTIC hub options.
-            if ( Boolean.TRUE.equals( parser.getOptionValue( hub ) ) ) {
-                try {
-                    PlasticHub.startHub( null, null );
-                }
-                catch (IOException e) {
-                    logger.log( Level.WARNING, "Internal hub not started", e );
-                }
-            }
-            else if ( Boolean.TRUE.equals( parser.getOptionValue( exthub ) ) ) {
-                try {
-                    PlasticUtils.startExternalHub( true );
-                }
-                catch ( IOException e ) {
-                    logger.log( Level.WARNING, "External hub not started", e );
-                }
-            }
+            //  Interop hub options.
+            intHub = (Boolean) parser.getOptionValue( hub );
+            extHub = (Boolean) parser.getOptionValue( exthub );
 
             //  Show log with more information.
             debugLevel = (Integer) parser.getOptionValue( debug );
@@ -187,6 +177,7 @@ public class SplatBrowserMain
         final String action = ndAction;
         final Integer dispax = dispersionAxis;
         final Integer selectax = selectAxis;
+        final SplatCommunicator communicator = new PlasticCommunicator();
 
         if ( keepCoords != null ) {
             //  This needs to become the application default, before any
@@ -238,7 +229,8 @@ public class SplatBrowserMain
                 public void run()
                 {
                     browser = new SplatBrowser( spectra, false, type,
-                                                action, dispax, selectax );
+                                                action, dispax, selectax,
+                                                communicator );
                     browser.setVisible( true );
                     if ( checkjniast ) {
                         if ( ! ASTJ.isAvailable() ) {
@@ -250,6 +242,23 @@ public class SplatBrowserMain
                     }
                 }
             });
+
+        //  Start hub if required.  This may take time, and it is not 
+        //  critical to the GUI startup, which is why it is done after
+        //  the interface startup is dispatched.
+        if ( Boolean.TRUE.equals( intHub ) || Boolean.TRUE.equals( extHub ) ) {
+            boolean external = Boolean.TRUE.equals( extHub );
+            String hubtype = external ? "external" : "internal";
+            logger.info( "Starting " + hubtype + " hub ..." );
+            try {
+                communicator.startHub( external );
+                logger.info( "Started " + hubtype + " hub successfully" );
+            }
+            catch (IOException e) {
+                logger.log( Level.WARNING,
+                            "Failed to start " + hubtype + " hub", e );
+            }
+        }
     }
 
     /**
