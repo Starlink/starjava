@@ -17,10 +17,13 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
+import org.astrogrid.samp.SampUtils;
+
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.util.PlasticCommunicator;
+import uk.ac.starlink.splat.util.SampCommunicator;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
@@ -39,7 +42,6 @@ import uk.ac.starlink.util.ProxySetup;
  * ability.
  *
  * @author Peter W. Draper (Starlink, Durham University)
- * @author Mark Taylor
  * @version $Id$
  */
 public class SplatBrowserMain
@@ -66,6 +68,7 @@ public class SplatBrowserMain
              " [{-s,--selectax} axis_index]" +
              " [{-c,--clear}]" +
              " [{-k,--keepcoords}]" +
+             " [{--interop s{amp}||p{lastic}]" +
              " [{--hub,--exthub}]" +
              " [{--debuglevel} level]" +
              " [spectra1 spectra2 ...]"
@@ -81,6 +84,7 @@ public class SplatBrowserMain
         String[] spectraArgs = null;
         String defaultType = null;
         String ndAction = null;
+        String interopType = null;
         Boolean intHub = null;
         Boolean extHub = null;
         Integer dispersionAxis = null;
@@ -106,6 +110,8 @@ public class SplatBrowserMain
                 parser.addBooleanOption( 'k', "keepcoords" );
             CmdLineParser.Option ignore =
                 parser.addBooleanOption( 'i', "ignore" );
+            CmdLineParser.Option interop =
+                parser.addStringOption( '\0', "interop" );
             CmdLineParser.Option hub = 
                 parser.addBooleanOption( '\0', "hub" );
             CmdLineParser.Option exthub =
@@ -150,6 +156,9 @@ public class SplatBrowserMain
                 ignoreErrors = Boolean.FALSE;
             }
 
+            //  Interop communications type.
+            interopType = (String) parser.getOptionValue( interop );
+
             //  Interop hub options.
             intHub = (Boolean) parser.getOptionValue( hub );
             extHub = (Boolean) parser.getOptionValue( exthub );
@@ -177,7 +186,8 @@ public class SplatBrowserMain
         final String action = ndAction;
         final Integer dispax = dispersionAxis;
         final Integer selectax = selectAxis;
-        final SplatCommunicator communicator = new PlasticCommunicator();
+        final SplatCommunicator communicator =
+            createCommunicator( interopType );
 
         if ( keepCoords != null ) {
             //  This needs to become the application default, before any
@@ -395,6 +405,73 @@ public class SplatBrowserMain
     public SplatBrowser getSplatBrowser()
     {
         return browser;
+    }
+
+    /**
+     * Returns a new SplatCommunicator object to handle inter-applcation
+     * communications.
+     *
+     * @param interopType "s(amp)" or "p(lastic)", otherwise a default is used 
+     */
+    public static SplatCommunicator createCommunicator( String interopType ) {
+
+        //  SAMP mode explicitly requested.
+        if ( "s".equals( interopType ) ||
+             "samp".equalsIgnoreCase( interopType ) ) {
+            logger.info( "Using SAMP communications by request" );
+            try {
+                return new SampCommunicator();
+            }
+            catch (IOException e) {
+                throw new RuntimeException( "Failed to start up SAMP", e );
+            }
+        }
+
+        //  PLASTIC mode explicitly requested.
+        else if ( "p".equals( interopType ) ||
+                  "plastic".equalsIgnoreCase( interopType ) ) {
+            logger.info( "Using PLASTIC communications by request" );
+            return new PlasticCommunicator();
+        }
+
+        //  No explicit request.
+        else {
+
+            //  If SAMP hub is running, run in SAMP mode.
+            if ( SampUtils.getLockFile().exists() ) {
+                logger.info( "SAMP hub running - run in SAMP mode" );
+                try {
+                    return new SampCommunicator();
+                }
+                catch (IOException e) {
+                    logger.warning( "Failed to start SAMP hub: " + e );
+                    logger.info( "Falling back to PLASTIC" );
+                    return new PlasticCommunicator();
+                }
+            }
+
+            //  If PLASTIC hub is running, run in PLASTIC mode.
+            else if ( PlasticUtils.isHubRunning() ) {
+                logger.info( "PLASTIC hub running - run in PLASTIC mode" );
+                return new PlasticCommunicator();
+            }
+
+            //  Otherwise default to SAMP.
+            else {
+                SplatCommunicator comm;
+                try {
+                    comm = new SampCommunicator();
+                }
+                catch (IOException e) {
+                    logger.warning( "Failed to start SAMP"
+                                  + " - fall back to PLASTIC (" + e + ")" );
+                    comm = new PlasticCommunicator();
+                }
+                logger.info( "Run in " + comm.getProtocolName()
+                           + " mode by default" );
+                return comm;
+            }
+        }
     }
 
     /**

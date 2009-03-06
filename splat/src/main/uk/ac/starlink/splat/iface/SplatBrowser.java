@@ -66,13 +66,14 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SpecTransmitter;
+import uk.ac.starlink.splat.util.SampCommunicator;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
+import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
@@ -428,10 +429,13 @@ public class SplatBrowser
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
         setEmbedded( embedded );
-        communicator.setBrowser( this );
-        this.communicator = communicator;
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
+            if ( communicator == null ) {
+                communicator = new SampCommunicator();
+            }
+            communicator.setBrowser( this );
+            this.communicator = communicator;
             initComponents();
         }
         catch ( Exception e ) {
@@ -1037,13 +1041,20 @@ public class SplatBrowser
         interopMenu.setMnemonic( KeyEvent.VK_I );
         menuBar.add( interopMenu );
 
-        // Add protocol-specific actions.
+        //  Add interop status window item.
+        Action winAction = communicator.getWindowAction();
+        if ( winAction != null ) {
+            interopMenu.add( winAction );
+            toolBar.add( winAction );
+        }
+
+        //  Add protocol-specific actions.
         Action[] interopActions = communicator.getInteropActions();
         for ( int i = 0; i < interopActions.length; i++ ) {
             interopMenu.add( interopActions[ i ] );
         }
 
-        // Add spectrum transmit menus items.
+        //  Add spectrum transmit menus items.
         Transmitter specTransmitter =
             communicator.createSpecTransmitter( specList );
         interopMenu.addSeparator();
@@ -1052,7 +1063,7 @@ public class SplatBrowser
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
 
-        // Add help option.
+        //  Add help option.
         interopMenu.addSeparator();
         interopMenu.add( HelpFrame.getAction( "Help on interoperability",
                                               "plastic" ) );
