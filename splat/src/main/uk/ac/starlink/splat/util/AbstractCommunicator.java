@@ -22,8 +22,14 @@ import uk.ac.starlink.splat.iface.SplatBrowser;
  */
 public abstract class AbstractCommunicator implements SplatCommunicator {
 
+    /** Protocol name. */
     private String name;
+
+    /** Splat window on behalf of which this communicator is working. */
     protected SplatBrowser browser;
+
+    /** Number of seconds between autoconnect attempts, if applicable. */
+    public static int AUTOCONNECT_SECS = 5;
 
     /**
      * Constructor.
