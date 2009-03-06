@@ -58,6 +58,14 @@ public interface SplatCommunicator
     void startHub( boolean external ) throws IOException;
 
     /**
+     * Returns an action which will display a SPLAT window giving 
+     * information and perhaps providing configuration capabilities
+     * for this communicator.  May return null if nothing suitable
+     * is implemented.
+     */
+    Action getWindowAction();
+
+    /**
      * Returns a list of actions suitable for insertion in a general purpose
      * menu associated with interoperability functionality
      * (register/unregister etc).

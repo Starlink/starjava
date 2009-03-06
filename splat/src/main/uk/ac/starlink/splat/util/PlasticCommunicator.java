@@ -80,10 +80,15 @@ public class PlasticCommunicator
 
         //  Either way, arrange it so that we keep a look out for appearing
         //  hubs at time when we're not registered.
-        plasticServer.setAutoRegister( 5000 );
+        plasticServer.setAutoRegister( AUTOCONNECT_SECS * 1000 );
 
         //  Return status.
         return isReg;
+    }
+
+    public Action getWindowAction()
+    {
+        return null;
     }
 
     public Action[] getInteropActions()
