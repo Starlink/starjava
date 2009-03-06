@@ -221,7 +221,11 @@ public class TopcatServer {
      */
     public static TopcatServer getInstance() throws IOException {
         if ( instance_ == null ) {
-            instance_ = new TopcatServer();
+            synchronized ( TopcatServer.class ) {
+                if ( instance_ == null ) {
+                    instance_ = new TopcatServer();
+                }
+            }
         }
         return instance_;
     }
