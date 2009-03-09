@@ -49,11 +49,6 @@ public class SplatPlastic
     private PlasticCommunicator communicator;
 
     /**
-     * SpecDataFactory instance.
-     */
-    protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
-
-    /**
      * Model controlling whether spectra received as spectrum messages are
      * accepted.
      */
@@ -163,10 +158,11 @@ public class SplatPlastic
      * @param meta a key-value map of SSAP metadata that describes the
      *             spectrum to be accessed.
      */
-    protected SpectrumIO.Props getProps( String location, Map meta )
+    public static SpectrumIO.Props getProps( String location, Map meta )
     {
         SpectrumIO.Props props = new SpectrumIO.Props( location );
         if ( meta != null && meta.size() > 0 ) {
+            SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
             Set keys = meta.keySet();
             Iterator i = keys.iterator();
             String key;
