@@ -46,13 +46,16 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser;
  * @version  $Id$
  */
 public class SampCommunicator
-    extends AbstractCommunicator
+    implements SplatCommunicator
 {
     /** Handles communication with SAMP hub. */
-    private GuiHubConnector hubConnector;
+    protected GuiHubConnector hubConnector;
 
     /** HTTP server used. */
-    private SplatHTTPServer server;
+    protected SplatHTTPServer server;
+
+    /** Splat window on behalf of which this communicator is working. */
+    protected SplatBrowser browser;
 
     /** Cached list of menu-type actions for this communicator. */
     private Action[] interopActions;
@@ -61,10 +64,13 @@ public class SampCommunicator
     private Action windowAction;
 
     /** Hub mode used for internal hub. */
-    private static final HubMode INTERNAL_HUB_MODE = HubMode.NO_GUI;
+    public static final HubMode INTERNAL_HUB_MODE = HubMode.NO_GUI;
 
     /** Hub mode used for external hub. */
-    private static final HubMode EXTERNAL_HUB_MODE = HubMode.MESSAGE_GUI;
+    public static final HubMode EXTERNAL_HUB_MODE = HubMode.MESSAGE_GUI;
+
+    /** Number of seconds between autoconnect attempts. */
+    public static int AUTOCONNECT_SECS = 5;
 
     /** Logger. */
     private static Logger logger =
@@ -76,7 +82,6 @@ public class SampCommunicator
     public SampCommunicator()
         throws IOException
     {
-        super( "SAMP" );
         server = SplatHTTPServer.getInstance();
         ClientProfile profile = server.getSampProfile();
         hubConnector = new MessageTrackerHubConnector( profile );
@@ -140,6 +145,11 @@ public class SampCommunicator
         };
     }
 
+    public String getProtocolName()
+    {
+        return "SAMP";
+    }
+
     public void startHub( boolean external )
         throws IOException
     {
@@ -153,7 +163,7 @@ public class SampCommunicator
 
     public void setBrowser( SplatBrowser browser )
     {
-        super.setBrowser( browser );
+        this.browser = browser;
     }
 
     public boolean setActive()
