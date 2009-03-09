@@ -14,12 +14,15 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.ResourceHandler;
 import org.astrogrid.samp.httpd.ServerResource;
+import org.astrogrid.samp.httpd.URLMapperHandler;
 import org.astrogrid.samp.xmlrpc.internal.InternalClientFactory;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+
+import uk.ac.starlink.splat.iface.images.ImageHolder;
 
 /**
  * HTTP server used by SPLAT.
@@ -37,6 +40,7 @@ public class SplatHTTPServer
     protected ResourceHandler resourceHandler;
     protected ClientProfile profile;
     protected boolean started = false;
+    protected URL logoURL;
     private static SplatHTTPServer instance;
 
     /**
@@ -51,6 +55,13 @@ public class SplatHTTPServer
         //  Set up handler for custom resource serving.
         resourceHandler = new ResourceHandler( server, "/dynamic" );
         server.addHandler( resourceHandler );
+
+        //  Set up handler for logo.
+        URL internalLogoURL = ImageHolder.class.getResource( "hsplat.gif" );
+        URLMapperHandler logoHandler = 
+            new URLMapperHandler( server, "/logo", internalLogoURL, false );
+        server.addHandler( logoHandler );
+        logoURL = logoHandler.getBaseUrl();
 
         //  Set up handler for XML-RPC.
         SampXmlRpcClientFactory xClientFactory = new InternalClientFactory();
@@ -75,6 +86,15 @@ public class SplatHTTPServer
     public ClientProfile getSampProfile()
     {
         return profile;
+    }
+
+    /**
+     * Returns a URL for the SPLAT logo.  This is an http-protocol URL not
+     * jar-protocol one, so it may be used outside the JVM.
+     */
+    public URL getLogoURL()
+    {
+        return logoURL;
     }
 
     /**
