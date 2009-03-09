@@ -1062,11 +1062,6 @@ public class SplatBrowser
             .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
-
-        //  Add help option.
-        interopMenu.addSeparator();
-        interopMenu.add( HelpFrame.getAction( "Help on interoperability",
-                                              "plastic" ) );
     }
 
     /**

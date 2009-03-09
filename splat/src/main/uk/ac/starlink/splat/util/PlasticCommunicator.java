@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.plastic.PlasticUtils;
+import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
@@ -110,6 +111,7 @@ public class PlasticCommunicator
                 plasticServer.getHubStartAction( true ),
                 plasticServer.getHubStartAction( false ),
                 plasticServer.getHubWatchAction(),
+                HelpFrame.getAction( "Help on interoperability", "plastic" ),
             };
         }
         return interopActions;
