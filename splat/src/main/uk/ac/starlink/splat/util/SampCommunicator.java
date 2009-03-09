@@ -184,7 +184,7 @@ public class SampCommunicator
         if ( windowAction == null ) {
             Icon sampIcon =
                 new ImageIcon( ImageHolder.class.getResource( "samp.gif" ) );
-            windowAction = new WindowAction( "SAMP", sampIcon );
+            windowAction = new WindowAction( "SAMP control", sampIcon );
         }
         return windowAction;
     }
