@@ -19,6 +19,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -182,9 +184,12 @@ public class SampCommunicator
     public Action getWindowAction()
     {
         if ( windowAction == null ) {
-            Icon sampIcon =
+            Icon sampOffIcon =
                 new ImageIcon( ImageHolder.class.getResource( "samp.gif" ) );
-            windowAction = new WindowAction( "SAMP control", sampIcon );
+            Icon sampOnIcon =
+                new ImageIcon( ImageHolder.class.getResource( "sampgo.gif" ) );
+            windowAction = 
+                new WindowAction( "SAMP control", sampOffIcon, sampOnIcon );
         }
         return windowAction;
     }
@@ -294,23 +299,38 @@ public class SampCommunicator
     /**
      * Action for displaying SAMP status window.
      */
-    private class WindowAction extends AbstractAction
+    private class WindowAction
+        extends AbstractAction
+        implements ChangeListener
     {
         /** SAMP control window object. */
         private JFrame sampFrame = null;
+
+        /** Icon representing disconnected state. */
+        private Icon offIcon;
+
+        /** Icon representing connected state. */
+        private Icon onIcon;
 
         /**
          * Constructor.
          *
          * @param  name  action name
-         * @param  icon  action icon
+         * @param  offIcon  action icon when disconnected
+         * @param  onIcon  action icon when connected
          */
-        WindowAction( String name, Icon icon )
+        WindowAction( String name, Icon offIcon, Icon onIcon )
         {
-            super( name, icon );
+            super( name );
+            this.offIcon = offIcon;
+            this.onIcon = onIcon;
             putValue( SHORT_DESCRIPTION,
                      "Show SAMP control window"
                    + " (application interoperability)" );
+
+            //  Change icon in accordance with connection status.
+            hubConnector.addConnectionListener( this );
+            stateChanged( null );
         }
 
         public void actionPerformed( ActionEvent ae )
@@ -319,6 +339,15 @@ public class SampCommunicator
                 sampFrame = new SampFrame( hubConnector );
             }
             sampFrame.setVisible( true );
+        }
+
+        /**
+         * Invoked when connection status has, or may have, changed.
+         */
+        public void stateChanged( ChangeEvent ce )
+        {
+            putValue( SMALL_ICON,
+                      hubConnector.isConnected() ? onIcon : offIcon );
         }
     }
 }
