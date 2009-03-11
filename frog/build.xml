@@ -1025,6 +1025,7 @@
   <target name="compile-tests"
           depends="build"
           if="junit.present">
+<!--
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -1034,6 +1035,7 @@
       <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
     </javac>
+ -->
   </target>
 
   <!--
