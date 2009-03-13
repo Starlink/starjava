@@ -11807,6 +11807,8 @@ introduced since the last version:
     <li>Added documentation section <ref id="columnSelector"/>.</li>
     <li>Fix bug when decoding <code>file:</code>-type URLs
         containing %xx escapes.</li>
+    <li>Fix bug which caused SAMP external hub to write incomplete lock file
+        when running on Windows XP.</li>
     </ul>
     </p></dd>
 
