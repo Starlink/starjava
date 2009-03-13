@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
- * Copyright (C) 2007-2008 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
  *     11-NOV-2004 (Peter W. Draper):
@@ -9,6 +9,7 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -147,6 +148,18 @@ public class SSAQueryBrowser
 
     /** Download and display all spectra */
     protected JButton displayAllButton = null;
+
+    /** Download selected spectra */
+    protected JButton downloadSelectedButton = null;
+
+    /** Download all spectra */
+    protected JButton downloadAllButton = null;
+
+    /** Deselect spectra in visible table */
+    protected JButton deselectVisibleButton = null;
+
+    /** Deselect all spectra in all tables */
+    protected JButton deselectAllButton = null;
 
     /** Make the query to all known servers */
     protected JButton goButton = null;
@@ -313,12 +326,12 @@ public class SSAQueryBrowser
         optionsMenu.add( serverAction );
         toolBar.add( serverAction );
 
-        //  SSAP version 1 format control, wavelength calibation and 
+        //  SSAP version 1 format control, wavelength calibation and
         //  flux calibration options.
         initFormatOptions( optionsMenu );
         initWaveCalibOptions( optionsMenu );
         initFluxCalibOptions( optionsMenu );
-        
+
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
@@ -349,7 +362,7 @@ public class SSAQueryBrowser
         SplatPlastic plasticServer = browser.getPlasticServer();
 
         // Add table transmit options.
-        StarTableTransmitter transmitter = 
+        StarTableTransmitter transmitter =
             new StarTableTransmitter( plasticServer, this );
         interopMenu.add( transmitter.getBroadcastAction() )
             .setMnemonic( KeyEvent.VK_B );
@@ -402,6 +415,8 @@ public class SSAQueryBrowser
 
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
+        nameLookup.setToolTipText( "Press to get coordinates of Object" );
+
         layouter.add( nameLookup, false );
         layouter.eatLine();
 
@@ -479,8 +494,8 @@ public class SSAQueryBrowser
         layouter.add( timeLabel, false );
         layouter.add( timePanel, true );
         lowerTimeField.setToolTipText( "Lower limit, or single include " +
-                                       "value for time coverage, " + 
-                                       "ISO 8601 format " + 
+                                       "value for time coverage, " +
+                                       "ISO 8601 format " +
                                        "(e.g 2008-10-15T20:48Z)" );
         upperTimeField.setToolTipText( "Upper limit for time coverage, " +
                                        "in ISO 8601 format " +
@@ -507,35 +522,71 @@ public class SSAQueryBrowser
         JPanel resultsPanel = new JPanel( new BorderLayout() );
         resultsPanel.setBorder
             ( BorderFactory.createTitledBorder( "Query results:" ) );
+        resultsPanel.setToolTipText( "Results of query to the current list "+ 
+                                     "of SSAP servers. One table per server" );
 
         resultsPane = new JTabbedPane();
         resultsPanel.add( resultsPane, BorderLayout.CENTER );
 
-        JPanel controlPanel = new JPanel();
-        displaySelectedButton = new JButton( "Display selected" );
-        controlPanel.add( displaySelectedButton );
+        JPanel controlPanel = new JPanel( new BorderLayout() );
+        JPanel controlPanel1 = new JPanel();
+        JPanel controlPanel2 = new JPanel();
 
-        //  Add action to display all currently selected spectra.
+        //  Download and display.
+        displaySelectedButton = new JButton( "Display selected" );
         displaySelectedButton.addActionListener( this );
+        displaySelectedButton.setToolTipText
+            ( "Download and display all spectra selected in all tables" );
+        controlPanel1.add( displaySelectedButton );
+
 
         displayAllButton = new JButton( "Display all" );
-        controlPanel.add( displayAllButton );
-
-        //  Add action to display all spectra.
         displayAllButton.addActionListener( this );
+        displayAllButton.setToolTipText
+            ( "Download and display all spectra in all tables" );
+        controlPanel1.add( displayAllButton );
 
+        //  Just download.
+        downloadSelectedButton = new JButton( "Download selected" );
+        downloadSelectedButton.addActionListener( this );
+        downloadSelectedButton.setToolTipText
+            ( "Download all spectra selected in all tables");
+        controlPanel1.add( downloadSelectedButton );
+
+        downloadAllButton = new JButton( "Download all" );
+        downloadAllButton.addActionListener( this );
+        downloadAllButton.setToolTipText
+            ( "Download all spectra in all tables");
+        controlPanel1.add( downloadAllButton );
+
+
+        //  Deselect
+        deselectVisibleButton = new JButton( "Deselect" );
+        deselectVisibleButton.addActionListener( this );
+        deselectVisibleButton.setToolTipText
+            ( "Deselect all spectra in displayed table" );
+        controlPanel2.add( deselectVisibleButton );
+
+        deselectAllButton = new JButton( "Deselect all" );
+        deselectAllButton.addActionListener( this );
+        deselectAllButton.setToolTipText
+            ( "Deselect all spectra in all tables" );
+        controlPanel2.add( deselectAllButton );
+
+        controlPanel.add( controlPanel1, BorderLayout.NORTH );
+        controlPanel.add( controlPanel2, BorderLayout.SOUTH );
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
         centrePanel.add( resultsPanel, BorderLayout.CENTER );
     }
 
     /**
-     * Initialise the SSAP version 1 data formats. Don't want 
+     * Initialise the SSAP version 1 data formats. Don't want
      * one of these by default.
      */
     protected void initFormatOptions( JMenu optionsMenu )
     {
         JMenu formatMenu = new JMenu( "Query format" );
-        String[] names = 
+        String[] names =
             { "None", "ALL", "COMPLIANT", "votable", "fits", "xml" };
         JRadioButtonMenuItem item;
         formatGroup = new ButtonGroup();
@@ -552,13 +603,13 @@ public class SSAQueryBrowser
     }
 
     /**
-     * Initialise the SSAP version 1 wavecalib formats. Don't want 
+     * Initialise the SSAP version 1 wavecalib formats. Don't want
      * one of these by default.
      */
     protected void initWaveCalibOptions( JMenu optionsMenu )
     {
         JMenu calibMenu = new JMenu( "Wavelength calibration" );
-        String[] names = 
+        String[] names =
             { "None", "any", "absolute", "relative" };
         JRadioButtonMenuItem item;
         waveCalibGroup = new ButtonGroup();
@@ -575,13 +626,13 @@ public class SSAQueryBrowser
     }
 
     /**
-     * Initialise the SSAP version 1 fluxcalib formats. Don't want 
+     * Initialise the SSAP version 1 fluxcalib formats. Don't want
      * one of these by default.
      */
     protected void initFluxCalibOptions( JMenu optionsMenu )
     {
         JMenu calibMenu = new JMenu( "Flux calibration" );
-        String[] names = 
+        String[] names =
             { "None", "any", "absolute", "relative", "normalized" };
         JRadioButtonMenuItem item;
         fluxCalibGroup = new ButtonGroup();
@@ -680,23 +731,23 @@ public class SSAQueryBrowser
      */
     public void doQuery()
     {
-        //  Get the position. Allow the object name to be passed using 
+        //  Get the position. Allow the object name to be passed using
         //  TARGETNAME, useful for solar system objects.
         String ra = raField.getText();
         String dec = decField.getText();
         String objectName = nameField.getText().trim();
         if ( ra == null || ra.length() == 0 ||
              dec == null || dec.length() == 0 ) {
-            
+
             //  Check for an object name. Need one or the other.
             if ( objectName != null && objectName.length() > 0 ) {
                 ra = null;
                 dec = null;
-            } 
+            }
             else {
               JOptionPane.showMessageDialog( this, "You have not supplied "+
                                              "a search centre or object name",
-                                             "No RA or Dec", 
+                                             "No RA or Dec",
                                              JOptionPane.ERROR_MESSAGE );
               return;
             }
@@ -710,7 +761,7 @@ public class SSAQueryBrowser
                 radius = Double.parseDouble( radiusText );
             }
             catch (NumberFormatException e) {
-                ErrorDialog.showError( this, "Cannot understand radius value", 
+                ErrorDialog.showError( this, "Cannot understand radius value",
                                        e );
                 return;
             }
@@ -978,6 +1029,30 @@ public class SSAQueryBrowser
     }
 
     /**
+     * Deselect all spectra in the visible table, or deselect all tables.
+     */
+    protected void deselectSpectra( boolean all )
+    {
+        if ( all ) {
+            //  Visit all the tabbed StarJTables.
+            Iterator i = starJTables.iterator();
+            while ( i.hasNext() ) {
+                ((StarJTable) i.next()).clearSelection();
+            }
+        }
+        else {
+            Component c = resultsPane.getSelectedComponent();
+            if ( c != null ) {
+                JScrollPane sp = (JScrollPane) c;
+                StarJTable table = (StarJTable ) sp.getViewport().getView();
+                table.clearSelection();
+            }
+        }
+    }
+
+
+
+    /**
      * Get the main SPLAT browser to download and display spectra.
      * <p>
      * Can either display all the spectra, just the selected spectra, or the
@@ -985,8 +1060,8 @@ public class SSAQueryBrowser
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
      */
-    protected void displaySpectra( boolean selected, StarJTable table,
-                                   int row )
+    protected void displaySpectra( boolean selected, boolean display,
+                                   StarJTable table, int row )
     {
         //  List of all spectra to be loaded and their data formats and short
         //  names etc.
@@ -1021,7 +1096,7 @@ public class SSAQueryBrowser
         //  And load and display...
         SpectrumIO.Props[] propList = new SpectrumIO.Props[specList.size()];
         specList.toArray( propList );
-        browser.threadLoadSpectra( propList );
+        browser.threadLoadSpectra( propList, display );
         browser.toFront();
     }
 
@@ -1101,7 +1176,7 @@ public class SSAQueryBrowser
                 //  are in columns or are really parameters. Assume
                 //  these work like the old-style scheme and appear in
                 //  the columns.
-                utype = (String) 
+                utype = (String)
                     colInfo.getAuxDatumValueByName( "utype", String.class );
                 if ( utype != null ) {
                     utype = utype.toLowerCase();
@@ -1145,27 +1220,38 @@ public class SSAQueryBrowser
                         //  Using all rows.
                         rseq = starTable.getRowSequence();
                         while ( rseq.next() ) {
-                            value = ((String)rseq.getCell( linkcol )).trim();
+                            value = ( (String)rseq.getCell( linkcol ) );
+                            value = value.trim();
                             props = new SpectrumIO.Props( value );
                             if ( typecol != -1 ) {
-                                value = ((String)rseq.getCell(typecol)).trim();
-                                props.setType( specDataFactory
-                                               .mimeToSPLATType( value ) );
+                                value = ((String)rseq.getCell( typecol ) );
+                                if ( value != null ) {
+                                    value = value.trim();
+                                    props.setType
+                                        ( specDataFactory
+                                          .mimeToSPLATType( value ) );
+                                }
                             }
                             if ( namecol != -1 ) {
-                                value = ((String)rseq.getCell(namecol)).trim();
-                                props.setShortName( value );
+                                value = ( (String)rseq.getCell( namecol ) );
+                                if ( value != null ) {
+                                    value = value.trim();
+                                    props.setShortName( value );
+                                }
                             }
 
                             if ( axescol != -1 ) {
 
                                 //  Old style column names.
-                                value = ((String)rseq.getCell(axescol)).trim();
-                                axes = value.split("\\s");
-                                props.setCoordColumn( axes[0] );
-                                props.setDataColumn( axes[1] );
-                                if ( axes.length == 3 ) {
-                                    props.setErrorColumn( axes[2] );
+                                value = ( (String)rseq.getCell( axescol ) );
+                                if ( value != null ) {
+                                    value = value.trim();
+                                    axes = value.split("\\s");
+                                    props.setCoordColumn( axes[0] );
+                                    props.setDataColumn( axes[1] );
+                                    if ( axes.length == 3 ) {
+                                        props.setErrorColumn( axes[2] );
+                                    }
                                 }
                             }
                             else {
@@ -1188,22 +1274,24 @@ public class SSAQueryBrowser
                             if ( unitscol != -1 ) {
 
                                 //  Old style column names.
-                                value =
-                                    ((String)rseq.getCell( unitscol )).trim();
-                                units = value.split("\\s");
-                                props.setCoordUnits( units[0] );
-                                props.setDataUnits( units[1] );
-                                //  Error must have same units as data.
+                                value = ( (String)rseq.getCell( unitscol ) );
+                                if ( value != null ) {
+                                    value = value.trim();
+                                    units = value.split("\\s");
+                                    props.setCoordUnits( units[0] );
+                                    props.setDataUnits( units[1] );
+                                    //  Error must have same units as data.
+                                }
                             }
                             else {
-                                
+
                                 //  Version 1.0 style.
                                 if ( specunitscol != -1 ) {
                                     value = (String)rseq.getCell(specunitscol);
                                     props.setCoordUnits( value );
                                 }
                                 if ( fluxunitscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxaxiscol);
+                                    value = (String)rseq.getCell(fluxunitscol);
                                     props.setDataUnits( value );
                                 }
                             }
@@ -1222,32 +1310,41 @@ public class SSAQueryBrowser
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.
-                                value = ((String)rseq.getCell(linkcol)).trim();
+                                value = ( (String)rseq.getCell( linkcol ) );
+                                value = value.trim();
                                 props = new SpectrumIO.Props( value );
                                 if ( typecol != -1 ) {
-                                    value =
-                                        ((String)rseq.getCell(typecol)).trim();
-                                    props.setType( specDataFactory
-                                                   .mimeToSPLATType( value ) );
+                                    value =((String)rseq.getCell(typecol));
+                                    if ( value != null ) {
+                                        value = value.trim();
+                                        props.setType
+                                            ( specDataFactory
+                                              .mimeToSPLATType( value ) );
+                                    }
                                 }
                                 if ( namecol != -1 ) {
-                                    value =
-                                        ((String)rseq.getCell(namecol)).trim();
-                                    props.setShortName( value );
+                                    value = ((String)rseq.getCell( namecol ));
+                                    if ( value != null ) {
+                                        value = value.trim();
+                                        props.setShortName( value );
+                                    }
                                 }
                                 if ( axescol != -1 ) {
-                                    value =
-                                        ((String)rseq.getCell(axescol)).trim();
-                                    axes = value.split("\\s");
-                                    props.setCoordColumn( axes[0] );
-                                    props.setDataColumn( axes[1] );
+                                    value = ((String)rseq.getCell( axescol ));
+                                    if ( value != null ) {
+                                        value = value.trim();
+                                        axes = value.split("\\s");
+                                        props.setCoordColumn( axes[0] );
+                                        props.setDataColumn( axes[1] );
+                                    }
                                 }
                                 if ( unitscol != -1 ) {
-                                    value =
-                                        ((String)rseq.getCell(unitscol)).trim();
-                                    units = value.split("\\s");
-                                    props.setCoordUnits( units[0] );
-                                    props.setDataUnits( units[1] );
+                                    value = ((String)rseq.getCell(unitscol));
+                                    if ( value != null ) {
+                                        units = value.split("\\s");
+                                        props.setCoordUnits( units[0] );
+                                        props.setDataUnits( units[1] );
+                                    }
                                 }
                                 specList.add( props );
 
@@ -1543,11 +1640,29 @@ public class SSAQueryBrowser
         }
 
         if ( source.equals( displaySelectedButton ) ) {
-            displaySpectra( true, null, -1 );
+            displaySpectra( true, true, null, -1 );
             return;
         }
         if ( source.equals( displayAllButton ) ) {
-            displaySpectra( false, null, -1 );
+            displaySpectra( false, true, null, -1 );
+            return;
+        }
+
+        if ( source.equals( downloadSelectedButton ) ) {
+            displaySpectra( true, false, null, -1 );
+            return;
+        }
+        if ( source.equals( downloadAllButton ) ) {
+            displaySpectra( false, false, null, -1 );
+            return;
+        }
+
+        if ( source.equals( deselectVisibleButton ) ) {
+            deselectSpectra( false );
+            return;
+        }
+        if ( source.equals( deselectAllButton ) ) {
+            deselectSpectra( true );
             return;
         }
     }
@@ -1565,7 +1680,7 @@ public class SSAQueryBrowser
             StarJTable table = (StarJTable) e.getSource();
             Point p = e.getPoint();
             int row = table.rowAtPoint( p );
-            displaySpectra( false, table, row );
+            displaySpectra( false, true, table, row );
         }
     }
 

@@ -418,7 +418,7 @@ public class SplatBrowser
      *                    will be selected automatically.
      */
     public SplatBrowser( String[] inspec, boolean embedded, String type,
-                         String ndAction, Integer dispAxis, 
+                         String ndAction, Integer dispAxis,
                          Integer selectAxis )
     {
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
@@ -1785,17 +1785,18 @@ public class SplatBrowser
     }
 
     /**
-     * Load and display a list of spectra with some pre-defined properties
-     * that should be applied to the spectra immediately after loading.
-     * Uses a thread to load the files so that we do not block the UI.
+     * Load and optionally display a list of spectra with some pre-defined
+     * properties that should be applied to the spectra immediately after
+     * loading. Uses a thread to load the files so that we do not block the UI.
      *
      * @param props properties of the spectra to be loaded, including names.
+     * @param display whether to also display the spectra.
      */
-    public void threadLoadSpectra( SpectrumIO.Props[] props )
+    public void threadLoadSpectra( SpectrumIO.Props[] props, boolean display )
     {
         if ( props.length == 0 ) return;
         SpectrumIO sio = SpectrumIO.getInstance();
-        sio.load( this, true, props );
+        sio.load( this, display, props );
     }
 
     /**
