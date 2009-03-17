@@ -247,7 +247,8 @@ public abstract class SearchResults {
             currentRecord = currentRecord.getNextSibling();
         if (currentRecord == null) {
             if (! hasNext()) return null;
-            complianceError(underflow);
+            if (bufpos < bufnum)
+                complianceError(underflow);
             return nextElement();
         }
 
@@ -257,7 +258,8 @@ public abstract class SearchResults {
             currentRecord = currentRecord.getNextSibling();
             if (currentRecord == null)  {
                 if (! hasNext()) return null;
-                complianceError(underflow);
+                if (bufpos < bufnum)
+                    complianceError(underflow);
                 return nextElement();
             }
         }
