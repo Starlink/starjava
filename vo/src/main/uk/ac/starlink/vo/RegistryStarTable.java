@@ -160,25 +160,20 @@ public class RegistryStarTable extends ColumnStarTable {
      */
     private static Record[] getRecords( RegistryQuery query )
             throws RegistryAccessException {
-        try {
-            List recList = new ArrayList();
-            for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {
-                RegResource resource = (RegResource) it.next();
-                RegCapabilityInterface[] caps = resource.getCapabilities();
-                if ( caps.length == 0 ) {
-                    recList.add( new Record( resource, EMPTY_CAPABILITY ) );
-                }
-                else {
-                    for ( int ic = 0; ic < caps.length; ic++ ) {
-                        recList.add( new Record( resource, caps[ ic ] ) );
-                    }
+        List recList = new ArrayList();
+        for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {
+            RegResource resource = (RegResource) it.next();
+            RegCapabilityInterface[] caps = resource.getCapabilities();
+            if ( caps.length == 0 ) {
+                recList.add( new Record( resource, EMPTY_CAPABILITY ) );
+            }
+            else {
+                for ( int ic = 0; ic < caps.length; ic++ ) {
+                    recList.add( new Record( resource, caps[ ic ] ) );
                 }
             }
-            return (Record[]) recList.toArray( new Record[ 0 ] );
         }
-        catch ( RegistryQueryException e ) {
-            throw (RegistryQueryException) e.getCause();
-        }
+        return (Record[]) recList.toArray( new Record[ 0 ] );
     }
 
     /**

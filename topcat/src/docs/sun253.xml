@@ -11809,6 +11809,7 @@ introduced since the last version:
         containing %xx escapes.</li>
     <li>Fix bug which caused SAMP external hub to write incomplete lock file
         when running on Windows XP.</li>
+    <li>Fix error reporting bug in registry search.</li>
     </ul>
     </p></dd>
 
