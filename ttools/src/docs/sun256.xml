@@ -6182,6 +6182,9 @@ but my thanks are especially due to the following:
        <li>Fixed bug which caused registry queries (<code>regquery</code>) 
            to fail for Java 1.6.</li>
        </ul></li>
+    <li>Fix minor bugs in detail of <code>votlint</code>'s validation tests
+        (VOTABLE element content model, 
+        INFO and PARAM and FIELD required attributes).</li>
     </ul>
     </p></dd>
 

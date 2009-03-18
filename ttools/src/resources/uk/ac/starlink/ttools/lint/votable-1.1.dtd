@@ -1,7 +1,7 @@
 <!-- VOTABLE is the root element 
 .Version 1.1 Addition of GROUP utype
 -->
-<!ELEMENT VOTABLE (DESCRIPTION?, DEFINITIONS?, INFO*, RESOURCE*)>
+<!ELEMENT VOTABLE (DESCRIPTION?, DEFINITIONS?, (COOSYS|PARAM|INFO)*, RESOURCE*)>
 <!ATTLIST VOTABLE
         ID ID #IMPLIED
         version CDATA #IMPLIED
@@ -24,8 +24,8 @@
 <!ELEMENT INFO (#PCDATA)>
 <!ATTLIST INFO
         ID ID #IMPLIED
-        name CDATA #IMPLIED
-        value CDATA #IMPLIED
+        name CDATA #REQUIRED
+        value CDATA #REQUIRED
 >
 
 <!-- A PARAM is similar to a FIELD, but it also has a "value attribute -->
@@ -38,7 +38,7 @@
         precision CDATA #IMPLIED
         width CDATA #IMPLIED
         ref   IDREF #IMPLIED
-        name  CDATA #IMPLIED
+        name  CDATA #REQUIRED
         ucd   CDATA #IMPLIED
 	utype CDATA #IMPLIED
         value CDATA #REQUIRED
@@ -85,7 +85,7 @@
         precision CDATA #IMPLIED
         width CDATA #IMPLIED
         ref   IDREF #IMPLIED
-        name  CDATA #IMPLIED
+        name  CDATA #REQUIRED
         ucd   CDATA #IMPLIED
 	utype CDATA #IMPLIED
         arraysize CDATA #IMPLIED
