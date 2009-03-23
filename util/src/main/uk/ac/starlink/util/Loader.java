@@ -435,6 +435,34 @@ public class Loader {
     }
 
     /**
+     * Configures the "http.agent" system property.
+     * This sets the value of the "User-Agent" request header in outgoing
+     * HTTP requests.  It is good practice to set this to the name or
+     * name+version of the running application, so that external web servers
+     * can see who is using their services.
+     * If this property is not set, the User-Agent header will probably
+     * just report that it's Java.
+     * In the event that the http.agent property is already set on entry,
+     * there is no effect.
+     *
+     * <p>This method must be called before the current JVM has opened 
+     * any HTTP connections to have an effect.
+     *
+     * @param  appName  value for user agent string
+     */
+    public static void setHttpAgent( String appName ) {
+        final String agentProp = "http.agent";
+        try {
+            if ( System.getProperty( agentProp ) == null ) {
+                System.setProperty( agentProp, appName );
+            }
+        }
+        catch ( SecurityException e ) {
+            // never mind
+        }
+    }
+
+    /**
      * Checks that the JRE contains classes that you'd expect it to.
      * This is chiefly useful for bailing out if we find ourself running
      * in Gnu GCJ, which at time of writing is hopelessly incomplete.
