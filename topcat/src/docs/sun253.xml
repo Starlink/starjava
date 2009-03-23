@@ -11810,6 +11810,8 @@ introduced since the last version:
     <li>Fix bug which caused SAMP external hub to write incomplete lock file
         when running on Windows XP.</li>
     <li>Fix error reporting bug in registry search.</li>
+    <li>Report application name and version in User-Agent header of outgoing 
+        HTTP requests.</li>
     </ul>
     </p></dd>
 
