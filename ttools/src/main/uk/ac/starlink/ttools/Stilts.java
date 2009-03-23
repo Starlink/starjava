@@ -32,6 +32,7 @@ public class Stilts {
      */
     public static void main( String[] args ) {
         Loader.loadProperties();
+        Loader.setHttpAgent( "STILTS" + " v" + getVersion() ); 
         URLUtils.installCustomHandlers();
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
         int status = invoker.invoke( args );

@@ -6185,6 +6185,8 @@ but my thanks are especially due to the following:
     <li>Fix minor bugs in detail of <code>votlint</code>'s validation tests
         (VOTABLE element content model, 
         INFO and PARAM and FIELD required attributes).</li>
+    <li>Report application name and version in User-Agent header of outgoing
+        HTTP requests.</li>
     </ul>
     </p></dd>
 
