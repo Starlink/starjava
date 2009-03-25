@@ -204,7 +204,7 @@ public class Driver {
             cmdname = null;
         }
         Loader.tweakGuiForMac();
-        Loader.setHttpAgent( TopcatUtils.getApplicationName() + " v"
+        Loader.setHttpAgent( TopcatUtils.getApplicationName() + "/"
                            + TopcatUtils.getVersion() );
 
         /* Use sloppy interpretation of VOTables. */
