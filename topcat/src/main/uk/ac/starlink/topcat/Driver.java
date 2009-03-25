@@ -231,7 +231,7 @@ public class Driver {
             + pad + " [-verbose] [-demo] [-disk]\n"
             + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
-                  + " [-registry] [-siap] [-ssap]\n"
+                  + " [-registry] [-sia] [-ssa]\n"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -346,11 +346,11 @@ public class Driver {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.RegistryTableLoadDialog" );
             }
-            else if ( arg.equals( "-siap" ) ) {
+            else if ( arg.equals( "-sia" ) || arg.equals( "-siap" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.SiapTableLoadDialog" );
             }
-            else if ( arg.equals( "-ssap" ) ) {
+            else if ( arg.equals( "-ssa" ) || arg.equals( "-ssap" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.SsapTableLoadDialog" );
             }
@@ -686,8 +686,8 @@ public class Driver {
            .append( p2 + "-cone      cone search dialogue" )
            .append( p2 + "-gavo      GAVO Millennium run database query" )
            .append( p2 + "-registry  VO registry query" )
-           .append( p2 + "-siap      Simple Image Access Protocol queries" )
-           .append( p2 + "-ssap      Simple Spectrum Access Protocol queries" );
+           .append( p2 + "-sia       Simple Image Access Protocol queries" )
+           .append( p2 + "-ssa       Simple Spectrum Access Protocol queries" );
 
         /* Java flags. */
         buf.append( p1 + "Useful Java flags:" )

@@ -3349,18 +3349,18 @@ The load dialogue flags are:
     the Virgo Millennium run database.
     </p></dd>
 
-<dt>-siap</dt>
-<dd><p>Simple Image Access Protocol dialogue (<ref id="DalTableLoadDialog"/>),
+<dt>-sia</dt>
+<dd><p>Simple Image Access protocol dialogue (<ref id="DalTableLoadDialog"/>),
     used for obtaining the results of 
-    <webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIAP</webref>
+    <webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref>
     queries on remote data servers
     (not available with topcat-lite).</p></dd>
 
-<dt>-ssap</dt>
-<dd><p>Simple Spectral Access Protocol dialogue
+<dt>-ssa</dt>
+<dd><p>Simple Spectral Access protocol dialogue
     (<ref id="DalTableLoadDialog"/>),
     used for obtaining the results of 
-    <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSAP</webref>
+    <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
     queries on remote data servers
     (not available with topcat-lite).</p></dd>
 
@@ -8439,11 +8439,11 @@ The SSAP one looks very similar</px></caption>
 the Load Window's <label>DataSources</label> menu,
 you can obtain a dialogue which allows you to perform a
 <webref url="http://www.ivoa.net/Documents/latest/SIA.html"
-        >Simple Image Access Protocol</webref>
+        >Simple Image Access</webref>
 or
 <webref url="http://www.ivoa.net/Documents/latest/SSA.html"
-        >Simple Spectral Access Protocol</webref>
-query to one of the servers on the network which supports the
+        >Simple Spectral Access</webref>
+protocol query to one of the servers on the network which supports the
 Virtual Observatory protocol in question.
 </p>
 
@@ -11812,6 +11812,8 @@ introduced since the last version:
     <li>Fix error reporting bug in registry search.</li>
     <li>Report application name and version in User-Agent header of outgoing 
         HTTP requests.</li>
+    <li>Provide aliases <code>-sia</code> and <code>-ssa</code> for
+        <code>-siap</code> and <code>-ssap</code> command line flags.</li>
     </ul>
     </p></dd>
 
