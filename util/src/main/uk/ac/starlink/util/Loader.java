@@ -437,24 +437,31 @@ public class Loader {
     /**
      * Configures the "http.agent" system property.
      * This sets the value of the "User-Agent" request header in outgoing
-     * HTTP requests.  It is good practice to set this to the name or
-     * name+version of the running application, so that external web servers
-     * can see who is using their services.
+     * HTTP requests.  It is good practice to set this to identify the
+     * running application, so that external web servers can see who is
+     * using their services.
      * If this property is not set, the User-Agent header will probably
      * just report that it's Java.
      * In the event that the http.agent property is already set on entry,
      * there is no effect.
      *
+     * <p>According to RFC2616 sections 14.43 and 3.8, this string should
+     * be a whitespace-separated sequence of product tokens.
+     * A product token is of the form <tt>product-name/product-version</tt>.
+     *
      * <p>This method must be called before the current JVM has opened 
      * any HTTP connections to have an effect.
      *
-     * @param  appName  value for user agent string
+     * @param  productTokens  one or more (whitespace-separated) name/version
+     *              application identifiers
+     * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43"
+     *         >RFC 2616, Section 14.43</a>
      */
-    public static void setHttpAgent( String appName ) {
+    public static void setHttpAgent( String productTokens ) {
         final String agentProp = "http.agent";
         try {
             if ( System.getProperty( agentProp ) == null ) {
-                System.setProperty( agentProp, appName );
+                System.setProperty( agentProp, productTokens );
             }
         }
         catch ( SecurityException e ) {
