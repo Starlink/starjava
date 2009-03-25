@@ -184,12 +184,14 @@ public class DalQuery {
      * Encodes a floating point value as a string for use in a DAL query.
      * There ought to be a definition within the DAL protocols of how to
      * do this.  At time of writing there is not, so the current implementation
-     * is simply <code>Double.toString(value)</code>.
+     * defers to the ad-hoc implementation in 
+     * {@link uk.ac.starlink.util.CgiQuery#formatDouble},
+     * which avoids exponential notation except for very large/small values.
      *
      * @param  value  numeric value
      * @return   string equivalent
      */
-    public static String doubleToString( double value ) {
-        return Double.toString( value );
+    public String doubleToString( double value ) {
+        return CgiQuery.formatDouble( value );
     }
 }

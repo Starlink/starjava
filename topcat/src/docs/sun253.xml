@@ -11814,6 +11814,9 @@ introduced since the last version:
         HTTP requests.</li>
     <li>Provide aliases <code>-sia</code> and <code>-ssa</code> for
         <code>-siap</code> and <code>-ssap</code> command line flags.</li>
+    <li>Fix SIA and SSA queries to avoid exponential notation in parameters;
+        there is currently no standard concerning numeric representations,
+        but this avoids problems with some servers.</li>
     </ul>
     </p></dd>
 

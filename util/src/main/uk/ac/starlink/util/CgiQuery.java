@@ -156,7 +156,7 @@ public class CgiQuery {
      * @param   value  value
      * @return   string representation
      */
-    static String formatDouble( double value ) {
+    public static String formatDouble( double value ) {
         return formatDouble( value, 16, 32 );
     }
 
@@ -166,7 +166,7 @@ public class CgiQuery {
      * @param   value  value
      * @return   string representation
      */
-    static String formatFloat( float value ) {
+    public static String formatFloat( float value ) {
         return formatDouble( (double) value, 7, 32 );
     }
 
@@ -181,7 +181,7 @@ public class CgiQuery {
      *          will return to exponential notation
      * @return  fixed format string representation
      */
-    private static String formatDouble( double value, int nsf, int maxleng ) {
+    public static String formatDouble( double value, int nsf, int maxleng ) {
         String sval = Double.toString( value );
         if ( sval.indexOf( 'E' ) < 0 ) {
             return sval;
