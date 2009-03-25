@@ -11817,6 +11817,9 @@ introduced since the last version:
     <li>Fix SIA and SSA queries to avoid exponential notation in parameters;
         there is currently no standard concerning numeric representations,
         but this avoids problems with some servers.</li>
+    <li>The fixed length Substring Array Convention for string arrays
+        (<code>TFORMnn=rAw</code>)
+        is now understood for FITS binary tables.</li>
     </ul>
     </p></dd>
 

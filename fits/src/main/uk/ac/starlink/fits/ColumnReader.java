@@ -294,6 +294,19 @@ abstract class ColumnReader {
 
         /* Fixed size array case. */
         else {
+
+            /* Special case: fixed length Substring Array Convention
+             * (rAw means array of w-character strings).  This seems to be
+             * an alternative to doing the same thing using TDIMnn. */
+            if ( type == 'A' && matchA.matches( "[0-9]+" ) &
+                 dims.length == 1 ) {
+                int sleng = Integer.parseInt( matchA );
+                if ( dims[ 0 ] % sleng == 0 ) {
+                    dims = new int[] { sleng, dims[ 0 ] / sleng };
+                }
+            }
+
+            /* Construct and return the array column reader. */
             final ArrayReader aReader =
                 createArrayReader( type, scale, zeroNum,
                                    hasBlank, blank, dims );

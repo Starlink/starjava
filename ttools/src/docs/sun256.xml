@@ -6187,6 +6187,9 @@ but my thanks are especially due to the following:
         INFO and PARAM and FIELD required attributes).</li>
     <li>Report application name and version in User-Agent header of outgoing
         HTTP requests.</li>
+    <li>The fixed length Substring Array Convention for string arrays
+        (<code>TFORMnn=rAw</code>) 
+        is now understood for FITS binary tables.</li>
     </ul>
     </p></dd>
 
