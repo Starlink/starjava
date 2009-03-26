@@ -162,16 +162,24 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         /* Transmitter for broadcasting subset. */
         TopcatCommunicator communicator =
             ControlWindow.getInstance().getCommunicator();
-        String proto = communicator.getProtocolName();
-        final Transmitter subsetTransmitter = 
-            communicator.createSubsetTransmitter( tcModel, this );
-        subsetTransmitter.getBroadcastAction()
-                         .putValue( Action.SHORT_DESCRIPTION,
-                                    "Select rows in other registered " +
-                                    "applications using " + proto );
-        JMenu sendMenu = subsetTransmitter.createSendMenu();
-        sendMenu.setToolTipText( "Select rows in a single other registered " +
-                                 "application using " + proto );
+        final Transmitter subsetTransmitter;
+        final JMenu sendMenu;
+        if ( communicator != null ) {
+            String proto = communicator.getProtocolName();
+            subsetTransmitter = 
+                communicator.createSubsetTransmitter( tcModel, this );
+            subsetTransmitter.getBroadcastAction()
+                             .putValue( Action.SHORT_DESCRIPTION,
+                                        "Select rows in other registered " +
+                                        "applications using " + proto );
+            sendMenu = subsetTransmitter.createSendMenu();
+            sendMenu.setToolTipText( "Select rows in a single other " +
+                                     "registered application using " + proto );
+        }
+        else {
+            subsetTransmitter = null;
+            sendMenu = null;
+        }
 
         /* Add a selection listener to ensure that the right actions 
          * are enabled/disabled. */
@@ -181,7 +189,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 boolean hasUniqueSelection = nsel == 1;
                 tocolAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
-                subsetTransmitter.setEnabled( hasUniqueSelection );
+                if ( subsetTransmitter != null ) {
+                    subsetTransmitter.setEnabled( hasUniqueSelection );
+                }
             }
         };
         final ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -232,7 +242,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().add( invertAct );
         getToolBar().add( tocolAct );
         getToolBar().add( countAct );
-        getToolBar().add( subsetTransmitter.getBroadcastAction() );
+        if ( subsetTransmitter != null ) {
+            getToolBar().add( subsetTransmitter.getBroadcastAction() );
+        }
         getToolBar().addSeparator();
 
         /* Subsets menu. */
@@ -254,11 +266,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getJMenuBar().add( displayMenu );
 
         /* Interop menu. */
-        JMenu interopMenu = new JMenu( "Interop" );
-        interopMenu.setMnemonic( KeyEvent.VK_I );
-        interopMenu.add( subsetTransmitter.getBroadcastAction() );
-        interopMenu.add( sendMenu );
-        getJMenuBar().add( interopMenu );
+        if ( communicator != null ) {
+            JMenu interopMenu = new JMenu( "Interop" );
+            interopMenu.setMnemonic( KeyEvent.VK_I );
+            interopMenu.add( subsetTransmitter.getBroadcastAction() );
+            interopMenu.add( sendMenu );
+            getJMenuBar().add( interopMenu );
+        }
 
         /* Add standard help actions. */
         addHelp( "SubsetWindow" );

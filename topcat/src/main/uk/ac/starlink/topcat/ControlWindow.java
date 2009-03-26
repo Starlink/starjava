@@ -80,9 +80,10 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
-import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
+import uk.ac.starlink.topcat.interop.NullCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
@@ -208,6 +209,7 @@ public class ControlWindow extends AuxWindow
                       new Component[] { activatorButton_, rowSendButton_ } );
         activatorButton_.setText( "           " );
         rowSendButton_.setText( "Broadcast Row" );
+        rowSendButton_.setEnabled( false );
         info.fillIn();
 
         /* Reduce size of unused control panel. */
@@ -236,20 +238,22 @@ public class ControlWindow extends AuxWindow
 
         /* SAMP/PLASTIC interoperability. */
         communicator_ = createCommunicator( this );
-        JComponent interopPanel = communicator_.createInfoPanel();
-        if ( interopPanel != null ) {
-            infoPanel.add( interopPanel, BorderLayout.SOUTH );
-        }
-        communicator_.addConnectionListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                rowSendButton_.setEnabled( communicator_.isConnected() );
+        if ( communicator_ != null ) {
+            JComponent interopPanel = communicator_.createInfoPanel();
+            if ( interopPanel != null ) {
+                infoPanel.add( interopPanel, BorderLayout.SOUTH );
             }
-        } );
-        rowSendButton_.setToolTipText( "On Row Activation send a "
-                                     +  communicator_.getProtocolName()
-                                     + " highlight row message"
-                                     + " to all registered applications" );
-        rowSendButton_.setEnabled( communicator_.isConnected() );
+            communicator_.addConnectionListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    rowSendButton_.setEnabled( communicator_.isConnected() );
+                }
+            } );
+            rowSendButton_.setToolTipText( "On Row Activation send a "
+                                         +  communicator_.getProtocolName()
+                                         + " highlight row message"
+                                         + " to all registered applications" );
+            rowSendButton_.setEnabled( communicator_.isConnected() );
+        }
 
         /* Set up actions. */
         removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
@@ -334,8 +338,12 @@ public class ControlWindow extends AuxWindow
                                    "four existing tables", 4 ),
         };
 
-        Transmitter tableTransmitter = communicator_.getTableTransmitter();
-        Action interopAct = communicator_.createWindowAction( this );
+        Transmitter tableTransmitter = communicator_ == null
+                                     ? null
+                                     : communicator_.getTableTransmitter();
+        Action interopAct = communicator_ == null
+                          ? null
+                          : communicator_.createWindowAction( this );
 
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
@@ -377,7 +385,9 @@ public class ControlWindow extends AuxWindow
         toolBar.setFloatable( true );
         toolBar.add( readButton );
         configureExportSource( toolBar.add( writeAct_ ) );
-        toolBar.add( tableTransmitter.getBroadcastAction() );
+        if ( tableTransmitter != null ) {
+            toolBar.add( tableTransmitter.getBroadcastAction() );
+        }
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
@@ -412,9 +422,12 @@ public class ControlWindow extends AuxWindow
         fileMenu.insert( writeAct_, fileMenuPos++ );
         fileMenu.insert( dupAct_, fileMenuPos++ );
         fileMenu.insert( removeAct_, fileMenuPos++ );
-        fileMenu.insertSeparator( fileMenuPos++ );
-        fileMenu.insert( tableTransmitter.getBroadcastAction(), fileMenuPos++ );
-        fileMenu.insert( tableTransmitter.createSendMenu(), fileMenuPos++ );
+        if ( tableTransmitter != null ) {
+            fileMenu.insertSeparator( fileMenuPos++ );
+            fileMenu.insert( tableTransmitter.getBroadcastAction(),
+                             fileMenuPos++ );
+            fileMenu.insert( tableTransmitter.createSendMenu(), fileMenuPos++ );
+        }
         if ( MirageHandler.isMirageAvailable() ) {
             fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
@@ -457,8 +470,8 @@ public class ControlWindow extends AuxWindow
         getJMenuBar().add( winMenu );
 
         /* Add a menu for tool interop. */
-        JMenu interopMenu =
-            new JMenu( "Interop" );
+        if ( communicator_ != null ) {
+            JMenu interopMenu = new JMenu( "Interop" );
             interopMenu.setMnemonic( KeyEvent.VK_I );
             if ( interopAct != null ) {
                 interopMenu.add( interopAct );
@@ -470,6 +483,7 @@ public class ControlWindow extends AuxWindow
             interopMenu.add( tableTransmitter.getBroadcastAction() );
             interopMenu.add( tableTransmitter.createSendMenu() );
             getJMenuBar().add( interopMenu );
+        }
 
         /* Mark this window as top-level. */
         setCloseIsExit();
@@ -768,13 +782,16 @@ public class ControlWindow extends AuxWindow
             activatorButton_.setModel( dummyButtonModel_ );
             rowSendButton_.setModel( dummyButtonModel_ );
         }
-        rowSendButton_.setEnabled( communicator_.isConnected() );
+        rowSendButton_.setEnabled( communicator_ != null &&
+                                   communicator_.isConnected() );
 
         /* Make sure that the actions which relate to a particular table model
          * are up to date. */
         writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
-        communicator_.getTableTransmitter().setEnabled( hasModel );
+        if ( communicator_ != null ) {
+            communicator_.getTableTransmitter().setEnabled( hasModel );
+        }
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
         subsetSelector_.setEnabled( hasModel );
@@ -897,6 +914,7 @@ public class ControlWindow extends AuxWindow
      * <code>interopType_</code> static variable.
      *
      * @param  control   control window
+     * @return   communicator, or null if interop is disabled
      */
     private static TopcatCommunicator
                    createCommunicator( ControlWindow control ) {
@@ -912,6 +930,10 @@ public class ControlWindow extends AuxWindow
             catch ( IOException e ) {
                 throw new RuntimeException( "SAMP config failed", e );
             }
+        }
+        else if ( "none".equals( interopType_ ) ) {
+            logger_.info( "Run with no interop" );
+            return null;
         }
         else {
             assert interopType_ == null;

@@ -47,6 +47,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SuffixFileFilter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.ttools.plot.BinGrid;
 import uk.ac.starlink.ttools.plot.DensityPlot;
@@ -268,15 +269,19 @@ public class DensityWindow extends GraphicsWindow {
         };
 
         /* Transmitter for transmitting image as FITS. */
+        TopcatCommunicator communicator =
+            ControlWindow.getInstance().getCommunicator();
         Transmitter imageTransmitter =
-            ControlWindow.getInstance().getCommunicator()
-                                       .createImageTransmitter( this );
+            communicator == null ? null
+                                 : communicator.createImageTransmitter( this );
 
         /* Update export menu. */
         getExportMenu().add( fitsAction_ );
-        getExportMenu().addSeparator();
-        getExportMenu().add( imageTransmitter.getBroadcastAction() );
-        getExportMenu().add( imageTransmitter.createSendMenu() );
+        if ( imageTransmitter != null ) {
+            getExportMenu().addSeparator();
+            getExportMenu().add( imageTransmitter.getBroadcastAction() );
+            getExportMenu().add( imageTransmitter.createSendMenu() );
+        }
 
         /* Cut level adjuster widgets. */
         cutter_ = new CutChooser(); 
@@ -365,11 +370,13 @@ public class DensityWindow extends GraphicsWindow {
         getJMenuBar().add( subsetMenu );
 
         /* Interoperability menu. */
-        JMenu interopMenu = new JMenu( "Interop" );
-        interopMenu.setMnemonic( KeyEvent.VK_I );
-        interopMenu.add( imageTransmitter.getBroadcastAction() );
-        interopMenu.add( imageTransmitter.createSendMenu() );
-        getJMenuBar().add( interopMenu );
+        if ( imageTransmitter != null ) {
+            JMenu interopMenu = new JMenu( "Interop" );
+            interopMenu.setMnemonic( KeyEvent.VK_I );
+            interopMenu.add( imageTransmitter.getBroadcastAction() );
+            interopMenu.add( imageTransmitter.createSendMenu() );
+            getJMenuBar().add( interopMenu );
+        }
 
         /* Add actions to the toolbar. */
         getPointSelectorToolBar().addSeparator();

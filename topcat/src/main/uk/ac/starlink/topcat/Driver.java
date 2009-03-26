@@ -168,7 +168,7 @@ public class Driver {
      * Under normal circumstances this will pop up a ControlWindow and
      * populate it with tables named in the arguments.
      *
-     * @param  args  list of table specifications
+     * @param  args  list of flags and table specifications
      */
     public static void main( String[] args ) {
         try {
@@ -316,6 +316,7 @@ public class Driver {
                 it.remove();
                 soapServe = false;
                 interopServe = false;
+                ControlWindow.interopType_ = "none";
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later

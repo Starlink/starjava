@@ -48,8 +48,6 @@ public class SubsetConsumerDialog extends JPanel {
     public SubsetConsumerDialog( TopcatModel tcModel,
                                  final TopcatCommunicator communicator ) {
         super( new BorderLayout() );
-        final SubsetActivity subsetActivity =
-            communicator.createSubsetActivity();
         JComponent box = Box.createVerticalBox();
         add( box, BorderLayout.CENTER );
 
@@ -96,39 +94,47 @@ public class SubsetConsumerDialog extends JPanel {
         box.add( applyLine );
 
         /* Transmits the subset to listening clients. */
-        final Action transmitAction =
-                new ConsumerAction( "Transmit Subset", ResourceIcon.BROADCAST,
-                                    "Send the subset to all "
-                                  + "listening applications",
-                                    false ) {
-            public void consumeSubset( TopcatModel tcModel, RowSubset rset ) {
-                try {
-                    subsetActivity.selectSubset( tcModel, rset );
+        if ( communicator != null ) {
+            final SubsetActivity subsetActivity =
+                communicator.createSubsetActivity();
+            final Action transmitAction =
+                    new ConsumerAction( "Transmit Subset",
+                                        ResourceIcon.BROADCAST,
+                                        "Send the subset to all "
+                                      + "listening applications",
+                                        false ) {
+                public void consumeSubset( TopcatModel tcModel,
+                                           RowSubset rset ) {
+                    try {
+                        subsetActivity.selectSubset( tcModel, rset );
+                    }
+                    catch ( IOException e ) {
+                        ErrorDialog.showError( SubsetConsumerDialog.this,
+                                               "Send Error", e,
+                                               "Failed to transmit subset" );
+                    }
                 }
-                catch ( IOException e ) {
-                    ErrorDialog.showError( SubsetConsumerDialog.this,
-                                           "Send Error", e,
-                                           "Failed to transmit subset" );
+            };
+            JComponent transmitLine = Box.createHorizontalBox();
+            final JComboBox targetSelector =
+                new JComboBox( subsetActivity.getTargetSelector() );
+            if ( subsetActivity != null ) {
+                transmitLine.add( new JButton( transmitAction ) );
+            }
+            transmitLine.add( Box.createHorizontalStrut( 5 ) );
+            transmitLine.add( new JLabel( ResourceIcon.FORWARD ) );
+            transmitLine.add( Box.createHorizontalStrut( 5 ) );
+            transmitLine.add( targetSelector );
+            communicator.addConnectionListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    boolean isConn = communicator.isConnected();
+                    transmitAction.setEnabled( isConn );
+                    targetSelector.setEnabled( isConn );
                 }
-            }
-        };
-        JComponent transmitLine = Box.createHorizontalBox();
-        final JComboBox targetSelector =
-            new JComboBox( subsetActivity.getTargetSelector() );
-        transmitLine.add( new JButton( transmitAction ) );
-        transmitLine.add( Box.createHorizontalStrut( 5 ) );
-        transmitLine.add( new JLabel( ResourceIcon.FORWARD ) );
-        transmitLine.add( Box.createHorizontalStrut( 5 ) );
-        transmitLine.add( targetSelector );
-        communicator.addConnectionListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                boolean isConn = communicator.isConnected();
-                transmitAction.setEnabled( isConn );
-                targetSelector.setEnabled( isConn );
-            }
-        } );
-        box.add( Box.createVerticalStrut( 5 ) );
-        box.add( transmitLine );
+            } );
+            box.add( Box.createVerticalStrut( 5 ) );
+            box.add( transmitLine );
+        }
     }
 
     /**

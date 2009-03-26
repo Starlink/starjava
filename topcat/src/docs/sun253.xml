@@ -4473,11 +4473,14 @@ Here is what the individual items mean:
 <figureimage src="&FIG.sampPanel;"/>
 </figure>
 
-<p>Unless TOPCAT is running in PLASTIC mode,
+<p>If TOPCAT is running in SAMP mode,
 the SAMP panel at the bottom of the Control Window gives a quick view
 of the current status of SAMP communications.
 For a discussion of the whats and whys of SAMP, see
 <ref id="interop"/>.
+<strong>Note</strong> that if not running in SAMP mode
+(e.g. if in PLASTIC or no-server mode) this panel will not appear.
+SAMP mode is the default under normal circumstances.
 </p>
 
 <p>The panel is made up of the following main parts:
@@ -11820,6 +11823,9 @@ introduced since the last version:
     <li>The fixed length Substring Array Convention for string arrays
         (<code>TFORMnn=rAw</code>)
         is now understood for FITS binary tables.</li>
+    <li>Fixed <code>-noserv</code> flag.</li>
+    <li>Fixed so that attempting to run services under unfavourable firewall
+        conditions does not cause startup to hang.</li>
     </ul>
     </p></dd>
 

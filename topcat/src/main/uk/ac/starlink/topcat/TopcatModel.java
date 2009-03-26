@@ -588,6 +588,7 @@ public class TopcatModel {
                 }
             }
             if ( rowSendModel_.isSelected() &&
+                 controlWindow_.getCommunicator() != null &&
                  controlWindow_.getCommunicator().isConnected() ) {
                 try {
                     getRowActivity().highlightRow( this, lrow );

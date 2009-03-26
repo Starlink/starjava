@@ -76,16 +76,27 @@ public class ActivationQueryWindow extends QueryWindow {
         communicator_ = ControlWindow.getInstance().getCommunicator();
 
         /* Set up the different types of activator. */
-        ActivatorFactory[] factories = new ActivatorFactory[] {
-            new NopActivatorFactory(),
-            new CutoutActivatorFactory(),
-            new ImageActivatorFactory(),
-            new SpectrumActivatorFactory(),
-            new BrowserActivatorFactory(),
-            new InteropHighlightActivatorFactory(),
-            new InteropPointAtActivatorFactory(),
-            new JELActivatorFactory(),
-        };
+        List factoryList = new ArrayList();
+        factoryList.add( new NopActivatorFactory() );
+        factoryList.add( new CutoutActivatorFactory() );
+
+        /* It should be possible to use the image viewer in absence of
+         * a communicator, but currently it's not.  This should be fixed,
+         * though communicator-less operation is not very common. */
+        if ( communicator_ != null ) {
+            factoryList.add( new ImageActivatorFactory() );
+        }
+
+        factoryList.add( new SpectrumActivatorFactory() );
+        factoryList.add( new BrowserActivatorFactory() );
+        if ( communicator_ != null ) {
+            factoryList.add( new InteropHighlightActivatorFactory() );
+            factoryList.add( new InteropPointAtActivatorFactory() );
+        }
+        factoryList.add( new JELActivatorFactory() );
+        ActivatorFactory[] factories =
+            (ActivatorFactory[])
+            factoryList.toArray( new ActivatorFactory[ 0 ] );
 
         /* Set up the window outline. */
         GridBagLayout layer = new GridBagLayout();
