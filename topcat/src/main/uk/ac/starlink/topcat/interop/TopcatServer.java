@@ -174,6 +174,41 @@ public class TopcatServer {
     }
 
     /**
+     * Indicates whether this server is currently serving requests.
+     *
+     * @return  true iff server is running
+     */
+    public boolean isRunning() {
+        return httpServer_.isRunning();
+    }
+
+    /**
+     * Executes a runnable object after first ensuring that the server
+     * is running.  If the server is not currently running, it is started
+     * and the runnable invoked in a separate thread.  Otherwise it's
+     * done concurrently.
+     * Thus this method should not take (much) longer than the given 
+     * runnable's run method to return.
+     *
+     * @param   runnable   item to run
+     */
+    public void invokeWhenStarted( final Runnable runnable ) {
+        if ( isRunning() ) {
+            runnable.run();
+        }
+        else {
+            Thread waiter = new Thread( "server waiter" ) {
+                public void run() {
+                    checkStarted();
+                    runnable.run();
+                }
+            };
+            waiter.setDaemon( true );
+            waiter.start();
+        }
+    }
+
+    /**
      * Ensures that the server has been started since it was created.
      * May harmlessly be called multiple times.
      */

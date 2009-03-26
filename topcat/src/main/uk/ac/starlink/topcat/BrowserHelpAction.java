@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -39,9 +40,7 @@ public class BrowserHelpAction extends AbstractAction {
     private BrowserHelpAction( URL helpUrl, Component parent ) {
         helpUrl_ = helpUrl;
         parent_ = parent;
-        if ( helpUrl_ == null ) {
-            setEnabled( false );
-        }
+        setEnabled( helpUrl_ != null && server_ != null );
     }
 
     public void actionPerformed( ActionEvent evt ) {
@@ -59,7 +58,21 @@ public class BrowserHelpAction extends AbstractAction {
                 return;
             }
         }
-        launcher_.openURLinBrowser( helpUrl_.toString() );
+        final Runnable launcher = new Runnable() {
+            public void run() {
+                launcher_.openURLinBrowser( helpUrl_.toString() );
+            }
+        };
+        if ( server_.isRunning() ) {
+            launcher.run();
+        }
+        else {
+            server_.invokeWhenStarted( new Runnable() {
+                public void run() {
+                    SwingUtilities.invokeLater( launcher );
+                }
+            } );
+        }
     }
 
     /**
@@ -141,20 +154,12 @@ public class BrowserHelpAction extends AbstractAction {
      */
     private static URL getHelpUrl( String relUrl ) {
         if ( server_ != null ) {
-            URL url;
             try {
-                url = new URL( server_.getTopcatPackageUrl(),
-                               "sun253/" + relUrl );
+                return new URL( server_.getTopcatPackageUrl(),
+                                "sun253/" + relUrl );
             }
             catch ( MalformedURLException e ) {
                 assert false;
-                return null;
-            }
-            if ( server_.isFound( url ) ) {
-                return url;
-            }
-            else {
-                logger_.warning( "Can't locate help URL: " + url );
                 return null;
             }
         }

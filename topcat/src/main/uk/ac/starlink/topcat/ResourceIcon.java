@@ -267,14 +267,16 @@ public class ResourceIcon implements Icon {
     /**
      * Returns a URL from which this icon can be retrieved by external
      * applications.  This is served from TOPCAT's internal HTTP server,
-     * and so is only availabe as long as this instance of the program
+     * and so is only available as long as this instance of the program
      * is running.
      *
-     * @return  url
+     * @return  url, or null if no server is running
      */
     public URL getExternalURL() throws IOException {
-        return new URL( TopcatServer.getInstance().getTopcatPackageUrl(),
-                        PREFIX + location );
+        TopcatServer server = TopcatServer.getInstance();
+        return server == null
+             ? null
+             : new URL( server.getTopcatPackageUrl(), PREFIX + location );
     }
 
     /**
