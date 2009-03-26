@@ -29,6 +29,8 @@ public interface TopcatCommunicator {
     /**
      * Must be called before any of the actions provided by this object
      * are used.  May initiate communication with the messaging system etc.
+     *
+     * @return  true iff there is a current connection
      */
     boolean setActive();
 
