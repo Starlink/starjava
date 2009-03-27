@@ -11810,7 +11810,7 @@ introduced since the last version:
        </ul></li>
     <li>Added column selector documentation <ref id="columnSelector"/>.</li>
     <li>Fix bug when decoding <code>file:</code>-type URLs
-        containing <code>%xx<code> escapes.</li>
+        containing <code>%xx</code> escapes.</li>
     <li>Fix error reporting bug in registry search.</li>
     <li>Report application name and version in User-Agent header of outgoing 
         HTTP requests.</li>
