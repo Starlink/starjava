@@ -100,7 +100,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>23 December 2008</docdate>
+<docdate>27 March 2009</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -11778,7 +11778,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.4-1 (27 March 2009)</dt>
 <dd><p>
     <ul>
     <li>Note Sybase ASE works (documentation edit only)</li>
@@ -11800,18 +11800,17 @@ introduced since the last version:
            represented as doubles with lost precision.  
            Unsigned longs which are too large however (&gt;2<sup>63</sup>) 
            are read as nulls.</li>
-       <li>Byte-valued columns can now be written out by fits-basic output 
+       <li>Byte-valued columns can now be written out by 
+           <code>fits-basic</code> output 
            handler as signed byte values (TFORM=B,TZERO=-128) 
            rather than signed shorts (TFORM=I).</li>
        <li>More comprehensive testing.</li> 
        <li>Fixed bug in calculating value scaled double ('D') values.</li>
        <li>Fixed bug in typing value for scaled float ('E') arrays.</li>
        </ul></li>
-    <li>Added documentation section <ref id="columnSelector"/>.</li>
+    <li>Added column selector documentation <ref id="columnSelector"/>.</li>
     <li>Fix bug when decoding <code>file:</code>-type URLs
-        containing %xx escapes.</li>
-    <li>Fix bug which caused SAMP external hub to write incomplete lock file
-        when running on Windows XP.</li>
+        containing <code>%xx<code> escapes.</li>
     <li>Fix error reporting bug in registry search.</li>
     <li>Report application name and version in User-Agent header of outgoing 
         HTTP requests.</li>
@@ -11826,6 +11825,7 @@ introduced since the last version:
     <li>Fixed <code>-noserv</code> flag.</li>
     <li>Fixed so that attempting to run services under unfavourable firewall
         conditions does not cause startup to hang.</li>
+    <li>Minor SAMP bugs fixed (JSAMP upgraded to 0.3-1).</li>
     </ul>
     </p></dd>
 
