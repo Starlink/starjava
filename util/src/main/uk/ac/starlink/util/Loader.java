@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -501,6 +502,46 @@ public class Loader {
                 .append( "version 1.4 or greater.\n" )
                 .toString();
              throw new ClassNotFoundException( msg, e );
+        }
+    }
+
+    /**
+     * Checks the reported vendor for this J2SE.
+     * Depending on what is found, logging messages may be written.
+     * In particular, if it looks like GNU a warning-level message is emitted.
+     */
+    public static void checkJ2seVendor() {
+        String vendorProp = "java.vendor";
+        String vendor = System.getProperty( vendorProp );
+        String recommendedDownload = "http://sun.java.com/javase/downloads/";
+        final Level vendorLevel;
+        final String[] vendorMsgs;
+        if ( vendor.matches( "[Ss]un\\b.*" ) ||
+             vendor.matches( "[Aa]pple\\b.*" ) ) {
+            vendorLevel = Level.CONFIG;
+            vendorMsgs = new String[ 0 ];
+        }
+        else if ( vendor.matches( ".*Free Software Foundation.*" ) ||
+                  vendor.matches( ".*\\bFSF\\b.*" ) ||
+                  vendor.matches( ".*\\bGNU\\b.*" ) ) {
+            vendorLevel = Level.WARNING;
+            vendorMsgs = new String[] {
+                "You appear to be running GNU/FSF Java",
+                "At time of writing, this is an incomplete implementation",
+                "The application may work incorrectly, or not at all",
+                "You are advised to use Sun's Java implementation instead:",
+                recommendedDownload,
+            };
+        }
+        else {
+            vendorLevel = Level.WARNING;
+            vendorMsgs = new String[] {
+                "JRE is not Sun's - may or may not work properly",
+            };
+        }
+        logger.log( vendorLevel, vendorProp + "=" + vendor );
+        for ( int i = 0; i < vendorMsgs.length; i++ ) {
+            logger.log( vendorLevel, vendorMsgs[ i ] );
         }
     }
 

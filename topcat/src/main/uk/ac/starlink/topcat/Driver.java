@@ -365,6 +365,9 @@ public class Driver {
         /* Configure logging. */
         configureLogging( verbosity );
 
+        /* Check JRE vendor and report on concerns. */
+        Loader.checkJ2seVendor();
+
         /* Configure factory. */
         tabfact.getJDBCHandler()
                .setAuthenticator( new TextModelsAuthenticator() );
