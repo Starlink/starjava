@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>9 January 2008</docdate>
+<docdate>27 March 2009</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6162,7 +6162,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.0-3 (27 March 2009)</dt>
 <dd><p>
     <ul>
     <li>Fits BINTABLE TZERO/TSCAL value reading improvements:
@@ -6173,7 +6173,8 @@ but my thanks are especially due to the following:
            represented as doubles with lost precision.  
            Unsigned longs which are too large however (&gt;2<sup>63</sup>) 
            are read as nulls.</li>
-       <li>Byte-valued columns can now be written out by fits-basic output
+       <li>Byte-valued columns can now be written out by 
+           <code>fits-basic</code> output
            handler as signed byte values (TFORM=B,TZERO=-128) 
            rather than signed shorts (TFORM=I).</li>
        <li>More comprehensive testing.</li> 
@@ -6190,6 +6191,7 @@ but my thanks are especially due to the following:
     <li>The fixed length Substring Array Convention for string arrays
         (<code>TFORMnn=rAw</code>) 
         is now understood for FITS binary tables.</li>
+    <li>Minor SAMP bugs fixed (JSAMP upgraded to 0.3-1).</li>
     </ul>
     </p></dd>
 
