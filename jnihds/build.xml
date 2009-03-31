@@ -666,6 +666,12 @@
        <resources os="Mac OS X" arch="i386">
           <nativelib href="i386/${name}_libs.jar"/>
        </resources> 
+       <resources os="Mac OS X" arch="x86_64">
+         <nativelib href="x86_64/${name}_libs.jar"/>
+       </resources>
+       <resources os="Mac OS X" arch="ppc64">
+         <nativelib href="ppc64/${name}_libs.jar"/>
+       </resources>
 
        <component_desc/>
     </jnlp>
