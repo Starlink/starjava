@@ -11829,6 +11829,14 @@ introduced since the last version:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Sexagesimal delimiters can now be spaces as alternative to colons
+        in Cone/SSA/SIA load dialogues.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
