@@ -15,8 +15,8 @@ public abstract class ValueConverter {
     private final String name_;
     private final static Pattern SEX_PATTERN = Pattern.compile(
         " *([+\\-]?)" +
-        " *([0-9]+) *:" +
-        " *([0-9]+) *:" +
+        " *([0-9]+) *[: ]" +
+        " *([0-9]+) *[: ]" +
         " *([0-9]+\\.?[0-9]*) *"
     );
 
