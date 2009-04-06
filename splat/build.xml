@@ -639,7 +639,7 @@
               value="-L${star.jar.dir}/${os.arch} -ljniast"/>
     <!-- OSX needs the full path, as JNI uses .jnilib not .dylib so -l fails-->
     <property name="jniast.share.osx"
-              value="${star.build.dir}/jniast/lib/${os.arch}/libjniast.jnilib"/>
+              value="${star.build.dir}/jniast/build/lib/${os.arch}/libjniast.jnilib"/>
 
     <property name="java.shareables" value="${jniast.share}"/>
     <property name="java.shareables.osx" value="${jniast.share.osx}"/>
