@@ -33,6 +33,7 @@ import javax.swing.Icon;
 import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -156,6 +157,7 @@ public abstract class GraphicsWindow extends AuxWindow {
     private final JToolBar pselToolbar_;
     private final JComponent extrasPanel_;
     private final JComponent legendBox_;
+    private final JLabel titleLabel_;
     private final ToggleButtonModel legendModel_;
 
     private StyleSet styleSet_;
@@ -377,11 +379,17 @@ public abstract class GraphicsWindow extends AuxWindow {
          * This is what will be drawn if the plot is printed/exported to
          * some external graphical format.  It will consist of the 
          * plotting area itself, as drawn by the window subclass, 
-         * and the legend. */
+         * and optionally a legend and a title. */
         plotArea_ = new JPanel( new BorderLayout() );
         plotArea_.setOpaque( false );
         legendBox_ = Box.createVerticalBox();
         plotArea_.add( legendBox_, BorderLayout.EAST );
+        Box titleBox = Box.createHorizontalBox();
+        titleLabel_ = new JLabel();
+        titleBox.add( Box.createHorizontalGlue() );
+        titleBox.add( titleLabel_ );
+        titleBox.add( Box.createHorizontalGlue() );
+        plotArea_.add( titleBox, BorderLayout.NORTH );
 
         /* Set up a container for auxiliary axis legends. */
         auxLegends_ = new AuxLegend[ naux_ ];
@@ -509,7 +517,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         gridModel_.addActionListener( replotListener_ );
 
         /* Action for performing user configuration of axes. */
-        axisEditAction_ = new GraphicsAction( "Configure Axes",
+        axisEditAction_ = new GraphicsAction( "Configure Axes and Title",
                                               ResourceIcon.AXIS_EDIT,
                                               "Set axis labels and ranges" );
 
@@ -602,6 +610,12 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
         axisWindow_ = new AxisWindow( this );
         axisWindow_.addActionListener( replotListener_ );
+        axisWindow_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                titleLabel_.setFont( plotArea_.getFont() );
+                titleLabel_.setText( axisWindow_.getPlotTitle() );
+            }
+        } );
 
         /* If there are auxiliary axes arrange for the editors
          * in the axis window to keep track of which are visible. */

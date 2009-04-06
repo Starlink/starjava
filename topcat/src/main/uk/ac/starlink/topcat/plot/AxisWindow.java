@@ -13,9 +13,12 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.BorderFactory;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.HelpAction;
 
 /**
@@ -32,6 +35,7 @@ public class AxisWindow extends JDialog {
     private final ActionForwarder forwarder_;
     private final Frame parent_;
     private final JComponent edBox_;
+    private final JTextField titleField_;
     private AxisEditor[] editors_;
     private boolean seen_;
 
@@ -47,10 +51,23 @@ public class AxisWindow extends JDialog {
         forwarder_ = new ActionForwarder();
 
         /* Configure and place main container. */
-        edBox_ = Box.createVerticalBox();
-        edBox_.setBorder( BorderFactory.createEmptyBorder( 10, 10, 10, 10 ) );
+        JComponent entryBox = Box.createVerticalBox();
+        entryBox.setBorder( BorderFactory.createEmptyBorder( 10, 10, 10, 10 ) );
         getContentPane().setLayout( new BorderLayout() );
-        getContentPane().add( edBox_, BorderLayout.CENTER );
+        getContentPane().add( entryBox, BorderLayout.CENTER );
+
+        /* Configure and place component for title setting. */
+        JComponent titleBox = Box.createHorizontalBox();
+        titleField_ = new JTextField();
+        titleField_.addActionListener( forwarder_ );
+        titleBox.add( new JLabel( "Title: " ) );
+        titleBox.add( titleField_ );
+        titleBox.setBorder( AuxWindow.makeTitledBorder( "Plot Title" ) );
+        entryBox.add( titleBox );
+
+        /* Configure and place container for axis configuration. */
+        edBox_ = Box.createVerticalBox();
+        entryBox.add( edBox_ );
 
         /* Configure and place action buttons. */
         applyAction_ = new AxisAction( "Apply" );
@@ -108,6 +125,15 @@ public class AxisWindow extends JDialog {
         for ( int i = 0; i < editors_.length; i++ ) {
             editors_[ i ].clearBounds();
         }
+    }
+
+    /**
+     * Returns the title currently entered for the plot.
+     *
+     * @return   plot title
+     */
+    public String getPlotTitle() {
+        return titleField_.getText();
     }
 
     /**

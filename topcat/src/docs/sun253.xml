@@ -5921,7 +5921,7 @@ configuring axis range:
 </p>
 
 <p>For more control over axis range and labelling, use the
-<label>Configure Axes</label> (&IMG.AXIS_EDIT;) toolbar button,
+<label>Configure Axes and Title</label> (&IMG.AXIS_EDIT;) toolbar button,
 which will pop up a dialogue like the following:
 </p>
 <figure>
@@ -5929,7 +5929,7 @@ which will pop up a dialogue like the following:
 <figureimage src="&FIG.AxisWindow;"/>
 </figure>
 
-<p>You can fill in these values as follows:
+<p>You can fill in these values for each axis as follows:
 <dl>
 <dt>Label</dt>
 <dd><p>For each axis the label box contains the text used to annotate
@@ -5952,6 +5952,16 @@ which will pop up a dialogue like the following:
 Both values are reset if the plot's axis is changed (a new column or
 expression is selected for the Main dataset), or if the range is 
 reset in some other way (e.g. by zooming).
+</p>
+
+<p>The plot title may also be set in the <label>Plot Title</label> panel
+of this window:
+<dl>
+<dt>Title</dt>
+<dd><p>Any text entered here will be displayed at the top of the plot
+    to provide a title.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsubsect>
@@ -6376,9 +6386,9 @@ is on a bin boundary.
     to the table data.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
+<dt>&IMG.AXIS_EDIT; Configure Axes and Title</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges,
+    axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
@@ -6649,9 +6659,9 @@ see <ref id="activation"/>.
     to the table data.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
+<dt>&IMG.AXIS_EDIT; Configure Axes and Title</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges,
+    axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
@@ -6957,7 +6967,7 @@ To zoom the X axis in/out, position the mouse just below the X axis
 at the bottom of the plot and drag right/left.
 To zoom one of the Y axes in or out, position the mouse just to the
 left of the Y axis you're interested in and drag down/up.
-To set the ranges manually, use the <label>Configure Axes</label>
+To set the ranges manually, use the <label>Configure Axes and Title</label>
 (&IMG.AXIS_EDIT;) button as usual, but note that there is one
 label/range setting box for each of the Y axes.
 These things work largely as described in <ref id="axisConfig"/>,
@@ -6989,9 +6999,9 @@ see <ref id="activation"/>.
     to the table data.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
+<dt>&IMG.AXIS_EDIT; Configure Axes and Title</dt>
 <dd><p>Pops up a dialogue to allow manual configuration of the range
-    and label for the X axis and each of the Y axes - 
+    and label for the X axis and each of the Y axes, as well as a plot title - 
     see <ref id="axisConfig"/>. 
     </p></dd>
 
@@ -7279,9 +7289,9 @@ see <ref id="activation"/>.
     to the table data.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
+<dt>&IMG.AXIS_EDIT; Configure Axes and Title</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges,
+    axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
@@ -7574,10 +7584,10 @@ at a distance from the centre given by the value of the radial coordinate.
     to the table data.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.  The only configurable
-    axis range is the upper limit of the radial axis.
+<dt>&IMG.AXIS_EDIT; Configure Axes and Title</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges,
+    axis labels and plot title - see <ref id="axisConfig"/>.  
+    The only configurable axis range is the upper limit of the radial axis.
     </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
@@ -7842,9 +7852,9 @@ or manually as described in <ref id="axisConfig"/>.
     to the table data.
     </p></dd>
 
-<dt>&IMG.AXIS_EDIT; Configure Axes</dt>
-<dd><p>Pops up a dialogue to allow manual configuration of axis ranges
-    and labels - see <ref id="axisConfig"/>.
+<dt>&IMG.AXIS_EDIT; Configure Axes and Title</dt>
+<dd><p>Pops up a dialogue to allow manual configuration of axis ranges,
+    axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
 <dt>&IMG.PRINT; Export as EPS</dt>
@@ -11832,6 +11842,10 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Plot windows now allow a plot title to be set from the
+        <label>Configure Axes and Title</label> window
+        (<ref id="axisConfig"/>).
+        </li>
     <li>Sexagesimal delimiters can now be spaces as alternative to colons
         in Cone/SSA/SIA load dialogues.</li>
     </ul>
