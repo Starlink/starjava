@@ -150,8 +150,13 @@ public class GavoCSVTableParser  {
     {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String line = reader.readLine();
-        
-        if(line.startsWith("#OK"))
+        if(line.startsWith("#OK NO RESULT"))
+        {
+          String message = "The query executed without problems, but no results are returned. Did you store the result in your MyDB?";
+          // popup message
+          return null; // is this correct thing to do?
+        }
+        else if(line.startsWith("#OK"))
         {
           Vector columnLines = new Vector();
           while((line = reader.readLine()) != null && line.startsWith("#"))
@@ -188,20 +193,40 @@ public class GavoCSVTableParser  {
           };
           RowStore rowStore = storage.makeConfiguredRowStore( metaData );
           
+          boolean gotOk = false;
+          String message = "No error was indicated, but it is likely that not all rows were downloaded.";
           try {
               Object[] row = null;
+              int rowCount = 0;
               while((line = reader.readLine()) != null)
               {
                   if ( Thread.interrupted() ) {
                       throw new InterruptedException();
                   }
-                  if ( line.startsWith( "#ERROR" ) ) {
+                  if(line.startsWith(DEFAULT_COMMENT_PREFIX))
+                  {
+                    if(line.startsWith("#OK")) // result completely downloaded
+                    {
+                      gotOk = true;
+                      break;
+                    }
+                    else if ( line.startsWith( "#ERROR" ) ) 
+                    {
                       StringBuffer sb = new StringBuffer( line );
                       while ( (line = reader.readLine()) != null && 
-                              sb.length() < 8096 ) {
-                          sb.append(line+"\n");
+                            sb.length() < 8096 ) {
+                        sb.append(line+"\n");
                       }
-                      throw new IOException( sb.toString() );
+
+                      // make distinction between case where some rows have been downloaded or case where no rows have been retrieved yet 
+                      if(rowCount >0) // return a table, but pop-up a warning message
+                      {
+                        message = "The following error message was received after "+rowCount+" rows were retrieved.\n"+sb.toString();
+                        break;
+                      }
+                      else
+                        throw new IOException( sb.toString() ); 
+                    }
                   }
                   List cells_ = parseLine(line);
                   
@@ -210,11 +235,16 @@ public class GavoCSVTableParser  {
                   for(int i = 0; i < dim; i++)
                       row[i] = objectForJDBCType(types[i],cells[i]);
                   rowStore.acceptRow(row);
+                  rowCount++;
               }
           }
           finally {
               rowStore.endRows();
               reader.close();
+          }
+          if(!gotOk)
+          {
+            // popup message here.
           }
           return Tables.randomTable( rowStore.getStarTable() );
         }
