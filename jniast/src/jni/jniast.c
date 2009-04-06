@@ -84,13 +84,6 @@ void jniastInitialize( JNIEnv *env ) {
     * Note that we retain a permannent global reference to each class;
     * this ensures that the class does not become unloaded in which
     * case the field and method ID values could become out of date. */
-   ( AstObjectClass = (jclass) (*env)->NewGlobalRef( env, 
-        (*env)->FindClass( env, PACKAGE_PATH "AstObject" ) ) ) &&
-   ( MappingClass = (jclass) (*env)->NewGlobalRef( env,
-        (*env)->FindClass( env, PACKAGE_PATH "Mapping" ) ) ) &&
-   ( AstExceptionClass = (jclass) (*env)->NewGlobalRef( env,
-        (*env)->FindClass( env, PACKAGE_PATH "AstException" ) ) ) &&
-
    ( DoubleArrayClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "[D" ) ) ) &&
    ( StringClass = (jclass) (*env)->NewGlobalRef( env,
@@ -118,6 +111,16 @@ void jniastInitialize( JNIEnv *env ) {
         (*env)->FindClass( env, "java/lang/Integer" ) ) ) &&
    ( objclass = (*env)->FindClass( env, "java/lang/Object" ) ) &&
    ( classclass = (*env)->FindClass( env, "java/lang/Class" ) ) &&
+
+   /* Note that some of the initializers of classes from this package
+    * use classes defined above, so careful about the order in which
+    * this initialization is done. */
+   ( AstObjectClass = (jclass) (*env)->NewGlobalRef( env, 
+        (*env)->FindClass( env, PACKAGE_PATH "AstObject" ) ) ) &&
+   ( MappingClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, PACKAGE_PATH "Mapping" ) ) ) &&
+   ( AstExceptionClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, PACKAGE_PATH "AstException" ) ) ) &&
 
    /* Get field IDs. */
    ( AstPointerID = 
