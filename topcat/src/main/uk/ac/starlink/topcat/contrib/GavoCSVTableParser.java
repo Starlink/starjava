@@ -7,6 +7,7 @@ package uk.ac.starlink.topcat.contrib;
  *
  * Copyright 2003-2004 German Astrophysical Virtual Observatory (GAVO)
  */
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
@@ -72,6 +75,9 @@ public class GavoCSVTableParser  {
     /** Storage policy for managing bulk table data. */
     final StoragePolicy storage;
 
+    /** Component controlling this parser. */
+    final Component parent;
+
     //~ Static fields/initializers ---------------------------------------------
 
     /** The default delimiter between table entries */
@@ -90,17 +96,19 @@ public class GavoCSVTableParser  {
     /**
      * Creates a new instance of CSVTableParser
      */
-    public GavoCSVTableParser(StoragePolicy storage) {
-        this(storage, DEFAULT_DELIMITER);
+    public GavoCSVTableParser(StoragePolicy storage, Component parent) {
+        this(storage, parent, DEFAULT_DELIMITER);
     }
 
     /**
      * Creates a new instance of CSVTableParser
      *
+     * @param parent  component controlling this parser (may be null)
      * @param delimiter the character delimiter ('separator')
      */
-    public GavoCSVTableParser(StoragePolicy storage, String delimiter) {
+    public GavoCSVTableParser(StoragePolicy storage, Component parent, String delimiter) {
         this.storage = storage;
+        this.parent = parent;
         setDelimiter(delimiter);
     }
 
@@ -152,9 +160,7 @@ public class GavoCSVTableParser  {
         String line = reader.readLine();
         if(line.startsWith("#OK NO RESULT"))
         {
-          String message = "The query executed without problems, but no results are returned. Did you store the result in your MyDB?";
-          // popup message
-          return null; // is this correct thing to do?
+          throw new IOException("The query executed without problems, but no results are returned. Did you store the result in your MyDB?");
         }
         else if(line.startsWith("#OK"))
         {
@@ -194,7 +200,11 @@ public class GavoCSVTableParser  {
           RowStore rowStore = storage.makeConfiguredRowStore( metaData );
           
           boolean gotOk = false;
-          String message = "No error was indicated, but it is likely that not all rows were downloaded.";
+          String[] message = new String[] {
+            "No error was indicated,",
+            "but it is likely that",
+            "not all rows were downloaded.",
+          };
           try {
               Object[] row = null;
               int rowCount = 0;
@@ -221,7 +231,11 @@ public class GavoCSVTableParser  {
                       // make distinction between case where some rows have been downloaded or case where no rows have been retrieved yet 
                       if(rowCount >0) // return a table, but pop-up a warning message
                       {
-                        message = "The following error message was received after "+rowCount+" rows were retrieved.\n"+sb.toString();
+                        message = new String[] {
+                          "The following error message was received",
+                          "after "+rowCount+" rows were retrieved:",
+                          "    "+sb.toString(),
+                        };
                         break;
                       }
                       else
@@ -244,7 +258,12 @@ public class GavoCSVTableParser  {
           }
           if(!gotOk)
           {
-            // popup message here.
+            final String[] msg = message;
+            SwingUtilities.invokeAndWait(new Runnable() {
+               public void run() {
+                    JOptionPane.showMessageDialog(parent, msg, "GAVO Load Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            });
           }
           return Tables.randomTable( rowStore.getStarTable() );
         }

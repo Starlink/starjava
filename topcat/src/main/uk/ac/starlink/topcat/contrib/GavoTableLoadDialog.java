@@ -243,7 +243,8 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 logger_.info( "Content type = " + uc.getContentType() );
                 StarTable table;
                 GavoCSVTableParser csvParser =
-                    new GavoCSVTableParser( tabFact.getStoragePolicy() );
+                    new GavoCSVTableParser( tabFact.getStoragePolicy(),
+                                            GavoTableLoadDialog.this );
                 try {
                     table = csvParser.parse(stream);
                 }
