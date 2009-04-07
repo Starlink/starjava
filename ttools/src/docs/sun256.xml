@@ -6195,6 +6195,13 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>

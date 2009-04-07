@@ -1,5 +1,6 @@
 package uk.ac.starlink.util;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -44,7 +45,16 @@ public class URLDataSource extends DataSource {
                 connection = newurl.openConnection();
             }
         }
-        return connection.getInputStream();
+
+        /* Work around known mark/reset bug in one of the J2SE input stream 
+         * implementations (present up to 1.6 at least) used when 
+         * invoking connection.getInputStream(). */
+        InputStream strm = connection.getInputStream();
+        return new FilterInputStream( strm ) {
+            public boolean markSupported() {
+                return false;
+            }
+        };
     }
 
     /**
