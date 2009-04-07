@@ -11848,6 +11848,7 @@ introduced since the last version:
         </li>
     <li>Sexagesimal delimiters can now be spaces as alternative to colons
         in Cone/SSA/SIA load dialogues.</li>
+    <li>GAVO load dialogue updated in line with modified database service.</li>
     </ul>
     </p></dd>
 
