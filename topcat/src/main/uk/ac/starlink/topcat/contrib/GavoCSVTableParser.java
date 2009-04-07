@@ -22,11 +22,14 @@ import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 
 
 /**
@@ -256,8 +259,10 @@ public class GavoCSVTableParser  {
               rowStore.endRows();
               reader.close();
           }
+          StarTable table = Tables.randomTable( rowStore.getStarTable() );
           if(!gotOk)
           {
+            table.setParameter(toWarning(message));
             final String[] msg = message;
             SwingUtilities.invokeAndWait(new Runnable() {
                public void run() {
@@ -265,7 +270,7 @@ public class GavoCSVTableParser  {
                 }
             });
           }
-          return Tables.randomTable( rowStore.getStarTable() );
+          return table;
         }
         else
         {
@@ -274,6 +279,25 @@ public class GavoCSVTableParser  {
               sb.append(line+"\n");
             throw new IOException("Error\n"+sb.toString());
         }
+    }
+
+    /**
+     * Turns a message String array into a DescribedValue object suitable
+     * for describing a warning as a table parameter.
+     *
+     * @param  msg  message lines array
+     * @return  warning parameter value
+     */
+    private static DescribedValue toWarning(String[] msg)  {
+        ValueInfo warnInfo = new DefaultValueInfo("Warning", String.class, "GAVO load warning");
+        StringBuffer sbuf = new StringBuffer();
+        for (int i = 0; i < msg.length; i++) {
+            if (i > 0) {
+                sbuf.append(' ');
+            }
+            sbuf.append(msg[ i ].trim());
+        }
+        return new DescribedValue(warnInfo, sbuf.toString());
     }
 
     //~ Inner Classes ----------------------------------------------------------
