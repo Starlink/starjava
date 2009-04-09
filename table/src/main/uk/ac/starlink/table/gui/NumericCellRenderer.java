@@ -236,11 +236,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     /**
      * Sets a value to be regarded as bad when found in a non-header cell.
      * Any cell containing an object which <tt>equals()</tt> this value
-     * will be represented specially in the table body (currently a 
-     * greyed-out "BAD" string).
-     * Note that <tt>null</tt> means that null objects will be regarded as
-     * bad; if you want nulls to receive default treatment, call this
-     * method with some otherwise-unreferenced object of type <tt>Object</tt>.
+     * will be represented specially in the table body (currently just blank).
      *
      * @param  badValue  the special bad value
      */
