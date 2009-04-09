@@ -29,6 +29,7 @@ import org.astrogrid.samp.client.MessageHandler;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.LoadingToken;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
@@ -36,6 +37,7 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Provides TOPCAT's SAMP functionality.
@@ -313,32 +315,10 @@ public class TopcatSampControl {
         return new MessageHandler[] {
 
             /* Load VOTable by reference. */
-            new AbstractMessageHandler( "table.load.votable" ) {
-                public Map processCall( HubConnection conn, String senderId,
-                                        Message msg )
-                        throws IOException {
-                    StarTable table =
-                        createTable( "votable",
-                                     (String) msg.getRequiredParam( "url" ) );
-                    loadTable( table, (String) msg.getParam( "table-id" ),
-                               senderId );
-                    return null;
-                }
-            },
+            new TableLoadHandler( "table.load.votable", "votable" ),
 
             /* Load FITS table by reference. */
-            new AbstractMessageHandler( "table.load.fits" ) {
-                public Map processCall( HubConnection conn, String senderId,
-                                        Message msg )
-                        throws IOException {
-                    StarTable table =
-                        createTable( "fits",
-                                     (String) msg.getRequiredParam( "url" ) );
-                    loadTable( table, (String) msg.getParam( "table-id" ),
-                               senderId );
-                    return null;
-                }
-            },
+            new TableLoadHandler( "table.load.fits", "fits" ),
 
             /* Highlight a single row. */
             new AbstractMessageHandler( "table.highlight.row" ) {
@@ -375,29 +355,6 @@ public class TopcatSampControl {
                 }
             },
         };
-    }
-
-    /**
-     * Loads a table into TOPCAT as the result of a SAMP message.
-     *
-     * @param   table  table to load
-     * @param   key    table id for later reference, or null
-     * @param   senderId  public identifier for sending client
-     */
-    private void loadTable( final StarTable table, final String key,
-                            String senderId ) {
-        String name = table.getName();
-        final String title = name == null ? getClientName( senderId )
-                                          : name;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                TopcatModel tcModel =
-                    controlWindow_.addTable( table, title, true );
-                if ( key != null && key.trim().length() > 0 ) {
-                    idMap_.put( key, new TableWithRows( tcModel, null ) );
-                }
-            }
-        } );
     }
 
     /**
@@ -559,6 +516,103 @@ public class TopcatSampControl {
              + Integer.toString( System.identityHashCode( this ) & 0xffff, 16 )
              + "-"
              + ++idCount_;
+    }
+
+    /**
+     * MessageHandler implementation for loading a table into TOPCAT.
+     */
+    private class TableLoadHandler extends AbstractMessageHandler {
+
+        private final String mtype_;
+        private final String format_;
+
+        /**
+         * Constructor.
+         *
+         * @param   mtype  table load MType string
+         * @param   format  STIL name for format specific table input handler
+         */
+        TableLoadHandler( String mtype, String format ) {
+            super( mtype );
+            mtype_ = mtype;
+            format_ = format;
+        }
+
+        public Map processCall( HubConnection conn, final String senderId,
+                                final Message msg ) throws Exception {
+
+            /* Place a marker in the control window to indicate that a
+             * table is being loaded. */
+            final LoadingToken token = new LoadingToken( "SAMP " + mtype_ );
+            controlWindow_.addLoadingToken( token );
+
+            /* Attempt to create a table from the message received. */
+            Throwable error;
+            StarTable table;
+            boolean success;
+            try {
+                table = createTable( format_,
+                                    (String) msg.getRequiredParam( "url" ) );
+                error = null;
+                success = true;
+            }
+            catch ( Throwable e ) {
+                error = e;
+                table = null;
+                success = false;
+            }
+
+            /* Do something with the success or failure of the table creation
+             * on the event dispatch thread. */
+            final boolean success0 = success;
+            final Throwable error0 = error;
+            final StarTable table0 = table;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( success0 ) {
+                        load( table0, (String) msg.getParam( "table-id" ),
+                              senderId );
+                    }
+                    else {
+                        ErrorDialog.showError( controlWindow_,
+                                               "SAMP Load Error", error0,
+                                               "SAMP " + mtype_ + " failed" );
+                    }
+                    controlWindow_.removeLoadingToken( token );
+                }
+            } );
+
+            /* Pass success/failure status back to the caller as for a 
+             * message handler. */
+            if ( success0 ) {
+                return null;
+            }
+            else {
+                if ( error0 instanceof Error ) {
+                    throw (Error) error0;
+                }
+                else {
+                    throw (Exception) error0;
+                }
+            }
+        }
+
+        /**
+         * Loads a table into TOPCAT as the result of a SAMP message.
+         *
+         * @param   table  table to load
+         * @param   key    table id for later reference, or null
+         * @param   senderId  public identifier for sending client
+         */
+        private void load( StarTable table, String key, String senderId ) {
+            String name = table.getName();
+            String title = name == null ? getClientName( senderId )
+                                        : name;
+            TopcatModel tcModel = controlWindow_.addTable( table, title, true );
+            if ( key != null && key.trim().length() > 0 ) {
+                idMap_.put( key, new TableWithRows( tcModel, null ) );
+            }
+        }
     }
 
     /**

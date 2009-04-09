@@ -31,14 +31,17 @@ import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.plastic.NoHubException;
 import uk.ac.starlink.plastic.PlasticTransmitter;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.LoadingToken;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -527,13 +530,18 @@ public class TopcatPlasticListener extends HubManager {
                  .initCause( e );
         }
         votText = null;
-        DataSource datsrc = new DataSource() {
+        final DataSource datsrc = new DataSource() {
             public InputStream getRawInputStream() {
                 return new ByteArrayInputStream( votBytes );
             }
         };
-        loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( datsrc, "votable" ), sender, votId );
+        TableProducer tp = new TableProducer() {
+            public StarTable produceTable( StarTableFactory factory )
+                    throws IOException {
+                return factory.makeStarTable( datsrc, "votable" );
+            }
+        };
+        attemptLoadTable( tp, sender, votId );
     }
 
     /**
@@ -543,38 +551,34 @@ public class TopcatPlasticListener extends HubManager {
      * @param   url  location of table
      * @param   key  identifier for loaded table   
      */
-    private void votableLoadFromURL( URI sender, String url, String key )
+    private void votableLoadFromURL( URI sender, final String url, String key )
             throws IOException {
-        loadTable( controlWindow_.getTableFactory()
-                  .makeStarTable( url, "votable" ), sender, key );
+        TableProducer tp = new TableProducer() {
+            public StarTable produceTable( StarTableFactory factory )
+                    throws IOException {
+                return factory.makeStarTable( url, "votable" );
+            }
+        };
+        attemptLoadTable( tp, sender, key );
     }
 
     /**
-     * Loads a StarTable into TOPCAT.
+     * Loads a StarTable into TOPCAT.  Must be called from the event dispatch
+     * thread.
      *
      * @param  table  table to load
      * @param  sender  sender ID
      * @param  key   identifier for the loaded table
      */
-    private void loadTable( final StarTable table, URI sender,
-                            final String key ) {
+    private void loadTable( StarTable table, URI sender, String key ) {
         String name = table.getName();
         if ( name == null || name.trim().length() == 0 ) {
             name = sender.toString();
         }
-        final String title = name;
-
-        /* Best do it asynchronously since this may not be called from the
-         * event dispatch thread. */
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                TopcatModel tcModel =
-                    controlWindow_.addTable( table, title, true );
-                if ( key != null && key.trim().length() > 0 ) {
-                    idMap_.put( key, new TableWithRows( tcModel, null ) );
-                }
-            }
-        } );
+        TopcatModel tcModel = controlWindow_.addTable( table, name, true );
+        if ( key != null && key.trim().length() > 0 ) {
+            idMap_.put( key, new TableWithRows( tcModel, null ) );
+        }
     }
 
     /**
@@ -825,5 +829,65 @@ public class TopcatPlasticListener extends HubManager {
             }
         }
         return true;
+    }
+
+    /**
+     * Attempts to generate a table from a supplied factory object,
+     * and if successful loads it into TOPCAT.
+     */
+    private void attemptLoadTable( TableProducer producer, final URI sender,
+                                   final String tableId ) {
+        final LoadingToken token = new LoadingToken( "PLASTIC table" );
+        controlWindow_.addLoadingToken( token );
+
+        /* Attempt to create a table from the message received. */
+        Throwable error;
+        StarTable table;
+        boolean success;
+        try {
+            table = producer.produceTable( controlWindow_.getTableFactory() );
+            error = null;
+            success = true;
+        }
+        catch ( Throwable e ) {
+            error = e;
+            table = null;
+            success = false;
+        }
+
+        /* Do something on the event dispatch thread with the loaded table
+         * or error. */
+        final boolean success0 = success;
+        final StarTable table0 = table;
+        final Throwable error0 = error;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                if ( success0 ) {
+                    loadTable( table0, sender, tableId );
+                }
+                else {
+                    ErrorDialog.showError( controlWindow_,
+                                           "PLASTIC Load Error", error0,
+                                           "PLASTIC load failed" );
+                }
+                controlWindow_.removeLoadingToken( token );
+            }
+        } );
+    }
+
+    /**
+     * Interface for an object which can produce a table.
+     */
+    private abstract static class TableProducer {
+
+        /**
+         * Generates a table.
+         *
+         * @param  factory  factory
+         * @return  new table
+         * @throws  IOException  on failure
+         */
+        abstract StarTable produceTable( StarTableFactory factory )
+                throws IOException;
     }
 }

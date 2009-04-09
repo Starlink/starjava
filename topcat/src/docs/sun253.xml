@@ -11850,6 +11850,8 @@ introduced since the last version:
         in Cone/SSA/SIA load dialogues.</li>
     <li>GAVO load dialogue updated in line with modified database service.</li>
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
+    <li>Loading message now displayed in control window table list 
+        when table is being loaded from PLASTIC or SAMP.</li>
     </ul>
     </p></dd>
 
