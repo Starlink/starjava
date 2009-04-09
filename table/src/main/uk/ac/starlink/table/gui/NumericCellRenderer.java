@@ -1,6 +1,5 @@
 package uk.ac.starlink.table.gui;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
@@ -47,8 +46,6 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     private String decimalPointString;
     private boolean likeHeading;
     private String badText;
-    private Color badColor;
-    private Color goodColor;
     private Object badValue = new Object();
     private Class clazz;
     private Font font;
@@ -82,12 +79,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
         }
 
         /* Configure bad value representation. */
-        goodColor = UIManager.getColor( "Table.foreground" );
-        badColor = new Color( goodColor.getRed(),
-                              goodColor.getGreen(),
-                              goodColor.getBlue(),
-                              goodColor.getAlpha() / 3 );
-        badText = "BAD";
+        badText = "";
     }
 
     /**
@@ -124,11 +116,9 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
 
         /* Is it bad? */
         if ( isBadValue( value ) ) {
-            setForeground( badColor );
-            setText( ' ' + badText + ' ' );
+            setText( badText );
             return;
         }
-        setForeground( goodColor );
 
         /* Is it null? */
         if ( value == null ) {
