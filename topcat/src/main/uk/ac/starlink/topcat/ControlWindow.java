@@ -117,6 +117,7 @@ public class ControlWindow extends AuxWindow
 
     private final JList tablesList_;
     private final DefaultListModel tablesModel_;
+    private final DefaultListModel loadingModel_;
     private final TableModelListener tableWatcher_ = this;
     private final TopcatListener topcatWatcher_ = this;
     private final ListSelectionListener selectionWatcher_ = this;
@@ -180,6 +181,7 @@ public class ControlWindow extends AuxWindow
 
         /* Set up a list of the known tables. */
         tablesModel_ = new DefaultListModel();
+        loadingModel_ = new DefaultListModel();
         tablesList_ = new JList( tablesModel_ );
 
         /* Watch the list. */
@@ -218,7 +220,9 @@ public class ControlWindow extends AuxWindow
 
         /* Set up a split pane in the main panel. */
         JSplitPane splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
-        JScrollPane listScroller = new JScrollPane( tablesList_ );
+        JScrollPane listScroller =
+            new JScrollPane( new JList2( tablesList_,
+                                         new LoadingList( loadingModel_ ) ) );
         JScrollPane infoScroller = new JScrollPane( info );
         JComponent infoPanel = new JPanel( new BorderLayout() );
         infoPanel.add( infoScroller, BorderLayout.CENTER );
@@ -580,6 +584,27 @@ public class ControlWindow extends AuxWindow
             tablesList_.clearSelection();
             tablesModel_.removeElement( model );
         }
+    }
+
+    /**
+     * Adds a LoadingToken to the load list.
+     * This indicates that a table is in the process of being loaded.
+     * The caller must remove the token later, when the table load has
+     * either succeeded or failed.
+     *
+     * @param  token  token to add
+     */
+    public void addLoadingToken( LoadingToken token ) {
+        loadingModel_.addElement( token );
+    }
+
+    /**
+     * Removes a LoadingToken from the load list.
+     *
+     * @param  token  token to remove
+     */
+    public void removeLoadingToken( LoadingToken token ) {
+        loadingModel_.removeElement( token );
     }
 
     /**
