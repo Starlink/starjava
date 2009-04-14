@@ -232,9 +232,13 @@ public class SampCommunicator
             //  Extract MType-specific parameters from message.
             String location = (String) msg.getRequiredParam( "url" );
             Map meta = (Map) msg.getParam( "meta" );
+            String shortName = (String) msg.getParam( "name" );
 
             //  Turn these into a properties object which SPLAT can process.
             SpectrumIO.Props props = SplatPlastic.getProps( location, meta );
+            if ( shortName != null && shortName.trim().length() > 0 ) {
+                props.setShortName( shortName );
+            }
 
             //  Attempt to load the spectrum synchronously on the 
             //  event dispatch thread.

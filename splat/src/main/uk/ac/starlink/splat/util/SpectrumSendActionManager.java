@@ -164,6 +164,9 @@ public class SpectrumSendActionManager
         Message msg = new Message( "spectrum.load.ssa-generic" );
         msg.addParam( "url", locUrl.toString() );
         msg.addParam( "meta", meta );
+        if ( shortName != null && shortName.trim().length() > 0 ) {
+            msg.addParam( "name", shortName );
+        }
         return msg;
     }
 
