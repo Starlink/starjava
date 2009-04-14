@@ -23,7 +23,9 @@
    has been added. This allows the spectra to be displayed stacked above
    each other by a fixed amount. The spectra can be ordered using the
    transformation of a FITS value, so that the shift can be applied in, say,
-   date order.
+   date order. Note that the offsets apply to line identifiers as well
+   as normal spectra so can be used when labels from different identifiers
+   groups are overlaid.
 
    The filter box has been changed so that rebin is now the default option.
 
@@ -41,7 +43,14 @@
    colour etc.) can now be saved as the default properties and will persist
    between sessions. Note that the colour of the spectrum will not be re-used
    unless you have switched off automatically colouring.
- 
+
+   Extra controls have been added to the SSAP download dialog. You can 
+   now clear all the selections and just download data to the stack without
+   displaying it.
+
+   Line identifiers can be have the associated spectrum shortname suffixed
+   to labels (it is already possible to prefix the shortname) or just have
+   the shortname shown as the label. 
 
    3.8-8
    =====
