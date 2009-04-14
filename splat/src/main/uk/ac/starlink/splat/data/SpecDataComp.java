@@ -156,6 +156,18 @@ public class SpecDataComp
     private boolean prefixLineIDs = false;
 
     /**
+     * Whether line identifier spectra should suffix the short name to their
+     * labels.
+     */
+    private boolean suffixLineIDs = false;
+
+    /**
+     * Whether line identifier spectra should show only the short name 
+     * as their labels.
+     */
+    private boolean shortNameLineIDs = false;
+
+    /**
      * Whether line identifier spectra should show vertical marks.
      */
     private boolean showVerticalMarks = false;
@@ -355,6 +367,34 @@ public class SpecDataComp
     public boolean isPrefixLineIDs()
     {
         return prefixLineIDs;
+    }
+
+    /**
+     */
+    public void setSuffixLineIDs( boolean suffixLineIDs )
+    {
+        this.suffixLineIDs = suffixLineIDs;
+    }
+
+    /**
+     */
+    public boolean isSuffixLineIDs()
+    {
+        return suffixLineIDs;
+    }
+
+    /**
+     */
+    public void setShortNameLineIDs( boolean shortNameLineIDs )
+    {
+        this.shortNameLineIDs = shortNameLineIDs;
+    }
+
+    /**
+     */
+    public boolean isShortNameLineIDs()
+    {
+        return shortNameLineIDs;
     }
 
     /**
@@ -1193,6 +1233,8 @@ public class SpecDataComp
                     lineSpec.setSpecData( null, null );
                 }
                 lineSpec.setPrefixShortName( prefixLineIDs );
+                lineSpec.setSuffixShortName( suffixLineIDs );
+                lineSpec.setOnlyShortName( shortNameLineIDs );
                 lineSpec.setShowVerticalMarks( showVerticalMarks );
                 lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
 
@@ -1277,6 +1319,8 @@ public class SpecDataComp
                     lineSpec.setSpecData( null, null );
                 }
                 lineSpec.setPrefixShortName( prefixLineIDs );
+                lineSpec.setSuffixShortName( suffixLineIDs );
+                lineSpec.setOnlyShortName( shortNameLineIDs );
                 lineSpec.setShowVerticalMarks( showVerticalMarks );
                 lineSpec.setDrawHorizontal( drawHorizontalLineIDs );
             }

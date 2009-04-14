@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     11-APR-2003 (Peter W. Draper):
@@ -59,6 +60,16 @@ public class LineIDSpecData
     private boolean prefixShortName = false;
 
     /**
+     * Whether suffix the short name to the labels.
+     */
+    private boolean suffixShortName = false;
+
+    /**
+     * Whether to just use the short name as the labels.
+     */
+    private boolean onlyShortName = false;
+
+    /**
      * Whether to draw vertical lines around the label.
      */
     private boolean showVerticalMarks = true;
@@ -81,15 +92,15 @@ public class LineIDSpecData
     private boolean horizontal = false;
 
     /**
-     * The name used to prefix any labels. This is the shortname, but
-     * with a trailing "_lines" removed and any underscores replaced
-     * with blanks.
+     * The name used to prefix, suffix or act as the labels. This is the
+     * shortname, but with a trailing "_lines" removed and any underscores
+     * replaced with blanks.
      */
     private String prefixName = null;
 
     /**
-     * Mapping to transform between the current coordinates and frequency 
-     * in GHz. 
+     * Mapping to transform between the current coordinates and frequency
+     * in GHz.
      */
     private FrameSet frequencyMapping = null;
 
@@ -133,7 +144,7 @@ public class LineIDSpecData
 
     //
     //  Set the short name. Overridden so we can apply the transformation to
-    //  remove "_lines" and and "_" for the version used to prefix the labels.
+    //  remove "_lines" and and "_" for the version used in the labels.
     //
     public void setShortName( String shortName )
     {
@@ -146,9 +157,8 @@ public class LineIDSpecData
             prefixName = prefixName.substring( 0, index );
         }
 
-        //  Replace all underscores with blanks and append ":".
+        //  Replace all underscores with blanks.
         prefixName = prefixName.replace( '_', ' ' );
-        prefixName = prefixName + ":";
     }
 
     /**
@@ -197,6 +207,38 @@ public class LineIDSpecData
     public boolean isPrefixShortName()
     {
         return prefixShortName;
+    }
+
+    /**
+     * Set whether to suffix the short name to the labels.
+     */
+    public void setSuffixShortName( boolean suffixShortName )
+    {
+        this.suffixShortName = suffixShortName;
+    }
+
+    /**
+     * Get whether we're suffixing the short name to the labels.
+     */
+    public boolean isSuffixShortName()
+    {
+        return suffixShortName;
+    }
+
+    /**
+     * Set whether to just use short name as the labels.
+     */
+    public void setOnlyShortName( boolean onlyShortName )
+    {
+        this.onlyShortName = onlyShortName;
+    }
+
+    /**
+     * Get whether we're only using the short name as the labels.
+     */
+    public boolean isOnlyShortName()
+    {
+        return onlyShortName;
     }
 
     /**
@@ -296,7 +338,7 @@ public class LineIDSpecData
     }
 
    /**
-     * Draw the line identifiers onto the given widget using a suitable 
+     * Draw the line identifiers onto the given widget using a suitable
      * AST GRF object.
      *
      * @param grf Grf object that can be drawn into using AST primitives.
@@ -354,14 +396,21 @@ public class LineIDSpecData
 
         //  Get all labels.
         String[] labels = getLabels();
+
+        //  A shift from the baseline in graphics coords.
         double yshift = 0.1 * ( clipLimits[3] - clipLimits[1] );
+
+        //  The graphics shift, if applying (for stacking).
+        if ( isApplyYOffset() ) {
+            yshift += getYOffset();
+        }
 
         //  Guess a length for the lines.
         double lineLength = yshift;
 
-        //  Need to generate positions for placing the labels. The various 
-        //  schemes for this are use any positions read from the 
-        //  implementation, use the positions from a SpecData and finally 
+        //  Need to generate positions for placing the labels. The various
+        //  schemes for this are use any positions read from the
+        //  implementation, use the positions from a SpecData and finally
         //  put them along the top or bottom of the given limits.
         double[] xypos = new double[xPos.length * 2];
         double[] ypos = yPos;
@@ -461,29 +510,39 @@ public class LineIDSpecData
 
         double[] pos = new double[2];
 
-        if ( prefixShortName || postfix != null ) {
-
-            //  Have  prefix or postfix string to add. Maybe not both.
+        //  Generate the prefix and postfix strings. Quite a complex
+        //  setting. If onlyShortName is set, prefixShortName and
+        //  suffixShortName are ignored.
+        String pre = "";
+        String post = "";
+        if ( ! onlyShortName ) {
             if ( prefixShortName ) {
                 if ( prefixName == null || "".equals( prefixName ) ) {
                     setShortName( shortName );
                 }
-                if ( postfix == null ) {
-                    postfix = "";
+                pre = prefixName + ":";
+            }
+            if ( postfix != null ) {
+                post = postfix;
+            }
+            else if ( suffixShortName ) {
+                if ( prefixName == null || "".equals( prefixName ) ) {
+                    setShortName( shortName );
                 }
+                post = ":" + prefixName;
             }
-            else {
-                // Just adding a postfix, which cannot be null.
-                prefixName = "";
-            }
+        }
+        else if ( postfix != null ) {
+            post = postfix;
+        }
 
-            String label = null;
+        if ( onlyShortName ) {
+            String label = prefixName + post;
             double hshift = 0.2 * yshift; //  Offset when horizontal
             double shift = hshift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
-                label = prefixName + labels[i] + postfix;
                 plot.text( label, pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
                     if ( ! horizontal ) {
@@ -497,15 +556,17 @@ public class LineIDSpecData
             }
         }
         else {
+            String label = null;
             double hshift = 0.2 * yshift; //  Offset when horizontal
             double shift = hshift;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
                 pos[1] = xypos[j+1];
-                plot.text( labels[i], pos, upVector, "CC" );
+                label = pre + labels[i] + post;
+                plot.text( label, pos, upVector, "CC" );
                 if ( showVerticalMarks ) {
                     if ( ! horizontal ) {
-                        shift = hshift * (double) labels[i].length();
+                        shift = hshift * (double) label.length();
                     }
                     pos[1] = xypos[j+1] + shift;
                     plot.gridLine( 2, pos, lineLength );
@@ -514,6 +575,7 @@ public class LineIDSpecData
                 }
             }
         }
+
         resetGrfAttributes( defaultGrf, oldState, false );
         defaultGrf.setClipRegion( null );
     }
@@ -530,7 +592,7 @@ public class LineIDSpecData
     {
         if ( index < xPos.length ) {
             if ( frequencyMapping == null ) {
-                //  Need a Mapping that transforms the current coordinates 
+                //  Need a Mapping that transforms the current coordinates
                 //  into Ghz.
                 FrameSet from = impl.getAst();
                 FrameSet to = (FrameSet) from.copy();

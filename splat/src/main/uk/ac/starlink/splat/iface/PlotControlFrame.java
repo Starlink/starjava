@@ -162,11 +162,13 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem horizontalLineIDs = null;
     protected JCheckBoxMenuItem offsetMatching = null;
     protected JCheckBoxMenuItem prefixLineIDs = null;
+    protected JCheckBoxMenuItem shortNameLineIDs = null;
     protected JCheckBoxMenuItem showShortNames = null;
     protected JCheckBoxMenuItem showSynopsis = null;
     protected JCheckBoxMenuItem showVerticalMarks = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
     protected JCheckBoxMenuItem sidebandMatching = null;
+    protected JCheckBoxMenuItem suffixLineIDs = null;
     protected JCheckBoxMenuItem trackerLineIDs = null;
     protected JMenu analysisMenu = new JMenu();
     protected JMenu editMenu = new JMenu();
@@ -769,7 +771,23 @@ public class PlotControlFrame
         lineOptionsMenu.add( prefixLineIDs );
         prefixLineIDs.addItemListener( this );
         state = prefs.getBoolean( "PlotControlFrame_prefixlineids", false );
+
+        //  Or Suffix labels with the short name.
+        suffixLineIDs = new JCheckBoxMenuItem( "Suffix name to labels" );
+        lineOptionsMenu.add( suffixLineIDs );
+        suffixLineIDs.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_suffixlineids", false );
+
+        //  Or show only short name (useful when labels are very long).
+        shortNameLineIDs = new JCheckBoxMenuItem("Short name only as labels");
+        lineOptionsMenu.add( shortNameLineIDs );
+        shortNameLineIDs.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_shortnamelineids", false );
+
+        //  Interdependent, so initialise once all are realised.
         prefixLineIDs.setSelected( state );
+        suffixLineIDs.setSelected( state );
+        shortNameLineIDs.setSelected( state );
 
         //  Draw labels horizontally
         horizontalLineIDs = new JCheckBoxMenuItem( "Draw horizontal labels" );
@@ -2029,6 +2047,32 @@ public class PlotControlFrame
             boolean state = prefixLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_prefixlineids", state );
             plot.getSpecDataComp().setPrefixLineIDs( state );
+            if ( state ) {
+                shortNameLineIDs.setSelected( false );
+            }
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( suffixLineIDs ) ) {
+            boolean state = suffixLineIDs.isSelected();
+            prefs.putBoolean( "PlotControlFrame_suffixlineids", state );
+            plot.getSpecDataComp().setSuffixLineIDs( state );
+            if ( state ) {
+                shortNameLineIDs.setSelected( false );
+            }
+            plot.updatePlot();
+            return;
+        }
+
+        if ( source.equals( shortNameLineIDs ) ) {
+            boolean state = shortNameLineIDs.isSelected();
+            prefs.putBoolean( "PlotControlFrame_shortnamelineids", state );
+            plot.getSpecDataComp().setShortNameLineIDs( state );
+            if ( state ) {
+                prefixLineIDs.setSelected( false );
+                suffixLineIDs.setSelected( false );
+            }
             plot.updatePlot();
             return;
         }
