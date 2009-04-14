@@ -510,8 +510,6 @@ public class PlotControlFrame
             new ImageIcon( ImageHolder.class.getResource( "flip.gif" ) );
         ImageIcon statsImage =
             new ImageIcon( ImageHolder.class.getResource( "sigma.gif" ) );
-        ImageIcon stackerImage =
-            new ImageIcon( ImageHolder.class.getResource( "stacker.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -585,11 +583,6 @@ public class PlotControlFrame
                              "Get statistics on regions of spectrum" );
         analysisMenu.add( statsAction ).setMnemonic( KeyEvent.VK_S );
         toolBar.add( statsAction );
-
-        StackerAction stackerAction =
-            new StackerAction( "Stack display spectra", stackerImage,
-                    "Display spectra in an ordered stack arrangement" );
-        toolBar.add( stackerAction );
     }
 
     /**
@@ -601,10 +594,19 @@ public class PlotControlFrame
         editMenu.setMnemonic( KeyEvent.VK_E );
         menuBar.add( editMenu );
 
-        // Remove the current spectrum.
+        //  Remove the current spectrum.
         removeCurrent = new JMenuItem( "Remove current spectrum" );
         editMenu.add( removeCurrent );
         removeCurrent.addActionListener( this );
+
+        //  Stack the spectra.
+        ImageIcon stackerImage =
+            new ImageIcon( ImageHolder.class.getResource( "stacker.gif" ) );
+        StackerAction stackerAction =
+            new StackerAction( "Stack display spectra", stackerImage,
+                    "Display spectra in an ordered stack arrangement" );
+        editMenu.add( stackerAction );
+        toolBar.add( stackerAction );
     }
 
     /**
