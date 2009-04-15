@@ -833,9 +833,9 @@ in the following figure:
  lost. Data saved in a stack are compressed.
 
  The \menuitem{Interop} menu contains items for communicating with other 
- PLASTIC-aware desktop applications. This is described in the 
- \htmlref{Tool interoperability using PLASTIC}{plastic} section
- \latex{(\S\ref{plastic})}.
+ PLASTIC- or SAMP-aware desktop applications. This is described in the 
+ \htmlref{Tool interoperability}{interop} section
+ \latex{(\S\ref{interop})}.
 
  Finer control of the initial coordinate system picked by \SPLAT\ is given by
  the \submenuitem{Options}{Find spectral coordinates} menu item.  When this is
@@ -3692,85 +3692,127 @@ any of the three spectral line profiles supported by \SPLAT\ (Gaussian,
 Lorentz, Voigt). See the contents of this file for instructions on how to use
 it.
 
-\section{Tool interoperability using PLASTIC\label{plastic}\xlabel{plastic}}
+\newpage
+\section{Tool interoperability\label{interop}\xlabel{interop}}
 
-\SPLAT\ can communicate with other desktop tools, for instance
-exchanging spectra with them, using a protocol called PLASTIC.
-These functions are controlled from the \menuitem{Interop} menu
-in the browser window, which looks like this:
+\SPLAT\ can communicate with other desktop tools
+using one or other of two messaging protocols:
+\begin{itemize}
+\item \htmladdnormallinkfoot{SAMP}{http://www.ivoa.net/samp/}
+      (Simple Applications Messaging Protocol)
+\item \htmladdnormallinkfoot{PLASTIC}{http://plastic.sourceforge.net/}
+      (PLatform for AStronomical InterConnection)
+\end{itemize}
 
-\mainfigure{interopmenu}
+The main job that can be done using the messaging is to exchange spectra.
+If another tool sends a spectrum to \SPLAT, it will appear in the
+global list as if it had just been loaded.  Conversely, \SPLAT\ can send
+a spectrum to another tool, which will probably respond in a similar way.
+To send from \SPLAT, select a spectrum in the global list,
+and then use the 
+\menuitem{Broadcast spectrum} or 
+\menuitem{Send spectrum to \ldots}
+options in the \menuitem{Interop} menu.
+The Broadcast option sends to all listening tools,
+while the Send option sends only to a single selected tool;
+you choose which one from the submenu on the right.
+Only tools which (claim they) know what to do with spectral data
+will be listed; if none of the currently-registered tools is 
+prepared to accept spectra, the Send option will be unavailable.
 
-\subheading{What is PLASTIC?}
+You can also send the results of an SSA query as a table from the 
+\labelitem{Query VO for spectra} window.  Again, use the
+\menuitem{Broadcast} and \menuitem{Send} options from the 
+\menuitem{Interop} menu to do this.
 
-PLASTIC stands for the PLatform for AStronomical Tool InterConnection.  It is
-a protocol which allows tools on the desktop to communicate with each other.
-Briefly, the way it works is that applications can send messages to a central
-{\em hub process} which will then pass them on to other applications which can
-respond to them in some appropriate way.  The messages are things like ``load
-this spectrum''.  Applications which currently talk PLASTIC include TOPCAT,
-GAIA and various tools from the AstroGrid project.
+SAMP and PLASTIC do much the same job as each other, and work in
+much the same way.  SAMP is an evolution of PLASTIC with a number
+of technical improvements, and so PLASTIC is somewhat deprecated
+in favour of SAMP.  At time of writing (April 2009) approximately
+the same number of tools speak the two protocols, but this balance
+is expected to shift towards SAMP over the next few months, and
+SAMP will come to replace PLASTIC across the astronomical toolbase.
+It is not necessary for users to understand the differences between
+the two, but in general a tool using SAMP can communicate with other
+tools using SAMP, and the same with PLASTIC, but in most cases
+interoperation between PLASTIC and SAMP tools will not work.
 
-You can find more information about how it works, what applications
-are compatible, and how it can be useful at the
-\htmladdnormallinkfoot{PLASTIC web site}{http://plastic.sourceforge.net/}.
+The communication architecture of the two protocols is basically 
+the same: all tools talk to a central ``Hub'' process which 
+passes messages from one to another,
+so a hub must be running in order for the messaging to operate.
+If a hub is running when \SPLAT\ starts, or if one starts up while
+\SPLAT\ is in operation, it will connect to it automatically.
+Other tools have their own policies for connecting to the hub,
+but in general it is a good idea to start a hub first before starting
+up the tools which you want to talk to it.
+A hub can be started from within \SPLAT\ if required.
+The \verb+--hub+ or \verb+--exthub+ command-line flags start
+an ``internal'' or ``external'' hub respectively;
+the difference is that an internal hub will terminate when \SPLAT\ exits,
+while an external one continues running in its own process.
+Alternatively, a hub can be started from within the GUI as described
+in the SAMP and PLASTIC subsections below.
 
-\subheading{How do I use PLASTIC with \SPLAT?}
+\SPLAT\ can work in either SAMP or PLASTIC mode, but not both at once.
+It determines which mode to use at startup: if the command-line flag
+\verb+--interop samp+ or \verb+--interop plastic+ is supplied, the
+corresponding mode will be used;
+otherwise if a running SAMP or PLASTIC hub can be found, the corresponding
+mode is used; otherwise it defaults to SAMP.
+The GUI is slightly different between the two;
+the details are given in the following subsections.
 
-In order for PLASTIC communications to work, a PLASTIC hub must be
-running on your machine.  It is generally best to start this 
-outside of \SPLAT.  The recommended way to do this is
-currently to run the {\bf AstroGrid Workbench},
-which can be started using Java WebStart by following links on the
-\htmladdnormallinkfoot{AstroGrid web site}{http://software.astrogrid.org/}.
-It is possible however to start the hub using either the
-\menuitem{Start internal PLASTIC hub} or \menuitem{Start external PLASTIC hub}
-menu items.  The internal one will terminate when you exit \SPLAT,
-but the external one will continue running until it is explicitly stopped.
-For convenience these two options are also available from the command-line
-as the \verb+--hub+ and \verb+--exthub+ switches.
+\newpage
+\subsection{SAMP}
 
-If the hub is running when \SPLAT\ starts up, \SPLAT\ will connect to it
-(``register'') automatically.
-If you start the hub while \SPLAT\ is already running,
-you can connect to it by selecting the \menuitem{Register with PLASTIC}
-option from the \menuitem{Interop} menu, or wait for a while and the
-presence of the hub will be automatically detected.
-When registered, \SPLAT\ will listen out for messages from other applications
-and act on them.  You will also be able to send messages to other
-applications.  If you want to stop \SPLAT\ responding to any such messages,
-you can select \menuitem{Unregister with PLASTIC} from the same menu.
+In SAMP mode, the \labelitem{SAMP control} button is visible in the
+browser window toolbar.  Its appearance changes according to whether
+\SPLAT\ is currently registered: \inline{sampgo} or 
+unregistered: \inline{samp}.
+In either case, clicking the button will show the SAMP window.
 
-The \menuitem{Show Registered Applications} menu item will display a
-little window that gives the names of applications currently registered.
-This will show you which other tools are in a position to send messages
-to or receive them from \SPLAT.
+\mainfigure{sampwindow}
 
-\subheading{What PLASTIC facilities does \SPLAT\ support?}
+The left hand panel shows which applications are registered,
+and the right hand panel gives you information about the selected one;
+it's not necessary to understand this in detail, though
+some of the information is self-explanatory.
+If no applications show up in the list, then \SPLAT\ is not registered,
+most likely because no hub is running.  Clicking on the 
+\labelitem{(Un)Register with Hub} button will give you a chance to start one.
+The other tabs in the window provide information about messages
+sent to and from \SPLAT.  They can be useful to
+see whether spectra which have been sent have arrived safely or not.
 
-Currently, \SPLAT's PLASTIC interaction is confined to receiving
-spectra from, and sending spectra to, other applications.
+For those interested in the technical details, the domain-specific
+SAMP MTypes which \SPLAT\ knows about are:
+\begin{itemize}
+\item \hitext{spectrum.load.ssa-generic}:
+      send and receive spectra
+\item \hitext{table.load.votable}, \hitext{table.load.fits}:
+      send SSA query results
+\end{itemize}
 
-Normally, if another PLASTIC application sends spectral data to \SPLAT,
-it will respond by attempting to add it to the global list
-just as if you had loaded it in the usual way.
-This is usually what you want to happen, but two checkbox items
-are provided on the \menuitem{Interop} menu which allow you to turn this 
-behaviour off: \menuitem{Accept spectra} and \menuitem{Accept 1d FITS}.
-If you uncheck these, then incoming requests to load
-spectral data or 1-dimensional FITS files respectively will be ignored.
+\newpage
+\subsection{PLASTIC}
 
-You can also perform the opposite trick, take a spectrum which is
-displayed in \SPLAT\ and send it to one or all of the other tools
-currently registered with PLASTIC.  To do this select one of the
-\menuitem{Broadcast spectrum} or \menuitem{Send spectrum to \ldots} items.  
-The Broadcast action sends the data to all listening tools.
-The Send action sends only to a single selected tool; you choose it
-from the submenu to the right.  Only tools which (claim they) know 
-what to do with spectral data will be listed; if none of the 
-currently-registered tools is prepared to accept data in that format, 
-the Send options will be unavailable.
+In PLASTIC mode, all the communications controls are found within
+the browser window \menuitem{Interop} menu.
+Options are provided to register, unregister, start a hub, 
+and display a window showing other registered applications.
 
+For those interested in the technical details, the domain-specific
+PLASTIC messages which \SPLAT\ knows about are:
+\begin{itemize}
+\item \hitext{ivo://votech.org/spectrum/loadFromURL}:
+      send and receive spectra
+\item \hitext{ivo://votech.org/votable/loadFromURL}:
+      send SSA query results 
+\end{itemize}
+
+
+\newpage
 \section{Acknowledgements}
 
 \SPLAT\ is written in

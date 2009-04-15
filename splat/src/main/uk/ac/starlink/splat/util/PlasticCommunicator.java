@@ -25,7 +25,6 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 
 /**
  * Communicator implementation based on the PLASTIC protocol.
- * This is more or less a facade over a contained {@link PlasticServer} object.
  *
  * @author Mark Taylor
  * @version  $Id$
@@ -111,7 +110,7 @@ public class PlasticCommunicator
                 plasticServer.getHubStartAction( true ),
                 plasticServer.getHubStartAction( false ),
                 plasticServer.getHubWatchAction(),
-                HelpFrame.getAction( "Help on interoperability", "plastic" ),
+                HelpFrame.getAction( "Help on interoperability", "interop" ),
             };
         }
         return interopActions;
@@ -140,7 +139,7 @@ public class PlasticCommunicator
      * @param usertype index of the type of spectrum, 0 for default
      *                 based on file extension, otherwise this is an
      *                 index of the knownTypes array in
-     *                 {@link SpecDataFactory}.
+     *                 {@link uk.ac.starlink.splat.data.SpecDataFactory}.
      * @return  true  iff the load was successful
      */
     protected boolean addSpectrum( final String name, final int usertype )
