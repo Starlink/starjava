@@ -49,7 +49,7 @@ public class StarTableTransmitter
      * Constructor.
      *
      * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   table the table to transmit.
+     * @param   browser  query browser from which table is selected
      */
     public StarTableTransmitter( HubManager hubman, 
                                  SSAQueryBrowser browser )
