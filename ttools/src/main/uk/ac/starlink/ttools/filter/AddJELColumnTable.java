@@ -195,7 +195,7 @@ public class AddJELColumnTable extends WrapperStarTable {
                     throw e;
                 }
                 catch ( RuntimeException e ) {
-                    throw e;
+                    return null;
                 }
                 catch ( Error e ) {
                     throw e;
@@ -230,7 +230,7 @@ public class AddJELColumnTable extends WrapperStarTable {
             throw e;
         }
         catch ( RuntimeException e ) {
-            throw e;
+            return null;
         }
         catch ( Throwable e ) {
             throw (IOException) new IOException( e.getMessage() )
