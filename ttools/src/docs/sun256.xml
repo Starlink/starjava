@@ -6199,6 +6199,9 @@ but my thanks are especially due to the following:
 <dd><p>
     <ul>
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
+    <li>Produce null rather than nonsense results from sky coordinate
+        conversions with unphysical latitudes
+        (<code>addskycoords</code> filter).</li>
     </ul>
     </p></dd>
 

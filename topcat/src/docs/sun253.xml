@@ -11852,6 +11852,8 @@ introduced since the last version:
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
     <li>Loading message now displayed in control window table list 
         when table is being loaded from PLASTIC or SAMP.</li>
+    <li>Produce null rather than nonsense results from sky coordinate 
+        conversions with unphysical latitudes.</li>
     </ul>
     </p></dd>
 

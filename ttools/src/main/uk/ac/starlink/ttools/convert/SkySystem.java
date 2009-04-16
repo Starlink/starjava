@@ -36,6 +36,9 @@ public abstract class SkySystem {
     /** Standard epoch for FK5 system. */
     private static final double FK5_EPOCH = 2000.0;
 
+    /** PI / 2. */
+    private static final double PI2 = Math.PI / 2;
+
     private final String name_;
     private final String description_;
     private final String descrip1_;
@@ -226,14 +229,24 @@ public abstract class SkySystem {
                    "RA2000", "DEC2000" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = PAL.Preces( "FK5", epoch, FK5_EPOCH, in );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = PAL.Preces( "FK5", epoch, FK5_EPOCH, in );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
         public double[] toFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = PAL.Preces( "FK5", FK5_EPOCH, epoch, in );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = PAL.Preces( "FK5", FK5_EPOCH, epoch, in );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
     }
 
@@ -246,14 +259,24 @@ public abstract class SkySystem {
                    "Right Ascension", "Declination", "RA", "DEC" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = fk5hz( in, epoch );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = fk5hz( in, epoch );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
         public double[] toFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = hfk5z( in, epoch );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = hfk5z( in, epoch );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
     }
 
@@ -266,14 +289,24 @@ public abstract class SkySystem {
                    "RA1950", "DEC1950" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = PAL.Fk54z( in, epoch ).getAngle();
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = PAL.Fk54z( in, epoch ).getAngle();
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
         public double[] toFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = PAL.Fk45z( in, epoch );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = PAL.Fk45z( in, epoch );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
     }
 
@@ -286,14 +319,24 @@ public abstract class SkySystem {
                    "GAL_LONG", "GAL_LAT" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            Galactic out = PAL.Eqgal( in );
-            return new double[] { out.getLongitude(), out.getLatitude() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                Galactic out = PAL.Eqgal( in );
+                return new double[] { out.getLongitude(), out.getLatitude() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
         public double[] toFK5( double c1, double c2, double epoch ) {
-            Galactic in = new Galactic( c1, c2 );
-            AngleDR out = PAL.Galeq( in );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                Galactic in = new Galactic( c1, c2 );
+                AngleDR out = PAL.Galeq( in );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
     }
 
@@ -306,14 +349,24 @@ public abstract class SkySystem {
                    "Longitude", "Latitude", "SUPERGAL_LONG", "SUPERGAL_LAT" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
-            AngleDR in = new AngleDR( c1, c2 );
-            Galactic out = PAL.Galsup( PAL.Eqgal( in ) );
-            return new double[] { out.getLongitude(), out.getLatitude() };
+            if ( isLatitude( c2 ) ) {
+                AngleDR in = new AngleDR( c1, c2 );
+                Galactic out = PAL.Galsup( PAL.Eqgal( in ) );
+                return new double[] { out.getLongitude(), out.getLatitude() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
         public double[] toFK5( double c1, double c2, double epoch ) {
-            Galactic in = new Galactic( c1, c2 );
-            AngleDR out = PAL.Galeq( PAL.Supgal( in ) );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                Galactic in = new Galactic( c1, c2 );
+                AngleDR out = PAL.Galeq( PAL.Supgal( in ) );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
     }
 
@@ -326,17 +379,38 @@ public abstract class SkySystem {
                    "LONG", "LAT" );
         }
         public double[] fromFK5( double c1, double c2, double epoch ) {
-            double mjd = Times.julianToMjd( epoch );
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = PAL.Eqecl( in, mjd );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                double mjd = Times.julianToMjd( epoch );
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = PAL.Eqecl( in, mjd );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
         public double[] toFK5( double c1, double c2, double epoch ) {
-            double mjd = Times.julianToMjd( epoch );
-            AngleDR in = new AngleDR( c1, c2 );
-            AngleDR out = PAL.Ecleq( in, mjd );
-            return new double[] { out.getAlpha(), out.getDelta() };
+            if ( isLatitude( c2 ) ) {
+                double mjd = Times.julianToMjd( epoch );
+                AngleDR in = new AngleDR( c1, c2 );
+                AngleDR out = PAL.Ecleq( in, mjd );
+                return new double[] { out.getAlpha(), out.getDelta() };
+            }
+            else {
+                return new double[] { Double.NaN, Double.NaN };
+            }
         }
+    }
+
+    /**
+     * Returns true only if the given angle is a valid latitude
+     * (in range -PI/2..+PI/2).
+     *
+     * @param   theta  angle in radians
+     * @return  true iff theta is in range for a latitude
+     */
+    private static boolean isLatitude( double theta ) {
+        return theta >= - PI2 && theta <= + PI2;
     }
 
     /**
