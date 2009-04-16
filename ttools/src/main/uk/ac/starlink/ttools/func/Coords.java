@@ -138,10 +138,17 @@ public class Coords {
             throw new NumberFormatException( dms + 
                                              " not in deg:min:sec format" );
         }
-        return dmsToRadians( ! "-".equals( matcher.group( 1 ) ),
-                             Integer.parseInt( matcher.group( 2 ) ),
-                             Integer.parseInt( matcher.group( 3 ) ),
-                             Double.parseDouble( matcher.group( 4 ) ) );
+        boolean positive = ! "-".equals( matcher.group( 1 ) );
+        int hour = Integer.parseInt( matcher.group( 2 ) );
+        int min = Integer.parseInt( matcher.group( 3 ) );
+        double sec = Double.parseDouble( matcher.group( 4 ) );
+        if ( min < 0 || min > 60 ) {
+            return Double.NaN;
+        }
+        if ( sec < 0 || sec > 60 ) {
+            return Double.NaN;
+        }
+        return dmsToRadians( positive, hour, min, sec );
     }
 
     /**
@@ -161,10 +168,17 @@ public class Coords {
             throw new NumberFormatException( hms +
                                              " not in hour:min:sec format" );
         }
-        return hmsToRadians( ! "-".equals( matcher.group( 1 ) ),
-                             Integer.parseInt( matcher.group( 2 ) ),
-                             Integer.parseInt( matcher.group( 3 ) ),
-                             Double.parseDouble( matcher.group( 4 ) ) );
+        boolean positive = ! "-".equals( matcher.group( 1 ) );
+        int hour = Integer.parseInt( matcher.group( 2 ) );
+        int min = Integer.parseInt( matcher.group( 3 ) );
+        double sec = Double.parseDouble( matcher.group( 4 ) );
+        if ( min < 0 || min > 60 ) {
+            return Double.NaN;
+        }
+        if ( sec < 0 || sec > 60 ) {
+            return Double.NaN;
+        }
+        return hmsToRadians( positive, hour, min, sec );
     }
 
     /**

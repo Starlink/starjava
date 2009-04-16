@@ -11854,6 +11854,8 @@ introduced since the last version:
         when table is being loaded from PLASTIC or SAMP.</li>
     <li>Produce null rather than nonsense results from sky coordinate 
         conversions with unphysical latitudes.</li>
+    <li>Produce null rather than questionable results from sexagesimal
+        conversions with mins/secs out of range.</li>
     </ul>
     </p></dd>
 

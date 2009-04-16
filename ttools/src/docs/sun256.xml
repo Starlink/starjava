@@ -6202,6 +6202,8 @@ but my thanks are especially due to the following:
     <li>Produce null rather than nonsense results from sky coordinate
         conversions with unphysical latitudes
         (<code>addskycoords</code> filter).</li>
+    <li>Produce null rather than questionable results from sexagesimal
+        conversions with mins/secs out of range.</li>
     </ul>
     </p></dd>
 
