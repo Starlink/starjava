@@ -9,11 +9,9 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JRadioButton;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.JoinFixAction;
@@ -234,25 +232,6 @@ public class PairMatchSpec extends MatchSpec {
                         new DefaultValueInfo( "Second input table",
                                               String.class ),
                         tcModels[ 1 ].toString() ) );
-    }
-
-    private static class BestSelector extends Box {
-        final JRadioButton bestButton_ = new JRadioButton( "Best Match Only" );
-        final JRadioButton allButton_ = new JRadioButton( "All Matches" );
-        BestSelector() {
-            super( BoxLayout.X_AXIS );
-            ButtonGroup grp = new ButtonGroup();
-            grp.add( bestButton_ );
-            grp.add( allButton_ );
-            bestButton_.setSelected( true );
-
-            add( new JLabel( "Match Selection: " ) );
-            add( bestButton_ );
-            add( allButton_ );
-        }
-        boolean isBest() {
-            return bestButton_.isSelected();
-        }
     }
 
     private static class JoinSelector extends Box {
