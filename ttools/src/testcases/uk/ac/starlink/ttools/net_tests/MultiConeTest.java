@@ -42,6 +42,7 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "dec", "DEC" )
             .setValue( "sr", "0.05" )
             .setValue( "copycols", "" )
+            .setValue( "emptyok", "false" )
             .setValue( "icmd", "head 10" );
         StarTable result = multicone( env, new int[] { 1, } );
 
