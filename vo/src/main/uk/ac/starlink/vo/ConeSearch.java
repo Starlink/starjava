@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -193,6 +194,20 @@ public class ConeSearch {
             query.addArgument( "VERB", verb );
         }
         return query.toURL();
+    }
+
+    /**
+     * Returns the service URL for this service.
+     *
+     * @return   base URL for cone search queries
+     */
+    public URL getServiceURL() {
+        try {
+            return new URL( serviceUrl_ );
+        }
+        catch ( MalformedURLException e ) {
+            throw new AssertionError();
+        }
     }
 
     /**
