@@ -376,6 +376,17 @@ public class RegistryPanel extends JPanel {
     }
 
     /**
+     * Returns the selection model used by the user to select capability items
+     * from a completed query.
+     *
+     * @return   selection model
+     *           (each item will be a {@link RegCapabilityInterface})
+     */
+    public ListSelectionModel getCapabilitySelectionModel() {
+        return capTable_.getSelectionModel();
+    }
+
+    /**
      * Constructs a menu which allows the user to select which attributes
      * of each displayed resource are visible.
      *
