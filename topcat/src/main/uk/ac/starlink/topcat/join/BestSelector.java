@@ -14,6 +14,7 @@ import javax.swing.JRadioButton;
  */
 public class BestSelector extends Box {
 
+    private final JLabel label_;
     private final JRadioButton bestButton_;
     private final JRadioButton allButton_;
 
@@ -28,8 +29,9 @@ public class BestSelector extends Box {
         grp.add( bestButton_ );
         grp.add( allButton_ );
         bestButton_.setSelected( true );
+        label_ = new JLabel( "Match Selection: " );
 
-        add( new JLabel( "Match Selection: " ) );
+        add( label_ );
         add( bestButton_ );
         add( allButton_ );
     }
@@ -41,5 +43,12 @@ public class BestSelector extends Box {
      */
     public boolean isBest() {
         return bestButton_.isSelected();
+    }
+
+    public void setEnabled( boolean enabled ) {
+        super.setEnabled( enabled );
+        label_.setEnabled( enabled );
+        bestButton_.setEnabled( enabled );
+        allButton_.setEnabled( enabled );
     }
 }
