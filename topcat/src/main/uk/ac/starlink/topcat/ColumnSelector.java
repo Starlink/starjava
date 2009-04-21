@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,6 +164,28 @@ public class ColumnSelector extends JComponent {
      */
     public void setColumnData( ColumnData colData ) {
         model_.getColumnModel().setSelectedItem( colData );
+    }
+
+    /**
+     * Sets the value of the selector progrmmatically as a string.
+     * This should be a legal JEL expression in the context of the
+     * selector's table.
+     *
+     * @param  txt  text value
+     */
+    public void setStringValue( String txt ) {
+        colComboBox_.configureEditor( colComboBox_.getEditor(), txt );
+        colComboBox_.actionPerformed( new ActionEvent( this, 0, null ) );
+    }
+
+    /**
+     * Returns the value of the selector as a string.
+     *
+     * @return  text value
+     */
+    public String getStringValue() {
+        Object val = colComboBox_.getEditor().getItem();
+        return val == null ? null : val.toString();
     }
 
     /**

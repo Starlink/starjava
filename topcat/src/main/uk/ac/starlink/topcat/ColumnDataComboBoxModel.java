@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
@@ -55,6 +56,8 @@ public class ColumnDataComboBoxModel
     private List modelColumns_;
     private ColumnData selected_;
 
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
     private static final ValueInfo INDEX_INFO =
         new DefaultValueInfo( "index", Long.class, "Row index" );
 
@@ -406,7 +409,20 @@ public class ColumnDataComboBoxModel
 
         public void setItem( Object obj ) {
             base_.setItem( obj == null ? null : obj.toString() );
-            data_ = (ColumnData) obj;
+            ColumnData colData;
+            if ( obj instanceof String ) {
+                try {
+                    colData = model_.stringToColumnData( (String) obj );
+                }
+                catch ( CompilationException e ) {
+                    logger.warning( "Bad expression: " + obj + "(" + e + ")" );
+                    colData = null;
+                }
+            }
+            else {
+                colData = (ColumnData) obj;
+            }
+            data_ = colData;
         }
 
         public Object getItem() {
