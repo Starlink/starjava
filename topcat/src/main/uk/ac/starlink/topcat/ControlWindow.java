@@ -85,6 +85,7 @@ import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.topcat.join.MatchWindow;
+import uk.ac.starlink.topcat.join.MulticoneWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
@@ -141,6 +142,7 @@ public class ControlWindow extends AuxWindow
     private TableLoadChooser loadChooser_;
     private LoadQueryWindow loadWindow_;
     private ConcatWindow concatWindow_;
+    private MulticoneWindow multiconeWindow_;
     private ExtApp extApp_;
 
     private final JTextField idField_ = new JTextField();
@@ -162,6 +164,7 @@ public class ControlWindow extends AuxWindow
     private final Action mirageAct_;
     private final Action removeAct_;
     private final Action concatAct_;
+    private final Action multiconeAct_;
     private final Action logAct_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
@@ -266,6 +269,9 @@ public class ControlWindow extends AuxWindow
         concatAct_ = new ControlAction( "Concatenate Tables",
                                         ResourceIcon.CONCAT,
                                         "Join tables by concatenating them" );
+        multiconeAct_ = new ControlAction( "Multicone", ResourceIcon.MULTICONE,
+                                           "Multiple cone search (one for "
+                                         + "each row of input table)" );
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
                                      "Display the log of events" );
         readAct_.setEnabled( canRead_ );
@@ -458,6 +464,7 @@ public class ControlWindow extends AuxWindow
         JMenu joinMenu = new JMenu( "Joins" );
         joinMenu.setMnemonic( KeyEvent.VK_J );
         joinMenu.add( concatAct_ );
+        joinMenu.add( multiconeAct_ );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             joinMenu.add( matchActs_[ i ] );
         }
@@ -656,6 +663,18 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns a dialog used for a multiple cone search join.
+     *
+     * @return  multicone window
+     */
+    public MulticoneWindow getMulticoneWindow() {
+        if ( multiconeWindow_ == null ) {
+            multiconeWindow_ = new MulticoneWindow( this );
+        }
+        return multiconeWindow_;
+    }
+
+    /**
      * Returns the table factory used by this window.
      *
      * @return  table factory
@@ -841,6 +860,7 @@ public class ControlWindow extends AuxWindow
     public void updateControls() {
         boolean hasTables = tablesModel_.getSize() > 0;
         concatAct_.setEnabled( hasTables );
+        multiconeAct_.setEnabled( hasTables );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             matchActs_[ i ].setEnabled( hasTables );
         }
@@ -1016,6 +1036,9 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == concatAct_ ) {
                 getConcatWindow().makeVisible();
+            }
+            else if ( this == multiconeAct_ ) {
+                getMulticoneWindow().makeVisible();
             }
             else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );
