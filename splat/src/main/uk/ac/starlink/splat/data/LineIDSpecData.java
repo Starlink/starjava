@@ -400,13 +400,13 @@ public class LineIDSpecData
         //  A shift from the baseline in graphics coords.
         double yshift = 0.1 * ( clipLimits[3] - clipLimits[1] );
 
-        //  The graphics shift, if applying (for stacking).
+        //  Guess a length for the lines.
+        double lineLength = yshift;
+
+        //  Add the graphics shift, if applying (for stacking).
         if ( isApplyYOffset() ) {
             yshift += getYOffset();
         }
-
-        //  Guess a length for the lines.
-        double lineLength = yshift;
 
         //  Need to generate positions for placing the labels. The various
         //  schemes for this are use any positions read from the
