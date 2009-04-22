@@ -38,6 +38,7 @@ import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
@@ -384,19 +385,18 @@ public class MulticonePanel extends JPanel {
         }
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, inTable );
-        boolean best = bestSelector_.isBest();
+        MulticoneMode mcMode = new MatchOnlyMode( bestSelector_.isBest() );
         Number parNum = parallelModel_.getNumber();
         int parallelism = parNum == null ? 1 : parNum.intValue();
-        String copycolIdList = "*";
-        String distanceCol = "Separation";
-        JoinFixAction inFixAct = JoinFixAction.NO_ACTION;
-        JoinFixAction coneFixAct =
-            JoinFixAction.makeRenameDuplicatesAction( "_cone" );
-        ConeMatcher matcher =
-            new ConeMatcher( searcher, inProd, qsf, best, parallelism,
-                             copycolIdList, distanceCol, inFixAct, coneFixAct );
-        MatchWorker worker = new MatchWorker( matcher, tcModel, inTable );
+        ConeMatcher matcher = 
+            mcMode.createConeMatcher( searcher, inProd, qsf, parallelism );
+        ResultHandler resultHandler =
+            mcMode.createResultHandler( this, tfact.getStoragePolicy(),
+                                        tcModel );
+        MatchWorker worker =
+            new MatchWorker( matcher, resultHandler, tcModel, inTable );
         qsf.setMatchWorker( worker );
+        resultHandler.setMatchWorker( worker );
         return worker;
     }
 
@@ -444,6 +444,18 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
+     * Returns the available multicone modes.
+     *
+     * @return  modes
+     */
+    private static MulticoneMode[] getMulticoneModes() {
+        return new MulticoneMode[] {
+            new MatchOnlyMode( true ),
+            new MatchOnlyMode( false ),
+        };
+    }
+
+    /**
      * Reshapes a set of components so that they all have the same 
      * preferred size (that of the largest one).
      */
@@ -462,8 +474,8 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
-     * Cone query sequence factory implementation which uses the 
-     * current state of this component to supply the data.
+     * Cone query sequence factory implementation which uses objects acquired
+     * from the state of this component to supply the data.
      */
     private static class DatasQuerySequenceFactory
             implements QuerySequenceFactory {
@@ -563,6 +575,7 @@ public class MulticonePanel extends JPanel {
     private class MatchWorker extends Thread {
 
         private final ConeMatcher matcher_;
+        private final ResultHandler resultHandler_;
         private final TopcatModel inTcModel_;
         private final StarTable inTable_;
         private boolean done_;
@@ -570,14 +583,17 @@ public class MulticonePanel extends JPanel {
         /**
          * Constructor.
          *
-         * @param  matcher  cone matcher defining match parameters
+         * @param  matcher  object which knows how to generate a basic
+         *                  multicone result
+         * @param  resultHandler  object for doing something with the result
          * @param  inTcModel   input TopcatModel
          * @param  inTable  input (apparent) table
          */
-        MatchWorker( ConeMatcher matcher, TopcatModel inTcModel,
-                     StarTable inTable ) {
+        MatchWorker( ConeMatcher matcher, ResultHandler resultHandler,
+                     TopcatModel inTcModel, StarTable inTable ) {
             super( "MultiCone" );
             matcher_ = matcher;
+            resultHandler_ = resultHandler;
             inTcModel_ = inTcModel;
             inTable_ = inTable;
         }
@@ -597,15 +613,9 @@ public class MulticonePanel extends JPanel {
             /* Acquire the table from the matcher in such a way that 
              * when each row arrives the progress GUI is updated. */
             matcher_.setStreamOutput( true );
-            StoragePolicy storagePolicy =
-                ControlWindow.getInstance().getTableFactory()
-                                           .getStoragePolicy();
-            StarTable outTable;
-            Exception error;
             try {
                 StarTable streamTable = matcher_.getTable();
-                StarTable progressTable =
-                        new WrapperStarTable( streamTable ) {
+                StarTable progressTable = new WrapperStarTable( streamTable ) {
                     public RowSequence getRowSequence() throws IOException {
                         return new WrapperRowSequence( super
                                                       .getRowSequence() ) {
@@ -627,60 +637,41 @@ public class MulticonePanel extends JPanel {
                         };
                     }
                 };
-                assert ! progressTable.isRandom();
 
-                /* This step will block until all the rows have
-                 *  been acquired. */
-                outTable = storagePolicy.copyTable( progressTable );
-                error = null;
+                /* And pass the table to the appropriate result handler.
+                 * The row data has not been acquired yet, it will be pulled
+                 * by the action of the processResult call. */
+                resultHandler_.processResult( progressTable );
             }
-            catch ( Exception e ) {
-                outTable = null;
-                error = e;
-            }
-            final StarTable outTable0 = outTable; 
-            final Exception error0 = error;
-            done_ = true;
 
-
-            /* Pass the result, success or failure, to the GUI. */
-            schedule( new Runnable() {
-                public void run() {
-                    if ( outTable0 != null ) {
-                        gotTable( outTable0 );
-                    }
-                    else {
+            /* In case of error in result acquisition or processing, 
+             * inform the user. */
+            catch ( final Exception e ) {
+                schedule( new Runnable() {
+                    public void run() {
                         ErrorDialog.showError( MulticonePanel.this,
-                                               "Multicone Error", error0 );
+                                               "Multicone Error", e );
                     }
-                    setActive( null );
-                }
-            } );
-        }
-
-        /**
-         * Called in the event dispatch thread when a successful result
-         * table has been obtained.
-         *
-         * @param  result  result table (random access)
-         */
-        private void gotTable( StarTable result ) {
-            assert result.isRandom();
-            long nrow = result.getRowCount();
-            if ( nrow == 0 ) {
-                JOptionPane.showMessageDialog( MulticonePanel.this,
-                                               "No matches were found",
-                                               "Empty Match",
-                                               JOptionPane.ERROR_MESSAGE );
+                } );
             }
-            else {
-                String tname = "cones(" + inTcModel_.getID() + ")";
-                TopcatModel outTcModel = ControlWindow.getInstance()
-                                        .addTable( result, tname, true );
-                JOptionPane.showMessageDialog( MulticonePanel.this,
-                                               "New table created by "
-                                             + "multicone: " + outTcModel
-                                             + " (" + nrow + " rows)" );
+            catch ( final OutOfMemoryError e ) {
+                schedule( new Runnable() {
+                    public void run() {
+                        TopcatUtils.memoryError( e );
+                    }
+                } );
+            }
+
+            /* In any case, deinstall this worker thread.  No further actions
+             * on its behalf will now affect the GUI (important, since another
+             * worker thread might take over). */
+            finally {
+                done_ = true;
+                schedule( new Runnable() {
+                    public void run() {
+                        setActive( null );
+                    }
+                } );
             }
         }
 
@@ -711,8 +702,8 @@ public class MulticonePanel extends JPanel {
             schedule( new Runnable() {
                 public void run() {
                     progBar_.setValue( ( inRow_ + 1 ) );
-                    progBar_.setString( ( inRow_ + 1 ) + " -> "
-                                      + ( outRow_ + 1 ) );
+                    progBar_.setString( ( inRow_ ) + " -> "
+                                      + ( outRow_ ) );
                 }
             } );
         }
@@ -732,6 +723,191 @@ public class MulticonePanel extends JPanel {
                     }
                 } );
             }
+        }
+    }
+
+    /**
+     * Mode defining mainly what happens to the results of the match.
+     * It also has some influence on how the match is done.
+     */
+    private static abstract class MulticoneMode {
+
+        /**
+         * Constructs a ConeMatcher suitable for use with this mode.
+         *
+         * @param  coneSearcher  cone search implementation
+         * @param  inProd   source of input table
+         * @param  qsFact   object which can produce a ConeQueryRowSequence
+         *                  from the table provided by <code>inProd</code>
+         * @param  parallelism  number of threads to execute matches
+         * @return   new cone matcher
+         */
+        public abstract ConeMatcher
+                createConeMatcher( ConeSearcher coneSearcher,
+                                   TableProducer inProd,
+                                   QuerySequenceFactory qsFact,
+                                   int parallelism );
+
+        /**
+         * Constructs a ResultHandler suitable for use with this mode.
+         *
+         * @param  parent  parent component
+         * @param  policy   storage policy
+         * @param  inTcModel   input table
+         * @return  new result handler
+         */
+        public abstract ResultHandler
+                createResultHandler( JComponent parent, StoragePolicy policy,
+                                     TopcatModel inTcModel );
+    }
+
+    /**
+     * Object which does something with the result of a multicone search.
+     */
+    private static abstract class ResultHandler {
+        private MatchWorker matchWorker_;
+
+        /**
+         * Does something with the result of a multicone operation.
+         *
+         * @param  streamTable  sequential StarTable; its rowSequence 
+         *                      will only be read once
+         */
+        public abstract void processResult( StarTable streamTable )
+                throws IOException;
+
+        /**
+         * Sets the match worker associated with this object.
+         * Must be called before use.
+         *
+         * @param  matchWorker  worker thread 
+         */
+        public void setMatchWorker( MatchWorker matchWorker ) {
+            matchWorker_ = matchWorker;
+        }
+
+        /**
+         * Schedules a runnable on the event dispatch thread, which will
+         * execute only if this handler's match worker is still active.
+         *
+         * @param  runnable  object to run
+         */
+        protected void schedule( Runnable runnable ) {
+            matchWorker_.schedule( runnable );
+        }
+    }
+
+    /**
+     * Partial ResultHandler implementation which first randomises the
+     * table and then does something else with it.
+     * Concrete subclasses must implement processRandomResult.
+     */
+    private static abstract class RandomResultHandler extends ResultHandler {
+        private final JComponent parent_;
+        private final StoragePolicy policy_;
+
+        /**
+         * Constructor.
+         *
+         * @param   parent  parent component
+         * @param   policy   storage policy for randomising table
+         */
+        RandomResultHandler( JComponent parent, StoragePolicy policy ) {
+            parent_ = parent;
+            policy_ = policy;
+        }
+
+        public void processResult( StarTable streamTable ) throws IOException {
+
+            /* Blocks until all results are in. */
+            StarTable randomTable = policy_.copyTable( streamTable );
+            long nrow = randomTable.getRowCount();
+
+            /* Either note that there are no results. */
+            if ( nrow == 0 ) {
+                schedule( new Runnable() {
+                    public void run() {
+                        JOptionPane
+                       .showMessageDialog( parent_, "No matches were found",
+                                           "Empty Match",
+                                           JOptionPane.ERROR_MESSAGE );
+                    }
+                } );
+            }
+
+            /* Or invoke the method that does the work. */
+            else {
+                processRandomResult( randomTable );
+            }
+        }
+
+        /**
+         * Perform the actual result processing on a table which has been 
+         * randomised.
+         *
+         * @param  randomTable  multicone result table for which isRandom()
+         *         returns true
+         */
+        protected abstract void processRandomResult( StarTable randomTable )
+                throws IOException;
+    }
+
+    /**
+     * MulticoneMode implementation which generates a new table consisting 
+     * of only rows which consitute matches between the input table and
+     * the cone search service.  Any input table rows which did not have
+     * matches are omitted.
+     */
+    private static class MatchOnlyMode extends MulticoneMode {
+        private final boolean best_;
+
+        /**
+         * Constructor.
+         *
+         * @param  best  if true, only the best match for each input row
+         *               is included in the output (max 1 output row per 
+         *               input row); if false all matches are included in
+         *               output
+         */
+        MatchOnlyMode( boolean best ) {
+            best_ = best;
+        }
+
+        public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
+                                              TableProducer inProd,
+                                              QuerySequenceFactory qsFact,
+                                              int parallelism ) {
+            return new ConeMatcher( coneSearcher, inProd, qsFact, best_, 
+                                    parallelism, "*", "Separation",
+                                    JoinFixAction.NO_ACTION,
+                                    JoinFixAction
+                                   .makeRenameDuplicatesAction( "_cone" ) );
+        }
+
+        public ResultHandler createResultHandler( final JComponent parent,
+                                                  StoragePolicy policy,
+                                                  TopcatModel inTcModel ) {
+            final String tname = "cones(" + inTcModel.getID() + ")";
+            final ControlWindow controlWindow = ControlWindow.getInstance();
+            return new RandomResultHandler( parent, policy ) {
+                protected void processRandomResult( final StarTable
+                                                          randomTable ) {
+                    schedule( new Runnable() {
+                        public void run() {
+                            TopcatModel outTcModel =
+                                controlWindow.addTable( randomTable, tname,
+                                                        true );
+                            String msg = "New table created by multicone: "
+                                       + outTcModel + " ("
+                                       + randomTable.getRowCount() + " rows)";
+                            JOptionPane
+                           .showMessageDialog( parent, msg, "Multicone Success",
+                                               JOptionPane
+                                              .INFORMATION_MESSAGE );
+                        }
+                    } );
+                }
+            };
         }
     }
 }
