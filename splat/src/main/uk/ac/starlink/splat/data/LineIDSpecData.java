@@ -337,7 +337,7 @@ public class LineIDSpecData
                   getLineColour() );
     }
 
-   /**
+    /**
      * Draw the line identifiers onto the given widget using a suitable
      * AST GRF object.
      *
@@ -346,10 +346,12 @@ public class LineIDSpecData
      *             coordinates into graphics coordinates.
      * @param clipLimits limits of the region to draw used to clip graphics.
      *                   These can be in physical or graphics coordinates.
+     *                   Note only the X limits will be used for clipping.
      * @param physical whether limits are physical or graphical.
      * @param fullLimits full limits of drawing area in graphics coordinates.
      *                   May be used for positioning when clipping limits are
      *                   not used.
+     *                   Note only the X limits will be used for clipping.
      * @param postfix a string that will be postfixed to the labels.
      * @param colour a colour for labels etc.
      */
@@ -357,25 +359,11 @@ public class LineIDSpecData
                           boolean physical, double[] fullLimits,
                           String postfix, int colour )
     {
-        //  Set up clip region if needed.
-        Rectangle cliprect = null;
+        //  Work out the clip limits in physical coordinates.
         if ( clipLimits != null ) {
-            double[][] tmp = null;
-            if ( physical ) {
-                tmp = astJ.astTran2( plot, clipLimits, false );
-                cliprect = new Rectangle( (int) tmp[0][0],
-                                          (int) tmp[1][1],
-                                          (int) (tmp[0][1]-tmp[0][0]),
-                                          (int) (tmp[1][0]-tmp[1][1]));
-            }
-            else {
-                cliprect = new Rectangle( (int) clipLimits[0],
-                                          (int) clipLimits[3],
-                                          (int) (clipLimits[2]-clipLimits[0]),
-                                          (int) (clipLimits[1]-clipLimits[3]));
-
+            if ( ! physical ) {
                 //  Transform limits to physical for positioning of labels.
-                tmp = astJ.astTran2( plot, clipLimits, true );
+                double[][] tmp = astJ.astTran2( plot, clipLimits, true );
                 clipLimits = new double[4];
                 clipLimits[0] = tmp[0][0];
                 clipLimits[1] = tmp[1][0];
@@ -384,8 +372,7 @@ public class LineIDSpecData
             }
         }
         else {
-            // Cannot have null limits. Use the full limits which are in
-            // graphics coordinates.
+            //  Use the full limits which are in graphics coordinates.
             double[][] tmp = astJ.astTran2( plot, fullLimits, true );
             clipLimits = new double[4];
             clipLimits[0] = tmp[0][0];
@@ -394,14 +381,28 @@ public class LineIDSpecData
             clipLimits[3] = tmp[1][1];
         }
 
+        //  Get min and max along X axis for actual clipping. This
+        //  implementation does not clip in Y or just because the label
+        //  extends outside the region. More important that the full label is
+        //  always shown.
+        double[] limits = new double[2];
+        if ( clipLimits[0] > clipLimits[2] ) {
+            limits[0] = clipLimits[2];
+            limits[1] = clipLimits[0];
+        }
+        else {
+            limits[0] = clipLimits[0];
+            limits[1] = clipLimits[2];
+        }
+
         //  Get all labels.
         String[] labels = getLabels();
 
         //  A shift from the baseline in graphics coords.
-        double yshift = 0.1 * ( clipLimits[3] - clipLimits[1] );
+        double yshift = 0.2 * Math.abs( ( clipLimits[3] - clipLimits[1] ) );
 
         //  Guess a length for the lines.
-        double lineLength = yshift;
+        double lineLength = yshift * 0.5;
 
         //  Add the graphics shift, if applying (for stacking).
         if ( isApplyYOffset() ) {
@@ -503,12 +504,12 @@ public class LineIDSpecData
         //  and not the Grf object, which bypasses the Plot).
         DefaultGrf defaultGrf = (DefaultGrf) grf;
         DefaultGrfState oldState = setGrfAttributes( defaultGrf, false );
-        defaultGrf.setClipRegion( cliprect );
+
+        //  No Grf clipping, we just apply an X coordinate range check.
+        defaultGrf.setClipRegion( null );
 
         //  Apply the given line colour, may not be the default one.
         defaultGrf.attribute( Grf.GRF__COLOUR, colour, Grf.GRF__LINE );
-
-        double[] pos = new double[2];
 
         //  Generate the prefix and postfix strings. Quite a complex
         //  setting. If onlyShortName is set, prefixShortName and
@@ -535,49 +536,87 @@ public class LineIDSpecData
         else if ( postfix != null ) {
             post = postfix;
         }
+        else {
+            setShortName( shortName );
+        }
 
+        //  Get scale factors for transforming graphics and physical
+        //  coordinates. Just project a graphics pixel into physical
+        //  coordinates.
+        double[] scales = new double[2];
+        if ( showVerticalMarks ) {
+            double[] xin = new double[2];
+            double[] yin = new double[2];
+            xin[0] = 100.0;
+            xin[1] = 101.0;
+            yin[0] = 100.0;
+            yin[1] = 101.0;
+            double[][] tmp = plot.tran2( 2, xin, yin, true );
+            scales[0] = Math.abs( tmp[0][1] - tmp[0][0] );
+            scales[1] = Math.abs( tmp[1][1] - tmp[1][0] );
+        }
+
+        double[] pos = new double[2];
         if ( onlyShortName ) {
             String label = prefixName + post;
-            double hshift = 0.2 * yshift; //  Offset when horizontal
-            double shift = hshift;
+
+            //  Positions for vertical lines.
+            double shift = 0.0;
+            if ( showVerticalMarks ) {
+                double[] extent = defaultGrf.textExtent( label, 0.0,
+                                                         0.0, "CC",
+                                                         upVector[0],
+                                                         upVector[1] );
+                shift = ( extent[5] - extent[1] ) * scales[1] * 0.75;
+            }
+
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
-                pos[1] = xypos[j+1];
-                plot.text( label, pos, upVector, "CC" );
-                if ( showVerticalMarks ) {
-                    if ( ! horizontal ) {
-                        shift = hshift * (double) label.length();
+
+                //  Don't display if clipped along X axis.
+                if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
+                    pos[1] = xypos[j+1];
+                    plot.text( label, pos, upVector, "CC" );
+                    if ( showVerticalMarks ) {
+                        pos[1] = xypos[j+1] + shift;
+                        plot.gridLine( 2, pos, lineLength );
+                        pos[1] = xypos[j+1] - shift;
+                        plot.gridLine( 2, pos, -lineLength );
                     }
-                    pos[1] = xypos[j+1] + shift;
-                    plot.gridLine( 2, pos, lineLength );
-                    pos[1] = xypos[j+1] - shift;
-                    plot.gridLine( 2, pos, -lineLength );
-                }
+               }
             }
         }
         else {
             String label = null;
-            double hshift = 0.2 * yshift; //  Offset when horizontal
-            double shift = hshift;
+            double shift = 0.0;
             for ( int i = 0, j = 0; i < labels.length; i++, j += 2 ) {
                 pos[0] = xypos[j];
-                pos[1] = xypos[j+1];
-                label = pre + labels[i] + post;
-                plot.text( label, pos, upVector, "CC" );
-                if ( showVerticalMarks ) {
-                    if ( ! horizontal ) {
-                        shift = hshift * (double) label.length();
+
+                //  Don't display if clipped along X axis.
+                if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
+                    label = pre + labels[i] + post;
+                    pos[1] = xypos[j+1];
+                    plot.text( label, pos, upVector, "CC" );
+
+                    if ( showVerticalMarks ) {
+                        //  Get size of text as was drawn. Use to position
+                        //  the vertical lines.
+                        double[] extent = defaultGrf.textExtent( label, 0.0,
+                                                                 0.0, "CC",
+                                                                 upVector[0],
+                                                                 upVector[1] );
+                        shift = ( extent[5] - extent[1] ) * scales[1] * 0.75;
+
+                        pos[1] = xypos[j+1] + shift;
+                        plot.gridLine( 2, pos, lineLength );
+                        pos[1] = xypos[j+1] - shift;
+                        plot.gridLine( 2, pos, -lineLength );
                     }
-                    pos[1] = xypos[j+1] + shift;
-                    plot.gridLine( 2, pos, lineLength );
-                    pos[1] = xypos[j+1] - shift;
-                    plot.gridLine( 2, pos, -lineLength );
                 }
             }
         }
 
         resetGrfAttributes( defaultGrf, oldState, false );
-        defaultGrf.setClipRegion( null );
     }
 
     /**
