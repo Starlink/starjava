@@ -70,9 +70,10 @@ import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.ToolButtonBar;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.SplatPlastic;
 import uk.ac.starlink.splat.util.StarTableTransmitter;
+import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -104,6 +105,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  * selected and displayed in the main SPLAT browser.
  *
  * @author Peter W. Draper
+ * @author Mark Taylor
  * @version $Id$
  */
 public class SSAQueryBrowser
@@ -352,18 +354,17 @@ public class SSAQueryBrowser
         resolverCatalogue = simbadCatalogue;
 
 
-        //  Create a menu for PLASTIC interoperations.
+        //  Create a menu for inter-client communications.
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
         menuBar.add( interopMenu );
 
         //  Need an actions to transmit and broadcast the current
         //  results table.
-        SplatPlastic plasticServer = browser.getPlasticServer();
+        SplatCommunicator communicator = browser.getCommunicator();
 
         // Add table transmit options.
-        StarTableTransmitter transmitter =
-            new StarTableTransmitter( plasticServer, this );
+        Transmitter transmitter = communicator.createTableTransmitter( this );
         interopMenu.add( transmitter.getBroadcastAction() )
             .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( transmitter.createSendMenu() )
