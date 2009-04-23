@@ -37,8 +37,9 @@ public class SplatMain
                             Utilities.getReleaseName() );
 
         //  Set User-Agent field so VO servers can identify SPLAT.
-        Loader.setHttpAgent( Utilities.getReleaseName() + "/" +
-                             Utilities.getReleaseVersion() );
+        Loader.setHttpAgent( Utilities.getReleaseName()
+                                      .replaceAll( "\\s+", "_" )
+                             + "/" + Utilities.getReleaseVersion() );
 
         //  Create and populate the SplashWindow.
         Frame splashFrame = null;
