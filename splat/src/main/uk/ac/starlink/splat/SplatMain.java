@@ -36,6 +36,10 @@ public class SplatMain
 	System.setProperty( "com.apple.mrj.application.apple.menu.about.name",
                             Utilities.getReleaseName() );
 
+        //  Set User-Agent field so VO servers can identify SPLAT.
+        Loader.setHttpAgent( Utilities.getReleaseName() + "/" +
+                             Utilities.getReleaseVersion() );
+
         //  Create and populate the SplashWindow.
         Frame splashFrame = null;
         URL imageURL = ImageHolder.class.getResource( "splash.gif" );
