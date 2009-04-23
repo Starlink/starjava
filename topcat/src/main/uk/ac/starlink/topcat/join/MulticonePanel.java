@@ -9,6 +9,7 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import javax.swing.Action;
@@ -24,10 +25,12 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
@@ -96,6 +99,9 @@ public class MulticonePanel extends JPanel {
         new DefaultValueInfo( "__MulticoneIndex__", Integer.class,
                               "Table row index, 0-based" );
 
+    /** Name for distance column. */
+    private static final String DIST_NAME = "Separation";
+
     /**
      * Constructor.
      *
@@ -144,7 +150,7 @@ public class MulticonePanel extends JPanel {
         cList.add( tableSelector );
         Box tableLine = Box.createHorizontalBox();
         tableLine.add( tableLabel );
-        tableLine.add( tableSelector );
+        tableLine.add( new ShrinkWrapper( tableSelector ) );
         tableLine.add( Box.createHorizontalGlue() );
         main.add( tableLine );
         main.add( Box.createVerticalStrut( 5 ) );
@@ -374,6 +380,7 @@ public class MulticonePanel extends JPanel {
             throw new NullPointerException( "No table selected" );
         }
         final StarTable inTable = tcModel.getApparentStarTable();
+        int[] rowMap = tcModel.getViewModel().getRowMap();
         ColumnData raData = raSelector_.getColumnData();
         ColumnData decData = decSelector_.getColumnData();
         ColumnData srData = srSelector_.getColumnData();
@@ -398,12 +405,12 @@ public class MulticonePanel extends JPanel {
             new ServiceConeSearcher( csearch, verbose, false, tfact );
         searcher = erract.adjustConeSearcher( searcher );
         DatasQuerySequenceFactory qsf =
-            new DatasQuerySequenceFactory( raData, decData, srData, inTable );
+            new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher = 
             mcMode.createConeMatcher( searcher, inTable, qsf, parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
-                                        tcModel );
+                                        tcModel, inTable );
 
         /* Create MatchWorker encapsulating all of this. */
         MatchWorker worker =
@@ -471,6 +478,7 @@ public class MulticonePanel extends JPanel {
             new MatchOnlyMode( "New joined table with best matches", true ),
             new MatchOnlyMode( "New joined table with all matches", false ),
             new AddSubsetMode( "Add subset for matched rows" ),
+            new AllBestMode( "New joined table, one row per input row" ),
         };
     }
 
@@ -538,7 +546,7 @@ public class MulticonePanel extends JPanel {
         private final ColumnData raData_;
         private final ColumnData decData_;
         private final ColumnData srData_;
-        private final StarTable inTable_;
+        private final int[] rowMap_;
         private MatchWorker matchWorker_;
 
         /**
@@ -547,14 +555,15 @@ public class MulticonePanel extends JPanel {
          * @param  raData  right ascension data column
          * @param  decData declination data column
          * @param  srData  search radius data column
-         * @param  inTable input table
+         * @param  rowMap  mapping from input table rows to column data rows;
+         *                 null for unit mapping
          */
         DatasQuerySequenceFactory( ColumnData raData, ColumnData decData,
-                                   ColumnData srData, StarTable inTable ) {
+                                   ColumnData srData, int[] rowMap ) {
             raData_ = raData;
             decData_ = decData;
             srData_ = srData;
-            inTable_ = inTable;
+            rowMap_ = rowMap;
         }
 
         /**
@@ -569,6 +578,7 @@ public class MulticonePanel extends JPanel {
 
         public ConeQueryRowSequence createQuerySequence( StarTable table )
                 throws IOException {
+            assert rowMap_ == null || rowMap_.length == table.getRowCount();
             final RowSequence rseq = table.getRowSequence();
             return new ConeQueryRowSequence() {
                 long irow_ = -1;
@@ -614,7 +624,9 @@ public class MulticonePanel extends JPanel {
 
                 private double getDoubleValue( ColumnData cdata )
                         throws IOException {
-                    Object value = cdata.readValue( irow_ );
+                    long jrow = rowMap_ == null ? irow_
+                                                : rowMap_[ (int) irow_ ];
+                    Object value = cdata.readValue( jrow );
                     return value instanceof Number
                          ? ((Number) value).doubleValue()
                          : Double.NaN;
@@ -814,15 +826,20 @@ public class MulticonePanel extends JPanel {
 
         /**
          * Constructs a ResultHandler suitable for use with this mode.
+         * The results that the handler will be asked to process will be 
+         * ones that have been generated using the state of the
+         * input TopcatModel at the time of calling this method, 
+         * so for instance it's OK to look at its apparent table.
          *
          * @param  parent  parent component
          * @param  policy   storage policy
-         * @param  inTcModel   input table
+         * @param  inTcModel   input topcat model
+         * @param  inTable   input table (inTcModel's apparent table)
          * @return  new result handler
          */
         public abstract ResultHandler
                 createResultHandler( JComponent parent, StoragePolicy policy,
-                                     TopcatModel inTcModel );
+                                     TopcatModel inTcModel, StarTable inTable );
 
         public String toString() {
             return name_;
@@ -910,6 +927,29 @@ public class MulticonePanel extends JPanel {
         }
 
         /**
+         * Schedules a given table for adding to the global table list.
+         * The user is notified of the new arrival.
+         *
+         * @param   name   table label
+         * @param   table   table to add
+         */
+        protected void addTable( final String name, final StarTable table ) {
+            final ControlWindow controlWindow = ControlWindow.getInstance();
+            schedule( new Runnable() {
+                public void run() {
+                    TopcatModel outTcModel =
+                        controlWindow.addTable( table, name, true );
+                    String msg = "New table created by multicone: "
+                               + outTcModel + " ("
+                               + table.getRowCount() + " rows)";
+                    JOptionPane
+                   .showMessageDialog( parent_, msg, "Multicone Success",
+                                       JOptionPane.INFORMATION_MESSAGE );
+                }
+            } );
+        }
+
+        /**
          * Perform the actual result processing on a table which has been 
          * randomised.
          *
@@ -948,8 +988,7 @@ public class MulticonePanel extends JPanel {
                                               QuerySequenceFactory qsFact,
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher, toProducer( inTable ),
-                                    qsFact, best_, parallelism, "*",
-                                    "Separation",
+                                    qsFact, best_, parallelism, "*", DIST_NAME,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction
                                    .makeRenameDuplicatesAction( "_cone" ) );
@@ -957,26 +996,12 @@ public class MulticonePanel extends JPanel {
 
         public ResultHandler createResultHandler( final JComponent parent,
                                                   StoragePolicy policy,
-                                                  TopcatModel inTcModel ) {
+                                                  TopcatModel inTcModel,
+                                                  StarTable inTable ) {
             final String tname = "cones(" + inTcModel.getID() + ")";
-            final ControlWindow controlWindow = ControlWindow.getInstance();
             return new RandomResultHandler( parent, policy ) {
-                protected void processRandomResult( final StarTable
-                                                          randomTable ) {
-                    schedule( new Runnable() {
-                        public void run() {
-                            TopcatModel outTcModel =
-                                controlWindow.addTable( randomTable, tname,
-                                                        true );
-                            String msg = "New table created by multicone: "
-                                       + outTcModel + " ("
-                                       + randomTable.getRowCount() + " rows)";
-                            JOptionPane
-                           .showMessageDialog( parent, msg, "Multicone Success",
-                                               JOptionPane
-                                              .INFORMATION_MESSAGE );
-                        }
-                    } );
+                protected void processRandomResult( final StarTable table ) {
+                    addTable( tname, table );
                 }
             };
         }
@@ -1012,7 +1037,9 @@ public class MulticonePanel extends JPanel {
         public ResultHandler
                createResultHandler( final JComponent parent,
                                     StoragePolicy policy,
-                                    final TopcatModel inTcModel ) {
+                                    final TopcatModel inTcModel,
+                                    StarTable inTable ) {
+            final int[] rowMap = inTcModel.getViewModel().getRowMap();
             return new ResultHandler() {
                 public void processResult( StarTable streamTable )
                         throws IOException {
@@ -1020,9 +1047,13 @@ public class MulticonePanel extends JPanel {
                     final BitSet matchMask = new BitSet();
                     try {
                         while ( rseq.next() ) {
-                            int irow = ((Number) rseq.getCell( 0 )).intValue();
+                            long irow =
+                                ((Number) rseq.getCell( 0 )).longValue();
                             if ( irow < Integer.MAX_VALUE ) {
-                                matchMask.set( (int) irow );
+                                int jrow = rowMap == null
+                                         ? (int) irow
+                                         : rowMap[ (int) irow ];
+                                matchMask.set( jrow );
                             }
                         }
                     }
@@ -1096,6 +1127,88 @@ public class MulticonePanel extends JPanel {
                         assert false;
                         return item.toString();
                     }
+                }
+            };
+        }
+    }
+
+    /**
+     * Multicone mode which creates a new table, consisting of one row
+     * for each input table row, including the best match (if any) from the
+     * cone search result.
+     */
+    private static class AllBestMode extends MulticoneMode {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  mode name
+         */
+        AllBestMode( String name ) {
+            super( name );
+        }
+
+        public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
+                                              StarTable inTable,
+                                              QuerySequenceFactory qsFact,
+                                              int parallelism ) {
+            return new ConeMatcher( coneSearcher,
+                                    toProducer( prependIndex( inTable ) ),
+                                    qsFact, true, parallelism,
+                                    INDEX_INFO.getName(), DIST_NAME,
+                                    JoinFixAction.NO_ACTION,
+                                    JoinFixAction.NO_ACTION );
+        }
+
+        public ResultHandler createResultHandler( JComponent parent,
+                                                  StoragePolicy policy,
+                                                  final TopcatModel inTcModel,
+                                                  final StarTable inTable ) {
+            final int nRowIn = Tables.checkedLongToInt( inTable.getRowCount() );
+            return new RandomResultHandler( parent, policy ) {
+                public void processRandomResult( StarTable outTable )
+                        throws IOException {
+
+                    /* Prepare a table which has the rows of the multicone
+                     * result table, but aligned to the row indices of the
+                     * input table.  This requires use of the index column
+                     * we inserted in the createConeMatcher method. */
+                    long[] rowMap = new long[ nRowIn ];
+                    Arrays.fill( rowMap, -1L );
+                    int nRowCone =
+                        Tables.checkedLongToInt( outTable.getRowCount() );
+                    for ( int iRowCone = 0; iRowCone < nRowCone; iRowCone++ ) {
+                        long iRowIn = ((Number) outTable.getCell( iRowCone, 0 ))
+                                     .longValue();
+                        if ( iRowIn < Integer.MAX_VALUE ) {
+                            rowMap[ (int) iRowIn ] = iRowCone;
+                        }
+                    }
+                    outTable = new RowPermutedStarTable( outTable, rowMap );
+
+                    /* Strip that table of its first column which was the
+                     * index column we added earlier on, its work has been
+                     * done and it's not wanted for the output. */
+                    int[] colMap = new int[ outTable.getColumnCount() - 1 ];
+                    for ( int icol = 0; icol < colMap.length; icol++ ) {
+                        colMap[ icol ] = icol + 1;
+                    }
+                    outTable =
+                        new ColumnPermutedStarTable( outTable, colMap, true );
+
+                    /* Combine the result table with the input table to
+                     * generate the requested output. */
+                    JoinFixAction[] fixacts = new JoinFixAction[] {
+                        JoinFixAction.NO_ACTION,
+                        JoinFixAction.makeRenameDuplicatesAction( "_cone" ),
+                    };
+                    outTable = new JoinStarTable( new StarTable[] { inTable,
+                                                                    outTable },
+                                                  fixacts );
+
+                    /* Finally schedule the constructed table for addition
+                     * to the global table list. */
+                    addTable( "cones(" + inTcModel.getID() + ")", outTable );
                 }
             };
         }
