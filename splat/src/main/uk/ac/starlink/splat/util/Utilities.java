@@ -85,7 +85,8 @@ public class Utilities
     {
         return
             "Copyright (C) 2001-2005 Central Laboratory of the Research Councils<br>"+
-            "Copyright (C) 2006 Particle Physics and Astronomy Research Council<br>"+
+            "Copyright (C) 2006-2008 Particle Physics and Astronomy Research Council<br>"+
+            "Copyright (C) 2008-2009 Science and Technology Facilities Council<br>"+
             "Supported by the Joint Astronomy Centre Hawaii";
     }
 
@@ -119,7 +120,7 @@ public class Utilities
      */
     public static String getSupportEmail()
     {
-        return "splat@starlink.ac.uk";
+        return "starlink@jiscmail.ac.uk";
     }
 
     /**
@@ -443,6 +444,4 @@ public class Utilities
         }
         return onetwo;
     }
-
-
 }
