@@ -54,7 +54,9 @@
 
   <mapID target="data-formats"               url="sun243.htx/node42.html"/>
   <mapID target="command-line"               url="sun243.htx/node44.html"
-  <mapID target="plastic"                    url="sun243.htx/node45.html"/>
-  <mapID target="acknowledgements"           url="sun243.htx/node46.html"/>
+  <mapID target="interop"                    url="sun243.htx/node45.html"/>
+  <mapID target="samp-window"                url="sun243.htx/node46.html"/>
+  <mapID target="plastic"                    url="sun243.htx/node47.html"/>
+  <mapID target="acknowledgements"           url="sun243.htx/node48.html"/>
 
 </map>

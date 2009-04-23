@@ -47,9 +47,11 @@
    <tocitem target="stats-window" text="Region statistics window" />
    <tocitem target="stacker-window" text="Display stacked spectra window" />
    <tocitem target="data-formats" text="Supported data formats"/>
-   <tocitem target="plastic" text="Interoperability"/>
-
    <tocitem target="command-line" text="Command-line utilities" />
+   <tocitem target="interop" text="Interoperability">
+       <tocitem target="samp" text="SAMP"/>
+       <tocitem target="plastic" text="PLASTIC"/>
+   </tocitem>
    <tocitem target="acknowledgements" text="Acknowledgements"/>
 
 </toc>

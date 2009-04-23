@@ -1,5 +1,13 @@
 1 Starlink SPLAT news.
 
+   3.9-0
+   =====
+
+   SPLAT has been updated to use SAMP for interoperability with other 
+   desktop applications. It is still possible to use PLASTIC, but that
+   protocol is now deprecated. See the main documentation for more about
+   these changes.
+
    3.8-9
    =====
 
@@ -14,7 +22,8 @@
 
    The VO registry interface has been updated to use version 1 access.
    Note that any existing saved lists of SSAP registries will no longer
-   be compatible and must be regenerated.
+   be compatible and must be regenerated. This should mean that new services
+   will be picked up again.
 
    A bug calculating UTC from TDB for the epoch of observation in the 
    JAC synopsis has been fixed.
