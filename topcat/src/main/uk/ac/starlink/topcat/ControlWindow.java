@@ -412,9 +412,9 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add join/match control buttons to the toolbar. */
-        toolBar.add( concatAct_ );
-        toolBar.add( matchActs_[ 0 ] );
         toolBar.add( matchActs_[ 1 ] );
+        toolBar.add( multiconeAct_ );
+        toolBar.add( concatAct_ );
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
