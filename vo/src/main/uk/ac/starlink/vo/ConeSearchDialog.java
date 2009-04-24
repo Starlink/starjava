@@ -50,16 +50,7 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
     }
 
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
-        RegCapabilityInterface[] caps = super.getCapabilities( resource );
-        List cscapList = new ArrayList();
-        for ( int i = 0; i < caps.length; i++ ) {
-            if ( RegCapabilityInterface.CONE_STDID
-                .equals( caps[ i ].getStandardId() ) ) {
-                cscapList.add( caps[ i ] );
-            }
-        }
-        return (RegCapabilityInterface[])
-               cscapList.toArray( new RegCapabilityInterface[ 0 ] );
+        return selectConeSearches( super.getCapabilities( resource ) );
     }
 
     protected TableSupplier getTableSupplier() {
@@ -98,5 +89,26 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
                 return coner.toString();
             }
         };
+    }
+
+    /**
+     * Selects only the capability objects from a list of them which 
+     * represent cone search services.
+     *
+     * @param   caps  input list
+     * @return  all the capabilities from <code>caps</code> which
+     *          are cone search services
+     */
+    public static RegCapabilityInterface[]
+                  selectConeSearches( RegCapabilityInterface[] caps ) {
+        List cscapList = new ArrayList();
+        for ( int i = 0; i < caps.length; i++ ) {
+            if ( RegCapabilityInterface.CONE_STDID
+                .equals( caps[ i ].getStandardId() ) ) {
+                cscapList.add( caps[ i ] );
+            }
+        }
+        return (RegCapabilityInterface[])
+               cscapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 }
