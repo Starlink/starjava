@@ -14,6 +14,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.vo.ConeSearch;
+import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.KeywordServiceQueryFactory;
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
@@ -36,12 +37,27 @@ public class MulticoneWindow extends AuxWindow {
     public MulticoneWindow( Component parent ) {
         super( "Multiple Cone Search", parent );
 
-        JProgressBar progBar = placeProgressBar();
-        final MulticonePanel mcPanel = new MulticonePanel( progBar );
+        /* Set up a registry query panel suitable for selecting cone 
+         * search services. */
         final RegistryPanel regPanel =
             new RegistryPanel( new KeywordServiceQueryFactory(
                                        RegCapabilityInterface.CONE_STDID ),
-                               true );
+                               true ) {
+            
+                public RegCapabilityInterface[]
+                       getCapabilities( RegResource res ) {
+                    return ConeSearchDialog
+                          .selectConeSearches( super.getCapabilities( res ) );
+                }
+            };
+
+        /* Set up the panel for entering multicone parameters for a given
+         * cone search service. */
+        JProgressBar progBar = placeProgressBar();
+        final MulticonePanel mcPanel = new MulticonePanel( progBar );
+
+        /* Arrange for the multicone panel to get updated by cone search
+         * service selection. */
         ListSelectionListener coneSelListener = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 RegResource[] resources =
@@ -64,6 +80,7 @@ public class MulticoneWindow extends AuxWindow {
         regPanel.getCapabilitySelectionModel()
                 .addListSelectionListener( coneSelListener );
 
+        /* Cosmetics. */
         regPanel.setBorder(
             BorderFactory.createCompoundBorder(
                 makeTitledBorder( "Available Cone Search Services" ),
@@ -74,16 +91,20 @@ public class MulticoneWindow extends AuxWindow {
                 BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
         regPanel.setPreferredSize( new Dimension( 600, 350 ) );
 
+        /* Place components. */
         JComponent main = getMainArea();
         main.add( regPanel, BorderLayout.CENTER );
         main.add( mcPanel, BorderLayout.SOUTH );
 
+        /* Place start and stop actions. */
         JComponent controls = getControlPanel();
         controls.add( new JButton( mcPanel.getStartAction() ) );
         controls.add( new JButton( mcPanel.getStopAction() ) );
 
+        /* Place menu actions. */
         getJMenuBar().add( regPanel.makeColumnVisibilityMenu( "Columns" ) );
 
+        /* Add help. */
         addHelp( "MulticoneWindow" );
     }
 }
