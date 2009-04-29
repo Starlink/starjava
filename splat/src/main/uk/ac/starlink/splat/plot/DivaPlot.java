@@ -749,7 +749,7 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed width. Follow this with a 
+     * Fit spectrum to the displayed width. Follow this with a
      * setScale( 1, x ), to update the display.
      */
     public void fitToWidth()
@@ -759,7 +759,7 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed height. Follow this with a 
+     * Fit spectrum to the displayed height. Follow this with a
      * setScale( x, 1 ), to update the display.
      */
     public void fitToHeight()
@@ -881,7 +881,6 @@ public class DivaPlot
         ySaved = y;
         repaint();
     }
-
 
     /**
      * Draw the line identifiers aligned to the other sideband when
@@ -1170,6 +1169,9 @@ public class DivaPlot
                     //  spectra).
                     if ( isDSB ) {
 
+                        //  Switch limits to sideband for clipping etc.
+                        setSideBandBaseBox( astref, sideband );
+
                         //  Switch current spectral coordinates to other
                         //  sideband.
                         String currentSideBand = " (USB)";
@@ -1185,6 +1187,9 @@ public class DivaPlot
                         Plot mainMainPlot = mainPlot;
                         mainPlot = dsbPlot;
                         drawDoubleDSBLineIdentifiers( currentSideBand );
+
+                        //  Restore limits.
+                        unsetSideBandBaseBox();
 
                         //  Restore the sideband and plot.
                         mainPlot = mainMainPlot;
