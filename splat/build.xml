@@ -824,6 +824,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          <extension name="TABLE" href="table.jnlp"/>
          <extension name="VO" href="vo.jnlp"/>
          <extension name="PLASTIC" href="plastic.jnlp"/>
+         <extension name="JSAMP" href="jsamp.jnlp"/>
        </resources>
 
        <!-- Do not enable this until webstart supports the loading
@@ -866,13 +867,13 @@ JNI libraries not built (NDF library not installed in ${stardev})"
        </resources>
        <resources os="Mac OS X" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
-       </resources-->
+       </resources>
        <resources os="Mac OS X" arch="x86_64">
          <nativelib href="x86_64/${name}_libs.jar"/>
        </resources>
        <resources os="Mac OS X" arch="ppc64">
          <nativelib href="ppc64/${name}_libs.jar"/>
-       </resources>
+       </resources-->
 
        <component_desc/>
      </jnlp>
