@@ -1072,6 +1072,7 @@
         <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
+        <include name="**/*.icns"/>
       </fileset>
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.lib.pkg}
