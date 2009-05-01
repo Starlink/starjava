@@ -62,8 +62,11 @@ if test -x /usr/bin/sw_vers && /usr/bin/sw_vers | grep -q 'OS.X'; then
       fi
    done
    if test -r "$icns_file" && java -X | grep -q -- -Xdock:icon; then
-      javaArgs0="-Xdock:icon=$icns_file"
+      javaArgs0="$javaArgs0 "\'-Xdock:icon=$icns_file\'
    fi
+
+   # Set Mac application name.
+   javaArgs0="$javaArgs0 -Dcom.apple.mrj.application.apple.menu.about.name=TOPCAT"
 fi
 
 #  Locate the application jar file. 
