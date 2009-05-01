@@ -11856,6 +11856,11 @@ introduced since the last version:
         conversions with unphysical latitudes.</li>
     <li>Produce null rather than questionable results from sexagesimal
         conversions with mins/secs out of range.</li>
+    <li>Startup script improved to provide some cosmetic improvements for
+        Mac users: the TOPCAT icon is shown in the dock rather than the
+        generic Java icon, and the menu application name is set to 
+        "TOPCAT" rather than the classname.  Note these don't take effect
+        if running directly using <code>java -jar</code>.</li>
     </ul>
     </p></dd>
 
