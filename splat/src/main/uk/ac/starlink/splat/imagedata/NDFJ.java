@@ -308,9 +308,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return dims;
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -323,9 +321,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return ndim;
         }
-        else {
-            return 0;
-        }
+        return 0;
     }
 
     /**
@@ -341,11 +337,11 @@ public class NDFJ
         if  ( ident != 0 ) {
             int place = nGetTemp();
             int copyIdent = nGetCopy( ident, place );
-            return new NDFJ( copyIdent );
+            if ( copyIdent != 0 ) {
+                return new NDFJ( copyIdent );
+            }
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -363,13 +359,8 @@ public class NDFJ
                 int copyIdent = nGetCopy( ident, place );
                 return new NDFJ( copyIdent );
             }
-            else {
-                return null;
-            }
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -402,9 +393,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet1DDouble( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -435,9 +424,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet1DFloat( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -453,9 +440,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet1DInt( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -471,9 +456,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet1DShort( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -489,9 +472,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet1DByte( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -507,9 +488,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet2DDouble( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -525,9 +504,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet2DFloat( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -543,9 +520,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet2DInt( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -561,9 +536,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet2DShort( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -579,9 +552,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGet2DByte( ident, component, complete );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -596,9 +567,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nHas( ident, component );
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -653,9 +622,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nGetCharComp( ident, comp );
         }
-        else {
-            return "";
-        }
+        return "";
     }
 
     /**
@@ -759,9 +726,7 @@ public class NDFJ
         if ( ident != 0 ) {
             return nHasExtension( ident, "FITS" );
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**
