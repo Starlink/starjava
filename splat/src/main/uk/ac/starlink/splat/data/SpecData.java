@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
  * Copyright (C) 2007 Particle Physics and Astronomy Research Council
- * Copyright (C) 2007-2008 Science and Technology Facilities Council
+ * Copyright (C) 2007-2009 Science and Technology Facilities Council
  *
  *  History:
  *     01-SEP-2002 (Peter W. Draper):
@@ -1790,6 +1790,11 @@ public class SpecData
             //  frameset.
             ASTJ ast = new ASTJ( astref );
 
+            //  If the sigaxis isn't 1 then we may have a 3D spectrum 
+            //  where the other axes define an extraction position.
+            //  Check for this and record that position.
+            checkForExtractionPosition( astref, sigaxis );
+
             //  Create a frameset that is suitable for displaying a
             //  "spectrum". This has a coordinate X axis and a data Y
             //  axis. The coordinates are chosen to run along the sigaxis (if
@@ -1987,6 +1992,42 @@ public class SpecData
         }
         return sigaxis;
     }
+
+    /**
+     * If this is a nD dataset with WCS record the position of the
+     * spectrum in the standard properties, if possible.
+     */
+    protected void checkForExtractionPosition( FrameSet astref, int sigaxis )
+    {
+        if ( impl instanceof FITSHeaderSource ) {
+            int dims[] = impl.getDims();
+            if ( dims.length > 1 ) {
+                //  Get the coordinates for the grid position 1,1,1.
+                double basepos[] = new double[dims.length];
+                for ( int i = 0; i < dims.length; i++ ) {
+                    basepos[i] = 1.0;
+                }
+                int nout = astref.getI( "Nout" );
+                try {
+                    double out[] = astref.tranN( 1, dims.length, basepos, 
+                                                 true, nout );
+                    int lonaxis = astref.getI( "lonaxis" );
+                    int lataxis = astref.getI( "lataxis" );
+                    Header header = getHeaders();
+                    String ra = astref.format( lonaxis, out[lonaxis-1] );
+                    String dec = astref.format( lataxis, out[lataxis-1] );
+                    header.addValue( "EXRAX", ra, "Spectral position" );
+                    header.addValue( "EXDECX", dec, "Spectral position" );
+                }
+                catch (Exception e) {
+                    logger.info( "Failed to get spectral position ( " +
+                                 e.getMessage() + " )" );
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 
     /**
      * Set/reset the current range of the data.

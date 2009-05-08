@@ -8,6 +8,10 @@
    protocol is now deprecated. See the main documentation for more about
    these changes.
 
+   When opening NDF spectra with redundant axes the position of the 
+   redundant axes may be reported in the synopsis. This will typically
+   be the position on the sky that the spectrum occupied.
+
    3.8-9
    =====
 
