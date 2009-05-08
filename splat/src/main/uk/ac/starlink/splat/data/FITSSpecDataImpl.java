@@ -198,16 +198,19 @@ public class FITSSpecDataImpl
     public Header getFitsHeaders()
     {
         if ( clonedHeader == null ) {
-            if ( hdurefs != null ) {
-                if ( hdurefs[hdunum] != null ) {
-                    return hdurefs[hdunum].getHeader();
+            if ( header == null ) {
+                if ( hdurefs != null ) {
+                    if ( hdurefs[hdunum] != null ) {
+                        header = hdurefs[hdunum].getHeader();
+                    }
                 }
             }
-            return null;
+            if ( header == null ) {
+                header = new Header();
+            }
+            return header;
         }
-        else {
-            return clonedHeader;
-        }
+        return clonedHeader;
     }
 
 //
@@ -245,6 +248,11 @@ public class FITSSpecDataImpl
      * Reference to cloned data errors.
      */
     protected double[] errors = null;
+
+    /**
+     * Reference to the header cards.
+     */
+    protected Header header = null;
 
     /**
      * Reference to cloned header cards.
