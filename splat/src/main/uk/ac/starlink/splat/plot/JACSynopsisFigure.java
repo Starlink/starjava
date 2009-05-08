@@ -327,12 +327,17 @@ public class JACSynopsisFigure
 
         if ( specAxis instanceof SpecFrame ) {
 
+            //  If no extraction position is available keep the other
+            //  reports suppressed as people find that confusing.
+            boolean havepos = false;
+
             //  Extraction position.
             prop = specData.getProperty( "EXRAX" );
             if ( ! "".equals( prop ) ) {
                 b.append( "Spec position: " +
                           prop + ", " +
                           specData.getProperty( "EXDECX" ) + "\n" );
+                havepos = true;
             }
 
             //  RA and Dec of image centre are ideally from GAIA.
@@ -352,6 +357,7 @@ public class JACSynopsisFigure
                               specData.getProperty( "EXRDECOF" ) +
                               " (arcsec)\n" );
                 }
+                havepos = true;
             }
             else {
                 //  Try for image centre.
@@ -369,6 +375,7 @@ public class JACSynopsisFigure
                                   specData.getProperty( "EXDECOF" ) +
                                   " (arcsec)\n" );
                     }
+                    havepos = true;
                 }
                 else {
                     //  No image centre, may have an offset anyway (from
@@ -386,7 +393,7 @@ public class JACSynopsisFigure
             //  Report SpecFrame reference position. This should be
             //  also for the source in general. The actual use is for doppler
             //  corrections.
-            if ( specAxis.test( "RefRA" ) ) {
+            if ( havepos && specAxis.test( "RefRA" ) ) {
                 b.append( "Doppler RA, Dec: " + specAxis.getC( "RefRA" ) );
                 b.append( ", " + specAxis.getC( "RefDec" ) + "\n" );
             }
