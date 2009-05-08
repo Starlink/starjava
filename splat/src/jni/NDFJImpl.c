@@ -551,6 +551,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstA
  *  Notes:
  *     If available the NDF WCS component is used, otherwise an
  *     attempt to create a FrameSet from the FITS headers is performed.
+ *     The pointer should only be used in the current thread.
  *
  *  Params:
  *     jindf = NDF identifier
@@ -604,7 +605,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
         }
     }
 
- /*  Clear NDF status, if needed and release the error stack */
+    /*  Clear NDF status, if needed and release the error stack */
     if ( status != SAI__OK ) {
         if ( iwcs != NULL ) {
             astAnnul( iwcs );
@@ -622,7 +623,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
         }
     }
 
-    /* Return the data type */
+    /* Return the frameset. XXX should we astUnlock this? */
     *(AstFrameSet **) &jwcs = iwcs ;
     return jwcs;
 }
@@ -729,7 +730,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
     /*  Import the NDF identifier */
     indf = (int) jindf;
 
-    /*  Import the AST FrameSet */
+    /*  Import the AST FrameSet. XXX should we astLock this? */
     iwcs = *(AstFrameSet **) &jwcs ;
 
     /*  Establish local status and stop NDF from issuing errors */
@@ -750,7 +751,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
     /*  Clear NDF status, if needed and release the error stack */
     if ( status != SAI__OK ) {
         if ( iwcs != NULL ) {
-            astAnnul( iwcs );
+            iwcs = astAnnul( iwcs );
         }
         errFlush( &status );
         errAnnul( &status );
@@ -939,6 +940,10 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetTemp
  *   Params:
  *      ident identifier of the NDF to be copied.
  *      place placeholder for the new NDF.
+ *
+ *   Notes:
+ *      Do not access the WCS component from other threads. It is
+ *      not unlockable.
  *
  *   Return:
  *      NDF idenitifer.
