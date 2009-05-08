@@ -205,23 +205,24 @@ public class NDFSpecDataImpl
      */
     public Header getFitsHeaders()
     {
-        int size = theNDF.countFitsHeaders();
-        if ( size > 0 ) {
-            Header headers = new Header();
-            Cursor iter = headers.iterator();
-            HeaderCard card;
-            for ( int i = 0; i < size; i++ ) {
-                card = new HeaderCard( theNDF.getFitsHeader( i ) );
-                if ( card.isKeyValuePair() ) {
-                    iter.add( card.getKey(), card );
-                }
-                else {
-                    iter.add( card );
+        if ( header == null ) {
+            header = new Header();
+            int size = theNDF.countFitsHeaders();
+            if ( size > 0 ) {
+                Cursor iter = header.iterator();
+                HeaderCard card;
+                for ( int i = 0; i < size; i++ ) {
+                    card = new HeaderCard( theNDF.getFitsHeader( i ) );
+                    if ( card.isKeyValuePair() ) {
+                        iter.add( card.getKey(), card );
+                    }
+                    else {
+                        iter.add( card );
+                    }
                 }
             }
-            return headers;
         }
-        return null;
+        return header;
     }
 
 //
@@ -236,6 +237,11 @@ public class NDFSpecDataImpl
      * Original specification of NDF.
      */
     protected String fullName;
+
+    /**
+     * Reference to the FITS headers.
+     */
+    protected Header header = null;
 
     /**
      * Finalise object. Free any resources associated with member
@@ -285,32 +291,48 @@ public class NDFSpecDataImpl
      * otherwise a new NDF is created.
      */
     protected void createTempClone( SpecData source )
+        throws SplatException
     {
-        //  Create the NDF. Use a copy if source is an NDF.
-        if ( source.getDataFormat().equals( "NDF" ) ) {
-            theNDF = ((NDFSpecDataImpl)source.getSpecDataImpl()).getTempCopy();
-        }
-        else {
-            //  Look for a backing source that may be an NDF sometime
-            //  back (only really works for EditableSpecData).
-            SpecDataImpl parent = null;
+        //  For multi-dimensional sources we just create a new NDF, this
+        //  avoids problems with matching the WCS and data components.
+        if ( source.getSpecDataImpl().getDims().length == 1 ) {
 
-            // Search all parents of parents etc., until we get an
-            // NDF. Protect against circular loops by limiting look-back.
-            parent = source.getSpecDataImpl().getParentImpl();
-            if ( parent != null && ! ( parent instanceof NDFSpecDataImpl ) ) {
-                for ( int i = 0; i < 1000; i++ ) {
-                    parent = parent.getParentImpl();
-                    if ( parent == null ) break;
-                    if ( parent instanceof NDFSpecDataImpl ) break;
-                }
-            }
-            if ( parent != null && ! ( parent instanceof NDFSpecDataImpl ) ) {
-                theNDF = ((NDFSpecDataImpl)parent).getTempCopy();
+            //  Create the NDF. Use a copy if source is an NDF.
+            if ( source.getDataFormat().equals( "NDF" ) ) {
+                theNDF = ((NDFSpecDataImpl)
+                          source.getSpecDataImpl()).getTempCopy();
             }
             else {
-                theNDF = NDFJ.get1DTempDouble( source.size() );
+                //  Look for a backing source that may be an NDF sometime
+                //  back (only really works for EditableSpecData).
+                SpecDataImpl parent = null;
+                
+                // Search all parents of parents etc., until we get an
+                // NDF. Protect against circular loops by limiting look-back.
+                parent = source.getSpecDataImpl().getParentImpl();
+                if ( parent != null && !(parent instanceof NDFSpecDataImpl) ) {
+                    for ( int i = 0; i < 1000; i++ ) {
+                        parent = parent.getParentImpl();
+                        if ( parent == null ) break;
+                        if ( parent instanceof NDFSpecDataImpl ) break;
+                    }
+                }
+                if ( parent != null && !(parent instanceof NDFSpecDataImpl) ) {
+                    theNDF = ((NDFSpecDataImpl)parent).getTempCopy();
+                }
+                else {
+                    theNDF = NDFJ.get1DTempDouble( source.size() );
+                }
             }
+        }
+        else {
+            //  Simple 1D NDF.
+            theNDF = NDFJ.get1DTempDouble( source.size() );
+        }
+
+        if ( theNDF == null ) {
+            throw new SplatException( "Failed to create a temporary copy " +
+                                      "of " + source.getShortName() );
         }
 
         //  If source offer FITS headers, then we need to copy these.
