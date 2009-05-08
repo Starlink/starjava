@@ -138,7 +138,7 @@ errInfo *getErrInfo() {
    void *info;
    info = pthread_getspecific( errInfo_key );
    if ( ! info ) {
-      info = malloc( sizeof( errInfo ) );
+      info = calloc( 1, sizeof( errInfo ) );
       pthread_setspecific( errInfo_key, info );
    }
    return (errInfo *) info;
