@@ -3,6 +3,7 @@
  * Observatory Control System, Gemini Telescopes Project.
  *
  * Copyright 2007 Particle Physics and Astronomy Research Council.
+ * Copyright 2009 Science and Technology Facilities Council.
  *
  * History:
  *    12-JAN-2007 (Peter W. Draper):
@@ -254,7 +255,6 @@ public class ProgressPanel
 
         statusPanel.interrupt();
         statusPanel.getProgressBar().stopAnimation();
-        statusPanel.setText( "" );
         statusPanel.getProgressBar().setStringPainted( false );
         statusPanel.getProgressBar().setValue( 0 );
 

@@ -29,6 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -112,6 +113,10 @@ public class SSAQueryBrowser
     extends JFrame
     implements ActionListener, MouseListener
 {
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
+
     /** UI preferences. */
     protected static Preferences prefs =
         Preferences.userNodeForPackage( SSAQueryBrowser.class );
@@ -904,6 +909,8 @@ public class SSAQueryBrowser
                                   ProgressPanel progressPanel )
         throws InterruptedException
     {
+        boolean failed = false;
+
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
         StarTableFactory factory = new StarTableFactory();
@@ -917,18 +924,24 @@ public class SSAQueryBrowser
         try {
             URL url = ssaQuery.getQueryURL();
             progressPanel.logMessage( ssaQuery.getBaseURL() );
+            logger.info( "Querying: " + url );
             starTable = factory.makeStarTable( url );
 
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
             String queryOK = null;
+            String queryDescription = null;
             try {
                 queryOK = starTable
                     .getParameterByName( "QUERY_STATUS" )
                     .getValueAsString( 100 );
+                queryDescription = starTable
+                    .getParameterByName( "QUERY_STATUS" )
+                    .getInfo().getDescription();
             }
             catch (NullPointerException ne) {
                 // Whoops, that's not good, but see what we can do.
+                queryOK = "FAILED";
             }
             if ( "OK".equalsIgnoreCase( queryOK ) ) {
                 ssaQuery.setStarTable( starTable );
@@ -937,6 +950,12 @@ public class SSAQueryBrowser
             else {
                 //  Some problem with the service, report that.
                 progressPanel.logMessage( "Query failed: " + queryOK );
+                logger.info( "Query failed: " + queryOK );
+                if ( queryDescription != null ) {
+                    progressPanel.logMessage( queryDescription );
+                    logger.info( queryDescription);
+                }
+                failed = true;
             }
 
             //  Dump query results as VOTables.
@@ -948,21 +967,26 @@ public class SSAQueryBrowser
         }
         catch (TableFormatException te) {
             progressPanel.logMessage( te.getMessage() );
-            System.out.println( te.getMessage() );
+            logger.info( ssaQuery.getDescription() + ": " + te.getMessage() );
+            failed = true;
         }
         catch (IOException ie) {
             progressPanel.logMessage( ie.getMessage() );
-            System.out.println( ie.getMessage() );
+            logger.info( ssaQuery.getDescription() + ": " + ie.getMessage() );
+            failed = true;
         }
         catch (Exception ge) {
             //  General exception.
             progressPanel.logMessage( ge.getMessage() );
-            System.out.println( ge.getMessage() );
+            logger.info( ssaQuery.getDescription() + ": " + ge.getMessage() );
+            failed = true;
         }
         if ( Thread.interrupted() ) {
             throw new InterruptedException();
         }
-        progressPanel.logMessage( "Completed download" );
+        if ( ! failed ) {
+            progressPanel.logMessage( "Completed download" );
+        }
     }
 
     /**
@@ -1013,7 +1037,7 @@ public class SSAQueryBrowser
             }
         }
         else {
-            System.out.println( "Couldn't handle: " + next );
+            logger.info( "Couldn't handle: " + next );
         }
         if ( starTable != null ) {
             table = new StarJTable( starTable, true );
