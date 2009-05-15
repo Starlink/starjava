@@ -30,7 +30,7 @@ Copyright \copyright\ 2007-2009 Science and Technology Facilities Council
 % Variable part - replace [xxx] as appropriate.
 \newcommand{\stardocnumber}    {243.38}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {23 April 2009}
+\newcommand{\stardocdate}      {15 May 2009}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.9-0}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -3393,21 +3393,30 @@ button.
 
 Using this window you can change the display of multiple spectra so that an
 offset in data value is artificially applied so that the spectra can be viewed
-stacked one above the other. It can also be useful when comparing spectra from
-different times, as the stacking order can be defined as an algrebraic
-expression that can include time and dates.
+stacked one above the other. It can also be useful when say comparing spectra
+from different times or physical state, as the stacking order can be defined
+as an algrebraic expression that can include time and dates or the actual
+offset as an expression of some other physical parameter, like period.
 
-The offset is a value in the data units of the spectra, which must all be the
-same, no flux matching is supported. The order expression should evaluate to a
-number for each spectrum, higher values having their associated spectra placed
-above lower valued ones. The values of any properties associated with the
-spectra are available for use as part of the expression, usually these are the
-values of the FITS headers and the keywords should be used. 
+In both modes the offset is a value in the data units of the spectra, which
+must all be the same, no flux matching is supported.
 
-The expressions are the same as used in the TOPCAT application, so include all
-the special functions it provides, for instance \labelitem{isoToMjd} will
-convert an ISO 8601 date into an MJD, which is suitable as a order value. As
-an example the expression \labelitem{isoToMjd(DATE\_OBS)} will convert the 
+If supplying an order expression it should evaluate to a number for each
+spectrum, higher values having their associated spectra placed above lower
+valued ones by the given offset.
+
+If supplying a offset expression it should evaluate to a physical value, so 
+scaling to appropriate values is often necessary.
+
+Note that the values of any properties associated with the spectra are
+available for use as part of the expression, usually these are the values of
+the FITS headers and the keywords should be used.
+
+The expressions are the same as used in the TOPCAT application (see SUN/253 or
+the TOPCAT builtin help), so include all the special functions it provides,
+for instance \labelitem{isoToMjd} will convert an ISO 8601 date into an MJD,
+which is suitable as a order value. As an example the expression
+\labelitem{isoToMjd(DATE\_OBS)} will convert the
 \labelitem{DATE-OBS} value into an MJD, provided the \labelitem{DATE-OBS}
 value is in ISO 8601 format. Note that the minus sign in \labelitem{DATE-OBS}
 has been changed into an underscore, that is deliberate. Any character in a
@@ -3877,6 +3886,18 @@ requests for useful features -- thanks to them all.
 desktop applications. It is still possible to use PLASTIC, but that
 protocol is now deprecated. 
 See \S\ref{interop}.
+
+When opening NDF spectra with redundant axes the position of the 
+redundant axes may be reported in the synopsis. This will typically
+be the position on the sky that the spectrum occupied.
+
+SSAP query failures are now reported in more detail.
+
+The offsets applied to spectra during display can now be derived from an 
+expression, rather than just using an order with a fixed offset. The
+way that line identifiers are handled when applying offsets is also
+changed. This should stop excessive data limits being used when most
+line identifiers are not displayed.
 
 \subsection{3.8-8}
 

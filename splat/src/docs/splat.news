@@ -12,6 +12,14 @@
    redundant axes may be reported in the synopsis. This will typically
    be the position on the sky that the spectrum occupied.
 
+   SSAP query failures are now reported in more detail.
+
+   The offsets applied to spectra during display can now be derived from an 
+   expression, rather than just using an order with a fixed offset. The
+   way that line identifiers are handled when applying offsets is also
+   changed. This should stop excessive data limits being used when most
+   line identifiers are not displayed.
+
    3.8-9
    =====
 
