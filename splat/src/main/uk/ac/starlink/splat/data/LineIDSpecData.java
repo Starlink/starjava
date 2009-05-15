@@ -104,6 +104,10 @@ public class LineIDSpecData
      */
     private FrameSet frequencyMapping = null;
 
+    /**
+     * The number of positions actually drawn in the last call to drawSpec.
+     */
+    private int drawn = 0;
 
     /* TODO: Undoable support */
 
@@ -359,6 +363,9 @@ public class LineIDSpecData
                           boolean physical, double[] fullLimits,
                           String postfix, int colour )
     {
+        //  Number of points drawn.
+        drawn = 0;
+
         //  Work out the clip limits in physical coordinates.
         if ( clipLimits != null ) {
             if ( ! physical ) {
@@ -575,6 +582,7 @@ public class LineIDSpecData
 
                 //  Don't display if clipped along X axis.
                 if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
+                    drawn++;
                     pos[1] = xypos[j+1];
                     plot.text( label, pos, upVector, "CC" );
                     if ( showVerticalMarks ) {
@@ -594,6 +602,7 @@ public class LineIDSpecData
 
                 //  Don't display if clipped along X axis.
                 if ( pos[0] >= limits[0] && pos[0] <= limits[1] ) {
+                    drawn++;
                     label = pre + labels[i] + post;
                     pos[1] = xypos[j+1];
                     plot.text( label, pos, upVector, "CC" );
@@ -644,6 +653,14 @@ public class LineIDSpecData
             return xout[0];
         }
         return -1.0;
+    }
+
+    /**
+     *  Get the number of points drawn in last call to drawSpec.
+     */
+    public int getDrawn()
+    {
+        return drawn;
     }
 
 //

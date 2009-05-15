@@ -1289,7 +1289,6 @@ public class SpecDataComp
 
         //  Also transform fullLimits into graphics coordinates.
         double[] localFullLimits = transformLimits( plot, fullLimits, false );
-
         SpecData spectrum = null;
         FrameSet mapping = null;
 

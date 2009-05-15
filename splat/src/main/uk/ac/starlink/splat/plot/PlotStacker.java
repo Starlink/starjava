@@ -7,6 +7,7 @@
  */
 package uk.ac.starlink.splat.plot;
 
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.util.Sort;
@@ -29,6 +30,10 @@ import uk.ac.starlink.splat.util.TableCalc;
  * <p>
  * The offset from an expression technique works similarily, but each spectrum
  * is assigned an offset from the evaluation of the expression.
+ * <p>
+ * LineID spectra often do not show on a display at all, so an offset is
+ * generated and not used. For this reason any LineID spectra are checked
+ * to see if they are displayed and skipped if not.
  *
  * @author Peter W. Draper
  * @version $Id:$
@@ -37,10 +42,10 @@ public class PlotStacker
 {
     private DivaPlot plot = null;
     private String expression = null;
-    private double shift = 0.1;
     private boolean ordering = true;
-    private double dmin = Double.MAX_VALUE;
     private double dmax = Double.MIN_VALUE;
+    private double dmin = Double.MAX_VALUE;
+    private double shift = 0.1;
 
     /**
      * Constructor. Define the {@link DivaPlot} we're associated with.
@@ -172,6 +177,56 @@ public class PlotStacker
     }
 
     /**
+     * Check if the given spectrum is a line identifier has any positions that
+     * are visible on the plot. Use to avoid giving an offset to spectra that
+     * will not be displayed at all.
+     */
+    private boolean lineIDSpecVisible( LineIDSpecData specData )
+    {
+        //  LineIDSpecData can be drawn in two sidebands, so
+        //  see how many positions it has actually drawn. This
+        //  should be for the other sideband (horrible hack).
+        if ( specData.getDrawn() > 0 ) {
+            return true;
+        }
+
+        //  Check normal sideband, if applicable.
+        double tmp[] = plot.getPhysicalLimits();
+        double cbox[] = new double[4];
+        cbox[0] = tmp[0];
+        cbox[1] = tmp[2];
+        cbox[2] = tmp[1];
+        cbox[3] = tmp[2];
+
+        //  These values are in the current spectrum. Transform to the
+        //  spectrum we're checking.
+        SpecDataComp spectra = plot.getSpecDataComp();
+        double bbox[] = spectra.transformCoords( specData, cbox, false );
+        if ( bbox == null ) {
+            //  Get this when spectrum is current spectrum or we're
+            //  not coordinate matching.
+            bbox = cbox;
+        }
+
+        //  Nearest points to these limits in the spectrum.
+        double p1[] = specData.nearest( bbox[0] );
+        double p2[] = specData.nearest( bbox[1] );
+
+        //  Sort limits.
+        double xMin = Math.min( bbox[0], bbox[1] );
+        double xMax = Math.max( bbox[0], bbox[1] );
+        double pMin = Math.min( p1[0], p2[0] );
+        double pMax = Math.max( p1[0], p2[0] );
+
+        //  If points are outside limits, don't offset.
+        if ( ( pMin < xMin || pMin > xMax ) &&
+             ( pMax < xMin || pMax > xMax ) ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Do an update of the offsets used by the spectra in a DivaPlot.
      *
      * This should be called sometime after the spectra displayed the
@@ -203,15 +258,32 @@ public class PlotStacker
 
                 //  Now update the offsets in the SpecData themselves.
                 double fraction = 0.0;
+                int nshift = 1;
                 for ( int i = 0; i < nspectra; i++ ) {
                     specData = spectra.get( indices[i] );
-                    specData.setYOffset( fraction );
-                    fraction += shift;
+                    if ( specData instanceof LineIDSpecData ) {
+
+                        //  Line identifiers can be skipped and only
+                        //  contribute 1 shift in total to the range.
+                        if ( lineIDSpecVisible( (LineIDSpecData)specData ) ) {
+                            specData.setYOffset( fraction );
+                            fraction += shift;
+                            nshift++;
+                        }
+                        else {
+                            specData.setYOffset( 0.0 );
+                        }
+                    }
+                    else {
+                        specData.setYOffset( fraction );
+                        fraction += shift;
+                    }
                 }
 
                 //  Min and max for ranging.
                 dmin = 0.0;
-                dmax = fraction;
+                if ( nshift > 1 ) nshift--;
+                dmax = fraction - ((double)nshift *shift);
             }
             else {
 
@@ -220,10 +292,24 @@ public class PlotStacker
                 resetMinMax();
                 for ( int i = 0; i < nspectra; i++ ) {
                     specData = spectra.get( i );
-                    value  = TableCalc.calc( specData, expression );
-                    specData.setYOffset( value );
-                    dmax = Math.max( value, dmax );
-                    dmin = Math.min( value, dmin );
+                    if ( specData instanceof LineIDSpecData ) {
+
+                        //  Line identifiers can be skipped and don't
+                        //  contribute to the range.
+                        if ( lineIDSpecVisible( (LineIDSpecData)specData ) ) {
+                            value = TableCalc.calc( specData, expression );
+                            specData.setYOffset( value );
+                        }
+                        else {
+                            specData.setYOffset( 0.0 );
+                        }
+                    }
+                    else {
+                        value = TableCalc.calc( specData, expression );
+                        specData.setYOffset( value );
+                        dmax = Math.max( value, dmax );
+                        dmin = Math.min( value, dmin );
+                    }
                 }
             }
         }
@@ -232,13 +318,27 @@ public class PlotStacker
             //  is established in that case we use the natural order.
             if ( ordering ) {
                 double fraction = 0.0;
+                int nshift = 1;
                 for ( int i = 0; i < nspectra; i++ ) {
                     specData = spectra.get( i );
-                    specData.setYOffset( fraction );
-                    fraction += shift;
+                    if ( specData instanceof LineIDSpecData ) {
+                        if ( lineIDSpecVisible( (LineIDSpecData)specData ) ) {
+                            specData.setYOffset( fraction );
+                            fraction += shift;
+                            nshift++;
+                        }
+                        else {
+                            specData.setYOffset( 0.0 );
+                        }
+                    }
+                    else {
+                        specData.setYOffset( fraction );
+                        fraction += shift;
+                    }
                 }
                 dmin = 0.0;
-                dmax = fraction;
+                if ( nshift > 1 ) nshift--;
+                dmax = fraction - ((double) nshift* shift);
             }
             else {
                 for ( int i = 0; i < nspectra; i++ ) {

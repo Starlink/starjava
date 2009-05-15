@@ -477,26 +477,24 @@ public class DivaPlot
     {
         //  Add key shift-left and shift-right bindings for fine
         //  positioning of the vertical hair.
-        Action leftAction =
-            new AbstractAction( "moveLeft" )
+        Action leftAction = new AbstractAction( "moveLeft" )
+        {
+            public void actionPerformed( ActionEvent e )
             {
-                public void actionPerformed( ActionEvent e )
-                {
-                    scrollVHair( -1 );
-                }
-            };
+                scrollVHair( -1 );
+            }
+        };
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,
                                                    KeyEvent.SHIFT_MASK ),
                            leftAction );
 
-        Action rightAction =
-            new AbstractAction( "moveRight" )
+        Action rightAction = new AbstractAction( "moveRight" )
+        {
+            public void actionPerformed( ActionEvent e )
             {
-                public void actionPerformed( ActionEvent e )
-                {
-                    scrollVHair( 1 );
-                }
-            };
+                scrollVHair( 1 );
+            }
+        };
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
                                                    KeyEvent.SHIFT_MASK ),
                            rightAction );
@@ -505,14 +503,13 @@ public class DivaPlot
         //  interactive readouts show the interpolated vertical hair
         //  coordinates (this can be true if the hair is moved by the arrow
         //  keys above).
-        Action spaceAction =
-            new AbstractAction( "showVHairCoords" )
+        Action spaceAction = new AbstractAction( "showVHairCoords" )
+        {
+            public void actionPerformed( ActionEvent e )
             {
-                public void actionPerformed( ActionEvent e )
-                {
-                    showVHairCoords();
-                }
-            };
+                showVHairCoords();
+            }
+        };
 
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 ),
                            spaceAction );
@@ -650,7 +647,6 @@ public class DivaPlot
             baseBox[1] = yMin;
             baseBox[3] = yMax;
         }
-
 
         //  Set the values that define what a unit scale in either axes means.
         if ( init ) {
@@ -1560,6 +1556,16 @@ public class DivaPlot
     public float[] getGraphicsLimits()
     {
         return graphbox;
+    }
+
+    /**
+     * Access the limits of the physical coordinates used to draw the Plot.
+     *
+     * @return physical limits (basebox of Plot)
+     */
+    public double[] getPhysicalLimits()
+    {
+        return baseBox;
     }
 
     /**
