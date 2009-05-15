@@ -270,7 +270,7 @@ public class DivaPlot
      * Stacker to control the stacking of spectra when a shift is to be
      * applied so that they can be viewed.
      */
-    protected PlotStacker stacker = new PlotStacker( this, null, 0.0 );
+    protected PlotStacker stacker = new PlotStacker( this, null, true, 0.0 );
 
     /**
      * Whether the PlotStacker facility should be used.
@@ -626,12 +626,10 @@ public class DivaPlot
         //  Set the data limits for plotting. Throws a SplatException.
         setDataLimits();
 
-        //  If stacking then we need to make room for the additional
-        //  spectra. The fractional space needed for that is
-        //  calculated now.
+        //  If stacking then we need to make room for the offsets.
         if ( usePlotStacker ) {
-            double additional = ( spectra.count() - 1 ) * stacker.getShift();
-            yMax = yMax + additional;
+            yMin = yMin + stacker.getMinLimit();
+            yMax = yMax + stacker.getMaxLimit();
         }
 
         //  Define the size of the box used to draw the spectra
@@ -960,7 +958,7 @@ public class DivaPlot
         if ( spectra.count() > 0 ) {
             if ( usePlotStacker ) {
                 try {
-                    stacker.reorder();
+                    stacker.updateOffsets();
                 }
                 catch (SplatException e) {
                     logger.info("Failed to stack spectra: " + e.getMessage());

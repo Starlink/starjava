@@ -44,11 +44,16 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  * <p>
  * Note this will only work for spectra that have the same data value units.
  * <p>
- * The order of stacking is determined by the relative value of a JEL
- * expression, for which the spectra FITS header keywords can be used
- * as values and any STILTS supported JEL functions can be applied to them.
- * A single keyword is permitted, so an expression can be very simple, but
- * can also include the conversion of dates to MJD.
+ * Stacking can be performed in two ways, by establishing an order of stacking
+ * and applying a fixed offset, or by deriving an offset.
+ *
+ * The order is determined by the relative value of a JEL expression and the
+ * the derived offset by the JEL expression.
+ *
+ * Expressions can use FITS header keywords as values and any STILTS
+ * supported JEL functions can be applied to them. A single keyword is
+ * permitted, so an expression can be very simple, but can also include the
+ * conversion of dates to MJD.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -76,7 +81,7 @@ public class PlotStackerFrame
     /**
      *  Whether to apply offsets to the spectra.
      */
-    protected JCheckBox applyOffsets = new JCheckBox();
+    protected JCheckBox applyOrderOffsets = new JCheckBox();
 
     /**
      *  The order expression.
@@ -87,6 +92,16 @@ public class PlotStackerFrame
      *  Offset value.
      */
     protected DecimalField offsetField = null;
+
+    /**
+     *  Whether to apply expression offsets to the spectra.
+     */
+    protected JCheckBox applyExpressionOffsets = new JCheckBox();
+
+    /**
+     *  The offset expression.
+     */
+    protected JTextField offsetExpression = new JTextField();
 
     /**
      * Create an instance.
@@ -130,14 +145,18 @@ public class PlotStackerFrame
             new GridBagLayouter( centre, GridBagLayouter.SCHEME4 );
         contentPane.add( centre, BorderLayout.CENTER );
 
-        //  Whether to apply the offsets.
-        applyOffsets.setToolTipText( "Toggle whether the offsets are used" );
-        layouter.add( new JLabel( "Apply offsets:" ), false );
-        layouter.add( applyOffsets, true );
-        applyOffsets.setSelected( true );
-        applyOffsets.addActionListener( new ActionListener() {
+        //  Order expression.
+        //  ================
+
+        //  Whether to apply order offsets.
+        applyOrderOffsets.setToolTipText
+            ( "Toggle whether order offsets are used" );
+        layouter.add( new JLabel( "Apply order offsets:" ), false );
+        layouter.add( applyOrderOffsets, true );
+        applyOrderOffsets.setSelected( true );
+        applyOrderOffsets.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
-                    apply();
+                    applyOrder();
                 }
             });
 
@@ -159,6 +178,30 @@ public class PlotStackerFrame
             ( "Offset between spectra, current spectrum physical units" );
         layouter.add( offsetField, true );
 
+
+        //  Offset expression.
+        //  ==================
+
+        //  Whether to apply expression offsets.
+        applyExpressionOffsets.setToolTipText
+            ( "Toggle whether expression offsets are used" );
+        layouter.add( new JLabel( "Apply expression offsets:" ), false );
+        layouter.add( applyExpressionOffsets, true );
+        applyExpressionOffsets.setSelected( false );
+        applyExpressionOffsets.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    applyExpression();
+                }
+            });
+
+        //  Expression for deciding the spectral offsets.
+        exprLabel = new JLabel( "Offset expression:" );
+        layouter.add( exprLabel, false );
+        offsetExpression.setToolTipText( "Expression that evaluates FITS " +
+                                         "keywords to give an offset " +
+                                         "in physical coordinates." );
+        layouter.add( offsetExpression, true );
+
     }
 
     /**
@@ -168,7 +211,7 @@ public class PlotStackerFrame
     {
         setTitle(Utilities.getTitle( "Display stacked spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 450, 160 ) );
+        setSize( new Dimension( 450, 220 ) );
         setVisible( true );
     }
 
@@ -219,18 +262,41 @@ public class PlotStackerFrame
     }
 
     /**
-     *  Apply the current settings.
+     *  Apply the current settings to derive order offsets.
      */
-    protected void apply()
+    protected void applyOrder()
     {
-        plot.getPlot().setUsePlotStacker( applyOffsets.isSelected() );
+        //  If this is active, then expressions are not.
+        boolean selected = applyOrderOffsets.isSelected();
+        boolean exprselected = applyExpressionOffsets.isSelected();
+        plot.getPlot().setUsePlotStacker( selected || exprselected );
         PlotStacker stacker = plot.getPlot().getPlotStacker();
-        stacker.setExpression( orderExpression.getText() );
-        stacker.setShift( offsetField.getDoubleValue() );
-
+        stacker.setOrdering( true );
+        if ( selected ) {
+            applyExpressionOffsets.setSelected( false );
+            stacker.setExpression( orderExpression.getText() );
+            stacker.setShift( offsetField.getDoubleValue() );
+        }
         plot.updatePlot();
     }
 
+    /**
+     *  Apply the current settings to derive expression offsets.
+     */
+    protected void applyExpression()
+    {
+        //  If this is active, then ordering is not.
+        boolean selected = applyExpressionOffsets.isSelected();
+        boolean orderselected = applyOrderOffsets.isSelected();
+        plot.getPlot().setUsePlotStacker( selected || orderselected );
+        PlotStacker stacker = plot.getPlot().getPlotStacker();
+        stacker.setOrdering( false );
+        if ( selected ) {
+            applyOrderOffsets.setSelected( false );
+            stacker.setExpression( offsetExpression.getText() );
+        }
+        plot.updatePlot();
+    }
 
     /**
      *  Close the window.
@@ -252,7 +318,12 @@ public class PlotStackerFrame
         }
         public void actionPerformed( ActionEvent ae )
         {
-            apply();
+            if ( applyOrderOffsets.isSelected() ) {
+                applyOrder();
+            }
+            else if ( applyExpressionOffsets.isSelected() ) {
+                applyExpression();
+            }
         }
     }
 
