@@ -192,7 +192,7 @@ public class AstTest extends TestCase {
         fchan.setDefB1950( false );
         assertTrue( ! fchan.getDefB1950() );
 
-        String[] cards = new String[] { 
+        String[] cards = new String[] {
             "SIMPLE  =                    T / Standard FITS format",
             "BITPIX  =                    8 / Character data",
             "NAXIS   =                    0 / No image, just extensions",
@@ -298,9 +298,9 @@ public class AstTest extends TestCase {
 
         sky.setLabel( 1, "RA" );
         sky.setLabel( 2, "Dec" );
-        assertEquals( "RA", sky.getLabel( 1 ) ); 
+        assertEquals( "RA", sky.getLabel( 1 ) );
         assertEquals( "Dec", sky.getLabel( 2 ) );
-     
+
     }
 
     public void testSkyRef() {
@@ -463,7 +463,7 @@ public class AstTest extends TestCase {
             new Frame( 2 )
            .intersect( new double[] { 1, 0 }, new double[] { 1, 4 },
                        new double[] { 0, 2 }, new double[] { 2, 2 } ) );
-        
+
     }
 
     public void testMapping() throws IOException {
@@ -482,7 +482,7 @@ public class AstTest extends TestCase {
         assertArrayEquals( new double[] { 20, 40, 80 }, result2[ 0 ] );
         assertArrayEquals( new double[] { 4, 8, 16 }, result2[ 1 ] );
 
-        double[] resultN = 
+        double[] resultN =
             zoomer.tranN( 3, 2, new double[] { 10, 20, 40, 2, 4, 8 }, true, 2 );
         assertArrayEquals( new double[] { 20, 40, 80, 4, 8, 16 }, resultN );
 
@@ -490,14 +490,14 @@ public class AstTest extends TestCase {
                                       3, new int[] { 2, 1, -1 },
                                       new double[] { 23 } );
 
-        double[][] resultP = 
+        double[][] resultP =
             permer.tranP( 3, 2, new double[][] { xin, yin }, true, 3 );
         assertEquals( 3, resultP.length );
         assertArrayEquals( yin, resultP[ 0 ] );
         assertArrayEquals( xin, resultP[ 1 ] );
         assertArrayEquals( new double[] { 23, 23, 23 }, resultP[ 2 ] );
-        resultP = 
-            permer.tranP( 3, 3, 
+        resultP =
+            permer.tranP( 3, 3,
                           new double[][] { xin, yin, new double[] { 0, 0, 0 } },
                           false, 2 );
         assertEquals( 2, resultP.length );
@@ -515,8 +515,8 @@ public class AstTest extends TestCase {
         skidoo.setSimpIF( true );
         MathMap skidoo2 = (MathMap) skidoo.copy();
         skidoo2.invert();
-        double[] box23 = 
-            skidoo.mapBox( new double[] { 0 }, new double[] { 100 }, 
+        double[] box23 =
+            skidoo.mapBox( new double[] { 0 }, new double[] { 100 },
                            true, 1, null, null );
         assertArrayEquals( new double[] { 23, 123 }, box23 );
 
@@ -575,13 +575,13 @@ public class AstTest extends TestCase {
         }
 
         // MatrixMap
-        assertEquals( UnitMap.class, 
+        assertEquals( UnitMap.class,
                       new MatrixMap( 10, 10 ).simplify().getClass() );
         assertEquals( UnitMap.class,
                       new MatrixMap( 4, 4, new double[] { 1, 1, 1, 1 } )
                      .simplify().getClass() );
         assertEquals( UnitMap.class,
-                      new MatrixMap( 2, 2, 
+                      new MatrixMap( 2, 2,
                                      new double[][] { new double[] { 1, 0 },
                                                       new double[] { 0, 1 }, } )
                      .simplify().getClass() );
@@ -626,7 +626,7 @@ public class AstTest extends TestCase {
                                   new ShiftMap( new double[] { 100.0, 0.0 } ),
                                   true );
         double[][] grid =
-            map.tranGrid( 2, new int[] { 2, -1 }, new int[] { 3, 1 }, 
+            map.tranGrid( 2, new int[] { 2, -1 }, new int[] { 3, 1 },
                           0.1, 10, true, 2 );
         assertArrayEquals( new double[] { 110, 115, 110, 115, 110, 115, },
                            grid[ 0 ] );
@@ -636,11 +636,11 @@ public class AstTest extends TestCase {
 
     public void testPolyMap() {
         // y = 3*x*x.
-        Mapping poly = new PolyMap( 1, 1, 
+        Mapping poly = new PolyMap( 1, 1,
                                     1, new double[] { 3.0, 1., 2. },
                                     0, null );
         double x = 29.;
-        assertEquals( 3 * x * x, 
+        assertEquals( 3 * x * x,
                       poly.tran1( 1, new double[] { x }, true )[ 0 ] );
 
         double[] lbnd = new double[] { 0 };
@@ -661,8 +661,8 @@ public class AstTest extends TestCase {
     public void testShiftMap() {
         double xoff = 23.;
         double yoff = 5.;
-        Mapping shifty = new ShiftMap( new double[] { xoff, yoff } ); 
-        double[][] out = shifty.tran2( 1, new double[ 1 ], 
+        Mapping shifty = new ShiftMap( new double[] { xoff, yoff } );
+        double[][] out = shifty.tran2( 1, new double[ 1 ],
                                           new double[ 1 ], true );
         assertEquals( xoff, out[ 0 ][ 0 ] );
         assertEquals( yoff, out[ 1 ][ 0 ] );
@@ -874,7 +874,7 @@ public class AstTest extends TestCase {
 
         // boundingBox, invisible
         plot.setInvisible( true );
-        plot.curve( new double[] { 1000., 1000. }, 
+        plot.curve( new double[] { 1000., 1000. },
                     new double[] { 2000., 2000. } );
         Rectangle2D linbox = plot.boundingBox();
         assertTrue( pan.getBounds().contains( linbox ) );
@@ -1000,12 +1000,24 @@ public class AstTest extends TestCase {
     }
 
     public void testException() {
-        AstException e1 = new AstException( "t", AstException.AST__UK1ER );
-        AstException e2 = new AstException( "t", AstException.AST__BADUN );
-        assertEquals( AstException.AST__UK1ER, e1.getStatus() ); 
+        AstException e1 = new AstException( "not an error",
+                                            AstException.AST__UK1ER );
+        AstException e2 = new AstException( "also not an error",
+                                            AstException.AST__BADUN );
+        assertEquals( AstException.AST__UK1ER, e1.getStatus() );
         assertEquals( "AST__UK1ER", e1.getStatusName() );
         assertEquals( AstException.AST__BADUN, e2.getStatus() );
         assertEquals( "AST__BADUN", e2.getStatusName() );
+        assertTrue( e1.getMessage().startsWith( "not an error" ) );
+        assertTrue( e2.getMessage().startsWith( "also not an error" ) );
+
+        AstException e3 = new AstException( "Mary had a little lamb, "+
+                                            "whoose fleece was white "+
+                                            "as snow. And every where" +
+                                            "that Mary went the lamb "+
+                                            "was sure to go.",
+                                            AstException.AST__BADUN );
+        assertTrue( e3.getMessage().contains( "sure to go." ) );
     }
 
     public static Test suite() {
@@ -1055,9 +1067,9 @@ class TestTransformer2 extends Transformer2 implements Serializable {
     public boolean simpFI() {
         return true;
     }
-    public boolean simpIF() {  
+    public boolean simpIF() {
         return true;
-    }                          
+    }
     public boolean hasInverse() {
         return ( xfactor != 0 ) && ( yfactor != 0 );
     }

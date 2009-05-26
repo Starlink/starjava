@@ -55,6 +55,25 @@ public class ThreadTest extends TestCase {
         catch ( AstException e ) {
             assertEquals( AstException.AST__BADAT, e.getStatus() );
         }
+
+        AstException e1 = new AstException( "not an error",
+                                            AstException.AST__UK1ER );
+        AstException e2 = new AstException( "also not an error",
+                                            AstException.AST__BADUN );
+        assertEquals( AstException.AST__UK1ER, e1.getStatus() );
+        assertEquals( "AST__UK1ER", e1.getStatusName() );
+        assertEquals( AstException.AST__BADUN, e2.getStatus() );
+        assertEquals( "AST__BADUN", e2.getStatusName() );
+        assertTrue( e1.getMessage().startsWith( "not an error" ) );
+        assertTrue( e2.getMessage().startsWith( "also not an error" ) );
+
+        AstException e3 = new AstException( "Mary had a little lamb, "+
+                                            "whoose fleece was white "+
+                                            "as snow. And every where" +
+                                            "that Mary went the lamb "+
+                                            "was sure to go.",
+                                            AstException.AST__BADUN );
+        assertTrue( e3.getMessage().contains( "sure to go." ) );
     }
 
     public void resample( Mapping zoomMap, double zoom, int nx, int ny ) {
