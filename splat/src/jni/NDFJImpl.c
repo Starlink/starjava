@@ -278,22 +278,22 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetType
     if ( status == SAI__OK ) {
         if ( strncmp( "_DOUBLE", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_DOUBLE;
-        } 
+        }
         else if ( strncmp( "_REAL", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_FLOAT;
-        } 
+        }
         else if ( strncmp( "_INTEGER", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_INTEGER;
-        } 
+        }
         else if ( strncmp( "_WORD", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_SHORT;
-        } 
+        }
         else if ( strncmp( "_UWORD", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_INTEGER;  /* to preserve range, no unsigned in Java */
-        } 
+        }
         else if ( strncmp( "_BYTE", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_BYTE;
-        } 
+        }
         else if ( strncmp( "_UBYTE", type, NDF__SZTYP ) == 0 ) {
             result = uk_ac_starlink_splat_imagedata_NDFJ_SHORT;    /* to preserve range, no unsigned in Java */
         }
@@ -353,10 +353,10 @@ JNIEXPORT jintArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetDims
         result = (*env)->NewIntArray( env, (jsize) ndim );
         if ( result != NULL ) {
 
-	    /* Copy NDF dimensions into jint array */
-	    for ( i = 0; i < ndim; i++ ) {
-	      jdims[i] = (jint) dims[i];
-	    }
+            /* Copy NDF dimensions into jint array */
+            for ( i = 0; i < ndim; i++ ) {
+              jdims[i] = (jint) dims[i];
+            }
 
             /*  Finally copy the data into place */
             (*env)->SetIntArrayRegion( env, result, (jsize) 0,
@@ -482,7 +482,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstA
     ndfState( indf, "WCS", &exists, &status );
     if ( exists ) {
         ndfGtwcs( indf, &iwcs, &status );
-    } 
+    }
     else {
         /*  Need to check for a WCS system in the FITS headers */
         ndfXstat( indf, "FITS", &exists, &status );
@@ -499,7 +499,7 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstA
         if ( exists && joinWCS( ndfwcs, iwcs ) ) {
             astAnnul( iwcs );
             iwcs = ndfwcs;
-        } 
+        }
         else {
             /*  no FITS, or has bad WCS, so use plain NDF coordinates */
             iwcs = ndfwcs;
@@ -551,7 +551,6 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstA
  *  Notes:
  *     If available the NDF WCS component is used, otherwise an
  *     attempt to create a FrameSet from the FITS headers is performed.
- *     The pointer should only be used in the current thread.
  *
  *  Params:
  *     jindf = NDF identifier
@@ -581,7 +580,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
     ndfState( indf, "WCS", &exists, &status );
     if ( exists ) {
         ndfGtwcs( indf, &iwcs, &status );
-    } 
+    }
     else {
         /*  Need to check for a WCS system in the FITS headers */
         ndfXstat( indf, "FITS", &exists, &status );
@@ -598,7 +597,7 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
         if ( exists && joinWCS( ndfwcs, iwcs ) ) {
             astAnnul( iwcs );
             iwcs = ndfwcs;
-        } 
+        }
         else {
             /*  no FITS, or bad WCS, so use plain NDF coordinates */
             iwcs = ndfwcs;
@@ -623,7 +622,9 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
         }
     }
 
-    /* Return the frameset. XXX should we astUnlock this? */
+    /* Return the frameset. Unlock from this thread so can be used
+     * in other threads. */
+    astUnlock( iwcs, 0 );
     *(AstFrameSet **) &jwcs = iwcs ;
     return jwcs;
 }
@@ -730,8 +731,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
     /*  Import the NDF identifier */
     indf = (int) jindf;
 
-    /*  Import the AST FrameSet. XXX should we astLock this? */
+    /*  Import the AST FrameSet. This should be unlocked so it can be used
+     *  in this thread. Note we wait for unlock... */
     iwcs = *(AstFrameSet **) &jwcs ;
+    astLock( iwcs, 1 );
 
     /*  Establish local status and stop NDF from issuing errors */
     status = SAI__OK;
@@ -745,7 +748,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
     astSet( base, "Domain=Grid" );
     astAnnul( base );
 
-    /*  Set the NDF WCS */
+    /*  Set the NDF WCS. Note that the NDF has a cached AST FrameSet
+     *  reference so this must be the same thread as used when the NDF was
+     *  opened. */
     ndfPtwcs( iwcs, indf, &status );
 
     /*  Clear NDF status, if needed and release the error stack */
@@ -783,6 +788,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nAstClose
 {
     AstFrameSet *frameset;
     frameset = *(AstFrameSet **) &iwcs;
+
+    /* Lock into this thread first. Note we wait for lock... */
+    astLock( iwcs, 1 );
     astAnnul( frameset );
 }
 
@@ -1081,13 +1089,13 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSet1DDouble
    /*  Map the requested NDF data component */
    if ( strcmp( comp, "error" ) == 0 ) {
        ndfState( indf, "variance", &state, &status );
-   } 
+   }
    else {
        ndfState( indf, comp, &state, &status );
    }
    if ( state == 1 ) {
       ndfMap( indf, comp, "_DOUBLE", "UPDATE", vpntr, &outel, &status );
-   } 
+   }
    else {
       ndfMap( indf, comp, "_DOUBLE", "WRITE/BAD", vpntr, &outel, &status );
    }
@@ -1111,7 +1119,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSet1DDouble
    /*  Release the mapped NDF component */
    if ( strcmp( comp, "error" ) == 0 ) {
        ndfUnmap( indf, "variance", &status );
-   } 
+   }
    else {
        ndfUnmap( indf, comp, &status );
 
@@ -1299,7 +1307,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nCountFitsHeader
     /*  Return the count */
     if ( fits != NULL ) {
         return (jint) fits->ncard;
-    } 
+    }
     return (jint) 0;
 }
 
@@ -1387,7 +1395,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nReleaseFitsHead
  *     jcards = array of card Strings
  *
  */
-JNIEXPORT 
+JNIEXPORT
     void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nCreateFitsExtension
     (JNIEnv *env, jclass class, jint jindf, jobjectArray jcards )
 {
@@ -1530,7 +1538,7 @@ static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
       datAnnul( &loc, status );
       *iwcs = NULL;
       return 0;
-   } 
+   }
    else {
       /* Read the FITS headers through an AstFitsChan */
       fitschan = astFitsChan( NULL, NULL, "" );
@@ -1550,7 +1558,7 @@ static int readFITSWCS( int indf, AstFrameSet **iwcs, int *status )
                 */
                astClearStatus;
             }
-         } 
+         }
          else {
             break;
          }
@@ -1599,16 +1607,16 @@ static int joinWCS( AstFrameSet *wcsone, AstFrameSet *wcstwo )
     int nframe;
     int naxes;
     int icurr;
-    
+
     /*  Note the number of frames in the first FrameSet */
     nframe = astGetI( wcsone, "nframe" );
-    
+
     /*  Get the number of axis in the base frames. */
     naxes = astGetI( wcsone, "nin" );
-    
+
     /*  Create a UnitMap to join the base frames */
     unit = astUnitMap( naxes, "" );
-    
+
     /*  Add the second FrameSet into the first using the UnitMap to join
      *  them. Messing about as astAddFrame makes assumption about
      *  current Frame.
@@ -1626,7 +1634,7 @@ static int joinWCS( AstFrameSet *wcsone, AstFrameSet *wcstwo )
     if ( !astOK ) {
         astClearStatus;
         return 0;
-    } 
+    }
     else {
         return 1;
     }

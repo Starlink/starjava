@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004 Central Laboratory of the Research Councils
- * Copyright (C) 2008 Science and Technology Facilities Council
+ * Copyright (C) 2008-2009 Science and Technology Facilities Council
  *
  *  History:
  *     13-SEP-2004 (Peter W. Draper):
@@ -25,6 +25,15 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * Load a list of spectra into the {@link SplatBrowser}, or save a spectrum
  * using a thread to avoid blocking of the UI. A single instance of this class
  * exists so it is only possible to load or save one set of files at a time.
+ * <p>
+ * Since the NDF library also caches AST references (to the WCS FrameSet) a
+ * further constraint is that loading and saving must happen in the same
+ * thread (other operations that touch the cached WCS should also happen in
+ * this thread), so all spectra are dealt with using a single thread.
+ * <p>
+ * To avoid this problem it would be necessary to free the NDF cache
+ * AST reference directly. Exported AST references are unlocked so using
+ * those in other threads should be OK.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -41,7 +50,8 @@ public class SpectrumIO
      */
     private SpectrumIO()
     {
-        //  Do nothing.
+        loadThread = new Loader();
+        loadThread.start();
     }
 
     /**
@@ -74,7 +84,7 @@ public class SpectrumIO
     /**
      * The Thread that the loading or saving is actually performed in.
      */
-    private Thread loadThread = null;
+    private Loader loadThread = null;
 
     /**
      * The ProgressMonitor.
@@ -104,6 +114,11 @@ public class SpectrumIO
      * single spectra never get a ProgressMonitor).
      */
     private static final int USTEP = 200;
+
+    /**
+     * Index of saved file.
+     */
+    private final int globalIndex = 0;
 
     /**
      * Load an array of spectra whose specifications are contained in the
@@ -244,7 +259,7 @@ public class SpectrumIO
                                 display = false;
                                 queue.clear();
                             }
-                            //spectraLoadThread.interrupt();
+                            //loadThread.interrupt();
                         }
                     }
                 });
@@ -254,27 +269,11 @@ public class SpectrumIO
             browser.setWaitCursor();
             waitTimer.start();
 
-            //  Now create the thread that reads the spectra.
-            loadThread = new Thread( "Spectra loader" ) {
-                    public void run() {
-                        try {
-                            addSpectra();
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        finally {
-                            //  Always tidy up and rewaken interface when
-                            //  complete (including if an error is thrown).
-                            browser.resetWaitCursor();
-                            waitTimer.stop();
-                            closeProgressMonitor();
-                        }
-                    }
-                };
+            //  Set up thread to read the spectra.
+            loadThread.setAdd( true );
 
             //  Start loading spectra.
-            loadThread.start();
+            loadThread.run();
         }
     }
 
@@ -352,13 +351,9 @@ public class SpectrumIO
      */
     public void save( SplatBrowser browser, int globalIndex, String target )
     {
-        final int localGlobalIndex = globalIndex;
-        final String localTarget = target;
-        final SplatBrowser localBrowser = browser;
-
         //  Monitor progress by checking the filesDone variable.
         initProgressMonitor( 1, "Saving spectrum..." );
-        progressMonitor.setNote( "as " + localTarget );
+        progressMonitor.setNote( "as " + target );
         waitTimer = new Timer ( 2000, new ActionListener()
             {
                 int soFar = 0;
@@ -371,29 +366,12 @@ public class SpectrumIO
         browser.setWaitCursor();
         waitTimer.start();
 
-        //  Now create the thread that saves the spectrum.
-        Thread saveThread = new Thread( "Spectrum saver" ) {
-                public void run() {
-                    try {
-                        localBrowser.saveSpectrum( localGlobalIndex,
-                                                   localTarget );
-                    }
-                    catch (Exception e) {
-                        ErrorDialog.showError( localBrowser,
-                                               "Failed to save spectrum: " + 
-                                               e.getMessage(), e );
-                    }
-                    finally {
-                        //  Always tidy up and rewaken interface when
-                        //  complete (including if an error is thrown).
-                        localBrowser.resetWaitCursor();
-                        waitTimer.stop();
-                        closeProgressMonitor();
-                    }
-                }
-            };
+        //  Set up thread to save the spectrum.
+        loadThread.setAdd( false );
+        loadThread.setSave( globalIndex, target );
+
         //  Start saving spectrum.
-        saveThread.start();
+        loadThread.run();
     }
 
     /**
@@ -481,8 +459,8 @@ public class SpectrumIO
         }
 
         public Props( String spectrum, int type, String shortName,
-                      String dataUnits, String coordUnits, 
-                      String dataColumn, String coordColumn, 
+                      String dataUnits, String coordUnits,
+                      String dataColumn, String coordColumn,
                       String errorColumn )
         {
             this.spectrum = spectrum;
@@ -578,7 +556,7 @@ public class SpectrumIO
         //  Create a copy of this object.
         public Props copy()
         {
-            return new Props( spectrum, type, shortName, dataUnits, coordUnits, 
+            return new Props( spectrum, type, shortName, dataUnits, coordUnits,
                               dataColumn, coordColumn, errorColumn );
         }
 
@@ -648,6 +626,75 @@ public class SpectrumIO
                 }
                 catch (Exception e) {
                     e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    // Inner class for loading and saving Spectra.
+    // Extend with other operations if needed.
+    //
+    private class Loader
+        extends Thread
+    {
+        private boolean addAction = true;
+        private int globalIndex = 0;
+        private String target = null;
+
+        public Loader()
+        {
+            super( "Spectra loader" );
+        }
+
+        //  Add to browser or save to disk.
+        public void setAdd( boolean action )
+        {
+            addAction = action;
+        }
+
+        //  If saving necessary parameters.
+        public void setSave( int globalIndex, String target )
+        {
+            this.globalIndex = globalIndex;
+            this.target = target;
+        }
+
+        public void run()
+        {
+            if ( browser == null ) return;
+
+            if ( addAction ) {
+                try {
+                    //  Of parent.
+                    addSpectra();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                finally {
+                    //  Always tidy up and rewaken interface when
+                    //  complete (including if an error is thrown).
+                    browser.resetWaitCursor();
+                    waitTimer.stop();
+                    closeProgressMonitor();
+                }
+            }
+            else {
+                try {
+                    browser.saveSpectrum( globalIndex, target );
+                }
+                catch (Exception e) {
+                    ErrorDialog.showError( browser,
+                                           "Failed to save spectrum: " +
+                                           e.getMessage(), e );
+                }
+                finally {
+                    //  Always tidy up and rewaken interface when
+                    //  complete (including if an error is thrown).
+                    browser.resetWaitCursor();
+                    waitTimer.stop();
+                    closeProgressMonitor();
                 }
             }
         }
