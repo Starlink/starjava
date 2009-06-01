@@ -289,11 +289,10 @@ public class SpectrumIO
 
     /**
      * Load all the currently queued spectra into the global list of spectra
-     * and inform the associated SplatBrowser to display.
-     * given attempt to open the files using the type provided by the
-     * user (in the open file dialog).
+     * and inform the associated SplatBrowser to display. Note synchronized
+     * as the thread is permanently running.
      */
-    protected void addSpectra()
+    protected synchronized void addSpectra()
     {
         if ( queue.isEmpty() ) return;
 
