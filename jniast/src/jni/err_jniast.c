@@ -15,9 +15,9 @@
 *     It simply concatenates any messages registered by this routine
 *     and provides functions by which the error can be retrieved.
 *
-*     Note that this, like the error-handling mechanism of the AST C 
+*     Note that this, like the error-handling mechanism of the AST C
 *     library itself, assumes that only one thread is executing AST
-*     code at any one time.  Care should therefore be taken with 
+*     code at any one time.  Care should therefore be taken with
 *     synchronisation of the methods which call astPutErr.
 
 *  Authors:
@@ -31,7 +31,12 @@
 
 /* Header files. */
 #include "err_jniast.h"
+#include "jniast.h"
+#if HAVE_PTHREADS
 #include <pthread.h>
+#else
+#include "bdpthread.h"
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include "jni.h"
@@ -176,7 +181,7 @@ const char *jniastGetErrMsg() {
 
 *  Description:
 *     This routine returns a pointer to a string giving a concatenation
-*     of all error messages logged by AST since the last call to 
+*     of all error messages logged by AST since the last call to
 *     jniastClearErrMsg().
 
 *  Return value:

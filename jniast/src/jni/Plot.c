@@ -20,11 +20,15 @@
 
 /* Header files. */
 #include <stdlib.h>
-#include <pthread.h>
 #include "jni.h"
 #include "ast.h"
 #include "grf.h"
 #include "jniast.h"
+#if HAVE_PTHREADS
+#include <pthread.h>
+#else
+#include "bdpthread.h"
+#endif
 #include "uk_ac_starlink_ast_Plot.h"
 
 
@@ -53,21 +57,27 @@ static void initializeIDs( JNIEnv *env );
 /* This macro loads a thread-specific structure with the current Grf
  * object for this plot so that AST Grf callbacks can access it.
  * Like (TH)ASTCALL, it cannot be used in a re-entrant fashion. */
-#define THPLOTCALL( ast_objs, code ) \
-   { \
-      jobject _plotcall_grf; \
-      if ( ( _plotcall_grf = jniastCheckNotNull( env, \
-              (*env)->GetObjectField( env, this, PlotGrfFieldID ) ) ) ) { \
-         jniastPthreadSetSpecific( env, grf_key, _plotcall_grf ); \
-         THASTCALL( ast_objs, \
-            code \
-         ) \
-         jniastPthreadSetSpecific( env, grf_key, NULL ); \
-      } \
-   }
+#define THPLOTCALL( ast_objs, code )                                    \
+{                                                                       \
+    jobject _plotcall_grf;                                              \
+    if ( ( _plotcall_grf = jniastCheckNotNull( env,                     \
+            (*env)->GetObjectField( env, this, PlotGrfFieldID ) ) ) ) { \
+        if ( JNIAST_THREADS ||                                          \
+             (*env)->MonitorEnter( env, GrfLock ) == 0 ) {              \
+            jniastPthreadSetSpecific( env, grf_key, _plotcall_grf );    \
+            THASTCALL( ast_objs,                                        \
+                       code                                             \
+                       )                                                \
+                jniastPthreadSetSpecific( env, grf_key, NULL );         \
+        }                                                               \
+        if ( ! JNIAST_THREADS ) {                                       \
+            (*env)->MonitorExit( env, GrfLock );                        \
+        }                                                               \
+    }                                                                   \
+}
 
 /* This macro returns the value of the Grf object currently being used by
- * this thread, and hence by the Plot object being used in this thread 
+ * this thread, and hence by the Plot object being used in this thread
  * (as set up by the THPLOTCALL macro). */
 #define current_grf() ( (jobject) pthread_getspecific( grf_key ) );
 
@@ -94,14 +104,14 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
    initializeIDs( env );
 
    if ( jniastCheckNotNull( env, frame ) &&
-        jniastCheckArrayLength( env, jGraphbox, 4 ) && 
+        jniastCheckArrayLength( env, jGraphbox, 4 ) &&
         jniastCheckArrayLength( env, jBasebox, 4 ) ) {
-      
+
       /* Get C data from java data. */
       frmpointer = jniastGetPointerField( env, frame );
       graphbox = (const float *)
                  (*env)->GetFloatArrayElements( env, jGraphbox, NULL );
-      basebox = (const double *) 
+      basebox = (const double *)
                 (*env)->GetDoubleArrayElements( env, jBasebox, NULL );
 
       /* Call the AST Plot constructor function. */
@@ -112,12 +122,12 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
       /* Release resources. */
       ALWAYS(
          if ( graphbox ) {
-            (*env)->ReleaseFloatArrayElements( env, jGraphbox, 
+            (*env)->ReleaseFloatArrayElements( env, jGraphbox,
                                                (jfloat *) graphbox,
                                                JNI_ABORT );
          }
          if ( basebox ) {
-            (*env)->ReleaseDoubleArrayElements( env, jBasebox, 
+            (*env)->ReleaseDoubleArrayElements( env, jBasebox,
                                                 (jdouble *) basebox,
                                                 JNI_ABORT );
          }
@@ -163,7 +173,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Plot_boundingBox(
        y = lbnd[ 1 ];
        w = ubnd[ 0 ] - lbnd[ 0 ];
        h = ubnd[ 1 ] - lbnd[ 1 ];
-       return (jobject) (*env)->NewObject( env, Rectangle2DFloatClass, 
+       return (jobject) (*env)->NewObject( env, Rectangle2DFloatClass,
                                            Rectangle2DFloatConstructorID,
                                            x, y, w, h );
    }
@@ -195,7 +205,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
          astClip( pointer.Plot, (int) iframe, NULL, NULL );
       )
    }
-         
+
    /* Check that the arrays contain enough elements, to defend against
     * segmentation faults. */
    else {
@@ -208,11 +218,11 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
            jniastCheckArrayLength( env, jUbnd, nax ) ) {
 
          /* Get the C data from the java arrays. */
-         lbnd = (const double *) 
+         lbnd = (const double *)
                 (*env)->GetDoubleArrayElements( env, jLbnd, NULL );
-         ubnd = (const double *) 
+         ubnd = (const double *)
                 (*env)->GetDoubleArrayElements( env, jUbnd, NULL );
-   
+
          /* Call the C function to do the work. */
          THPLOTCALL( jniastList( 1, pointer.AstObject ),
             astClip( pointer.Plot, (int) iframe, lbnd, ubnd );
@@ -299,7 +309,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_gridLine(
    jdoubleArray jStart,  /* Start point of the grid line */
    jdouble length        /* Length of the grid line */
 ) {
-   AstPointer pointer = jniastGetPointerField( env, this ); 
+   AstPointer pointer = jniastGetPointerField( env, this );
    const double *start = NULL;
    int nax;
 
@@ -314,7 +324,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_gridLine(
       )
       ALWAYS(
          if ( start ) {
-            (*env)->ReleaseDoubleArrayElements( env, jStart, (jdouble *) start, 
+            (*env)->ReleaseDoubleArrayElements( env, jStart, (jdouble *) start,
                                                 JNI_ABORT );
          }
       )
@@ -350,7 +360,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_mark(
    }
 
    THPLOTCALL( jniastList( 1, pointer.AstObject ),
-      astMark( pointer.Plot, (int) nmark, (int) ncoord, (int) nmark, 
+      astMark( pointer.Plot, (int) nmark, (int) ncoord, (int) nmark,
                (const double *) in, (int) type );
    )
    free( in );
@@ -375,7 +385,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_polyCurve(
       for ( i = 0; i < ncoord; i++ ) {
          jArr = (*env)->GetObjectArrayElement( env, jIn, i );
          if ( jniastCheckArrayLength( env, jArr, npoint ) ) {
-            (*env)->GetDoubleArrayRegion( env, jArr, 0, npoint, 
+            (*env)->GetDoubleArrayRegion( env, jArr, 0, npoint,
                                           in + i * npoint );
          }
          else {
@@ -412,7 +422,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_text(
    nax = jniastGetNaxes( env, pointer.Frame );
    text = jniastGetUTF( env, jText );
    just = jniastGetUTF( env, jJust );
-   if ( text != NULL && just != NULL && 
+   if ( text != NULL && just != NULL &&
         jniastCheckArrayLength( env, jUp, 2 ) &&
         jniastCheckArrayLength( env, jPos, nax ) ) {
       (*env)->GetFloatArrayRegion( env, jUp, 0, 2, (float *) up );
@@ -433,12 +443,12 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_text(
 }
 
 /*
- * The following functions are copied from their implementations in 
- * AstObject.c, except with ASTCALL replaced by PLOTCALL. 
- * This is necessary since some of the corresponding AST functions make 
+ * The following functions are copied from their implementations in
+ * AstObject.c, except with ASTCALL replaced by PLOTCALL.
+ * This is necessary since some of the corresponding AST functions make
  * calls to the grf functions, and these aren't in place unless the
  * calls are made within a PLOTCALL macro.
- */ 
+ */
 
 JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_Plot_getC(
    JNIEnv *env,          /* Interface pointer */
@@ -539,7 +549,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_set(
       )
 
       free( setbuf );
-   } 
+   }
 }
 
 JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_Plot_test(
@@ -603,7 +613,7 @@ static void initializeIDs( JNIEnv *env ) {
                                                "(I[F[FI)V" ) ) &&
       ( GrfScalesMethodID = (*env)->GetMethodID( env, GrfClass, "scales",
                                                  "()[F" ) ) &&
-      ( GrfTextMethodID = (*env)->GetMethodID( env, GrfClass, "text", 
+      ( GrfTextMethodID = (*env)->GetMethodID( env, GrfClass, "text",
                                                "(Ljava/lang/String;FF"
                                                "Ljava/lang/String;FF)V" ) ) &&
       ( GrfQchMethodID = (*env)->GetMethodID( env, GrfClass, "qch",
@@ -612,17 +622,17 @@ static void initializeIDs( JNIEnv *env ) {
                                                 "(Ljava/lang/String;FF"
                                                 "Ljava/lang/String;FF)"
                                                 "[[F" ) ) &&
-      ( Rectangle2DFloatConstructorID = 
-                            (*env)->GetMethodID( env, Rectangle2DFloatClass, 
+      ( Rectangle2DFloatConstructorID =
+                            (*env)->GetMethodID( env, Rectangle2DFloatClass,
                             "<init>", "(FFFF)V" ) ) &&
 
       /* Get Field IDs. */
-      ( PlotGrfFieldID = (*env)->GetFieldID( env, PlotClass, "grfobj", 
+      ( PlotGrfFieldID = (*env)->GetFieldID( env, PlotClass, "grfobj",
                                              "L" PACKAGE_PATH "Grf;" ) ) &&
 
       /* Initialise thread-specific to hold Grf object. */
       ( ! jniastPthreadKeyCreate( env, &grf_key, NULL ) ) &&
-   
+
       1;
    }
 }
@@ -641,7 +651,7 @@ int astGAttr( int attr, double value, double *old_value, int prim ) {
    if ( old_value != NULL ) {
       *old_value = oval;
    }
-   
+
    return ( ! (*env)->ExceptionCheck( env ) );
 }
 
@@ -660,14 +670,14 @@ int astGLine( int n, const float *x, const float *y ){
    jfloatArray jX;
    jfloatArray jY;
 
-   if ( jniastCheckSameType( env, float, jfloat ) && 
+   if ( jniastCheckSameType( env, float, jfloat ) &&
         ( jX = (*env)->NewFloatArray( env, (jsize) n ) ) &&
         ( jY = (*env)->NewFloatArray( env, (jsize) n ) ) ) {
       (*env)->SetFloatArrayRegion( env, jX, 0, (jsize) n, (jfloat *) x );
       (*env)->SetFloatArrayRegion( env, jY, 0, (jsize) n, (jfloat *) y );
       (*env)->CallVoidMethod( env, grf, GrfLineMethodID, (jint) n, jX, jY );
    }
-   
+
    return ( ! (*env)->ExceptionCheck( env ) );
 }
 
@@ -682,7 +692,7 @@ int astGMark( int n, const float *x, const float *y, int type ){
         ( jY = (*env)->NewFloatArray( env, (jsize) n ) ) ) {
       (*env)->SetFloatArrayRegion( env, jX, 0, (jsize) n, (jfloat *) x );
       (*env)->SetFloatArrayRegion( env, jY, 0, (jsize) n, (jfloat *) y );
-      (*env)->CallVoidMethod( env, grf, GrfMarkMethodID, (jint) n, jX, jY, 
+      (*env)->CallVoidMethod( env, grf, GrfMarkMethodID, (jint) n, jX, jY,
                               (jint) type );
    }
 
@@ -695,11 +705,11 @@ int astGText( const char *text, float x, float y, const char *just,
    jobject grf = current_grf();
    jstring jText;
    jstring jJust;
-   
+
    jText = (*env)->NewStringUTF( env, text );
    jJust = (*env)->NewStringUTF( env, just );
-   (*env)->CallVoidMethod( env, grf, GrfTextMethodID, jText, 
-                           (jfloat) x, (jfloat) y, jJust, 
+   (*env)->CallVoidMethod( env, grf, GrfTextMethodID, jText,
+                           (jfloat) x, (jfloat) y, jJust,
                            (jfloat) upx, (jfloat) upy );
 
    return ( ! (*env)->ExceptionCheck( env ) );
@@ -756,7 +766,7 @@ int astGCap( int cap, int value ) {
    jobject grf = current_grf();
    jint result;
 
-   result = (*env)->CallIntMethod( env, grf, GrfCapMethodID, 
+   result = (*env)->CallIntMethod( env, grf, GrfCapMethodID,
                                    (jint) cap, (jint) value );
    return (int) result;
 }

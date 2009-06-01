@@ -132,7 +132,8 @@ C_ROUTINES = \
    WcsMap.c \
    WinMap.c \
    ZoomMap.c \
-   GrfEscape.c
+   GrfEscape.c \
+   bdpthread.c
 
 
 #  List of object files produced by compiling the source code and rules

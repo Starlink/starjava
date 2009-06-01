@@ -27,10 +27,14 @@
 /* Header files. */
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include "jni.h"
 #include "ast.h"
 #include "jniast.h"
+#if HAVE_PTHREADS
+#include <pthread.h>
+#else
+#include "bdpthread.h"
+#endif
 
 
 /* Static variables. */
@@ -46,6 +50,9 @@ static jfieldID IntraMapIntraFlagFieldID;
 static jmethodID AstObjectConstructorID;
 static jmethodID IllegalArgumentExceptionConstructorID;
 static jmethodID SystemGcMethodID;
+
+/* The JavaVM for this JVM. Global reference. */
+static JavaVM *java_vm;
 
 
 /* Static functions. */
@@ -78,7 +85,10 @@ void jniastInitialize( JNIEnv *env ) {
    jclass objclass;
    jclass classclass;
 
+
    ( ! (*env)->ExceptionCheck( env ) ) &&
+
+   ( ! (*env)->GetJavaVM( env, &java_vm ) ) &&
 
    /* Get static references to classes.
     * Note that we retain a permannent global reference to each class;
@@ -164,8 +174,11 @@ void jniastInitialize( JNIEnv *env ) {
                            (*env)->GetMethodID( env, objclass, "<init>", 
                                                 "()V" ) ) ) ) &&
 
-   /* Initialize thread-specifics. */
-   ( ! jniastPthreadKeyCreate( env, &env_key, NULL ) ) &&
+   /* Construct the object used for synchronizing GRF calls. */
+   ( GrfLock = (jobject) (*env)->NewGlobalRef( env,
+        (*env)->NewObject( env, objclass,
+                           (*env)->GetMethodID( env, objclass, "<init>", 
+                                                "()V" ) ) ) ) &&
 
    /* Initialisations for other components. */
    ( ! jniastErrInit( env ) ) &&
@@ -1139,6 +1152,16 @@ static int ptrCmp( const void *p1, const void *p2 ) {
    return v1 < v2 ? -1 
                   : ( v1 > v2 ? +1
                               : 0 );
+}
+
+/**
+ *  Get the current thread environment.
+ */
+JNIEnv *jniastGetEnv()
+{
+    JNIEnv *env;
+    (*java_vm)->GetEnv( java_vm, (void **) &env, JNI_VERSION_1_2 );
+    return env;
 }
 
 /* $Id$ */
