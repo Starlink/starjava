@@ -317,6 +317,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
       /* Return number of objects written. */
       return (jint) nwrite;
    }
+   return 0;
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putCards(

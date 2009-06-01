@@ -188,6 +188,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Channel_write(
       /* Return number of items written. */
       return (jint) nwrite;
    }
+   return 0;
 }
 
 JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Channel_warnings(

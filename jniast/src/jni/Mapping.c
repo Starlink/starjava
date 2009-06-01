@@ -714,6 +714,7 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_linearApprox(
       /* According to status, return the result or null. */
       return success ? jFit : NULL;
    }
+   return NULL;
 }
 
 JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Mapping_mapSplit(
@@ -758,6 +759,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Mapping_mapSplit(
       return outMap == NULL ? NULL
                             : jniastMakeObject( env, (AstObject *) outMap );
    }
+   return NULL;
 }
 
 
