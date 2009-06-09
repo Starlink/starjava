@@ -645,6 +645,7 @@ the end of the transition name - it makes the display nicer.
     <transition name="6 5  - 5 4 " frequency="251825.77"/>
     <transition name="9 8  - 8 8 " frequency="254573.5004"/>
     <transition name="6 6  - 5 5 " frequency="258255.813"/>
+    <transition name="6 7  - 5 6 " frequency="261843.7120"/>
     <transition name="4 3  - 3 4 " frequency="267197.8968"/>
     <transition name="1 1  - 0 1 " frequency="286340.207"/>
     <transition name="5 4  - 4 5 " frequency="294768.5694"/>
@@ -1139,13 +1140,22 @@ the end of the transition name - it makes the display nicer.
   <species name = "N2D+">
     <transition name="3  - 2 " frequency="231321.6650"/>
   </species>
-  
   <species name = "SO2">
+	  <transition name="18 117  - 18 018 " frequency="240942.7918"/>
+	  <transition name="4 4 0  - 5 3 3 " frequency="262333.9658"/>
 	  <transition name="15 4 12  - 15 3 13 " frequency="357241.1900"/>
 	  <transition name="11 4 8  - 11 3 9 " frequency="357387.5700"/>
 	  <transition name="8 4 4  - 8 3 5 " frequency="357581.4483"/>
 	  <transition name="9 4 6  - 9 3 7 " frequency="357671.7800"/>
 	  <transition name="7 4 4  - 7 3 5 " frequency="357892.4420"/>
 	  <transition name="6 4 2  - 6 3 3 " frequency="357925.9600"/>
+  </species>
+  <species name = "OI">
+          <transition name="3P1  - 3P2 " frequency="4744774.907"/>
+  </species>
+  <species name = "c-HCOOH">
+          <transition name="2_13  - 2_12 " frequency="336739.8500"/>
+          <transition name="1_14  - 1_13 " frequency="336773.8300"/>
+          <transition name="1_16  - 1_15 " frequency="337597.9400"/>
   </species>
 </LineCatalog>
