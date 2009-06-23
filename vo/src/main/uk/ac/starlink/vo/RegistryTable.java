@@ -36,10 +36,19 @@ public class RegistryTable extends JTable {
     };
   
     /**
-     * Constructs a new table.
+     * Constructs a new table with a default table model.
      */
     public RegistryTable() {
-        tModel_ = new ResourceTableModel();
+        this( new ResourceTableModel() );
+    }
+
+    /**
+     * Constructs a new table with a supplied table model.
+     *
+     * @param  tModel  table model for display of registry resources
+     */
+    public RegistryTable( ResourceTableModel tModel ) {
+        tModel_ = tModel;
         setModel( tModel_ );
 
         /* Set the TableColumnModel to one which allows for columns to
