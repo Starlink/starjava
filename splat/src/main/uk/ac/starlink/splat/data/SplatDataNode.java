@@ -20,12 +20,14 @@ import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.DataObjectException;
 import uk.ac.starlink.datanode.nodes.DataType;
 import uk.ac.starlink.datanode.nodes.FITSFileDataNode;
+import uk.ac.starlink.datanode.nodes.FITSStreamDataNode;
 import uk.ac.starlink.datanode.nodes.FileDataNode;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.datanode.nodes.PlainDataNode;
 import uk.ac.starlink.datanode.nodes.VOTableDataNode;
 import uk.ac.starlink.datanode.nodes.VOTableTableDataNode;
 import uk.ac.starlink.datanode.nodes.XMLDataNode;
+import uk.ac.starlink.datanode.nodes.ZipFileDataNode;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -69,6 +71,7 @@ public class SplatDataNode
      */
     public static boolean isChoosable( DataNode node )
     {
+
         // SPLAT TEXT files (including line identifiers, which are not
         // distinguished), are assumed to be PlainDataNodes. Real test is
         // success or failure to read.
@@ -92,10 +95,22 @@ public class SplatDataNode
             return true;
         }
 
+        // FITS streams. As above bt usually from a compressed source,
+        // so must be a table.
+        if ( node instanceof FITSStreamDataNode ) {
+            return true;
+        }
+
         // Array-based data that can be wrapped as NDXs.
         if ( node.hasDataObject( DataType.NDX ) ) {
             return true;
         }
+
+        // Zipped files. Just try these as tables.
+        if ( node instanceof ZipFileDataNode ) {
+            return true;
+        }
+
         return false;
     }
 
@@ -142,6 +157,26 @@ public class SplatDataNode
                 }
             }
 
+            // FITS stream from a file.
+            if ( node instanceof FITSStreamDataNode ) {
+                // Look for object that created this node. We're after the
+                // file name, as the node path may be symbolic or rooted
+                // differently.
+                CreationState creator = node.getCreator();
+                Object obj = creator.getObject();
+                File file = null;
+                if ( obj instanceof FileDataSource ) {
+                    file = ((FileDataSource) obj).getFile();
+                }
+                else if ( obj instanceof File ) {
+                    file = (File) obj;
+                }
+                if ( file != null ) {
+                    return specFactory.get( file.getPath(),
+                                            SpecDataFactory.TABLE );
+                }
+            }
+
             // NDX.
             if ( node.hasDataObject( DataType.NDX ) ) {
                 return makeSpecDataFromNdx( node );
@@ -163,6 +198,11 @@ public class SplatDataNode
                                             SpecDataFactory.TEXT );
                 }
             }
+
+            // Zipped file. Only supported as tables, so try that.
+            if ( node instanceof ZipFileDataNode ) {
+                return makeSpecDataFromTable( node );
+            }
         }
         else {
             throw new IllegalArgumentException
@@ -172,10 +212,10 @@ public class SplatDataNode
     }
 
     /**
-     * Make a {@link SpecData} object from a {@link DataNode} that contains 
+     * Make a {@link SpecData} object from a {@link DataNode} that contains
      * a {@link StarTable}.
      *
-     * @param node a {@link DataNode} that is guaranteed to contain a 
+     * @param node a {@link DataNode} that is guaranteed to contain a
      *             {@link StarTable}.
      */
     protected static SpecData makeSpecDataFromTable( DataNode node )
@@ -203,7 +243,7 @@ public class SplatDataNode
     }
 
     /**
-     * Make a {@link SpecData} object from a {@link DataNode} that contains 
+     * Make a {@link SpecData} object from a {@link DataNode} that contains
      * a {@link VOTableDataNode} or {@link VOTableTableDataNode}.
      *
      * @param node a {@link DataNode}
@@ -215,7 +255,7 @@ public class SplatDataNode
         StarTable starTable = null;
 
         try {
-            DataSource datsrc = 
+            DataSource datsrc =
                 (DataSource) node.getDataObject( DataType.DATA_SOURCE );
             starTable = new VOTableBuilder().makeStarTable( datsrc, true,
                                                             storagePolicy );
