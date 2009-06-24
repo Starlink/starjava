@@ -20,6 +20,13 @@
    changed. This should stop excessive data limits being used when most
    line identifiers are not displayed.
 
+   A bug parsing the names of remotely downloaded spectra has been fixed.
+   This should make guessing the file types more robust and support 
+   compressed sources.
+
+   SSAP servers that do not return any results will now not be shown in the
+   server response table.
+
    3.8-9
    =====
 
