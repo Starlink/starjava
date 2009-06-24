@@ -45,6 +45,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.vo.MetaColumnModel;
 import uk.ac.starlink.vo.RegistryTable;
+import uk.ac.starlink.vo.ResourceTableModel;
 import uk.ac.starlink.vo.RegResource;
 
 import net.ivoa.registry.search.VOResource;
@@ -149,7 +150,7 @@ public class SSAServerFrame
 
         //  RegistryTable of servers goes into a scrollpane in the center of
         //  window (along with a set of buttons, see initUI).
-        registryTable = new RegistryTable();
+        registryTable = new RegistryTable( new ResourceTableModel( true ) );
         JScrollPane scroller = new JScrollPane( registryTable );
 
         centrePanel.setLayout( new BorderLayout() );
