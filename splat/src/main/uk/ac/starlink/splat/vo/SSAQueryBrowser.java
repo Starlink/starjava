@@ -1040,16 +1040,19 @@ public class SSAQueryBrowser
             logger.info( "Couldn't handle: " + next );
         }
         if ( starTable != null ) {
-            table = new StarJTable( starTable, true );
-            scrollPane = new JScrollPane( table );
-            resultsPane.addTab( shortName, scrollPane );
-            starJTables.add( table );
+            //  Check if table has rows, if not skip.
+            if ( starTable.getRowCount() > 0 ) {
+                table = new StarJTable( starTable, true );
+                scrollPane = new JScrollPane( table );
+                resultsPane.addTab( shortName, scrollPane );
+                starJTables.add( table );
 
-            //  Set widths of columns.
-            table.configureColumnWidths( 200, 5 );
+                //  Set widths of columns.
+                table.configureColumnWidths( 200, 5 );
 
-            //  Double click on row means load just that spectrum.
-            table.addMouseListener( this );
+                //  Double click on row means load just that spectrum.
+                table.addMouseListener( this );
+            }
         }
     }
 
