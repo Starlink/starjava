@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
@@ -254,8 +255,8 @@ public class SpecDataFactory
                 }
                     break;
                 case HDX: {
-                    //  HDX should download remote files as it needs to keep the
-                    //  basename to locate other references.
+                    //  HDX should download remote files as it needs to keep
+                    //  the basename to locate other references.
                     if ( namer.isRemote() ) {
                         impl = new NDXSpecDataImpl( namer.getURL() );
                     }
@@ -285,7 +286,7 @@ public class SpecDataFactory
         }
 
         //  Only get here for guessed spectra.
-        return makeGuessedSpecData( specspec );
+        return makeGuessedSpecData( specspec, namer.getURL() );
     }
 
     /**
@@ -944,7 +945,7 @@ public class SpecDataFactory
 
             //  And read it into a local file. Use the existing file extension
             //  if available and we're not guessing the type.
-            namer = new PathParser( url.getPath() );
+            namer = new PathParser( url.toString() );
 
             //  Create a temporary file. Use a file extension based on the
             //  type, if known.
@@ -1345,7 +1346,7 @@ public class SpecDataFactory
     //
     //  DataNode guessing.
     //
-    public SpecData makeGuessedSpecData( String specspec )
+    public SpecData makeGuessedSpecData( String specspec, URL url )
         throws SplatException
     {
         SpecData specData = null;
@@ -1358,6 +1359,9 @@ public class SpecDataFactory
             DataNode node =
                 dataNodeFactory.makeDataNode( null, new File( specspec ) );
             specData = SplatDataNode.makeSpecData( node );
+            if ( specData != null ) {
+                specData.setShortName( url.toString() );
+            }
         }
         catch (Exception e) {
             throw new SplatException( e );
