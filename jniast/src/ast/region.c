@@ -47,7 +47,13 @@ f     AST_TRAN<X> routines
 *     is not a true inverse of the forward transformation, since applying
 *     the forward transformation to a point outside the Region, and then
 *     applying the inverse transformation results, in a set of AST__BAD axis
-*     values rather than the original axis values.
+*     values rather than the original axis values. If required, the 
+c     astRemoveRegions 
+f     AST_REMOVEREGIONS 
+*     function can be used to remove the "masking" effect of any Regions
+*     contained within a compound Mapping or FrameSet. It does this by 
+*     replacing each Region with a UnitMap or equivalent Frame (depending
+*     on the context in which the Region is used).
 *
 *     If the coordinate system represented by the Region is changed (by
 *     changing the values of one or more of the attribute which the Region
@@ -105,6 +111,8 @@ c     - astGetRegionBounds: Get the bounds of a Region
 f     - AST_GETREGIONBOUNDS: Get the bounds of a Region 
 c     - astGetRegionFrame: Get a copy of the Frame represent by a Region
 f     - AST_GETREGIONFRAME: Get a copy of the Frame represent by a Region
+c     - astGetRegionPoints: Get the positions that define a Region 
+f     - AST_GETREGIONPOINTS: Get the positions that define a Region 
 c     - astGetUnc: Obtain uncertainty information from a Region
 f     - AST_GETUNC: Obtain uncertainty information from a Region
 c     - astMapRegion: Transform a Region into a new coordinate system
@@ -170,6 +178,10 @@ f     - AST_SHOWMESH: Display a mesh of points on the surface of a Region
 *        Region.
 *     18-FEB-2009 (DSB):
 *        Remove methods astGetEnclosure and astSetEnclosure.
+*     15-JUN-2009 (DSB):
+*        Modify MapRegion to use FrameSets properly.
+*     18-JUN-2009 (DSB):
+*        Override ObsAlt accessor methods.
 *class--
 
 *  Implementation Notes:
@@ -837,14 +849,15 @@ static int MaskUS( AstRegion *, AstMapping *, int, int, const int[], const int[]
 static AstAxis *GetAxis( AstFrame *, int, int * );
 static AstFrame *GetRegionFrame( AstRegion *, int * );
 static AstFrame *PickAxes( AstFrame *, int, const int[], AstMapping **, int * );
-static AstFrame *RegFrame( AstRegion *this, int * );
+static AstFrame *RegFrame( AstRegion *, int * );
 static AstFrameSet *Conv( AstFrameSet *, AstFrameSet *, int * );
 static AstFrameSet *Convert( AstFrame *, AstFrame *, const char *, int * );
 static AstFrameSet *ConvertX( AstFrame *, AstFrame *, const char *, int * );
 static AstFrameSet *FindFrame( AstFrame *, AstFrame *, const char *, int * );
 static AstFrameSet *GetRegFS( AstRegion *, int * );
 static AstLineDef *LineDef( AstFrame *, const double[2], const double[2], int * );
-static AstMapping *RegMapping( AstRegion *this, int * );
+static AstMapping *RegMapping( AstRegion *, int * );
+static AstMapping *RemoveRegions( AstMapping *, int * );
 static AstMapping *Simplify( AstMapping *, int * );
 static AstPointSet *BTransform( AstRegion *, AstPointSet *, int, AstPointSet *, int * );
 static AstPointSet *BndBaseMesh( AstRegion *, double *, double *, int * );
@@ -857,14 +870,14 @@ static AstPointSet *RegMesh( AstRegion *, int * );
 static AstPointSet *RegTransform( AstRegion *, AstPointSet *, int, AstPointSet *, AstFrame **, int * );
 static AstPointSet *ResolvePoints( AstFrame *, const double [], const double [], AstPointSet *, AstPointSet *, int * );
 static AstRegion *MapRegion( AstRegion *, AstMapping *, AstFrame *, int * );
-static AstRegion *RegBasePick( AstRegion *this, int, const int *, int * );
+static AstRegion *RegBasePick( AstRegion *, int, const int *, int * );
 static AstSystemType SystemCode( AstFrame *, const char *, int * );
 static AstSystemType ValidateSystem( AstFrame *, AstSystemType, const char *, int * );
 static const char *Abbrev( AstFrame *, int, const char *, const char *, const char *, int * );
 static const char *Format( AstFrame *, int, double, int * );
 static const char *SystemString( AstFrame *, AstSystemType, int * );
 static const int *GetPerm( AstFrame *, int * );
-static double *RegCentre( AstRegion *this, double *, double **, int, int, int * );
+static double *RegCentre( AstRegion *, double *, double **, int, int, int * );
 static double Angle( AstFrame *, const double[], const double[], const double[], int * );
 static double AxAngle( AstFrame *, const double[], const double[], int, int * );
 static double AxDistance( AstFrame *, int, double, double, int * );
@@ -872,7 +885,6 @@ static double AxOffset( AstFrame *, int, double, double, int * );
 static double Distance( AstFrame *, const double[], const double[], int * );
 static double Gap( AstFrame *, int, double, int *, int * );
 static double Offset2( AstFrame *, const double[2], double, double, double[2], int * );
-static int DumpUnc( AstRegion *, int * );
 static int Equal( AstObject *, AstObject *, int * );
 static int GetNaxes( AstFrame *, int * );
 static int GetObjSize( AstObject *, int * );
@@ -886,15 +898,16 @@ static int OverlapX( AstRegion *, AstRegion *, int * );
 static int RegDummyFS( AstRegion *, int * );
 static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int **, int * );
 static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
+static int RegTrace( AstRegion *, int, double *, double **, int * );
 static int Unformat( AstFrame *, int, const char *, double *, int * );
 static int ValidateAxis( AstFrame *, int, const char *, int * );
 static void CheckPerm( AstFrame *, const int *, const char *, int * );
 static void Copy( const AstObject *, AstObject *, int * );
 static void Delete( AstObject *, int * );
 static void Dump( AstObject *, AstChannel *, int * );
-static void GetRegionBounds( AstRegion *this, double *, double *, int * );
-static void GetRegionBounds2( AstRegion *this, double *, double *, int * );
-static void GetUncBounds( AstRegion *this, double *, double *, int * );
+static void GetRegionBounds( AstRegion *, double *, double *, int * );
+static void GetRegionBounds2( AstRegion *, double *, double *, int * );
+static void GetRegionPoints( AstRegion *, int, int, int *, double *, int * );
 static void Intersect( AstFrame *, const double[2], const double[2], const double[2], const double[2], double[2], int * );
 static void LineOffset( AstFrame *, AstLineDef *, double, double, double[2], int * );
 static void Negate( AstRegion *, int * );
@@ -903,17 +916,17 @@ static void NormBox( AstFrame *, double[], double[], AstMapping *, int * );
 static void Offset( AstFrame *, const double[], const double[], double, double[], int * );
 static void Overlay( AstFrame *, const int *, AstFrame *, int * );
 static void PermAxes( AstFrame *, const int[], int * );
-static void RegBaseBox( AstRegion *this, double *, double *, int * );
-static void RegBaseBox2( AstRegion *this, double *, double *, int * );
+static void RegBaseBox( AstRegion *, double *, double *, int * );
+static void RegBaseBox2( AstRegion *, double *, double *, int * );
 static void RegClearAttrib( AstRegion *, const char *, char **, int * );
-static void RegOverlay( AstRegion *, AstRegion *, int * );
+static void RegOverlay( AstRegion *, AstRegion *, int, int * );
 static void RegSetAttrib( AstRegion *, const char *, char **, int * );
 static void ReportPoints( AstMapping *, int, AstPointSet *, AstPointSet *, int * );
 static void ResetCache( AstRegion *, int * );
 static void Resolve( AstFrame *, const double [], const double [], const double [], double [], double *, double *, int * );
 static void SetAxis( AstFrame *, int, AstAxis *, int * );
 static void SetRegFS( AstRegion *, AstFrame *, int * );
-static void ShowMesh( AstRegion *this, int, const char *, int * );
+static void ShowMesh( AstRegion *, int, const char *, int * );
 static void ValidateAxisSelection( AstFrame *, int, const int *, const char *, int * );
 
 static int GetBounded( AstRegion *, int * );
@@ -1008,6 +1021,11 @@ static double GetEpoch( AstFrame *, int * );
 static int TestEpoch( AstFrame *, int * );
 static void ClearEpoch( AstFrame *, int * );
 static void SetEpoch( AstFrame *, double, int * );
+
+static double GetObsAlt( AstFrame *, int * );
+static int TestObsAlt( AstFrame *, int * );
+static void ClearObsAlt( AstFrame *, int * );
+static void SetObsAlt( AstFrame *, double, int * );
 
 static double GetObsLat( AstFrame *, int * );
 static int TestObsLat( AstFrame *, int * );
@@ -1738,7 +1756,7 @@ static AstPointSet *BTransform( AstRegion *this, AstPointSet *in,
    if ( !astOK ) return NULL;
 
 /* Save the current value of the "nomap" flag for this Region,and then
-   set it. Doing this tells the RegMapping function (called by
+   set it. Doing this tells the astRegMapping function (called by
    astRegTransform) to assume a unit map connects base and current Frame. */
    old = this->nomap;
    this->nomap = 1;
@@ -2276,48 +2294,6 @@ static double Distance( AstFrame *this_frame, const double point1[],
    return result;
 }
 
-static int DumpUnc( AstRegion *this, int *status ) {
-/*
-*+
-*  Name:
-*     astDumpUnc
-
-*  Purpose:
-*     Should the uncertainty Region in a Region object be dumped?
-
-*  Type:
-*     Protected function.
-
-*  Synopsis:
-*     int astDumpUnc( AstRegion *this )
-
-*  Class Membership:
-*     Region virtual function.
-
-*  Description:
-*     This function returns a flag indicating the uncertainty Region of the
-*     supplied Region should be included when writing the Region out to a
-*     Channel via the Dump function.
-
-*  Parameters:
-*     this
-*        Pointer to the Region whose data are being written.
-
-*  Returned Value:
-*     Non-zero if the uncertainty Region should be included in the DUmp.
-*     Zero otherwise.
-
-*-
-*/
-
-/* Check the global error status. */
-   if ( !astOK ) return 0;
-
-/* Include the uncertainty Region if it is defined and is not a default
-   uncertainty Region. */
-   return ( this->unc && astTestUnc( this ) );
-}
-
 static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
 /*
 *  Name:
@@ -2469,10 +2445,15 @@ static void ClearUnc( AstRegion *this, int *status ){
 /* Check the inherited status. */
    if( !astOK ) return;
 
-/* The base Region class stores a pointer to the uncertainty Region in
-   the Region structure. */
-   if( this->unc ) this->unc = astAnnul( this->unc );
-   this->defunc = 1;
+/* Annul any user-supplied uncertainty. Also indicate that cached
+   information may now be out of date. */
+   if( this->unc ) {
+      this->unc = astAnnul( this->unc );
+      astResetCache( this );   
+   }
+
+/* Annul any default uncertainty. */
+   if( this->defunc ) this->defunc = astAnnul( this->defunc );
 
 }
 
@@ -2792,6 +2773,7 @@ static int GetObjSize( AstObject *this_object, int *status ) {
    result += astGetObjSize( this->basemesh );
    result += astGetObjSize( this->basegrid );
    result += astGetObjSize( this->unc );
+   result += astGetObjSize( this->defunc );
 
 /* If an error occurred, clear the result value. */
    if ( !astOK ) result = 0;
@@ -2850,7 +2832,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;          /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS           /* Pointer to thread-specific global data */
    AstRegion *this;              /* Pointer to the Region structure */
    const char *result;           /* Pointer value to return */
    double dval;                  /* Floating point attribute value */
@@ -3078,7 +3060,7 @@ static int GetBounded( AstRegion *this, int *status ) {
 *-
 */
 
-/* For Regions which are defined by one or more clsoed curves such as Circles, 
+/* For Regions which are defined by one or more closed curves such as Circles, 
    Boxes, etc, the Region is bounded so long as it has not been negated. 
    Classes for which this is not true should over-ride this implementation. */
    return !astGetNegated( this );
@@ -3234,6 +3216,7 @@ static AstRegion *GetDefUnc( AstRegion *this, int *status ) {
          if( ubnd[ i ] != DBL_MAX && lbnd[ i ] != -DBL_MAX ) {
             hw = fabs( 0.5E-6*(  ubnd[ i ] - lbnd[ i ] ) );
             c = 0.5*(  ubnd[ i ] + lbnd[ i ] );
+            if( hw == 0.0 ) hw = c*0.5E-6;
             ubnd[ i ] = c + hw;
             lbnd[ i ] = c - hw;
          } else {
@@ -3436,8 +3419,7 @@ f     DEF = LOGICAL (Given)
 c        a non-zero value
 f        .TRUE. 
 *        is supplied, then the default uncertainty Region used internally 
-*        within AST is returned. This will usually be a small fraction of the 
-*        bounding box of the supplied Region. If
+*        within AST is returned (see "Applicability" below). If
 c        zero is supplied, then NULL
 f        .FALSE. is supplied, then AST__NULL
 *        will be returned (without error).
@@ -3451,15 +3433,27 @@ f     AST_GETUNC = INTEGER
 *        Region.
 
 *  Applicability:
+*     CmpRegion
+*        The default uncertainty for a CmpRegion is taken from one of the
+*        two component Regions. If the first component Region has a 
+*        non-default uncertainty, then it is used as the default uncertainty 
+*        for the parent CmpRegion. Otherwise, if the second component Region 
+*        has a non-default uncertainty, then it is used as the default 
+*        uncertainty for the parent CmpRegion. If neither of the
+*        component Regions has non-default uncertainty, then the default 
+*        uncertainty for the CmpRegion is 1.0E-6 of the bounding box of 
+*        the CmpRegion.
 *     Prism
-*        If uncertainty has been associated with one, but not both, of the 
-*        component Regions within a Prism, then this function considers
-*        the Prism as a whole to have uncertainty information. In this case
-*        the returned Region will contain default uncertainties for the
-*        axes associated with the component Region which has no explicit
-*        uncertainty.
+*        The default uncertainty for a Prism is formed by combining the 
+*        uncertainties from the two component Regions. If a component 
+*        Region does not have a non-default uncertainty, then its default
+*        uncertainty will be used to form the default uncertainty of the
+*        parent Prism.
 *     Region
-*        This function applies to all Regions. 
+*        For other classes of Region, the default uncertainty is 1.0E-6
+*        of the bounding box of the Region. If the bounding box has zero 
+*        width on any axis, then the uncertainty will be 1.0E-6 of the
+*        axis value.
 
 *  Notes:
 *     - If uncertainty information is associated with a Region, and the 
@@ -3568,6 +3562,7 @@ static AstRegion *GetUncFrm( AstRegion *this, int ifrm, int *status ) {
    AstFrame *frm;             /* Current Frame from supplied Region */
    AstMapping *map;           /* Supplied to uncertainty Mapping */
    AstRegion *result;         /* Returned pointer */
+   AstRegion *unc;            /* Base frame uncertainty Region to use */
 
 /* Initialise */
    result = NULL;
@@ -3575,21 +3570,24 @@ static AstRegion *GetUncFrm( AstRegion *this, int ifrm, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return result;
 
-/* If the supplied Region has no uncertainty Region, create a default
-   one and store it in the supplied Region structure. */
-   if( !this->unc ) {
-      this->unc = astGetDefUnc( this );
+/* If the Region has an explicitly assigned base-frame uncertainty Region, 
+   use it. */
+   if( this->unc ) {
+      unc = this->unc;
 
-/* Prevent the Dump function from writing this uncertainty Region. */
-      this->defunc = 1;
+/* If not, use the default base-frame uncertainty Region, creating it if 
+   necessary. */
+   } else {
+      if( !this->defunc ) this->defunc = astGetDefUnc( this );
+      unc = this->defunc;
    }
 
 /* If the uncertainty Region is the base Frame is required, just return a
-   clone of the stored Region pointer. The Frame represented by an
+   clone of the uncertainty Region pointer. The Frame represented by an
    uncertainty Region will always (barring bugs!) be the base Frame of
    its parent Region. */
    if( ifrm == AST__BASE ) {
-      result = astClone( this->unc );
+      result = astClone( unc );
 
 /* If the uncertainty Region is the current Frame is required... */
    } else {
@@ -3601,13 +3599,13 @@ static AstRegion *GetUncFrm( AstRegion *this, int ifrm, int *status ) {
 /* If this is a UnitMap, the uncertainty Region is already in the correct 
    Frame, so just return the stored pointer. */
       if( astIsAUnitMap( map ) ) {
-         result = astClone( this->unc );
+         result = astClone( unc );
 
 /* Otherwise, use this Mapping to map the uncertainty Region into the current
    Frame. */
       } else {
          frm = astGetFrame( this->frameset, AST__CURRENT );
-         result = astMapRegion( this->unc, map, frm );
+         result = astMapRegion( unc, map, frm );
 
 /* Free resources. */
          frm = astAnnul( frm );
@@ -3718,15 +3716,18 @@ static int TestUnc( AstRegion *this, int *status ) {
 *     Non-zero if the uncertainty Region was supplied explicitly.
 *     Zero otherwise.
 
+*  Notes:
+*     - Classes of Region that encapsulate two or more other Regions
+*     inherit their default uncertainty from the encapsulated Regions.
+*     Non-default uncertainty in the component Regions does not imply
+*     that the parent Region has non-default uncertainty.
 *-
 */
 
 /* Check the global error status. */
    if ( !astOK ) return 0;
 
-/* The base Region class stores a flag in the Region structure to
-   indicate if the uncertainty Region is default or not. */
-   return this->unc && !this->defunc;
+   return ( this->unc != NULL );
 }
 
 static AstFrame *RegFrame( AstRegion *this, int *status ) {
@@ -3776,18 +3777,19 @@ static AstFrame *RegFrame( AstRegion *this, int *status ) {
 
 static AstMapping *RegMapping( AstRegion *this, int *status ) {
 /*
+*+
 *  Name:
-*     RegMapping
+*     astRegMapping
 
 *  Purpose:
 *     Obtain a pointer to the simplified base->current Mapping for a Region.
 
 *  Type:
-*     Private function.
+*     Protected function.
 
 *  Synopsis:
 *     #include "region.h"
-*     AstMapping *RegMapping( AstRegion *this, int *status ) 
+*     AstMapping *astRegMapping( AstRegion *this ) 
 
 *  Class Membership:
 *     Region member function 
@@ -3800,8 +3802,6 @@ static AstMapping *RegMapping( AstRegion *this, int *status ) {
 *  Parameters:
 *     this
 *        Pointer to the Region.
-*     status
-*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the Mapping.
@@ -3810,6 +3810,7 @@ static AstMapping *RegMapping( AstRegion *this, int *status ) {
 *     - A NULL pointer will be returned if this function is invoked
 *     with the global error status set, or if it should fail for any
 *     reason.
+*-
 */
 
 /* Local Variables: */
@@ -4093,7 +4094,7 @@ void astInitRegionVtab_(  AstRegionVtab *vtab, const char *name, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstFrameVtab *frame;          /* Pointer to Frame component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
@@ -4150,7 +4151,7 @@ void astInitRegionVtab_(  AstRegionVtab *vtab, const char *name, int *status ) {
    vtab->TestFillFactor = TestFillFactor;
 
    vtab->ResetCache = ResetCache;
-   vtab->DumpUnc = DumpUnc;
+   vtab->RegTrace = RegTrace;
    vtab->GetBounded = GetBounded;
    vtab->TestUnc = TestUnc;
    vtab->ClearUnc = ClearUnc;
@@ -4175,13 +4176,14 @@ void astInitRegionVtab_(  AstRegionVtab *vtab, const char *name, int *status ) {
    vtab->GetUncFrm = GetUncFrm;
    vtab->SetUnc = SetUnc;
    vtab->GetUnc = GetUnc;
-   vtab->GetUncBounds = GetUncBounds;
    vtab->ShowMesh = ShowMesh;
    vtab->GetRegionBounds = GetRegionBounds;
    vtab->GetRegionBounds2 = GetRegionBounds2;
+   vtab->GetRegionPoints = GetRegionPoints;
    vtab->RegOverlay = RegOverlay;
    vtab->RegFrame = RegFrame;
    vtab->RegDummyFS = RegDummyFS;
+   vtab->RegMapping = RegMapping;
    vtab->RegPins = RegPins;
    vtab->RegTransform = RegTransform;
    vtab->BTransform = BTransform;
@@ -4226,6 +4228,7 @@ void astInitRegionVtab_(  AstRegionVtab *vtab, const char *name, int *status ) {
    object->TestAttrib = TestAttrib;
 
    mapping->ReportPoints = ReportPoints;
+   mapping->RemoveRegions = RemoveRegions;
    mapping->Simplify = Simplify;
 
    frame->Abbrev = Abbrev;
@@ -4338,6 +4341,11 @@ void astInitRegionVtab_(  AstRegionVtab *vtab, const char *name, int *status ) {
    frame->SetEpoch = SetEpoch;
    frame->TestEpoch = TestEpoch;
    frame->ClearEpoch = ClearEpoch;
+
+   frame->ClearObsAlt = ClearObsAlt;
+   frame->TestObsAlt = TestObsAlt;
+   frame->GetObsAlt = GetObsAlt;
+   frame->SetObsAlt = SetObsAlt;
 
    frame->ClearObsLat = ClearObsLat;
    frame->TestObsLat = TestObsLat;
@@ -4763,7 +4771,7 @@ static void LineOffset( AstFrame *this_frame, AstLineDef *line, double par,
 *     prp
 *        The distance to move at right angles to the line. Positive
 *        values result in movement to the left of the line, as seen from
-*        the outside when moving from start towards the end.
+*        the observer, when moving from start towards the end.
 *     status
 *        Pointer to the inherited status variable.
 
@@ -4877,6 +4885,7 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
    if( !result ) result = astManageLock( this->frameset, mode, extra, fail );
    if( !result ) result = astManageLock( this->points, mode, extra, fail );
    if( !result ) result = astManageLock( this->unc, mode, extra, fail );
+   if( !result ) result = astManageLock( this->defunc, mode, extra, fail );
    if( !result ) result = astManageLock( this->basemesh, mode, extra, fail );
    if( !result ) result = astManageLock( this->basegrid, mode, extra, fail );
 
@@ -4885,8 +4894,8 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 }
 #endif
 
-static AstRegion *MapRegion( AstRegion *this, AstMapping *map,
-                             AstFrame *frame, int *status ) {
+static AstRegion *MapRegion( AstRegion *this, AstMapping *map0,
+                             AstFrame *frame0, int *status ) {
 /*
 *+
 *  Name:
@@ -4947,7 +4956,9 @@ static AstRegion *MapRegion( AstRegion *this, AstMapping *map,
 */
 
 /* Local Variables: */
+   AstFrame *frame;  
    AstFrameSet *fs;  
+   AstMapping *map;
    AstPointSet *ps2;
    AstPointSet *ps1;
    AstPointSet *pst;
@@ -4967,6 +4978,21 @@ static AstRegion *MapRegion( AstRegion *this, AstMapping *map,
 
 /* Check the global error status. */
    if ( !astOK ) return result;
+
+/* If a FrameSet was supplied for the Mapping, use the base->current
+   Mapping */
+   if( astIsAFrameSet( map0 ) ) {
+      map = astGetMapping( (AstFrameSet *) map0, AST__BASE, AST__CURRENT );
+   } else {
+      map = astClone( map0 );
+   }
+
+/* If a FrameSet was supplied for the Frame, use the current Frame. */
+   if( astIsAFrameSet( frame0 ) ) {
+      frame = astGetFrame( (AstFrameSet *) frame0, AST__CURRENT );
+   } else {
+      frame = astClone( frame0 );
+   }
 
 /* First check the Mapping is suitable. It must defined both a forward
    and an inverse Mapping. */
@@ -5044,6 +5070,14 @@ static AstRegion *MapRegion( AstRegion *this, AstMapping *map,
    Dump. */
       astSetRegionFS( result, 1 );
    }
+
+/* Since the Mapping has been changed, any cached information calculated
+   on the basis of the Mapping properties may no longer be up to date. */
+   astResetCache( this );   
+
+/* Free resources */
+   map = astAnnul( map );
+   frame = astAnnul( frame );
 
 /* If not OK, annul the returned pointer. */
    if( !astOK ) result = astAnnul( result );
@@ -6185,7 +6219,7 @@ static int OverlapX( AstRegion *that, AstRegion *this, int *status ){
    }
 
 /* We may need to try again with the above selections swapped. We only do
-   this once though. Set a flag to indicate that we are baout to start the
+   this once though. Set a flag to indicate that we are about to start the
    first pass. */
    first = 1;
 L1:
@@ -6708,7 +6742,7 @@ static AstFrame *PickAxes( AstFrame *this_frame, int naxes, const int axes[],
             creg = astMapRegion( breg, fsmap, frame );
 
 /* Copy properties from the old Region to the new Region. */
-            astRegOverlay( creg, this );
+            astRegOverlay( creg, this, 0 );
  
 /* Return this new Region in place of the simple Frame found above. */
             (void) astAnnul( frame );
@@ -7092,14 +7126,84 @@ static AstRegion *RegBasePick( AstRegion *this, int naxes, const int *axes,
 *     Pointer to the Region, or NULL if no region can be formed.
 
 *  Notes:
-*    - This base implementation simply returns NULL. Derived classes that
-*    may be able to split the base Frame Region should over-ride it with 
-*    an appropriate class-specific implementation.
+*    - This base implementation returns NULL unless all base Frame axes
+*    are selected (possibly in a permuted order).
 *    - A NULL pointer is returned if an error has already occurred, or if
 *    this function should fail for any reason.
 *-
 */
-   return NULL;
+/* Local Variables: */
+   AstFrame *fr;        /* Pointer to the Region's base Frame */
+   AstRegion *result;   /* The returned Region pointer */
+   int found;           /* Has the current axis index been found yet? */
+   int i;               /* Axis index */
+   int j;               /* Index into the "axes" array */
+   int nax;             /* No. of base Frame axes */
+   int ok;              /* Are we doing a genuine axis permutation? */
+   int unit;            /* Is the axis permutation a unit map? */
+
+/* Initialise */
+   result = NULL;
+
+/* Check the local error status. */
+   if ( !astOK ) return result;
+
+/* Get a pointer to the base Frame int he encapsulated FrameSet. */
+   fr = astGetFrame( this->frameset, AST__BASE );
+
+/* See how many axes it has. We only proceed if we are selecting all axes
+   in the base Frame. */
+   nax = astGetNaxes( fr );
+   if( nax == naxes ) {
+
+/* We now check that the axes array is a genuine permutation of all axes.
+   This means that all axis indices must occur once, and only once, within
+   the "axes" array. Look for each axis index in turn. */
+      unit = 1;
+      ok = 1;
+      for( i = 0; i < nax && ok; i++ ) {
+
+/* Check each element of the axes array to see if it holds the axis index
+   currently being looked for. */
+         found = 0;
+         for( j = 0; j < nax; j++ ) {
+
+/* If so, if this axis index has already been found, break out of the
+   loop. */
+            if( axes[ j ] == i ) {
+               if( found ) {
+                  ok = 0;
+                  break;                     
+               }
+               found = 1;
+
+/* Note if we do not have a unit map (i.e. each axis is permuted onto itself). */
+               if( i != j ) unit = 0;
+            }
+         }
+
+/* If the axis index was not found, we do not have a genuine axis
+   permutation. */
+         if( !found ) ok = 0;
+      }
+
+/* If we have a genuine axis permutation, create a Region which is a copy
+   of the supplied region and set it to represent its base Frame. */
+      if( ok ) {
+         result = astCopy( this );
+         astSetRegFS( result, fr );
+
+/* If the axis selection is not equivalent to a unit mapping, we now
+   permute the axes. */
+         if( !unit ) astPermAxes( result, axes );
+      }
+   }
+
+/* Free resources. */
+   fr = astAnnul( fr );
+
+/* Returned the result. */
+   return result;
 }
 
 static double *RegCentre( AstRegion *this, double *cen, double **ptr, 
@@ -7156,6 +7260,8 @@ static double *RegCentre( AstRegion *this, double *cen, double **ptr,
 *     NULL pointer is returned.
 
 *  Notes:
+*    - Any bad (AST__BAD) centre axis values are ignored. That is, the
+*    centre value on such axes is left unchanged.
 *    - Some Region sub-classes do not have a centre. Such classes will report 
 *    an AST__INTER error code if this method is called with either "ptr" or 
 *    "cen" not NULL. If "ptr" and "cen" are both NULL, then no error is
@@ -7409,7 +7515,7 @@ static AstPointSet *RegGrid( AstRegion *this, int *status ){
    if( !this->basegrid ) this->basegrid = astRegBaseGrid( this );
 
 /* Get the simplified base->current Mapping */
-   map = RegMapping( this, status );
+   map = astRegMapping( this );
 
 /* If the Mapping is a UnitMap, just return a clone of the PointSet
    pointer stored in the Region structure. */
@@ -7491,7 +7597,7 @@ static AstPointSet *RegMesh( AstRegion *this, int *status ){
    bmesh = astRegBaseMesh( this );
 
 /* Get the simplified base->current Mapping */
-   map = RegMapping( this, status );
+   map = astRegMapping( this );
 
 /* If the Mapping is a UnitMap, just return a clone of the mesh PointSet
    pointer. */
@@ -7714,54 +7820,103 @@ f        The global status.
 */
 
 /* Local Variables: */
+   AstFrame *frm;             /* Current Frame */
    AstMapping *smap;          /* Simplified base -> current Mapping */
-   double *lbndb;             /* Pointer to lower bounds on base box */
-   double *ubndb;             /* Pointer to upper bounds on base box */
+   AstPointSet *bmesh;        /* PointSet holding base Frame mesh */
+   AstPointSet *cmesh;        /* PointSet holding current Frame mesh */
+   double **bptr;             /* Pointer to PointSet coord arrays */
+   double *p;                 /* Array of values for current axis */
+   double width;              /* Width of bounding box on i'th axis */
    int i;                     /* Axis count */
+   int ip;                    /* Index of current corner */
+   int j;                     /* Timer for low/high swaps */
+   int jmax;                  /* Increment between low/high swaps */
+   int lo;                    /* Assign low bound to next corner? */
    int nbase;                 /* Number of base Frame axes */
    int ncur;                  /* Number of current Frame axes */
-
+   int npos;                  /* Number of box corners */
+   
 /* Check the inherited status. */
    if( !astOK ) return;
 
-/* Find the number of axes in the base and current Frames of the
-   encapsulated FrameSet. */
-   nbase = astGetNin( this->frameset );
-   ncur = astGetNout( this->frameset );
-
-/* Get the bounding box in the base Frame of the encapsulated FrameSet. */
-   lbndb = astMalloc( sizeof( double )*(size_t) nbase );   
-   ubndb = astMalloc( sizeof( double )*(size_t) nbase );   
-   astRegBaseBox( this, lbndb, ubndb );      
-
 /* Get the simplified base to current Mapping. */
-   smap = RegMapping( this, status );
+   smap = astRegMapping( this );
 
-/* Check pointers can be used safely. */
-   if( smap ) {
+/* If the simplified Mapping is a UnitMap, just store the base box bounds
+   in the returned arrays */
+   if( astIsAUnitMap( smap ) ) {
+      astRegBaseBox( this, lbnd, ubnd );      
 
-/* If the simplified Mapping is a UnitMap, just copy the base box bounds
-   to the returned arrays */
-      if( astIsAUnitMap( smap ) ) {
-         for( i = 0; i < ncur; i++ ) {
-            lbnd[ i ] = lbndb[ i ];
-            ubnd[ i ] = ubndb[ i ];
-         }
+/* Otherwise, we get a mesh of points over the boundary of the Region within 
+   the base Frame, transform them into the current Frame, and find their bounds. */
+   } else {
 
-/* Otherwise, use astMapBox to find the corresponding current Frame
-   limits. */ 
+/* If the Region is bounded, we can get a genuine mesh of points on the
+   boundary of the Region. */
+      if( astGetBounded( this ) ) {
+         bmesh = astRegBaseMesh( this );
+
+/* If the Region is not bounded, no mesh can be created so we use the
+   corners of the base frame bounding box instead. */
       } else {
-         for( i = 0; i < ncur; i++ ) {
-            astMapBox( smap, lbndb, ubndb, 1, i, lbnd + i, ubnd + i, 
-                       NULL, NULL );
-         }            
+
+/* Get the base Frame bounding box. */
+         astRegBaseBox( this, lbnd, ubnd );      
+
+/* Get the number of corners in the base Frame bounding box. */
+         nbase = astGetNin( smap );
+         npos = pow( 2, nbase );
+
+/* Create a PointSet to hold the positions at the corners in the base
+   frame box. */
+         bmesh = astPointSet( npos, nbase, " ", status );
+         bptr = astGetPoints( bmesh );
+         if( bptr ) {
+
+/* Store the coordinates of the box corners in the PointSet. */
+            jmax = 1;
+            for( i = 0; i < nbase; i++ ) {
+               p = bptr[ i ];
+   
+               lo = 1;
+               j = 0;
+               for( ip = 0; ip < npos; ip++,j++ ) {
+                  if( j == jmax ) {
+                     lo = 1 - lo;
+                     j = 0;
+                  }
+                  p[ ip ] = lo ? lbnd[ i ] : ubnd[ i ];
+               }
+   
+               jmax *= 2;
+            }
+         }
       }
-   }
+
+/* Create a new PointSet holding the above points transformed into the 
+   current Frame. */
+      cmesh = astTransform( smap, bmesh, 1, NULL );
+
+/* Get the axis bounds of this PointSet. */
+      astBndPoints( cmesh, lbnd, ubnd );     
+
+/* There is a possibility that these bounds may span a singularity in the
+   coordinate system such as the RA=0 line in a SkyFrame. So for each
+   axis we ensure the width (i.e. "ubnd-lbnd" ) is correct. */
+      frm = astGetFrame( this->frameset, AST__CURRENT );
+      ncur = astGetNaxes( frm );
+
+      for( i = 0; i < ncur; i++ ) {
+         width = astAxDistance( frm, i + 1, lbnd[ i ], ubnd[ i ] );
+         ubnd[ i ] = lbnd[ i ] + width;
+      }
 
 /* Release resources. */
+      frm = astAnnul( frm );
+      bmesh = astAnnul( bmesh );
+      cmesh = astAnnul( cmesh );
+   } 
    smap = astAnnul( smap );
-   lbndb = astFree( lbndb );
-   ubndb = astFree( ubndb );
 }
 
 static void GetRegionBounds2( AstRegion *this, double *lbnd, double *ubnd, int *status ){
@@ -7833,7 +7988,7 @@ static void GetRegionBounds2( AstRegion *this, double *lbnd, double *ubnd, int *
    astRegBaseBox2( this, lbndb, ubndb );      
 
 /* Get the simplified base to current Mapping. */
-   smap = RegMapping( this, status );
+   smap = astRegMapping( this );
 
 /* Check pointers can be used safely. */
    if( smap ) {
@@ -7862,150 +8017,212 @@ static void GetRegionBounds2( AstRegion *this, double *lbnd, double *ubnd, int *
    ubndb = astFree( ubndb );
 }
 
-static void GetUncBounds( AstRegion *this, double *lbnd, double *ubnd, int *status ){
+static void GetRegionPoints( AstRegion *this, int maxpoint, int maxcoord, 
+                             int *npoint, double *points, int *status ){
 /*
-*+
+*++
 *  Name:
-*     astGetUncBounds
+c     astGetRegionPoints
+f     AST_GETREGIONPOINTS
 
 *  Purpose:
-*     Returns the bounding box of Region.
+*     Returns the positions that define the given Region.
 
 *  Type:
-*     Protected virtual function.
+*     Public virtual function.
 
 *  Synopsis:
-*     #include "region.h"
-*     void astGetUncBounds( AstRegion *this, double *lbnd, double *ubnd )
+c     #include "region.h"
+c     void astGetRegionPoints( AstRegion *this, int maxpoint, int maxcoord, 
+c                              int *npoint, double *points )
+f     CALL AST_GETREGIONPOINTS( THIS, MAXPOINT, MAXCOORD, NPOINT, POINTS, 
+f                               STATUS )
 
 *  Class Membership:
 *     Region method.
 
 *  Description:
-*     This function returns the upper and lower limits of a box which just 
-*     encompasses the supplied Region. The limits are returned as axis values 
-*     within the Frame represented by the Region. The value of the Negated
-*     attribute is ignored (i.e. it is assumed that the Region has not
-*     been negated). 
-*
-*     This function differs from astGetRegionBounds in the algorithm it
-*     uses. Instead of transforming the corners of the box from base
-*     Frame to current Frame (which is what astGetRegionBounds does).
-*     it uses the Jacobian matrix of the base->current Mapping to scale
-*     the box from base Frame to current Frame. This makes it more
-*     appropriate for cases where the base->current Mapping have singularies
-*     (such as the pixel->wcs mapping in all-sky images). However, it
-*     should usually only be used on small regions over which the Jacobian 
-*     can be assumed constant. This makes it more appropriate for finding
-*     the bounding boxes of uncertainty Regions rather than their parent 
-*     Regions.
+c     This function 
+f     This routine
+*     returns the axis values at the points that define the supplied
+*     Region. The particular meaning of these points will depend on the
+*     type of class supplied, as listed below under "Applicability:".
 
 *  Parameters:
-*     this
+c     this
+f     THIS = INTEGER (Given)
 *        Pointer to the Region.
-*     lbnd
-*        Pointer to an array in which to return the lower axis bounds covered 
-*        by the Region. It should have at least as many elements as there are 
-*        axes in the Region. If an axis has no lower limit, the returned value 
-*        will be the largest possible negative value.
-*     ubnd
-*        Pointer to an array in which to return the upper axis bounds covered 
-*        by the Region. It should have at least as many elements as there are 
-*        axes in the Region. If an axis has no upper limit, the returned value 
-*        will be the largest possible positive value.
+c     maxpoint
+f     MAXPOINT = INTEGER (Given)
+*        If zero, the number of points needed to define the Region is 
+*        returned in 
+c        "*npoint",
+f        NPOINT,
+*        but no axis values are returned and all other parameters are ignored.
+*        If not zero, the supplied value should be the length of the
+c        second dimension of the "points" 
+f        first dimension of the POINTS 
+*        array. An error is reported if the number of points needed to define 
+*        the Region exceeds this number. 
+c     maxcoord
+f     MAXCOORD = INTEGER (Given)
+*        The length of the
+c        first dimension of the "points" array.
+f        second dimension of the POINTS array.
+*        An error is reported if the number of axes in the supplied Region 
+*        exceeds this number.
+c     npoint
+f     NPOINT = INTEGER (Returned)
+c        A pointer to an integer in which to return the
+f        The
+*        number of points defining the Region.
+c     points
+f     POINTS( MAXPOINT, MAXCOORD ) = DOUBLE PRECISION (Returned)
+c        The address of the first element in a 2-dimensional array of 
+c        shape "[maxcoord][maxpoint]", in which to return
+c        the coordinate values at the positions that define the Region.
+c        These are stored such that the value of coordinate number 
+c        "coord" for point number "point" is found in element 
+c        "points[coord][point]".
+f        An array in which to return the coordinates values at the 
+f        positions that define the Region. These are stored such that the
+f        value of coordinate number COORD for point number POINT
+f        is found in element POINTS(POINT,COORD).
+f     STATUS = INTEGER (Given and Returned)
+f        The global status.
 
-*  Notes:
-*    - The value of the Negated attribute is ignored (i.e. it is assumed that 
-*    the Region has not been negated).
-*    - If an axis has no extent on an axis then the lower limit will be
-*    returned larger than the upper limit. Note, this is different to an
-*    axis which has a constant value (in which case both lower and upper 
-*    limit will be returned set to the constant value).
+*  Applicability:
+*     Region
+*        All Regions have this attribute.
+*     Box    
+*        The first returned position is the Box centre, and the second is
+*        a Box corner.
+*     Circle 
+*        The first returned position is the Circle centre, and the second is
+*        a point on the circumference.
+*     CmpRegion  
+*        Returns a value of zero for 
+c        "*npoint"
+f        NPOINT
+*        and leaves the supplied array contents unchanged. To find the
+*        points defining a CmpRegion, use this method on the component
+*        Regions, which can be accessed by invoking 
+c        astDecompose
+f        AST_DECOMPOSE
+*        on the CmpRegion.
+*     Ellipse    
+*        The first returned position is the Ellipse centre. The second is
+*        the end of one of the axes of the ellipse. The third is some
+*        other point on the circumference of the ellipse, distinct from
+*        the second point.
+*     Interval   
+*        The first point corresponds to the lower bounds position, and
+*        the second point corresponds to the upper bounds position. These
+*        are reversed to indicate an extcluded interval rather than an
+*        included interval. See the Interval constructor for more
+*        information.
+*     NullRegion 
+*        Returns a value of zero for 
+c        "*npoint"
+f        NPOINT
+*        and leaves the supplied array contents unchanged. 
+*     PointList  
+*        The positions returned are those that were supplied when the
+*        PointList was constructed.
+*     Polygon    
+*        The positions returned are the vertex positions that were supplied 
+*        when the Polygon was constructed.
+*     Prism  
+*        Returns a value of zero for 
+c        "*npoint"
+f        NPOINT
+*        and leaves the supplied array contents unchanged. To find the
+*        points defining a Prism, use this method on the component
+*        Regions, which can be accessed by invoking 
+c        astDecompose
+f        AST_DECOMPOSE
+*        on the CmpRegion.
 
-*-
+*  Notes: 
+*     - If the coordinate system represented by the Region has been
+*     changed since it was first created, the returned axis values refer 
+*     to the new (changed) coordinate system, rather than the original
+*     coordinate system. Note however that if the transformation from
+*     original to new coordinate system is non-linear, the shape within
+*     the new coordinate system may be distorted, and so may not match
+*     that implied by the name of the Region subclass (Circle, Box, etc).
+
+*--
 */
 
 /* Local Variables: */
-   AstMapping *smap;          /* Simplified base -> current Mapping */
-   double *cenb;              /* Array holding base frame centre */
-   double *cenc;              /* Array holding current frame centre */
-   double *hwb;               /* Array holding base frame half-widths */
-   double *lbndb;             /* Pointer to lower bounds on base box */
-   double *ubndb;             /* Pointer to upper bounds on base box */
-   double hwc;                /* Current Frame half width */
-   int i;                     /* Axis count */
-   int j;                     /* Axis count */
-   int nbase;                 /* Number of base Frame axes */
-   int ncur;                  /* Number of current Frame axes */
+   AstPointSet *pset;       /* PointSet holding PointList axis values */
+   double **ptr;            /* Pointer to axes values in the PointList */
+   double *p;               /* Pointer to next input axis value */
+   double *q;               /* Pointer to next output axis value */
+   int j;                   /* Axis index */
+   int nc;                  /* No. of axes to copy */
+
+/* Initialise */
+   *npoint = 0;
 
 /* Check the inherited status. */
    if( !astOK ) return;
 
-/* Find the number of axes in the base and current Frames of the
-   encapsulated FrameSet. */
-   nbase = astGetNin( this->frameset );
-   ncur = astGetNout( this->frameset );
+/* Return the number of points used to define the Region, if any. */
+   *npoint = this->points ? astGetNpoint( this->points ) : 0;
 
-/* Get the bounding box in the base Frame of the encapsulated FrameSet. */
-   lbndb = astMalloc( sizeof( double )*(size_t) nbase );   
-   ubndb = astMalloc( sizeof( double )*(size_t) nbase );   
-   astRegBaseBox( this, lbndb, ubndb );      
+/* Do nothing more unless a non-zero array size was supplied. */
+   if( *npoint > 0 && maxpoint != 0 ) {
 
-/* Get the simplified base to current Mapping. */
-   smap = RegMapping( this, status );
+/* Transform the base Frame axis values into the current Frame. */
+      pset = astTransform( this->frameset, this->points, 1, NULL );
+
+/* Get the dimensionality of this PointList, and get a pointer to the axis
+   values. */
+      nc = astGetNcoord( pset );
+      ptr = astGetPoints( pset );
 
 /* Check pointers can be used safely. */
-   if( smap ) {
+      if ( astOK ) {
 
-/* If the simplified Mapping is a UnitMap, just copy the base box bounds
-   to the returned arrays */
-      if( astIsAUnitMap( smap ) ) {
-         for( j = 0; j < ncur; j++ ) {
-            lbnd[ j ] = lbndb[ j ];
-            ubnd[ j ] = ubndb[ j ];
-         }
+/* Check the supplied array has room for all the axis values. */
+         if( nc > maxcoord ) {
+            astError( AST__DIMIN, "astGetRegionPoints(%s): The supplied "
+                      "array can hold up to %d axes but the %s supplied "
+                      "has %d axes (programming error).", status, 
+                      astGetClass( this ), maxcoord, astGetClass( this ), nc );
+   
+         } else if( *npoint > maxpoint ) {
+            astError( AST__DIMIN, "astGetRegionPoints(%s): The supplied "
+                      "array can hold up to %d points but the %s supplied "
+                      "requires %d points to describe it (programming "
+                      "error).", status, astGetClass( this ), maxpoint, 
+                       astGetClass( this ), *npoint );
 
-/* Otherwise, use the Jacobian of the Mapping to find the corresponding 
-   current Frame limits. */ 
-      } else {
+/* If all is OK, copy the transformed axis values into the supplied array. */
+         } else {
 
-/* Store the centre of the base Frame uncertainty box, and transform it to 
-   the current Frame. Also store the half-widths of the base frame box in
-   the "hwb" array. */
-         cenb = astMalloc( sizeof( double )*(size_t)nbase );
-         cenc = astMalloc( sizeof( double )*(size_t)ncur );
-         hwb = astMalloc( sizeof( double )*(size_t)nbase );
-         if( hwb ) {
-            for( i = 0; i < nbase; i++ ) {
-               cenb[ i ] = 0.5*( lbndb[ i ] + ubndb[ i ] );
-               hwb[ i ] = fabs( 0.5*( ubndb[ i ] - lbndb[ i ] ) );
-            }        
-            astTranN( smap, 1, nbase, 1, cenb, 1, ncur, 1, cenc );
+/* Loop round the axes to be copied. */
+            for( j = 0; j < nc; j++ ) {
 
-/* Scale the base-frame uncertainty box into the current Frame. */
-            for( j = 0; j < ncur; j++ ) {
-               hwc = 0.0;                           
-               for( i = 0; i < nbase; i++ ) {
-                  hwc += hwb[ i ]*astRate( smap, cenb, j, i );
-               }
-               hwc = fabs( hwc );
-               lbnd[ j ] = cenc[ j ] - hwc;
-               ubnd[ j ] = cenc[ j ] + hwc;
+/* Get points to the first element of the input and output arrays. */
+               p = ptr[ j ];
+               q = points + j*maxpoint;
+
+/* Copying the axis values. */
+               (void) memcpy( q, p, sizeof( double )*( *npoint ) );
             }
-         }            
-         cenc = astFree( cenc );
-         cenb = astFree( cenb );
-         hwb = astFree( hwb );
+         }
       }
-   }
 
-/* Release resources. */
-   smap = astAnnul( smap );
-   lbndb = astFree( lbndb );
-   ubndb = astFree( ubndb );
+/* Free resources. */
+      pset = astAnnul( pset );
+
+   }
 }
 
-static void RegOverlay( AstRegion *this, AstRegion *that, int *status ){
+static void RegOverlay( AstRegion *this, AstRegion *that, int unc, int *status ){
 /*
 *+
 *  Name:
@@ -8019,7 +8236,7 @@ static void RegOverlay( AstRegion *this, AstRegion *that, int *status ){
 
 *  Synopsis:
 *     #include "region.h"
-*     void astRegOverlay( AstRegion *this, AstRegion *that )
+*     void astRegOverlay( AstRegion *this, AstRegion *that, int unc )
 
 *  Class Membership:
 *     Region virtual function.
@@ -8037,6 +8254,10 @@ static void RegOverlay( AstRegion *this, AstRegion *that, int *status ){
 *        Pointer to the new Region.
 *     that
 *        Pointer to the old Region.
+*     unc
+*        If non-zero, any uncertainty in "this" is cleared if "that" has
+*        no uncertainty. If zero, any uncertainty in "this" is left
+*        unchanged.
 *-
 */
 
@@ -8058,9 +8279,8 @@ static void RegOverlay( AstRegion *this, AstRegion *that, int *status ){
       astClearFillFactor( this );
    }
 
-/* If the original Region has no uncertainty, ensure the new Region has
-   no uncertainty. */
-   if( !astTestUnc( that ) ) astSetUnc( this, NULL );
+/* If required, clear uncertainty in "this" if "that" has no uncertainty. */
+   if( unc && !astTestUnc( that ) ) astClearUnc( this );
 
 }
 
@@ -8233,6 +8453,57 @@ static void RegSetAttrib( AstRegion *this, const char *asetting,
 /* Free resources. */
    setting = astFree( setting );
 
+}
+
+static AstMapping *RemoveRegions( AstMapping *this_mapping, int *status ) {
+/*
+*  Name:
+*     RemoveRegions
+
+*  Purpose:
+*     Remove any Regions from a Mapping.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "region.h"
+*     AstMapping *RemoveRegions( AstMapping *this, int *status )
+
+*  Class Membership:
+*     Region method (over-rides the astRemoveRegions method inherited
+*     from the Frame class).
+
+*  Description:
+*     This function searches the supplied Mapping (which may be a 
+*     compound Mapping such as a CmpMap) for any component Mappings 
+*     that are instances of the AST Region class. It then creates a new
+*     Mapping from which all Regions have been removed. If a Region
+*     cannot simply be removed (for instance, if it is a component of a
+*     parallel CmpMap), then it is replaced with an equivalent UnitMap 
+*     in the returned Mapping.
+*
+*     The implementation provided by the Region class just returns the
+*     equivalent Frame.
+
+*  Parameters:
+*     this
+*        Pointer to the original Region.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     A pointer to the modified mapping.
+
+*  Notes:
+*     - A NULL pointer value will be returned if this function is
+*     invoked with the AST error status set, or if it should fail for
+*     any reason.
+*/
+
+/* The Region class just returns a pointer to a deep copy of the Region's
+   equivalent Frame. */
+   return astGetRegionFrame( (AstRegion *)this_mapping );
 }
 
 static void ReportPoints( AstMapping *this_mapping, int forward,
@@ -8507,7 +8778,7 @@ static AstPointSet *ResolvePoints( AstFrame *this_frame, const double point1[],
 /* Obtain a pointer to the Region's encapsulated Frame and invoke this
    Frame's astResolve method. Annul the Frame pointer afterwards. */
    fr = astGetFrame( this->frameset, AST__CURRENT );
-   result = astResolvePoints( this, point1, point2, in, out );
+   result = astResolvePoints( fr, point1, point2, in, out );
    fr = astAnnul( fr );
 
 /* Return a pointer to the output PointSet. */
@@ -8799,6 +9070,7 @@ static void SetRegFS( AstRegion *this, AstFrame *frm, int *status ) {
    AstFrame *f1;         /* Copy of supplied Frame */
    AstFrame *f2;         /* Copy of supplied Frame */
    AstFrameSet *fs;      /* New FrameSet */
+   AstRegion *unc;       /* Uncertainty Region */
    AstUnitMap *um;       /* UnitMap connecting base anc current Frames */
 
 /* Check the global error status. */
@@ -8831,7 +9103,11 @@ static void SetRegFS( AstRegion *this, AstFrame *frm, int *status ) {
    FrameSet. The correct FrameSet has copies of the base Frame of the new
    Region as both its current and base Frames, and these are connected by
    a UnitMap (this is equivalent to a FrameSet containing a single Frame). */
-   if( this->unc && !astGetRegionFS( this->unc ) ) astSetRegFS( this->unc, f1 );
+   if( astTestUnc( this ) ) {
+      unc = astGetUncFrm( this, AST__BASE );
+      if( unc && !astGetRegionFS( unc ) ) astSetRegFS( unc, f1 );
+      unc = astAnnul( unc );
+   }
 
 /* Free remaining resourvces */
    f1 = astAnnul( f1 );
@@ -8904,15 +9180,19 @@ f        The global status.
    AstMapping *smap;        /* Simplified base->current Mapping */
    double *cen0;            /* Pointer to array holding original centre */
    double **ptr_reg;        /* Pointer to axis values for Region's Pointset */
+   int changed;             /* Has the uncertainty been changed? */
 
 /* Check the inherited status. */
    if( !astOK ) return;
 
 /* Annul any existing uncertainty Region. */
    if( this->unc ) {
-      this->unc = astIsAObject( this->unc ) ? astAnnul( this->unc ) : NULL;
-   } 
-   this->defunc = 1;
+      this->unc = astIsAObject( this->unc ) ? 
+                                astAnnul( this->unc ) : NULL;
+      changed = 1;
+   } else {
+      changed = 0;
+   }
 
 /* Check an uncertainty Region was supplied, and is of a usable class
    (i.e. a class which can be re-centred). */
@@ -8938,9 +9218,6 @@ f        The global status.
    Circles, Boxes and/or Ellipses, all of which have this property. */
             if( !astGetBounded( this->unc ) ) astNegate( this->unc );
 
-/* Indicate that the uncertainty is not a default.*/
-            this->defunc = 0;         
-
 /* If the base Frame in the uncertainty Region is the same as the base
    Frame in the Region being dumped, then we do no need to include the
    FrameSet in the dump of the uncertainty Region. Since the current
@@ -8960,6 +9237,9 @@ f        The global status.
                ptr_reg = astGetPoints( this->points );
                astRegCentre( this->unc, NULL, ptr_reg, 0, AST__CURRENT );
             }
+
+/* Set a flag indicating that the uncertainty in the Region has changed. */
+            changed = 1;
 
 /* Free resources */
             map2 = astAnnul( map2 );
@@ -8986,6 +9266,11 @@ f        The global status.
                 "a centro-symetric subclass of Region (e.g. Box, Circle, "
                 "Ellipse, etc)." , status);
    }
+
+/* If the uncertainty in the Region has changed, indicate that any cached
+   information in the Region is now out of date. */
+   if( changed ) astResetCache( this );
+
 }
 
 static void ShowMesh( AstRegion *this, int format, const char *ttl, int *status ){
@@ -9217,12 +9502,11 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 /* If the Region has default uncertainty, we simplify the uncertainty
    Region simply by deleting it. It will be regenerated when needed,
    using the simplified Region. */
-   if( !astTestUnc( new ) ){  
-      astClearUnc( new );
+   if( new->defunc ) new->defunc = astAnnul( new->defunc );
 
 /* If the Region's uncertainty was supplied explicitly, try simplifying
    the unncertainty Region. */
-   } else {
+   if( astTestUnc( new ) ){
 
 /* Obtain the Region's uncertainty. */
       unc = astGetUncFrm( new, AST__BASE );
@@ -9300,7 +9584,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
    the uncertainty region, centred on the current centre of the uncertainty
    region (we know all uncertainty regions are bounded). */
          } else {
-            astGetUncBounds( sunc, lbnd, ubnd );      
+            astGetRegionBounds( sunc, lbnd, ubnd );      
             for( ic = 0; ic < naxb; ic++ ) {
                delta = 0.5*fabs( ubnd[ ic ] - lbnd[ ic ] );
                lbnd[ ic ] = orig_cen[ ic ] - delta;
@@ -9316,7 +9600,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
    current Frame, which is the same as the base Frame of "this". */
          s1_lbnd = astMalloc( sizeof( double )*(size_t)naxb );      
          s1_ubnd = astMalloc( sizeof( double )*(size_t)naxb );      
-         astGetUncBounds( sunc, s1_lbnd, s1_ubnd );      
+         astGetRegionBounds( sunc, s1_lbnd, s1_ubnd );      
 
 /* Now re-centre the uncertainty Region at the upper bounds of the test
    box. */
@@ -9325,7 +9609,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 /* Get the bounding box of the re-centred uncertainty Region. */
          s2_lbnd = astMalloc( sizeof( double )*(size_t)naxb );      
          s2_ubnd = astMalloc( sizeof( double )*(size_t)naxb );      
-         astGetUncBounds( sunc, s2_lbnd, s2_ubnd );      
+         astGetRegionBounds( sunc, s2_lbnd, s2_ubnd );      
 
 /* Get a pointer to the base Frame of "this". */
          bfrm = astGetFrame( this->frameset, AST__BASE );
@@ -9662,6 +9946,63 @@ static const char *SystemString( AstFrame *this_frame, AstSystemType system, int
 /* Return the result pointer. */
    return result;
 
+}
+
+static int RegTrace( AstRegion *this, int n, double *dist, double **ptr, int *status ){
+/*
+*+
+*  Name:
+*     astRegTrace
+
+*  Purpose:
+*     Return requested positions on the boundary of a 2D Region.
+
+*  Type:
+*     Protected function.
+
+*  Synopsis:
+*     #include "region.h"
+*     int astRegTrace( AstRegion *this, int n, double *dist, double **ptr );
+
+*  Class Membership:
+*     Region virtual function 
+
+*  Description:
+*     This function returns positions on the boundary of the supplied
+*     Region, if possible. The required positions are indicated by a
+*     supplied list of scalar parameter values in the range zero to one.
+*     Zero corresponds to some arbitrary starting point on the boundary,
+*     and one corresponds to the end (which for a closed region will be 
+*     the same place as the start).
+
+*  Parameters:
+*     this
+*        Pointer to the Region.
+*     n
+*        The number of positions to return. If this is zero, the function
+*        returns without action (but the returned function value still
+*        indicates if the method is supported or not).
+*     dist
+*        Pointer to an array of "n" scalar parameter values in the range
+*        0 to 1.0.
+*     ptr 
+*        A pointer to an array of pointers. The number of elements in
+*        this array should equal tthe number of axes in the Frame spanned
+*        by the Region. Each element of the array should be a pointer to
+*        an array of "n" doubles, in which to return the "n" values for
+*        the corresponding axis. The contents of the arrays are unchanged
+*        if the supplied Region belongs to a class that does not
+*        implement this method.
+
+*  Returned Value:
+*     Non-zero if the astRegTrace method is implemented by the class
+*     of Region supplied, and zero if not.
+
+*-
+*/
+
+/* Concrete sub-classes of Region must over-ride this method. */
+   return 0;
 }
 
 static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
@@ -10046,7 +10387,7 @@ static AstPointSet *RegTransform( AstRegion *this, AstPointSet *in,
    }
 
 /* Get the simplified Mapping from base to current Frame. */
-   smap = RegMapping( this, status );
+   smap = astRegMapping( this );
 
 /* If it is a UnitMap, return a clone of the input PointSet unless an
    explicit output PointSet has been supplied. */
@@ -10833,6 +11174,11 @@ MAKE_SET(ObsLat,double,D)
 MAKE_TEST(ObsLat)
 MAKE_CLEAR(ObsLat)
 
+MAKE_GET(ObsAlt,double)
+MAKE_SET(ObsAlt,double,D)
+MAKE_TEST(ObsAlt)
+MAKE_CLEAR(ObsAlt)
+
 /* Clear, Get, Set and Test axis-dependent Frame attributes. */
 MAKE_CLEAR_AXIS(Direction)
 MAKE_CLEAR_AXIS(Format)
@@ -10914,6 +11260,7 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
    out->frameset = NULL;
    out->points = NULL;
    out->unc = NULL;
+   out->defunc = NULL;
 
 /* Now copy each of the above structures. */
    out->frameset = astCopy( in->frameset );
@@ -10921,6 +11268,7 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
    if( in->basemesh ) out->basemesh = astCopy( in->basemesh );
    if( in->basegrid ) out->basegrid = astCopy( in->basegrid );
    if( in->unc ) out->unc = astCopy( in->unc );
+   if( in->defunc ) out->defunc = astCopy( in->defunc );
 }
 
 
@@ -10966,6 +11314,7 @@ static void Delete( AstObject *obj, int *status ) {
    if( this->basemesh ) this->basemesh = astAnnul( this->basemesh );
    if( this->basegrid ) this->basegrid = astAnnul( this->basegrid );
    if( this->unc ) this->unc = astAnnul( this->unc );
+   if( this->defunc ) this->defunc = astAnnul( this->defunc );
 }
 
 /* Dump function. */
@@ -11078,7 +11427,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
    within another Region the parent Region will define the current Frame).
    Otherwise, dump the whole FrameSet. */
    ival = astGetRegionFS( this );
-   smap = RegMapping( this, status );
+   smap = astRegMapping( this );
    if( ( unit = astIsAUnitMap( smap ) ) ){
       set = 0;
       if( ival ) {
@@ -11118,7 +11467,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* Uncertainty */
 /* ----------- */
 /* Only dump the uncertinaty Region if required. */
-   if( astDumpUnc( this ) ) {
+   if( astTestUnc( this ) ) {
       unc = astGetUncFrm( this, AST__BASE );
       astWriteObject( channel, "Unc", 1, 1, unc, 
                       "Region defining positional uncertainties." );
@@ -11285,7 +11634,7 @@ AstRegion *astInitRegion_( void *mem, size_t size, int init,
       new->closed = -INT_MAX;
       new->regionfs = -INT_MAX;
       new->fillfactor = AST__BAD;
-      new->defunc = 0;
+      new->defunc = NULL;
       new->nomap = 0;
 
 /* If the supplied Frame is a Region, gets its encapsulated Frame. If a 
@@ -11336,8 +11685,6 @@ AstRegion *astInitRegion_( void *mem, size_t size, int init,
       }
 #endif
 
-
-
 /* Form a FrameSet consisting of two copies of the supplied Frame connected 
    together by a UnitMap, and store in the Region structure. We use the
    private SetRegFS rather than the protected astSetRegFS because this
@@ -11351,7 +11698,6 @@ AstRegion *astInitRegion_( void *mem, size_t size, int init,
 /* Store any uncertainty Region. Use the private SetUnc rather than
    astSetUnc to avoid subclass implementations using subclass data which
    has not yet been initialised. */
-      new->unc = NULL;
       SetUnc( new, unc, status );
 
 /* If an error occurred, clean up by deleting the new object. */
@@ -11434,17 +11780,17 @@ AstRegion *astLoadRegion_( void *mem, size_t size,
 */
 
 /* Local Constants: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstFrame *f1;                  /* Base Frame for encapsulated FrameSet */
    AstRegion *new;                /* Pointer to the new Region */
-   int nax;                       /* Get a pointer to the thread specific global data structure. */
-   astGET_GLOBALS(channel);
-
-/* No. of axes in Frame */
+   int nax;                       /* No. of axes in Frame */
    int naxpt;                     /* No. of axes in per point */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
 
 /* Initialise. */
    new = NULL;
@@ -11540,6 +11886,7 @@ AstRegion *astLoadRegion_( void *mem, size_t size,
 /* Uncertainty */
 /* ----------- */
       new->unc = astReadObject( channel, "unc", NULL );
+      new->defunc = NULL;
 
 /* FrameSet */
 /* -------- */
@@ -11674,13 +12021,13 @@ int astRegPins_( AstRegion *this, AstPointSet *pset, AstRegion *unc, int **mask,
    if ( !astOK ) return 0;
    return (**astMEMBER(this,Region,RegPins))( this, pset, unc, mask, status );
 }
+AstMapping *astRegMapping_( AstRegion *this, int *status ){
+   if ( !astOK ) return NULL;
+   return (**astMEMBER(this,Region,RegMapping))( this, status );
+}
 int astRegDummyFS_( AstRegion *this, int *status ){
    if ( !astOK ) return 0;
    return (**astMEMBER(this,Region,RegDummyFS))( this, status );
-}
-int astDumpUnc_( AstRegion *this, int *status ){
-   if ( !astOK ) return 0;
-   return (**astMEMBER(this,Region,DumpUnc))( this, status );
 }
 int astGetBounded_( AstRegion *this, int *status ){
    if ( !astOK ) return 0;
@@ -11706,25 +12053,31 @@ void astResetCache_( AstRegion *this, int *status ){
    if ( !astOK ) return;
    (**astMEMBER(this,Region,ResetCache))( this, status );
 }
+int astRegTrace_( AstRegion *this, int n, double *dist, double **ptr, int *status ){
+   if ( !astOK ) return 0;
+   return (**astMEMBER(this,Region,RegTrace))( this, n, dist, ptr, status );
+}
 void astGetRegionBounds_( AstRegion *this, double *lbnd, double *ubnd, int *status ){
    if ( !astOK ) return;
    (**astMEMBER(this,Region,GetRegionBounds))( this, lbnd, ubnd, status );
+}
+void astGetRegionPoints_( AstRegion *this, int maxpoint, int maxcoord, 
+                          int *npoint, double *points, int *status ){
+   if ( !astOK ) return;
+   (**astMEMBER(this,Region,GetRegionPoints))( this, maxpoint, maxcoord,
+                                               npoint, points, status );
 }
 void astShowMesh_( AstRegion *this, int format, const char *ttl, int *status ){
    if ( !astOK ) return;
    (**astMEMBER(this,Region,ShowMesh))( this, format,ttl, status );
 }
-void astGetUncBounds_( AstRegion *this, double *lbnd, double *ubnd, int *status ){
-   if ( !astOK ) return;
-   (**astMEMBER(this,Region,GetUncBounds))( this, lbnd, ubnd, status );
-}
 void astGetRegionBounds2_( AstRegion *this, double *lbnd, double *ubnd, int *status ){
    if ( !astOK ) return;
    (**astMEMBER(this,Region,GetRegionBounds2))( this, lbnd, ubnd, status );
 }
-void astRegOverlay_( AstRegion *this, AstRegion *that, int *status ){
+void astRegOverlay_( AstRegion *this, AstRegion *that, int unc, int *status ){
    if ( !astOK ) return;
-   (**astMEMBER(this,Region,RegOverlay))( this, that, status );
+   (**astMEMBER(this,Region,RegOverlay))( this, that, unc, status );
 }
 AstPointSet *astRegGrid_( AstRegion *this, int *status ){
    if ( !astOK ) return NULL;

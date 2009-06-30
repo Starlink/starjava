@@ -73,6 +73,58 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Region_getRegionFrame(
    return jniastMakeObject( env, (AstObject *) frm );
 }
 
+JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Region_getRegionPoints(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   int npoint;
+   int npoint2;
+   int naxes;
+   double *points = NULL;
+   jobjectArray jResult = NULL;
+   jdoubleArray axValues = NULL;
+   int ok;
+   int i;
+
+   ENSURE_SAME_TYPE(double, jdouble)
+
+   THASTCALL( jniastList( 1, pointer.AstObject ),
+      astGetRegionPoints( pointer.Region, 0, 0, &npoint, (double *) NULL );
+      naxes = astGetI( pointer.AstObject, "Naxes" );
+   )
+
+   ok = ( ! (*env)->ExceptionCheck( env ) )
+     && ( points = jniastMalloc( env, naxes * npoint * sizeof( double ) ) )
+     && ( jResult = (*env)->NewObjectArray( env, naxes, DoubleArrayClass,
+                                            NULL ) );
+   for ( i = 0; i < naxes; i++ ) {
+      ok = ok && ( axValues = (*env)->NewDoubleArray( env, npoint ) );
+      if ( ok ) {
+         (*env)->SetObjectArrayElement( env, jResult, i, axValues );
+      }
+   }
+
+   if ( ok ) {
+      THASTCALL( jniastList( 1, pointer.AstObject ),
+         astGetRegionPoints( pointer.Region, npoint, naxes, &npoint2, points );
+      )
+      if ( ! (*env)->ExceptionCheck( env ) ) {
+         for ( i = 0; i < naxes; i++ ) {
+            if ( ! (*env)->ExceptionCheck( env ) ) {
+               axValues = (*env)->GetObjectArrayElement( env, jResult, i );
+               if ( ! (*env)->ExceptionCheck( env ) ) {
+                  (*env)->SetDoubleArrayRegion( env, axValues, 0, npoint,
+                                                points + i * npoint );
+               }
+            }
+         }
+      }
+   }
+   free( points );
+   return jResult;
+}
+
 JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Region_getUnc(
    JNIEnv *env,          /* Interface pointer */
    jobject this,         /* Instance object */

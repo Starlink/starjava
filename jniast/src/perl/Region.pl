@@ -56,6 +56,17 @@ makeNativeMethod(
 );
 
 makeNativeMethod(
+   name => ( $fName = "getRegionPoints" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   params => [],
+   return => {
+      type => 'double[][]',
+      descrip => ArgDescrip( $fName, "points" ),
+   },
+);
+
+makeNativeMethod(
    name => ( $fName = "getUnc" ),
    purpose => FuncPurpose( $fName ),
    descrip => FuncDescrip( $fName ),

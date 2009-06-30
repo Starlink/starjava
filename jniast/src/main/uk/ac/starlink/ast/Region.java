@@ -44,7 +44,12 @@ package uk.ac.starlink.ast;
  * is not a true inverse of the forward transformation, since applying
  * the forward transformation to a point outside the Region, and then
  * applying the inverse transformation results, in a set of AST__BAD axis
- * values rather than the original axis values.
+ * values rather than the original axis values. If required, the 
+ * astRemoveRegions 
+ * function can be used to remove the "masking" effect of any Regions
+ * contained within a compound Mapping or FrameSet. It does this by 
+ * replacing each Region with a UnitMap or equivalent Frame (depending
+ * on the context in which the Region is used).
  * <p>
  * If the coordinate system represented by the Region is changed (by
  * changing the values of one or more of the attribute which the Region
@@ -142,6 +147,32 @@ public abstract class Region extends Frame {
     public native Frame getRegionFrame(  );
 
     /** 
+     * Returns the positions that define the given Region.   
+     * This function 
+     * returns the axis values at the points that define the supplied
+     * Region. The particular meaning of these points will depend on the
+     * type of class supplied, as listed below under "Applicability:".
+     * <h4>Notes</h4>
+     * <br> - If the coordinate system represented by the Region has been
+     * changed since it was first created, the returned axis values refer 
+     * to the new (changed) coordinate system, rather than the original
+     * coordinate system. Note however that if the transformation from
+     * original to new coordinate system is non-linear, the shape within
+     * the new coordinate system may be distorted, and so may not match
+     * that implied by the name of the Region subclass (Circle, Box, etc).
+     * 
+     * @return  The address of the first element in a 2-dimensional array of 
+     * shape "[maxcoord][maxpoint]", in which to return
+     * the coordinate values at the positions that define the Region.
+     * These are stored such that the value of coordinate number 
+     * "coord" for point number "point" is found in element 
+     * "points[coord][point]".
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double[][] getRegionPoints(  );
+
+    /** 
      * Obtain uncertainty information from a Region.   
      * This function returns a Region which represents the uncertainty
      * associated with positions within the supplied Region. See
@@ -164,8 +195,7 @@ public abstract class Region extends Frame {
      * associated explicitly with the supplied Region. If
      * a non-zero value
      * is supplied, then the default uncertainty Region used internally 
-     * within AST is returned. This will usually be a small fraction of the 
-     * bounding box of the supplied Region. If
+     * within AST is returned (see "Applicability" below). If
      * zero is supplied, then NULL
      * will be returned (without error).
      * 
