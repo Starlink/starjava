@@ -1017,7 +1017,7 @@ public class AstTest extends TestCase {
                                             "that Mary went the lamb "+
                                             "was sure to go.",
                                             AstException.AST__BADUN );
-        assertTrue( e3.getMessage().contains( "sure to go." ) );
+        assertTrue( e3.getMessage().indexOf( "sure to go." ) > 0 );
     }
 
     public static Test suite() {
