@@ -95,9 +95,6 @@ public class RegionTest extends TestCase {
         double[][] points = { { 1, 2, 3, 4 }, { 101, 102, 103, 104 } };
         PointList plist = new PointList( frm, 4, points, null );
         assertEquals( 4, plist.getListSize() );
-        assertArrayEquals( points[ 0 ], plist.points()[ 0 ] );
-        assertArrayEquals( points[ 1 ], plist.points()[ 1 ] );
-        assertEquals( 2, plist.points().length );
         assertBounds( plist, 1, 101, 4, 104 );
         plist = new PointList( frm, 4, points, box( .01, .01, .01, .01 ) );
 
