@@ -37,7 +37,6 @@
 
 /* Typedefs. */
 typedef struct {
-   JNIEnv *env;
    jobject object; 
    jmethodID sourceMethodID;
    jmethodID sinkMethodID;
@@ -123,11 +122,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_destroy(
    infopointer.jlong = (*env)->GetLongField( env, this, ChaninfoFieldID );
    if ( infopointer.ptr != NULL && refcnt == 1 ) {
 
-      /* Store necessary pointers in the chaninfo structure, where 
-       * sinkWrap() will be able to find it.  SinkWrap is about to get 
-       * called during object destruction. */
-      fillChaninfo( env, this );
-
       /* Annul the object.  Since we know that the reference count is unity,
        * this will result in object destruction, and hence invocations
        * of sourceWrap. */
@@ -142,6 +136,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_destroy(
 
       /* Free the chaninfo structure. */
       chaninfo = (ChanInfo *) infopointer.ptr;
+      (*env)->DeleteGlobalRef( env, chaninfo->object );
       free( chaninfo );
     
       /* Record that destruction has happened. */
@@ -515,8 +510,12 @@ static void fillChaninfo( JNIEnv *env, jobject this ) {
       chaninfo = (ChanInfo *) infopointer.ptr;
 
       /* Fill the chaninfo structure with the required pointers. */
-      chaninfo->env = env;
-      chaninfo->object = this;
+      /* The Global Reference here is required as things are currently 
+       * done to make sure that the reference can be used from later
+       * methods.  However, I believe it constitutes a memory leak;
+       * the presence of this reference prevents the FitsChan from ever
+       * being garbage collected. */
+      chaninfo->object = (*env)->NewGlobalRef( env, this );
       chaninfo->sourceMethodID = (*env)->GetMethodID( env, clazz, "source",
                                                       "()Ljava/lang/String;" );
       chaninfo->sinkMethodID = (*env)->GetMethodID( env, clazz, "sink",
@@ -581,7 +580,7 @@ static char *sourceWrap( const char *(* source)( void ), int *status ) {
    retval = NULL;
 
    /* Get the information from the chaninfo structure. */
-   env = chaninfo->env;
+   env = jniastGetEnv();
    this = chaninfo->object;
    sourceMethodID = chaninfo->sourceMethodID;
    if ( ! (*env)->ExceptionCheck( env ) ) {
@@ -653,7 +652,7 @@ static void sinkWrap( void (* sink)( const char * ), const char *line,
    if ( !astOK ) return;
 
    /* Get required pointers from the chaninfo structure */
-   env = chaninfo->env;
+   env = jniastGetEnv();
    this = chaninfo->object;
    sinkMethodID = chaninfo->sinkMethodID;
    if ( ! (*env)->ExceptionCheck( env ) ) {
