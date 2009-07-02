@@ -59,6 +59,10 @@ public class FitsChanTest extends TestCase {
         }
     }
 
+    public void testEmptyPurge() {
+        new FitsChan().purgeWCS();
+    }
+
     private void assertContains( String val, String substr ) {
         if ( val.indexOf( substr ) < 0 ) {
             fail( "String \"" + val.trim() + "\" does not contain \"" 
