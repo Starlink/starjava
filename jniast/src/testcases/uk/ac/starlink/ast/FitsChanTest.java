@@ -1,5 +1,6 @@
 package uk.ac.starlink.ast;
 
+import java.util.Iterator;
 import junit.framework.TestCase;
 
 public class FitsChanTest extends TestCase {
@@ -61,6 +62,28 @@ public class FitsChanTest extends TestCase {
 
     public void testEmptyPurge() {
         new FitsChan().purgeWCS();
+    }
+
+    public void testSourceException() {
+        Iterator uselessIt = new Iterator() {
+            public void remove() {
+                throw new UnsupportedOperationException( "not supported" );
+            }
+            public boolean hasNext() {
+                return true;
+            }
+            public Object next() {
+                throw new UnsupportedOperationException( "useless" );
+            }
+        };
+        FitsChan fc = new FitsChan( uselessIt );
+        try {
+            fc.findFits( "XXX", false );
+            fail();
+        }
+        catch ( UnsupportedOperationException e ) {
+            assertEquals( "useless", e.getMessage() );
+        }
     }
 
     private void assertContains( String val, String substr ) {

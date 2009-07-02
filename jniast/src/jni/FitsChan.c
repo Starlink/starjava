@@ -588,14 +588,9 @@ static char *sourceWrap( const char *(* source)( void ), int *status ) {
       /* Invoke this FitsChan's source method to get the line as a String. */
       jLine = (jstring) (*env)->CallObjectMethod( env, this, sourceMethodID );
 
-      /* Signal to AST if an exception has occurred. */
-      if ( (*env)->ExceptionCheck( env ) ) {
-         astSetStatus( SAI__ERROR );
-      }
-
       /* If the source method completed successfully, turn the String into
        * an array of chars and copy it into dynamic memory. */
-      else if ( jLine != NULL ) {
+      if ( ! (*env)->ExceptionCheck( env ) && jLine != NULL ) {
          line = jniastGetUTF( env, jLine );
          retval = astMalloc( strlen( line ) + 1 );
          if ( retval != NULL ) {
@@ -666,9 +661,6 @@ static void sinkWrap( void (* sink)( const char * ), const char *line,
             (*env)->CallVoidMethod( env, this, sinkMethodID, jLine );
          }
       }
-   }
-   if ( (*env)->ExceptionCheck( env ) ) {
-      astSetStatus( SAI__ERROR );
    }
 }
 
