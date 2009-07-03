@@ -64,8 +64,7 @@ public class ConeSearch {
     public ConeSearch( RegResource resource,
                        RegCapabilityInterface capability ) {
         this( capability.getAccessUrl() );
-        if ( ! RegCapabilityInterface
-              .CONE_STDID.equals( capability.getStandardId() ) ) {
+        if ( ! Capability.CONE.isInstance( capability ) ) {
             logger_.warning( capability.getAccessUrl()
                            + " doesn't look like a cone search" );
         }
@@ -219,8 +218,7 @@ public class ConeSearch {
      */
     public static DescribedValue[] getMetadata( RegResource resource,
                                                 RegCapabilityInterface cap ) {
-        if ( ! RegCapabilityInterface
-              .CONE_STDID.equals( cap.getStandardId() ) ) {
+        if ( ! Capability.CONE.isInstance( cap ) ) {
             logger_.warning( cap.getAccessUrl()
                            + " doesn't look like a cone search" );
         }

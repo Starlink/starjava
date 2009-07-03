@@ -14,10 +14,10 @@ public class RegistryTest extends TestCase {
     }
 
     public void testContents() throws Exception {
+        final String ssaStdId = "ivo://ivoa.net/std/SSA";
         RegistryQuery query =
             new RegistryQuery( RegistryQuery.AG_REG,
-                               "capability/@standardID = '"
-                             + RegCapabilityInterface.SSA_STDID + "'" );
+                               "capability/@standardID = '" + ssaStdId + "'" );
         int nres = 0;
         int ncap = 0;
         for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {
@@ -26,8 +26,7 @@ public class RegistryTest extends TestCase {
             RegCapabilityInterface[] caps = res.getCapabilities();
             ncap += caps.length;
             for ( int ic = 0; ic < caps.length; ic++ ) {
-                assertEquals( RegCapabilityInterface.SSA_STDID,
-                              caps[ ic ].getStandardId() );
+                assertEquals( ssaStdId, caps[ ic ].getStandardId() );
             }
         }
         assertTrue( nres > 10 );

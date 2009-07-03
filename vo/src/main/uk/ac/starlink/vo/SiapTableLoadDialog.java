@@ -36,9 +36,7 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
     public SiapTableLoadDialog() {
         super( "SIAP Query",
                "Get results of a Simple Image Access Protocol query",
-               new KeywordServiceQueryFactory( RegCapabilityInterface
-                                              .SIA_STDID ),
-               false );
+               new KeywordServiceQueryFactory( Capability.SIA ), false );
         skyEntry_ = new SkyPositionEntry( "J2000" );
         raField_ = skyEntry_.getRaDegreesField();
         decField_ = skyEntry_.getDecDegreesField();
@@ -91,8 +89,7 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
         RegCapabilityInterface[] caps = super.getCapabilities( resource );
         List siapcapList = new ArrayList();
         for ( int i = 0; i < caps.length; i++ ) {
-            if ( RegCapabilityInterface.SIA_STDID
-                .equals( caps[ i ].getStandardId() ) ) {
+            if ( Capability.SIA.isInstance( caps[ i ] ) ) {
                 siapcapList.add( caps[ i ] );
             }
         }

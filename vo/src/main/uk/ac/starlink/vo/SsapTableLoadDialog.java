@@ -34,9 +34,7 @@ public class SsapTableLoadDialog extends RegistryServiceTableLoadDialog {
     public SsapTableLoadDialog() {
         super( "SSAP Query",
                "Get results of a Simple Spectrum Access Protocol query",
-               new KeywordServiceQueryFactory( RegCapabilityInterface
-                                              .SSA_STDID ),
-               false );
+               new KeywordServiceQueryFactory( Capability.SSA ), false );
         skyEntry_ = new SkyPositionEntry( "J2000" );
         raField_ = skyEntry_.getRaDegreesField();
         decField_ = skyEntry_.getDecDegreesField();
@@ -90,8 +88,7 @@ public class SsapTableLoadDialog extends RegistryServiceTableLoadDialog {
         RegCapabilityInterface[] caps = super.getCapabilities( resource );
         List ssapcapList = new ArrayList();
         for ( int i = 0; i < caps.length; i++ ) {
-            if ( RegCapabilityInterface.SSA_STDID
-                .equals( caps[ i ].getStandardId() ) ) {
+            if ( Capability.SSA.isInstance( caps[ i ] ) ) {
                 ssapcapList.add( caps[ i ] );
             }
         }

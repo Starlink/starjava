@@ -17,18 +17,6 @@ package uk.ac.starlink.vo;
  */
 public interface RegCapabilityInterface {
 
-    /** Standard ID value identifying Cone Search services. */
-    public static final String CONE_STDID = "ivo://ivoa.net/std/ConeSearch";
-
-    /** Standard ID value identifying Simple Image Access services. */
-    public static final String SIA_STDID = "ivo://ivoa.net/std/SIA";
-
-    /** Standard ID value identifying Simple Spectral Access services. */
-    public static final String SSA_STDID = "ivo://ivoa.net/std/SSA";
-
-    /** Standard ID value identifying a Registry service. */
-    public static final String REG_STDID = "ivo://ivoa.net/std/Registry";
-
     /**
      * Returns the access URL.
      *
@@ -44,6 +32,15 @@ public interface RegCapabilityInterface {
      * @return  standard ID identifier URI
      */
     String getStandardId();
+
+    /**
+     * Returns the xsi:type of this capability.
+     * This seems to provide similar information to that in the standardId,
+     * but these fields are used in different ways by different registries.
+     *
+     * @return  capability/@xsi:type
+     */
+    String getXsiType();
 
     /**
      * Returns a textual description of this capability.

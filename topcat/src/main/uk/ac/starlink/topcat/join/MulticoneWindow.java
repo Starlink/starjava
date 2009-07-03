@@ -13,6 +13,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.vo.Capability;
 import uk.ac.starlink.vo.ConeSearch;
 import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.KeywordServiceQueryFactory;
@@ -40,9 +41,8 @@ public class MulticoneWindow extends AuxWindow {
         /* Set up a registry query panel suitable for selecting cone 
          * search services. */
         final RegistryPanel regPanel =
-            new RegistryPanel( new KeywordServiceQueryFactory(
-                                       RegCapabilityInterface.CONE_STDID ),
-                               true ) {
+            new RegistryPanel( new KeywordServiceQueryFactory( Capability
+                                                              .CONE ), true ) {
             
                 public RegCapabilityInterface[]
                        getCapabilities( RegResource res ) {

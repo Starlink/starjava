@@ -52,6 +52,7 @@ public class VORegResource implements RegResource {
         for ( int ic = 0; ic < capBlocks.length; ic++ ) {
             Metadata capBlock = capBlocks[ ic ];
             final String standardId = capBlock.getParameter( "@standardID" );
+            final String xsiType = capBlock.getParameter( "@xsi:type" );
             final String description = capBlock.getParameter( "description" );
             Metadata[] intfs = capBlock.getBlocks( "interface" );
             for ( int ii = 0; ii < intfs.length; ii++ ) {
@@ -65,6 +66,9 @@ public class VORegResource implements RegResource {
                     }
                     public String getStandardId() {
                         return standardId;
+                    }
+                    public String getXsiType() {
+                        return xsiType;
                     }
                     public String getDescription() {
                         return description; 

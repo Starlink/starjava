@@ -14,6 +14,7 @@ public class SSAPRegCapability
     private String standardId;
     private String description;
     private String version;
+    private String xsiType;
 
     /**
      * Constructor.
@@ -33,6 +34,7 @@ public class SSAPRegCapability
         standardId= rci.getStandardId();
         description = rci.getDescription();
         version = rci.getVersion();
+        xsiType = rci.getXsiType();
     }
 
     public String getAccessUrl()
@@ -73,5 +75,15 @@ public class SSAPRegCapability
     public void setVersion( String version )
     {
         this.version = version;
+    }
+
+    public String getXsiType()
+    {
+        return xsiType;
+    }
+
+    public void setXsiType( String xsiType )
+    {
+        this.xsiType = xsiType;
     }
 }

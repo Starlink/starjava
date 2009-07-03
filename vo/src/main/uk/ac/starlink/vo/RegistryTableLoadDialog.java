@@ -29,10 +29,9 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
 
     /** List of preset queries available by default. */
     public static String[] defaultQueries_ = new String[] {
-        "capability/@standardID = '" + RegCapabilityInterface.CONE_STDID + "'",
-        "capability/@standardID = '" + RegCapabilityInterface.SIA_STDID + "'",
-        "capability/@standardID = '" + RegCapabilityInterface.SSA_STDID + "'",
-        "capability/@standardID = '" + RegCapabilityInterface.REG_STDID + "'",
+        Capability.CONE.getAdql(),
+        Capability.SIA.getAdql(),
+        Capability.SSA.getAdql(),
     };
 
     /**

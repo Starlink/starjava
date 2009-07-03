@@ -71,6 +71,9 @@ public class RegistryStarTable extends ColumnStarTable {
             public String getStandardId() {
                 return null;
             }
+            public String getXsiType() {
+                return null;
+            }
             public String getVersion() {
                 return null;
             }

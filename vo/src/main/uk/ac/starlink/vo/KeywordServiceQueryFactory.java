@@ -21,7 +21,7 @@ import javax.swing.JTextField;
  */
 public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
-    private final String baseQuery_;
+    private final Capability capability_;
     private final JComponent queryPanel_;
     private final RegistrySelector urlSelector_;
     private final JTextField keywordField_;
@@ -41,10 +41,10 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
      * Constructs a query factory which looks for services with a particular
      * standard ID.
      *
-     * @param  standardId  capability/@standardID value required for all results
+     * @param  capability  description of capability which all results must have
      */
-    public KeywordServiceQueryFactory( String standardId ) {
-        baseQuery_ = "( capability/@standardID = '" + standardId + "' )";
+    public KeywordServiceQueryFactory( Capability capability ) {
+        capability_ = capability;
         queryPanel_ = new Box( BoxLayout.Y_AXIS ) {
             public void setEnabled( boolean enabled ) {
                 super.setEnabled( enabled );
@@ -106,7 +106,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                           ? new String[ 0 ]
                           : keyText.trim().split( "\\s+" );
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( baseQuery_ );
+        sbuf.append( capability_.getAdql() );
         if ( keywords.length > 0 ) {
             sbuf.append( " and ( " );
             for ( int iw = 0; iw < keywords.length; iw++ ) {

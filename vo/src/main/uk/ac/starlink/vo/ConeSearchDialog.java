@@ -32,9 +32,7 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
     public ConeSearchDialog() {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
-               new KeywordServiceQueryFactory( RegCapabilityInterface
-                                              .CONE_STDID ),
-               true );
+               new KeywordServiceQueryFactory( Capability.CONE ), true );
         skyEntry_ = new SkyPositionEntry( "J2000" );
         raField_ = skyEntry_.getRaDegreesField();
         decField_ = skyEntry_.getDecDegreesField();
@@ -103,8 +101,7 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
                   selectConeSearches( RegCapabilityInterface[] caps ) {
         List cscapList = new ArrayList();
         for ( int i = 0; i < caps.length; i++ ) {
-            if ( RegCapabilityInterface.CONE_STDID
-                .equals( caps[ i ].getStandardId() ) ) {
+            if ( Capability.CONE.isInstance( caps[ i ] ) ) {
                 cscapList.add( caps[ i ] );
             }
         }

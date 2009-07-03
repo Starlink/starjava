@@ -32,7 +32,7 @@ public class RegistryQuery {
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     private static final String SEARCHABLE_REG_QUERY =
-        "capability/@standardID = '" + RegCapabilityInterface.REG_STDID + "'" +
+        "capability/@standardID = 'ivo://ivoa.net/std/Registry'" +
         " AND " +
         "capability/@xsi:type LIKE '%:Search'" +
         " AND " +
@@ -226,8 +226,8 @@ public class RegistryQuery {
                 RegCapabilityInterface[] caps = res.getCapabilities();
                 for ( int ic = 0; ic < caps.length; ic++ ) {
                     RegCapabilityInterface cap = caps[ ic ];
-                    if ( RegCapabilityInterface.REG_STDID
-                        .equals( cap.getStandardId() ) ) {
+                    String xsiType = cap.getXsiType();
+                    if ( xsiType != null && xsiType.endsWith( ":Search" ) ) {
                         String acurl = cap.getAccessUrl();
                         if ( acurl != null ) {
                             acurlSet.add( acurl );
