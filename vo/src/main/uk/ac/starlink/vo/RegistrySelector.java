@@ -34,10 +34,6 @@ public class RegistrySelector extends JPanel {
 
     private final JComboBox comboBox_;
     private final Action updateAction_;
-    public static final String[] KNOWN_REGISTRIES = new String[] {
-        RegistryQuery.AG_REG,
-        RegistryQuery.NVO_REG,
-    };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -61,7 +57,8 @@ public class RegistrySelector extends JPanel {
                 }
             }
         };
-        comboBox_.setModel( new DefaultComboBoxModel( KNOWN_REGISTRIES ) );
+        comboBox_.setModel( new DefaultComboBoxModel( RegistryQuery
+                                                     .REGISTRIES ) );
         comboBox_.setEditable( true );
         comboBox_.setSelectedIndex( 0 );
         comboBox_.setToolTipText( "Endpoint of VOResource 1.0"
@@ -125,7 +122,7 @@ public class RegistrySelector extends JPanel {
      */
     private void updateSelector( String[] acurls ) {
         Vector vec = new Vector();
-        vec.addAll( Arrays.asList( KNOWN_REGISTRIES ) );
+        vec.addAll( Arrays.asList( RegistryQuery.REGISTRIES ) );
         vec.addAll( Arrays.asList( acurls ) );
         Dimension size = comboBox_.getPreferredSize();
         comboBox_.setModel( new DefaultComboBoxModel( vec ) );

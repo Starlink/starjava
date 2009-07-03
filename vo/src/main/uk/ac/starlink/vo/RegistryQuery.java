@@ -51,16 +51,23 @@ public class RegistryQuery {
     /** Endpoint for primary AstroGrid registry. */
     public static final String AG_REG;
 
+    /** Endpoint for secondary AstroGrid registry. */
+    public static final String AG_REG2;
+
     /** Endpoint for NVO registry. */
     public static final String NVO_REG;
 
+    /** Endpoint for Euro-VO registry. */
+    public static final String EUROVO_REG;
+
     /** List of likely registries. */
     public static final String[] REGISTRIES = new String[] {
-        AG_REG =
-        "http://registry.astrogrid.org/astrogrid-registry/services/"
-            + "RegistryQueryv1_0",
-        NVO_REG =
-        "http://nvo.stsci.edu/vor10/ristandardservice.asmx",
+        AG_REG = "http://registry.astrogrid.org/"
+               + "astrogrid-registry/services/RegistryQueryv1_0",
+        AG_REG2 = "http://alt.registry.astrogrid.org/"
+               + "astrogrid-registry/services/RegistryQueryv1_0",
+        NVO_REG = "http://nvo.stsci.edu/vor10/ristandardservice.asmx",
+        EUROVO_REG = "http://registry.euro-vo.org/services/RegistrySearch",
     };
 
     /**

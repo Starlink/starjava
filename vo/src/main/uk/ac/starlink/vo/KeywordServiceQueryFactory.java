@@ -28,12 +28,6 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     private final JButton andButton_;
     private boolean or_;
 
-    /** Known registry URLs.  */
-    public static String[] KNOWN_REGISTRIES = new String[] {
-        RegistryQuery.AG_REG,
-        RegistryQuery.NVO_REG,
-    };
-
     /** VOResource fields compared to keywords. */
     public static final String[] MATCHED_FIELDS = new String[] {
         "identifier",
