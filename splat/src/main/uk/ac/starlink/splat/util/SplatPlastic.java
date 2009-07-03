@@ -177,15 +177,13 @@ public class SplatPlastic
                 //  UTYPEs and UCDs, maybe UTYPES should be sdm:ssa.xxx.
                 //  Many of the SSAP response UTYPEs don't seem documented yet.
                 if ( key.equals( "vox:spectrum_format" ) ||
-                     key.equals( "access.format" ) ) {
+                     utypeMatches( key, "access.format" ) ) {
                     props.setType( specDataFactory.mimeToSPLATType( value ) );
                 }
                 else if ( key.equals( "vox:image_title" ) ||
-                          key.equals( "target.name" ) ) {
+                          utypeMatches( key, "target.name" ) ) {
                     props.setShortName( value );
                 }
-                //  Suspect these will be separate UTYPEs,
-                //  data.spectralaxis.value and data.fluxaxis.value.
                 else if ( key.equals( "vox:spectrum_axes" ) ) {
                     axes = value.split( "\\s" );
                     props.setCoordColumn( axes[0] );
@@ -196,8 +194,12 @@ public class SplatPlastic
                         }
                     }
                 }
-                //  Suspect these will be separate UTYPEs,
-                //  data.spectralaxis.unit and data.fluxaxis.unit.
+                else if ( utypeMatches( key, "Dataset.SpectralAxis" ) ) {
+                    props.setCoordColumn( value );
+                }
+                else if ( utypeMatches( key, "Dataset.FluxAxis" ) ) {
+                    props.setDataColumn( value );
+                }
                 else if ( key.equals( "vox:spectrum_units" ) ) {
                     units = value.split("\\s");
                     props.setCoordUnits( units[0] );
@@ -208,5 +210,25 @@ public class SplatPlastic
             }
         }
         return props;
+    }
+
+    /**
+     * Determines whether a given map key corresponds to a utype string.
+     *
+     * @param   key  provided map key
+     * @param   utype  UType to test against, without namespacing
+     * @return  true iff they appear to match
+     */
+    private static boolean utypeMatches( String key, String utype )
+    {
+        // Not sure what the correct utype namespacing is, if anything;
+        // be liberal about that, and about case sensitivity, for now.
+        if ( key == null ) {
+            return false;
+        }
+        String lKey = key.toLowerCase();
+        String lUtype = utype.toLowerCase();
+        return lKey.equals( lUtype )
+            || lKey.endsWith( ":" + lUtype );
     }
 }
