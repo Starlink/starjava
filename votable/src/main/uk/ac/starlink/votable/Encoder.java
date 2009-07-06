@@ -101,10 +101,25 @@ abstract class Encoder {
                 attMap.put( "ID", id.trim() );
             }
 
+            /* Ref attribute. */
+            String ref = (String) cinfo.getAuxDatumValue( VOStarTable.REF_INFO,
+                                                          String.class );
+            if ( ref != null && ref.trim().length() > 0 ) {
+                attMap.put( "ref", ref.trim() );
+            }
+
             /* UType attribute. */
             String utype = Tables.getUtype( cinfo );
             if ( utype != null && utype.trim().length() > 0 ) {
                 attMap.put( "utype", utype.trim() );
+            }
+
+            /* XType attribute. */
+            String xtype =
+                (String) cinfo.getAuxDatumValue( VOStarTable.XTYPE_INFO,
+                                                 String.class );
+            if ( xtype != null && xtype.trim().length() > 0 ) {
+                attMap.put( "xtype", xtype.trim() );
             }
 
             /* Width attribute. */

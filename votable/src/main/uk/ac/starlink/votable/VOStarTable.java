@@ -68,6 +68,10 @@ public class VOStarTable extends AbstractStarTable {
     /** ValueInfo for VOTable <tt>utype</tt> attribute. */
     public final static ValueInfo UTYPE_INFO = Tables.UTYPE_INFO;
 
+    /** ValueInfo for VOTable <tt>xtype</tt> attribute. */
+    public final static ValueInfo XTYPE_INFO = new DefaultValueInfo(
+        "xtype", String.class, "VOTable xtype attribute" );
+
     /** ValueInfo for VOTable <tt>width</tt> attribute. */
     public final static ValueInfo WIDTH_INFO = new DefaultValueInfo(
         "VOTable width", Integer.class, "VOTable width attribute" );
@@ -75,6 +79,10 @@ public class VOStarTable extends AbstractStarTable {
     /** ValueInfo for VOTable <tt>precision</tt> attribute. */
     public final static ValueInfo PRECISION_INFO = new DefaultValueInfo(
         "VOTable precision", String.class, "VOTable precision attribute" );
+
+    /** ValueInfo for VOTable <tt>ref</tt> attribute. */
+    public final static ValueInfo REF_INFO = new DefaultValueInfo(
+        "VOTable ref", String.class, "VOTable ref attribute" );
 
     /** ValueInfo for VOTable <tt>type</tt> attribute. */
     public final static ValueInfo TYPE_INFO = new DefaultValueInfo(
@@ -85,8 +93,8 @@ public class VOStarTable extends AbstractStarTable {
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
 
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        ID_INFO, datatypeInfo, nullInfo, UTYPE_INFO,
-        WIDTH_INFO, PRECISION_INFO, TYPE_INFO,
+        ID_INFO, datatypeInfo, nullInfo, UTYPE_INFO, XTYPE_INFO,
+        WIDTH_INFO, PRECISION_INFO, REF_INFO, TYPE_INFO,
     } );
 
     /**
@@ -199,6 +207,16 @@ public class VOStarTable extends AbstractStarTable {
                 if ( field.hasAttribute( "utype" ) ) {
                     String utype = field.getAttribute( "utype" );
                     Tables.setUtype( cinfo, utype );
+                }
+
+                if ( field.hasAttribute( "xtype" ) ) {
+                    String xtype = field.getAttribute( "xtype" );
+                    auxdata.add( new DescribedValue( XTYPE_INFO, xtype ) );
+                }
+
+                if ( field.hasAttribute( "ref" ) ) {
+                    String ref = field.getAttribute( "ref" );
+                    auxdata.add( new DescribedValue( REF_INFO, ref ) );
                 }
 
                 VOElement[] links = field.getChildrenByName( "LINK" );
