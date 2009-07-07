@@ -63,9 +63,10 @@ public class TableSendActionManager extends IndividualCallActionManager
         TopcatModel tcModel = controlWindow_.getCurrentModel();
         if ( sender != null && tcModel != null ) {
             StarTable table = tcModel.getApparentStarTable();
-            String label = Integer.toString( tcModel.getID() );
+            String ident = Integer.toString( tcModel.getID() );
+            String name = tcModel.getLabel();
             String sampId = sampControl_.getTableId( tcModel );
-            return sender.createMessage( table, label, sampId );
+            return sender.createMessage( table, ident, name, sampId );
         }
         else {
             return null;
@@ -161,18 +162,28 @@ public class TableSendActionManager extends IndividualCallActionManager
          * Returns a message suitable for sending a table.
          *
          * @param   table  table to send
-         * @param   informative label (uniqueness not essential)
+         * @param   ident  informal table identifier used for constructing URL;
+         *                 should not contain weird characters,
+         *                 but uniqueness is not essential
+         * @param   name   informal table name for human consumption;
+         *                 free form text, uniqueness is not essential,
+         *                 may be null
          * @param   sampId  table ID, unique to relevant parts of table state
          * @return  send message
          */
-        public Message createMessage( StarTable table, String label,
-                                      String sampId ) throws IOException {
-            String name = "t" + label + extension_;
+        public Message createMessage( StarTable table, String ident,
+                                      String name, String sampId )
+                throws IOException {
+            String fname = "t" + ident + extension_;
             URL turl = TopcatServer.getInstance()
-                      .addResource( name, createResource( table ) );
-            return new Message( getMtype() )
-                          .addParam( "url", turl.toString() )
-                          .addParam( "table-id", sampId );
+                      .addResource( fname, createResource( table ) );
+            Message msg = new Message( getMtype() );
+            msg.addParam( "url", turl.toString() );
+            msg.addParam( "table-id", sampId );
+            if ( name != null && name.trim().length() > 0 ) {
+                msg.addParam( "name", name );
+            }
+            return msg;
         }
 
         /**

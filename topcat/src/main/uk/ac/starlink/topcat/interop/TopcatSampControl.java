@@ -567,11 +567,12 @@ public class TopcatSampControl {
             final boolean success0 = success;
             final Throwable error0 = error;
             final StarTable table0 = table;
+            final String tableId = (String) msg.getParam( "table-id" );
+            final String tableName = (String) msg.getParam( "name" );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( success0 ) {
-                        load( table0, (String) msg.getParam( "table-id" ),
-                              senderId );
+                        load( table0, tableId, tableName, senderId );
                     }
                     else {
                         ErrorDialog.showError( controlWindow_,
@@ -602,15 +603,20 @@ public class TopcatSampControl {
          *
          * @param   table  table to load
          * @param   key    table id for later reference, or null
+         * @param   label  table label for informal naming
          * @param   senderId  public identifier for sending client
          */
-        private void load( StarTable table, String key, String senderId ) {
+        private void load( StarTable table, String key, String label,
+                           String senderId ) {
             String name = table.getName();
             String title = name == null ? getClientName( senderId )
                                         : name;
             TopcatModel tcModel = controlWindow_.addTable( table, title, true );
             if ( key != null && key.trim().length() > 0 ) {
                 idMap_.put( key, new TableWithRows( tcModel, null ) );
+            }
+            if ( label != null && label.trim().length() > 0 ) {
+                tcModel.setLabel( label );
             }
         }
     }
