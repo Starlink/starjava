@@ -233,7 +233,7 @@ public abstract class SpecTransmitter
             //  gets distracted by the primary array.
             if ( locUrl == null ) {
                 tmpFile = File.createTempFile( "spec", ".fits" );
-                //tmpFile.deleteOnExit();
+                tmpFile.deleteOnExit();
                 locUrl = URLUtils.makeFileURL( tmpFile );
                 mime = "application/fits";
                 try {
@@ -295,7 +295,7 @@ public abstract class SpecTransmitter
                                                Collections
                                               .singletonList( app.getId() ) );
                     if ( tmpFile0 != null ) {
-                        //tmpFile0.delete();
+                        tmpFile0.delete();
                     }
                 }
             }.start();

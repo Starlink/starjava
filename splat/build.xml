@@ -1439,8 +1439,6 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <jvmarg value="-Dsplat.development=${splat.development}"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
       <jvmarg value="-Dsplat.etc=${src.etc}"/>
-      <arg value="--interop"/>
-      <arg value="plastic"/>
       <arg value="src/etc/testdata/NGC1275.txt"/>
     </java>
   </target>
