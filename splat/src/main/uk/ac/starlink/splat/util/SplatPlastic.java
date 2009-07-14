@@ -81,7 +81,6 @@ public class SplatPlastic
     public Object doPerform( URI sender, URI message, List args )
         throws IOException
     {
-
         //  Return a description of this application.
         if ( MessageId.INFO_GETDESCRIPTION.equals( message ) ) {
             return Utilities.getFullDescription();
@@ -186,11 +185,13 @@ public class SplatPlastic
                 }
                 else if ( key.equals( "vox:spectrum_axes" ) ) {
                     axes = value.split( "\\s" );
-                    props.setCoordColumn( axes[0] );
-                    if ( axes.length >= 2 ) {
-                        props.setDataColumn( axes[1] );
-                        if ( axes.length == 3 ) {
-                            props.setErrorColumn( axes[2] );
+                    if ( axes.length > 0  ) {
+                        props.setCoordColumn( axes[0] );
+                        if ( axes.length > 1 ) {
+                            props.setDataColumn( axes[1] );
+                            if ( axes.length == 3 ) {
+                                props.setErrorColumn( axes[2] );
+                            }
                         }
                     }
                 }
@@ -202,9 +203,11 @@ public class SplatPlastic
                 }
                 else if ( key.equals( "vox:spectrum_units" ) ) {
                     units = value.split("\\s");
-                    props.setCoordUnits( units[0] );
-                    if ( units.length >= 2 ) {
-                        props.setDataUnits( units[1] );
+                    if ( units.length > 0  ) {
+                        props.setCoordUnits( units[0] );
+                        if ( units.length > 1 ) {
+                            props.setDataUnits( units[1] );
+                        }
                     }
                 }
             }
