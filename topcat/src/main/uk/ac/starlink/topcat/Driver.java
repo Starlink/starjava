@@ -406,7 +406,7 @@ public class Driver {
         assert nload == handlers.size();
 
         /* Start up the GUI now. */
-        getControlWindow();
+        final ControlWindow control = getControlWindow();
 
         /* Start up with demo data if requested. */
         if ( demo ) {
@@ -426,6 +426,8 @@ public class Driver {
         for ( int i = 0; i < nload; i++ ) {
             final String name = (String) names.get( i );
             String hand = (String) handlers.get( i );
+            final LoadingToken token = new LoadingToken( name );
+            control.addLoadingToken( token );
             try {
                 StarTable startab = tabfact.makeStarTable( name, hand );
                 addTableLater( tabfact.randomTable( startab ), name );
@@ -451,6 +453,13 @@ public class Driver {
                                                    "Load Error", e,
                                                    "Can't open table " + name );
                         }
+                    }
+                } );
+            }
+            finally {
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        control.removeLoadingToken( token );
                     }
                 } );
             }

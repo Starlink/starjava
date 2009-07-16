@@ -4373,6 +4373,14 @@ You can also paste the filename or URL of a table onto the table list,
 and it will be loaded.
 </p>
 
+<p>Sometimes while a table is being loaded from some source other than a
+load window (e.g. a table specified on the command line or received from
+an incoming SAMP or PLASTIC message) a greyed-out entry will appear in
+this list with text like "<em>Loading SAMP table</em>" or similar.
+Such entries cannot be selected, but they let you know that something
+is happening.
+</p>
+
 </subsubsect>
 
 <subsubsect>
@@ -11839,19 +11847,21 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Next Version</dt>
 <dd><p>
     <ul>
     <li>Plot windows now allow a plot title to be set from the
         <label>Configure Axes and Title</label> window
-        (<ref id="axisConfig"/>).
-        </li>
+        (<ref id="axisConfig"/>).</li>
+    <li>Loading message now displayed in control window table list 
+        when table is being loaded from PLASTIC or SAMP, or during startup.</li>
+    <li>Incoming and outgoing SAMP <code>load.table</code> messages now use 
+        the <code>name</code> parameter, which gives a better chance of a
+        useful human-readable name being attached to transmitted tables.</li>
     <li>Sexagesimal delimiters can now be spaces as alternative to colons
         in Cone/SSA/SIA load dialogues.</li>
     <li>GAVO load dialogue updated in line with modified database service.</li>
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
-    <li>Loading message now displayed in control window table list 
-        when table is being loaded from PLASTIC or SAMP.</li>
     <li>Produce null rather than nonsense results from sky coordinate 
         conversions with unphysical latitudes.</li>
     <li>Produce null rather than questionable results from sexagesimal
@@ -11861,9 +11871,6 @@ introduced since the last version:
         generic Java icon, and the menu application name is set to 
         "TOPCAT" rather than the classname.  Note these don't take effect
         if running directly using <code>java -jar</code>.</li>
-    <li>Incoming and outgoing SAMP <code>load.table</code> messages now use 
-        the <code>name</code> parameter, which gives a better chance of a
-        useful human-readable name being attached to transmitted tables.</li>
     </ul>
     </p></dd>
 

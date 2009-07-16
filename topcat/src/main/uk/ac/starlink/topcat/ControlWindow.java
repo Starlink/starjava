@@ -57,6 +57,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
@@ -223,9 +224,9 @@ public class ControlWindow extends AuxWindow
 
         /* Set up a split pane in the main panel. */
         JSplitPane splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
+        JList loadingList = new LoadingList( loadingModel_ );
         JScrollPane listScroller =
-            new JScrollPane( new JList2( tablesList_,
-                                         new LoadingList( loadingModel_ ) ) );
+            new JScrollPane( new JList2( tablesList_, loadingList ) );
         JScrollPane infoScroller = new JScrollPane( info );
         JComponent infoPanel = new JPanel( new BorderLayout() );
         infoPanel.add( infoScroller, BorderLayout.CENTER );
@@ -241,6 +242,8 @@ public class ControlWindow extends AuxWindow
         /* Configure drag and drop on the list panel. */
         tablesList_.setDragEnabled( true );
         tablesList_.setTransferHandler( bothTransferHandler_ );
+        loadingList.setTransferHandler( importTransferHandler_ );
+        listScroller.setTransferHandler( importTransferHandler_ );
 
         /* SAMP/PLASTIC interoperability. */
         communicator_ = createCommunicator( this );
@@ -1437,31 +1440,51 @@ public class ControlWindow extends AuxWindow
             return taboutput_.transferStarTable( getCurrentModel()
                                                 .getApparentStarTable() );
         }
-        public boolean importData( JComponent comp, Transferable trans ) {
+        public boolean importData( JComponent comp, final Transferable trans ) {
+
+            /* Use of loading tokens here is sort of the right thing to
+             * do, but it doesn't help much, because this method is 
+             * invoked from the AWT event dispatch thread, so you most
+             * likely never see the visual effect of it (unless the 
+             * randomise takes a long time). */
+            final LoadingToken token = new LoadingToken( "Drag'n'drop" );
+            addLoadingToken( token );
             StarTable table;
             try {
+
+                /* Would like to put this in an external thread, but can't -
+                 * the transferable becomes unusable (or at least may do)
+                 * after this method executes.  Not sure if this could be
+                 * improved by doing the drag'n'drop using custom code
+                 * rather than the Swing classes. */
                 table = tabfact_.makeStarTable( trans );
-                if ( table == null ) {
-                    return false;
-                }
             }
-            catch ( IOException e ) {
+            catch ( Throwable e ) {
+                table = null;
                 ErrorDialog.showError( window_, "Drop Error", e,
                                        "Table drop operation failed" );
+                removeLoadingToken( token );
                 return false;
             }
-            try {
-                table = tabfact_.randomTable( table );
-                String loc = table.getName();
-                loc = loc == null ? "dropped" : loc;
-                addTable( table, loc, true );
-                return true;
-            }
-            catch ( IOException e ) {
-                ErrorDialog.showError( window_, "I/O Error", e,
-                                       "Can't randomise table" );
-                return false;
-            }
+            final StarTable table0 = table;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    try {
+                        StarTable table1 = tabfact_.randomTable( table0 );
+                        String loc = table1.getName();
+                        loc = loc == null ? "dropped" : loc;
+                        addTable( table1, loc, true );
+                    }
+                    catch ( IOException e ) {
+                        ErrorDialog.showError( window_, "I/O Error", e,
+                                               "Can't randomise table" );
+                    }
+                    finally {
+                        removeLoadingToken( token );
+                    }
+                }
+            } );
+            return true;
         }
     }
 
