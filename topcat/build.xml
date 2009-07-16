@@ -489,13 +489,19 @@
           dir="${basedir}/..">
       <arg value="."/>
     </exec>
+    <copy file="${build.classes}/uk/ac/starlink/topcat/revision-string"
+        tofile="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
+    
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
       <fileset dir="${star.dir}/source/src/etc" includes="LICENCE.txt"/>
-      <fileset dir="${build.classes}"
-               includes="uk/ac/starlink/topcat/revision-string"/>
+      <fileset dir="${build.classes}">
+        <include name="uk/ac/starlink/topcat/revision-string"/>
+        <include name="uk/ac/starlink/ttools/revision-string"/>
+      </fileset>
     </zip>
     <delete file="${build.classes}/uk/ac/starlink/topcat/revision-string"/>
+    <delete file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
     <!-- Build topcat-lite.jar - minimal standalone which does basic things. -->
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
