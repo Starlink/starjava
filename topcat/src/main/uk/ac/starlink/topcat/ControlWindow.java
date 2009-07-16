@@ -415,9 +415,14 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add join/match control buttons to the toolbar. */
-        toolBar.add( matchActs_[ 1 ] );
-        toolBar.add( multiconeAct_ );
+  //  Withdraw incomplete multicone functionality temporarily for release.
+  //    toolBar.add( matchActs_[ 1 ] );
+  //    toolBar.add( multiconeAct_ );
+  //    toolBar.add( concatAct_ );
         toolBar.add( concatAct_ );
+        toolBar.add( matchActs_[ 0 ] );
+        toolBar.add( matchActs_[ 1 ] );
+
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
@@ -467,7 +472,8 @@ public class ControlWindow extends AuxWindow
         JMenu joinMenu = new JMenu( "Joins" );
         joinMenu.setMnemonic( KeyEvent.VK_J );
         joinMenu.add( concatAct_ );
-        joinMenu.add( multiconeAct_ );
+  //  Withdraw incomplete multicone functionality temporarily for release.
+  //    joinMenu.add( multiconeAct_ );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             joinMenu.add( matchActs_[ i ] );
         }
