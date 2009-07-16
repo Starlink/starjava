@@ -329,8 +329,7 @@ public class VotCopyHandler
                 log( Level.INFO, "Writing data for table " + iTable_ + 
                                  " in file " + file );
             }
-            String href = file.isAbsolute() ? file.toString()
-                                            : file.getName();
+            String href = file.toString();
             DataOutputStream datstrm = new DataOutputStream(
                                            new BufferedOutputStream(
                                                new FileOutputStream( file ) ) );
