@@ -117,9 +117,10 @@ class SAXWriter implements ContentHandler, LexicalHandler {
     public void processingInstruction( String target, String data ) 
             throws SAXException {
         flushTag();
-        out( "<?" + target );
-        escapeOut( data );
+        out( "<?" + target + " " );
+        out( data );
         out( "?>" );
+        out( "\n" );
     }
 
     public void startPrefixMapping( String prefix, String uri ) {
