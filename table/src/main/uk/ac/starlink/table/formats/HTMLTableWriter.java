@@ -17,25 +17,29 @@ import uk.ac.starlink.table.Tables;
  * The output HTML is intended to conform to HTML 3.2.
  *
  * @author   Mark Taylor (Starlink)
- * @see      <a href="http://www.w3.org/TR/REC-html32#table">
+ * @see      <a href="http://www.w3.org/TR/REC-html32#table">HTML 3.2</a>
+ * @see      <a href="http://www.w3.org/TR/html401/struct/tables.html"
+ *              >HTML 4.01</a>
  */
 public class HTMLTableWriter extends StreamStarTableWriter {
 
-    private boolean standalone;
+    private boolean standalone_;
+    private boolean useRowGroups_;
 
     /**
      * Constructs a new writer with default characteristics.
      */
     public HTMLTableWriter() {
-        this( true );
+        this( true, true  );
     }
 
     /**
      * Constructs a new writer indicating whether it will produce complete
      * or partial HTML documents.
      */
-    public HTMLTableWriter( boolean standalone ) {
+    public HTMLTableWriter( boolean standalone, boolean useRowGroups ) {
         setStandalone( standalone );
+        useRowGroups_ = useRowGroups;
     }
 
     /**
@@ -45,7 +49,7 @@ public class HTMLTableWriter extends StreamStarTableWriter {
      *          complete HTML document
      */
     public void setStandalone( boolean standalone ) {
-        this.standalone = standalone;
+        standalone_ = standalone;
     }
 
     /**
@@ -54,11 +58,11 @@ public class HTMLTableWriter extends StreamStarTableWriter {
      * @return  true if the output documents will be complete HTML docs
      */
     public boolean isStandalone() {
-        return standalone;
+        return standalone_;
     }
 
     public String getFormatName() {
-        return standalone ? "HTML" : "HTML-element";
+        return standalone_ ? "HTML" : "HTML-element";
     }
 
     public String getMimeType() {
@@ -78,7 +82,7 @@ public class HTMLTableWriter extends StreamStarTableWriter {
 
         /* Output table header. */
         try {
-            if ( standalone ) {
+            if ( standalone_ ) {
                 printHeader( ostrm, table );
             }
             printLine( ostrm, "<TABLE BORDER='1'>" );
@@ -111,12 +115,15 @@ public class HTMLTableWriter extends StreamStarTableWriter {
                 String heading = names[ icol ];
                 String unit = units[ icol ];
                 if ( hasUnits ) {
-                    heading += "<br>";
+                    heading += "<BR>";
                     if ( unit != null ){
                         heading += "(" + unit + ")";
                     }
                 }
                 headings[ icol ] = heading;
+            }
+            if ( useRowGroups_ ) {
+                printLine( ostrm, "<THEAD>" );
             }
             outputRow( ostrm, "TH", null, names );
             if ( hasUnits ) {
@@ -125,8 +132,14 @@ public class HTMLTableWriter extends StreamStarTableWriter {
 
             /* Separator. */
             printLine( ostrm, "<TR><TD colspan='" + ncol + "'></TD></TR>" );
+            if ( useRowGroups_ ) {
+                printLine( ostrm, "</THEAD>" );
+            }
 
             /* Output the table data. */
+            if ( useRowGroups_ ) {
+                printLine( ostrm, "<TBODY>" );
+            }
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
                 String[] cells = new String[ ncol ];
@@ -139,10 +152,13 @@ public class HTMLTableWriter extends StreamStarTableWriter {
                 }
                 outputRow( ostrm, "TD", null, cells );
             }
+            if ( useRowGroups_ ) {
+                printLine( ostrm, "</TBODY>" );
+            }
 
             /* Finish up. */
             printLine( ostrm, "</TABLE>" );
-            if ( standalone ) {
+            if ( standalone_ ) {
                 printFooter( ostrm );
             }
         }
@@ -158,8 +174,8 @@ public class HTMLTableWriter extends StreamStarTableWriter {
      */
     public static StarTableWriter[] getStarTableWriters() {
         return new StarTableWriter[] {
-            new HTMLTableWriter( true ),
-            new HTMLTableWriter( false ),
+            new HTMLTableWriter( true, true ),
+            new HTMLTableWriter( false, true ),
         };
     }
 
@@ -219,16 +235,19 @@ public class HTMLTableWriter extends StreamStarTableWriter {
      */
     protected void printHeader( OutputStream ostrm, StarTable table ) 
             throws IOException {
-        printLine( ostrm, 
-                   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">" );
-        printLine( ostrm, "<html>" );
+        String publicId = useRowGroups_
+                        ? "-//W3C//DTD HTML 4.01 Transitional//EN"
+                        : "-//W3C//DTD HTML 3.2 Final//EN";
+        String declaration = "<!DOCTYPE HTML PUBLIC \"" + publicId + "\">";
+        printLine( ostrm, declaration );
+        printLine( ostrm, "<HTML>" );
         String tname = table.getName();
         if ( tname != null ) {
-            printLine( ostrm, "<head><title>Table " + 
+            printLine( ostrm, "<HEAD><TITLE>Table " + 
                               escape( tname ) +
-                              "</title></head>" );
+                              "</TITLE></HEAD>" );
         }
-        printLine( ostrm, "<body>" );
+        printLine( ostrm, "<BODY>" );
     }
 
     /**
@@ -239,8 +258,8 @@ public class HTMLTableWriter extends StreamStarTableWriter {
      * @param  ostrm  output stream
      */
     protected void printFooter( OutputStream ostrm ) throws IOException {
-        printLine( ostrm, "</body>" );
-        printLine( ostrm, "</html>" );
+        printLine( ostrm, "</BODY>" );
+        printLine( ostrm, "</HTML>" );
     }
 
     /**
