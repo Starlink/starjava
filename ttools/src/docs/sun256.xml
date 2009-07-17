@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>20 July 2009</docdate>
+<docdate>17 July 2009</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6195,7 +6195,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Version 2.0-4 (20 July 2009)</dt>
+<dt>Version 2.0-4 (17 July 2009)</dt>
 <dd><p>
     <ul>
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>

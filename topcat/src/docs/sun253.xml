@@ -100,7 +100,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>20 July 2009</docdate>
+<docdate>17 July 2009</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -11847,7 +11847,7 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Version 3.4-2 (20 July 2009)</dt>
+<dt>Version 3.4-2 (17 July 2009)</dt>
 <dd><p>
     <ul>
     <li>Plot windows now allow a plot title to be set from the
