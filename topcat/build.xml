@@ -152,6 +152,8 @@
   <property name="dist.src" value="${dist.dir}/src"/>
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
+  <property name="dist.osx" value="${dist.dir}/osx-${name}"/>
+  <property name="dist.dmgfile" value="${dist.dir}/${name}-full.dmg"/>
 
   <property name="dist.bin.pkg" value="${dist.bin}"/>
   <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
@@ -491,7 +493,7 @@
     </exec>
     <copy file="${build.classes}/uk/ac/starlink/topcat/revision-string"
         tofile="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
-    
+
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
       <fileset dir="${star.dir}/source/src/etc" includes="LICENCE.txt"/>
@@ -700,17 +702,12 @@
   <!-- Create an MacOS X Java application bundle, using the osxjarbundler ant
    !   task built (see http://jarbundler.sourceforge.net).
    !   Additionally, create a .dmg file for distribution.
-   !   This last step could be moved into a separate target, but since
-   !   one would rarely be invoked without the other, there's little point.
-   !
-   !   The osxjarbundler task will work only on OS X, as will
-   !   the hdiutil application.
    !-->
   <target name="build-osxapp"
           depends="build_demo,build-standalone"
           description="-> builds .dmg application bundle for MacOS X">
-    <property name="release.dir" value="release-osx"/>
-    <mkdir dir="${release.dir}"/>
+    <delete dir="${dist.osx}" quiet="true"/>
+    <mkdir dir="${dist.osx}"/>
     <!-- 'Infostring' should not contain a version number (as of OS X
      !   10.4 - see docs for CFBundleGetInfoString); 'version' should
      !   be the `marketing version of the bundle' (ie, the release
@@ -721,22 +718,14 @@
      !   1.4.x or 1.5.  This might require some user configuration
      !   to put 1.5 at the top of the list: see the 'Java Preferences'
      !   application
-     !
-     !   Note that jarbundler includes a "stubfile" attribute, which allows
-     !   you to include the JavaApplicationStub from a non-default location.
-     !   This means that this binary could be imported into the repository
-     !   from the file /System/Library/Frameworks/JavaVM.framework/Versions/A/Resources/MacOS/JavaApplicationStub
-     !   on any (?) OS X box, and this task would then be able to create
-     !   the TOPCAT.app directory on any platform.  It wouldn't be able to
-     !   create the .dmg file, but making a .zip file is an acceptable
-     !   alternative.
      !   -->
-    <osxjarbundler dir="${release.dir}"
+    <osxjarbundler dir="${dist.osx}"
                 mainclass="${package.name}.Driver"
                 name="${Name}"
                 shortname="${Name}"
                 aboutmenuname="${Name}"
                 bundleid="${package.name}"
+                stubfile="${src.dir}/lib/MacOS/TopcatStub"
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
                 infostring="${Name} ${copyright.string}"
                 jvmversion="1.4+"
@@ -770,37 +759,45 @@
     </osxjarbundler>
 
     <!-- Copy the docs into the release directory -->
-    <mkdir dir="${release.dir}/docs"/>
-    <copy todir="${release.dir}/docs">
+    <mkdir dir="${dist.osx}/docs"/>
+    <copy todir="${dist.osx}/docs">
       <fileset dir="${dist.docs}/${name}" excludes="javadocs javadocs/**"/>
     </copy>
 
     <!-- Copy scripts into the release directory -->
-    <mkdir dir="${release.dir}/bin"/>
-    <copy todir="${release.dir}/bin">
+    <mkdir dir="${dist.osx}/bin"/>
+    <copy todir="${dist.osx}/bin">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
     </copy>
     <chmod perm="ugo+x" type="file" failonerror="yes" maxparallel="50">
-      <fileset dir="${release.dir}/bin"/>
+      <fileset dir="${dist.osx}/bin"/>
     </chmod>
 
-    <mkdir dir="${release.dir}/README.rtfd"/>
-    <copy todir="${release.dir}/README.rtfd">
+    <mkdir dir="${dist.osx}/README.rtfd"/>
+    <copy todir="${dist.osx}/README.rtfd">
       <fileset dir="${src.dir}/lib/MacOS/README.rtfd"/>
     </copy>
 
-    <!-- Create a .dmg file containing the app and docs -->
-    <!-- Note: to examine this on OSX do 
+    <!-- The final step - generating the .dmg file - can only be done on
+     !   a Mac.  Either do it, or write a message saying how.  If the build
+     !   is being done on a non-Mac system, just copy the ${dist.osx} 
+     !   directory to a Mac and run hdiutil there. -->
+    <condition property="isMacos">
+      <os family="mac"/>
+    </condition>
+    <!-- Note: to examine the dmg file on OSX do 
      !      % hdiutil attach topcat.dmg 
      ! ...  % hdiutil detach /dev/... -->
+    <echo message="Attempt to build .dmg file (will only work on Mac)"/>
+    <echo message="   hdiutil create -srcfolder ${dist.osx} -volname ${name} -ov ${dist.dmgfile}"/>
     <exec executable="/usr/bin/hdiutil" os="Mac OS X">
       <arg value="create"/>
       <arg value="-srcfolder"/>
-      <arg value="${release.dir}"/>
+      <arg value="${dist.osx}"/>
       <arg value="-volname"/>
       <arg value="${name}"/>
       <arg value="-ov"/>
-      <arg value="${name}-full.dmg"/>
+      <arg value="${dist.dmgfile}"/>
     </exec>
   </target>
 
@@ -1014,14 +1011,8 @@
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
     <delete dir="${dist.etc}"/>
-
-    <!-- The following are magic names, deleting products built only on OS X:
-     !   they probably ought to be synchronised better with
-     !   target build_osxapp.
-     ! -->
-    <delete dir="release-osx" quiet="true"/>
-    <delete file="${Name}-${version}.dmg" quiet="true"/>
-
+    <delete dir="${dist.osx}" quiet="true"/>
+    <delete dir="${dist.dmgfile}" quiet="true"/>
   </target>
 
   <!--
