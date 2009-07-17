@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -194,7 +195,7 @@ public class VotCopy implements Task {
         if ( ! inline ) {
             baseParam_.setNullPermitted( false );
             if ( outLoc != null && ! outLoc.equals( "-" ) ) {
-                baseParam_.setDefault( outLoc 
+                baseParam_.setDefault( new File( outLoc ).getName()
                                       .replaceFirst( "\\.[a-zA-Z0-9]*$", "" ) );
             }
             base = baseParam_.stringValue( env );

@@ -1,5 +1,11 @@
 1 Starlink SPLAT news.
 
+   3.9-1
+   =====
+
+   Spectra transmitted using the SAMP and deprecated PLASTIC protocol will now
+   only be FITS or VO tables. 1D FITS spectra will no longer be generated.
+
    3.9-0
    =====
 

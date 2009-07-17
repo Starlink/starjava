@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>27 March 2009</docdate>
+<docdate>17 July 2009</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6195,7 +6195,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.0-4 (17 July 2009)</dt>
 <dd><p>
     <ul>
     <li>Work around J2SE mark/reset bug when loading table direct from URL.</li>
@@ -6204,6 +6204,9 @@ but my thanks are especially due to the following:
         (<code>addskycoords</code> filter).</li>
     <li>Produce null rather than questionable results from sexagesimal
         conversions with mins/secs out of range.</li>
+    <li>Fix two bugs in <code>votcopy</code>: XML processing instructions 
+        garbled on output, and pathnames in <code>base</code> parameters
+        inappropriately flattened in hrefs attribute values.</li>
     </ul>
     </p></dd>
 

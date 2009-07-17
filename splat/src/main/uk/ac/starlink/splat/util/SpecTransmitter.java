@@ -1,9 +1,12 @@
 /*
  * Copyright (C) 2006 Central Laboratory of the Research Councils
+ * Copyright (C) 2009 Science and Technology Facilities Council
  *
  *  History:
  *     18-AUG-2006 (Mark Taylor):
  *       Original version.
+ *     14-JUL-200(Peter Draper):
+ *       Give up on 1D FITS and always transmit FITS tables.
  */
 package uk.ac.starlink.splat.util;
 
@@ -163,75 +166,6 @@ public abstract class SpecTransmitter
     }
 
     /**
-     * Constructs and returns a SpecTransmitter which transmits spectra
-     * as 1-d FITS files.
-     *
-     * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   specList global list of spectra; the current selection
-     *          determines what spectrum is transmitted (transmission will
-     *          only be enabled if there is a unique selection)
-     * @return  new transmitter using FITS
-     */
-    public static SpecTransmitter createFitsTransmitter( HubManager hubman,
-                                                         JList specList )
-    {
-        return new TypedSpecTransmitter( hubman, specList,
-                                         MessageId.FITS_LOADLINE, "FITS" ) {
-
-            protected String getTypedLocation( SpecData spec )
-            {
-                return "FITS".equals( spec.getDataFormat() )
-                     ? spec.getFullName()
-                     : null;
-            }
-
-            protected SpecData createTypedClone( SpecData spec )
-                throws SplatException, IOException
-            {
-                String tmploc = File.createTempFile( "spec", ".fits" )
-                                    .toString();
-                return SpecDataFactory.getInstance()
-                      .getClone( spec, tmploc, SpecDataFactory.FITS, "" );
-            }
-        };
-    }
-
-    /**
-     * Constructs and returns a SpecTransmitter which transmits spectra
-     * as VOTables.
-     *
-     * @param   hubman   object controlling connection to a PLASTIC hub
-     * @param   specList global list of spectra; the current selection
-     *          determines what spectrum is transmitted (transmission will
-     *          only be enabled if there is a unique selection)
-     * @return  new transmitter for using VOTable
-     */
-    public static SpecTransmitter createVOTableTransmitter( HubManager hubman,
-                                                            JList specList )
-    {
-        return new TypedSpecTransmitter( hubman, specList,
-                                         MessageId.VOT_LOADURL, "VOTable" ) {
-
-            protected String getTypedLocation( SpecData spec )
-            {
-                //  Could tell if it was a table, but can't tell if it's
-                //  a VOTable or not, so just return null.
-                return null;
-            }
-
-            protected SpecData createTypedClone( SpecData spec )
-                throws SplatException, IOException
-            {
-                String tmploc = File.createTempFile( "spec", ".xml" )
-                                    .toString();
-                return SpecDataFactory.getInstance()
-                      .getClone( spec, tmploc, SpecDataFactory.TABLE,
-                                 "votable" );
-            }
-        };
-    }
-
-    /**
      * Returns a URL corresponding to an existing resource given by a
      * location string, if possible.  If <code>loc</code> is an
      * <em>existing</em> file, a file-type URL is returned.
@@ -283,18 +217,8 @@ public abstract class SpecTransmitter
             URL locUrl = null;
             File tmpFile = null;
 
-            //  See if there is a FITS or VOTable spectrum ready to send.
-            if ( "FITS".equals( fmt ) ) {
-                tmpFile = new File( spec.getFullName() );
-                if ( tmpFile.exists() ) {
-                    mime = "application/fits";
-                    locUrl = getUrl( spec.getFullName() );
-                }
-                tmpFile = null;
-            }
-
-            //  See if there is a VOTable spectrum ready to send.
-            else if ( "VOTable".equals( fmt ) ) {
+            //  See if we already have a VOTable spectrum ready to send.
+            if ( "VOTable".equals( fmt ) ) {
                 tmpFile = new File( spec.getFullName() );
                 if ( tmpFile.exists() ) {
                     mime = "application/x-votable+xml";
@@ -303,7 +227,10 @@ public abstract class SpecTransmitter
                 tmpFile = null;
             }
 
-            //  Otherwise, write it as a FITS spectrum and use that.
+            //  Otherwise, write it as a FITS table and use that. Note
+            //  we cannot find out if a FITS table already exists as 
+            //  StarTables are anonymous. Use "fits-basic" as SPLAT
+            //  gets distracted by the primary array.
             if ( locUrl == null ) {
                 tmpFile = File.createTempFile( "spec", ".fits" );
                 tmpFile.deleteOnExit();
@@ -311,8 +238,8 @@ public abstract class SpecTransmitter
                 mime = "application/fits";
                 try {
                     spec = SpecDataFactory.getInstance()
-                          .getClone( spec, tmpFile.toString(),
-                                     SpecDataFactory.FITS, "" );
+                        .getTableClone( spec, tmpFile.toString(), 
+                                        "fits-basic" );
                     spec.save();
                     assert tmpFile.exists() : tmpFile;
                 }
@@ -339,16 +266,17 @@ public abstract class SpecTransmitter
             String dataUnits = spec.getDataUnits();
             String coordUnits = spec.getFrameSet().getUnit( 1 );
             if ( dataUnits != null && coordUnits != null ) {
-                meta.put( "vox:spectrum_units", coordUnits + " " + dataUnits );
+                if ( coordUnits.equals( "" ) ) {
+                    meta.put( "vox:spectrum_units", 
+                              coordUnits + " " + dataUnits );
+                }
             }
 
-            //  Columns for tables.
-            if ( "VOTable".equals( fmt ) ) {
-                String xColName = spec.getXDataColumnName();
-                String yColName = spec.getYDataColumnName();
-                if ( xColName != null && yColName != null ) {
-                    meta.put( "vox:spectrum_axes", xColName + " " + yColName );
-                }
+            //  Columns. Note may not contain white space.
+            String xColName = spec.getXDataColumnName();
+            String yColName = spec.getYDataColumnName();
+            if ( xColName != null && yColName != null ) {
+                meta.put( "vox:spectrum_axes", xColName + " " + yColName );
             }
 
             //  Prepare message argument list.

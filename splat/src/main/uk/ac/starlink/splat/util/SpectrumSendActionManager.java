@@ -4,6 +4,8 @@
  *  History:
  *     06-MAR-2009 (Mark Taylor):
  *        Original version.
+ *     14-JUL-200(Peter Draper):
+ *       Give up on 1D FITS and always transmit FITS tables.
  */
 package uk.ac.starlink.splat.util;
 
@@ -104,29 +106,26 @@ public class SpectrumSendActionManager
         URL locUrl = null;
         File tmpFile = null;
 
-        //  See if there is a FITS or VOTable spectrum ready to use.
-        if ( "FITS".equals( fmt ) ) {
-            if ( new File( spec.getFullName() ).exists() ) {
-                mime = "application/fits";
-                locUrl = getUrl( spec.getFullName() );
-            }
-        }
-        else if ( "VOTable".equals( fmt ) ) {
+        //  See if we already have a VOTable spectrum ready to use.
+        if ( "VOTable".equals( fmt ) ) {
             if ( new File( spec.getFullName() ).exists() ) {
                 mime = "application/x-votable+xml";
                 locUrl = getUrl( spec.getFullName() );
             }
         }
 
-        //  Otherwise, write it as a FITS spectrum and use that.
+        //  Otherwise, write it as a FITS table and use that. Note we cannot
+        //  find out if a FITS table already exists as StarTables are
+        //  anonymous. Use "fits-basic" as SPLAT gets distracted by the
+        //  primary array.
         if ( locUrl == null ) {
             tmpFile = File.createTempFile( "spec", ".fits");
             tmpFile.deleteOnExit();
             locUrl = URLUtils.makeFileURL( tmpFile );
             mime = "application/fits";
             spec = SpecDataFactory.getInstance()
-                  .getClone( spec, tmpFile.toString(),
-                             SpecDataFactory.FITS, "" );
+                .getTableClone( spec, tmpFile.toString(),
+                                "fits-basic" );
             spec.save();
             assert tmpFile.exists() : tmpFile;
         }
@@ -148,16 +147,17 @@ public class SpectrumSendActionManager
         String dataUnits = spec.getDataUnits();
         String coordUnits = spec.getFrameSet().getUnit( 1 );
         if ( dataUnits != null && coordUnits != null ) {
-            meta.put( "vox:spectrum_units", coordUnits + " " + dataUnits );
+            if ( ! coordUnits.equals( "" ) ) {
+                meta.put( "vox:spectrum_units",
+                          coordUnits + " " + dataUnits );
+            }
         }
 
-        //  Columns for tables.
-        if ( "VOTable".equals( fmt ) ) {
-            String xColName = spec.getXDataColumnName();
-            String yColName = spec.getYDataColumnName();
-            if ( xColName != null && yColName != null ) {
-                meta.put( "vox:spectrum_axes", xColName + " " + yColName );
-            }
+        //  Columns.
+        String xColName = spec.getXDataColumnName();
+        String yColName = spec.getYDataColumnName();
+        if ( xColName != null && yColName != null ) {
+            meta.put( "vox:spectrum_axes", xColName + " " + yColName );
         }
 
         //  Prepare and return the actual message.

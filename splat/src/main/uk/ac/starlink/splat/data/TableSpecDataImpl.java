@@ -459,6 +459,7 @@ public class TableSpecDataImpl
     {
         try {
             writer.writeStarTable( starTable, tablespec, saveType );
+            readTable( -1 );
         }
         catch (Exception e) {
             throw new SplatException( "Error saving table", e );
@@ -476,11 +477,12 @@ public class TableSpecDataImpl
         //  Access table columns and look for which to assign to the various
         //  data types. The default, if the matching fails, is to use the
         //  first and second (whatever that means) columns that are numeric
-        //  types and do not look for any errors.
+        //  types and do not look for any errors. Do not allow spaces in 
+        //  column names. These cause trouble with lists of names (PLASTIC).
         columnInfos = Tables.getColumnInfos( starTable );
         columnNames = new String[columnInfos.length];
         for ( int i = 0; i < columnNames.length; i++ ) {
-            columnNames[i] = columnInfos[i].getName();
+            columnNames[i] = columnInfos[i].getName().replaceAll( "\\s", "_" );
         }
 
         coordColumn =

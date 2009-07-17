@@ -1,0 +1,18 @@
+This directory contains files for building the application bundle for Mac OSX.
+
+The file TopcatStub is a renamed copy of
+/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub
+from a machine running osX 10.5.6.  The renaming isn't essential, but
+makes it easier to spot the TOPCAT process running on a Mac e.g.
+when using top.
+
+An application bundle built using this file is expected to be capable
+of running on other versions of the OS (I think), but it is conceivable
+that it might need to be updated at some point with a copy from a
+future version of OSX.  If things get hairier than that (backward
+compatibility issues) see also the symlink trick in the jarbundler
+web pages:
+
+   jarbundler.sourceforge.net
+   http://informagen.com/JarBundler/StubFile.html
+
