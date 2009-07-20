@@ -13,6 +13,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import org.astrogrid.samp.JSamp;
 import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -227,7 +228,8 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-version] [-stilts <stilts-args>]\n"
+              pre + " [-help] [-version] [-stilts <stilts-args>]"
+                  + " [-jsamp <jsamp-args>]\n"
             + pad + " [-verbose] [-demo] [-disk]\n"
             + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
             + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
@@ -268,6 +270,11 @@ public class Driver {
             else if ( arg.equals( "-stilts" ) ) {
                 it.remove();
                 Stilts.main( (String[]) argList.toArray( new String[ 0 ] ) );
+                return;
+            }
+            else if ( arg.equals( "-jsamp" ) ) {
+                it.remove();
+                JSamp.main( (String[]) argList.toArray( new String[ 0 ] ) );
                 return;
             }
             else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
@@ -689,7 +696,8 @@ public class Driver {
            .append( p2 + "-soap          start SOAP services" )
            .append( p2 + "-noserv        don't run any services"
                                          + " (PLASTIC, SAMP or SOAP)" )
-           .append( p2 + "-stilts <args> run STILTS not TOPCAT" );
+           .append( p2 + "-stilts <args> run STILTS not TOPCAT" )
+           .append( p2 + "-jsamp <args>  run JSAMP not TOPCAT" );
 
         /* Load dialogues. */
         buf.append( p1 + "Optional load dialogue flags:" )

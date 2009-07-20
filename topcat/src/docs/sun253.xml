@@ -3304,6 +3304,18 @@ The meaning of the flags is as follows:
     for the form of the <code>&lt;stilts-args&gt;</code>.
     </p></dd>
 
+<dt>-jsamp &lt;jsamp-args&gt;</dt>
+<dd><p>This flag is a convenience which allows you to run the 
+    <webref url="http://software.astrogrid.org/doc/jsamp/commands.html"
+            >jsamp</webref> command-line tool, from the
+    <webref url="http://software.astrogrid.org/doc/jsamp/">JSAMP</webref> 
+    package, instead of TOPCAT.  This is possible because TOPCAT contains
+    the JSAMP library.  
+    JSAMP provides various 
+    <webref url="http://www.ivoa.net/samp/">SAMP</webref>-related utilities,
+    such as a freestanding hub and diagnostic tools.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -11881,6 +11893,7 @@ introduced since the last version:
     <ul>
     <li>HTML table output is now HTML 4.01 by default
         (includes THEAD and TBODY tags).</li>
+    <li>Add <code>-jsamp</code> command-line flag.</li>
     </ul>
     </p></dd>
 
