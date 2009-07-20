@@ -6210,6 +6210,14 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>HTML table output is now HTML 4.01 by default 
+        (includes THEAD and TBODY tags).</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
