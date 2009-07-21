@@ -442,7 +442,7 @@ public class TableSpecDataImpl
         ColumnStarTable newTable = ColumnStarTable.makeTableWithRows( nrows );
         newTable.addColumn( ArrayColumn.makeColumn( columnInfos[0], coords ) );
         newTable.addColumn( ArrayColumn.makeColumn( columnInfos[1], data ) );
-        if ( errors != null || columnInfos[2] != null ) {
+        if ( errors != null && columnInfos[2] != null ) {
             newTable.addColumn( ArrayColumn.makeColumn( columnInfos[2],
                                                         errors ) );
         }
