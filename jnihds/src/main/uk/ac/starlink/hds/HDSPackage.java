@@ -36,7 +36,7 @@ public class HDSPackage {
             }
             catch ( LinkageError e ) {
                 logger.log( Level.INFO, e.getMessage(), e );
-                logger.warning( "JNIHDS load failed - no HDF/HDS access" );
+                logger.warning( "JNIHDS load failed - no NDF/HDS access" );
                 loaded = Boolean.FALSE;
             }
         }
