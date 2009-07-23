@@ -91,6 +91,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.vo.RegResource;
+import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
@@ -213,7 +214,7 @@ public class SSAQueryBrowser
     /** SIMBAD name resolver catalogue */
     protected SkycatCatalog simbadCatalogue = null;
 
-    /** The current name resolver */
+    /** The current name resolver, if using Skycat method */
     protected SkycatCatalog resolverCatalogue = null;
 
     /** The proxy server dialog */
@@ -348,15 +349,22 @@ public class SSAQueryBrowser
 
         JRadioButtonMenuItem jrbmi = new JRadioButtonMenuItem();
         resolverMenu.add( jrbmi );
-        jrbmi.setSelected( true );
+        jrbmi.setSelected( false );
         bg.add( jrbmi );
         jrbmi.setAction( new ResolverAction( "SIMBAD", simbadCatalogue ) );
 
         jrbmi = new JRadioButtonMenuItem();
         resolverMenu.add( jrbmi );
+        jrbmi.setSelected( false );
         bg.add( jrbmi );
         jrbmi.setAction( new ResolverAction( "NED", nedCatalogue ) );
-        resolverCatalogue = simbadCatalogue;
+
+        jrbmi = new JRadioButtonMenuItem();
+        resolverMenu.add( jrbmi );
+        jrbmi.setSelected( true );
+        bg.add( jrbmi );
+        jrbmi.setAction( new ResolverAction( "Sesame", null  ) );
+        resolverCatalogue = null;
 
 
         //  Create a menu for inter-client communications.
@@ -528,7 +536,7 @@ public class SSAQueryBrowser
         JPanel resultsPanel = new JPanel( new BorderLayout() );
         resultsPanel.setBorder
             ( BorderFactory.createTitledBorder( "Query results:" ) );
-        resultsPanel.setToolTipText( "Results of query to the current list "+ 
+        resultsPanel.setToolTipText( "Results of query to the current list "+
                                      "of SSAP servers. One table per server" );
 
         resultsPane = new JTabbedPane();
@@ -659,31 +667,49 @@ public class SSAQueryBrowser
      */
     protected void resolveName()
     {
-        String objectName = nameField.getText().trim();
-        if ( objectName != null && objectName.length() > 0 ) {
+        String name = nameField.getText().trim();
+        if ( name != null && name.length() > 0 ) {
 
-            final QueryArgs queryArgs =
-                new BasicQueryArgs( resolverCatalogue );
+            QueryArgs qargs = null;
+            if ( resolverCatalogue != null ) {
+                //  Skycat resolver.
+                qargs = new BasicQueryArgs( resolverCatalogue );
 
-            // If objectName has spaces we should protect them.
-            objectName = objectName.replaceAll( " ", "%20" );
-            queryArgs.setId( objectName );
+                // If objectName has spaces we should protect them.
+                name = name.replaceAll( " ", "%20" );
+                qargs.setId( name );
+            }
+            final QueryArgs queryArgs = qargs;
+            final String objectName = name;
 
             Thread thread = new Thread( "Name server" )
             {
                 public void run()
                 {
                     try {
-                        QueryResult r = resolverCatalogue.query( queryArgs );
-                        if ( r instanceof TableQueryResult ) {
-                            Coordinates coords =
-                                ((TableQueryResult) r).getCoordinates( 0 );
-                            if ( coords instanceof WorldCoords ) {
-                                //  Enter values into RA and Dec fields.
-                                String[] radec =
-                                    ((WorldCoords) coords).format();
-                                raField.setText( radec[0] );
-                                decField.setText( radec[1] );
+                        if ( queryArgs == null ) {
+                            ResolverInfo info =
+                                ResolverInfo.resolve( objectName );
+                            WorldCoords coords =
+                                new WorldCoords( info.getRaDegrees(),
+                                                 info.getDecDegrees() );
+                            String[] radec = coords.format();
+                            raField.setText( radec[0] );
+                            decField.setText( radec[1] );
+                        }
+                        else {
+                            QueryResult r =
+                                resolverCatalogue.query( queryArgs );
+                            if ( r instanceof TableQueryResult ) {
+                                Coordinates coords =
+                                    ((TableQueryResult) r).getCoordinates( 0 );
+                                if ( coords instanceof WorldCoords ) {
+                                    //  Enter values into RA and Dec fields.
+                                    String[] radec =
+                                        ((WorldCoords) coords).format();
+                                    raField.setText( radec[0] );
+                                    decField.setText( radec[1] );
+                                }
                             }
                         }
                     }
@@ -697,7 +723,6 @@ public class SSAQueryBrowser
             raField.setText( "" );
             decField.setText( "" );
             thread.start();
-
         }
     }
 

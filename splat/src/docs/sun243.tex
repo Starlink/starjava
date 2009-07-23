@@ -28,11 +28,11 @@ Copyright \copyright\ 2007-2009 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.38}
+\newcommand{\stardocnumber}    {243.39}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {15 May 2009}
+\newcommand{\stardocdate}      {23 Jul 2009}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.9-0}
+\newcommand{\stardocversion}   {3.9-2}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -285,9 +285,9 @@ spectra that can also interact with the Virtual Observatory.
    \stardocdate
    \begin{rawhtml} </I> </P> <H3> \end{rawhtml}
       \htmladdnormallink{CCLRC / Rutherford Appleton Laboratory}
-                        {http://www.cclrc.ac.uk} \\
+                        {http://www.scitech.ac.uk} \\
       \htmladdnormallink{Particle Physics \& Astronomy Research Council}
-                        {http://www.pparc.ac.uk} \\
+                        {http://www.scitech.ac.uk} \\
    \begin{rawhtml} </H3> <H2> \end{rawhtml}
       \htmladdnormallink{Starlink Project}{http://www.starlink.rl.ac.uk/}
    \begin{rawhtml} </H2> \end{rawhtml}
@@ -3880,6 +3880,15 @@ requests for useful features -- thanks to them all.
 
 \section{Changes}
 
+\subsection{3.9-2}
+
+The Sesame name resolution service is now the default for SSAP VO queries.
+
+\subsection{3.9-1}
+
+Spectra transmitted using the SAMP and deprecated PLASTIC protocol will now
+only be FITS or VO tables. 1D FITS spectra will no longer be generated.
+
 \subsection{3.9-0}
 
 \SPLAT\ has been updated to use SAMP for interoperability with other 
@@ -4015,311 +4024,6 @@ toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now be recognised as
 Added controls to the statistics toolbox so that the TSYS related 
 parameters can be set and inspected.
 
-\subsection{3.7-2}
-
-The FITS headers of all selected spectra can now be viewed using actions
-available in the main window. Only NDFs and 1D FITS spectra (not tables) can
-currently have FITS headers.
-
-The builtin sub-millimetre line identifiers have been updated to match the
-latest ones used at the JAC.
-
-
-\subsection{3.7-0}
-
-Added experimental support for the SSAP version 1 protocol. Added new band
-qualifiers (upper and lower spectral range in meters) and control of the file
-format. Older SSAP queries should still work.
-
-\subsection{3.6-9}
-
-A new rest frequency can now be selecting using the plot units toolbox. The
-new frequency can be selected by clicking on a position in the plot, or a line
-identifier.
-
-The TSYS value is now derived from the median effective exposure time when a
-better estimate is not available.
-
-The alignment of spectra in a plot can now be made to happen via the offset
-coordinate system (when spectral origins are defined), and also via the
-coordinate system of the current spectrum (rather than via the WAVE system,
-this means velocity systems can be aligned directly).
-
-\subsection{3.6-7}
-
-When opening 2 or 3D data spectra that do not have valid data limits are now
-automatically removed by default.
-
-A TSYS value can now be reported by the statistics toolbox. This will only
-work for JCMT ACSIS data. This is the same value as reported in the spectral
-synopsis, but uses the the variance from a region, not the whole spectrum.
-
-\subsection{3.6-6}
-All the line fitting functions now also report a FWHM value.
-
-The line identifiers should now correctly take account of velocity changes in
-the rest frame of the observer. The display of line identifiers has been
-changed to remove the \_lines postfix and to replace all underscores with
-blanks when also displaying the shortname as part of the labels.
-
-\subsection{3.6-5}
-
-The plot coordinate matching option is now switched on by default.  This
-option matches different spectral coordinates between spectra plotted together
-(wavelength, frequency, velocity and energy). To restore the old behaviour
-(which is quicker for spectra which are all in the same coordinates) just
-switch this off in any plot window, as the preference is preserved between
-sessions. Previously users of SPLAT will retain their existing preference.
-
-It is now possible to select redshift, a relativistic velocity and an optical
-velocity in the quick change of units associated with a plot.
-
-\subsection{3.6-4}
-
-The way that line identifiers are matched to the source velocity of a spectrum
-has been changed. INCOMPATIBILITY: recessional velocities are now positive,
-previously these were negative.
-
-It is now possible to define source velocities as optical or radio velocities,
-as well as as a beta factor. Support continues for relativistic velocities and
-redshifts.
-
-\subsection{3.6-3}
-
-All menus are now accessible using keyboard mnemonics. These are indicated by
-an underlined character in the menu name. Pressing the <Alt> (platform
-dependent) key followed by that character should post the menu. Some menu
-items can be then activated by pressing a single character (again underlined)
-or navigated to using the arrow keys.
-
-Keyboard accelerators have also been assigned to some more useful menu
-items. These can be activated by pressing the <Control> key and the designated
-character, when the keyboard focus is in the associated window of the menu
-item. The accelerator of an item is written next to the item in the menu.
-
-Some one character accelerators have been assigned to plot actions. For
-instance you can now hide any overlay graphics by pressing the `h' key, zoom
-in X by pressing the `=' key etc. Consult the plot help menu for more about
-these bindings.
-
-Other changes in this release.
-
-\begin{itemize}
-
-\item An optional synopsis figure has been added to each plot. This shows
-some details of the current spectrum, such as it's name, the telescope,
-instrument, object, position of extraction (when used together with GAIA), 
-etc.
-
-\item The SSAP query has been remodelled so that all queries are performed
-concurrently. This means that a failing service will not block access
-to all the others.
-
-\item When defining ranges (for fitting backgrounds and spectral lines) the
-associated plot window is now brought forward and the cursor is changed.
-Ranges can now be created without any graphical interaction (under these
-circumstances the a range is initially created that covers the range between
-the current axes).
-
-\item An integrated flux option has been added to the statistics toolbox.
-This can be used to estimate the flux in line of a background subtracted
-spectrum.
-
-\item Some useful UI defaults in the filter toolbox are now saved between
-sessions.
-   
-\item New controls for replacing the currently displayed spectrum with
-the result spectrum have been added to the polynomial, filter and interpolate 
-toolboxes.
-
-\item The order of the polynomial is now saved as a UI default.
-
-\item A new filter that rebins a spectrum to reduce its resolution has been
-added.
-
-\item NDF/NDX spectra can now also be saved to NDF using NDX support. This is
-useful on platforms that do not have native NDF support.
-   
-\item When fitting spectral lines of spectra whose coordinate systems run
-high to low, rather than low to high, the widths etc. are now correctly
-reported as positive values.
-
-\item When deleting spectra in the global list the selection now remains
-set at the next spectrum in the list (rather than selecting the
-first spectrum).
-
-\item A bug when reading text files that use whitespace column separators,
-other than simple spaces, has been fixed and the previous behaviour
-should be restored.
-
-\item The set of automatically chosen colours are now dimmed slightly so that
-they are always distinguishable from overlay graphics elements.
-
-\item The percentile autocut now just applies to the data within the X 
-range, when the X range is not being autoranged. When autoranged it
-applies to all the data.
-
-\item An integrated flux option has been added to the statistics toolbox.
-This can be used to estimate the flux in line of a background subtracted
-spectrum.
-
-\item The statistics toolbox had an off-by-one difference between the 
-selected stats and the individual region stats, giving slighty different
-results. That has been fixed.
-
-\item The use of file type `guessing' has been extended beyond the
-\labelitem{File->Browse} dialogue. This can now be selected from the
-command-line, or from the  
-\labelitem{File->Open} dialogue. Guessing requires that the spectrum be opened
-for each candidate type, so is intrinsically slower than file extension based 
-typing. Remote resources will, in general, be opened using guessing.
-
-\item \SPLAT\ has also been extended so that it can now interoperate with 
-other VO-enabled desktop tools using the PLASTIC protocol.
-
-\item It is now possible to define a spectral origin. This allows the
-plotting of offset coordinates.
-
-\item The quick change of units dialog has been extended to allow a change in
-standard of rest. A option has been added that controls how dual sideband
-spectra are aligned, by default this remains in the same sideband.
-
-\item The axes of a plot should now always be drawn on on the edges, unless
-the option to plot them in the plot interior is selected.
-
-\end{itemize}
-
-\subsection{3.5}
-
-Starlink SPLAT is now a tool for the Virtual Observatory and has been renamed
-to \SPLAT.
-
-In this release Starlink \SPLAT\ has been enhanced to access prototype
-spectral data servers (so called SSAP servers) that are being registered on
-the evolving virtual observatory. Using \SPLAT\ it is now possible to make
-queries about a region on the sky and retrieve, display and compare any
-spectra that are available.
-
-Comparisons of such spectra are made possible by improvements to the
-Starlink AST library which can transform coordinates between various
-spectral systems (wavelength, frequency, energy and velocity) and between a
-growing number of flux systems (currently flux per unit frequency and per
-unit wavelength). This allows you to view various spectral from differing
-energy domains as a spectral energy distribution.
-
-Other changes of note in this release:
-\begin{itemize}
-\item Spectra can now be drawn using point markers of various kinds.
-
-\item A new tool for setting the data units of spectra has been introduced.
-
-\item A new tool for obtaining statistics about a spectrum, or regions of a
-      spectrum has been introduced.
-
-\item A new tool for transforming spectra by a redshift or by a flip and or
-      translation has been introduced.
-
-\item The grid drawn around the spectra can now be forced to stay within
-      the visible region of the plot window. This makes it easier to view
-      the spectral data values and coordinates, but at a performance cost.
-      Switch on the option \labelitem{Only display grid axes in visible area}
-      to see this in action.
-
-\item Postscript output can now be created in encapsulated form.
-
-\item Graphics printing now provides PNG format too.
-
-\item Dual sideband data now have the coordinates of the second sideband
-      shown along the opposing X axis of a plot. It is also possible to
-      switch between sidebands.
-
-\item Log spacing can now be switched on from a plot (rather than by finding
-      the plot configuration window).
-
-\item Support for data units in the line identifier and simple text formats
-      has been added.
-
-\item Support for line identifiers to match against spectra that have data
-      units has been added.
-
-\item SED example data can now be loaded from the main \labelitem{Options}
-      menu.
-
-\item The data and coordinate units of the current spectrum in a plot
-      can now be modified to preset values quickly.
-
-\item Several new smoothing filters have been introduced - Hanning, Hamming,
-      Welch and Barlett.
-
-\item Line identifiers are now also available in the webstart version of \SPLAT.
-
-\item Line identifiers that fall within range of a spectrum can now be
-      automatically loaded. Other changes allow the positioning to follow
-      a spectrum, have the short name shown as a prefix and use horizontal
-      orientation for the labels.
-
-\item Spectral coordinates can now have the source velocity specified
-      as a redshift. The spectral editing tools now include relativistic
-      velocities in their template functions.
-
-\item The motion tracker in plot windows can now report the coordinates
-      under the pointer. The default continues to be to report the nearest
-      coordinate and data value of the current spectrum.
-
-\item The scale factors used when drawing spectra are now related to
-      graphics size. Previously they where related to the spectrum
-      coordinates. This makes it easy to control the plot when displaying
-      spectra with very different coordinates (like those downloaded from
-      the VO), but will cause existing spectra to be re-scaled when new
-      spectra are added to a plot.
-
-\item If should now be much faster when re-drawing many spectra that are
-      being matching using their spectral coordinates and data units.
-
-\item The handling of errors when plotting spectra with hugely differing
-      coordinates should be improved.
-
-\item A long standing problem with graphics corruption between plots has
-      been fixed. (When the current spectrum was shared between plots
-      some drawing changes effected all plots).
-
-\item A bug that meant that the postscript output of a plot was always
-      written to the default directory has been fixed.
-
-\item Serialised spectra stacks now include full coordinate information.
-
-\item Spectra can now be transformed to and from different data units
-      ($Jy$ to $W/m^{2}/Hz$ or $erg/cm^{2}/s/Angstrom$ \etc).
-
-\item The system look and feel is now the platform default. Mac OS X tweaks
-      are enabled on that platform.
-
-\item Data units are supported when editing and creating new spectra
-     (polynomial and line fits).
-
-\item Line identifiers can now have vertical lines drawn so show the 
-      position more accurately. 
-
-\item An integrated flux is now reported as part of the quick line fitting.
-
-\item The generate interpolated lines toolbox now includes controls for
-      drawing an interpolated line (avoids use of "Graphics" menu in 
-      the plot window).
-
-\item The flip/shift toolbox now has a "line visitor" tool. This allows a
-      series of coordinate positions (lines) and, optionally, an associated
-      spectrum to displayed, one-by-one, and be re-visited simply.
-
-\item The flip/shift toolbox will now work with up to 5 decimal places, so 
-      that redshifts may be applied with higher accuracy.
-
-\end{itemize}
-
-
-Other changes include, selection of the columns used from a table, text files
-may now just contain a single column, many new options for configuring the
-interface, the plot window now retains its size, and the restriction that all
-spectra should have monotonic coordinates has been removed (you can plot
-these, but the results may be unpredictable).
+Earlier changes can be found in the news file in the \SPLAT\ distribution.
 
 \end{document}
