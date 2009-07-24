@@ -351,20 +351,25 @@ public class SSAQueryBrowser
         resolverMenu.add( jrbmi );
         jrbmi.setSelected( false );
         bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "SIMBAD", simbadCatalogue ) );
+        jrbmi.setAction( new ResolverAction( "SIMBAD via CADC", 
+                                             simbadCatalogue ) );
+        jrbmi.setToolTipText( "SIMBAD service served by CADC" );
 
         jrbmi = new JRadioButtonMenuItem();
         resolverMenu.add( jrbmi );
         jrbmi.setSelected( false );
         bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "NED", nedCatalogue ) );
+        jrbmi.setAction( new ResolverAction( "NED via ESO", nedCatalogue ) );
+        jrbmi.setToolTipText( "NED catalogue served by ESO" );
 
         jrbmi = new JRadioButtonMenuItem();
         resolverMenu.add( jrbmi );
         jrbmi.setSelected( true );
         bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "Sesame", null  ) );
+        jrbmi.setAction( new ResolverAction( "CDS Sesame", null  ) );
         resolverCatalogue = null;
+        jrbmi.setToolTipText
+            ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
 
 
         //  Create a menu for inter-client communications.
