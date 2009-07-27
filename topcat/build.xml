@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="3.4-2"/>
+  <property name="version" value="3.4-3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -485,14 +485,17 @@
 
     <!-- Build temporary zip file containing things not in the input jars
      !   which ought to be included in the standalone jars. -->
-    <exec output="${build.classes}/uk/ac/starlink/topcat/revision-string"
+    <exec outputproperty="svnversion"
           logerror="true"
           executable="svnversion"
           dir="${basedir}/..">
       <arg value="."/>
     </exec>
-    <copy file="${build.classes}/uk/ac/starlink/topcat/revision-string"
-        tofile="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
+    <echo message="${svnversion} (branches/nanahope)"
+          file="${build.classes}/uk/ac/starlink/topcat/revision-string"/>
+    <mkdir dir="${build.classes}/uk/ac/starlink/ttools"/>
+    <echo message="${svnversion} (branches/nanahope)"
+          file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
