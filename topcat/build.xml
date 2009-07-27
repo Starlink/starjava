@@ -731,7 +731,7 @@
                 stubfile="${src.dir}/lib/MacOS/TopcatStub"
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
                 infostring="${Name} ${copyright.string}"
-                jvmversion="1.4+"
+                jvmversion="1.5*"
                 version="${version}"
                 jar="${dist.lib.pkg}/topcat-full.jar">
 
