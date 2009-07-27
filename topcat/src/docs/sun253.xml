@@ -100,7 +100,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>17 July 2009</docdate>
+<docdate>27 July 2009</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -11873,6 +11873,14 @@ introduced since the last version:
         if running directly using <code>java -jar</code>.</li>
     <li>STILTS run using <code>topcat -stilts</code> from standalone jar 
         can now correctly report starjava revision.</li>
+    </ul>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fixed two bugs related to drag and drop: intermittent failure of drop
+        (Mac only?), and application crash when making a drop that fails.</li>
     </ul>
     </p></dd>
 
