@@ -878,7 +878,13 @@ public class ControlWindow extends AuxWindow
 
     public void valueChanged( ListSelectionEvent evt ) {
         int watchCount = 0;
-        for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
+        int first = evt.getFirstIndex();
+        int last = evt.getLastIndex();
+        if ( first < 0 || last < 0 ) {
+            first = 0;
+            last = tablesModel_.size() - 1;
+        }
+        for ( int i = first; i <= last; i++ ) {
             if ( i < tablesModel_.size() ) {
                 TopcatModel tcModel = (TopcatModel) 
                                       tablesModel_.getElementAt( i );
@@ -1459,10 +1465,14 @@ public class ControlWindow extends AuxWindow
                  * rather than the Swing classes. */
                 table = tabfact_.makeStarTable( trans );
             }
-            catch ( Throwable e ) {
+            catch ( final Throwable e ) {
                 table = null;
-                ErrorDialog.showError( window_, "Drop Error", e,
-                                       "Table drop operation failed" );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        ErrorDialog.showError( window_, "Drop Error", e,
+                                               "Table drop operation failed" );
+                    }
+                } );
                 removeLoadingToken( token );
                 return false;
             }
@@ -1475,9 +1485,13 @@ public class ControlWindow extends AuxWindow
                         loc = loc == null ? "dropped" : loc;
                         addTable( table1, loc, true );
                     }
-                    catch ( IOException e ) {
-                        ErrorDialog.showError( window_, "I/O Error", e,
-                                               "Can't randomise table" );
+                    catch ( final IOException e ) {
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                ErrorDialog.showError( window_, "I/O Error", e,
+                                                      "Can't randomise table" );
+                            }
+                        } );
                     }
                     finally {
                         removeLoadingToken( token );
