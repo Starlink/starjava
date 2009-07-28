@@ -491,10 +491,10 @@
           dir="${basedir}/..">
       <arg value="."/>
     </exec>
-    <echo message="${svnversion} (branches/nanahope)"
+    <echo message="${svnversion} (branches/topcat-3.4-3)"
           file="${build.classes}/uk/ac/starlink/topcat/revision-string"/>
     <mkdir dir="${build.classes}/uk/ac/starlink/ttools"/>
-    <echo message="${svnversion} (branches/nanahope)"
+    <echo message="${svnversion} (branches/topcat-3.4-3)"
           file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
     <zip destfile="${dist.lib.pkg}/extras.zip">
