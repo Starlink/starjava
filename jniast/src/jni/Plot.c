@@ -79,7 +79,7 @@ static void initializeIDs( JNIEnv *env );
 /* This macro returns the value of the Grf object currently being used by
  * this thread, and hence by the Plot object being used in this thread
  * (as set up by the THPLOTCALL macro). */
-#define current_grf() ( (jobject) pthread_getspecific( grf_key ) );
+#define current_grf() ( (jobject) pthread_getspecific( grf_key ) )
 
 
 /* Instance methods. */
