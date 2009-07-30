@@ -59,5 +59,5 @@ int pthread_setspecific( pthread_key_t key, const void *pointer )
 }
 
 #else 
-static dummy() {}
+static void dummy() {}
 #endif
