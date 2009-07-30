@@ -45,7 +45,7 @@
 #  ----------------------------------------
             sun4_Solaris)
                if test "$JAVA_SYSTEM" = "x86"; then
-                  BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -lfui -lfai -lfsu -lsunmath -Bdynamic -lm -lc; f'
+                  BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -lfui -lfai -lfsu -lsunmath -Bdynamic -lm -lpthread -lc; f'
                   JAVA_SYSTEM="solaris"
                else
                   BLD_SHR='f() $(FC) -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
