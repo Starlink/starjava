@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.9-3
+   =====
+
+   Table spectra sent via SAMP will now preserve the selected columns
+   for coordinates, data and errors. Previously the first three columns
+   where always selected.
+
    3.9-2
    =====
 
