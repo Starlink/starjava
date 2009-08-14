@@ -112,7 +112,7 @@
    !   assumed to be called keystore in $star.build.dir, .. by
    !   default. -->
   <property name="webstart.codebase" 
-            value="http://www.starlink.ac.uk/starjava/lib"/>
+            value="http://starlink.jach.hawaii.edu/starjava/lib"/>
   <property name="webstart.alias" value="Starlink-UK"/>
   <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
   <property name="webstart.keypass" value="Vroomfondel"/>
