@@ -12,6 +12,9 @@
 
    The Sesame name resolution service is now the default for SSAP VO queries.
 
+Nanahope release
+ ----------------
+
    3.9-1
    =====
 
@@ -21,25 +24,25 @@
    3.9-0
    =====
 
-   SPLAT has been updated to use SAMP for interoperability with other
+   SPLAT has been updated to use SAMP for interoperability with other 
    desktop applications. It is still possible to use PLASTIC, but that
    protocol is now deprecated. See the main documentation for more about
    these changes.
 
-   When opening NDF spectra with redundant axes the position of the
+   When opening NDF spectra with redundant axes the position of the 
    redundant axes may be reported in the synopsis. This will typically
    be the position on the sky that the spectrum occupied.
 
    SSAP query failures are now reported in more detail.
 
-   The offsets applied to spectra during display can now be derived from an
+   The offsets applied to spectra during display can now be derived from an 
    expression, rather than just using an order with a fixed offset. The
    way that line identifiers are handled when applying offsets is also
    changed. This should stop excessive data limits being used when most
    line identifiers are not displayed.
 
    A bug parsing the names of remotely downloaded spectra has been fixed.
-   This should make guessing the file types more robust and support
+   This should make guessing the file types more robust and support 
    compressed sources.
 
    SSAP servers that do not return any results will now not be shown in the
@@ -51,8 +54,8 @@
    When displaying dual sideband spectra, line identifiers can now be drawn
    for both sidebands, not just the current one.
 
-   Series of spectra displayed in a single plot can now be offset from
-   each other using artificial baselines for easier inspections. The
+   Series of spectra displayed in a single plot can now be offset from 
+   each other using artificial baselines for easier inspections. The 
    ordering of the offsets can be determined by evaluating an expression
    based on the FITS card values in the spectra. This can include the
    evaluation of dates and times.
@@ -62,7 +65,7 @@
    be compatible and must be regenerated. This should mean that new services
    will be picked up again.
 
-   A bug calculating UTC from TDB for the epoch of observation in the
+   A bug calculating UTC from TDB for the epoch of observation in the 
    JAC synopsis has been fixed.
 
    A new toolbox for applying offsets to spectra displayed in the same window
@@ -82,7 +85,7 @@
    has been added to SUN/243.
 
    The colours that are automatically selected for spectra will no longer
-   include shades of yellow. These tend to be indistinctive on a white
+   include shades of yellow. These tend to be indistinctive on a white 
    background.
 
    The properties used for rendering the current spectrum (line style, width
@@ -90,13 +93,17 @@
    between sessions. Note that the colour of the spectrum will not be re-used
    unless you have switched off automatically colouring.
 
-   Extra controls have been added to the SSAP download dialog. You can
+   Extra controls have been added to the SSAP download dialog. You can 
    now clear all the selections and just download data to the stack without
    displaying it.
 
    Line identifiers can be have the associated spectrum shortname suffixed
    to labels (it is already possible to prefix the shortname) or just have
-   the shortname shown as the label.
+   the shortname shown as the label. 
+
+Lehuakona Release
+-----------------
+
 
    3.8-8
    =====
@@ -156,6 +163,9 @@
    The errors of a spectrum can now be plotted as the spectral line, not
    just as error bars.
 
+Humu Release
+------------
+
    3.8-5
    =====
 
@@ -181,6 +191,9 @@
 
    Line identifier labels in text files can now be quoted using single
    or double quotes.
+
+Puana Release
+-------------
 
    3.8-2
    =====
@@ -283,6 +296,9 @@
    will only work for JCMT ACSIS data. This is the same value as reported in
    the spectral synopsis, but uses the the variance from a region, not the
    whole spectrum.
+
+Hokulei Release
+---------------
 
    3.6-6
    =====
@@ -567,4 +583,3 @@
       - The flip/shift toolbox will now work with up to 5 decimal places, so
         that redshifts may be applied with higher accuracy.
 
-Peter W. Draper (p.w.draper@durham.ac.uk)          17th February 2006
