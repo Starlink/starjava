@@ -70,13 +70,19 @@ class StarResultSet {
              * an object from that column and using its class, but then it
              * might be null...). */
             String className = meta.getColumnClassName( jcol );
-            try {
-                Class clazz = getClass().forName( className );
-                col.setContentClass( clazz );
+            if ( className != null ) {
+                try {
+                    Class clazz = getClass().forName( className );
+                    col.setContentClass( clazz );
+                }
+                catch ( ClassNotFoundException e ) {
+                    logger_.warning( "Cannot determine class " + className
+                                   + " for column " + name );
+                    col.setContentClass( Object.class );
+                }
             }
-            catch ( ClassNotFoundException e ) {
-                logger_.warning( "Cannot determine class " + className
-                               + " for column " + name );
+            else {
+                logger_.warning( "No column class given for column " + name );
                 col.setContentClass( Object.class );
             }
             if ( meta.isNullable( jcol ) == ResultSetMetaData.columnNoNulls ) {
