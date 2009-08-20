@@ -40,7 +40,7 @@ public class JdbcMode implements ProcessingMode {
             "<p>The driver-specific sub-protocol specifier for the JDBC",
             "connection.",
             "For MySQL's Connector/J driver, this is <code>mysql</code>,",
-            "and for PostgreSQL's driver it is <code>postgres</code>.",
+            "and for PostgreSQL's driver it is <code>postgresql</code>.",
             "For other drivers, you may have to consult the driver",
             "documentation.",
             "</p>",
