@@ -6216,6 +6216,9 @@ but my thanks are especially due to the following:
     <li>HTML table output is now HTML 4.01 by default 
         (includes THEAD and TBODY tags).</li>
     <li>Work around illegally truncated type declarations in IPAC tables.</li>
+    <li>Be more careful in XML, including VOTable, output; 
+        fix VOTable output encoding to be UTF-8,
+        and ensure no illegal XML characters are written.</li>
     </ul>
     </p></dd>
 
