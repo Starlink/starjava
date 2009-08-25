@@ -150,20 +150,39 @@ public class XmlWriter {
      * @return  string of the form ' name="value"'
      */
     public static String formatAttribute( String name, String value ) {
-        if ( value == null || value.length() == 0 ) {
+        if ( value == null ) {
             return "";
         }
-        return new StringBuffer()
-            .append( ' ' )
+        int vleng = value.length();
+        if ( vleng == 0 ) {
+            return "";
+        }
+        StringBuffer sbuf = new StringBuffer( name.length() + vleng + 4 );
+        sbuf.append( ' ' )
             .append( name )
             .append( '=' )
-            .append( '"' )
-            .append( value.replaceAll( "&", "&amp;" )
-                          .replaceAll( "<", "&lt;" )
-                          .replaceAll( ">", "&gt;" )
-                          .replaceAll( "\"", "&quot;" ) )
-            .append( '"' )
-            .toString();
+            .append( '"' );
+        for ( int i = 0; i < vleng; i++ ) {
+            char c = value.charAt( i );
+            switch ( c ) {
+                case '<':
+                    sbuf.append( "&lt;" );
+                    break;
+                case '>':
+                    sbuf.append( "&gt;" );
+                    break;
+                case '&':
+                    sbuf.append( "&amp;" );
+                    break;
+                case '"':
+                    sbuf.append( "&quot;" );
+                    break;
+                default:
+                    sbuf.append( ensureLegalXml( c ) );
+            }
+        }
+        sbuf.append( '"' );
+        return sbuf.toString();
     }
 
     /**
@@ -189,10 +208,30 @@ public class XmlWriter {
                     sbuf.append( "&amp;" );
                     break;
                 default:
-                    sbuf.append( c );
+                    sbuf.append( ensureLegalXml( c ) );
             }
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Returns a legal XML character corresponding to an input character.
+     * Certain characters are simply illegal in XML (regardless of encoding).
+     * If the input character is legal in XML, it is returned;
+     * otherwise some other weird but legal character
+     * (currently the inverted question mark, "\u00BF") is returned instead.
+     *
+     * @param   c  input character
+     * @return  legal XML character, <code>c</code> if possible
+     */
+    private static char ensureLegalXml( char c ) {
+        return ( ( c >= '\u0020' && c <= '\uD7FF' ) ||
+                 ( c >= '\uE000' && c <= '\uFFFD' ) ||
+                 ( ((int) c) == 0x09 ||
+                   ((int) c) == 0x0A ||
+                   ((int) c) == 0x0D ) )
+             ? c
+             : '\u00BF';
     }
 
     /** 
