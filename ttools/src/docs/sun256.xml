@@ -6215,6 +6215,7 @@ but my thanks are especially due to the following:
     <ul>
     <li>HTML table output is now HTML 4.01 by default 
         (includes THEAD and TBODY tags).</li>
+    <li>Work around illegally truncated type declarations in IPAC tables.</li>
     </ul>
     </p></dd>
 

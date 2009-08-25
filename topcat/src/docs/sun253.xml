@@ -11902,6 +11902,7 @@ introduced since the last version:
     <li>HTML table output is now HTML 4.01 by default
         (includes THEAD and TBODY tags).</li>
     <li>Add <code>-jsamp</code> command-line flag.</li>
+    <li>Work around illegally truncated type declarations in IPAC tables.</li>
     </ul>
     </p></dd>
 

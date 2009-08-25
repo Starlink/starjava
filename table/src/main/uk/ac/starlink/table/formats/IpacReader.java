@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -39,9 +40,12 @@ class IpacReader implements RowSequence {
     private String dataLine_;
     private String[] dataTokens_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.formats" );
     private static final ValueInfo COMMENT_INFO =
         new DefaultValueInfo( "Comments", String.class,
                               "Miscellaneous comments" );
+    private static final boolean WORKAROUND_TRUNCATION = true;
 
     /**
      * Constructor.
@@ -398,7 +402,7 @@ class IpacReader implements RowSequence {
                               ? null
                              : blank.trim();
         final boolean hasBlank = blankVal != null;
-        if ( type.equals( "int" ) || type.equals( "i" ) ) {
+        if ( typeMatch( type, "int" ) || type.equals( "i" ) ) {
             info.setContentClass( Integer.class );
             info.setNullable( hasBlank );
             return new ColumnReader( info ) {
@@ -417,7 +421,7 @@ class IpacReader implements RowSequence {
                 }
             };
         }
-        else if ( type.equals( "double" ) || type.equals( "d" ) ) {
+        else if ( typeMatch( type, "double" ) || type.equals( "d" ) ) {
             info.setContentClass( Double.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -435,8 +439,8 @@ class IpacReader implements RowSequence {
                 }
             };
         }
-        else if ( type.equals( "float" ) || type.equals( "f" ) ||
-                  type.equals( "real" ) || type.equals( "r" ) ) {
+        else if ( typeMatch( type, "float" ) || type.equals( "f" ) ||
+                  typeMatch( type, "real" ) || type.equals( "r" ) ) {
             info.setContentClass( Float.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -454,7 +458,7 @@ class IpacReader implements RowSequence {
                 }
             };  
         }
-        else if ( type.equals( "char" ) || type.equals( "c" ) ) {
+        else if ( typeMatch( type, "char" ) || type.equals( "c" ) ) {
             info.setContentClass( String.class );
             return new ColumnReader( info ) {
                 Object readValue( String token ) {
@@ -467,7 +471,7 @@ class IpacReader implements RowSequence {
                 }
             };
         }
-        else if ( type.equals( "date" ) ) {
+        else if ( typeMatch( type, "date" ) ) {
             info.setContentClass( String.class );
             info.setUnitString( "iso-8601" );
             info.setUCD( "TIME" );
@@ -508,6 +512,42 @@ class IpacReader implements RowSequence {
         else {
             throw new TableFormatException( "Unknown IPAC data type " + type );
         }
+    }
+
+    /**
+     * Determines whether a given type matches one of the defined IPAC types.
+     * This does not handle the case of the special 1-character abbreviations.
+     *
+     * @param  type  supplied type from file
+     * @param  name  IPAC-defined type name
+     * @return  true iff type matches name
+     */
+    private static boolean typeMatch( String type, String name ) {
+
+        /* Equality is a match. */
+        if ( name.equals( type ) ) {
+            return true;
+        }
+
+        /* Many IRSA catalogues violate the documented IPAC rules and 
+         * provide type names truncated to whatever length is convenient,
+         * e.g. "doub" for "double".  Work around this here, by calling
+         * any match of more than one character a match. */
+        if ( WORKAROUND_TRUNCATION ) {
+            int tleng = type.length();
+            if ( tleng > 1 && tleng < name.length() ) {
+                for ( int i = 0; i < tleng; i++ ) {
+                    if ( type.charAt( i ) != name.charAt( i ) ) {
+                        return false;
+                    }
+                }
+                logger_.info( "Assume declared IPAC data type \"" + type 
+                            + "\" means \"" + name
+                            + "\" (illegal truncation)" );
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
