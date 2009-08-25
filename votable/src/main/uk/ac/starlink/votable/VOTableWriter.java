@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.FitsTableWriter;
@@ -144,8 +146,16 @@ public class VOTableWriter implements StarTableWriter {
          * new line, we don't use a PrintWriter here, since that doesn't
          * throw any exceptions; we would like exceptions to be thrown
          * where they occur. */
-        BufferedWriter writer = 
-            new BufferedWriter( new OutputStreamWriter( out ) );
+        OutputStreamWriter osw;
+        try {
+            osw = new OutputStreamWriter( out, "UTF-8" );
+        }
+        catch ( UnsupportedEncodingException e ) {
+            logger.log( Level.WARNING, "What? UTF-8 unsupported?", e );
+            assert false;  // Java requires UTF-8 support
+            osw = new OutputStreamWriter( out );
+        }
+        BufferedWriter writer = new BufferedWriter( osw );
 
         /* Get the format to provide a configuration object which describes
          * exactly how the data from each cell is going to get written. */
