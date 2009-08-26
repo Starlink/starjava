@@ -112,12 +112,12 @@ public class SplatBrowserMain
                 parser.addBooleanOption( 'i', "ignore" );
             CmdLineParser.Option interop =
                 parser.addStringOption( '\0', "interop" );
-            CmdLineParser.Option hub = 
+            CmdLineParser.Option hub =
                 parser.addBooleanOption( '\0', "hub" );
             CmdLineParser.Option exthub =
                 parser.addBooleanOption( '\0', "exthub" );
             CmdLineParser.Option debug =
-                parser.addIntegerOption( '\0', "debuglevel" );            
+                parser.addIntegerOption( '\0', "debuglevel" );
 
             try {
                 parser.parse( args );
@@ -220,9 +220,9 @@ public class SplatBrowserMain
                     Logger.getLogger( "" ).setLevel( Level.ALL );
                 }
             }
-            
+
             //  All handlers also need to respect this.
-            java.util.logging.Handler handler[] = 
+            java.util.logging.Handler handler[] =
                 Logger.getLogger( "" ).getHandlers();
             if ( handler != null ) {
                 for ( int i = 0; i < handler.length; i++ ) {
@@ -244,7 +244,7 @@ public class SplatBrowserMain
                     browser.setVisible( true );
                     if ( checkjniast ) {
                         if ( ! ASTJ.isAvailable() ) {
-                            System.out.println( "No JNIAST support, " + 
+                            System.out.println( "No JNIAST support, " +
                                                 "no point in continuing" +
                                                 " (--ignore 1 to ignore)" );
                             System.exit( 1 );
@@ -253,7 +253,7 @@ public class SplatBrowserMain
                 }
             });
 
-        //  Start hub if required.  This may take time, and it is not 
+        //  Start hub if required.  This may take time, and it is not
         //  critical to the GUI startup, which is why it is done after
         //  the interface startup is dispatched.
         if ( Boolean.TRUE.equals( intHub ) || Boolean.TRUE.equals( extHub ) ) {
@@ -397,6 +397,9 @@ public class SplatBrowserMain
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.srb" ).setLevel( Level.SEVERE );
         Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
+
+        // JSAMP gives too much INFO.
+        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
     }
 
     /**
@@ -411,7 +414,7 @@ public class SplatBrowserMain
      * Returns a new SplatCommunicator object to handle inter-applcation
      * communications.
      *
-     * @param interopType "s(amp)" or "p(lastic)", otherwise a default is used 
+     * @param interopType "s(amp)" or "p(lastic)", otherwise a default is used
      */
     public static SplatCommunicator createCommunicator( String interopType ) {
 
