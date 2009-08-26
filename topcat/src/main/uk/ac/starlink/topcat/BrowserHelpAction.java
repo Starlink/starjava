@@ -11,7 +11,6 @@ import java.net.URL;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.SwingUtilities;
 import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -58,21 +57,7 @@ public class BrowserHelpAction extends AbstractAction {
                 return;
             }
         }
-        final Runnable launcher = new Runnable() {
-            public void run() {
-                launcher_.openURLinBrowser( helpUrl_.toString() );
-            }
-        };
-        if ( server_.isRunning() ) {
-            launcher.run();
-        }
-        else {
-            server_.invokeWhenStarted( new Runnable() {
-                public void run() {
-                    SwingUtilities.invokeLater( launcher );
-                }
-            } );
-        }
+        launcher_.openURLinBrowser( helpUrl_.toString() );
     }
 
     /**

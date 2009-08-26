@@ -7,23 +7,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import org.astrogrid.samp.client.ClientProfile;
-import org.astrogrid.samp.httpd.URLMapperHandler;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.ResourceHandler;
 import org.astrogrid.samp.httpd.ServerResource;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.internal.InternalClientFactory;
-import org.astrogrid.samp.xmlrpc.internal.InternalServer;
+import org.astrogrid.samp.httpd.URLMapperHandler;
+import org.astrogrid.samp.httpd.UtilServer;
 import uk.ac.starlink.topcat.Driver;
 
 /**
  * Provides HTTP server functionality for TOPCAT.
  * This includes a web server for dynamically generated content and an
  * XML-RPC server for use with SAMP.
- * The HTTP server itself is started lazily.
  * This class is a singleton.
  *
  * @author   Mark Taylor
@@ -31,46 +26,35 @@ import uk.ac.starlink.topcat.Driver;
  */
 public class TopcatServer {
 
-    private final HttpServer httpServer_;
-    private final ResourceHandler resourceHandler_;
-    private final SampXmlRpcServerFactory xServerFactory_;
-    private final SampXmlRpcClientFactory xClientFactory_;
+    private final UtilServer utilServer_;
     private final ClientProfile profile_;
+    private final ResourceHandler resourceHandler_;
     private final URL tcPkgUrl_;
-    private boolean started_;
     private static TopcatServer instance_;
+
     private static final int BUFSIZ = 16 * 1024;
 
     /**
      * Private constructor constructs sole instance.
      */
     private TopcatServer() throws IOException {
-        httpServer_ = new HttpServer();
-        httpServer_.setDaemon( true );
+        utilServer_ = UtilServer.getInstance();
+        profile_ = DefaultClientProfile.getProfile();
+        HttpServer httpServer = utilServer_.getServer();
 
-        /* Set up handler for custom resource serving. */
-        resourceHandler_ = new ResourceHandler( httpServer_, "/dynamic" );
-        httpServer_.addHandler( resourceHandler_ );
+        /* Set up a handler for custom resource handling. */
+        resourceHandler_ =
+            new ResourceHandler( httpServer,
+                                 utilServer_.getBasePath( "/dynamic" ) );
+        httpServer.addHandler( resourceHandler_ );
 
-        /* Set up handler to serve TOPCAT documentation. */
-        URL docResource = getDocResource();
+        /* Set up a handler to serve TOPCAT documentation. */
         URLMapperHandler docHandler =
-            new URLMapperHandler( httpServer_, "/doc", docResource, true );
-        httpServer_.addHandler( docHandler );
+            new URLMapperHandler( httpServer,
+                                  utilServer_.getBasePath( "/doc" ),
+                                  getDocResource(), true );
+        httpServer.addHandler( docHandler );
         tcPkgUrl_ = docHandler.getBaseUrl();
-
-        /* Set up handler for XML-RPC. */
-        xClientFactory_ = new InternalClientFactory();
-        final SampXmlRpcServer xServer =
-            new InternalServer( httpServer_, "/xmlrpc" );
-        xServerFactory_ = new SampXmlRpcServerFactory() {
-            public SampXmlRpcServer getServer() {
-                checkStarted();
-                return xServer;
-            }
-        };
-        profile_ = new StandardClientProfile( xClientFactory_,
-                                              xServerFactory_ );
     }
 
     /**
@@ -83,27 +67,9 @@ public class TopcatServer {
     }
 
     /**
-     * Returns a SAMP XML-RPC client implementation.
-     *
-     * @return  SAMP XML-RPC client
-     */
-    public SampXmlRpcClientFactory getSampClientFactory() {
-        return xClientFactory_;
-    }
-
-    /**
-     * Returns a SAMP XML-RPC server factory implementation.
-     *
-     * @return SAMP XML-RPC server factory
-     */
-    public SampXmlRpcServerFactory getSampServerFactory() {
-        return xServerFactory_;
-    }
-
-    /**
      * Makes a resource available for retrieving from this internal HTTP server.
      * A <code>name</code> may be supplied which will appear at the end of
-     * the URL, but this is just for cosmetic purposes.  The URL at which 
+     * the URL, but this is just for cosmetic purposes.  The URL at which
      * the resource is available will provided as the return value.
      *
      * @param   name   filename identifying the resource
@@ -111,7 +77,6 @@ public class TopcatServer {
      * @return    URL at which <code>resource</code> can be found
      */
     public URL addResource( String name, ServerResource resource ) {
-        checkStarted();
         return resourceHandler_.addResource( name == null ? "" : name,
                                              resource );
     }
@@ -143,7 +108,6 @@ public class TopcatServer {
      *           non-error status
      */
     public boolean isFound( URL url ) {
-        checkStarted();
         try {
             URLConnection connection = url.openConnection();
             if ( connection instanceof HttpURLConnection ) {
@@ -174,57 +138,7 @@ public class TopcatServer {
     }
 
     /**
-     * Indicates whether this server is currently serving requests.
-     *
-     * @return  true iff server is running
-     */
-    public boolean isRunning() {
-        return httpServer_.isRunning();
-    }
-
-    /**
-     * Executes a runnable object after first ensuring that the server
-     * is running.  If the server is not currently running, it is started
-     * and the runnable invoked in a separate thread.  Otherwise it's
-     * done concurrently.
-     * Thus this method should not take (much) longer than the given 
-     * runnable's run method to return.
-     *
-     * @param   runnable   item to run
-     */
-    public void invokeWhenStarted( final Runnable runnable ) {
-        if ( isRunning() ) {
-            runnable.run();
-        }
-        else {
-            Thread waiter = new Thread( "server waiter" ) {
-                public void run() {
-                    checkStarted();
-                    runnable.run();
-                }
-            };
-            waiter.setDaemon( true );
-            waiter.start();
-        }
-    }
-
-    /**
-     * Ensures that the server has been started since it was created.
-     * May harmlessly be called multiple times.
-     */
-    private void checkStarted() {
-        if ( ! started_ ) {
-            synchronized ( httpServer_ ) {
-                if ( ! started_ ) {
-                    started_ = true;
-                    httpServer_.start();
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns the URL corresponding to the classpath directory 
+     * Returns the URL corresponding to the classpath directory
      * "uk.ac.starlink.topcat".
      *
      * @return  internal URL

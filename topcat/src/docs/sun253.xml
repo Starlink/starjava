@@ -3560,6 +3560,48 @@ The following ones have special significance within TOPCAT:
     (see <ref id="jelExtend"/>).
     </p></dd>
 
+<dt><code>jsamp.localhost</code></dt>
+<dd><p>Sets the hostname by which the local host is to be identified in
+    URLs, for instance server endpoints.
+    If unset, the default is currently the loopback address 
+    "<code>127.0.0.1</code>".
+    However, if this property is set (presumably to the local host's
+    fully- or partly-qualified domain name) its value will be used instead.
+    Two special values may also be set:
+    "<code>[hostname]</code>" for the host's fully qualified domain name, and
+    "<code>[hostnumber]</code>" for the IP number.
+    </p></dd>
+
+<dt><code>jsamp.lockfile</code></dt>
+<dd><p>If set, overrides the location at which the SAMP standard profile
+    lockfile is written 
+    (the default defined by the SAMP Standard Profile is 
+    <code>.samp</code> in the user's home directory).
+    </p></dd>
+
+<dt><code>jsamp.profile</code></dt>
+<dd><p>May be set to the classname of a 
+    <code>org.astrogrid.samp.ClentProfile</code> implementation to use
+    a non-Standard SAMP profile.
+    </p></dd>
+
+<dt><code>jsamp.server.port</code></dt>
+<dd><p>Gives a preferred port number on which to open TOPCAT's internal
+    HTTP server, used for SAMP communications amongst other things.
+    If this port is unavailable, some other port will be used instead.
+    </p></dd>
+
+<dt><code>jsamp.xmlrpc.impl</code></dt>
+<dd><p>Indicates which pluggable XML-RPC implementation should be used
+    for SAMP communications.
+    By default an internal implementation is used.
+    If it is set to "<code>xml-log</code>" or "<code>rpc-log</code>"
+    then all XML-RPC communications will be logged in very or fairly 
+    verbose terms respectively to standard output.
+    The classname of an <code>org.astrogrid.samp.xmlrpc.XmlRpcKit</code>
+    implementation may be given instead to use a custom implementation.
+    </p></dd>
+
 <dt><code>lut.files</code></dt>
 <dd><p>Can be set to a (colon-separated on *nix, semicolon-separated on Windows)
     list of files giving custom lookup tables for auxiliary axis and
@@ -11899,9 +11941,14 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>JSAMP library upgraded to v1.0; some SAMP behaviour changes,
+        enhancements and bugfixes.  Control of things like TOPCAT server port
+        and server endpoint hostname are now configurable using 
+        <code>jsamp.*</code> 
+        <ref id="jvmProperties">system properties</ref>.</li>
+    <li>Add <code>-jsamp</code> command-line flag.</li>
     <li>HTML table output is now HTML 4.01 by default
         (includes THEAD and TBODY tags).</li>
-    <li>Add <code>-jsamp</code> command-line flag.</li>
     <li>Work around illegally truncated type declarations in IPAC tables.</li>
     <li>Be more careful in XML, including VOTable, output; 
         fix VOTable output encoding to be UTF-8,

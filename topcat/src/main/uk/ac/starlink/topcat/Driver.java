@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.astrogrid.samp.JSamp;
+import org.astrogrid.samp.httpd.UtilServer;
 import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -61,6 +62,7 @@ public class Driver {
     private static String[] extraLoaders;
     private static final ValueInfo DEMOLOC_INFO = 
         new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
+    private static final int DEFAULT_SERVER_PORT = 2525;
     private static String[] KNOWN_DIALOGS = new String[] {
         "uk.ac.starlink.table.gui.FileChooserLoader",
         "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
@@ -374,6 +376,18 @@ public class Driver {
 
         /* Check JRE vendor and report on concerns. */
         Loader.checkJ2seVendor();
+
+        /* Configure default port number for SAMP-related services. */
+        try {
+            String portnum = System.getProperty( UtilServer.PORT_PROP );
+            if ( portnum == null || portnum.trim().length() == 0 ) {
+                System.setProperty( UtilServer.PORT_PROP,
+                                    Integer.toString( DEFAULT_SERVER_PORT ) );
+            }
+        }
+        catch ( SecurityException e ) {
+            // Never mind.
+        }
 
         /* Configure factory. */
         tabfact.getJDBCHandler()
@@ -768,6 +782,8 @@ public class Driver {
            .append( "mark.workaround         work around mark/reset bug" )
            .append( p2 )
            .append( "myspace.cache           MySpace performance workaround" )
+           .append( p2 )
+           .append( "    (see topcat -jsamp -help for more)" )
            .append( "" );
 
         /* Return. */
