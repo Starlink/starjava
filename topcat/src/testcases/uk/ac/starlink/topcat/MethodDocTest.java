@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat;
 
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import uk.ac.starlink.ttools.gui.DocNames;
@@ -10,6 +12,12 @@ import uk.ac.starlink.util.TestCase;
 public class MethodDocTest extends TestCase {
 
     MethodBrowser methodBrowser_;
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.OFF );
+        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+    }
 
     public MethodDocTest( String name ) {
         super( name );

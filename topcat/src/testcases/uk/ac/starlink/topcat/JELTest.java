@@ -15,6 +15,7 @@ public class JELTest extends TestCase {
 
     static {
         Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.OFF );
     }
 
     public JELTest( String name ) {
