@@ -772,24 +772,27 @@ public class PlotControlFrame
         prefixLineIDs = new JCheckBoxMenuItem( "Prefix name to labels" );
         lineOptionsMenu.add( prefixLineIDs );
         prefixLineIDs.addItemListener( this );
-        state = prefs.getBoolean( "PlotControlFrame_prefixlineids", false );
+        boolean state1 = 
+            prefs.getBoolean( "PlotControlFrame_prefixlineids", false );
 
         //  Or Suffix labels with the short name.
         suffixLineIDs = new JCheckBoxMenuItem( "Suffix name to labels" );
         lineOptionsMenu.add( suffixLineIDs );
         suffixLineIDs.addItemListener( this );
-        state = prefs.getBoolean( "PlotControlFrame_suffixlineids", false );
+        boolean state2 = 
+            prefs.getBoolean( "PlotControlFrame_suffixlineids", false );
 
         //  Or show only short name (useful when labels are very long).
         shortNameLineIDs = new JCheckBoxMenuItem("Short name only as labels");
         lineOptionsMenu.add( shortNameLineIDs );
         shortNameLineIDs.addItemListener( this );
-        state = prefs.getBoolean( "PlotControlFrame_shortnamelineids", false );
+        boolean state3 = 
+            prefs.getBoolean( "PlotControlFrame_shortnamelineids", false );
 
         //  Interdependent, so initialise once all are realised.
-        prefixLineIDs.setSelected( state );
-        suffixLineIDs.setSelected( state );
-        shortNameLineIDs.setSelected( state );
+        prefixLineIDs.setSelected( state1 );
+        suffixLineIDs.setSelected( state2 );
+        shortNameLineIDs.setSelected( state3 );
 
         //  Draw labels horizontally
         horizontalLineIDs = new JCheckBoxMenuItem( "Draw horizontal labels" );

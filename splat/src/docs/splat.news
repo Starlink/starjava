@@ -7,6 +7,9 @@
    for coordinates, data and errors. Previously the first three columns
    where always selected.
 
+   The line identifier plot configuration options controlling the addition
+   of the id name as a prefix or suffix are now saved between sessions.
+
    3.9-2
    =====
 
