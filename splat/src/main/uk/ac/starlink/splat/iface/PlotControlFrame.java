@@ -804,8 +804,9 @@ public class PlotControlFrame
         //  Display labels for both axes of a DSB spectrum.
         doubleDSBLineIDs = new JCheckBoxMenuItem("Show dual sideband labels");
         lineOptionsMenu.add( doubleDSBLineIDs );
+        doubleDSBLineIDs.setSelected( true );
         doubleDSBLineIDs.addItemListener( this );
-        state = prefs.getBoolean("PlotControlFrame_doubledsblineids", true );
+        state = prefs.getBoolean( "PlotControlFrame_doubledsblineids", true );
         doubleDSBLineIDs.setSelected( state );
     }
 

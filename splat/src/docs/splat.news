@@ -10,6 +10,10 @@
    The line identifier plot configuration options controlling the addition
    of the id name as a prefix or suffix are now saved between sessions.
 
+   A bug in the plot configuration for displaying dual sideband line
+   identifiers has been fixed. Previously matching lines from the other
+   sideband where always shown, regardless of the initial setting.
+
    3.9-2
    =====
 
