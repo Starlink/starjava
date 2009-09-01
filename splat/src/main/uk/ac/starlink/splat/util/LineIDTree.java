@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,6 +60,9 @@ public class LineIDTree
 {
     private StringBuffer dataBase = new StringBuffer();
     private int rootDirLength = 0;
+    private static Logger logger =
+        Logger.getLogger( LineIDTree.class.getName() );
+    private static int MAX_ITEMS = 16;
 
     /**
      * Create an instance and process all the files. The two directories must
@@ -99,11 +104,11 @@ public class LineIDTree
                             processJACDataBase( list[i], outDir );
                         }
                         catch (Exception e) {
-                            e.printStackTrace();
+                            logger.log( Level.INFO, e.getMessage(), e );
                         }
                     }
                     else {
-                        System.out.println( "Skipped: " + list[i] );
+                        logger.fine( "Skipped: " + list[i] );
                     }
                 }
             }
@@ -134,12 +139,11 @@ public class LineIDTree
             oos.writeObject( specData );
             oos.close();
             fos.close();
-            System.out.println( "Processed: " + inSpec );
+            logger.fine( "Processed: " + inSpec );
         }
         catch (Exception e) {
-            System.out.println( "Didn't process: " + inSpec );
-            System.out.println( e.getMessage() );
-            e.printStackTrace();
+            logger.warning( "Failed to process: " + inSpec );
+            logger.log( Level.INFO, e.getMessage(), e );
         }
     }
 
@@ -180,10 +184,10 @@ public class LineIDTree
             FileWriter fw = new FileWriter( out );
             fw.write( dataBase.toString() );
             fw.close();
-            System.out.println( "Description file updated" );
+            logger.fine( "Description file updated" );
         }
         catch (Exception e) {
-            System.out.println( "Failed to write description file" );
+            logger.info( "Failed to write description file" );
             throw new RuntimeException( e );
         }
     }
@@ -206,36 +210,47 @@ public class LineIDTree
      * all measurements are in MHz.
      */
     private void processJACDataBase( File database, File outDir )
-        throws ParserConfigurationException, SAXException, 
+        throws ParserConfigurationException, SAXException,
                SplatException, IOException
     {
         //  Read the input document.
-        DocumentBuilder docBuilder = 
+        DocumentBuilder docBuilder =
             DocumentBuilderFactory.newInstance().newDocumentBuilder();
         Document doc = docBuilder.parse( database );
-        
+
         //  Work through the top-level elements of the input XML.
-        NodeList speciesList = 
+        NodeList speciesList =
             doc.getDocumentElement().getElementsByTagName( "species" );
 
-        for ( int i = 0; i < speciesList.getLength(); i++ ) {
+        //  If there are more than MAX_ITEMS then we split into various
+        //  sub-menus so that we can see them all and the eye doesn't
+        //  get tried scanning down.
+        int nspecies = speciesList.getLength();
+        File subDir = outDir;
+        int ndirs = 1;
+        if ( nspecies > MAX_ITEMS ) {
+            subDir = new File( outDir.toString() + ndirs );
+            ndirs++;
+        }
+
+        for ( int i = 0, k = 0; i < nspecies; i++, k++ ) {
             Element species = (Element) speciesList.item( i );
-            
+
             //  Create name for the pseudo output file.
             String newName = species.getAttribute( "name" );
-            File newFile = new File( outDir, newName );
-            
-            //  Make a memory line identifier to fill with the extracted 
+            File newFile = new File( subDir, newName );
+
+            //  Make a memory line identifier to fill with the extracted
             //  content.
-            LineIDMEMSpecDataImpl impl = 
+            LineIDMEMSpecDataImpl impl =
                 new LineIDMEMSpecDataImpl( getShortName( newFile ) );
 
             //  Read transitions.
             NodeList transList = species.getElementsByTagName( "transition" );
             int nele = transList.getLength();
             if ( nele == 0 ) {
-                System.out.println( "Warning species: " + newName + 
-                                    " has no transitions, skipped" );
+                logger.info( "Warning species: " + newName +
+                             " has no transitions, skipped" );
                 continue;
             }
             double freq[] = new double[nele];
@@ -263,12 +278,19 @@ public class LineIDTree
             addDescription( newFile, specData );
 
             //  Write the output file.
+            newFile.getParentFile().mkdir();
             FileOutputStream fos = new FileOutputStream( newFile );
             ObjectOutputStream oos = new ObjectOutputStream( fos );
             oos.writeObject( specData );
             oos.close();
             fos.close();
-            System.out.println( "Processed: " + newFile );
+            logger.fine( "Processed: " + newFile );
+
+            if ( k > MAX_ITEMS ) {
+                subDir = new File( outDir.toString() + ndirs );
+                k = 0;
+                ndirs++;
+            }
         }
     }
 
@@ -321,7 +343,7 @@ public class LineIDTree
     /**
      * Clean a label by replacing all repeated blanks with a single blank,
      * the string " - " with "-", and all single blanks with an underscore.
-     */ 
+     */
     private String cleanLabel( String label )
     {
         String s = label.trim();
@@ -348,7 +370,7 @@ public class LineIDTree
         File outDir = new File( args[1] );
 
         if ( ! inDir.isDirectory() ) {
-            System.out.println( inDir + " is not a directory" );
+            logger.warning( inDir + " is not a directory" );
             return;
         }
 
@@ -357,7 +379,7 @@ public class LineIDTree
                 outDir.mkdirs();
             }
             catch (Exception e) {
-                System.out.println( outDir  + " no output directory created" );
+                logger.warning( outDir  + " no output directory created" );
                 e.printStackTrace();
                 return;
             }

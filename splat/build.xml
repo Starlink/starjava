@@ -184,7 +184,7 @@
   <!-- Local webstart properties. Note this needs a local keystore,
    !   assumed to be called keystore in $star.build.dir, .. by
    !   default. -->
-  <property name="webstart.codebase" 
+  <property name="webstart.codebase"
             value="http://starlink.jach.hawaii.edu/starjava/lib"/>
   <property name="webstart.alias" value="Starlink-UK"/>
   <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
@@ -240,7 +240,7 @@
 
     <!-- TABLE -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
-  
+
     <!-- VOTable -->
     <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
@@ -254,17 +254,17 @@
     <pathelement location="${star.jar.dir}/hds/hds.jar"/>
 
     <!-- DATANODE -->
-    <pathelement location="${star.jar.dir}/datanode/datanode.jar"/>   
+    <pathelement location="${star.jar.dir}/datanode/datanode.jar"/>
 
     <!-- JSKY -->
     <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
 
     <!-- HELP -->
     <pathelement location="${star.jar.dir}/help/help.jar"/>
- 
+
     <!-- UTIL -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
- 
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -402,9 +402,9 @@
         <token key="TIME" value="${TSTAMP}"/>
       </replacetokens>
     </filterchain>
-    
+
   </target>
-  
+
   <!--
   !   ==============
   !   Build the code
@@ -418,7 +418,7 @@
           depends="prepare, check_packages, build_examples, unpack_jni"
           unless="runonly.install"
           description="-> compiles the source code">
-    
+
     <javac srcdir="${java.dir}"
            destdir="${build.classes}"
            debug="${debug}"
@@ -467,19 +467,25 @@
     <echo file="${build.classes}/uk/ac/starlink/splat/util/splat.version"
           message="version=${version}${line.separator}"/>
 
+
+    <!-- Update the line identifier database. -->
+    <uptodate property="lineids.notrequired" 
+              targetfile="${src.jars.dir}/splat_lines.jar" >
+      <srcfiles dir="${src.etc}/ids"/>
+    </uptodate>
+    <antcall target="build-lineids"/>
   </target>
 
   <!--
    !   =======================
    !   Create line id jar file
    !   =======================
-   ! 
-   !  Creates the jar file that contains the line identifiers. This 
-   !  is just required when new files are added to the database and
-   !  is not normally run as part of a build process.
+   !
+   !  Creates the jar file that contains the line identifiers. This
+   !  is required when new files are added to the database.
    !-->
   <target name="build-lineids"
-          depends="build"
+          unless="lineids.notrequired"
           description="-> create the distributable line identifier jar file" >
 
     <!-- Make the mirror tree with the pre-processed spectra -->
@@ -489,12 +495,12 @@
       <arg value="${build.dir}/ids/ids"/>
     </java>
 
-    <jar destfile="${src.jars.dir}/splat_lines.jar" 
+    <jar destfile="${src.jars.dir}/splat_lines.jar"
          basedir="${build.dir}/ids"/>
 
   </target>
 
-  <!-- 
+  <!--
    !   =============================
    !   Copy example data into place.
    !   =============================
@@ -559,8 +565,8 @@
    !  architecture, and requires a stardev installation.  It is not a
    !  dependency of any of the other public targets, and should not be
    !  invoked as part of the normal build process.  It should be invoked
-   !  periodically (when NDF or the local C source change), once on each 
-   !  of the supported platforms, and the resulting new 'source' files 
+   !  periodically (when NDF or the local C source change), once on each
+   !  of the supported platforms, and the resulting new 'source' files
    !  (shared library jar files) checked in.
    !
    !  Note the build will not be attempted if the stardev property is not set.
@@ -570,7 +576,7 @@
 
     <!-- Extract the existing libraries from the jar file. There may
      !   be more than one library per architecture (i386 Linux and OS X)
-     !   and we want to keep the other libraries. The datestamps should 
+     !   and we want to keep the other libraries. The datestamps should
      !   be in the past otherwise this will fail
      !-->
     <unjar dest="${build.lib.arch}">
@@ -607,11 +613,11 @@
      !   may succeed. A failure isn't critical as SPLAT can use
      !   NDX support (available via JNIHDS) to access NDFs.
      !-->
-     <available file="${stardev}/bin/ndf_link" type="file" 
+     <available file="${stardev}/bin/ndf_link" type="file"
                 property="stardev.exists"/>
 
      <!-- Only one of these executes, depending on whether "stardev.exists" is
-      !   defined --> 
+      !   defined -->
      <antcall target="execute_mk_script_start"/>
      <antcall target="execute_mk_script_complete"/>
   </target>
@@ -635,7 +641,7 @@
     <!-- Local and installed versions of any shareable libraries that we
      !   require to resolve against in a form for the UNIX "ld" command
      !-->
-    <property name="jniast.share" 
+    <property name="jniast.share"
               value="-L${star.jar.dir}/${os.arch} -ljniast"/>
     <!-- OSX needs the full path, as JNI uses .jnilib not .dylib so -l fails-->
     <property name="jniast.share.osx"
@@ -695,7 +701,7 @@
   <!-- Inverse of above, use to report that execute_mk_script_real has not
        been invoked, as stardev.exists is not set-->
   <target name="execute_mk_script_complete" unless="stardev.exists">
-     <echo> 
+     <echo>
 JNI libraries not built (NDF library not installed in ${stardev})"
      </echo>
   </target>
@@ -829,12 +835,12 @@ JNI libraries not built (NDF library not installed in ${stardev})"
 
        <!-- Do not enable this until webstart supports the loading
             of dependent libraries (JNIAST). 23/11/06 they are no
-            workarounds (I've tried them all), so don't waste time 
+            workarounds (I've tried them all), so don't waste time
             on this. The bug to be fixed is:
 
             http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4491398
        -->
-      
+
        <!-- Linux >
        <resources os="Linux" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
@@ -861,7 +867,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
          <nativelib href="x86/${name}_libs.jar"/>
        </resources-->
 
-       <!-- Mac OS X > 
+       <!-- Mac OS X >
        <resources os="Mac OS X" arch="ppc">
          <nativelib href="ppc/${name}_libs.jar"/>
        </resources>
@@ -1391,7 +1397,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <classpath refid="tests-classpath"/>
 
       <!-- Need to pick up local JNIAST, which might be installed or on the
-       !   library path, note that java.library.path cannot be changed inside 
+       !   library path, note that java.library.path cannot be changed inside
        !   a JVM, so we have to fork and pass this from the environment.
        !   Set LD_LIBRARY_PATH and DYLD_LIBRARY_PATH as they are the only two
        !   ways that we support. -->
@@ -1422,7 +1428,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
     <antcall target="debugui"/>
   </target>
 
-  <!-- RUN up UI without compilation dependency (for testing/inspecting 
+  <!-- RUN up UI without compilation dependency (for testing/inspecting
    !   when coding not complete). -->
   <target name="debugui">
 
@@ -1462,7 +1468,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
   <property name="runclass" value="uk.ac.starlink.splat.SplatMain"/>
   <property name="runclass.args1" value=""/>
   <property name="runclass.args2" value=""/>
-  <target name="runclass" 
+  <target name="runclass"
           depends="compile-tests">
 
     <java classname="${runclass}" fork="true">
