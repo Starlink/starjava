@@ -110,7 +110,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
             if ( loc.equals( "-" ) ) {
                 InputStream in =
                     new BufferedInputStream( DataSource.getInputStream( loc ) );
-                return getStreamedTable( tfact, in, fmt );
+                return getStreamedTable( tfact, in, fmt, null );
             }
             else if ( stream ) {
                 return getStreamedTable( tfact,
@@ -141,10 +141,13 @@ public abstract class AbstractInputTableParameter extends Parameter {
      *
      * @param   tfact   table factory
      * @param   in  input stream
+     * @param   inFmt  input format
+     * @param   pos   position in data source (may be null for first table)
      * @return  one-shot startable
      */
     private StarTable getStreamedTable( StarTableFactory tfact,
-                                        final InputStream in, String inFmt )
+                                        final InputStream in, String inFmt,
+                                        final String pos )
             throws IOException, TaskException {
         if ( inFmt == null ||
              inFmt.equals( StarTableFactory.AUTO_HANDLER ) ) {
@@ -157,7 +160,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
         Thread streamer = new Thread( "Table Streamer" ) {
             public void run() {
                 try {
-                    tbuilder.streamStarTable( in, streamStore, null );
+                    tbuilder.streamStarTable( in, streamStore, pos );
                 }
                 catch ( IOException e ) {
                     streamStore.setError( e );
@@ -180,7 +183,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
     /**
      * Returns a StarTable which re-reads the input stream every time
      * the data are required.  This has similar efficiency characteristics to
-     * {@link #getStreamedTable(uk.ac.starlink.table.StarTableFactory,java,io.InputStream,java.lang.String)}
+     * {@link #getStreamedTable(uk.ac.starlink.table.StarTableFactory,java,io.InputStream,java.lang.String,java.lang.String)}
      * but doesn't fall over if more than one RowSequence is taken out on it.
      * It needs a DataSource not an InputStream of course, since the
      * stream of bytes has to be re-readable.
@@ -194,7 +197,8 @@ public abstract class AbstractInputTableParameter extends Parameter {
                                         final String inFmt )
             throws IOException, TaskException {
         InputStream in1 = new BufferedInputStream( datsrc.getInputStream() );
-        StarTable t1 = getStreamedTable( tfact, in1, inFmt );
+        final String pos = datsrc.getPosition();
+        StarTable t1 = getStreamedTable( tfact, in1, inFmt, pos );
         return new WrapperStarTable( t1 ) {
             public RowSequence getRowSequence() throws IOException {
                 try {
@@ -205,7 +209,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
                         new BufferedInputStream( datsrc.getInputStream() );
                     StarTable t2;
                     try {
-                        t2 = getStreamedTable( tfact, in, inFmt );
+                        t2 = getStreamedTable( tfact, in, inFmt, pos );
                     }
                     catch ( TaskException e1 ) {
                         /* We've already got this once before, so it shouldn't

@@ -6219,6 +6219,9 @@ but my thanks are especially due to the following:
     <li>Be more careful in XML, including VOTable, output; 
         fix VOTable output encoding to be UTF-8,
         and ensure no illegal XML characters are written.</li>
+    <li>Fix a bug which caused the first table in a multi-table file
+        (FITS or VOTable) to be used in streaming mode, even if
+        a subsequent one was requested.</li>
     </ul>
     </p></dd>
 
