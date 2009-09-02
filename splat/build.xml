@@ -364,14 +364,15 @@
   <!-- Turn this path into a string which is passed to the tests -->
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
-  <!-- Locate the JNIAST libraries for this platform. -->
-  <path id="jniast-ldpath.id">
+  <!-- Locate the JNI libraries for this platform. -->
+  <path id="jni-ldpath.id">
     <pathelement path="${java.library.path}"/>
     <pathelement path="${dist.lib.arch}"/>
     <pathelement path="${star.build.dir}/jniast/lib/${os.arch}"/>
+    <pathelement path="${star.build.dir}/jnihds/lib/${os.arch}"/>
     <pathelement path="${star.jar.dir}/${os.arch}"/>
   </path>
-  <property name="jniast-ldpath" refid="jniast-ldpath.id"/>
+  <property name="jni-ldpath" refid="jni-ldpath.id"/>
 
   <!--
    !    ===========================================
@@ -502,7 +503,7 @@
      !   we set the LD_LIBRARY_PATH. -->
     <java classname="uk.ac.starlink.splat.util.LineIDTree" fork="true">
       <classpath refid="classpath"/>
-      <sysproperty key="java.library.path" value="${jniast-ldpath}"/>
+      <sysproperty key="java.library.path" value="${jni-ldpath}"/>
       <arg value="${src.etc}/ids"/>
       <arg value="${build.dir}/ids/ids"/>
     </java>
@@ -1412,8 +1413,14 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <!-- Need to pick up local JNIAST, which might be installed or on the
        !   library path, note that java.library.path cannot be changed inside
        !   a JVM, so we have to fork and pass this from the environment.
-       !-->
-      <sysproperty key="java.library.path" value="${jniast-ldpath}"/>
+       !   Set LD_LIBRARY_PATH and DYLD_LIBRARY_PATH as they are the only two
+       !   ways that we support and are required for this to work (think
+       !   this is because libsplat.so depends on libjniast.so and the JVM
+       !   doesn't handle the loading of additional references). -->
+      <!--sysproperty key="java.library.path" value="${jni-ldpath}"/-->
+      <env key="LD_LIBRARY_PATH" value="${jni-ldpath}"/>
+      <env key="DYLD_LIBRARY_PATH" value="{$jni-ldpath}"/>
+
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
