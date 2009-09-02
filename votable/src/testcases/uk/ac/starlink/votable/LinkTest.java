@@ -38,7 +38,7 @@ public class LinkTest extends TestCase {
 
         VOElement vel = new VOElementFactory()
                        .makeVOElement( new ByteArrayInputStream( buf ), null );
-        NodeList linkList = vel.getElementsByTagName( "LINK" );
+        NodeList linkList = vel.getElementsByVOTagName( "LINK" );
         assertEquals( 1, linkList.getLength() );
         LinkElement link = (LinkElement) linkList.item( 0 );
         assertEquals( "pointer", link.getAttribute( "title" ) );

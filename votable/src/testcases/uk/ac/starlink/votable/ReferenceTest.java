@@ -21,7 +21,7 @@ public class ReferenceTest extends TestCase {
     public void testDOM() throws IOException, SAXException {
         VOElement top = new VOElementFactory( StoragePolicy.PREFER_MEMORY )
                        .makeVOElement( url );
-        NodeList tlist = top.getElementsByTagName( "TABLE" );
+        NodeList tlist = top.getElementsByVOTagName( "TABLE" );
         assertEquals( 2, tlist.getLength() );
         TableElement t1 = (TableElement) tlist.item( 0 );
         TableElement t2 = (TableElement) tlist.item( 1 );

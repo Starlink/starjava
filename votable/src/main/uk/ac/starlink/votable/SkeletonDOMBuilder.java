@@ -143,7 +143,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                                   String qName, Attributes atts )
                 throws SAXException {
             super.startElement( namespaceURI, localName, qName, atts );
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             if ( "TABLE".equals( tagName ) ) {
                 tableEl_ = (TableElement) getNewestNode();
             }
@@ -161,7 +161,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
             }
             else if ( "STREAM".equals( tagName ) ) {
                 Element parent = (Element) getNewestNode().getParentNode();
-                String parentName = parent.getTagName();
+                String parentName = getVOTagName( parent );
                 DataFormat fmt = null;
                 String extnum = null;
                 if ( parentName.equals( "BINARY" ) ) {
@@ -207,7 +207,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
             super.endElement( namespaceURI, localName, qName );
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             if ( "TABLE".equals( tagName ) ) {
                 tableEl_ = null;
             }
@@ -234,7 +234,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                 throws SAXException {
             if ( --level == 0 ) {
                 assert tagName
-                      .equals( getTagName( namespaceURI, localName, qName ) );
+                      .equals( getVOTagName( namespaceURI, localName, qName ) );
                 basicHandler_.endElement( namespaceURI, localName, qName );
                 setCustomHandler( basicHandler_ );
             }
@@ -268,7 +268,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
 
         public void startElement( String namespaceURI, String localName,
                                   String qName, Attributes atts ) {
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             if ( "TD".equals( tagName ) ) {
                 cell_.setLength( 0 );
                 inCell_ = true;
@@ -293,7 +293,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
 
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             if ( inCell_ && "TD".equals( tagName ) && icol_ < ncol_
                          && row_ != null ) {
                 row_[ icol_ ] = cell_.length() > 0
@@ -371,7 +371,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
         public void startElement( String namespaceURI, String localName,
                                   String qName, Attributes atts )
                 throws SAXException {
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             throw new SAXParseException( "Unwelcome child <" + tagName +
                                          "> of STREAM", getLocator() );
         }
@@ -390,7 +390,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
 
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             if ( "STREAM".equals( tagName ) ) {
                 defaultHandler_.endElement( namespaceURI, localName, qName );
                 setCustomHandler( basicHandler_ );
@@ -460,7 +460,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
         public void startElement( String namespaceURI, String localName,
                                   String qName, Attributes atts )
                 throws SAXException {
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             throw new SAXParseException( "Unwelcome child <" + tagName +
                                          "> of STREAM", getLocator() );
         }
@@ -479,7 +479,7 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
 
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
-            String tagName = getTagName( namespaceURI, localName, qName );
+            String tagName = getVOTagName( namespaceURI, localName, qName );
             if ( "STREAM".equals( tagName ) ) {
                 defaultHandler_.endElement( namespaceURI, localName, qName );
                 setCustomHandler( basicHandler_ );

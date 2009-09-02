@@ -3686,6 +3686,20 @@ The following ones have special significance within TOPCAT:
     False by default.
     </p></dd>
 
+<dt><code>votable.namespacing</code></dt>
+<dd><p>Determines how namespacing is handled in VOTable documents.
+    Known values are
+    "<code>none</code>" (no namespacing, xmlns declarations
+    in VOTable document will probably confuse parser),
+    "<code>lax</code>" (anything that looks like it is probably a VOTable
+    element will be treated as a VOTable element) and
+    "<code>strict</code>" (VOTable elements must be properly declared in one
+    of the correct VOTable namespaces).
+    May also be set to the classname of a
+    <code>uk.ac.starlink.votable.Namespacing</code> implementation.
+    The default is "<code>lax</code>".
+    </p></dd>
+
 </dl>
 </p>
 
@@ -11953,6 +11967,9 @@ introduced since the last version:
     <li>Be more careful in XML, including VOTable, output; 
         fix VOTable output encoding to be UTF-8,
         and ensure no illegal XML characters are written.</li>
+    <li>Namespacing of VOTable documents made more intelligent, and
+        configurable using the <code>votable.namespacing</code> system
+        property.</li>
     </ul>
     </p></dd>
 

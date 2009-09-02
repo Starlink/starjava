@@ -261,7 +261,7 @@ public class SerializerTest extends TestCase {
         VOElement[] tables = res.getChildren();
         assertArrayEquals( tables, res.getChildrenByName( "TABLE" ) );
         assertEquals( tables.length,
-                      res.getElementsByTagName( "TABLE" ).getLength() );
+                      res.getElementsByVOTagName( "TABLE" ).getLength() );
         assertEquals( 5, tables.length );
 
         for ( int itab = 0; itab < tables.length; itab++ ) {

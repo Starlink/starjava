@@ -134,7 +134,7 @@ public class VOTableBuilder implements TableBuilder {
         }
 
         /* Find the requested TABLE element within the VOTable. */
-        NodeList tables = voEl.getElementsByTagName( "TABLE" );
+        NodeList tables = voEl.getElementsByVOTagName( "TABLE" );
         int ntab = tables.getLength();
         if ( ntab == 0 ) {
             throw new TableFormatException( "Document contains " 

@@ -368,14 +368,17 @@ public class VOStarTable extends AbstractStarTable {
 
         /* Work out how many TABLE elements there are in the document. */
         Element top = table.getOwnerDocument().getDocumentElement();
-        NodeList tables = top.getElementsByTagName( "TABLE" );
         int index = 0;
-        int ntab = tables.getLength();
-        if ( ntab > 1 ) {
-            for ( int i = 0; i < ntab; i++ ) {
-                if ( tables.item( i ) == table ) {
-                    index = i + 1;
-                    break;
+        if ( top instanceof VOElement ) {
+            NodeList tables =
+                ((VOElement) top).getElementsByVOTagName( "TABLE" );
+            int ntab = tables.getLength();
+            if ( ntab > 1 ) {
+                for ( int i = 0; i < ntab; i++ ) {
+                    if ( tables.item( i ) == table ) {
+                        index = i + 1;
+                        break;
+                    }
                 }
             }
         }

@@ -104,7 +104,9 @@ public class VotCopyTest extends TableTestCase {
     }
 
     private void matchMultiData( VOElement el ) throws Exception {
-        NodeList tables = el.getOwnerDocument().getElementsByTagName( "TABLE" );
+        NodeList tables =
+            ((VOElement) el.getOwnerDocument().getDocumentElement())
+           .getElementsByVOTagName( "TABLE" );
         assertEquals( 2, tables.getLength() );
         assertSameData( t1_,
                         new VOStarTable( (TableElement) tables.item( 0 ) ) );
@@ -113,8 +115,8 @@ public class VotCopyTest extends TableTestCase {
     }
 
     private Element checkAndRemoveData( Element el, String formatName ) {
-        Document doc = el.getOwnerDocument();
-        NodeList datas = doc.getElementsByTagName( "DATA" );
+        VOElement top = (VOElement) el.getOwnerDocument().getDocumentElement();
+        NodeList datas = top.getElementsByTagName( "DATA" );
         List dataList = new ArrayList();
         for ( int i = 0; i < datas.getLength(); i++ ) {
             dataList.add( datas.item( i ) );

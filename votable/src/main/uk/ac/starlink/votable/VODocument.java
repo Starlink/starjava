@@ -26,6 +26,7 @@ public class VODocument extends DelegatingDocument {
 
     private final String systemId_;
     private final Map idMap_ = new HashMap();
+    private final Namespacing namespacing_;
     private StoragePolicy storagePolicy_ = StoragePolicy.PREFER_MEMORY;
     private boolean strict_;
 
@@ -44,6 +45,7 @@ public class VODocument extends DelegatingDocument {
         super( base, systemId );
         systemId_ = systemId;
         strict_ = strict;
+        namespacing_ = Namespacing.getInstance();
     }
 
 
@@ -60,6 +62,7 @@ public class VODocument extends DelegatingDocument {
         super( systemId );
         systemId_ = systemId;
         strict_ = strict;
+        namespacing_ = Namespacing.getInstance();
     }
 
     /**
@@ -120,7 +123,7 @@ public class VODocument extends DelegatingDocument {
     }
 
     protected DelegatingElement createDelegatingElement( Element node ) {
-        String tagName = node.getTagName();
+        String tagName = getVOTagName( node );
         if ( "FIELD".equals( tagName ) ) {
             return new FieldElement( node, this );
         }
@@ -165,5 +168,16 @@ public class VODocument extends DelegatingDocument {
      */
     boolean isStrict() {
         return strict_;
+    }
+
+    /**
+     * Returns the unqualified tag name for an element in the VOTable namespace,
+     * taking care of namespacing issues.
+     *
+     * @param   el  element 
+     * @return  unqualified VOTable tag name, e.g. "TABLE"
+     */
+    public String getVOTagName( Element el ) {
+        return namespacing_.getVOTagName( el );
     }
 }

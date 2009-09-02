@@ -5,6 +5,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
@@ -28,6 +29,7 @@ import org.w3c.dom.Node;
 class CustomDOMBuilder implements ContentHandler {
 
     private final SAXDocumentBuilder builder;
+    private final Namespacing namespacing;
     private ContentHandler customHandler = new DefaultContentHandler();
     private Locator locator;
 
@@ -38,6 +40,7 @@ class CustomDOMBuilder implements ContentHandler {
      */
     public CustomDOMBuilder( boolean strict ) {
         builder = new VOSAXDocumentBuilder( strict );
+        namespacing = Namespacing.getInstance();
     }
 
     /**
@@ -91,7 +94,7 @@ class CustomDOMBuilder implements ContentHandler {
     }
 
     /**
-     * Returns the name of an element as a normal string like "TABLE" in
+     * Returns the name of an element as an unqualified string like "TABLE" in
      * the VOTable namespace, given the various name items that
      * SAX provides for a start/end element event.
      *
@@ -99,14 +102,20 @@ class CustomDOMBuilder implements ContentHandler {
      * @param  localName   local name
      * @param  qName   qualified name
      */
-    protected String getTagName( String namespaceURI, String localName,
-                                 String qName ) {
-        if ( localName != null && localName.length() > 0 ) {
-            return localName;
-        }
-        else {
-            return qName;
-        }
+    protected String getVOTagName( String namespaceURI, String localName,
+                                   String qName ) {
+        return namespacing.getVOTagName( namespaceURI, localName, qName );
+    }
+
+    /**
+     * Returns the name of an element as an unqualified string like "TABLE" in
+     * the VOTable namespace, given a DOM element.
+     *
+     * @param   el  element to test
+     * @return   VOTable tag name
+     */
+    protected String getVOTagName( Element el ) {
+        return namespacing.getVOTagName( el );
     }
 
     /**

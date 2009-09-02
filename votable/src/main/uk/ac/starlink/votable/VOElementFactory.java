@@ -466,6 +466,7 @@ public class VOElementFactory {
         /* Get a SAX parser. */
         SAXParserFactory spfact = SAXParserFactory.newInstance();
         spfact.setValidating( validating );
+        Namespacing.getInstance().configureSAXParserFactory( spfact );
         SAXParser sparser;
         try {
             sparser = spfact.newSAXParser();

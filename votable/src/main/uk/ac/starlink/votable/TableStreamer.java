@@ -30,6 +30,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
 
     private int skipTables_;
     private final TableSink sink_;
+    private final Namespacing namespacing_;
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -47,15 +48,16 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         setReadHrefTables( false );
         sink_ = sink;
         skipTables_ = itable;
+        namespacing_ = Namespacing.getInstance();
     }
 
     public void startElement( String namespaceURI, String localName,
                               String qName, Attributes atts ) 
             throws SAXException {
         super.startElement( namespaceURI, localName, qName, atts );
-        if ( "TABLE".equals( localName ) || 
-             "TABLE".equals( qName ) ||
-             qName != null && qName.endsWith( ":TABLE" ) ) {
+        String tagName =
+            namespacing_.getVOTagName( namespaceURI, localName, qName );
+        if ( "TABLE".equals( tagName ) ) {
             if ( skipTables_-- == 0 ) {
                 setReadHrefTables( true );
                 setTableHandler( this );
@@ -112,17 +114,25 @@ class TableStreamer extends TableContentHandler implements TableHandler {
                                         int itable, boolean strict )
             throws IOException, SAXException {
 
+        /* Construct a table handler which can pull out data from one
+         * table as required. */
+        TableStreamer streamer = new TableStreamer( sink, itable, strict );
+
         /* Get a SAX parser. */
         XMLReader parser;
         try {
             SAXParserFactory spfact = SAXParserFactory.newInstance();
             spfact.setValidating( false );
+            streamer.namespacing_.configureSAXParserFactory( spfact );
             parser = spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
             throw (SAXException) new SAXException( e.getMessage() )
                                 .initCause( e );
         }
+
+        /* Install the content handler. */
+        parser.setContentHandler( streamer );
 
         /* Install a custom entity resolver. */
         parser.setEntityResolver( StarEntityResolver.getInstance() );
@@ -139,10 +149,6 @@ class TableStreamer extends TableContentHandler implements TableHandler {
                 throw e;
             }
         } );
-
-        /* Install a content handler which can pull out data from one table
-         * as required. */
-        parser.setContentHandler( new TableStreamer( sink, itable, strict ) );
 
         /* Do the parse.  We expect to be signalled by the handler with a
          * SuccessfulCompletionException if the table gets copied.

@@ -868,6 +868,20 @@ on the command line is equivalent to having the following in your
     handler classes (see <docxref doc="sun252" loc="pluggableIO"/>).
     </p></dd>
 
+<dt><code>votable.namespacing</code></dt>
+<dd><p>Determines how namespacing is handled in VOTable documents.
+    Known values are 
+    "<code>none</code>" (no namespacing, xmlns declarations
+    in VOTable document will probably confuse parser),
+    "<code>lax</code>" (anything that looks like it is probably a VOTable
+    element will be treated as a VOTable element) and
+    "<code>strict</code>" (VOTable elements must be properly declared in one
+    of the correct VOTable namespaces).
+    May also be set to the classname of a
+    <code>uk.ac.starlink.votable.Namespacing</code> implementation.
+    The default is "<code>lax</code>".
+    </p></dd>
+
 <dt><code>votable.strict</code></dt>
 <dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
     when parsing VOTables.  This prevents the parser from working round
@@ -6222,6 +6236,9 @@ but my thanks are especially due to the following:
     <li>Fix a bug which caused the first table in a multi-table file
         (FITS or VOTable) to be used in streaming mode, even if
         a subsequent one was requested.</li>
+    <li>Namespacing of VOTable documents made more intelligent, and
+        configurable using the <code>votable.namespacing</code> system
+        property.</li>
     </ul>
     </p></dd>
 

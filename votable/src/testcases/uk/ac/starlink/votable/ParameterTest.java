@@ -36,7 +36,7 @@ public class ParameterTest extends TestCase implements TableSink {
         VOElement top = new VOElementFactory( policy )
                        .makeVOElement( votsrc.getURL() );
         TableElement vot = (TableElement) 
-                           top.getElementsByTagName( "TABLE" ).item( 0 );
+                           top.getElementsByVOTagName( "TABLE" ).item( 0 );
         StarTable st = new VOStarTable( vot );
         checkReadParams( st );
         checkWriteParams( st );
