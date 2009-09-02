@@ -364,6 +364,15 @@
   <!-- Turn this path into a string which is passed to the tests -->
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
+  <!-- Locate the JNIAST libraries for this platform. -->
+  <path id="jniast-ldpath.id">
+    <pathelement path="${java.library.path}"/>
+    <pathelement path="${dist.lib.arch}"/>
+    <pathelement path="${star.build.dir}/jniast/lib/${os.arch}"/>
+    <pathelement path="${star.jar.dir}/${os.arch}"/>
+  </path>
+  <property name="jniast-ldpath" refid="jniast-ldpath.id"/>
+
   <!--
    !    ===========================================
    !    Check availability of optional dependencies
@@ -469,8 +478,8 @@
 
 
     <!-- Update the line identifier database. -->
-    <uptodate property="lineids.notrequired" 
-              targetfile="${src.jars.dir}/splat_lines.jar" >
+    <uptodate property="lineids.notrequired"
+              targetfile="${dist.lib.pkg}/splat_lines.jar">
       <srcfiles dir="${src.etc}/ids"/>
     </uptodate>
     <antcall target="build-lineids"/>
@@ -488,14 +497,18 @@
           unless="lineids.notrequired"
           description="-> create the distributable line identifier jar file" >
 
-    <!-- Make the mirror tree with the pre-processed spectra -->
+    <!-- Make the mirror tree with the pre-processed spectra, note
+     !   requires JNIAST to be available for the current platform, so
+     !   we set the LD_LIBRARY_PATH. -->
     <java classname="uk.ac.starlink.splat.util.LineIDTree" fork="true">
       <classpath refid="classpath"/>
+      <sysproperty key="java.library.path" value="${jniast-ldpath}"/>
       <arg value="${src.etc}/ids"/>
       <arg value="${build.dir}/ids/ids"/>
     </java>
 
-    <jar destfile="${src.jars.dir}/splat_lines.jar"
+    <mkdir dir="${dist.lib.pkg}"/>
+    <jar destfile="${dist.lib.pkg}/splat_lines.jar"
          basedir="${build.dir}/ids"/>
 
   </target>
@@ -1399,12 +1412,8 @@ JNI libraries not built (NDF library not installed in ${stardev})"
       <!-- Need to pick up local JNIAST, which might be installed or on the
        !   library path, note that java.library.path cannot be changed inside
        !   a JVM, so we have to fork and pass this from the environment.
-       !   Set LD_LIBRARY_PATH and DYLD_LIBRARY_PATH as they are the only two
-       !   ways that we support. -->
-      <env key="LD_LIBRARY_PATH"
-           path="${dist.lib.arch}:${star.build.dir}/jniast/lib/${os.arch}:${star.jar.dir}/${os.arch}"/>
-      <env key="DYLD_LIBRARY_PATH"
-           path="${dist.lib.arch}:${star.build.dir}/jniast/lib/${os.arch}:${star.jar.dir}/${os.arch}"/>
+       !-->
+      <sysproperty key="java.library.path" value="${jniast-ldpath}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
