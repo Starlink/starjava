@@ -15,18 +15,25 @@ public class LintTest extends TestCase {
         LintContext context = new LintContext();
         Set vSet = new HashSet();
         Set nSet = new HashSet();
+        Set nsSet = new HashSet();
         for ( int i = 0; i < versions.length; i++ ) {
             VotableVersion version = versions[ i ];
             assertNotNull( version.getDTD( context ) );
             String number = version.getNumber();
+            String namespace = version.getNamespaceUri();
             assertEquals( number, version.toString() );
             assertNotNull( number );
-            assertEquals( version, VotableVersion.getVersion( number ) );
+            assertEquals( version,
+                          VotableVersion.getVersionByNumber( number ) );
+            assertEquals( version,
+                          VotableVersion.getVersionByNamespace( namespace ) );
             vSet.add( version );
             nSet.add( number );
+            nsSet.add( namespace );
         }
         assertEquals( versions.length, vSet.size() );
         assertEquals( versions.length, nSet.size() );
+        assertEquals( versions.length, nsSet.size() );
         List vList = new ArrayList( vSet );
         Collections.sort( vList );
 

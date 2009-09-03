@@ -178,7 +178,7 @@ public class VotLint implements Task {
                 String foundVers = interp.getVotableVersion();
                 if ( foundVers != null ) {
                     VotableVersion fvers =
-                        VotableVersion.getVersion( foundVers );
+                        VotableVersion.getVersionByNumber( foundVers );
                     if ( fvers == null ) {
                         context_.warning( "Unknown VOTABLE version "
                                         + foundVers + " declared" );

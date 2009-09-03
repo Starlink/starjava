@@ -12,7 +12,8 @@ public class VersionChecker implements AttributeChecker {
         LintContext context = handler.getContext();
 
         /* Check the stated version is known. */
-        VotableVersion statedVersion = VotableVersion.getVersion( value ); 
+        VotableVersion statedVersion =
+            VotableVersion.getVersionByNumber( value ); 
         if ( statedVersion == null ) {
             context.warning( "Unknown VOTable version: " + value );
         }

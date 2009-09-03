@@ -170,10 +170,28 @@ public abstract class VotableVersion implements Comparable {
      * @param   number  version string
      * @return  version object, or null if not known
      */
-    public static VotableVersion getVersion( String number ) {
+    public static VotableVersion getVersionByNumber( String number ) {
         for ( int i = 0; i < KNOWN_VERSIONS.length; i++ ) {
             VotableVersion version = KNOWN_VERSIONS[ i ];
             if ( version.getNumber().equals( number ) ) {
+                return version;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the version object for a given XML namespace URI.
+     *
+     * @param  namespaceUri  XML namespace associated with version
+     * @return  version object, or null if not known
+     */
+    public static VotableVersion getVersionByNamespace( String namespaceUri ) {
+        for ( int i = 0; i < KNOWN_VERSIONS.length; i++ ) {
+            VotableVersion version = KNOWN_VERSIONS[ i ];
+            String vns = version.getNamespaceUri();
+            if ( ( vns == null && namespaceUri == null ) ||
+                 ( vns != null && vns.equals( namespaceUri ) ) ) {
                 return version;
             }
         }
