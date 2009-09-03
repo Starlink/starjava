@@ -20,6 +20,7 @@ import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.lint.DoctypeInterpolator;
 import uk.ac.starlink.ttools.lint.LintContext;
 import uk.ac.starlink.ttools.lint.Linter;
+import uk.ac.starlink.ttools.lint.VotableVersion;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -32,7 +33,7 @@ public class VotLint implements Task {
 
     private final InputStreamParameter inParam_;
     private final BooleanParameter validParam_;
-    private final Parameter versionParam_;
+    private final ChoiceParameter versionParam_;
     private final OutputStreamParameter outParam_;
 
     public VotLint() {
@@ -71,8 +72,12 @@ public class VotLint implements Task {
             "</p>",
         } );
 
-        versionParam_ = new ChoiceParameter( "version",
-                                             LintContext.VOT_VERSIONS );
+        String[] versions = new String[ VotableVersion.KNOWN_VERSIONS.length ];
+        for ( int i = 0; i < VotableVersion.KNOWN_VERSIONS.length; i++ ) {
+            versions[ i ] = VotableVersion.KNOWN_VERSIONS[ i ].getNumber();
+        }
+        versionParam_ =
+            new ChoiceParameter( "version", VotableVersion.KNOWN_VERSIONS );
         versionParam_.setNullPermitted( true );
         versionParam_.setPrompt( "VOTable standard version" );
         versionParam_.setDescription( new String[] {
@@ -111,7 +116,8 @@ public class VotLint implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        String version = versionParam_.stringValue( env );
+        VotableVersion version =
+            (VotableVersion) versionParam_.objectValue( env );
 
         /* Create a lint context. */
         boolean validate = validParam_.booleanValue( env );
@@ -171,8 +177,14 @@ public class VotLint implements Task {
                 in = interp.getStreamWithDoctype( (BufferedInputStream) in );
                 String foundVers = interp.getVotableVersion();
                 if ( foundVers != null ) {
-                    if ( context_.getVersion() == null ) {
-                        context_.setVersion( foundVers );
+                    VotableVersion fvers =
+                        VotableVersion.getVersion( foundVers );
+                    if ( fvers == null ) {
+                        context_.warning( "Unknown VOTABLE version "
+                                        + foundVers + " declared" );
+                    }
+                    if ( context_.getVersion() == null && fvers != null ) {
+                        context_.setVersion( fvers );
                     }
                 }
             }

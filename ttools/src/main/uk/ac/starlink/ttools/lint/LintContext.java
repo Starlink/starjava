@@ -18,27 +18,19 @@ public class LintContext {
     private Locator locator_;
     private PrintStream out_ = System.err;
     private int errCount_;
-    private String version_;
+    private VotableVersion version_;
     private boolean validate_;
     private boolean debug_;
     private final Map idMap_;
     private final Map refMap_;
     private final Map msgMap_;
     private final Map namespaceMap_;
-    private final CheckerFactory checkerFactory_;
-    private final HandlerFactory handlerFactory_;
-
-    /** VOTABLE element version attribute value representing version 1.0. */
-    public final static String V10 = "1.0";
-
-    /** VOTABLE element version attribute value representing version 1.1. */
-    public final static String V11 = "1.1"; 
-
-    /** VOTable element version values representing known versions. */
-    public final static String[] VOT_VERSIONS = new String[] { V10, V11 };
 
     /** Maximum number of identical error messages which will be logged. */
     public final static int MAX_REPEAT = 4;
+
+    /** Version used if none is specified explicitly. */
+    public final static VotableVersion DEFAULT_VERSION = VotableVersion.V11;
 
     /**
      * Constructor for unknown VOTable version.
@@ -50,42 +42,43 @@ public class LintContext {
     /**
      * Constructs a LintContext to parse documents with a given VOTable version.
      *
-     * @param  version   version string (currently "1.0" or "1.1")
+     * @param  version  VOTable version object
      */
-    public LintContext( String version ) {
+    public LintContext( VotableVersion version ) {
         idMap_ = new HashMap();
         refMap_ = new HashMap();
         msgMap_ = new HashMap();
         namespaceMap_ = new HashMap();
-        checkerFactory_ = new CheckerFactory( this );
-        handlerFactory_ = new HandlerFactory( this );
         setVersion( version );
     }
 
     /**
      * Returns the version of VOTable this context is parsing.
-     * It may be null if we don't yet know.
      *
-     * @return   version string
+     * @return   version object
      */
-    public String getVersion() {
+    public VotableVersion getVersion() {
         return version_;
     }
 
     /**
      * Sets the version we are parsing to a given value.
      *
-     * @param  version   version string (currently "1.0" or "1.1")
+     * @param  version   VOTable version object
      */
-    public void setVersion( String version ) {
-        if ( version == null ||
-             version.equals( V10 ) ||
-             version.equals( V11 ) ) {
-            version_ = version;
-        }
-        else {
-            warning( "Unknown VOTable version " + version );
-        }
+    public void setVersion( VotableVersion version ) {
+        version_ = version;
+    }
+
+    /**
+     * Returns a version object for use in this context.
+     * If one has been set explicitly either in the document or externally
+     * that will be used; otherwise some default one will be returned.
+     *
+     * @return   non-null version object for this context
+     */
+    public VotableVersion getEffectiveVersion() {
+        return version_ == null ? DEFAULT_VERSION : version_;
     }
 
     /**
@@ -159,27 +152,6 @@ public class LintContext {
      */
     public void setOutput( PrintStream out ) {
         out_ = out;
-    }
-
-    /**
-     * Constructs a new ElementHandler for a given local element name.
-     *
-     * @param   localName  element name
-     * @return   handler to process an element of type <tt>name</tt>
-     */
-    public ElementHandler createHandler( String localName ) {
-        return handlerFactory_.createHandler( localName );
-    }
-
-    /**
-     * Returns a map of attribute checkers suitable for processing 
-     * elements of a given name.
-     *
-     * @param   localName  element name
-     * @return  String->AttributeChecker map for checking attributes 
-     */
-    public Map getAttributeCheckers( String localName ) {
-        return checkerFactory_.getAttributeCheckers( localName );
     }
 
     /**

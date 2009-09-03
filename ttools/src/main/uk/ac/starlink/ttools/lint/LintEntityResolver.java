@@ -51,7 +51,7 @@ public class LintEntityResolver implements EntityResolver, LexicalHandler {
                publicId.equals( dtdPublicId_ ) ) ||
              ( systemId != null && systemId.trim().length() > 0 &&
                systemId.equals( dtdSystemId_ ) ) ) {
-            InputSource saxsrc = getVOTableDTD( context_.getVersion() );
+            InputSource saxsrc = getVOTableDTD();
             if ( saxsrc != null ) {
                 return saxsrc;
             }
@@ -62,50 +62,18 @@ public class LintEntityResolver implements EntityResolver, LexicalHandler {
     /**
      * Returns a SAX input source containing the VOTable DTD.
      *
-     * @param   version  VOTable version for which the DTD is required
      * @return   SAX input source containing the DTD
      */
-    private InputSource getVOTableDTD( String version ) {
-
-        /* Work out the filename for the requested version. */
-        String filename;
-        if ( LintContext.V10.equals( version ) ) {
-            filename = "votable-1.0.dtd";
-            // systemId = "http://us-vo.org/xml/VOTable.dtd";
-        }
-        else {
-            if ( null == version ) {
-                if ( context_.isValidating() ) {
-                    context_.info( "Unspecified VOTable version" +
-                                   " - validating for V1.1" );
-                }
-            }
-            else if ( LintContext.V11.equals( version ) ) {
-                // no action
-            }
-            else {
-                if ( context_.isValidating() ) {
-                    context_.info( "Unknown VOTable version " + version +
-                                   " - validating for V1.1" );
-                }
-            }
-            filename = "votable-1.1.dtd";
-        }
-
-        /* Construct and return a SAX source based on the filename we have. */
-        URL url = getClass().getResource( filename );
-        try {
-            if ( url != null ) {
-                InputSource saxsrc = new InputSource( url.openStream() );
-                saxsrc.setSystemId( url.toString() );
-                return saxsrc;
+    private InputSource getVOTableDTD() {
+        VotableVersion version = context_.getVersion();
+        if ( version == null ) {
+            version = context_.getEffectiveVersion();
+            if ( context_.isValidating() ) {
+                context_.info( "Unspecified VOTable version"
+                             + " - validating for V" + version.getNumber() );
             }
         }
-        catch ( IOException e ) {
-            context_.warning( "Trouble opening DTD - " + 
-                              "validation may not be done" );
-        }
-        return null;
+        return version.getDTD( context_ );
     }
 
     /*

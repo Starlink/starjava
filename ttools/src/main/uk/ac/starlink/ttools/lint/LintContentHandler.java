@@ -67,7 +67,9 @@ public class LintContentHandler implements ContentHandler, ErrorHandler {
                               String qName, Attributes atts ) {
 
         /* Create a new handler for this element. */
-        ElementHandler handler = context_.createHandler( localName );
+        ElementHandler handler =
+            context_.getEffectiveVersion()
+                    .createElementHandler( localName, context_ );
 
         /* Push it on the stack. */
         stack_.push( handler );
@@ -87,7 +89,8 @@ public class LintContentHandler implements ContentHandler, ErrorHandler {
         }
 
         /* Perform custom checking on each attribute as appropriate. */
-        Map attCheckers = context_.getAttributeCheckers( localName );
+        Map attCheckers =
+            context_.getEffectiveVersion().getAttributeCheckers( localName );
         for ( int i = 0; i < natt; i++ ) {
             AttributeChecker checker =
                 (AttributeChecker) attCheckers.get( atts.getQName( i ) );

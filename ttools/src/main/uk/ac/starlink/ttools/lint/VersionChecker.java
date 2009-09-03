@@ -9,16 +9,31 @@ package uk.ac.starlink.ttools.lint;
 public class VersionChecker implements AttributeChecker {
 
     public void check( String value, ElementHandler handler ) {
+        LintContext context = handler.getContext();
 
-        /* Update the version value in the context. */
-        String version = handler.getContext().getVersion();
-        if ( version == null ) {
-            handler.getContext().setVersion( value );
+        /* Check the stated version is known. */
+        VotableVersion statedVersion = VotableVersion.getVersion( value ); 
+        if ( statedVersion == null ) {
+            context.warning( "Unknown VOTable version: " + value );
         }
-        else if ( ! version.equals( value ) ) {
-            handler.warning( "Declared version (" + value + ") differs from " +
-                             "version specified to linter (" + version + ")" );
+        else {
 
+            /* Compare with the version value in the context. */
+            VotableVersion contextVersion = context.getVersion();
+
+            /* If not yet set, set it now. */
+            if ( contextVersion == null ) {
+                context.setVersion( statedVersion );
+            }
+
+            /* If already set, check for consistency. */
+            else if ( ! contextVersion.equals( statedVersion ) ) {
+                context.warning( "Declared version ("
+                               + statedVersion.getNumber()
+                               + ") differs from version specified to linter ("
+                               + contextVersion.getNumber()
+                               + ")" );
+            }
         }
     }
 }
