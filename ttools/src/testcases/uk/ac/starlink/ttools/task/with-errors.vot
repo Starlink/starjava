@@ -1,4 +1,4 @@
-<VOTABLE version="1.1">
+<VOTABLE version="1.1" xmlns="http://www.ivoa.net/xml/VOTable/v1.1">
   <RESOURCE>
     <TABLE nrows="2">
       <FIELD name="Identifier" datatype="char"/>

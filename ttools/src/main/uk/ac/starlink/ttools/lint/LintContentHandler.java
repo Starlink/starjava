@@ -2,7 +2,9 @@ package uk.ac.starlink.ttools.lint;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.xml.sax.Attributes;
@@ -24,6 +26,7 @@ public class LintContentHandler implements ContentHandler, ErrorHandler {
 
     private final LintContext context_;
     private final HandlerStack stack_;
+    private final Set namespaceSet_;
 
     private static final Pattern NS_PAT = getNamespaceNamePattern();
     private final static Map EMPTY_MAP =
@@ -38,6 +41,7 @@ public class LintContentHandler implements ContentHandler, ErrorHandler {
     LintContentHandler( LintContext context ) {
         context_ = context;
         stack_ = new HandlerStack();
+        namespaceSet_ = new HashSet();
     }
 
     //
@@ -96,6 +100,55 @@ public class LintContentHandler implements ContentHandler, ErrorHandler {
                 (AttributeChecker) attCheckers.get( atts.getQName( i ) );
             if ( checker != null ) {
                 checker.check( atts.getValue( i ), handler );
+            }
+        }
+
+        /* Check XML namespace for element. */
+        String declaredNamespace = namespaceURI.trim().length() == 0
+                                 ? null
+                                 : namespaceURI;
+        if ( ! namespaceSet_.contains( declaredNamespace ) ) {
+            namespaceSet_.add( declaredNamespace );
+            VotableVersion contextVersion = context_.getVersion();
+
+            /* If the version has been declared, check for consistency. */
+            if ( contextVersion != null ) {
+                String versionNamespace = contextVersion.getNamespaceUri();
+                if ( declaredNamespace == null ) {
+                    if ( versionNamespace != null ) {
+                        context_.warning( "Element not namespaced, "
+                                        + "should be in " + versionNamespace );
+                    }
+                }
+                else if ( ! declaredNamespace.equals( versionNamespace ) ) {
+                    context_.warning( "Element in wrong namespace ("
+                                    + declaredNamespace + " not "
+                                    + versionNamespace + ")" );
+                }
+            }
+
+            /* Otherwise, try to work out the correct version from the
+             * namespace. */
+            else {
+                if ( declaredNamespace == null ) {
+                    // strictly speaking, this should imply VOTable 1.0,
+                    // but in practice it's more likely that the namespacing
+                    // has just been omitted.  Ignore.
+                }
+                else {
+                    VotableVersion nsVersion =
+                        VotableVersion
+                       .getVersionByNamespace( declaredNamespace );
+                    if ( nsVersion == null ) {
+                        context_.warning( "Element in unknown namespace "
+                                        + declaredNamespace );
+                    }
+                    else if ( nsVersion != contextVersion ) {
+                        context_.info( "Inferring VOTable version " + nsVersion
+                                     + " from namespace " + declaredNamespace );
+                        context_.setVersion( nsVersion );
+                    }
+                }
             }
         }
 
