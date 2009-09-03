@@ -27,10 +27,14 @@ public abstract class VotableVersion implements Comparable {
     /** Version object for VOTable 1.1. */
     public static final VotableVersion V11;
 
+    /** Version object for VOTable 1.2. */
+    public static final VotableVersion V12;
+
     /** List of known versions. */
     public static final VotableVersion[] KNOWN_VERSIONS = new VotableVersion[] {
         V10 = new VotableVersion10(),
         V11 = new VotableVersion11(),
+        V12 = new VotableVersion12(),
     };
 
     /**
@@ -280,7 +284,8 @@ public abstract class VotableVersion implements Comparable {
             else if ( "FIELD".equals( name ) ) {
                 hasID = true;
                 hasName = true;
-                map.put( "ref", new RefChecker( "COOSYS" ) );
+                map.put( "ref",
+                         new RefChecker( new String[] { "COOSYS", "GROUP" } ) );
             }
             else if ( "FITS".equals( name ) ) {
             }
@@ -302,7 +307,8 @@ public abstract class VotableVersion implements Comparable {
                 hasID = true;
                 hasName = true;
                 map.put( "value", new ParamHandler.ValueChecker() );
-                map.put( "ref", new RefChecker( "COOSYS" ) );
+                map.put( "ref",
+                         new RefChecker( new String[] { "COOSYS", "GROUP" } ) );
             }
             else if ( "RESOURCE".equals( name ) ) {
                 hasID = true;
@@ -387,6 +393,40 @@ public abstract class VotableVersion implements Comparable {
             else if ( "PARAMref".equals( name ) ) {
                 map.put( "ref", new RefChecker( "PARAM" ) );
             }
+            return map;
+        }
+    }
+
+    /**
+     * Version implementation for VOTable 1.2.
+     */
+    private static class VotableVersion12 extends VotableVersion {
+
+        /**
+         * Constructor.
+         */
+        VotableVersion12() {
+            super( "1.2",
+                   VotableVersion.class.getResource( "votable-1.2.dtd" ),
+                   "http://www.ivoa.net/xml/VOTable/v1.2" );
+        }
+
+        protected ElementHandler createElementHandler( String name ) {
+            if ( "COOSYS".equals( name ) ) {
+                return new ElementHandler() {
+                    public void startElement() {
+                        super.startElement();
+                        info( "COOSYS is deprecated at VOTable 1.2" );
+                    }
+                };
+            }
+            else {
+                return V11.createElementHandler( name );
+            }
+        }
+
+        protected Map createAttributeCheckers( String name ) {
+            Map map = V11.createAttributeCheckers( name );
             return map;
         }
     }
