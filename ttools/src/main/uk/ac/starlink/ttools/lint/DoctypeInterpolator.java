@@ -110,7 +110,7 @@ public class DoctypeInterpolator {
      * Returns the value of the <tt>version</tt> attribute of the top-level
      * VOTABLE element, if there was one and it was encountered.
      *
-     * @return   delcared VOTable version string, or null
+     * @return   declared VOTable version string, or null
      */
     public String getVotableVersion() {
         return votableVersion_;
@@ -293,7 +293,8 @@ public class DoctypeInterpolator {
                 hasDoctype_ = Boolean.FALSE;
             }
             if ( "VOTABLE".equals( localName ) ||
-                 qName != null && qName.endsWith( "VOTABLE" ) ) {
+                 qName != null && ( qName.equals( "VOTABLE" ) ||
+                                    qName.endsWith( ":VOTABLE" ) ) ) {
                 votableVersion_ = atts.getValue( "version" );
             }
             throw new DoneException();
