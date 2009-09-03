@@ -5249,6 +5249,16 @@ error in a VOTable document, but it ought to pick up many of the
 most serious errors that are commonly made in authoring VOTables.
 </p>
 
+<p><strong>Note:</strong> <code>votlint</code>'s handling of XML namespaces
+seems to be somewhat dependent on the XML parser in use.
+As far as I can see, Crimson (the default in many JREs) works for any
+namespace arrangements, but Xerces seems to have problems when validating
+documents which use namespace prefixes.  Not sure about other parsers.
+This probably won't cause you trouble, but if it does you may need to
+set <code>validate=false</code> to work around it.
+Contact this author if this seems to be a serious issue for you.
+</p>
+
 &votlint-summary;
 
 <subsubsect>
@@ -6239,6 +6249,8 @@ but my thanks are especially due to the following:
     <li>Namespacing of VOTable documents made more intelligent, and
         configurable using the <code>votable.namespacing</code> system
         property.</li>
+    <li><code>votlint</code> now checks that the correct XML namespaces are
+        in use.</li>
     </ul>
     </p></dd>
 
