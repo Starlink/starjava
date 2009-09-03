@@ -65,7 +65,7 @@
 >
 
 <!-- GROUP can contain a description, fields/parameters and sub-groups -->
-<!ELEMENT GROUP (DESCRIPTION?, (FIELD+|PARAM|GROUP|FIELDref|PARAMref)*)>
+<!ELEMENT GROUP (DESCRIPTION?, (PARAM|GROUP|FIELDref|PARAMref)*)>
 <!ATTLIST GROUP
 	ID    ID    #IMPLIED
 	name  CDATA #IMPLIED
@@ -102,10 +102,9 @@
 <!ELEMENT VALUES (MIN?, MAX?, OPTION*)>
 <!ATTLIST VALUES
         ID   ID    #IMPLIED
-        multiple (yes | no) "no"
         type (legal | actual) "legal"
         null CDATA #IMPLIED
-        invalid CDATA #IMPLIED
+        ref  IDREF #IMPLIED
 >
 <!ELEMENT MIN (#PCDATA)>
 <!ATTLIST MIN
@@ -124,10 +123,10 @@
 >
 
 <!-- The link is a URL (href) or some other kind of reference (gref). -->
-<!ELEMENT LINK (#PCDATA)>
+<!ELEMENT LINK EMPTY>
 <!ATTLIST LINK
         ID ID #IMPLIED
-        content-role (query | hints | doc) #IMPLIED
+        content-role (query | hints | doc | location) #IMPLIED
         content-type CDATA #IMPLIED
         title CDATA #IMPLIED
         value CDATA #IMPLIED
