@@ -102,6 +102,11 @@ public class StarEntityResolver implements EntityResolver {
             return "text/VOTable1.1.xsd";
         }
 
+        /* VOTable 1.2 schema. */
+        if ( systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.2" ) ) {
+            return "text/VOTable1.2.xsd";
+        }
+
         /* VOTable 1.0 schema. */
         if ( systemId.endsWith( "VOTable.xsd" ) ) {
             return "text/VOTable.xsd";
