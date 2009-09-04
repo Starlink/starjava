@@ -11970,6 +11970,10 @@ introduced since the last version:
     <li>Namespacing of VOTable documents made more intelligent, and
         configurable using the <code>votable.namespacing</code> system
         property.</li>
+    <li>The VOTable 1.2 <code>xtype</code> attribute is now used to 
+        identify columns containing ISO-8601 format dates, 
+        which allows them to be treated as numeric values for 
+        plotting etc.</li>
     </ul>
     </p></dd>
 

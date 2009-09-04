@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.convert;
 
 import java.util.regex.Pattern;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Utility functions for converting between value types.
@@ -39,6 +41,11 @@ public class Conversions {
     public static ValueConverter getNumericConverter( final ValueInfo info ) {
         String units = info.getUnitString();
         String ucd = info.getUCD();
+        String xtype = info instanceof ColumnInfo
+                     ? (String) ((ColumnInfo) info)
+                               .getAuxDatumValue( VOStarTable.XTYPE_INFO,
+                                                  String.class )
+                     : null;
         Class clazz = info.getContentClass();
 
         /* If it's numeric, no problem. */
@@ -61,6 +68,15 @@ public class Conversions {
 
         /* Try to handle strings. */
         if ( String.class.isAssignableFrom( clazz ) ) {
+
+            /* Try the VOTable 1.2 xtype attribute. */
+            if ( xtype != null && xtype.trim().length() > 0 ) {
+                if ( "iso8601".equals( xtype ) ||
+                     ISO8601_UNIT_PATTERN.matcher( xtype ).matches() ||
+                     "adql:TIMESTAMP".equalsIgnoreCase( xtype ) ) {
+                    return new Iso8601ToDecimalYear( info );
+                }
+            }
 
             /* See if we recognise the units. */
             if ( units != null && units.trim().length() > 0 ) {
