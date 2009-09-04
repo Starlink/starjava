@@ -214,7 +214,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
      */
     private boolean isVotableID( Attr att ) {
         if ( att.getName().equals( "ID" ) ) {
-            String elName = att.getOwnerElement().getTagName();
+            String elName = ((VOElement) att.getOwnerElement()).getVOTagName();
             for ( int i = 0; i < ELEMENTS_WITH_ID.length; i++ ) {
                 if ( ELEMENTS_WITH_ID[ i ].equals( elName ) ) {
                     return true;

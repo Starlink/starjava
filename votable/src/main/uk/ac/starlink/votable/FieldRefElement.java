@@ -26,7 +26,7 @@ public class FieldRefElement extends VOElement {
     public FieldElement getField() {
         Element ref = getOwnerDocument()
                      .getElementById( getAttribute( "ref" ) );
-        return ref.getTagName().equals( "FIELD" ) ? (FieldElement) ref
-                                                  : null;
+        return ref instanceof FieldElement ? (FieldElement) ref
+                                           : null;
     }
 }

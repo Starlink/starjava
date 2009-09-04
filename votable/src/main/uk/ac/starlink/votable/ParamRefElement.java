@@ -26,7 +26,7 @@ public class ParamRefElement extends VOElement {
     public ParamElement getParam() {
         Element ref = getOwnerDocument()
                      .getElementById( getAttribute( "ref" ) );
-        return ref.getTagName().equals( "PARAM" ) ? (ParamElement) ref
-                                                  : null;
+        return ref instanceof ParamElement ? (ParamElement) ref
+                                           : null;
     }
 }

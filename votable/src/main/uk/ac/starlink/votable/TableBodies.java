@@ -166,7 +166,7 @@ class TableBodies {
                 for ( Node node = tabledataEl.getFirstChild(); node != null;
                       node = node.getNextSibling() ) {
                     if ( node instanceof Element &&
-                         ((Element) node).getTagName().equals( "TR" ) ) {
+                         getVOTagName( (Element) node ).equals( "TR" ) ) {
                         nrow++;
                     }
                 }
@@ -287,7 +287,7 @@ class TableBodies {
                 return null;
             }
             else if ( node instanceof Element &&
-                      ((Element) node).getTagName().equals( tag ) ) {
+                      getVOTagName( (Element) node ).equals( tag ) ) {
                 return (Element) node;
             }
             else {
@@ -306,6 +306,24 @@ class TableBodies {
             classes[ icol ] = decoders[ icol ].getContentClass();
         }
         return classes;
+    }
+
+    /**
+     * Returns the tag name in the VOTable namespace for an element.
+     *
+     * @param  element
+     * @return   unqualified VOTable element name
+     */
+    private static String getVOTagName( Element element ) {
+        if ( element == null ) {
+            return null;
+        }
+        else if ( element instanceof VOElement ) {
+            return ((VOElement) element).getVOTagName();
+        }
+        else {
+            return element.getTagName();
+        }
     }
 
 }

@@ -273,7 +273,7 @@ public class VOStarTable extends AbstractStarTable {
             /* Convert these elements into DescribedValue metadata objects. */
             for ( Iterator it = pelList.iterator(); it.hasNext(); ) {
                 VOElement el = (VOElement) it.next();
-                String tag = el.getTagName();
+                String tag = el.getVOTagName();
                 if ( el instanceof ParamElement ) {
                     ParamElement pel = (ParamElement) el;
                     params.add( new DescribedValue( getValueInfo( pel ),
@@ -422,7 +422,7 @@ public class VOStarTable extends AbstractStarTable {
                     pelList.add( child );
                 }
             }
-            else if ( "INFO".equals( child.getTagName() ) ) {
+            else if ( "INFO".equals( child.getVOTagName() ) ) {
                 if ( ! pelList.contains( child ) ) {
                     pelList.add( child );
                 }
