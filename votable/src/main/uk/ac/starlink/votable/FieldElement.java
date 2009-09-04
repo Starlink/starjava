@@ -140,6 +140,26 @@ public class FieldElement extends VOElement {
     }
 
     /**
+     * Returns the value of the <tt>utype</tt> attribute,
+     * or <tt>null</tt> if there is none.
+     *
+     * @return  the utype string
+     */
+    public String getUtype() {
+        return hasAttribute( "utype" ) ? getAttribute( "utype" ) : null;
+    }
+
+    /**
+     * Returns the value of the <tt>xtype</tt> attribute,
+     * or <tt>null</tt> if there is none.
+     *
+     * @return  the xtype string
+     */
+    public String getXtype() {
+        return hasAttribute( "xtype" ) ? getAttribute( "xtype" ) : null;
+    }
+
+    /**
      * Returns the index of this field in a given table; that is the
      * index of the column it represents.  The first FIELD child of a
      * TABLE element has index 0, and so on.
