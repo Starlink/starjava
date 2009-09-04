@@ -29,4 +29,29 @@ public class ParamRefElement extends VOElement {
         return ref instanceof ParamElement ? (ParamElement) ref
                                            : null;
     }
+
+    /**
+     * Returns the value of the <tt>ucd</tt> attribute,
+     * or <tt>null</tt> if there is none.
+     * Note that (since VOTable 1.2) this may differ from the ucd of
+     * the referenced PARAM.
+     *
+     * @return  the ucd string
+     * @see     uk.ac.starlink.table.UCD
+     */
+    public String getUcd() {
+        return hasAttribute( "ucd" ) ? getAttribute( "ucd" ) : null;
+    }
+
+    /**
+     * Returns the value of the <tt>utype</tt> attribute,
+     * or <tt>null</tt> if there is none.
+     * Note that (since VOTable 1.2) this may differ from the utype of
+     * the referenced PARAM.
+     *
+     * @return  the utype string
+     */
+    public String getUtype() {
+        return hasAttribute( "utype" ) ? getAttribute( "utype" ) : null;
+    }
 }
