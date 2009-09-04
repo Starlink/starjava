@@ -427,6 +427,11 @@ public abstract class VotableVersion implements Comparable {
 
         protected Map createAttributeCheckers( String name ) {
             Map map = V11.createAttributeCheckers( name );
+            if ( "GROUP".equals( name ) ) {
+                map.put( "ref", new RefChecker( new String[] { "GROUP",
+                                                               "COOSYS",
+                                                               "TABLE", } ) );
+            }
             return map;
         }
     }
