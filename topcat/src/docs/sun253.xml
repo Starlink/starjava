@@ -11974,6 +11974,13 @@ introduced since the last version:
         identify columns containing ISO-8601 format dates, 
         which allows them to be treated as numeric values for 
         plotting etc.</li>
+    <li>Bug fixed in crossmatching output: entries which should have been 
+        null were sometimes written as non-null (typically large negative
+        numbers) in FITS and in non-TABLEDATA VOTable output.
+        This affected cells in otherwise non-nullable columns
+        where the entire row was absent.  The previous behaviour is not
+        likely to have been mistaken for genuine results.
+        </li>
     </ul>
     </p></dd>
 

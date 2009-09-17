@@ -273,8 +273,43 @@ public class MatchStarTables {
         for ( int iTable = 0; iTable < nTable; iTable++ ) {
             StarTable table = tables[ iTable ];
             if ( table != null ) {
-                subTableList.add( 
-                    new RowPermutedStarTable( table, rowIndices[ iTable ] ) );
+                long[] rowIxs = rowIndices[ iTable ];
+
+                /* Set up column metadata for the sub table; this is mostly
+                 * the same as the metadata for the relevant input table but
+                 * may need slight adjustment (so clone rather than copy). */
+                int nCol = table.getColumnCount();
+                final ColumnInfo[] colInfos = new ColumnInfo[ nCol ];
+                for ( int iCol = 0; iCol < nCol; iCol++ ) {
+                    colInfos[ iCol ] =
+                        new ColumnInfo( table.getColumnInfo( iCol ) );
+                }
+
+                /* Work out whether there are any blank rows in this table
+                 * (missing entries from row link elements). */
+                boolean hasBlankRows = false;
+                for ( int iRow = 0; iRow < nRow; iRow++ ) {
+                    hasBlankRows = hasBlankRows || rowIxs[ iRow ] < 0;
+                }
+
+                /* If there are, ensure that all the table's columns are
+                 * marked as nullable. */
+                if ( hasBlankRows ) {
+                    for ( int iCol = 0; iCol < nCol; iCol++ ) {
+                        colInfos[ iCol ].setNullable( true );
+                    }
+                }
+
+                /* Set up a row permuted table based on the row indices 
+                 * we have calculated and using the correct column metadata. */
+                StarTable subTable = new RowPermutedStarTable( table, rowIxs ) {
+                    public ColumnInfo getColumnInfo( int icol ) {
+                        return colInfos[ icol ];
+                    }
+                };
+
+                /* Add the new subtable to the list. */
+                subTableList.add( subTable );
                 fixActList.add( fixActs[ iTable ] );
             }
         }
@@ -516,8 +551,20 @@ public class MatchStarTables {
             subTables[ i ] = new RowPermutedStarTable( table, rowIndices[ i ] );
         }
 
-        /* Doctor the column names in the constituent tables to reduce
-         * confusion. */
+        /* For each sub table, work out if it has any blank rows 
+         * (missing entries from row link elements). */
+        boolean[] hasBlankRows = new boolean[ width ];
+        for ( int iw = 0; iw < width; iw++ ) {
+            for ( int ir = 0; ir < nrow; ir++ ) {
+                 hasBlankRows[ iw ] = hasBlankRows[ iw ]
+                                  || rowIndices[ iw ][ ir ] < 0;
+            }
+        }
+
+        /* Perform some additional adjustment of the columns in the 
+         * constituent tables: doctor the column names to reduce confusion,
+         * and if there are blank rows ensure that the relevant columns
+         * are marked nullable. */
         int ncol = table.getColumnCount();
         int xNcol = ncol * width;
         final ColumnInfo[] colinfos = new ColumnInfo[ xNcol ];
@@ -526,6 +573,9 @@ public class MatchStarTables {
             for ( int iw = 0; iw < width; iw++ ) {
                 ColumnInfo ci = new ColumnInfo( cinfo );
                 ci.setName( ci.getName() + "_" + ( iw + 1 ) );
+                if ( hasBlankRows[ iw ] ) {
+                    ci.setNullable( true );
+                }
                 colinfos[ ic + iw * ncol ] = ci;
             }
         }

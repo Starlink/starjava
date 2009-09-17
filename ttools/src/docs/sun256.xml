@@ -6253,6 +6253,13 @@ but my thanks are especially due to the following:
         in use.</li>
     <li><code>votlint</code> can now validate VOTable documents following
         the (provisional, 2009-07-10 PR) VOTable 1.2 standard.</li>
+    <li>Bug fixed in crossmatching output: entries which should have been 
+        null were sometimes written as non-null (typically large negative
+        numbers) in FITS and in non-TABLEDATA VOTable output.
+        This affected cells in otherwise non-nullable columns
+        where the entire row was absent.  The previous behaviour is not
+        likely to have been mistaken for genuine results.
+        </li>
     </ul>
     </p></dd>
 
