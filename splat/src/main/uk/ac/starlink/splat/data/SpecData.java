@@ -526,6 +526,13 @@ public class SpecData
     protected String serializedDataLabel = null;
 
     /**
+     * Most significant axis being used when the spectrum was serialised.
+     * This will continue to be used when deserialised when the original
+     * data axes has been lost.
+     */
+    protected int serializedSigAxis = 0;
+
+    /**
      * The apparent data units. If possible conversion from the actual data
      * units to these values will occur (this is achieved by transforming the
      * data values using the FluxFrame part of the spectral AST FrameSet). If
@@ -1790,7 +1797,7 @@ public class SpecData
             //  frameset.
             ASTJ ast = new ASTJ( astref );
 
-            //  If the sigaxis isn't 1 then we may have a 3D spectrum 
+            //  If the sigaxis isn't 1 then we may have a 3D spectrum
             //  where the other axes define an extraction position.
             //  Check for this and record that position.
             checkForExtractionPosition( astref, sigaxis );
@@ -1980,6 +1987,12 @@ public class SpecData
      */
     public int getMostSignificantAxis()
     {
+        //  If this is a de-serialized spectrum the connection to the WCS
+        //  axes, if any, has been lost - handle that.
+        if ( serializedSigAxis != 0 ) {
+            return serializedSigAxis;
+        }
+
         int sigaxis = 1;
         int dims[] = impl.getDims();
         if ( dims.length > 1 ) {
@@ -2009,7 +2022,7 @@ public class SpecData
                 }
                 int nout = astref.getI( "Nout" );
                 try {
-                    double out[] = astref.tranN( 1, dims.length, basepos, 
+                    double out[] = astref.tranN( 1, dims.length, basepos,
                                                  true, nout );
                     int lonaxis = astref.getI( "lonaxis" );
                     int lataxis = astref.getI( "lataxis" );
@@ -2873,6 +2886,10 @@ public class SpecData
         //  Store data units and label.
         serializedDataUnits = getCurrentDataUnits();
         serializedDataLabel = getDataLabel();
+
+        //  Store signficant axis, so correct axis of the WCS is
+        //  used on restoration.
+        serializedSigAxis = getMostSignificantAxis();
 
         //  And store all member variables.
         out.defaultWriteObject();

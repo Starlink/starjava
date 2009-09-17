@@ -14,6 +14,12 @@
    identifiers has been fixed. Previously matching lines from the other
    sideband where always shown, regardless of the initial setting.
 
+   A bug when reading back spectra saved as part of a stack has been fixed.
+   Previously when spectra which were really n-dimensional but with only
+   one non-trivial dimension where read back the first axis of the
+   WCS was used as the spectral axis, regardless of whether this was
+   correct or not.
+ 
    3.9-2
    =====
 
