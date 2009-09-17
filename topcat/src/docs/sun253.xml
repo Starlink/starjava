@@ -11981,6 +11981,9 @@ introduced since the last version:
         where the entire row was absent.  The previous behaviour is not
         likely to have been mistaken for genuine results.
         </li>
+    <li>Fixed plotting bugs - caused intermittent GUI corruption 
+        (e.g. missing toolbar buttons), especially on MacOS.
+        </li>
     </ul>
     </p></dd>
 
