@@ -69,10 +69,12 @@ public class ScatterPlot extends SurfacePlot {
      */
     private void drawData( Graphics graphics, boolean pixels ) {
         PlotState state = getState();
+        if ( state == null || ! state.getValid() ) {
+            return;
+        }
         PlotData data = state.getPlotData();
         PlotSurface surface = getSurface();
-        if ( data == null || state == null || surface == null ||
-             ! state.getValid() ) {
+        if ( data == null || surface == null ) {
             return;
         }
 

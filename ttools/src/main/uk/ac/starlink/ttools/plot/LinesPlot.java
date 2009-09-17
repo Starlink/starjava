@@ -62,8 +62,11 @@ public class LinesPlot extends TablePlot {
 
         /* Acquire state. */
         LinesPlotState state = (LinesPlotState) getState();
+        if ( state == null || ! state.getValid() ) {
+            return;
+        }
         PlotData data = sortedData_;
-        if ( data == null || state == null || ! state.getValid() ) {
+        if ( data == null ) {
             return;
         }
         boolean grid = state.getGrid();

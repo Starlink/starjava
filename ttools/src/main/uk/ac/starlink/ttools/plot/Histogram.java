@@ -65,11 +65,13 @@ public class Histogram extends SurfacePlot {
 
         /* Get and check relevant state. */
         HistogramPlotState state = (HistogramPlotState) getState();
+        if ( state == null || ! state.getValid() ) {
+            return;
+        }
         PlotData data = state.getPlotData();
         BinnedData binnedData = getBinnedData();
         PlotSurface surface = getSurface();
-        if ( data == null || binnedData == null || state == null ||
-             surface == null || ! state.getValid() ) {
+        if ( data == null || binnedData == null || surface == null ) {
             return;
         }
 
