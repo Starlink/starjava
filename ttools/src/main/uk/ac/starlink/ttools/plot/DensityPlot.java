@@ -73,6 +73,9 @@ public class DensityPlot extends SurfacePlot {
      */
     private void drawData( Graphics2D g2 ) {
         Rectangle plotZone = getSurface().getClip().getBounds();
+        if ( plotZone.isEmpty() ) {
+            return;
+        }
         DensityPlotState state = (DensityPlotState) getState();
         final double[] loCuts;
         final double[] hiCuts;

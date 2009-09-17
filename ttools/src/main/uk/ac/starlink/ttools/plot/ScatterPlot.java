@@ -74,7 +74,8 @@ public class ScatterPlot extends SurfacePlot {
         }
         PlotData data = state.getPlotData();
         PlotSurface surface = getSurface();
-        if ( data == null || surface == null ) {
+        if ( data == null || surface == null ||
+             surface.getClip().getBounds().isEmpty() ) {
             return;
         }
 
