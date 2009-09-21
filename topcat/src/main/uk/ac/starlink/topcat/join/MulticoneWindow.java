@@ -5,9 +5,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JProgressBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -40,16 +42,14 @@ public class MulticoneWindow extends AuxWindow {
 
         /* Set up a registry query panel suitable for selecting cone 
          * search services. */
-        final RegistryPanel regPanel =
-            new RegistryPanel( new KeywordServiceQueryFactory( Capability
-                                                              .CONE ), true ) {
-            
-                public RegCapabilityInterface[]
-                       getCapabilities( RegResource res ) {
-                    return ConeSearchDialog
-                          .selectConeSearches( super.getCapabilities( res ) );
-                }
-            };
+        KeywordServiceQueryFactory qfact =
+            new KeywordServiceQueryFactory( Capability.CONE );
+        final RegistryPanel regPanel = new RegistryPanel( qfact, true ) {
+            public RegCapabilityInterface[] getCapabilities( RegResource res ) {
+                return ConeSearchDialog
+                      .selectConeSearches( super.getCapabilities( res ) );
+            }
+        };
 
         /* Set up the panel for entering multicone parameters for a given
          * cone search service. */
@@ -102,7 +102,13 @@ public class MulticoneWindow extends AuxWindow {
         controls.add( new JButton( mcPanel.getStopAction() ) );
 
         /* Place menu actions. */
-        getJMenuBar().add( regPanel.makeColumnVisibilityMenu( "Columns" ) );
+        JMenu colMenu = regPanel.makeColumnVisibilityMenu( "Columns" );
+        colMenu.setMnemonic( KeyEvent.VK_C );
+        getJMenuBar().add( colMenu );
+        JMenu regMenu = new JMenu( "Registry" );
+        regMenu.add( qfact.getRegistrySelector().getRegistryUpdateAction() );
+        regMenu.setMnemonic( KeyEvent.VK_R );
+        getJMenuBar().add( regMenu );
 
         /* Add help. */
         addHelp( "MulticoneWindow" );

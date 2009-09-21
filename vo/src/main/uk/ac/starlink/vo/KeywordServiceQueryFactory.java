@@ -144,4 +144,13 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     public void removeEntryListener( ActionListener listener ) {
         keywordField_.removeActionListener( listener );
     }
+
+    /**
+     * Returns the registry component object associated with this object.
+     *
+     * @return   registry selector
+     */
+    public RegistrySelector getRegistrySelector() {
+        return urlSelector_;
+    }
 }

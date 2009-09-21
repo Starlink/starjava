@@ -65,7 +65,7 @@ public class RegistrySelector extends JPanel {
                                 + " registry service" );
 
         /* Set up an action to update the selector box contents. */
-        updateAction_ = new AbstractAction( "Update" ) {
+        updateAction_ = new AbstractAction( "Update Registry List" ) {
             public void actionPerformed( ActionEvent evt ) {
                 final String reg = (String) comboBox_.getSelectedItem();
                 updateAction_.setEnabled( false );
@@ -96,8 +96,6 @@ public class RegistrySelector extends JPanel {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         add( new JLabel( "Registry: " ) );
         add( comboBox_ );
-        add( Box.createHorizontalStrut( 5 ) );
-        add( new JButton( updateAction_ ) );
     }
 
     public void setEnabled( boolean enabled ) {
@@ -112,6 +110,18 @@ public class RegistrySelector extends JPanel {
      */
     public String getUrl() {
         return (String) comboBox_.getSelectedItem();
+    }
+
+    /**
+     * Returns an action which will update the list of registries by making
+     * a search in the registry for suitable registry entries.
+     * Although this sounds neat, at time of writing it's not much use since
+     * the relevant entries in the registry are largely incorrect.
+     *
+     * @return   registry update action
+     */
+    public Action getRegistryUpdateAction() {
+        return updateAction_;
     }
 
     /**

@@ -11991,6 +11991,10 @@ introduced since the last version:
         clicking on the various columns.  Also, some feedback on the number
         of results obtained so far is displayed on the registry search
         scroll bar.
+        The (not very useful, and potentially confusing) 
+        <label>Update</label> button has been withdrawn from the registry
+        selector panel, and its function moved to a new 
+        <label>Registry</label> menu instead.
         </li> 
     </ul>
     </p></dd>

@@ -167,6 +167,17 @@ public abstract class RegistryServiceTableLoadDialog
         JMenu metaMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
         metaMenu.setMnemonic( KeyEvent.VK_C );
         dia.getJMenuBar().add( metaMenu );
+
+        /* Menu for other actions. */
+        if ( queryFactory_ instanceof KeywordServiceQueryFactory ) {
+            RegistrySelector regsel =
+                ((KeywordServiceQueryFactory) queryFactory_)
+               .getRegistrySelector();
+            JMenu regMenu = new JMenu( "Registry" );
+            regMenu.setMnemonic( KeyEvent.VK_R );
+            regMenu.add( regsel.getRegistryUpdateAction() );
+            dia.getJMenuBar().add( regMenu );
+        }
         return dia;
     }
 
