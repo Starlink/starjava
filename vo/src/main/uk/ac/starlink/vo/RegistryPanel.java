@@ -294,7 +294,9 @@ public class RegistryPanel extends JPanel {
         }
 
         /* Begin an asynchronous query on the registry. */
-        setWorking( workingMessage_ );
+        final JProgressBar progBar = setWorking( workingMessage_ );
+        progBar.setStringPainted( true );
+        progBar.setString( "Found 0" );
         Thread worker = new Thread( "Registry query" ) {
             List resourceList = new ArrayList();
             String errmsg;
@@ -305,6 +307,7 @@ public class RegistryPanel extends JPanel {
                     for ( Iterator it = query.getQueryIterator();
                           it.hasNext() && ! isInterrupted() ; ) {
                         resourceList.add( (RegResource) it.next() );
+                        progBar.setString( "Found " + resourceList.size() );
                     }
                     logger_.info( "Records found: " + resourceList.size() );
                     if ( resourceList.isEmpty() ) {
@@ -420,11 +423,14 @@ public class RegistryPanel extends JPanel {
      * is resumed.
      *
      * @param  message  user-visible text or null for ready status
+     * @return  the progress bar which is used for the working display
      */
-    private void setWorking( String message ) {
+    private JProgressBar setWorking( String message ) {
+        final JProgressBar progBar;
         boolean working = message != null;
         if ( ! working ) {
             resScroller_.setViewportView( dataPanel_ );
+            progBar = null;
         }
         else {
             regTable_.setData( new RegResource[ 0 ] );
@@ -438,7 +444,7 @@ public class RegistryPanel extends JPanel {
             msgLine.add( Box.createHorizontalGlue() );
 
             JComponent progLine = Box.createHorizontalBox();
-            JProgressBar progBar = new JProgressBar();
+            progBar = new JProgressBar();
             progBar.setIndeterminate( true );
             progLine.add( Box.createHorizontalGlue() );
             progLine.add( progBar );
@@ -457,5 +463,6 @@ public class RegistryPanel extends JPanel {
         }
         setEnabled( ! working );
         cancelQueryAction_.setEnabled( working );
+        return progBar;
     }
 }
