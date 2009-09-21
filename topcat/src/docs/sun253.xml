@@ -11984,6 +11984,14 @@ introduced since the last version:
     <li>Fixed plotting bugs - caused intermittent GUI corruption 
         (e.g. missing toolbar buttons), especially on MacOS.
         </li>
+    <li>Registry query UI improved.  Those windows which involve a query of
+        the VO registry (Cone Search, SIA, SSA and Registry load dialogues,
+        as well as the new Multi-Cone dialogues)
+        now allow the user to sort the registry search result table by 
+        clicking on the various columns.  Also, some feedback on the number
+        of results obtained so far is displayed on the registry search
+        scroll bar.
+        </li> 
     </ul>
     </p></dd>
 
