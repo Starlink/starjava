@@ -106,7 +106,6 @@ public class ResourceTableModel extends AbstractTableModel {
      */
     public void setResources( RegResource[] resources ) {
         resources_ = (RegResource[]) resources.clone();
-        Arrays.sort( resources_, columns_[ 0 ] );
         fireTableDataChanged();
     }
 
@@ -120,10 +119,26 @@ public class ResourceTableModel extends AbstractTableModel {
     }
 
     /**
+     * Sorts the contents of this model according to the values in a given
+     * column.
+     *
+     * @param   icol  column index for sort
+     * @param   descending  false for ascending, true for descending;
+     *                      nulls are always at the bottom
+     */
+    public void sortByColumn( int icol, boolean descending ) {
+        if ( resources_ != null && icol >= 0 ) {
+            Arrays.sort( resources_, new ColumnComparator( columns_[ icol ],
+                                                           descending ) );
+            fireTableDataChanged();
+        }
+    }
+
+    /**
      * Represents a table column.  Implements a Comparator which sorts
      * on the contents of the column.
      */
-    private abstract class RegColumn implements Comparator {
+    private abstract class RegColumn {
         final String name_;
 
         /**
@@ -141,21 +156,43 @@ public class ResourceTableModel extends AbstractTableModel {
          * @param  resource   resource object
          */
         abstract String getValue( RegResource resource );
+    }
+
+    /**
+     * Comparator for sorting rows by column contents.
+     */
+    private static class ColumnComparator implements Comparator {
+        private final RegColumn col_;
+        private final int sense_;
+
+        /**
+         * Constructor.
+         *
+         * @param   col   column whose contents determines sort order
+         * @param   descending  false for ascending, true for descending;
+         *                      nulls are always at the bottom
+         */
+        public ColumnComparator( RegColumn col, boolean descending ) {
+            col_ = col;
+            sense_ = descending ? -1 : +1;
+        }
 
         public int compare( Object o1, Object o2 ) {
-            String s1 = getValue( (RegResource) o1 );
-            String s2 = getValue( (RegResource) o2 );
-            if ( s1 == null && s2 == null ) {
+            String s1 = col_.getValue( (RegResource) o1 );
+            String s2 = col_.getValue( (RegResource) o2 );
+            boolean null1 = s1 == null || s1.trim().length() == 0;
+            boolean null2 = s2 == null || s2.trim().length() == 0;
+            if ( null1 && null2 ) {
                 return 0;
             }
-            else if ( s1 == null ) {
-                return -1;
-            }
-            else if ( s2 == null ) {
+            else if ( null1 ) {
                 return +1;
             }
+            else if ( null2 ) {
+                return -1;
+            }
             else {
-                return s1.compareTo( s2 );
+                return sense_ * s1.compareTo( s2 );
             }
         }
     }
