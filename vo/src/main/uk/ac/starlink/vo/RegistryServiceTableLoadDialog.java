@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComponent;
@@ -16,8 +15,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 
 /**
@@ -60,8 +57,6 @@ public abstract class RegistryServiceTableLoadDialog
         super( name, description );
         name_ = name;
         queryFactory_ = queryFactory;
-        final Action okAction = getOkAction();
-        okAction.setEnabled( false );
         setLayout( new BorderLayout() );
 
         /* Construct and configure a panel which knows how to query the
@@ -74,13 +69,6 @@ public abstract class RegistryServiceTableLoadDialog
         };
         regPanel_.getResourceSelectionModel()
                  .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        regPanel_.getResourceSelectionModel()
-                 .addListSelectionListener( new ListSelectionListener() {
-            public void valueChanged( ListSelectionEvent evt ) {
-                okAction.setEnabled( regPanel_.getSelectedResources()
-                                              .length == 1 );
-            }
-        } );
         add( regPanel_, BorderLayout.CENTER );
 
         /* Add controls for invoking the selected service. */
