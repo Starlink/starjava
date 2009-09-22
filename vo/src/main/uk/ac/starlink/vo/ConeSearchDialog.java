@@ -17,9 +17,8 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
-public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
+public class ConeSearchDialog extends DalTableLoadDialog {
 
-    private final SkyPositionEntry skyEntry_;
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final DoubleValueField srField_;
@@ -33,18 +32,11 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
                new KeywordServiceQueryFactory( Capability.CONE ), true );
-        skyEntry_ = new SkyPositionEntry( "J2000" );
-        raField_ = skyEntry_.getRaDegreesField();
-        decField_ = skyEntry_.getDecDegreesField();
+        SkyPositionEntry skyEntry = getSkyEntry();
+        raField_ = skyEntry.getRaDegreesField();
+        decField_ = skyEntry.getDecDegreesField();
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
-        skyEntry_.addField( srField_ );
-        skyEntry_.addActionListener( getOkAction() );
-        getControlBox().add( skyEntry_ );
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        skyEntry_.setEnabled( enabled );
+        skyEntry.addField( srField_ );
     }
 
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
@@ -52,17 +44,9 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
     }
 
     protected TableSupplier getTableSupplier() {
-        RegResource[] resources =
-            getRegistryPanel().getSelectedResources();
-        RegCapabilityInterface[] capabilities =
-            getRegistryPanel().getSelectedCapabilities();
-        if ( resources.length != 1 || capabilities.length != 1 ) {
-            throw new IllegalStateException( "No cone search service " +
-                                             "selected" );
-        }
-        RegResource resource = resources[ 0 ]; 
-        RegCapabilityInterface capability = capabilities[ 0 ];
-        final ConeSearch coner = new ConeSearch( resource, capability );
+        String serviceUrl = getServiceUrl();
+        checkUrl( serviceUrl );
+        final ConeSearch coner = new ConeSearch( serviceUrl );
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
@@ -73,8 +57,8 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
             decField_.getDescribedValue(),
             srField_.getDescribedValue(),
         } ) );
-        metadata.addAll( Arrays.asList( ConeSearch
-                                       .getMetadata( resource, capability ) ) );
+        metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
+        final String summary = getQuerySummary( serviceUrl, sr );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,
                                        String format ) throws IOException {
@@ -84,7 +68,7 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
                 return st;
             }
             public String getTableID() {
-                return coner.toString();
+                return summary;
             }
         };
     }

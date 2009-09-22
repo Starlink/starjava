@@ -19,9 +19,8 @@ import uk.ac.starlink.table.ValueInfo;
  * @since    5 Dec 2005
  * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
  */
-public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
+public class SiapTableLoadDialog extends DalTableLoadDialog {
 
-    private final SkyPositionEntry skyEntry_;
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final DoubleValueField sizeField_;
@@ -37,41 +36,28 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
         super( "SIAP Query",
                "Get results of a Simple Image Access Protocol query",
                new KeywordServiceQueryFactory( Capability.SIA ), false );
-        skyEntry_ = new SkyPositionEntry( "J2000" );
-        raField_ = skyEntry_.getRaDegreesField();
-        decField_ = skyEntry_.getDecDegreesField();
+        SkyPositionEntry skyEntry = getSkyEntry();
+        raField_ = skyEntry.getRaDegreesField();
+        decField_ = skyEntry.getDecDegreesField();
         sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
-        skyEntry_.addField( sizeField_ );
-        skyEntry_.addActionListener( getOkAction() );
-        getControlBox().add( skyEntry_ );
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        skyEntry_.setEnabled( enabled );
+        skyEntry.addField( sizeField_ );
     }
 
     public TableSupplier getTableSupplier() {
-        RegResource[] resources =
-            getRegistryPanel().getSelectedResources();
-        RegCapabilityInterface[] capabilities =
-            getRegistryPanel().getSelectedCapabilities();
-        if ( resources.length != 1 || capabilities.length < 1 ) {
-            throw new IllegalStateException( "No SIAP service selected" );
-        }
-        RegResource resource = resources[ 0 ];
-        RegCapabilityInterface capability = capabilities[ 0 ];
+        String serviceUrl = getServiceUrl();
+        checkUrl( serviceUrl );
         double ra = raField_.getValue();
         double dec = decField_.getValue();
         double size = sizeField_.getValue();
-        final DalQuery query =
-            new DalQuery( resource, capability, ra, dec, size );
+        final DalQuery query = new DalQuery( serviceUrl, ra, dec, size );
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
             decField_.getDescribedValue(),
             sizeField_.getDescribedValue(),
         } ) );
+        metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
+        final String summary = getQuerySummary( serviceUrl, size );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,
                                        String format ) throws IOException {
@@ -80,7 +66,7 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
                 return st;
             }
             public String getTableID() {
-                return query.toString();
+                return summary;
             }
         };
     }
@@ -96,5 +82,4 @@ public class SiapTableLoadDialog extends RegistryServiceTableLoadDialog {
         return (RegCapabilityInterface[])
                siapcapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
-
 }

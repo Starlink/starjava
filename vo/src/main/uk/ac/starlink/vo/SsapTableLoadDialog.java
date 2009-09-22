@@ -18,9 +18,8 @@ import uk.ac.starlink.table.ValueInfo;
  * @since    2 Feb 2009
  * @see      <http://www.ivoa.net/Documents/latest/SSA.html>
  */
-public class SsapTableLoadDialog extends RegistryServiceTableLoadDialog {
+public class SsapTableLoadDialog extends DalTableLoadDialog {
 
-    private final SkyPositionEntry skyEntry_;
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final DoubleValueField sizeField_;
@@ -35,35 +34,20 @@ public class SsapTableLoadDialog extends RegistryServiceTableLoadDialog {
         super( "SSAP Query",
                "Get results of a Simple Spectrum Access Protocol query",
                new KeywordServiceQueryFactory( Capability.SSA ), false );
-        skyEntry_ = new SkyPositionEntry( "J2000" );
-        raField_ = skyEntry_.getRaDegreesField();
-        decField_ = skyEntry_.getDecDegreesField();
+        SkyPositionEntry skyEntry = getSkyEntry();
+        raField_ = skyEntry.getRaDegreesField();
+        decField_ = skyEntry.getDecDegreesField();
         sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
-        skyEntry_.addField( sizeField_ );
-        skyEntry_.addActionListener( getOkAction() );
-        getControlBox().add( skyEntry_ );
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        skyEntry_.setEnabled( enabled );
+        skyEntry.addField( sizeField_ );
     }
 
     public TableSupplier getTableSupplier() {
-        RegResource[] resources =
-            getRegistryPanel().getSelectedResources();
-        RegCapabilityInterface[] capabilities =
-            getRegistryPanel().getSelectedCapabilities();
-        if ( resources.length != 1 || capabilities.length < 1 ) {
-            throw new IllegalStateException( "No SSAP service selected" );
-        }
-        RegResource resource = resources[ 0 ];
-        RegCapabilityInterface capability = capabilities[ 0 ];
+        String serviceUrl = getServiceUrl();
+        checkUrl( serviceUrl );
         double ra = raField_.getValue();
         double dec = decField_.getValue();
         double size = sizeField_.getValue();
-        final DalQuery query =
-            new DalQuery( resource, capability, ra, dec, size );
+        final DalQuery query = new DalQuery( serviceUrl, ra, dec, size );
         query.addArgument( "REQUEST", "queryData" );
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
@@ -71,6 +55,8 @@ public class SsapTableLoadDialog extends RegistryServiceTableLoadDialog {
             decField_.getDescribedValue(),
             sizeField_.getDescribedValue(),
         } ) );
+        metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
+        final String summary = getQuerySummary( serviceUrl, size );
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory factory,
                                        String format ) throws IOException {
@@ -79,7 +65,7 @@ public class SsapTableLoadDialog extends RegistryServiceTableLoadDialog {
                 return st;
             }
             public String getTableID() {
-                return query.toString();
+                return summary;
             }
         };
     }
