@@ -37,6 +37,14 @@ public class RegistryQuery {
         "capability/@xsi:type LIKE '%:Search'" +
         " AND " +
         "full LIKE 'true'";
+
+    /** Default maximum number of registry entries retrieved at once.
+     *  Increasing this number may improve performance, but beware:
+     *  registry records can be large, and setting it high (even 100) 
+     *  can easily exhaust default heap memory with a single buffers-worth.
+     *  This may be a consequence of poor memory usage in the registry
+     *  classes or SOAP, or it may be fundamental - not sure. */
+    public static int RECORD_BUFFER_SIZE = 50;
         
     /** Description of metadata item describing registry location. */
     public final static ValueInfo REGISTRY_INFO = new DefaultValueInfo(
@@ -90,7 +98,7 @@ public class RegistryQuery {
      */
     public RegistryQuery( String endpoint, String text ) {
         this( new RegistrySearchClient( toUrl( endpoint ) ), text );
-        searchClient_.setRecordBufferSize( 100 );
+        searchClient_.setRecordBufferSize( RECORD_BUFFER_SIZE );
         endpoint_ = toUrl( endpoint );
     }
 
