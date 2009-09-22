@@ -126,33 +126,30 @@ public class RegistryPanel extends JPanel {
         dataPanel_ = regTable_;
         setWorking( null );
 
-        /* Create the table for display of per-resource capabilities
-         * if required. */
-        if ( showCapabilities ) {
-            capTableModel_ = new CapabilityTableModel();
-            capTable_ = new JTable( capTableModel_ );
-            capTable_.setColumnSelectionAllowed( false );
-            capTable_.setRowSelectionAllowed( true );
-            final ListSelectionModel regSelModel =
-                regTable_.getSelectionModel();
-            regSelModel.addListSelectionListener( new ListSelectionListener() {
-                public void valueChanged( ListSelectionEvent evt ) {
-                    RegResource[] resources = getSelectedResources();
-                    if ( resources.length == 1 ) {
-                        RegCapabilityInterface[] caps =
-                            getCapabilities( resources[ 0 ] );
-                        capTableModel_.setCapabilities( caps );
-                        if ( caps.length > 0 ) {
-                            capTable_.setRowSelectionInterval( 0, 0 );
-                        }
+        /* Create the table for display of per-resource capabilities.
+         * This may not be used (if showCapabilities is false), but
+         * construct it anyway and just don't place it; this simplifies
+         * code using this class so that it doesn't have to change 
+         * according to whether showCapabilities is true or not. */
+        capTableModel_ = new CapabilityTableModel();
+        capTable_ = new JTable( capTableModel_ );
+        capTable_.setColumnSelectionAllowed( false );
+        capTable_.setRowSelectionAllowed( true );
+        final ListSelectionModel regSelModel =
+            regTable_.getSelectionModel();
+        regSelModel.addListSelectionListener( new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                RegResource[] resources = getSelectedResources();
+                if ( resources.length == 1 ) {
+                    RegCapabilityInterface[] caps =
+                        getCapabilities( resources[ 0 ] );
+                    capTableModel_.setCapabilities( caps );
+                    if ( caps.length > 0 ) {
+                        capTable_.setRowSelectionInterval( 0, 0 );
                     }
                 }
-            } );
-        }
-        else {
-            capTable_ = null;
-            capTableModel_ = null;
-        }
+            }
+        } );
 
         /* Place components. */
         if ( showCapabilities ) {
