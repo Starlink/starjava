@@ -33,7 +33,7 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
     public SsapTableLoadDialog() {
         super( "SSAP Query",
                "Get results of a Simple Spectrum Access Protocol query",
-               new KeywordServiceQueryFactory( Capability.SSA ), false );
+               new KeywordServiceQueryFactory( Capability.SSA ), true );
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
