@@ -11996,6 +11996,12 @@ introduced since the last version:
         selector panel, and its function moved to a new 
         <label>Registry</label> menu instead.
         </li> 
+    <li>Cone search, SIA and SSA query load dialogues improved.
+        You can now enter the service URL directly as an alternative to
+        selecting one from the registry query.
+        The metadata for the table returned by a successful search is
+        also improved.
+        </li>
     </ul>
     </p></dd>
 
