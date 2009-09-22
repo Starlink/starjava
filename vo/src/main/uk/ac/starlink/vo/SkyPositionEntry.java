@@ -29,6 +29,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public class SkyPositionEntry extends JPanel {
 
     private final Action resolveAction_;
+    private final JTextField resolveField_;
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final ValueFieldPanel qPanel_;
@@ -51,10 +52,10 @@ public class SkyPositionEntry extends JPanel {
 
         /* Add name resolution field. */
         Box resolveBox = Box.createHorizontalBox();
-        JTextField resolveField = new JTextField( 20 );
-        resolveAction_ = new ResolveAction( resolveField );
+        resolveField_ = new JTextField( 20 );
+        resolveAction_ = new ResolveAction();
         resolveBox.add( new JLabel( "Object Name: " ) );
-        resolveBox.add( resolveField );
+        resolveBox.add( resolveField_ );
         resolveBox.add( Box.createHorizontalStrut( 5 ) );
         resolveBox.add( new JButton( resolveAction_ ) );
         resolveBox.add( Box.createHorizontalGlue() );
@@ -113,8 +114,19 @@ public class SkyPositionEntry extends JPanel {
         return decField_;
     }
 
+    /**
+     * Returns the field in which an astronomical object whose position is
+     * be resolved can be entered.
+     *
+     * @return  object resolver field
+     */
+    public JTextField getResolveField() {
+        return resolveField_;
+    }
+
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
+        resolveField_.setEnabled( enabled );
         for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
             ((DoubleValueField) it.next()).setEnabled( enabled );
         }
@@ -179,16 +191,14 @@ public class SkyPositionEntry extends JPanel {
      * sets the RA/Dec fields accordingly.
      */
     private class ResolveAction extends AbstractAction {
-        final JTextField resolveField_;
 
         /**
          * Constructor.
          *
          * @param   field   object name entry field
          */
-        ResolveAction( JTextField field ) {
+        ResolveAction() {
             super( "Resolve" );
-            resolveField_ = field;
             resolveField_.addActionListener( this );
         }
 
