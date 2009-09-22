@@ -12003,6 +12003,8 @@ introduced since the last version:
         also improved.
         The SIA dialogue now has a selector for choosing the desired
         image format.
+        Less likely to run out of memory when searching for cone search
+        services.
         </li>
     </ul>
     </p></dd>
