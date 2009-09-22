@@ -5,11 +5,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Table load dialogue for retrieving the result of a SIAP query.
@@ -24,6 +29,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final DoubleValueField sizeField_;
+    private final JComboBox formatSelector_;
     private static final ValueInfo SIZE_INFO =
         new DefaultValueInfo( "Angular Size", Double.class,
                               "Angular size of the search region"
@@ -41,6 +47,22 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         decField_ = skyEntry.getDecDegreesField();
         sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
         skyEntry.addField( sizeField_ );
+
+        /* Add a selector for image format. */
+        JComponent formatLine = Box.createHorizontalBox();
+        formatSelector_ = new JComboBox( new String[] {
+            "image/fits",
+            "GRAPHIC",
+            "ALL",
+            "",
+        } );
+        formatSelector_.setEditable( true );
+        formatSelector_.setSelectedIndex( 0 );
+        formatLine.add( new JLabel( "Image Format: " ) );
+        formatLine.add( new ShrinkWrapper( formatSelector_ ) );
+        formatLine.add( Box.createHorizontalGlue() );
+        getControlBox().add( Box.createVerticalStrut( 5 ) );
+        getControlBox().add( formatLine );
     }
 
     public TableSupplier getTableSupplier() {
@@ -50,6 +72,10 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         double dec = decField_.getValue();
         double size = sizeField_.getValue();
         final DalQuery query = new DalQuery( serviceUrl, ra, dec, size );
+        Object format = formatSelector_.getSelectedItem();
+        if ( format != null && format.toString().trim().length() > 0 ) {
+            query.addArgument( "FORMAT", format.toString() );
+        }
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),

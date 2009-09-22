@@ -12001,6 +12001,8 @@ introduced since the last version:
         selecting one from the registry query.
         The metadata for the table returned by a successful search is
         also improved.
+        The SIA dialogue now has a selector for choosing the desired
+        image format.
         </li>
     </ul>
     </p></dd>
