@@ -13,7 +13,7 @@ import uk.ac.starlink.vo.ConeSearch;
 /**
  * Coner implementation which uses remote 
  * <a href="http://www.ivoa.net/Documents/latest/ConeSearch.html"
- *    >Cone Search</a> services.
+ *    >Cone Search</a> services or similar.
  *
  * @author   Mark Taylor
  * @since    10 Aug 2007
@@ -22,13 +22,19 @@ public class ConeSearchConer implements Coner {
 
     private final Parameter urlParam_;
     private final ChoiceParameter verbParam_;
+    private final ChoiceParameter serviceParam_;
     private final BooleanParameter believeemptyParam_;
+    private final Parameter formatParam_;
     private static final String BELIEVE_EMPTY_NAME = "emptyok";
 
     /**
      * Constructor.
      */
     public ConeSearchConer() {
+        ServiceType[] serviceTypes = new ServiceType[] {
+            new ConeServiceType(),
+        };
+
         urlParam_ = new Parameter( "serviceurl" );
         urlParam_.setPrompt( "Base URL for query returning VOTable" );
         urlParam_.setDescription( new String[] {
@@ -42,6 +48,30 @@ public class ConeSearchConer implements Coner {
             "service URLs corresponding to given datasets.",
             "</p>",
         } );
+
+        serviceParam_ = new ChoiceParameter( "servicetype", serviceTypes );
+        serviceParam_.setPrompt( "Search service type" );
+        StringBuffer typesDescrip = new StringBuffer();
+        for ( int i = 0; i < serviceTypes.length; i++ ) {
+            ServiceType stype = serviceTypes[ i ];
+            typesDescrip.append( "<li>" )
+                        .append( "<code>" )
+                        .append( stype )
+                        .append( "</code>:\n" )
+                        .append( stype.getDescription() )
+                        .append( "</li>" )
+                        .append( "\n" );
+        }
+        serviceParam_.setDescription( new String[] {
+            "<p>Selects the type of data access service to contact.",
+            "Most commonly this will be the Cone Search service itself,",
+            "but there are one or two other possibilities:",
+            "<ul>",
+            typesDescrip.toString(),
+            "</ul>",
+            "</p>",
+        } );
+        serviceParam_.setDefaultOption( serviceTypes[ 0 ] );
 
         verbParam_ = new ChoiceParameter( "verb",
                                           new String[] { "1", "2", "3", } );
@@ -72,6 +102,35 @@ public class ConeSearchConer implements Coner {
             "return no table at all, rather than an empty one.",
             "</p>",
         } );
+
+        formatParam_ = new Parameter( "dataformat" );
+        formatParam_.setPrompt( "Data format type for DAL outputs" );
+        formatParam_.setNullPermitted( true );
+        StringBuffer formatsDescrip = new StringBuffer();
+        for ( int i = 0; i < serviceTypes.length; i++ ) {
+            ServiceType stype = serviceTypes[ i ];
+            formatsDescrip
+               .append( "<li>" )
+               .append( "<code>" )
+               .append( serviceParam_.getName() )
+               .append( "=" )
+               .append( stype )
+               .append( "</code>:\n" )
+               .append( stype.getFormatDescription() )
+               .append( "</li>" )
+               .append( "\n" );
+        }
+        formatParam_.setDescription( new String[] {
+            "<p>Indicates the format of data objects described in the",
+            "returned table.",
+            "The meaning of this is dependent on the value of the",
+            "<code>" + serviceParam_.getName() + "</code>",
+            "parameter:",
+            "<ul>",
+            formatsDescrip.toString(),
+            "</ul>",
+            "</p>",
+        } );
     }
 
     /**
@@ -84,14 +143,18 @@ public class ConeSearchConer implements Coner {
 
     public Parameter[] getParameters() {
         return new Parameter[] {
+            serviceParam_,
             urlParam_,
             verbParam_,
+            formatParam_,
             believeemptyParam_,
         };
     }
 
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
+        ServiceType serviceType =
+            (ServiceType) serviceParam_.objectValue( env );
         String url;
         try {
             url = urlParam_.stringValue( env );
@@ -99,34 +162,137 @@ public class ConeSearchConer implements Coner {
         catch ( IllegalArgumentException e ) {
             throw new ParameterValueException( urlParam_, e.getMessage(), e );
         }
-
-        String sverb = verbParam_.stringValue( env );
-        final boolean believeEmpty = believeemptyParam_.booleanValue( env );
-        int verb;
-        if ( sverb == null ) {
-            verb = -1;
-        }
-        else {
-            try {
-                verb = Integer.parseInt( sverb );
-            }
-            catch ( NumberFormatException e ) {
-                assert false;
-                throw new ParameterValueException( verbParam_,
-                                                   e.getMessage(), e );
-            }
-        }
+        boolean believeEmpty = believeemptyParam_.booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
-        return new ServiceConeSearcher( new ConeSearch( url ), verb,
-                                        believeEmpty, tfact ) {
-            protected String getInconsistentResultsWarning() {
-                String msg = "Different queries to the same cone search"
-                           + " return incompatible tables";
-                if ( believeEmpty ) {
-                    msg += " - try " + BELIEVE_EMPTY_NAME + "=false";
-                }
-                return msg;
+        return serviceType.createSearcher( env, url, believeEmpty, tfact );
+    }
+
+    /**
+     * Describes the type of DAL service which is the basis of the cone.
+     */
+    private abstract class ServiceType {
+        private final String name_;
+
+        /**
+         * Constructor.
+         *
+         * @param  informal, short name
+         */
+        ServiceType( String name ) {
+            name_ = name;
+        }
+
+        /**
+         * Returns XML description of this service type.
+         *
+         * @return  description
+         */
+        abstract String getDescription();
+
+        /**
+         * Returns XML documentation of the use of the format parameter
+         * for this service type.
+         *
+         * @return  formats info
+         */
+        abstract String getFormatDescription();
+
+        /**
+         * Constructs a ConeSearcher instance suitable for this service type.
+         *
+         * @param  env  execution environment
+         * @param  url  service URL
+         * @param  believeEmpty  whether to take seriously metadata from
+         *         zero-length tables
+         * @param  tfact  table factory
+         */
+        abstract ConeSearcher createSearcher( Environment env, String url,
+                                              boolean believeEmpty,
+                                              StarTableFactory tfact )
+                throws TaskException;
+
+        public String toString() {
+            return name_;
+        }
+
+        /**
+         * Utility method to parse the verbosity level parameter.
+         *
+         * @param  env  execution environment
+         * @return  verbosity level
+         */
+        int getVerbosity( Environment env ) throws TaskException {
+            String sverb = verbParam_.stringValue( env );
+            if ( sverb == null ) {
+                return -1;
             }
-        };
+            else {
+                try {
+                    return Integer.parseInt( sverb );
+                }
+                catch ( NumberFormatException e ) {
+                    assert false;
+                    throw new ParameterValueException( verbParam_,
+                                                       e.getMessage(), e );
+                }
+            }
+        }
+
+        /**
+         * Returns the warning string to be issed if inconsistent table 
+         * metadata is encountered.
+         *
+         * @param  believeEmpty  whether to take seriously metadata from
+         *         zero-length tables
+         */
+        String getWarning( boolean believeEmpty ) {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "Different queries to the same " )
+                .append( name_ )
+                .append( " service return incompatible tables" );
+            if ( believeEmpty ) {
+                sbuf.append( " - try " )
+                    .append( BELIEVE_EMPTY_NAME )
+                    .append( "=false" );
+            }
+            return sbuf.toString();
+        }
+    }
+
+    /**
+     * ServiceType implementation for Cone Search protocol.
+     */
+    private class ConeServiceType extends ServiceType {
+        ConeServiceType() {
+            super( "cone" );
+        }
+
+        String getDescription() {
+            return new StringBuffer()
+               .append( "Cone Search protocol " )
+               .append( "- returns a table of objects found " )
+               .append( "near each location.\n" )
+               .append( "See <webref url='" )
+               .append( "http://www.ivoa.net/Documents/latest/ConeSearch.html" )
+               .append( "'>Cone Search standard</webref>." )
+               .toString();
+        }
+
+        String getFormatDescription() {
+            return "not used";
+        }
+
+        public ConeSearcher createSearcher( Environment env, String url,
+                                            final boolean believeEmpty,
+                                            StarTableFactory tfact )
+                throws TaskException {
+            return new ServiceConeSearcher( new ConeSearch( url ),
+                                            getVerbosity( env ),
+                                            believeEmpty, tfact ) {
+                protected String getInconsistentResultsWarning() {
+                    return getWarning( believeEmpty );
+                }
+            };
+        }
     }
 }
