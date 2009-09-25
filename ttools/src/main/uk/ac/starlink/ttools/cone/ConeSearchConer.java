@@ -33,6 +33,8 @@ public class ConeSearchConer implements Coner {
     public ConeSearchConer() {
         ServiceType[] serviceTypes = new ServiceType[] {
             new ConeServiceType(),
+            new SiaServiceType(),
+            new SsaServiceType(),
         };
 
         urlParam_ = new Parameter( "serviceurl" );
@@ -295,4 +297,89 @@ public class ConeSearchConer implements Coner {
             };
         }
     }
+
+    /**
+     * ServiceType implementation for Simple Image Access.
+     */
+    private class SiaServiceType extends ServiceType {
+        SiaServiceType() {
+            super( "sia" );
+        }
+
+        String getDescription() {
+            return new StringBuffer()
+               .append( "Simple Image Access protocol " )
+               .append( "- returns a table of images near each location.\n" )
+               .append( "See <webref url='" )
+               .append( "http://www.ivoa.net/Documents/latest/SIA.html" )
+               .append( "'>SIA standard</webref>." )
+               .toString();
+        }
+
+        String getFormatDescription() {
+            return new StringBuffer()
+               .append( "gives the MIME type of images referenced in the " )
+               .append( "output table, also special values " )
+               .append( "\"<code>GRAPHIC</code>\" and \"<code>ALL</code>\"." )
+               .append( "(value of the SIA FORMAT parameter)" )
+               .toString();
+        }
+
+        public ConeSearcher createSearcher( Environment env, String url,
+                                            final boolean believeEmpty,
+                                            StarTableFactory tfact )
+                throws TaskException {
+            formatParam_.setDefault( "image/fits" );
+            String format = formatParam_.stringValue( env );
+            return new SiaConeSearcher( url, format, believeEmpty, tfact ) {
+                protected String getInconsistentResultsWarning() {
+                    return getWarning( believeEmpty );
+                }
+            };
+        }
+    }
+
+    /**
+     * ServiceType implementation for Simple Spectral Access.
+     */
+    private class SsaServiceType extends ServiceType {
+        SsaServiceType() {
+            super( "ssa" );
+        }
+
+        String getDescription() {
+            return new StringBuffer()
+               .append( "Simple Spectral Access protocol " )
+               .append( " - returns a table of spectra near each location.\n" )
+               .append( "See <webref url='" )
+               .append( "http://www.ivoa.net/Documents/latest/SSA.html" )
+               .append( "'>SSA standard</webref>." )
+               .toString();
+        }
+
+        String getFormatDescription() {
+            return new StringBuffer()
+               .append( "gives the MIME type of spectra referenced in the " )
+               .append( "output table, also special values " )
+               .append( "\"<code>votable</code>\", " )
+               .append( "\"<code>fits</code>\", " )
+               .append( "\"<code>compliant</code>\", " )
+               .append( "\"<code>graphic</code>\", " )
+               .append( "\"<code>all</code>\", and others\n" )
+               .append( "(value of the SSA FORMAT parameter)." )
+               .toString();
+        }
+
+        public ConeSearcher createSearcher( Environment env, String url,
+                                            final boolean believeEmpty,
+                                            StarTableFactory tfact )
+                throws TaskException {
+            String format = formatParam_.stringValue( env );
+            return new SsaConeSearcher( url, format, believeEmpty, tfact ) {
+                protected String getInconsistentResultsWarning() {
+                    return getWarning( believeEmpty );
+                };
+            };
+        }
+    } 
 }

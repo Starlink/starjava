@@ -1,14 +1,20 @@
 package uk.ac.starlink.ttools.net_tests;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.MultiCone;
+import uk.ac.starlink.vo.ResolverInfo;
 
 /**
  * Unit tests for MultiCone (coneskymatch) task.  
@@ -33,7 +39,7 @@ public class MultiConeTest extends TableTestCase {
               .setLevel( Level.WARNING );
     }
 
-    public void testExample1() throws Exception {
+    public void testCone1() throws Exception {
         MapEnvironment env = new MapEnvironment()
             .setResourceBase( MultiConeTest.class )
             .setValue( "serviceurl", "http://archive.stsci.edu/hst/search.php" )
@@ -55,7 +61,7 @@ public class MultiConeTest extends TableTestCase {
         assertEquals( "F606W", result.getCell( 14L, 10 ) );
     }
 
-    public void testExample2() throws Exception {
+    public void testCone2() throws Exception {
         MapEnvironment env = new MapEnvironment()
             .setResourceBase( MultiConeTest.class )
             .setValue( "serviceurl",
@@ -90,7 +96,7 @@ public class MultiConeTest extends TableTestCase {
                       0.00001 );
     }
 
-    public void testExample3() throws Exception {
+    public void testCone3() throws Exception {
         MapEnvironment env = new MapEnvironment()
             .setResourceBase( MultiConeTest.class )
             .setValue( "serviceurl",
@@ -104,12 +110,93 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "copycols", "$4" );
         StarTable result = multicone( env, new int[] { 1, 2, 3, } );
 
-        assertEquals( 451L, result.getRowCount() );  // was 166 rows
+        assertEquals( 699L, result.getRowCount() );  // was 451 rows
         assertEquals( 15, result.getColumnCount() );  // was 14 cols
 
         assertEquals( "Name", result.getColumnInfo( 0 ).getName() );
         assertEquals( "fomalhaut", result.getCell( 0L, 0 ) );
         assertEquals( "sirius", result.getCell( result.getRowCount() - 1, 0 ) );
+    }
+
+    public void testSia() throws Exception {
+        int nq = 10;
+        MapEnvironment env = new MapEnvironment()
+            .setResourceBase( MultiConeTest.class )
+            .setValue( "servicetype", "sia" )
+            .setValue( "serviceurl",
+                       "http://irsa.ipac.caltech.edu/cgi-bin/2MASS/"
+                     + "IM/nph-im_sia?type=at&ds=asky" )
+            .setValue( "in", "messier.xml" )
+            .setValue( "ra", "RA" )
+            .setValue( "dec", "DEC" )
+            .setValue( "sr", "1" )
+            .setValue( "find", "best" )
+            .setValue( "dataformat", "image/fits" )
+            .setValue( "icmd", "head " + nq );
+        StarTable result = multicone( env, new int[] { 1 } );
+        assertEquals( nq, result.getRowCount() );
+        Map ucdMap = new HashMap();
+        for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
+            ucdMap.put( result.getColumnInfo( icol ).getUCD(),
+                        new Integer( icol ) );
+        }
+        assertTrue( ucdMap.containsKey( "POS_EQ_RA_MAIN" ) );
+        assertTrue( ucdMap.containsKey( "VOX:Image_AccessReference" ) );
+        assertTrue( ucdMap.containsKey( "VOX:Image_Format" ) );
+        int fmtCol = ((Integer) ucdMap.get( "VOX:Image_Format" )).intValue();
+        RowSequence rseq = result.getRowSequence();
+        try {
+            while ( rseq.next() ) {
+                assertEquals( "image/fits", rseq.getCell( fmtCol ) );
+            }
+        }
+        finally {
+            rseq.close();
+        }
+    }
+
+    public void testSsa() throws Exception {
+        ColumnInfo[] infos = new ColumnInfo[] {
+            new ColumnInfo( "Name", String.class, null ),
+            new ColumnInfo( "RA", Double.class, null ), 
+            new ColumnInfo( "Dec", Double.class, null ),
+        };
+        RowListStarTable table = new RowListStarTable( infos );
+        String[] targets = new String[] { "3c273", "algol", };
+        int nq = targets.length;
+        for ( int i = 0; i < targets.length; i++ ) {
+            String target = targets[ i ];
+            ResolverInfo rinfo = ResolverInfo.resolve( target );
+            double ra = rinfo.getRaDegrees();
+            double dec = rinfo.getDecDegrees();
+            table.addRow( new Object[] { target, new Double( ra ),
+                                                 new Double( dec ), } );
+        }
+        MapEnvironment env = new MapEnvironment()
+            .setValue( "servicetype", "ssa" )
+            .setValue( "serviceurl",
+                       "http://archive.eso.org/apps/ssaserver/EsoProxySsap" )
+            .setValue( "in", table )
+            .setValue( "ra", "RA" )
+            .setValue( "dec", "Dec" )
+            .setValue( "sr", "0.01" )
+            .setValue( "find", "best" )
+            .setValue( "dataformat", "votable" );
+        StarTable result = multicone( env, new int[] { 1 } );
+        assertEquals( 1, result.getRowCount() );  // algol not known
+        Map ucdMap = new HashMap();
+        Map utypeMap = new HashMap();
+        for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
+            ColumnInfo colInfo = result.getColumnInfo( icol );
+            ucdMap.put( colInfo.getUCD(), new Integer( icol ) );
+            utypeMap.put( Tables.getUtype( colInfo ), new Integer( icol ) );
+        }
+        assertTrue( ucdMap.containsKey( "pos.angDistance" ) );
+        int isepCol = ((Integer) ucdMap.get( "pos.angDistance" )).intValue();
+        assertTrue( utypeMap.containsKey( "ssa:Access.Reference" ) );
+        assertTrue( utypeMap.containsKey( "ssa:Access.Format" ) );
+        assertTrue( ((Number) result.getCell( 0, isepCol )).doubleValue()
+                    < 0.1 );
     }
 
     private StarTable multicone( MapEnvironment env,
