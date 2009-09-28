@@ -11,7 +11,7 @@ import uk.ac.starlink.ttools.cone.SkyConeMatch2;
  */
 public class MultiCone extends SkyConeMatch2 {
     public MultiCone() {
-        super( "Crossmatches table on sky position against Cone Search service",
+        super( "Crossmatches table on sky position against remote cone service",
                new ConeSearchConer(), true );
     }
 }
