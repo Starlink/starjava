@@ -3146,33 +3146,45 @@ stilts calc 'param$author' table=catalogue.xml
 <subhead><title><code>coneskymatch</code>: &coneskymatch-purpose;</title></subhead>
 
 <p><code>coneskymatch</code> is a utility which performs a 
-<webref url="http://www.ivoa.net/Documents/latest/ConeSearch.html"
-        >cone search</webref>
-(cone search is an IVOA standard protocol)
-query for each row of an input table and concatenates the results 
-of all these queries together into one big output table.
-You give the <ref plaintextref="yes" id="coneService">service URL</ref> 
-for the cone search server you wish
-to use, and expressions (usually column names) 
-defining how to get the search parameters 
-(sky position and search radius) for each row of the input table.  
-The program then goes through the input table and dispatches
-a cone search query to the server for each row.  
-For each of these queries the service should respond with a 
-VOTable containing the objects it knows about in the specified region; 
-hopefully the columns will be the same or very similar for
-all the different queries since they are using the same service.
-The response tables are stitched together top-to-bottom 
-(in the same way as <ref id="tcat"><code>tcat</code></ref>)
-and the result is output.
+cone search-like
+query to a remote server for each row of an input table.
+Each of these queries returns a table with one row for each
+item held by the server in the region of sky represented by
+the input row.
+The results of all the queries are then concatenated into one big
+output table which is the output of this command.
 </p>
 
-<p>The effect of this is like doing a positional crossmatch 
+<p>The type of virtual observatory service queried is determined by the 
+<code>servicetype</code> parameter.  
+Typically it will be a 
+<webref url="http://www.ivoa.net/Documents/latest/ConeSearch.html"
+        >Cone Search</webref> service,
+which queries a remote catalogue for astronomical objects or sources
+in a particular region.
+However, you can also query 
+<webref url="http://www.ivoa.net/Documents/latest/SIA.html"
+        >Simple Image Access</webref> and
+<webref url="http://www.ivoa.net/Documents/latest/SSA.html"
+        >Simple Spectral Access</webref> services
+in just the same way, to return tables of available 
+image and spectral resources in the relevant regions.
+</p>
+
+<p>The identity of the server to query is given by the
+<code>serviceurl</code> parameter.
+Some advice about how to locate URLs for suitable services is given
+in <ref id="coneService"/>.
+</p>
+
+<p>The effect of this command is like doing a positional crossmatch 
 where one of the catalogues is local and the other is remote and
-provides a cone search service.
-Because of both the network communication and the naive algorithm
-however, it is only suitable if the local catalogue has a rather
-small number of rows.
+exposes its data via a cone search/SIA/SSA service.
+Because of both the network communication and the necessarily naive 
+crossmatching algorithm (which scales linearly with the size of the
+local catalogue) however, 
+it is only suitable if the local catalogue has a reasonably small 
+number of rows, unless you are prepared to wait a long time.
 </p>
 
 <p>The <code>parallel</code> parameter allows you to perform multiple
@@ -3183,7 +3195,7 @@ This can speed up operation considerably, especially
 in the face of network latency, but beware that submitting a very large
 number of queries simultaneously to the same server may overload it,
 resulting in some combination of failed queries, ultimately slower runtimes,
-and unpopularity with cone search server admins.
+and unpopularity with server admins.
 Best to start with a low parallelism and cautiously increase it to
 see whether there are gains in performance.
 </p>
@@ -3218,6 +3230,28 @@ stilts coneskymatch serviceurl=http://archive.stsci.edu/hst/search.php \
     new VOTable, <code>matches.xml</code>.  The J2000 positions of each
     record in the input file are held in columns named RA and
     DEC respectively.
+    Since the <code>servicetype</code> parameter is not given, the 
+    default (cone search) service type is assumed.
+    </p></dd>
+
+<dt><verbatim>
+stilts coneskymatch
+       servicetype=sia \
+       serviceurl=http://irsa.ipac.caltech.edu/cgi-bin/2MASS/IM/nph-im_sia?type=ql&amp;ds=asky \
+       in=messier.xml ra=RA dec=DEC \
+       dataformat=image/fits \
+       out=fitsimages.xml
+</verbatim></dt>
+<dd><p>This is similar to the previous example, but 
+    instead of querying an HST cone search server for catalogue objects
+    near the input table positions, it queries a 2MASS Simple Image Access
+    (SIA) server for images.  
+    The search radius parameter (<code>sr</code>) is not set here;
+    for SIA queries the default search radius is zero, which has the
+    special meaning of including any image which covers the requested position.
+    Setting <code>dataformat=image/fits</code> (which is the default) 
+    requests only records describing FITS-format images to be returned;
+    setting it to an empty value might return other formats such as JPEG too.
     </p></dd>
 
 <dt><verbatim>
@@ -3281,11 +3315,11 @@ stilts coneskymatch serviceurl='http://archive.stsci.edu/iue/search.php?' \
 </subsubsect>
 
 <subsubsect id="coneService">
-<subhead><title>Locating Cone Search Service URLs</title></subhead>
+<subhead><title>Locating Cone Query Service URLs</title></subhead>
 
 <p>To use the <code>coneskymatch</code> command you need the
 <label>service URL</label> (also known as the <label>base URL</label>
-or <label>access URL</label>) of a cone search service to use.
+or <label>access URL</label>) of a cone search, SIA or SSA service to use.
 If you know one of these representing a service that you wish to use, 
 you can use it directly.
 </p>
@@ -3297,17 +3331,25 @@ so this is where you should look.
 </p>
 
 <p>There are various ways you can interrogate the registry; the
-easiest is probably to use a graphical registry search tool such
-as <webref url="http://www.astrogrid.org/">AstroGrid</webref>'s 
-<label>VOExplorer</label>;
-the NVO offers the command-line tools
-<webref url="http://iraf-nvo.noao.edu/vo-cli/">VO-CLI</webref> and
-<webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
-        >IVOARegistry</webref>;
-there may be others.
+easiest is probably to use a graphical registry search tool.
+One such tool is 
+<webref url="http://www.astrogrid.org/">AstroGrid</webref>'s 
+<label>VOExplorer</label>, which allows you to perform sophisticated searches 
+for cone search, SIA or SSA services.
+Another option is to use
+<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>;
+the 
+<webref url="http://www.starlink.ac.uk/topcat/ConeSearchDialog.html"
+        >Cone Search</webref> and
+<webref url="http://www.starlink.ac.uk/topcat/DalTableLoadDialog.html"
+        >SIA/SSA</webref>
+load dialogues allow you to search the registry for these services 
+prior to performing a query;
+you can just use the registry part and cut'n'paste the URL which
+is shown.
 </p>
 
-<p>It is also possible to interrogate the registry using STILTS's
+<p>Other registry querying tools are available, including STILTS's
 <ref id="regquery" plaintextref="yes"><code>regquery</code></ref>
 command.  See that section of the manual for details, but for
 instance to locate registered Cone Search services which have
@@ -6260,6 +6302,9 @@ but my thanks are especially due to the following:
         where the entire row was absent.  The previous behaviour is not
         likely to have been mistaken for genuine results.
         </li>
+    <li><code>coneskymatch</code> can now match using SIA and SSA
+        services as alternatives to Cone Search ones
+        (see its new <code>servicetype</code> parameter).</li>
     </ul>
     </p></dd>
 
