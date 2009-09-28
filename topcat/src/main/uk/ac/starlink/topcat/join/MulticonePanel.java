@@ -988,7 +988,8 @@ public class MulticonePanel extends JPanel {
                                               QuerySequenceFactory qsFact,
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher, toProducer( inTable ),
-                                    qsFact, best_, parallelism, "*", DIST_NAME,
+                                    qsFact, best_, true, parallelism, "*",
+                                    DIST_NAME,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction
                                    .makeRenameDuplicatesAction( "_cone" ) );
@@ -1028,7 +1029,7 @@ public class MulticonePanel extends JPanel {
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher,
                                     toProducer( prependIndex( inTable ) ), 
-                                    qsFact, true, parallelism,
+                                    qsFact, true, true, parallelism,
                                     INDEX_INFO.getName(), null,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction.NO_ACTION );
@@ -1154,7 +1155,7 @@ public class MulticonePanel extends JPanel {
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher,
                                     toProducer( prependIndex( inTable ) ),
-                                    qsFact, true, parallelism,
+                                    qsFact, true, true, parallelism,
                                     INDEX_INFO.getName(), DIST_NAME,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction.NO_ACTION );
