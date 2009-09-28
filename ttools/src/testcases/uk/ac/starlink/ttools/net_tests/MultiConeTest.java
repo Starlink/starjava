@@ -129,11 +129,10 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "in", "messier.xml" )
             .setValue( "ra", "RA" )
             .setValue( "dec", "DEC" )
-            .setValue( "sr", "1" )
             .setValue( "find", "best" )
             .setValue( "dataformat", "image/fits" )
             .setValue( "icmd", "head " + nq );
-        StarTable result = multicone( env, new int[] { 1 } );
+        StarTable result = multicone( env, new int[] { 5 } );
         assertEquals( nq, result.getRowCount() );
         Map ucdMap = new HashMap();
         for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
@@ -172,6 +171,7 @@ public class MultiConeTest extends TableTestCase {
             table.addRow( new Object[] { target, new Double( ra ),
                                                  new Double( dec ), } );
         }
+  
         MapEnvironment env = new MapEnvironment()
             .setValue( "servicetype", "ssa" )
             .setValue( "serviceurl",

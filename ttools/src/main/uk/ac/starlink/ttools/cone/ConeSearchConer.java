@@ -153,6 +153,18 @@ public class ConeSearchConer implements Coner {
         };
     }
 
+    public void configureParams( Environment env, Parameter srParam )
+            throws TaskException {
+        ((ServiceType) serviceParam_.objectValue( env ))
+                      .configureParams( srParam );
+    }
+
+    public boolean useDistanceFilter( Environment env )
+            throws TaskException {
+        return ((ServiceType) serviceParam_.objectValue( env ))
+                             .useDistanceFilter();
+    }
+
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
         ServiceType serviceType =
@@ -198,6 +210,23 @@ public class ConeSearchConer implements Coner {
          * @return  formats info
          */
         abstract String getFormatDescription();
+
+        /**
+         * Provides this object with a chance to perform custom configuration
+         * on general cone search parameters.
+         *
+         * @param  srParam   search radius parameter
+         */
+        abstract void configureParams( Parameter srParam );
+
+        /**
+         * Indicates whether the result table should be subjected
+         * to additional filtering to ensure that only rows in the
+         * specified search radius are included in the final output.
+         *
+         * @return  true iff post-query filtering on distance is to be performed
+         */
+        abstract boolean useDistanceFilter();
 
         /**
          * Constructs a ConeSearcher instance suitable for this service type.
@@ -284,6 +313,14 @@ public class ConeSearchConer implements Coner {
             return "not used";
         }
 
+        public void configureParams( Parameter srParam ) {
+            srParam.setNullPermitted( false );
+        }
+
+        public boolean useDistanceFilter() {
+            return true;
+        }
+
         public ConeSearcher createSearcher( Environment env, String url,
                                             final boolean believeEmpty,
                                             StarTableFactory tfact )
@@ -323,6 +360,19 @@ public class ConeSearchConer implements Coner {
                .append( "\"<code>GRAPHIC</code>\" and \"<code>ALL</code>\"." )
                .append( "(value of the SIA FORMAT parameter)" )
                .toString();
+        }
+
+        public void configureParams( Parameter srParam ) {
+
+            /* SIZE = 0 has a special meaning for SIA: it means any image
+             * containing the given image.  This is a sensible default in 
+             * most cases. */
+            srParam.setDefault( "0" );
+            srParam.setNullPermitted( false );
+        }
+
+        public boolean useDistanceFilter() {
+            return false;
         }
 
         public ConeSearcher createSearcher( Environment env, String url,
@@ -368,6 +418,17 @@ public class ConeSearchConer implements Coner {
                .append( "\"<code>all</code>\", and others\n" )
                .append( "(value of the SSA FORMAT parameter)." )
                .toString();
+        }
+
+        public void configureParams( Parameter srParam ) {
+
+            /* SIZE param may be omitted in an SSA query; the service should
+             * use some appropriate default value. */
+            srParam.setNullPermitted( true );
+        }
+
+        public boolean useDistanceFilter() {
+            return true;
         }
 
         public ConeSearcher createSearcher( Environment env, String url,

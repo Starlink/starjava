@@ -172,6 +172,13 @@ public class JdbcConer implements Coner {
         return (Parameter[]) pList.toArray( new Parameter[ 0 ] );
     }
 
+    public void configureParams( Environment env, Parameter srParam ) {
+    }
+
+    public boolean useDistanceFilter( Environment env ) {
+        return true;
+    }
+
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
         final Connection connection = connParam_.connectionValue( env );

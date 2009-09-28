@@ -221,6 +221,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             throws TaskException {
 
         /* Interrogate environment for parameter values. */
+        coner_.configureParams( env, srParam_ );
+        boolean distFilter = coner_.useDistanceFilter( env );
         String copyColIdList = copycolsParam_.stringValue( env );
         String raString = raParam_.stringValue( env );
         String decString = decParam_.stringValue( env );
@@ -258,7 +260,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         /* Return a table producer using these values. */
         ConeMatcher coneMatcher =
-            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly,
+            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly, distFilter,
                              parallelism, copyColIdList, distanceCol,
                              inFixAct, coneFixAct );
         coneMatcher.setStreamOutput( ostream );

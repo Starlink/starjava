@@ -41,6 +41,7 @@ public class ConeMatcher implements TableProducer {
     private final QuerySequenceFactory qsFact_;
     private final int parallelism_;
     private final boolean bestOnly_;
+    private final boolean distFilter_;
     private final String copyColIdList_;
     private final JoinFixAction inFixAct_;
     private final JoinFixAction coneFixAct_;
@@ -72,7 +73,7 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly ) {
-        this( coneSearcher, inProd, qsFact, bestOnly,
+        this( coneSearcher, inProd, qsFact, bestOnly, true,
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
@@ -87,6 +88,9 @@ public class ConeMatcher implements TableProducer {
      * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
+     * @param   distFilter true to perform post-query filtering on results
+     *                     based on the distance between the query position
+     *                     and the result row position
      * @param   parallelism  number of threads to concurrently execute matches -
      *                       only &gt;1 if coneSearcher is thread-safe
      * @param   copyColIdList  space-separated list of column identifiers for
@@ -100,13 +104,14 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly,
-                        int parallelism, String copyColIdList,
-                        String distanceCol, JoinFixAction inFixAct,
-                        JoinFixAction coneFixAct ) {
+                        boolean distFilter, int parallelism,
+                        String copyColIdList, String distanceCol,
+                        JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
         coneSearcher_ = coneSearcher;
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
+        distFilter_ = distFilter;
         parallelism_ = parallelism;
         copyColIdList_ = copyColIdList;
         distanceCol_ = distanceCol;
@@ -144,7 +149,7 @@ public class ConeMatcher implements TableProducer {
         if ( parallelism_ == 1 ) {
             resultSeq = new SequentialResultRowSequence( querySeq,
                                                          coneSearcher_,
-                                                         bestOnly_,
+                                                         bestOnly_, distFilter_,
                                                          distanceCol_ ) {
                    public void close() throws IOException {
                        super.close();
@@ -155,7 +160,7 @@ public class ConeMatcher implements TableProducer {
         else {
             resultSeq = new ParallelResultRowSequence( querySeq,
                                                        coneSearcher_,
-                                                       bestOnly_,
+                                                       bestOnly_, distFilter_,
                                                        distanceCol_,
                                                        parallelism_ ) {
                 public void close() throws IOException {
@@ -185,9 +190,11 @@ public class ConeMatcher implements TableProducer {
     /**
      * Performs a cone search and returns the resulting table with
      * appropriate filtering operations applied.
-     * The resulting table will fall strictly within the specified
-     * search region and will contain a restricted set of rows if
-     * that has been requested.
+     * The resulting table may contain fewer rows than the output of the
+     * actual query; if <code>bestOnly</code> is true, only the best match
+     * will be included, and if <code>distFilter</code> is true, then only
+     * those rows whose sky position falls strictly within the specified
+     * search radius will be included.
      *
      * <p>If a non-null <code>distanceCol</code> parameter is supplied,
      * the final column in the table will contain the angle in degrees
@@ -199,6 +206,9 @@ public class ConeMatcher implements TableProducer {
      * @param   coneSearcher   cone search implementation
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
+     * @param   distFilter true to perform post-query filtering on results
+     *                     based on the distance between the query position
+     *                     and the result row position
      * @param   distanceCol  name of column to hold distance information
      *                       int output table, or null
      * @param   ra0   right ascension in degrees of region centre
@@ -207,18 +217,18 @@ public class ConeMatcher implements TableProducer {
      * @return   filtered result table, or null
      */
     public static StarTable getConeResult( ConeSearcher coneSearcher,
-                                           boolean bestOnly,
+                                           boolean bestOnly, boolean distFilter,
                                            String distanceCol,
                                            final double ra0, final double dec0,
                                            final double sr )
             throws IOException {
 
         /* Validate parameters. */
-        if ( Double.isNaN( ra0 ) || Double.isNaN( dec0 ) ||
-             Double.isNaN( sr ) ) {
+        if ( Double.isNaN( ra0 ) || Double.isNaN( dec0 ) ) {
             logger_.warning( "Invalid search parameters" );
             return null;
         }
+        distFilter = distFilter && sr > 0.0;
 
         /* Perform the cone search itself. */
         logger_.info( "Cone: ra=" + ra0 + "; dec=" + dec0 + "; sr=" + sr );
@@ -271,7 +281,7 @@ public class ConeMatcher implements TableProducer {
                 assert distObj == null || distObj instanceof Double;
                 if ( distObj instanceof Number ) {
                     double dist = ((Number) distObj).doubleValue();
-                    if ( dist <= sr &&
+                    if ( ( dist <= sr || ! distFilter ) &&
                          ( dist < bestDist || Double.isNaN( bestDist ) ) ) {
                         bestDist = dist;
                         bestRow = (Object[]) rseq.getRow().clone();
@@ -290,7 +300,7 @@ public class ConeMatcher implements TableProducer {
          * in the search region.  This filtering is necessary since the
          * ConeSearcher contract allows the return of supersets of the
          * requested region. */
-        else {
+        else if ( distFilter ) {
             filteredResultWithDistance =
                     new SelectorStarTable( resultWithDistance ) {
                 public boolean isIncluded( RowSequence rseq )
@@ -301,6 +311,11 @@ public class ConeMatcher implements TableProducer {
                         && ((Number) distObj).doubleValue() <= sr;
                 }
             };
+        }
+
+        /* If no filtering is required, just pass the table through. */
+        else {
+            filteredResultWithDistance = resultWithDistance;
         }
 
         /* Return the filtered table with or without the distance column

@@ -85,6 +85,10 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
          */
         private CompiledExpression compileDouble( String sexpr )
                 throws IOException {
+            if ( sexpr == null || "null".equals( sexpr ) ||
+                 sexpr.trim().length() == 0 ) {
+                sexpr = "NULL";
+            }
             try {
                 return JELUtils.compile( lib_, getTable(), sexpr,
                                          double.class );

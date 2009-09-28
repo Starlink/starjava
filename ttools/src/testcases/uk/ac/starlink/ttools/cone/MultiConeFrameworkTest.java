@@ -59,7 +59,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         ConeMatcher bestMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
-                parallelism, "*", scoreCol,
+                true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
@@ -70,7 +70,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
-                false, parallelism, "RA DEC", scoreCol,
+                false, true, parallelism, "RA DEC", scoreCol,
                 JoinFixAction.makeRenameDuplicatesAction( "_A" ),
                 JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
@@ -111,8 +111,8 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
         ConeMatcher matcher3 = new ConeMatcher(
-                searcher, inProd, qsFact3, true, parallelism, "", scoreCol,
-                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+                searcher, inProd, qsFact3, true, true, parallelism, "",
+                scoreCol, JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );
         assertEquals( 3 + ( addScore ? 1 : 0 ), result3.getColumnCount() );
         assertEquals( "ID", result3.getColumnInfo( 0 ).getName() );

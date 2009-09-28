@@ -19,6 +19,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
     private final boolean bestOnly_;
+    private final boolean distFilter_;
     private final String distanceCol_;
     private final int poolMax_;
     private final SortedSet resultPool_;
@@ -34,17 +35,21 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
      * @param  bestOnly  whether all results or just best are required
+     * @param  distFilter  true to perform post-query filtering on results
+     *                     based on the distance between the query position
+     *                     and the result row position
      * @param  distanceCol  name of column to hold distance information
      *                      in output table, or null
      * @param  parallelism  number of concurrent querying threads
      */
     public ParallelResultRowSequence( ConeQueryRowSequence querySeq,
                                       ConeSearcher coneSearcher,
-                                      boolean bestOnly, String distanceCol,
-                                      int parallelism ) {
+                                      boolean bestOnly, boolean distFilter,
+                                      String distanceCol, int parallelism ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
         bestOnly_ = bestOnly;
+        distFilter_ = distFilter;
         distanceCol_ = distanceCol;
         poolMax_ = parallelism * 3;
         resultPool_ = new TreeSet();
@@ -329,7 +334,8 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             /* Perform the query. */
             StarTable table =
                 ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
-                                           distanceCol_, ra, dec, radius );
+                                           distFilter_, distanceCol_,
+                                           ra, dec, radius );
 
             /* Return the completed result object. */
             return new Result( index, ra, dec, radius, row, table );
