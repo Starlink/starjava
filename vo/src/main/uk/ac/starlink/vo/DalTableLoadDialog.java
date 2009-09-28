@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.Component;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
@@ -29,6 +31,8 @@ public abstract class DalTableLoadDialog
     private final SkyPositionEntry skyEntry_;
     private final JTextField urlField_;
     private final String name_;
+    private final boolean autoQuery_;
+    private boolean setup_;
 
     /**
      * Constructor.
@@ -39,12 +43,16 @@ public abstract class DalTableLoadDialog
      * @param  showCapabilities  true to display the capabilities JTable as
      *         well as the Resource one; sensible if resource:capabilities
      *         relationship may not be 1:1
+     * @param  autoQuery  populate service table with full registry query
+     *         on initial display
      */
     protected DalTableLoadDialog( String name, String description,
                                   RegistryQueryFactory queryFactory,
-                                  boolean showCapabilities ) {
+                                  boolean showCapabilities,
+                                  boolean autoQuery ) {
         super( name, description, queryFactory, showCapabilities );
         name_ = name;
+        autoQuery_ = autoQuery;
 
         /* Add a field for holding the service URL.  This will typically be
          * populated by selecting an entry from the result of the displayed
@@ -104,6 +112,17 @@ public abstract class DalTableLoadDialog
         super.setEnabled( enabled );
         urlField_.setEnabled( enabled );
         skyEntry_.setEnabled( enabled );
+    }
+
+    public JDialog createDialog( Component parent ) {
+        if ( ! setup_ ) {
+            setup_ = true;
+            if ( autoQuery_ ) {
+                getRegistryPanel().performAutoQuery( "Locating all known "
+                                                   + name_ + " services" );
+            }
+        }
+        return super.createDialog( parent );
     }
 
     /**

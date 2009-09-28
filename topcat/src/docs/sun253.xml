@@ -12008,6 +12008,9 @@ introduced since the last version:
         SIA and SSA query dialogues now no longer require explicit entry
         of size parameter (these protocols define default behaviour when
         no non-zero size is provided).
+        SSA and SIA windows now automatically query registry for all services
+        on first use (there is currently a manageable number of these, 
+        unlike cone search services).
         </li>
     </ul>
     </p></dd>

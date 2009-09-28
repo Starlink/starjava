@@ -31,7 +31,7 @@ public class ConeSearchDialog extends DalTableLoadDialog {
     public ConeSearchDialog() {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
-               new KeywordServiceQueryFactory( Capability.CONE ), true );
+               new KeywordServiceQueryFactory( Capability.CONE ), true, false );
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
