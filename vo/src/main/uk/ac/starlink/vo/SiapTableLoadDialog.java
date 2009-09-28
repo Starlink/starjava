@@ -46,6 +46,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
         sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
+        sizeField_.getEntryField().setText( "0" );
         skyEntry.addField( sizeField_ );
 
         /* Add a selector for image format. */

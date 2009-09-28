@@ -12005,6 +12005,9 @@ introduced since the last version:
         image format.
         Less likely to run out of memory when searching for cone search
         services.
+        SIA and SSA query dialogues now no longer require explicit entry
+        of size parameter (these protocols define default behaviour when
+        no non-zero size is provided).
         </li>
     </ul>
     </p></dd>

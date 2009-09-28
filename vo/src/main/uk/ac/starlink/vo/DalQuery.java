@@ -68,7 +68,9 @@ public class DalQuery {
         name_ = baseURL;
         addArgument( "POS", doubleToString( raPos ) + "," 
                           + doubleToString( decPos ) );
-        addArgument( "SIZE", doubleToString( size ) );
+        if ( ! Double.isNaN( size ) ) {
+            addArgument( "SIZE", doubleToString( size ) );
+        }
     }
 
     /**
