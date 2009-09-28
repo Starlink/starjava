@@ -39,7 +39,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
      * Constructor.
      */
     public SiapTableLoadDialog() {
-        super( "SIAP Query",
+        super( "SIA Query",
                "Get results of a Simple Image Access Protocol query",
                new KeywordServiceQueryFactory( Capability.SIA ), true, true );
         SkyPositionEntry skyEntry = getSkyEntry();
