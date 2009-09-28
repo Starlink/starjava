@@ -19,6 +19,8 @@ import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Represents a particular query to a DAL-like service.
+ * DAL refers to the the Data Access Layer family of protocols defined
+ * by the IVOA.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Feb 2009
@@ -26,6 +28,7 @@ import uk.ac.starlink.votable.VOStarTable;
 public class DalQuery {
 
     private final CgiQuery cgi_;
+    private final String serviceType_;
     private String name_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -33,15 +36,18 @@ public class DalQuery {
     /**
      * Constructs a DAL query based on a resource from a registry.
      *
-     * @param  resource  resource describing the SIAP service
-     * @param  capability  SIAP capability from resource
+     * @param  resource  resource describing the DAL service
+     * @param  capability  DAL capability from resource
+     * @param  serviceType  short name for service type; informative,
+     *                      used for error messages etc
      * @param  raPos     right ascension of ROI center in degrees
      * @param  decPos    declination of ROI center in degrees
      * @param  size      ROI size in degrees
      */
     public DalQuery( RegResource resource, RegCapabilityInterface capability,
+                     String serviceType,
                      double raPos, double decPos, double size ) {
-        this( capability.getAccessUrl(), raPos, decPos, size );
+        this( capability.getAccessUrl(), serviceType, raPos, decPos, size );
         String id = null;
         if ( id == null ) {
             id = resource.getShortName();
@@ -57,15 +63,18 @@ public class DalQuery {
     /**
      * Constructs a DAL query based on a service URL.
      *
-     * @param  baseURL   URL forming basis of CGI query for the SIAP service
+     * @param  baseURL   URL forming basis of CGI query for the DAL service
+     * @param  serviceType  short name for service type; informative,
+     *                      used for error messages etc
      * @param  raPos     right ascension of ROI center in degrees
      * @param  decPos    declination of ROI center in degrees
      * @param  size      size in degrees
      */
-    public DalQuery( String baseURL, double raPos, double decPos,
-                     double size ) {
+    public DalQuery( String baseURL, String serviceType,
+                     double raPos, double decPos, double size ) {
         cgi_ = new CgiQuery( baseURL );
         name_ = baseURL;
+        serviceType_ = serviceType;
         addArgument( "POS", doubleToString( raPos ) + "," 
                           + doubleToString( decPos ) );
         if ( ! Double.isNaN( size ) ) {
@@ -75,9 +84,9 @@ public class DalQuery {
 
     /**
      * Adds an argument to the query.  No validation is performed to check
-     * it is one of the ones that SIAP knows about.
+     * it is one of the ones that the DAL service knows about.
      *
-     * @param   name  SIAP argument name
+     * @param   name  service argument name
      * @param   value  argument value
      */
     public void addArgument( String name, String value ) {
@@ -88,7 +97,7 @@ public class DalQuery {
      * Executes this query synchronously, returning a StarTable which
      * represents the results.  If the query resulted in a QUERY_STATUS
      * of ERROR, or if the returned VOTable document is not comprehensible
-     * according to the SIAP specification, an IOException will be thrown.
+     * according to the DAL rules, an IOException will be thrown.
      *
      * @param    tfact   factory which may be used to influence how the
      *           table is built
@@ -155,7 +164,7 @@ public class DalQuery {
 
         /* If the query status is error, throw an exception. */
         if ( "ERROR".equals( status ) ) {
-            throw new IOException( "SIAP query error: " + message );
+            throw new IOException( serviceType_ + " query error: " + message );
         }
 
         /* Locate the table within the results resource. */
@@ -170,8 +179,8 @@ public class DalQuery {
 
         /* If there was no table, throw an exception. */
         if ( st == null ) {
-            throw new IOException( "No TABLE element found in SIAP " +
-                                   "returned VOTable" );
+            throw new IOException( "No TABLE element found in " + serviceType_
+                                 + " returned VOTable" );
         }
 
         /* Return the StarTable. */

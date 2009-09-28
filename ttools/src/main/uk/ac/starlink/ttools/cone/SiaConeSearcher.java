@@ -41,7 +41,7 @@ public class SiaConeSearcher extends DalConeSearcher implements ConeSearcher {
 
     public StarTable performSearch( double ra, double dec, double sr )
             throws IOException {
-        DalQuery query = new DalQuery( serviceUrl_, ra, dec, sr * 2 );
+        DalQuery query = new DalQuery( serviceUrl_, "SIA", ra, dec, sr * 2 );
         if ( imgFormat_ != null && imgFormat_.trim().length() > 0 ) {
             query.addArgument( "FORMAT", imgFormat_ );
         }

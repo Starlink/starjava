@@ -44,7 +44,7 @@ public class SsaConeSearcher extends DalConeSearcher implements ConeSearcher {
 
     public StarTable performSearch( double ra, double dec, double sr )
             throws IOException {
-        DalQuery query = new DalQuery( serviceUrl_, ra, dec, sr * 2 );
+        DalQuery query = new DalQuery( serviceUrl_, "SSA", ra, dec, sr * 2 );
         if ( specFormat_ != null && specFormat_.trim().length() > 0 ) {
             query.addArgument( "FORMAT", specFormat_ );
         }

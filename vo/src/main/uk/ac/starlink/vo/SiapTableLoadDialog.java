@@ -72,7 +72,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         double ra = raField_.getValue();
         double dec = decField_.getValue();
         double size = sizeField_.getValue();
-        final DalQuery query = new DalQuery( serviceUrl, ra, dec, size );
+        final DalQuery query = new DalQuery( serviceUrl, "SIA", ra, dec, size );
         Object format = formatSelector_.getSelectedItem();
         if ( format != null && format.toString().trim().length() > 0 ) {
             query.addArgument( "FORMAT", format.toString() );

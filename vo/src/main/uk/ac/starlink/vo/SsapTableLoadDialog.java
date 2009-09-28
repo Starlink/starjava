@@ -50,7 +50,7 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
         double size = sizeString == null || sizeString.trim().length() == 0
                     ? Double.NaN
                     : sizeField_.getValue();
-        final DalQuery query = new DalQuery( serviceUrl, ra, dec, size );
+        final DalQuery query = new DalQuery( serviceUrl, "SSA", ra, dec, size );
         query.addArgument( "REQUEST", "queryData" );
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
