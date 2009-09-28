@@ -12001,8 +12001,8 @@ introduced since the last version:
         selecting one from the registry query.
         The metadata for the table returned by a successful search is
         also improved.
-        The SIA dialogue now has a selector for choosing the desired
-        image format.
+        The SIA and SSA dialogues now have a selector for choosing the desired
+        image/spectrum format.
         Less likely to run out of memory when searching for cone search
         services.
         SIA and SSA query dialogues now no longer require explicit entry

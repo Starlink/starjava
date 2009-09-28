@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Table load dialogue for retrieving the result of a SSAP query.
@@ -23,6 +28,7 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
     private final DoubleValueField raField_;
     private final DoubleValueField decField_;
     private final DoubleValueField sizeField_;
+    private final JComboBox formatSelector_;
     private static final ValueInfo SIZE_INFO =
         new DefaultValueInfo( "Diameter", Double.class,
                               "Angular diameter of the search region" );
@@ -39,8 +45,28 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
         decField_ = skyEntry.getDecDegreesField();
         sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
         skyEntry.addField( sizeField_ );
-    }
 
+        /* Add a selector for spectrum format. */
+        JComponent formatLine = Box.createHorizontalBox();
+        formatSelector_ = new JComboBox( new String[] {
+            "",
+            "all",
+            "compliant",
+            "native",
+            "graphic",
+            "votable",
+            "fits",
+            "xml",
+        } );
+        formatSelector_.setEditable( true );
+        formatSelector_.setSelectedIndex( 0 );
+        formatLine.add( new JLabel( "Spectrum Format: " ) );
+        formatLine.add( new ShrinkWrapper( formatSelector_ ) );
+        formatLine.add( Box.createHorizontalGlue() );
+        getControlBox().add( Box.createVerticalStrut( 5 ) );
+        getControlBox().add( formatLine );
+    }
+ 
     public TableSupplier getTableSupplier() {
         String serviceUrl = getServiceUrl();
         checkUrl( serviceUrl );
@@ -52,6 +78,10 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
                     : sizeField_.getValue();
         final DalQuery query = new DalQuery( serviceUrl, "SSA", ra, dec, size );
         query.addArgument( "REQUEST", "queryData" );
+        Object format = formatSelector_.getSelectedItem();
+        if ( format != null && format.toString().trim().length() > 0 ) {
+            query.addArgument( "FORMAT", format.toString() );
+        }
         final List metadata = new ArrayList();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
