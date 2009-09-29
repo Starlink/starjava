@@ -144,8 +144,9 @@ public abstract class DalTableLoadDialog
         if ( ! setup_ ) {
             setup_ = true;
             if ( autoQuery_ ) {
-                getRegistryPanel().performAutoQuery( "Locating all known "
-                                                   + name_ + " services" );
+                getRegistryPanel()
+               .performAutoQuery( "Searching registry for all known "
+                                + name_ + " services" );
             }
         }
         return super.createDialog( parent );
