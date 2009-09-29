@@ -635,6 +635,7 @@ public class TopcatSampControl {
          * @param   tcModel  table 
          */
         TableWithRows( TopcatModel tcModel, int[] rowMap ) {
+            assert tcModel != null;
             tcModelRef_ = new WeakReference( tcModel );
             rowMap_ = rowMap;
         }
