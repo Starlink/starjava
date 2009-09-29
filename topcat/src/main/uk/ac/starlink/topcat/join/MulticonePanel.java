@@ -82,8 +82,6 @@ public class MulticonePanel extends JPanel {
     private TopcatModel tcModel_;
     private ConeSearch coneSearch_;
     private MatchWorker matchWorker_;
-    private int inRow_;
-    private int outRow_;
 
     /** Metadata for search radius field. */
     private static final DefaultValueInfo SR_INFO =
@@ -644,6 +642,8 @@ public class MulticonePanel extends JPanel {
         private final ResultHandler resultHandler_;
         private final TopcatModel inTcModel_;
         private final StarTable inTable_;
+        private int inRow_;
+        private int outRow_;
         private boolean done_;
 
         /**
