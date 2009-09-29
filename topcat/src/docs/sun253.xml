@@ -12011,6 +12011,8 @@ introduced since the last version:
         SSA and SIA windows now automatically query registry for all services
         on first use (there is currently a manageable number of these, 
         unlike cone search services).
+        Cone search window provides better instruction on use when it
+        is first visible.
         </li>
     </ul>
     </p></dd>
