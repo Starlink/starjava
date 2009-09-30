@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
+import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
@@ -52,6 +53,13 @@ public interface DalMultiService {
      * @param  sizeSelector   search size value selector component
      */
     void setSizeDefault( ColumnSelector sizeSelector );
+
+    /**
+     * Returns a panel with custom controls specific to this service type.
+     *
+     * @return   custom component container, or null
+     */
+    JComponent getControlPanel();
 
     /**
      * Constructs a cone searcher object for this service type.

@@ -167,7 +167,6 @@ public class DalMultiPanel extends JPanel {
         main.add( srLine );
         cList.add( srSelector_ );
         cList.add( srSysLabel );
-        main.add( Box.createVerticalStrut( 10 ) );
 
         /* Align the positional fields. */
         alignLabels( new JLabel[] { raSelector_.getLabel(),
@@ -175,7 +174,19 @@ public class DalMultiPanel extends JPanel {
                                     srSelector_.getLabel(), } );
         alignLabels( new JLabel[] { raSysLabel, decSysLabel, srSysLabel, } );
 
+        /* Custom service controls. */
+        JComponent servicePanel = service_.getControlPanel();
+        if ( servicePanel != null ) {
+            JComponent serviceLine = Box.createHorizontalBox();
+            serviceLine.add( servicePanel );
+            serviceLine.add( Box.createHorizontalGlue() );
+            main.add( Box.createVerticalStrut( 5 ) );
+            main.add( serviceLine );
+            cList.add( servicePanel );
+        }
+
         /* Multicone output mode selector. */
+        main.add( Box.createVerticalStrut( 10 ) );
         modeSelector_ = new JComboBox( getMulticoneModes() );
         Box modeLine = Box.createHorizontalBox();
         JLabel modeLabel = new JLabel( "Output Mode: " );
@@ -623,12 +634,17 @@ public class DalMultiPanel extends JPanel {
 
                 private double getDoubleValue( ColumnData cdata )
                         throws IOException {
-                    long jrow = rowMap_ == null ? irow_
-                                                : rowMap_[ (int) irow_ ];
-                    Object value = cdata.readValue( jrow );
-                    return value instanceof Number
-                         ? ((Number) value).doubleValue()
-                         : Double.NaN;
+                    if ( cdata != null ) {
+                        long jrow = rowMap_ == null ? irow_
+                                                    : rowMap_[ (int) irow_ ];
+                        Object value = cdata.readValue( jrow );
+                        return value instanceof Number
+                             ? ((Number) value).doubleValue()
+                             : Double.NaN;
+                    }
+                    else {
+                        return Double.NaN;
+                    }
                 }
             };
         }

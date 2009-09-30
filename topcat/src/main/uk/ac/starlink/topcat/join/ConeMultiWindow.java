@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.join;
 
 import java.awt.Component;
+import javax.swing.JComponent;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
@@ -56,6 +57,10 @@ public class ConeMultiWindow extends DalMultiWindow {
 
         public void setSizeDefault( ColumnSelector sizeSelector ) {
             sizeSelector.setStringValue( "1.0" );
+        }
+
+        public JComponent getControlPanel() {
+            return null;
         }
 
         public ConeSearcher createSearcher( String url,
