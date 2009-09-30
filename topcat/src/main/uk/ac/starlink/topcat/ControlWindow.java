@@ -86,6 +86,8 @@ import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.topcat.join.ConeMultiWindow;
+import uk.ac.starlink.topcat.join.SiaMultiWindow;
+import uk.ac.starlink.topcat.join.SsaMultiWindow;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
@@ -144,6 +146,8 @@ public class ControlWindow extends AuxWindow
     private LoadQueryWindow loadWindow_;
     private ConcatWindow concatWindow_;
     private ConeMultiWindow multiconeWindow_;
+    private SiaMultiWindow multisiaWindow_;
+    private SsaMultiWindow multissaWindow_;
     private ExtApp extApp_;
 
     private final JTextField idField_ = new JTextField();
@@ -166,6 +170,8 @@ public class ControlWindow extends AuxWindow
     private final Action removeAct_;
     private final Action concatAct_;
     private final Action multiconeAct_;
+    private final Action multisiaAct_;
+    private final Action multissaAct_;
     private final Action logAct_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
@@ -272,9 +278,18 @@ public class ControlWindow extends AuxWindow
         concatAct_ = new ControlAction( "Concatenate Tables",
                                         ResourceIcon.CONCAT,
                                         "Join tables by concatenating them" );
-        multiconeAct_ = new ControlAction( "Multicone", ResourceIcon.MULTICONE,
-                                           "Multiple cone search (one for "
-                                         + "each row of input table)" );
+        multiconeAct_ =
+            new ControlAction( "Multicone", ResourceIcon.MULTICONE,
+                               "Multiple cone search"
+                             + " (one for each row of input table)" );
+        multisiaAct_ =
+            new ControlAction( "Multiple SIA", ResourceIcon.DO_WHAT,
+                               "Multiple Simple Image Access query"
+                             + "(one for each row of input table)" );
+        multissaAct_ =
+            new ControlAction( "Multiple SSA", ResourceIcon.DO_WHAT,
+                               "Multiple Simple Spectral Access query"
+                             + "(one for each row of input table)" );
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
                                      "Display the log of events" );
         readAct_.setEnabled( canRead_ );
@@ -468,6 +483,8 @@ public class ControlWindow extends AuxWindow
         joinMenu.setMnemonic( KeyEvent.VK_J );
         joinMenu.add( concatAct_ );
         joinMenu.add( multiconeAct_ );
+        joinMenu.add( multisiaAct_ );
+        joinMenu.add( multissaAct_ );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             joinMenu.add( matchActs_[ i ] );
         }
@@ -678,6 +695,30 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns a dialog used for a multiple SIA join.
+     *
+     * @return   multi-SIA window
+     */
+    public SiaMultiWindow getSiaMultiWindow() {
+        if ( multisiaWindow_ == null ) {
+            multisiaWindow_ = new SiaMultiWindow( this );
+        }
+        return multisiaWindow_;
+    }
+
+    /**
+     * Returns a dialog used for a multiple SSA join.
+     *
+     * @return   multi-SSA window
+     */
+    public SsaMultiWindow getSsaMultiWindow() {
+        if ( multissaWindow_ == null ) {
+            multissaWindow_ = new SsaMultiWindow( this );
+        }
+        return multissaWindow_;
+    }
+
+    /**
      * Returns the table factory used by this window.
      *
      * @return  table factory
@@ -864,6 +905,8 @@ public class ControlWindow extends AuxWindow
         boolean hasTables = tablesModel_.getSize() > 0;
         concatAct_.setEnabled( hasTables );
         multiconeAct_.setEnabled( hasTables );
+        multisiaAct_.setEnabled( hasTables );
+        multissaAct_.setEnabled( hasTables );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             matchActs_[ i ].setEnabled( hasTables );
         }
@@ -1048,6 +1091,12 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == multiconeAct_ ) {
                 getConeMultiWindow().makeVisible();
+            }
+            else if ( this == multisiaAct_ ) {
+                getSiaMultiWindow().makeVisible();
+            }
+            else if ( this == multissaAct_ ) {
+                getSsaMultiWindow().makeVisible();
             }
             else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );
