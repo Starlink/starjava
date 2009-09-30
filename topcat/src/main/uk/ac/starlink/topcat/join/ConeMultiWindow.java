@@ -25,7 +25,7 @@ public class ConeMultiWindow extends DalMultiWindow {
      * @param  parent  parent component
      */
     public ConeMultiWindow( Component parent ) {
-        super( parent, new ConeMultiService() );
+        super( parent, new ConeMultiService(), false );
         addHelp( "ConeMultiWindow" );
     }
 

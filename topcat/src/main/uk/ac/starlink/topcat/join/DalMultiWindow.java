@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -35,8 +36,11 @@ public class DalMultiWindow extends AuxWindow {
      *
      * @param   parent  parent component
      * @param   service  describes the service type to perform queries on
+     * @param   autoQuery  whether to populate the service table with a
+     *          full registry query on initial display
      */
-    public DalMultiWindow( Component parent, DalMultiService service ) {
+    public DalMultiWindow( Component parent, DalMultiService service,
+                           boolean autoQuery ) {
         super( "Multiple " + service.getName(), parent );
         final Capability capability = service.getCapability();
         String servName = service.getName();
@@ -113,5 +117,23 @@ public class DalMultiWindow extends AuxWindow {
         regMenu.add( qfact.getRegistrySelector().getRegistryUpdateAction() );
         regMenu.setMnemonic( KeyEvent.VK_R );
         getJMenuBar().add( regMenu );
+
+        /* Display something in the registry result table.  Either start
+         * a query for all services of the right type, or show a message
+         * describing how to use the registry query. */
+        if ( autoQuery ) {
+            regPanel.performAutoQuery( "Searching registry for all known "
+                                     + servName + " services" );
+        }
+        else {
+            regPanel.displayAdviceMessage( new String[] {
+                "Query registry for " + servName + " services:",
+                "enter keywords like \"2mass qso\" and click "
+                + regPanel.getSubmitQueryAction().getValue( Action.NAME )
+                + ".",
+                " ",
+                "Alternatively, enter " + servName + " URL in field below.",
+            } );
+        }
     }
 }

@@ -31,7 +31,7 @@ public class SsaMultiWindow extends DalMultiWindow {
      * @param  parent  parent component
      */
     public SsaMultiWindow( Component parent ) {
-        super( parent, new SsaMultiService() );
+        super( parent, new SsaMultiService(), true );
         addHelp( "SsaMultiWindow" );
     }
 

@@ -31,7 +31,7 @@ public class SiaMultiWindow extends DalMultiWindow {
      * @param  parent  parent component
      */
     public SiaMultiWindow( Component parent ) {
-        super( parent, new SiaMultiService() );
+        super( parent, new SiaMultiService(), true );
         addHelp( "SiaMultiWindow" );
     }
 
