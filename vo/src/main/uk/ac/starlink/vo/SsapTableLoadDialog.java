@@ -48,16 +48,7 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
 
         /* Add a selector for spectrum format. */
         JComponent formatLine = Box.createHorizontalBox();
-        formatSelector_ = new JComboBox( new String[] {
-            "",
-            "all",
-            "compliant",
-            "native",
-            "graphic",
-            "votable",
-            "fits",
-            "xml",
-        } );
+        formatSelector_ = new JComboBox( getFormatOptions() );
         formatSelector_.setEditable( true );
         formatSelector_.setSelectedIndex( 0 );
         formatLine.add( new JLabel( "Spectrum Format: " ) );
@@ -113,5 +104,27 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
         }
         return (RegCapabilityInterface[])
                ssapcapList.toArray( new RegCapabilityInterface[ 0 ] );
+    }
+
+    /**
+     * Returns the list of standard options provided by the Format selector.
+     * These are taken from the SSA standard; they are not exhaustive, but
+     * represent some of the more useful options.  The user is able to
+     * enter custom items as an alternative.
+     * The first element in the returned list is a reasonable default.
+     *
+     * @return   format option strings
+     */
+    public static String[] getFormatOptions() {
+        return new String[] {
+            "",
+            "all",
+            "compliant",
+            "native",
+            "graphic",
+            "votable",
+            "fits",
+            "xml",
+        };
     }
 }
