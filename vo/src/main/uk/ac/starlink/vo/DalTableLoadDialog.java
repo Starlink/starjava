@@ -109,28 +109,15 @@ public abstract class DalTableLoadDialog
 
         /* If no autoquery, provide some advice about what to do now. */
         if ( ! autoQuery_ ) {
-            String[] lines = new String[] {
+            regPanel.displayAdviceMessage( new String[] {
                 "Query registry for " + name_ + " services:",
                 "enter keywords like \"2mass qso\" and click "
-                + getRegistryPanel().submitQueryAction_.getValue( Action.NAME )
+                + getRegistryPanel().getSubmitQueryAction()
+                                    .getValue( Action.NAME )
                 + ".",
                 " ",
                 "Alternatively, enter " + name_ + " URL in field below.",
-            };
-            Box linesBox = Box.createVerticalBox();
-            linesBox.add( Box.createVerticalGlue() );
-            for ( int i = 0; i < lines.length; i++ ) {
-                Box line = Box.createHorizontalBox();
-                line.add( new JLabel( lines[ i ] ) );
-                line.add( Box.createHorizontalGlue() );
-                linesBox.add( line );
-            }
-            linesBox.add( Box.createVerticalGlue() );
-            JComponent adviceBox = Box.createHorizontalBox();
-            adviceBox.add( Box.createHorizontalGlue() );
-            adviceBox.add( linesBox );
-            adviceBox.add( Box.createHorizontalGlue() );
-            regPanel.resScroller_.setViewportView( adviceBox );
+            } );
         }
     }
 

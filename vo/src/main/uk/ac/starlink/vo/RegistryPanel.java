@@ -45,14 +45,14 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public class RegistryPanel extends JPanel {
 
-    private Thread queryWorker_;
-    protected Action submitQueryAction_;
-    protected Action cancelQueryAction_;
-    protected JScrollPane resScroller_;
-    protected RegistryTable regTable_;
-    protected final JTable capTable_;
+    private final Action submitQueryAction_;
+    private final Action cancelQueryAction_;
+    private final JScrollPane resScroller_;
+    private final RegistryTable regTable_;
+    private final JTable capTable_;
     private final CapabilityTableModel capTableModel_;
     private final RegistryQueryFactory queryFactory_;
+    private Thread queryWorker_;
     private JComponent workingPanel_;
     private JComponent dataPanel_;
     private List activeItems_;
@@ -384,6 +384,41 @@ public class RegistryPanel extends JPanel {
      */
     public ListSelectionModel getCapabilitySelectionModel() {
         return capTable_.getSelectionModel();
+    }
+
+    /**
+     * Displays a user-directed message in the panel which contains the
+     * results table.  This will be obliterated when a query starts or
+     * completes; it is intended to contain advice for the user before
+     * any query has been initiated.
+     *
+     * @param  lines   lines of message text (one element per screen line)
+     */
+    public void displayAdviceMessage( String[] lines ) {
+        Box linesBox = Box.createVerticalBox();
+        linesBox.add( Box.createVerticalGlue() );
+        for ( int i = 0; i < lines.length; i++ ) {
+            Box line = Box.createHorizontalBox();
+            line.add( new JLabel( lines[ i ] ) );
+            line.add( Box.createHorizontalGlue() );
+            linesBox.add( line );
+        }
+        linesBox.add( Box.createVerticalGlue() );
+        JComponent adviceBox = Box.createHorizontalBox();
+        adviceBox.add( Box.createHorizontalGlue() );
+        adviceBox.add( linesBox );
+        adviceBox.add( Box.createHorizontalGlue() );
+        resScroller_.setViewportView( adviceBox );
+    }
+
+    /**
+     * Returns the action for submitting the query described by this
+     * component's current state.
+     *
+     * @return  submit query action
+     */
+    public Action getSubmitQueryAction() {
+        return submitQueryAction_;
     }
 
     /**
