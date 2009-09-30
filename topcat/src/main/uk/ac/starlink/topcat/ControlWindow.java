@@ -85,8 +85,8 @@ import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
+import uk.ac.starlink.topcat.join.ConeMultiWindow;
 import uk.ac.starlink.topcat.join.MatchWindow;
-import uk.ac.starlink.topcat.join.MulticoneWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
@@ -143,7 +143,7 @@ public class ControlWindow extends AuxWindow
     private TableLoadChooser loadChooser_;
     private LoadQueryWindow loadWindow_;
     private ConcatWindow concatWindow_;
-    private MulticoneWindow multiconeWindow_;
+    private ConeMultiWindow multiconeWindow_;
     private ExtApp extApp_;
 
     private final JTextField idField_ = new JTextField();
@@ -670,9 +670,9 @@ public class ControlWindow extends AuxWindow
      *
      * @return  multicone window
      */
-    public MulticoneWindow getMulticoneWindow() {
+    public ConeMultiWindow getConeMultiWindow() {
         if ( multiconeWindow_ == null ) {
-            multiconeWindow_ = new MulticoneWindow( this );
+            multiconeWindow_ = new ConeMultiWindow( this );
         }
         return multiconeWindow_;
     }
@@ -1047,7 +1047,7 @@ public class ControlWindow extends AuxWindow
                 getConcatWindow().makeVisible();
             }
             else if ( this == multiconeAct_ ) {
-                getMulticoneWindow().makeVisible();
+                getConeMultiWindow().makeVisible();
             }
             else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );

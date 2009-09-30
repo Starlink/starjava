@@ -1,24 +1,27 @@
 package uk.ac.starlink.topcat.join;
 
+import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
+import javax.swing.JPanel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -31,20 +34,20 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.BitsRowSubset;
+import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ColumnSelector;
+import uk.ac.starlink.topcat.ColumnSelectorModel;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.RowSubset;
-import uk.ac.starlink.topcat.SubsetConsumer;
 import uk.ac.starlink.topcat.TablesListComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
@@ -53,21 +56,21 @@ import uk.ac.starlink.ttools.cone.ConeMatcher;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
-import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
-import uk.ac.starlink.vo.ConeSearch;
 
 /**
- * Component for performing a multicone join between a selected input table
- * and a cone search service.
+ * Component for performing a multicone-type join between a selected input
+ * table and a remote DAL service.
  *
  * @author   Mark Taylor
- * @since    21 Apr 2009
+ * @since    29 Sep 2009
  */
-public class MulticonePanel extends JPanel {
+public class DalMultiPanel extends JPanel {
 
+    private final DalMultiService service_;
+    private final JProgressBar progBar_;
     private final JTextField urlField_;
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
@@ -75,22 +78,11 @@ public class MulticonePanel extends JPanel {
     private final JComboBox modeSelector_;
     private final SpinnerNumberModel parallelModel_;
     private final JComboBox erractSelector_;
-    private final JProgressBar progBar_;
     private final Action startAction_;
     private final Action stopAction_;
     private final JComponent[] components_;
     private TopcatModel tcModel_;
-    private ConeSearch coneSearch_;
     private MatchWorker matchWorker_;
-
-    /** Metadata for search radius field. */
-    private static final DefaultValueInfo SR_INFO =
-        new DefaultValueInfo( "Search Radius", Number.class,
-                              "Maximum distance from target for match" );
-    static {
-        SR_INFO.setUnitString( "radians" );
-        SR_INFO.setUCD( "pos.angDistance" );
-    }
 
     /** Metadata for index column - used internally on transient tables only. */
     private static final DefaultValueInfo INDEX_INFO =
@@ -103,30 +95,21 @@ public class MulticonePanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param  progBar  progress bar for progress display
+     * @param  service  defines type of service that queries will be 
+     *                  carried out on
      */
-    public MulticonePanel( JProgressBar progBar ) {
+    public DalMultiPanel( DalMultiService service, JProgressBar progBar ) {
         super( new BorderLayout() );
+        service_ = service;
         progBar_ = progBar;
-        progBar_.setStringPainted( true );
+        progBar.setStringPainted( true );
         JComponent main = Box.createVerticalBox();
         List cList = new ArrayList();
         add( main );
 
-        /* Field for cone search service URL. */
+        /* Field for service URL. */
         urlField_ = new JTextField();
-        urlField_.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                try {
-                    coneSearch_ = new ConeSearch( urlField_.getText() );
-                }
-                catch ( Exception e ) {
-                    ErrorDialog.showError( MulticonePanel.this, "Bad URL", e,
-                                           "Bad Cone Search URL" );
-                }
-            }
-        } );
-        JLabel urlLabel = new JLabel( "Cone Search URL: " );
+        JLabel urlLabel = new JLabel( service.getName() + " URL: " );
         Box urlLine = Box.createHorizontalBox();
         cList.add( urlField_ );
         cList.add( urlLabel );
@@ -153,7 +136,7 @@ public class MulticonePanel extends JPanel {
         main.add( tableLine );
         main.add( Box.createVerticalStrut( 5 ) );
 
-        /* Fields for cone search parameters (RA, Dec, radius). */
+        /* Fields for position parameters. */
         raSelector_ = new ColumnSelector( Tables.RA_INFO, true );
         Box raLine = Box.createHorizontalBox();
         raLine.add( raSelector_ );
@@ -174,7 +157,8 @@ public class MulticonePanel extends JPanel {
         main.add( Box.createVerticalStrut( 5 ) );
         cList.add( decSelector_ );
         cList.add( decSysLabel );
-        srSelector_ = new ColumnSelector( SR_INFO, true );
+        srSelector_ = new ColumnSelector( service.getSizeInfo(), true );
+        service.setSizeDefault( srSelector_ );
         Box srLine = Box.createHorizontalBox();
         srLine.add( srSelector_ );
         JLabel srSysLabel = new JLabel( "" );
@@ -185,7 +169,7 @@ public class MulticonePanel extends JPanel {
         cList.add( srSysLabel );
         main.add( Box.createVerticalStrut( 10 ) );
 
-        /* Align the value fields. */
+        /* Align the positional fields. */
         alignLabels( new JLabel[] { raSelector_.getLabel(),
                                     decSelector_.getLabel(),
                                     srSelector_.getLabel(), } );
@@ -194,7 +178,7 @@ public class MulticonePanel extends JPanel {
         /* Multicone output mode selector. */
         modeSelector_ = new JComboBox( getMulticoneModes() );
         Box modeLine = Box.createHorizontalBox();
-        JLabel modeLabel = new JLabel( "Output Mode: ");
+        JLabel modeLabel = new JLabel( "Output Mode: " );
         modeLine.add( modeLabel );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
@@ -224,7 +208,7 @@ public class MulticonePanel extends JPanel {
 
         /* Action to initiate multicone. */
         startAction_ = new BasicAction( "Go", null,
-                                        "Start multicone running" ) {
+                                        "Start multiple query running" ) {
             public void actionPerformed( ActionEvent evt ) {
                 startMatch();
             }
@@ -232,7 +216,7 @@ public class MulticonePanel extends JPanel {
 
         /* Action to interrupt processing. */
         stopAction_ = new BasicAction( "Stop", null,
-                                       "Interrupt running multicone; "
+                                       "Interrupt running multiple query; "
                                      + "results will be discarded" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setActive( null );
@@ -245,9 +229,9 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
-     * Sets the cone search service URL.
+     * Sets the query service URL.
      *
-     * @param   url  cone search base URL
+     * @param url  service access URL
      */
     public void setServiceUrl( String url ) {
         urlField_.setText( url );
@@ -255,7 +239,7 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
-     * Returns the action which starts a multicone operation.
+     * Returns the action which starts a multiple query operation.
      *
      * @return  start action
      */
@@ -264,47 +248,57 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
-     * Returns the action which can interrupt a multicone operation.
+     * Returns the action which can interrupt a multiple query operation.
      *
-     * @return  stop action
+     * @return   stop action
      */
     public Action getStopAction() {
         return stopAction_;
     }
 
     /**
-     * Sets the input table whose rows will form the multicone queries.
+     * Sets the input table whose rows will specify the multiple queries.
      *
      * @param  tcModel   input table
      */
     private void setInputTable( TopcatModel tcModel ) {
         tcModel_ = tcModel;
 
-        /* Set the column selectors up for selecting from the correct table. */
+        /* Set the column selectors up to select from the correct table. */
         raSelector_.setTable( tcModel );
         decSelector_.setTable( tcModel );
-        srSelector_.setTable( tcModel );
 
-        /* Jump through some hoops to get a numeric default for the radius
-         * selector.  Although formally this is just the same as the RA and Dec
-         * selectors (may be JEL expression or column name), in practice it
-         * will often be a number, so putting an example number in should
-         * make it more obvious for users.  Unfortunately it's a bit fiddly. */
-        String srtxt = srSelector_.getStringValue();
-        if ( srtxt != null ) {
-            try {
-                Double.parseDouble( srtxt );
-            }
-            catch ( RuntimeException e ) {
-                srtxt = null;
-            }
+        /* For the size selector, jump through some hoops.
+         * Although its value has the same form as for the RA and Dec
+         * selectors (value may be a JEL expression or column name),
+         * in practice it will often be a constant expression, so 
+         * making sure that a default constant value is in place should 
+         * make it more obvious for users rather than leaving it blank.
+         * Check if the existing value makes sense for the new table;
+         * if it does, leave it, otherwise, set it to a sensible default. */
+        if ( srSelector_.getModel() == null ) {
+            srSelector_.setTable( tcModel );
+            service_.setSizeDefault( srSelector_ );
         }
-        if ( srtxt == null ) {
-            srtxt = "1.0";
-        }
-        if ( srSelector_.getStringValue() == null ||
-             srSelector_.getStringValue().trim().length() == 0 ) {
-            srSelector_.setStringValue( srtxt );
+        else {
+            String txt = srSelector_.getStringValue();
+            Object conv = srSelector_.getModel().getConverterModel()
+                                                .getSelectedItem();
+            srSelector_.setTable( tcModel );
+            ComboBoxModel srColModel = srSelector_.getModel().getColumnModel();
+            assert srColModel instanceof ColumnDataComboBoxModel;
+            if ( srColModel instanceof ColumnDataComboBoxModel ) {
+                try {
+                    ((ColumnDataComboBoxModel) srColModel)
+                   .stringToColumnData( txt );
+                    srSelector_.setStringValue( txt );
+                    srSelector_.getModel().getConverterModel()
+                                          .setSelectedItem( conv );
+                }
+                catch ( CompilationException e ) {
+                    service_.setSizeDefault( srSelector_ );
+                }
+            }
         }
     }
 
@@ -345,10 +339,10 @@ public class MulticonePanel extends JPanel {
         for ( int i = 0; i < components_.length; i++ ) {
             components_[ i ].setEnabled( ! isActive );
         }
-        if ( ! isActive ) {
+        if ( ! isActive && progBar_ != null ) {
             progBar_.setValue( 0 );
             progBar_.setMinimum( 0 );
-            progBar_.setMaximum( 1 );
+            progBar_.setMaximum( 1 ); 
             progBar_.setString( " " );
         }
     }
@@ -359,18 +353,26 @@ public class MulticonePanel extends JPanel {
      *
      * @return  new worker thread
      * @throws  RuntimeException   if the current state does not fully
-     *          specify a multicone job; such exceptions will have 
-     *          comprehansible messages
+     *          specify a multi query job; such exceptions will have
+     *          comprehensible messages
      */
     private MatchWorker createMatchWorker() {
 
         /* Acquire state from this panel's GUI components. */
-        String coneUrl = urlField_.getText();
-        if ( coneUrl == null || coneUrl.trim().length() == 0 ) {
-            throw new NullPointerException( "No cone search"
-                                          + " service URL given" );
+        String serviceUrl = urlField_.getText();
+        if ( serviceUrl == null || serviceUrl.trim().length() == 0 ) {
+            throw new IllegalArgumentException( "No " + service_.getName()
+                                              + " URL given" );
         }
-        int verbose = -1;
+        try {
+            new URL( serviceUrl );
+        }
+        catch ( MalformedURLException e ) {
+            throw (IllegalArgumentException)
+                  new IllegalArgumentException( "Bad " + service_.getName()
+                                              + " URL syntax: " + serviceUrl )
+                 .initCause( e );
+        }
         ConeErrorPolicy erract =
             (ConeErrorPolicy) erractSelector_.getSelectedItem();
         TopcatModel tcModel = tcModel_;
@@ -388,23 +390,17 @@ public class MulticonePanel extends JPanel {
         if ( decData == null ) {
             throw new NullPointerException( "No Dec column given" );
         }
-        if ( srData == null ) {
-            throw new NullPointerException( "No Search Radius"
-                                          + " (column or constant) given" );
-        }
         Number parNum = parallelModel_.getNumber();
         int parallelism = parNum == null ? 1 : parNum.intValue();
         MulticoneMode mcMode = (MulticoneMode) modeSelector_.getSelectedItem();
         StarTableFactory tfact = ControlWindow.getInstance().getTableFactory();
 
         /* Assemble objects based on this information. */
-        ConeSearch csearch = new ConeSearch( coneUrl );
-        ConeSearcher searcher =
-            new ServiceConeSearcher( csearch, verbose, false, tfact );
+        ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
         searcher = erract.adjustConeSearcher( searcher );
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
-        ConeMatcher matcher = 
+        ConeMatcher matcher =
             mcMode.createConeMatcher( searcher, inTable, qsf, parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
@@ -414,10 +410,10 @@ public class MulticonePanel extends JPanel {
         MatchWorker worker =
             new MatchWorker( matcher, resultHandler, tcModel, inTable );
 
-        /* Perform post-construction configuration of constituent objects 
+        /* Perform post-construction configuration of constituent objects
          * as required. */
         qsf.setMatchWorker( worker );
-        resultHandler.setMatchWorker( worker );
+        resultHandler.setMatchWorker( worker ); 
 
         /* Return worker thread. */
         return worker;
@@ -426,7 +422,7 @@ public class MulticonePanel extends JPanel {
     /**
      * Attempts to start a multicone job.  If insufficient or incorrect
      * information is present in the component state, a popup error message
-     * will be delivered instead.
+     * will be delivered instead. 
      */
     private void startMatch() {
         MatchWorker worker;
@@ -471,18 +467,23 @@ public class MulticonePanel extends JPanel {
      *
      * @return  modes
      */
-    private static MulticoneMode[] getMulticoneModes() {
+    private MulticoneMode[] getMulticoneModes() {
         return new MulticoneMode[] {
-            new MatchOnlyMode( "New joined table with best matches", true ),
-            new MatchOnlyMode( "New joined table with all matches", false ),
-            new AddSubsetMode( "Add subset for matched rows" ),
-            new AllBestMode( "New joined table, one row per input row" ),
+            new MatchOnlyMode( "New joined table with best matches", true,
+                               service_ ),
+            new MatchOnlyMode( "New joined table with all matches", false,
+                               service_ ),
+            new AllBestMode( "New joined table, one row per input row",
+                             service_ ),
+            new AddSubsetMode( "Add subset for matched rows", service_ ),
         };
     }
 
     /**
-     * Reshapes a set of components so that they all have the same 
+     * Reshapes a set of components so that they all have the same
      * preferred size (that of the largest one).
+     *
+     * @param   labels  labels to align
      */
     private static void alignLabels( JLabel[] labels ) {
         int maxw = 0;
@@ -513,7 +514,7 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
-     * Returns a table which is the same as the input table, but with 
+     * Returns a table which is the same as the input table, but with
      * a zero-based index column as the first column.
      *
      * @param  inTable  input table
@@ -657,7 +658,7 @@ public class MulticonePanel extends JPanel {
          */
         MatchWorker( ConeMatcher matcher, ResultHandler resultHandler,
                      TopcatModel inTcModel, StarTable inTable ) {
-            super( "MultiCone" );
+            super( "Multi-" + service_.getName() );
             matcher_ = matcher;
             resultHandler_ = resultHandler;
             inTcModel_ = inTcModel;
@@ -676,7 +677,7 @@ public class MulticonePanel extends JPanel {
             } );
             setOutputRow( 0 );
 
-            /* Acquire the table from the matcher in such a way that 
+            /* Acquire the table from the matcher in such a way that
              * when each row arrives the progress GUI is updated. */
             matcher_.setStreamOutput( true );
             try {
@@ -710,13 +711,14 @@ public class MulticonePanel extends JPanel {
                 resultHandler_.processResult( progressTable );
             }
 
-            /* In case of error in result acquisition or processing, 
+            /* In case of error in result acquisition or processing,
              * inform the user. */
             catch ( final Exception e ) {
                 schedule( new Runnable() {
                     public void run() {
-                        ErrorDialog.showError( MulticonePanel.this,
-                                               "Multicone Error", e );
+                        ErrorDialog.showError( DalMultiPanel.this,
+                                               "Multi-" + service_.getName()
+                                             + " Error", e );
                     }
                 } );
             }
@@ -776,7 +778,7 @@ public class MulticonePanel extends JPanel {
 
         /**
          * Schedules a runnable to execute on the event dispatch thread,
-         * as long as this worker is still the active one. 
+         * as long as this worker is still the active one.
          * If this worker has been deinstalled, the event is discarded.
          */
         private void schedule( final Runnable runnable ) {
@@ -826,9 +828,9 @@ public class MulticonePanel extends JPanel {
 
         /**
          * Constructs a ResultHandler suitable for use with this mode.
-         * The results that the handler will be asked to process will be 
+         * The results that the handler will be asked to process will be
          * ones that have been generated using the state of the
-         * input TopcatModel at the time of calling this method, 
+         * input TopcatModel at the time of calling this method,
          * so for instance it's OK to look at its apparent table.
          *
          * @param  parent  parent component
@@ -855,7 +857,7 @@ public class MulticonePanel extends JPanel {
         /**
          * Does something with the result of a multicone operation.
          *
-         * @param  streamTable  sequential StarTable; its rowSequence 
+         * @param  streamTable  sequential StarTable; its rowSequence
          *                      will only be read once
          */
         public abstract void processResult( StarTable streamTable )
@@ -865,7 +867,7 @@ public class MulticonePanel extends JPanel {
          * Sets the match worker associated with this object.
          * Must be called before use.
          *
-         * @param  matchWorker  worker thread 
+         * @param  matchWorker  worker thread
          */
         public void setMatchWorker( MatchWorker matchWorker ) {
             matchWorker_ = matchWorker;
@@ -890,6 +892,7 @@ public class MulticonePanel extends JPanel {
     private static abstract class RandomResultHandler extends ResultHandler {
         private final JComponent parent_;
         private final StoragePolicy policy_;
+        private final DalMultiService service_;
 
         /**
          * Constructor.
@@ -897,9 +900,11 @@ public class MulticonePanel extends JPanel {
          * @param   parent  parent component
          * @param   policy   storage policy for randomising table
          */
-        RandomResultHandler( JComponent parent, StoragePolicy policy ) {
+        RandomResultHandler( JComponent parent, StoragePolicy policy,
+                             DalMultiService service ) {
             parent_ = parent;
             policy_ = policy;
+            service_ = service;
         }
 
         public void processResult( StarTable streamTable ) throws IOException {
@@ -939,18 +944,21 @@ public class MulticonePanel extends JPanel {
                 public void run() {
                     TopcatModel outTcModel =
                         controlWindow.addTable( table, name, true );
-                    String msg = "New table created by multicone: "
+                    String msg = "New table created by multiple "
+                               + service_.getName() + ": "
                                + outTcModel + " ("
                                + table.getRowCount() + " rows)";
                     JOptionPane
-                   .showMessageDialog( parent_, msg, "Multicone Success",
+                   .showMessageDialog( parent_, msg,
+                                       "Multi-" + service_.getName()
+                                     + " Success",
                                        JOptionPane.INFORMATION_MESSAGE );
                 }
             } );
         }
 
         /**
-         * Perform the actual result processing on a table which has been 
+         * Perform the actual result processing on a table which has been
          * randomised.
          *
          * @param  randomTable  multicone result table for which isRandom()
@@ -961,46 +969,51 @@ public class MulticonePanel extends JPanel {
     }
 
     /**
-     * MulticoneMode implementation which generates a new table consisting 
+     * MulticoneMode implementation which generates a new table consisting
      * of only rows which consitute matches between the input table and
      * the cone search service.  Any input table rows which did not have
      * matches are omitted.
      */
     private static class MatchOnlyMode extends MulticoneMode {
         private final boolean best_;
+        private final DalMultiService service_;
 
         /**
          * Constructor.
          *
          * @param  name  mode name
          * @param  best  if true, only the best match for each input row
-         *               is included in the output (max 1 output row per 
+         *               is included in the output (max 1 output row per
          *               input row); if false all matches are included in
          *               output
          */
-        MatchOnlyMode( String name, boolean best ) {
+        MatchOnlyMode( String name, boolean best, DalMultiService service ) {
             super( name );
             best_ = best;
+            service_ = service;
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
                                               int parallelism ) {
-            return new ConeMatcher( coneSearcher, toProducer( inTable ),
-                                    qsFact, best_, true, parallelism, "*",
-                                    DIST_NAME,
-                                    JoinFixAction.NO_ACTION,
-                                    JoinFixAction
-                                   .makeRenameDuplicatesAction( "_cone" ) );
+            return
+                new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
+                                 best_, true, parallelism, "*", DIST_NAME,
+                                 JoinFixAction.NO_ACTION,
+                                 JoinFixAction
+                                .makeRenameDuplicatesAction( "_" +
+                                                             service_
+                                                            .getLabel() ) );
         }
 
         public ResultHandler createResultHandler( final JComponent parent,
                                                   StoragePolicy policy,
                                                   TopcatModel inTcModel,
                                                   StarTable inTable ) {
-            final String tname = "cones(" + inTcModel.getID() + ")";
-            return new RandomResultHandler( parent, policy ) {
+            final String tname =
+                service_.getLabel() + "s(" + inTcModel.getID() + ")";
+            return new RandomResultHandler( parent, policy, service_ ) {
                 protected void processRandomResult( final StarTable table ) {
                     addTable( tname, table );
                 }
@@ -1013,14 +1026,16 @@ public class MulticonePanel extends JPanel {
      * marking which rows achieved matches.
      */
     private static class AddSubsetMode extends MulticoneMode {
+        private final DalMultiService service_;
 
         /**
          * Constructor.
          *
          * @param   subset name
          */
-        AddSubsetMode( String name ) {
+        AddSubsetMode( String name, DalMultiService service ) {
             super( name );
+            service_ = service;
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
@@ -1028,7 +1043,7 @@ public class MulticonePanel extends JPanel {
                                               QuerySequenceFactory qsFact,
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher,
-                                    toProducer( prependIndex( inTable ) ), 
+                                    toProducer( prependIndex( inTable ) ),
                                     qsFact, true, true, parallelism,
                                     INDEX_INFO.getName(), null,
                                     JoinFixAction.NO_ACTION,
@@ -1082,11 +1097,12 @@ public class MulticonePanel extends JPanel {
                     Box nameLine = Box.createHorizontalBox();
                     JComboBox nameSelector =
                          tcModel.createNewSubsetNameSelector();
-                    nameSelector.setSelectedItem( "multicone" );
+                    nameSelector.setSelectedItem( "multi"
+                                                + service_.getLabel() );
                     nameLine.add( new JLabel( "Subset name: " ) );
                     nameLine.add( nameSelector );
                     Object msg = new Object[] {
-                        "Multicone successful; " +
+                        "Multiple " + service_.getName() + " successful; " +
                         "matches found for " + nmatch + " rows.",
                         " ",
                         "Define new subset for matched rows",
@@ -1094,7 +1110,8 @@ public class MulticonePanel extends JPanel {
                     };
                     int opt =
                         JOptionPane.showOptionDialog(
-                             parent, msg, "Multicone Success",
+                             parent, msg,
+                             "Multi-" + service_.getName() + " Success",
                              JOptionPane.OK_CANCEL_OPTION,
                              JOptionPane.QUESTION_MESSAGE, null, null, null );
                     String name = getSubsetName( nameSelector );
@@ -1108,7 +1125,7 @@ public class MulticonePanel extends JPanel {
                  * Returns the subset name corresponding to the currently
                  * selected value of a row subset selector box.
                  *
-                 * @param rsetSelector  combo box returned by 
+                 * @param rsetSelector  combo box returned by
                  *        TopcatModel.createNewSubsetNameSelector
                  * @return   subset name as string, or null
                  */
@@ -1139,14 +1156,16 @@ public class MulticonePanel extends JPanel {
      * cone search result.
      */
     private static class AllBestMode extends MulticoneMode {
+        private final DalMultiService service_;
 
         /**
          * Constructor.
          *
          * @param  name  mode name
          */
-        AllBestMode( String name ) {
+        AllBestMode( String name, DalMultiService service ) {
             super( name );
+            service_ = service;
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
@@ -1166,7 +1185,7 @@ public class MulticonePanel extends JPanel {
                                                   final TopcatModel inTcModel,
                                                   final StarTable inTable ) {
             final int nRowIn = Tables.checkedLongToInt( inTable.getRowCount() );
-            return new RandomResultHandler( parent, policy ) {
+            return new RandomResultHandler( parent, policy, service_ ) {
                 public void processRandomResult( StarTable outTable )
                         throws IOException {
 
@@ -1199,9 +1218,10 @@ public class MulticonePanel extends JPanel {
 
                     /* Combine the result table with the input table to
                      * generate the requested output. */
+                    String label = service_.getLabel();
                     JoinFixAction[] fixacts = new JoinFixAction[] {
                         JoinFixAction.NO_ACTION,
-                        JoinFixAction.makeRenameDuplicatesAction( "_cone" ),
+                        JoinFixAction.makeRenameDuplicatesAction( "_" + label ),
                     };
                     outTable = new JoinStarTable( new StarTable[] { inTable,
                                                                     outTable },
@@ -1209,7 +1229,8 @@ public class MulticonePanel extends JPanel {
 
                     /* Finally schedule the constructed table for addition
                      * to the global table list. */
-                    addTable( "cones(" + inTcModel.getID() + ")", outTable );
+                    addTable( label + "s(" + inTcModel.getID() + ")",
+                              outTable );
                 }
             };
         }
