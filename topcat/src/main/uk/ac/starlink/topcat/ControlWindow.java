@@ -283,11 +283,11 @@ public class ControlWindow extends AuxWindow
                                "Multiple cone search"
                              + " (one for each row of input table)" );
         multisiaAct_ =
-            new ControlAction( "Multiple SIA", ResourceIcon.DO_WHAT,
+            new ControlAction( "Multiple SIA", ResourceIcon.MULTISIA,
                                "Multiple Simple Image Access query"
                              + "(one for each row of input table)" );
         multissaAct_ =
-            new ControlAction( "Multiple SSA", ResourceIcon.DO_WHAT,
+            new ControlAction( "Multiple SSA", ResourceIcon.MULTISSA,
                                "Multiple Simple Spectral Access query"
                              + "(one for each row of input table)" );
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,

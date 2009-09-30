@@ -126,6 +126,8 @@ public class ResourceIcon implements Icon {
         MATCHN = makeIcon( "matchN.gif" ),
         CONCAT = makeIcon( "concat4.gif" ),
         MULTICONE = makeIcon( "cones.gif" ),
+        MULTISIA = makeIcon( "sias.gif" ),
+        MULTISSA = makeIcon( "ssas.gif" ),
         SAMP = makeIcon( "comms2.gif" ),
 
         /* Specific actions. */
