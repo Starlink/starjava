@@ -13,7 +13,8 @@
 .Version 1.18: FO: Tested (jax) version 1.2
 .Version 1.19: FO: Completed INFO attributes
 .Version 1.20: FO: Added xtype; content-role is less restrictive (May2009)
-.Version 1.20: FO: PR-20090710 Cosmetics.
+.Version 1.20a: FO: PR-20090710 Cosmetics.
+.Version 1.20b: FO: INFO does not accept sub-elements (2009-09-29)
 -->
 <xs:schema 
    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
@@ -178,8 +179,7 @@
     </xs:restriction>
   </xs:complexContent>
 </xs:complexType>
--->
-<!-- Rather than a restriction, full definition -->
+ -or- as a full definition:
 <xs:complexType name="Info">
   <xs:sequence> 
   <xs:element name="DESCRIPTION" type="anyTEXT" minOccurs="0"/>
@@ -195,18 +195,22 @@
   <xs:attribute name="ucd" type="ucdType"/>
   <xs:attribute name="utype" type="xs:string"/>
 </xs:complexType>
-
-<!-- OLD INFO definition:
+-->
+<!-- No sub-element is accepted in INFO for backward compatibility -->
 <xs:complexType name="Info">
   <xs:simpleContent>
     <xs:extension base="xs:string">
       <xs:attribute name="ID" type="xs:ID"/>
-      <xs:attribute name="name" type="xs:token" use="required"/>
+      <xs:attribute name="name"  type="xs:token" use="required"/>
       <xs:attribute name="value" type="xs:string" use="required"/>
+      <xs:attribute name="unit"  type="xs:token"/>
+      <xs:attribute name="xtype" type="xs:token"/>
+      <xs:attribute name="ref"   type="xs:IDREF"/>
+      <xs:attribute name="ucd"   type="ucdType"/>
+      <xs:attribute name="utype" type="xs:string"/>
     </xs:extension>
   </xs:simpleContent>
 </xs:complexType>
--->
 
 <!-- Expresses the coordinate system we are using --><!-- Deprecated V1.2 -->
 <xs:complexType name="CoordinateSystem">
@@ -465,16 +469,21 @@
 -->
     <!-- Added Version 1.2: -->
     <xs:element name="INFO" type="Info" minOccurs="0" maxOccurs="unbounded"/> 
-    <xs:choice minOccurs="0" maxOccurs="unbounded"> 
+    <!-- An empty table without any FIELD/PARAM should not be acceptable -->
+    <xs:choice minOccurs="1" maxOccurs="unbounded"> 
       <xs:element name="FIELD" type="Field"/>
       <xs:element name="PARAM" type="Param"/>
       <xs:element name="GROUP" type="Group"/>
     </xs:choice>
     <xs:element name="LINK" type="Link" minOccurs="0" maxOccurs="unbounded"/>
+    <!-- This would allow several DATA parts in a table (future extension?)
     <xs:sequence minOccurs="0" maxOccurs="unbounded">  
       <xs:element name="DATA" type="Data"/>
       <xs:element name="INFO" type="Info" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    -->
+    <xs:element name="DATA" type="Data" minOccurs="0"/>
+    <xs:element name="INFO" type="Info" minOccurs="0" maxOccurs="unbounded"/>
   </xs:sequence>
   <xs:attribute name="ID"   type="xs:ID"/>
   <xs:attribute name="name" type="xs:token"/>
