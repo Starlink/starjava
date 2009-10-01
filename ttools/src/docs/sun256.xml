@@ -6293,6 +6293,7 @@ but my thanks are especially due to the following:
         property.</li>
     <li><code>votlint</code> now checks that the correct XML namespaces are
         in use.</li>
+    <li>VOTable 1.2 supported.</li>
     <li><code>votlint</code> can now validate VOTable documents following
         the (provisional, 2009-09-29 PR) VOTable 1.2 standard.</li>
     <li>Bug fixed in crossmatching output: entries which should have been 
