@@ -87,6 +87,7 @@ public class FuncTest extends TestCase {
 
     public void testConversions() {
         assertEquals( (byte) 99, Conversions.parseByte( "99" ) );
+        assertEquals( (byte) 23, Conversions.parseByte( " 23 " ) );
         try {
             Conversions.parseByte( "999" );
             fail();
@@ -95,6 +96,7 @@ public class FuncTest extends TestCase {
         }
 
         assertEquals( (short) 30000, Conversions.parseShort( "30000" ) );
+        assertEquals( (short) 23, Conversions.parseShort( " 23" ) );
         try {
             Conversions.parseShort( "40000" );
             fail();
@@ -103,6 +105,7 @@ public class FuncTest extends TestCase {
         }
 
         assertEquals( 70000, Conversions.parseInt( "70000" ) );
+        assertEquals( 23, Conversions.parseInt( "23 " ) );
         try {
             Conversions.parseInt( "7777777777777777" );
             fail();
@@ -111,6 +114,7 @@ public class FuncTest extends TestCase {
         }
 
         assertEquals( -1L, Conversions.parseLong( "-1" ) );
+        assertEquals( 23L, Conversions.parseLong( " 23" ) );
         try {
             Conversions.parseLong( "tits" );
             fail();
@@ -119,8 +123,10 @@ public class FuncTest extends TestCase {
         }
 
         assertEquals( 101.5f, Conversions.parseFloat( "1015e-1" ) );
+        assertEquals( 23.0f, Conversions.parseFloat( " +23" ) );
 
         assertEquals( 101.5, Conversions.parseDouble( "1015e-1" ) );
+        assertEquals( 23.0, Conversions.parseFloat( " 23 " ) );
         try {
             Conversions.parseDouble( "No doubles here mate" );
             fail();
@@ -173,6 +179,9 @@ public class FuncTest extends TestCase {
 
         assertEquals( "2a", Conversions.toHex( 42 ) );
         assertEquals( 42, Conversions.fromHex( "2a" ) );
+        assertEquals( 42, Conversions.fromHex( "2A" ) );
+        assertEquals( 42, Conversions.fromHex( " 2a" ) );
+        assertEquals( 42, Conversions.fromHex( "2a " ) );
     }
 
     public void testDistances() {

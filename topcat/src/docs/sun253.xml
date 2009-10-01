@@ -12016,6 +12016,8 @@ introduced since the last version:
         </li>
     <li>Add multicone, multi-SIA and multi-SSA.
         </li>
+    <li><code>parse*</code> string-&gt;numeric conversion 
+        functions now cope with leading or trailing whitespace.</li>
     </ul>
     </p></dd>
 

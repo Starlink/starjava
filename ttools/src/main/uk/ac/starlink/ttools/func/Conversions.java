@@ -39,7 +39,7 @@ public class Conversions {
      * @return  byte value of <code>str</code>
      */
     public static byte parseByte( String str ) {
-        return Byte.parseByte( str );
+        return Byte.parseByte( str.trim() );
     }
 
     /**
@@ -51,7 +51,7 @@ public class Conversions {
      * @return  byte value of <code>str</code>
      */
     public static short parseShort( String str ) {
-        return Short.parseShort( str );
+        return Short.parseShort( str.trim() );
     }
 
     /**
@@ -63,7 +63,7 @@ public class Conversions {
      * @return  byte value of <code>str</code>
      */
     public static int parseInt( String str ) {
-        return Integer.parseInt( str );
+        return Integer.parseInt( str.trim() );
     }
 
     /**
@@ -75,7 +75,7 @@ public class Conversions {
      * @return  byte value of <code>str</code>
      */
     public static long parseLong( String str ) {
-        return Long.parseLong( str );
+        return Long.parseLong( str.trim() );
     }
 
     /**
@@ -87,7 +87,7 @@ public class Conversions {
      * @return  byte value of <code>str</code>
      */
     public static float parseFloat( String str ) {
-        return Float.parseFloat( str );
+        return Float.parseFloat( str.trim() );
     }
 
     /**
@@ -99,7 +99,7 @@ public class Conversions {
      * @return  byte value of <code>str</code>
      */
     public static double parseDouble( String str ) {
-        return Double.parseDouble( str );
+        return Double.parseDouble( str.trim() );
     }
 
     /**
@@ -228,6 +228,6 @@ public class Conversions {
      * @return   integer value represented by <code>hexVal</code>
      */
     public static int fromHex( String hexVal ) {
-        return Integer.parseInt( hexVal, 16 );
+        return Integer.parseInt( hexVal.trim(), 16 );
     }
 }
