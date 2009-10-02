@@ -474,12 +474,14 @@
 
     <!-- Build temporary zip file containing things not in the input jars
      !   which ought to be included in the standalone jars. -->
-    <exec output="${build.classes}/uk/ac/starlink/ttools/revision-string"
+    <exec outputproperty="svnversion"
           logerror="true"
           executable="svnversion"
           dir="${basedir}/..">
       <arg value="."/>
     </exec>
+    <echo message="${svnversion} (branches/stilts205)"
+          file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="stilts"/>
       <fileset dir="${star.docs.pkg}" includes="README.*"/>
