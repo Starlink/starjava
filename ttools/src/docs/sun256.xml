@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>17 July 2009</docdate>
+<docdate>2 October 2009</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6234,25 +6234,28 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 2.0-5 (2 Oct 2009)</dt>
 <dd><p>
     <ul>
-    <li>HTML table output is now HTML 4.01 by default 
-        (includes THEAD and TBODY tags).</li>
-    <li>Work around illegally truncated type declarations in IPAC tables.</li>
-    <li>Be more careful in XML, including VOTable, output; 
-        fix VOTable output encoding to be UTF-8,
-        and ensure no illegal XML characters are written.</li>
-    <li>Fix a bug which caused the first table in a multi-table file
-        (FITS or VOTable) to be used in streaming mode, even if
-        a subsequent one was requested.</li>
+    <li>VOTable 1.2 supported.</li>
+    <li><code>votlint</code> can now validate VOTable documents following
+        the (provisional, 2009-09-29 PR) VOTable 1.2 standard.</li>
     <li>Namespacing of VOTable documents made more intelligent, and
         configurable using the <code>votable.namespacing</code> system
         property.</li>
     <li><code>votlint</code> now checks that the correct XML namespaces are
         in use.</li>
-    <li><code>votlint</code> can now validate VOTable documents following
-        the (provisional, 2009-07-10 PR) VOTable 1.2 standard.</li>
+    <li>Be more careful in XML, including VOTable, output; 
+        fix VOTable output encoding to be UTF-8,
+        and ensure no illegal XML characters are written.</li>
+    <li>HTML table output is now HTML 4.01 by default 
+        (includes THEAD and TBODY tags).</li>
+    <li><code>parse*</code> string-&gt;numeric conversion 
+        functions now cope with leading or trailing whitespace.</li>
+    <li>Work around illegally truncated type declarations in IPAC tables.</li>
+    <li>Fix a bug which caused the first table in a multi-table file
+        (FITS or VOTable) to be used in streaming mode, even if
+        a subsequent one was requested.</li>
     <li>Bug fixed in crossmatching output: entries which should have been 
         null were sometimes written as non-null (typically large negative
         numbers) in FITS and in non-TABLEDATA VOTable output.

@@ -21,7 +21,7 @@
 <!ELEMENT DEFINITIONS (COOSYS|PARAM)*>
 
 <!-- INFO is a name-value pair -->
-<!ELEMENT INFO (DESCRIPTION?, VALUES?, LINK*)>
+<!ELEMENT INFO (#PCDATA)>
 <!ATTLIST INFO
         ID ID #IMPLIED
         name CDATA #REQUIRED
@@ -61,7 +61,7 @@
 
 <!-- A TABLE is a sequence of FIELDS and LINKS and DESCRIPTION,
      possibly followed by a DATA section -->
-<!ELEMENT TABLE (DESCRIPTION?, INFO*, (FIELD|GROUP|PARAM)*, LINK*, (DATA, INFO*)*)>
+<!ELEMENT TABLE (DESCRIPTION?, INFO*, (FIELD|PARAM|GROUP)+, LINK*, DATA?, INFO*)>
 <!ATTLIST TABLE
         ID ID #IMPLIED
         name CDATA #IMPLIED
@@ -144,20 +144,20 @@
 >
 
 <!-- DATA is the actual table data, in one of three formats -->
-<!ELEMENT DATA ((TABLEDATA | BINARY | FITS), INFO*)>
+<!-- Trailing INFOs disallowed by text of 1.2 standard (PR 2009-09-29 sec 4.8)
+ !   though still apparently permitted by the schema :-( -->
+<!ELEMENT DATA (TABLEDATA | BINARY | FITS)>
 
 <!-- Pure XML data -->
 <!ELEMENT TABLEDATA (TR*)>
 <!ELEMENT TR (TD+)>
 <!ELEMENT TD (#PCDATA)>
 
-<!-- Yechh -->
-<!ATTLIST TR 
-        ID  ID    #IMPLIED
->
-<!ATTLIST TD
-        encoding CDATA #IMPLIED
->
+<!-- These spurious attributes are present in the schema, but not by the
+ !   text of the standard.  Oh boy.  Disallow them.
+ ! <!ATTLIST TR ID       ID    #IMPLIED>
+ ! <!ATTLIST TD encoding CDATA #IMPLIED>
+ !-->
 
 <!-- FITS file, perhaps with specification of which extension to seek to -->
 <!ELEMENT FITS (STREAM)>
