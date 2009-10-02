@@ -1145,7 +1145,7 @@ The following list gives the values usually allowed for this
     </p></dd>
 
 <dt><code>votable</code></dt>
-<dd><p>VOTable format - any legal version 1.0 or 1.1 format 
+<dd><p>VOTable format - any legal version 1.0, 1.1 or 1.2 format 
     VOTable documents, and many illegal ones, can be read.
     By default the first <code>TABLE</code> element is used,
     but this can be altered
@@ -5308,7 +5308,7 @@ Contact this author if this seems to be a serious issue for you.
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
 <code>valid=false</code> parameter is supplied, that it validates against the
-1.0 or 1.1 (as appropriate) DTD.  Although VOTable 1.1 is properly
+1.0, 1.1 or 1.2 (as appropriate) DTD.  Although VOTable 1.1 and 1.2 are properly
 defined against an XML Schema rather than a DTD, in conjunction with
 the other checks done, the DTD validation turns out to be pretty comprehensive.
 Some of the DTD validity checks are also done by
