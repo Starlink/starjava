@@ -6292,6 +6292,8 @@ but my thanks are especially due to the following:
         and ensure no illegal XML characters are written.</li>
     <li>HTML table output is now HTML 4.01 by default 
         (includes THEAD and TBODY tags).</li>
+    <li><code>parse*</code> string-&gt;numeric conversion 
+        functions now cope with leading or trailing whitespace.</li>
     <li>Work around illegally truncated type declarations in IPAC tables.</li>
     <li>Fix a bug which caused the first table in a multi-table file
         (FITS or VOTable) to be used in streaming mode, even if
@@ -6312,8 +6314,6 @@ but my thanks are especially due to the following:
     <li><code>coneskymatch</code> can now match using SIA and SSA
         services as alternatives to Cone Search ones
         (see its new <code>servicetype</code> parameter).</li>
-    <li><code>parse*</code> string-&gt;numeric conversion 
-        functions now cope with leading or trailing whitespace.</li>
     </ul>
     </p></dd>
 
