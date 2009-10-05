@@ -8,6 +8,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -150,6 +152,23 @@ public class SampCommunicator implements TopcatCommunicator {
                 if ( msg != null ) {
                     subsetSender.call( msg );
                 }
+            }
+        };
+    }
+
+    public SpectrumActivity createSpectrumActivity() {
+        final SendManager spectrumSender =
+            new SendManager( hubConnector_, "spectrum.load.ssa-generic" );
+        return new SpectrumActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return spectrumSender.getComboBoxModel();
+            }
+            public void displaySpectrum( String location, Map metadata )
+                    throws IOException {
+                Message msg = new Message( "spectrum.load.ssa-generic" );
+                msg.addParam( "url", location );
+                msg.addParam( "meta", sanitizeMap( metadata ) );
+                spectrumSender.call( msg );
             }
         };
     }
@@ -343,5 +362,36 @@ public class SampCommunicator implements TopcatCommunicator {
         panel.setBorder( AuxWindow.makeTitledBorder( getProtocolName() ) );
         panel.add( box, BorderLayout.CENTER );
         return panel;
+    }
+
+    /**
+     * Makes sure that a map is SAMP-friendly.
+     * Any entries which are not are simply discarded.
+     */
+    private static Map sanitizeMap( Map map ) {
+
+        /* Retain only entries which are String->String mappings.
+         * This is more restrictive than strictly necessary, but it's 
+         * easy to do, and it's unlikely (impossible?) that other 
+         * legitimate types of entry (String->List or ->Map will be present. */
+        Map okMap = new HashMap();
+        for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if ( key instanceof String ) {
+                if ( value instanceof String ) {
+                    okMap.put( key, value );
+                }
+                else if ( value instanceof Number ) {
+                    okMap.put( key, value.toString() );
+                }
+                else if ( value instanceof Boolean ) {
+                    okMap.put( key, SampUtils.encodeBoolean( ((Boolean) value)
+                                                            .booleanValue() ) );
+                }
+            }
+        }
+        return okMap;
     }
 }

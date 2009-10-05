@@ -17,7 +17,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -39,6 +41,7 @@ import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -48,6 +51,7 @@ import uk.ac.starlink.topcat.func.Spectrum;
 import uk.ac.starlink.topcat.interop.ImageActivity;
 import uk.ac.starlink.topcat.interop.RowActivity;
 import uk.ac.starlink.topcat.interop.SkyPointActivity;
+import uk.ac.starlink.topcat.interop.SpectrumActivity;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 
@@ -611,6 +615,30 @@ public class ActivationQueryWindow extends QueryWindow {
             }
         }
 
+        /**
+         * If a column exists with the named UType, select it in the selector.
+         *
+         * @param  utype  UType to match
+         */
+        protected void selectColumnByUtype( String utype ) {
+            for ( int i = 0; i < colSelector_.getItemCount(); i++ ) {
+                TableColumn tcol = (TableColumn) colSelector_.getItemAt( i );
+                if ( tcol instanceof StarTableColumn ) {
+                    ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
+                    String ut = Tables.getUtype( cinfo );
+                    if ( ut != null ) {
+                        if ( ut.endsWith( utype ) ) {
+                            colSelector_.setSelectedIndex( i );
+                            if ( ut.equals( utype ) ||
+                                 ut.endsWith( ":" + utype ) ) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
         abstract Activator makeActivator( TableColumn tcol );
 
     }
@@ -683,21 +711,101 @@ public class ActivationQueryWindow extends QueryWindow {
      * Activator factory for displaying a column in a spectrum viewer.
      */
     private class SpectrumActivatorFactory extends ColumnActivatorFactory {
+        final SpectrumActivity specSender_;
+
         SpectrumActivatorFactory() {
             super( "Spectrum" );
+            specSender_ = communicator_.createSpectrumActivity();
+            List eList = new ArrayList( Arrays.asList( enablables_ ) );
+
+            /* If this is the result of an SSAP query, select the acref
+             * field for display by default. */
+            selectColumnByUtype( "Access.Reference" );
+
+            /* Set up a selector for the spectrum viewer. */
+            JComboBox viewerSelector =
+                new JComboBox( specSender_.getTargetSelector() );
+            JLabel viewerLabel = new JLabel( "Spectrum Viewer: " );
+            Box viewerBox = Box.createHorizontalBox();
+            viewerBox.add( viewerLabel );
+            viewerBox.add( viewerSelector );
+            eList.add( viewerLabel );
+            eList.add( viewerSelector );
+
+            queryPanel_.add( viewerBox );
+            enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
         }
+
         Activator makeActivator( final TableColumn tcol ) {
-            return new ColumnActivator( "spectrum", tcol ) {
-                String activateValue( Object val ) {
-                    return val == null
-                         ? null
-                         : Spectrum.displaySpectrum( getWindowLabel( tcol ),
-                                                     val.toString() );
-                }
-            };
+            return new SpectrumActivator( tcol );
         }
-        boolean isPossible() {
-            return super.isPossible() && TopcatUtils.canSplat();
+
+        /**
+         * Activator for sending spectra to remote applications.
+         */
+        private class SpectrumActivator implements Activator {
+            final int icol_;
+
+            /**
+             * Constructor.
+             *
+             * @param  tcol  column giving spectrum location
+             */
+            SpectrumActivator( TableColumn tcol ) {
+                icol_ = tcol.getModelIndex();
+            }
+
+            public String activateRow( long lrow ) {
+
+                /* Read table data for row. */
+                StarTable table = tcModel_.getDataModel();
+                final Object[] row;
+                try {
+                    row = table.getRow( lrow );
+                }
+                catch ( IOException e ) {
+                    return null;
+                }
+                if ( ! ( row[ icol_ ] instanceof String ) ) {
+                    return null;
+                }
+
+                /* Get spectrum location. */
+                String loc = (String) row[ icol_ ];
+
+                /* Get spectrum metadata. */
+                Map meta = new HashMap();
+                int ncol = table.getColumnCount();
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    Object value = row[ icol ];
+                    if ( value != null ) {
+                        ColumnInfo info = table.getColumnInfo( icol );
+                        String ucd = info.getUCD();
+                        String utype = Tables.getUtype( info );
+                        if ( ucd != null ) {
+                            meta.put( ucd, value );
+                        }
+                        if ( utype != null ) {
+                            meta.put( utype, value );
+                        }
+                    }
+                }
+
+                /* Send the message. */
+                try {
+                    specSender_.displaySpectrum( loc, meta );
+                    return "view(" + loc + ")";
+                }
+                catch ( IOException e ) {
+                    return "view(" + loc + ") - failed " + e;
+                }
+            }
+
+            public String toString() {
+                return "spectrum("
+                     + tcModel_.getDataModel().getColumnInfo( icol_ ).getName()
+                     + ")";
+            }
         }
     }
 

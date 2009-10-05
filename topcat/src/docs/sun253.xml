@@ -12019,6 +12019,9 @@ introduced since the last version:
         </li>
     <li><code>parse*</code> string-&gt;numeric conversion 
         functions now cope with leading or trailing whitespace.</li>
+    <li>Spectrum Display activation action now uses SAMP or PLASTIC.
+        The old behaviour was to display the spectrum in an in-JVM SPLAT
+        window, but it didn't work very well.
     </ul>
     </p></dd>
 

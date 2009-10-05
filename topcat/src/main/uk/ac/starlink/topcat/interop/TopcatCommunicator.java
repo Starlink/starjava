@@ -104,6 +104,13 @@ public interface TopcatCommunicator {
     ImageActivity createImageActivity();
 
     /**
+     * Returns an object which can be used to display spectra.
+     *
+     * @return  new activity object
+     */
+    SpectrumActivity createSpectrumActivity();
+
+    /**
      * Attempts to start a messaging hub suitable for use with this object.
      *
      * @param  external  true to run hub in external JVM,

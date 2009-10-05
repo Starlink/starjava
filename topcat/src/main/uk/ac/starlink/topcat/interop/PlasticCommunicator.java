@@ -189,6 +189,35 @@ public class PlasticCommunicator implements TopcatCommunicator {
         };
     }
 
+    public SpectrumActivity createSpectrumActivity() {
+        final URI msgId = MessageId.SPECTRUM_LOADURL;
+        final ComboBoxModel selector =
+            plasticServer_.createPlasticComboBoxModel( msgId );
+        return new SpectrumActivity() {
+            public ComboBoxModel getTargetSelector() {
+                return selector;
+            }
+            public void displaySpectrum( String location, Map metadata )
+                    throws IOException {
+                Object item = selector.getSelectedItem();
+                final URI[] recipients =
+                    item instanceof ApplicationItem
+                         ? new URI[] { ((ApplicationItem) item).getId() }
+                         : null;
+                List argList =
+                    Arrays.asList( new Object[] { location, location,
+                                                  metadata } );
+                plasticServer_.register();
+                PlasticHubListener hub = plasticServer_.getHub();
+                URI plasticId = plasticServer_.getRegisteredId();
+                Map responses = ( recipients == null )
+                    ? hub.request( plasticId, msgId, argList )
+                    : hub.requestToSubset( plasticId, msgId, argList,
+                                           Arrays.asList( recipients ) );
+            }
+        };
+    }
+
     public ImageActivity createImageActivity() {
         return new PlasticImageActivity( plasticServer_ );
     }
