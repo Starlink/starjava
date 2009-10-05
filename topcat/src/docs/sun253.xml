@@ -12021,7 +12021,7 @@ introduced since the last version:
         functions now cope with leading or trailing whitespace.</li>
     <li>Spectrum Display activation action now uses SAMP or PLASTIC.
         The old behaviour was to display the spectrum in an in-JVM SPLAT
-        window, but it didn't work very well.
+        window, but it didn't work very well.</li>
     </ul>
     </p></dd>
 
