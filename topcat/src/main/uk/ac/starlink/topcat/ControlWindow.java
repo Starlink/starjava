@@ -26,8 +26,10 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -48,6 +50,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -66,6 +69,8 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
@@ -78,9 +83,13 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.BasicTableConsumer;
 import uk.ac.starlink.table.gui.PasteLoader;
+import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.topcat.contrib.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
@@ -98,6 +107,10 @@ import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
  * Main window providing user control of the TOPCAT application.
@@ -498,6 +511,40 @@ public class ControlWindow extends AuxWindow
             winMenu.add( showActs_[ i ] );
         }
         getJMenuBar().add( winMenu );
+
+        /* Add a menu for miscellaneous Virtual Observatory operations. 
+         * Defer population of the menu until such time, if ever, that 
+         * the menu is posted, since (a) the fully configured chooser 
+         * is not available until after the construction of this window, 
+         * and (b) it involves loading of classes which might not 
+         * otherwise be required.  (a) is basically down to bad design - 
+         * the Driver and ControlWindow classes are poorly organised. */
+        final JMenu voMenu = new JMenu( "VO" );
+        voMenu.setMnemonic( KeyEvent.VK_V );
+        voMenu.addMenuListener( new MenuListener() {
+            public void menuCanceled( MenuEvent evt ) {
+            }
+            public void menuDeselected( MenuEvent evt ) {
+            }
+            public void menuSelected( MenuEvent evt ) {
+                voMenu.removeMenuListener( this );
+                Action[] voLoadActs = createTableLoadActions( new Class[] {
+                    ConeSearchDialog.class,
+                    SiapTableLoadDialog.class,
+                    SsapTableLoadDialog.class,
+                    GavoTableLoadDialog.class,
+                    // VOSpace?
+                } );
+                for ( int ia = 0; ia < voLoadActs.length; ia++ ) {
+                    voMenu.add( voLoadActs[ ia ] );
+                }
+                voMenu.addSeparator();
+                voMenu.add( multiconeAct_ );
+                voMenu.add( multisiaAct_ );
+                voMenu.add( multissaAct_ );
+            }
+        } );
+        getJMenuBar().add( voMenu );
 
         /* Add a menu for tool interop. */
         if ( communicator_ != null ) {
@@ -913,6 +960,86 @@ public class ControlWindow extends AuxWindow
         for ( int i = 0; i < graphicsActs_.length; i++ ) {
             graphicsActs_[ i ].setEnabled( hasTables );
         }
+    }
+
+    /**
+     * Returns a list of Actions which correspond to table load dialogues.
+     *
+     * @param   tldClasses  array of classes, each of which should be a
+     *          TableLoadDialogue subclass
+     */
+    private Action[] createTableLoadActions( Class[] tldClasses ) {
+
+        /* Construct a table consumer for use with the dialogues. */
+        final TableConsumer loadConsumer = new BasicTableConsumer( this ) {
+            private String id_;
+            public void loadStarted( String id ) {
+                id_ = id;
+                super.loadStarted( id );
+            }
+            protected void tableLoaded( StarTable table ) {
+                if ( table.getRowCount() > 0 ) {
+                    addTable( table, id_, true );
+                }
+                else {
+                    JOptionPane.showMessageDialog( ControlWindow.this,
+                                                   "Table contained no rows",
+                                                   "Empty Table",
+                                                   JOptionPane.ERROR_MESSAGE );
+                }
+            }
+            protected void processError( Throwable e ) {
+                if ( e instanceof OutOfMemoryError ) {
+                    TopcatUtils.memoryError( (OutOfMemoryError) e );
+                }
+                else {
+                    super.processError( e );
+                }
+            }
+        };
+
+        /* For each requested class, identify the instance of that class
+         * in the load chooser list of dialogues (better to use the same
+         * instance than create a new one, since it may have state imparted
+         * by the user in other interactions with it).  Then generate an
+         * action which will invoke the dialogue in question, and add it
+         * to the list. */
+        TableLoadDialog[] tlds = getLoadChooser().getKnownDialogs();
+        final ComboBoxModel formatModel =
+            TableLoadChooser.makeFormatBoxModel( tabfact_ );
+        List actList = new ArrayList();
+        for ( int ic = 0; ic < tldClasses.length; ic++ ) {
+            Class tldClass = tldClasses[ ic ];
+            if ( ! TableLoadDialog.class.isAssignableFrom( tldClass ) ) {
+                logger_.warning( "Class " + tldClass.getName()
+                               + " is not a TableLoadDialog" );
+            }
+            Action act = null;
+            for ( int id = 0; id < tlds.length && act == null; id++ ) {
+                if ( tlds[ id ].getClass().equals( tldClass ) ) {
+                    final TableLoadDialog tld = tlds[ id ];
+                    act = new BasicAction( tld.getName(), null,
+                                           tld.getDescription() ) {
+                        public void actionPerformed( ActionEvent evt ) {
+                            tld.showLoadDialog( ControlWindow.this, tabfact_,
+                                                formatModel, loadConsumer );
+                        }
+                    };
+                    if ( ! tld.isAvailable() ) {
+                        act.setEnabled( false );
+                    }
+                }
+            }
+            if ( act != null ) {
+                actList.add( act );
+            }
+            else {
+                logger_.warning( "No load dialogue " + tldClass.getName() );
+            }
+        }
+
+        /* Return the completed list of actions. */
+        return (Action[]) actList.toArray( new Action[ 0 ] );
     }
 
     /*

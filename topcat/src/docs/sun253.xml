@@ -12022,6 +12022,10 @@ introduced since the last version:
     <li>Spectrum Display activation action now uses SAMP or PLASTIC.
         The old behaviour was to display the spectrum in an in-JVM SPLAT
         window, but it didn't work very well.</li>
+    <li>Add <label>VO</label> menu to ControlWindow.
+        The options provided here are mostly available elsewhere in the GUI,
+        but this groups Virtual Observatory-related actions together for
+        convenience.</li>
     </ul>
     </p></dd>
 
