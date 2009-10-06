@@ -131,9 +131,21 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         JDialog dialog = super.createDialog( parent );
         JMenuBar mbar = new JMenuBar();
         dialog.setJMenuBar( mbar );
-        JMenu sampleMenu = new JMenu( "SampleQueries" );
-        mbar.add( sampleMenu );
-        GavoSampleQuery[] queries = GavoSampleQuery.SAMPLES;
+        mbar.add( createSampleMenu( "HaloSamples",
+                                    GavoSampleQuery.HALO_SAMPLES ) );
+        mbar.add( createSampleMenu( "GalaxySamples",
+                                    GavoSampleQuery.GAL_SAMPLES ) );
+        return dialog;
+    }
+
+    /**
+     * Creates a menu of sample queries.
+     *
+     * @param   name  menu name
+     * @param   list of query definitions
+     */
+    private JMenu createSampleMenu( String name, GavoSampleQuery[] queries ) {
+        JMenu menu = new JMenu( name );
         for ( int i = 0; i < queries.length; i++ ) {
             GavoSampleQuery sample = queries[ i ];
             final String sqlText = sample.getText();
@@ -143,11 +155,10 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 }
             };
             act.putValue( Action.SHORT_DESCRIPTION, sample.getDescription() );
-            sampleMenu.add( act );
+            menu.add( act );
         }
-        return dialog;
+        return menu;
     }
-
 
     /**
      * Indicates whether this dialogue is available.  Should return false
