@@ -150,8 +150,7 @@ public class TableLoadChooser extends JPanel {
      * @param  factory  factory to use for creating tables
      */
     public TableLoadChooser( StarTableFactory factory ) {
-        this( new StarTableFactory(), makeDefaultLoadDialogs(), 
-              new String[ 0 ] );
+        this( factory, makeDefaultLoadDialogs(), new String[ 0 ] );
     }
 
     /**
