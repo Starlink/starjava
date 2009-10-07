@@ -1018,7 +1018,7 @@ public class ControlWindow extends AuxWindow
             for ( int id = 0; id < tlds.length && act == null; id++ ) {
                 if ( tlds[ id ].getClass().equals( tldClass ) ) {
                     final TableLoadDialog tld = tlds[ id ];
-                    act = new BasicAction( tld.getName(), null,
+                    act = new BasicAction( tld.getName(), tld.getIcon(),
                                            tld.getDescription() ) {
                         public void actionPerformed( ActionEvent evt ) {
                             tld.showLoadDialog( ControlWindow.this, tabfact_,

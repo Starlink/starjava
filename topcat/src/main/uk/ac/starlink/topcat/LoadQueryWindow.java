@@ -7,7 +7,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -18,10 +21,12 @@ import javax.swing.JProgressBar;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.BasicTableConsumer;
+import uk.ac.starlink.table.gui.FileChooserLoader;
 import uk.ac.starlink.table.gui.LoadWorker;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
 
 /**
  * Dialogue for user to enter a new table location for loading.
@@ -97,6 +102,20 @@ public abstract class LoadQueryWindow extends QueryWindow {
             logger_.info( "Error instantiating demo load dialog" + e );
         }
         getJMenuBar().add( demoMenu );
+
+        /* Toolbar buttons. */
+        TableLoadDialog[] tlds = chooser.getKnownDialogs();
+        Set excludeTldSet = new HashSet( Arrays.asList( new Class[] {
+            FileChooserLoader.class,
+            RegistryTableLoadDialog.class,
+        } ) );
+        for ( int i = 0; i < tlds.length; i++ ) {
+            TableLoadDialog tld = tlds[ i ];
+            if ( ! excludeTldSet.contains( tld.getClass() ) ) {
+                getToolBar().add( chooser.makeAction( tld ) );
+            }
+        }
+        getToolBar().addSeparator();
 
         /* Help button. */
         addHelp( "LoadQueryWindow" );
