@@ -5,12 +5,15 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.net.URL;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -46,6 +49,7 @@ public abstract class BasicTableLoadDialog extends JPanel
 
     private final String name_;
     private final String description_;
+    private Icon icon_;
     private final Action okAction_;
     private final Action cancelAction_;
     private final JProgressBar progBar_;
@@ -88,6 +92,27 @@ public abstract class BasicTableLoadDialog extends JPanel
 
     public String getDescription() {
         return description_;
+    }
+
+    public Icon getIcon() {
+        return icon_;
+    }
+
+    /**
+     * Sets the icon to associate with this dialogue.
+     */
+    public void setIcon( Icon icon ) {
+        icon_ = icon;
+    }
+
+    /**
+     * Sets the icon to associate with this dialogue by specifying its URL.
+     * If a null URL is given, the icon is set null.
+     *
+     * @param  iconUrl  URL of gif, png or jpeg icon
+     */
+    public void setIconUrl( URL iconUrl ) {
+        setIcon( iconUrl == null ? null : new ImageIcon( iconUrl ) );
     }
 
     public boolean showLoadDialog( Component parent,

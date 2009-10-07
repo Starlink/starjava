@@ -2,6 +2,7 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 
@@ -83,6 +84,15 @@ public interface TableLoadDialog {
      * @return   short description
      */
     String getDescription();
+
+    /**
+     * Icon associated with this dialogue.  
+     * A size of 24x24 pixels is preferred.
+     * Null may be returned if no icon is available.
+     *
+     * @return   icon
+     */
+    Icon getIcon();
 
     /**
      * Indicates whether this dialog can be invoked.  This allows the
