@@ -49,7 +49,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     private static final String MILL_URL =
         "http://www.g-vo.org/Millennium";
     private static final String MYMILL_URL =
-        "http://www.g-vo.org/MyMillennium";
+        "http://www.g-vo.org/MyMillennium3";
     private static final String QUERY_TRAIL = "?action=doQuery&SQL=";
     private static final Database[] DATABASES = new Database[] {
         new Database( MILL_URL, MILL_URL + QUERY_TRAIL, false ),
