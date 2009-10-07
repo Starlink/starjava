@@ -40,6 +40,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
     public RegistryTableLoadDialog() {
         super( "Registry Query", 
                "Imports a table describing the result of querying a registry" );
+        setIconUrl( getClass().getResource( "registry.gif" ) );
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQueries_ );
         add( rqPanel_ );

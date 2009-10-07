@@ -32,6 +32,7 @@ public class ConeSearchDialog extends DalTableLoadDialog {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
                new KeywordServiceQueryFactory( Capability.CONE ), true, false );
+        setIconUrl( getClass().getResource( "cone.gif" ) );
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
