@@ -68,10 +68,10 @@ public class Driver {
         "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
         SQLReadDialog.class.getName(),
         "uk.ac.starlink.vo.ConeSearchDialog",
-        "uk.ac.starlink.topcat.contrib.GavoTableLoadDialog",
-        "uk.ac.starlink.vo.RegistryTableLoadDialog",
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.SsapTableLoadDialog",
+        "uk.ac.starlink.vo.RegistryTableLoadDialog",
+        "uk.ac.starlink.topcat.contrib.GavoTableLoadDialog",
     };
 
     /**
