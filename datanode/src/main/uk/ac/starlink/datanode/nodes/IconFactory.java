@@ -76,6 +76,7 @@ public class IconFactory {
     public static final short VOCOMPONENT = 141;
     public static final short SPECFRAME = 142;
     public static final short MYSPACE = 143;
+    public static final short HIERARCH = 144;
     public static final short SPLAT = 200;
     public static final short SOG = 201;
     public static final short TOPCAT = 202;
@@ -190,6 +191,7 @@ public class IconFactory {
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
             case SPECFRAME:      iname = "axes81.gif";               break;
             case MYSPACE:        iname = "AGlogo.gif";               break;
+            case HIERARCH:       iname = "browse.gif";               break;
             case SPLAT:          iname = "multidisplay.gif";         break;
             case SOG:            iname = "sogimage.gif";             break;
             case TOPCAT:         iname = "TopCat2.gif";              break;

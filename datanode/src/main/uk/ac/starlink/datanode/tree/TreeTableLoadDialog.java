@@ -3,6 +3,8 @@ package uk.ac.starlink.datanode.tree;
 import java.awt.Component;
 import java.io.IOException;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -31,6 +33,10 @@ public class TreeTableLoadDialog extends TableNodeChooser
 
     public String getDescription() {
         return "Load table using treeview-type browser";
+    }
+
+    public Icon getIcon() {
+        return IconFactory.getIcon( IconFactory.HIERARCH );
     }
 
     public boolean isAvailable() {
