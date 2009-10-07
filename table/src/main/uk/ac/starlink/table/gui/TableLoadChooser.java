@@ -563,6 +563,7 @@ public class TableLoadChooser extends JPanel {
             }
         };
         act.putValue( Action.SHORT_DESCRIPTION, tld.getDescription() );
+        act.putValue( Action.SMALL_ICON, tld.getIcon() );
         act.setEnabled( tld.isAvailable() );
         return act;   
     }

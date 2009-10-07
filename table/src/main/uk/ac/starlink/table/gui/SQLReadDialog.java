@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.StarTable;
@@ -18,12 +20,14 @@ import uk.ac.starlink.table.StarTableFactory;
  * @since    1 Dec 2004
  */
 public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
+    private final Icon icon_;
 
     /**
      * Constructs a new <tt>SQLReadDialog</tt>.
      */
     public SQLReadDialog() {
         super( "SQL query" );
+        icon_ = new ImageIcon( getClass().getResource( "sqlread.gif" ) );
     }
 
     public String getName() {
@@ -32,6 +36,10 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
 
     public String getDescription() {
         return "Get table as result of an SQL query on a relational database";
+    }
+
+    public Icon getIcon() {
+        return icon_;
     }
 
     public boolean showLoadDialog( Component parent, 

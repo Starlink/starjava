@@ -6,6 +6,8 @@ import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -26,11 +28,13 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
     private boolean isAvailable_;
     private final JComboBox formatSelector_;
     private final ComboBoxModel dummyModel_;
+    private final Icon icon_;
 
     /**
      * Constructor.
      */
     public FileChooserLoader() {
+        icon_ = new ImageIcon( getClass().getResource( "filechooser.gif" ) );
 
         /* See if we have permissions to operate. */
         try {
@@ -73,6 +77,10 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
 
     public String getDescription() {
         return "Load table from files on the local filesystem";
+    }
+
+    public Icon getIcon() {
+        return icon_;
     }
 
     public boolean isAvailable() {

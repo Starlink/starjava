@@ -32,8 +32,9 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
     private final JTextField posField_;
 
     public FilestoreTableLoadDialog() {
-        super( "Filestore Browser", 
+        super( "Filestore Browser",
                "Loader for files from local or remote filespace" );
+        setIconUrl( getClass().getResource( "filestore.gif" ) );
         final FilestoreTableLoadDialog tld = this;
         chooser_ = new FilestoreChooser() {
             public void leafSelected( Leaf leaf ) {
