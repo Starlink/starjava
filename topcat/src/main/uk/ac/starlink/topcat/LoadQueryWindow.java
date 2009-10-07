@@ -111,7 +111,8 @@ public abstract class LoadQueryWindow extends QueryWindow {
         } ) );
         for ( int i = 0; i < tlds.length; i++ ) {
             TableLoadDialog tld = tlds[ i ];
-            if ( ! excludeTldSet.contains( tld.getClass() ) ) {
+            if ( tld.getIcon() != null &&
+                 ! excludeTldSet.contains( tld.getClass() ) ) {
                 getToolBar().add( chooser.makeAction( tld ) );
             }
         }
