@@ -10499,6 +10499,13 @@ functionality:
 </ul>
 </p>
 
+<p>Contributed code from the following people is gratefully acknowledged:
+<ul>
+<li>Thomas Boch (CDS), for the VizieR load dialogue.</li>
+<li>Gerard Lemson (MPE, Garching) for the GAVO load dialogue.</li>
+</ul>
+</p>
+
 <p>The following users, testers and programmers have supplied useful
 comments (apologies for any missed out):
 <ul>
@@ -10532,6 +10539,8 @@ comments (apologies for any missed out):
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Luke Davies (Bristol)</li>
 <li>Sebastien Derriere (CDS)</li>
+<li>Thomas Boch (CDS)</li>
+<li>Pierre Fernique (CDS)</li>
 </ul>
 </p>
 
@@ -12029,6 +12038,7 @@ introduced since the last version:
     <li>Completed list of example queries in GAVO load dialogue.</li>
     <li>Load Window now has toolbar buttons as well as menu items for 
         different load dialogues.</li>
+    <li>New VizieR catalogue service query load dialogue.</li>
     </ul>
     </p></dd>
 

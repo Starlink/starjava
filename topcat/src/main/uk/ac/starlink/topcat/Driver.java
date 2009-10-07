@@ -71,6 +71,7 @@ public class Driver {
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.SsapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
+        "uk.ac.starlink.topcat.contrib.cds.VizieRTableLoadDialog",
         "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog",
     };
 
@@ -234,7 +235,7 @@ public class Driver {
                   + " [-jsamp <jsamp-args>]\n"
             + pad + " [-verbose] [-demo] [-disk]\n"
             + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
-            + pad + " [-tree] [-file] [-sql] [-cone] [-gavo]"
+            + pad + " [-tree] [-file] [-sql] [-cone] [-vizier] [-gavo]"
                   + " [-registry] [-sia] [-ssa]\n"
             + pad + " [[-f <format>] table ...]";
 
@@ -346,6 +347,11 @@ public class Driver {
             else if ( arg.equals( "-cone" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.ConeSearchDialog" );
+            }
+            else if ( arg.equals( "-vizier" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.topcat.contrib.cds."
+                              + "VizieRTableLoadDialog" );
             }
             else if ( arg.equals( "-gavo" ) ) {
                 it.remove();
@@ -719,6 +725,7 @@ public class Driver {
            .append( p2 + "-file      basic file browser" )
            .append( p2 + "-sql       SQL query on relational database" )
            .append( p2 + "-cone      cone search dialogue" )
+           .append( p2 + "-vizier    VizieR catalogue service query" )
            .append( p2 + "-gavo      GAVO Millennium run database query" )
            .append( p2 + "-registry  VO registry query" )
            .append( p2 + "-sia       Simple Image Access Protocol queries" )
