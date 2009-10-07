@@ -89,7 +89,7 @@ import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
-import uk.ac.starlink.topcat.contrib.GavoTableLoadDialog;
+import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;

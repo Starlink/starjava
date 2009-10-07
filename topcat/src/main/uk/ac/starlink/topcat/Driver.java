@@ -71,7 +71,7 @@ public class Driver {
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.SsapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.topcat.contrib.GavoTableLoadDialog",
+        "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog",
     };
 
     /**
@@ -349,7 +349,7 @@ public class Driver {
             }
             else if ( arg.equals( "-gavo" ) ) {
                 it.remove();
-                loaderList.add( "uk.ac.starlink.topcat.contrib."
+                loaderList.add( "uk.ac.starlink.topcat.contrib.gavo."
                               + "GavoTableLoadDialog" );
             }
             else if ( arg.equals( "-registry" ) ) {

@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib;
+package uk.ac.starlink.topcat.contrib.gavo;
 
 /*
  * CSVTableParser.java

@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib;
+package uk.ac.starlink.topcat.contrib.gavo;
 
 /**
  * Encapsulates example queries used by the GAVO loader.

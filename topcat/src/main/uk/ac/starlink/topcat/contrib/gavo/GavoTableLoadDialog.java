@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib;
+package uk.ac.starlink.topcat.contrib.gavo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -231,6 +231,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         return new TableSupplier() {
             public StarTable getTable( StarTableFactory tabFact, String fmt )
                     throws IOException {
+                logger_.info( queryUrl.toString() );
                 URLConnection uc = queryUrl.openConnection();
                 if ( acceptsAuth ) {
                     uc.setRequestProperty ("Authorization",
