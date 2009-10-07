@@ -12026,6 +12026,9 @@ introduced since the last version:
         The options provided here are mostly available elsewhere in the GUI,
         but this groups Virtual Observatory-related actions together for
         convenience.</li>
+    <li>Completed list of example queries in GAVO load dialogue.</li>
+    <li>Load Window now has toolbar buttons as well as menu items for 
+        different load dialogues.</li>
     </ul>
     </p></dd>
 
