@@ -129,6 +129,7 @@ public class ResourceIcon implements Icon {
         MULTISIA = makeIcon( "sias.gif" ),
         MULTISSA = makeIcon( "ssas.gif" ),
         SAMP = makeIcon( "comms2.gif" ),
+        GAVO = makeIcon( "virgo3.gif" ),
 
         /* Specific actions. */
         UNSORT = makeIcon( "arrow_level.gif" ),

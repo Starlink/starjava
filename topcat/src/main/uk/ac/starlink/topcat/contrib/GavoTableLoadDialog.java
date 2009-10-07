@@ -40,6 +40,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.topcat.ResourceIcon;
 
 public class GavoTableLoadDialog extends BasicTableLoadDialog {
 
@@ -78,6 +79,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         super( "GAVO Millennium Run Query",
                "Uses the GAVO service to query the " +
                "Millennium Simulation Database" );
+        setIcon( ResourceIcon.GAVO );
 
         /* Set up fields for user interaction. */
         urlField_ = new JComboBox(DATABASES);
