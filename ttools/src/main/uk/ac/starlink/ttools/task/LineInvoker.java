@@ -333,6 +333,8 @@ public class LineInvoker {
                 try {
                     String msg = new StringBuffer()
                         .append( "\n" )
+                        .append( e )
+                        .append( "\n" )
                         .append( "The runtime Java Runtime Environment (JRE) " )
                         .append( "is missing some compile-time classes.\n" )
                         .append( "The most likely reason is that you are " )
