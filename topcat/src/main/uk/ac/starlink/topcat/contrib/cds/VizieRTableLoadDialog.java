@@ -10,13 +10,11 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -25,12 +23,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -57,6 +53,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.TableConsumer;
+import uk.ac.starlink.topcat.ResourceIcon;
 
 /** A load dialog allowing one to load VizieR tables from TOPCAT
  * 
@@ -70,9 +67,6 @@ public class VizieRTableLoadDialog extends BasicTableLoadDialog {
     private static final String NAME = "VizieR Catalogues Service";
     private static final String DESC = "Access the VizieR library of "+
         "published astronomical catalogues";
-    
-    // path to vizier icon image (should be relative wrt the package)
-    private static final String VIZIER_ICON_PATH = "http://vizier.u-strasbg.fr/vizier/vizier_logo.gif";
     
     // array of VizieR surveys 
     private VizieRSurvey[] surveys;
@@ -101,6 +95,7 @@ public class VizieRTableLoadDialog extends BasicTableLoadDialog {
      */
     public VizieRTableLoadDialog() {
         super(NAME, DESC);
+        setIcon( ResourceIcon.VIZIER );
         
         // build the whole dialog GUI
         buildGUI();
@@ -143,24 +138,8 @@ public class VizieRTableLoadDialog extends BasicTableLoadDialog {
         setBorder(new EmptyBorder(5,5,5,5));
         
         // displaying VizieR icon
-        URL vizIconUrl = null;
-        try {
-            vizIconUrl = new URL(VIZIER_ICON_PATH);
-        }
-        catch(MalformedURLException mue) {}
-        
-        Image im;
-        
-        try {
-            im = ImageIO.read(vizIconUrl);
-        }
-        catch(IOException ioe) {im = null;}
-        ImageIcon vizierIcon;
-        if( im!=null ) vizierIcon = new ImageIcon(im);
-        else vizierIcon = new ImageIcon();
-        
         JLabel lab = new JLabel();
-        lab.setIcon(vizierIcon);
+        lab.setIcon(ResourceIcon.VIZIER_LOGO);
         this.add(lab, BorderLayout.NORTH);
         
         // creating the tabbed pane

@@ -77,6 +77,7 @@ public class ResourceIcon implements Icon {
         ASTROGRID_LOGO = makeIcon( "ag48.gif" ),
         BRISTOL_LOGO = makeIcon( "bris48.gif" ),
         VOTECH_LOGO = makeIcon( "votech48.gif" ),
+        VIZIER_LOGO = makeIcon( "vizier_logo.gif" ),
 
         /* Generic actions. */
         CLOSE = makeIcon( "multiply4.gif"),
@@ -130,6 +131,7 @@ public class ResourceIcon implements Icon {
         MULTISSA = makeIcon( "ssas.gif" ),
         SAMP = makeIcon( "comms2.gif" ),
         GAVO = makeIcon( "virgo3.gif" ),
+        VIZIER = makeIcon( "vizmini.gif" ),
 
         /* Specific actions. */
         UNSORT = makeIcon( "arrow_level.gif" ),
