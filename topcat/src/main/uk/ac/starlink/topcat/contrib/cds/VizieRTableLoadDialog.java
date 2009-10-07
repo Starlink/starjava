@@ -3,7 +3,7 @@
  * To change this generated comment go to 
  * Window>Preferences>Java>Code Generation>Code Template
  */
-package cds.vizier.plugin.topcat.gui;
+package uk.ac.starlink.topcat.contrib.cds;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
