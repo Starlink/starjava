@@ -33,6 +33,7 @@ import uk.ac.starlink.table.StarTable;
 public abstract class LoadWorker {
 
     private Thread thread_;
+    private boolean finished_;
     private final TableConsumer eater_;
     private final String id_;
 
@@ -82,18 +83,25 @@ public abstract class LoadWorker {
                 catch ( Throwable e ) {
                     error = e;
                 }
-                final Throwable error1 = error;
-                final StarTable table1 = table;
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( table1 != null ) {
-                            eater_.loadSucceeded( table1 );
-                        }
-                        else {
-                            eater_.loadFailed( error1 );
-                        }
+                synchronized ( LoadWorker.this ) {
+                    if ( ! finished_ ) {
+                        final Throwable error1 = error;
+                        final StarTable table1 = table;
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                if ( ! finished_ ) {
+                                    finished_ = true;
+                                    if ( table1 != null ) {
+                                        eater_.loadSucceeded( table1 );
+                                    }
+                                    else {
+                                        eater_.loadFailed( error1 );
+                                    }
+                                }
+                            }
+                        } );
                     }
-                } );
+                }
             }
         };
         eater_.loadStarted( id_ );
@@ -108,8 +116,22 @@ public abstract class LoadWorker {
      * I won't change it now.
      */
     public void interrupt() {
-        if ( thread_ != null && ! thread_.isInterrupted() ) {
-            thread_.interrupt();
+        if ( thread_ != null ) {
+            synchronized ( this ) {
+                if ( ! thread_.isInterrupted() ) {
+                    thread_.interrupt();
+                }
+                if ( ! finished_ ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            if ( ! finished_ ) {
+                                finished_ = true;
+                                eater_.loadFailed( null );
+                            }
+                        }
+                    } );
+                }
+            }
         }
     }
 }
