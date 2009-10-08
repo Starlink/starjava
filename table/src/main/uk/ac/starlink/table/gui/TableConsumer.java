@@ -38,6 +38,8 @@ public interface TableConsumer {
 
     /**
      * Called when a table load has failed for some reason.
+     * A null exception may indicate that the load is no longer required,
+     * for instance was cancelled at the user's request.
      *
      * @param  th  exception describing what went wrong (may be null)
      */
