@@ -19,6 +19,9 @@
    one non-trivial dimension where read back the first axis of the
    WCS was used as the spectral axis, regardless of whether this was
    correct or not.
+
+   The locale used by SPLAT is now fixed to POSIX, this means that all
+   numbers should be entered using decimal notation.
  
    3.9-2
    =====

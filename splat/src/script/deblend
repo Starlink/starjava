@@ -92,6 +92,12 @@ if test -z "$SPLAT_DIR"; then
    SPLAT_DIR=`dirname $0`
 fi
 
+#  The SPLAT interface with JNIAST requires that the comma is
+#  not used as part of the number system (to support attribute lists)
+#  so we need to use the POSIX locale.
+LC_ALL="C"
+export LC_ALL
+
 # Set the amount of memory that we use for the heap. Increase this
 # if you start getting out of memory errors. Decrease it for smaller 
 # footprint machines.

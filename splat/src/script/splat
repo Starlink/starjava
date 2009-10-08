@@ -46,6 +46,12 @@ if test "$SPLAT_DIR" = "/star/bin/splat" \
   SPLAT_DIR=""
 fi
 
+#  The SPLAT interface with JNIAST requires that the comma is
+#  not used as part of the number system (to support attribute lists)
+#  so we need to use the POSIX locale.
+LC_ALL="C"
+export LC_ALL
+
 #  Locate this script or SPLAT_DIR to find our jar files etc.
 if test -z "$SPLAT_DIR"; then
    SPLAT_DIR=`dirname $0`

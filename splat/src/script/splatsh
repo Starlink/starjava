@@ -21,7 +21,6 @@ if [ -z "$1" ]; then
    exit
 fi
 
-
 #  Skip the definition of SPLAT_DIR if it's in the standard place for
 #  old-SPLAT. Remove this when new SPLAT is the official release.
 if test "$SPLAT_DIR" = "/star/bin/splat" \
@@ -34,6 +33,12 @@ if test -z "$SPLAT_DIR"; then
    SPLAT_DIR=`dirname $0`
 fi
 echo "SPLAT_DIR = $SPLAT_DIR"
+
+#  The SPLAT interface with JNIAST requires that the comma is
+#  not used as part of the number system (to support attribute lists)
+#  so we need to use the POSIX locale.
+LC_ALL="C"
+export LC_ALL
 
 #  Check if we are running Cygwin.
 cygwin=false;
