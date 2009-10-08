@@ -117,10 +117,12 @@ public abstract class BasicTableConsumer implements TableConsumer {
      * The <code>BasicTableConsumer</code> implementation displays
      * the message in a modal dialogue.
      *
-     * @param  th  error
+     * @param  th  error (may be null)
      */
     protected void processError( Throwable th ) {
-        ErrorDialog.showError( parent_, "Load Error", th,
-                               "Can't load table " + id_ );
+        if ( th != null ) {
+            ErrorDialog.showError( parent_, "Load Error", th,
+                                   "Can't load table " + id_ );
+        }
     }
 }
