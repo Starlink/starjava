@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -86,6 +87,9 @@ public class VizieRTableLoadDialog extends BasicTableLoadDialog {
     private boolean guiBuilt = false;
     
     private int lastSelectedIndex = 0;
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.topcat.contrib.cds" );
     
     
     /**
@@ -522,6 +526,7 @@ public class VizieRTableLoadDialog extends BasicTableLoadDialog {
         return new TableSupplier() {
             
             public StarTable getTable(StarTableFactory factory, String format) throws IOException {
+                logger.info( "VizieR query: " + tableUrl );
                 return factory.makeStarTable(tableUrl, "votable");
             }
             
