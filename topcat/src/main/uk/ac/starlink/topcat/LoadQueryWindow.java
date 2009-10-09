@@ -44,7 +44,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
     private final TableLoadChooser chooser_;
     private final StarTableFactory tableFactory_;
     private final JProgressBar progBar_;
-    private TopcatTableConsumer tableConsumer_;
+    private BasicTableConsumer tableConsumer_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -139,7 +139,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
      */
     public void makeVisible() {
         if ( tableConsumer_ == null ) {
-            tableConsumer_ = new TopcatTableConsumer();
+            tableConsumer_ = new LoadWindowTableConsumer();
             chooser_.setTableConsumer( tableConsumer_ );
             chooser_.setEnabled( true );
         }
@@ -168,17 +168,10 @@ public abstract class LoadQueryWindow extends QueryWindow {
     /**
      * Provides the callbacks for when a table is loaded.
      */
-    private class TopcatTableConsumer extends BasicTableConsumer {
+    private class LoadWindowTableConsumer extends TopcatTableConsumer {
 
-        private String id_;
-
-        TopcatTableConsumer() {
-            super( LoadQueryWindow.this );
-        }
-
-        public void loadStarted( String id ) {
-            id_ = id;
-            super.loadStarted( id );
+        LoadWindowTableConsumer() {
+            super( LoadQueryWindow.this, ControlWindow.getInstance() );
         }
 
         protected void setLoading( boolean loading ) {
@@ -200,25 +193,15 @@ public abstract class LoadQueryWindow extends QueryWindow {
                     LoadQueryWindow.this.dispose();
 
                     /* Pass the table to the method that actually wants it. */
-                    performLoading( table, id_ );
+                    performLoading( table, getLoadingId() );
                 }
                 else {
-                    JOptionPane.showMessageDialog( LoadQueryWindow.this,
+                    JOptionPane.showMessageDialog( getParent(),
                                                    "Table contained no rows",
                                                    "Empty Table",
                                                    JOptionPane.ERROR_MESSAGE );
                 }
             }
         }
-
-        protected void processError( Throwable th ) {
-            if ( th instanceof OutOfMemoryError ) {
-                TopcatUtils.memoryError( (OutOfMemoryError) th );
-            }
-            else {
-                super.processError( th );
-            }
-        }
     }
-
 }

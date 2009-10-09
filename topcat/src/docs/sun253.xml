@@ -12039,6 +12039,8 @@ introduced since the last version:
     <li>Load Window now has toolbar buttons as well as menu items for 
         different load dialogues.</li>
     <li>New VizieR catalogue service query load dialogue.</li>
+    <li>Load dialogue improvements: loading table is named in table list
+        while loading.</li>
     </ul>
     </p></dd>
 

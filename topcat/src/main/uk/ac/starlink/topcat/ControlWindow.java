@@ -83,7 +83,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.gui.BasicTableConsumer;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadChooser;
@@ -972,33 +971,6 @@ public class ControlWindow extends AuxWindow
      */
     private Action[] createTableLoadActions( Class[] tldClasses ) {
 
-        /* Construct a table consumer for use with the dialogues. */
-        final TableConsumer loadConsumer = new BasicTableConsumer( this ) {
-            private String id_;
-            public void loadStarted( String id ) {
-                id_ = id;
-                super.loadStarted( id );
-            }
-            protected void tableLoaded( StarTable table ) {
-                if ( table.getRowCount() > 0 ) {
-                    addTable( table, id_, true );
-                }
-                else {
-                    JOptionPane.showMessageDialog( ControlWindow.this,
-                                                   "Table contained no rows",
-                                                   "Empty Table",
-                                                   JOptionPane.ERROR_MESSAGE );
-                }
-            }
-            protected void processError( Throwable e ) {
-                if ( e instanceof OutOfMemoryError ) {
-                    TopcatUtils.memoryError( (OutOfMemoryError) e );
-                }
-                else {
-                    super.processError( e );
-                }
-            }
-        };
 
         /* For each requested class, identify the instance of that class
          * in the load chooser list of dialogues (better to use the same
@@ -1023,6 +995,28 @@ public class ControlWindow extends AuxWindow
                     act = new BasicAction( tld.getName(), tld.getIcon(),
                                            tld.getDescription() ) {
                         public void actionPerformed( ActionEvent evt ) {
+                            Object src = evt.getSource();
+                            Component parent = src instanceof Component 
+                                             ? (Component) src
+                                             : null;
+                            TableConsumer loadConsumer =
+                                new TopcatTableConsumer( parent,
+                                                         ControlWindow.this ) {
+                                    protected void tableLoaded( StarTable
+                                                                table ) {
+                                        if ( table.getRowCount() > 0 ) {
+                                            addTable( table, getLoadingId(),
+                                                      true );
+                                        }
+                                        else {
+                                            JOptionPane.showMessageDialog(
+                                                getParent(),
+                                                "Table contained no rows",
+                                                "Empty Table",
+                                                JOptionPane.ERROR_MESSAGE );
+                                        }
+                                    }
+                                };
                             tld.showLoadDialog( ControlWindow.this, tabfact_,
                                                 formatModel, loadConsumer );
                         }
