@@ -1,217 +1,39 @@
 package uk.ac.starlink.table.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Frame;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.net.URL;
-import javax.swing.Action;
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
- * Skeleton implementation of a {@link TableLoadDialog}.
+ * Skeleton implementation of a {@link TableLoadDialog} which can
+ * load a single table.
  * Concrete subclasses need to populate this panel with components forming
- * the specific part of the query dialogue (presumably text fields, 
- * combo boxes and so on) and then implement the 
+ * the specific part of the query dialogue (presumably text fields,
+ * combo boxes and so on) and then implement the
  * {@link #getTableSupplier} method which returns an object capable of
  * trying to load a table based on the current state of the component.
  * All the issues about threading are taken care of by the implementation
  * of this class.
  *
- * <p>Subclasses are encouraged to override the 
- * {@link javax.swing.JComponent#setEnabled} method to en/disable 
- * child components which ought not to be active while a load is actually
- * taking place.  The overriding implementation ought to call
- * <tt>super.setEnabled</tt>.
- *
  * @author   Mark Taylor (Starlink)
  * @since    23 Dec 2004
  */
-public abstract class BasicTableLoadDialog extends JPanel 
-                                           implements TableLoadDialog {
+public abstract class BasicTableLoadDialog extends AbstractTableLoadDialog {
 
-    private final String name_;
-    private final String description_;
-    private Icon icon_;
-    private final Action okAction_;
-    private final Action cancelAction_;
-    private final JProgressBar progBar_;
-    private JDialog dialog_;
-    private StarTableFactory factory_;
-    private ComboBoxModel formatModel_;
-    private TableConsumer consumer_;
-    private TableSupplier supplier_;
-    private ComboBoxModel emptyModel_;
     private LoadWorker worker_;
-    
+
     /**
      * Constructor.
      *
      * @param  name  dialogue name (typically used as text of a button)
-     * @param  description  dialogue description (typically used as
+     * @param  description  dialogue description (typeically used as
      *         tooltip text)
      */
     public BasicTableLoadDialog( String name, String description ) {
-        super( new BorderLayout() );
-        name_ = name;
-        description_ = description;
-        okAction_ = new AbstractAction( "OK" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                ok();
-            } 
-        };
-        cancelAction_ = new AbstractAction( "Cancel" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                cancel();
-            }
-        };
-        progBar_ = new JProgressBar();
-        emptyModel_ = new DefaultComboBoxModel();
+        super( name, description );
     }
 
-    public String getName() {
-        return name_;
-    }
-
-    public String getDescription() {
-        return description_;
-    }
-
-    public Icon getIcon() {
-        return icon_;
-    }
-
-    /**
-     * Sets the icon to associate with this dialogue.
-     */
-    public void setIcon( Icon icon ) {
-        icon_ = icon;
-    }
-
-    /**
-     * Sets the icon to associate with this dialogue by specifying its URL.
-     * If a null URL is given, the icon is set null.
-     *
-     * @param  iconUrl  URL of gif, png or jpeg icon
-     */
-    public void setIconUrl( URL iconUrl ) {
-        setIcon( iconUrl == null ? null : new ImageIcon( iconUrl ) );
-    }
-
-    public boolean showLoadDialog( Component parent,
-                                   StarTableFactory factory,
-                                   ComboBoxModel formatModel,
-                                   TableConsumer consumer ) {
-
-        /* Check state. */
-        if ( dialog_ != null ) {
-            throw new IllegalStateException( "Dialogue already active" );
-        }
-
-        /* Construct a modal dialogue containing this component. */
-        JDialog dia = createDialog( parent );
-
-        /* Set up state used only when the dialogue is active. */
-        dialog_ = dia;
-        factory_ = factory;
-        formatModel_ = formatModel;
-        consumer_ = consumer;
-        supplier_ = null;
-        setFormatModel( formatModel );
-
-        /* Pop up the modal dialogue. */
-        dia.show();
-        setBusy( false );
-
-        /* Clear members used only when the dialogue is active. */
-        boolean ok = dia == dialog_;
-        dialog_ = null;
-        factory_ = null;
-        formatModel_ = null;
-        consumer_ = null;
-        supplier_ = null;
-        setFormatModel( emptyModel_ );
-
-        /* Return status. */
-        return ok;
-    }
-
-    /**
-     * Constructs a dialogue based on this component; this component forms
-     * the main part of the dialogue window, with an OK and Cancel button
-     * shown as well.  This method may be overridden by subclasses to 
-     * customise the dialogue's appearance.
-     *
-     * @param  parent component
-     * @return  modal dialogue
-     */
-    protected JDialog createDialog( Component parent ) {
-
-        /* Work out the new dialogue's master. */
-        Frame frame = null;
-        if ( parent != null ) {
-            frame = parent instanceof Frame
-                  ? (Frame) parent
-                  : (Frame) SwingUtilities.getAncestorOfClass( Frame.class,
-                                                               parent );
-        }
-
-        /* Create a panel containing OK and Cancel buttons. */
-        JComponent controlPanel = Box.createHorizontalBox();
-        controlPanel.add( Box.createHorizontalGlue() );
-        controlPanel.add( new JButton( cancelAction_ ) );
-        controlPanel.add( Box.createHorizontalStrut( 5 ) );
-        controlPanel.add( new JButton( okAction_ ) );
-        controlPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-
-        /* Create the dialogue containing this component. */
-        JDialog dialog = new JDialog( frame, getName(), true );
-        JComponent main = new JPanel( new BorderLayout() );
-        main.add( this, BorderLayout.CENTER );
-        main.add( controlPanel, BorderLayout.SOUTH );
-        dialog.getContentPane().setLayout( new BorderLayout() );
-        dialog.getContentPane().add( main, BorderLayout.CENTER );
-        dialog.getContentPane().add( progBar_, BorderLayout.SOUTH );
-
-        /* Prepare and return dialogue. */
-        dialog.setLocationRelativeTo( parent );
-        dialog.pack();
-        return dialog;
-    }
-
-    /**
-     * Installs a table format selector intot this dialogue.
-     * If it makes sense for a concrete dialogue implementation to 
-     * display format selection, it should override this method in
-     * such a way as to present the format model to the user for
-     * selection (presumably by setting it as the model of a 
-     * visible {@link javax.swing.JComboBox}).
-     * 
-     * <p>The default implementation does nothing (suitable for classes
-     * which can't make sense of varying table formats).
-     *
-     * @param   formatModel  selector model to install
-     */
-    protected void setFormatModel( ComboBoxModel formatModel ) {
-    }
-   
     /**
      * Concrete subclasses should implement this method to supply a
      * TableSupplier object which can attempt to load a table based on
@@ -219,58 +41,14 @@ public abstract class BasicTableLoadDialog extends JPanel
      * If the state is not suitable for an attempt at loading a table
      * (e.g. some components are filled in in an obviously wrong way)
      * then a runtime exception such as <tt>IllegalStateException</tt>
-     * or <tt>IllegalArgumentException</tt> should be thrown.
+     * or <tt>IllegalArgumentException</tt>, with a human-readable 
+     * message, should be thrown.
      *
      * @return  table supplier corresponding to current state of this component
      * @throws  RuntimeException  if validation fails
      */
     protected abstract TableSupplier getTableSupplier()
             throws RuntimeException;
-
-    /**
-     * Returns the action associated with hitting the OK dialogue button.
-     *
-     * @return  OK action
-     */
-    protected Action getOkAction() {
-        return okAction_;
-    }
-
-    /**
-     * Returns the action associated with hitting the Cancel dialogue button.
-     *
-     * @return  Cancel action
-     */
-    protected Action getCancelAction() {
-        return cancelAction_;
-    }
-
-    /**
-     * Returns the progress bar at the bottom of the dialogue window.
-     */
-    protected JProgressBar getProgessBar() {
-        return progBar_;
-    }
-
-    /**
-     * Converts an exception to an IOException, probably by wrapping it
-     * in one.  This utility method can be used for wrapping up an 
-     * exception of some other kind if it needs to be thrown in 
-     * <code>TableSupplier.getTable</code>.
-     *
-     * @param  th  base throwable
-     * @return   IOException based on <code>th</code>
-     */
-    public static IOException asIOException( Throwable th ) {
-        if ( th instanceof IOException ) {
-            return (IOException) th;
-        }
-        String msg = th.getMessage();
-        if ( msg != null ) {
-            msg = th.getClass().getName();
-        }
-        return (IOException) new IOException( msg ).initCause( th );
-    }
 
     /**
      * Defines an object which can attempt to load a particular table.
@@ -297,100 +75,72 @@ public abstract class BasicTableLoadDialog extends JPanel
         String getTableID();
     }
 
-    /**
-     * TableSupplier implementation based on a 
-     * {@link uk.ac.starlink.util.DataSource}.
-     */
-    public class DataSourceTableSupplier implements TableSupplier {
-        private final DataSource datsrc_;
-        public DataSourceTableSupplier( DataSource datsrc ) {
-            datsrc_ = datsrc;
+    protected void submitLoad( JDialog dialog, final StarTableFactory tfact,
+                               final String format, TableConsumer consumer ) {
+        final TableSupplier supplier = getTableSupplier();
+        synchronized ( this ) {
+            worker_ = new LoadWorker( new DialogConsumer( consumer, dialog ),
+                                      supplier.getTableID() ) {
+                protected StarTable attemptLoad() throws IOException {
+                    StarTable table = supplier.getTable( tfact, format );
+                    synchronized ( BasicTableLoadDialog.this ) {
+                        if ( (LoadWorker) this == worker_ ) {
+                            worker_ = null;
+                        }
+                    }
+                    return table;
+                }
+            };
         }
-        public StarTable getTable( StarTableFactory factory, String format )
-                throws IOException {
-            return factory.makeStarTable( datsrc_, format );
-        }
-        public String getTableID() {
-            return datsrc_.getName();
-        }
-    }
-
-    /**
-     * Gives visible indication (including disabling components) that this
-     * component is active or not.
-     *
-     * @param  busy  whether we're busy
-     */
-    protected void setBusy( boolean busy ) {
-        setEnabled( ! busy );
-        okAction_.setEnabled( ! busy );
-        progBar_.setIndeterminate( busy );
-    }
-
-
-    private class DialogConsumer implements TableConsumer {
-        final JDialog dia_;
-        String id_;
-        DialogConsumer( JDialog dia ) {
-            dia_ = dia;
-        }
-        public void loadStarted( String id ) {
-            id_ = id;
-        }
-        public void loadSucceeded( StarTable table ) {
-            if ( dialog_ == dia_ ) {
-                consumer_.loadStarted( id_ );
-                consumer_.loadSucceeded( table );
-                setBusy( false );
-                dialog_.dispose();
-            }
-        }
-        public void loadFailed( Throwable th ) {
-            if ( dialog_ == dia_ ) {
-                consumer_.loadStarted( id_ );
-                consumer_.loadFailed( th );
-                setBusy( false );
-            }
-        }
-    }
-
-    /**
-     * Invoked when the OK button is pressed.
-     */
-    private void ok() {
-        if ( dialog_ == null ) {
-            return;
-        }
-        final TableSupplier supplier;
-        try { 
-            supplier = getTableSupplier();
-        }
-        catch ( RuntimeException e ) {
-            ErrorDialog.showError( dialog_, "Dialogue Error", e );
-            return;
-        }
-        final StarTableFactory factory = factory_;
-        final String format = formatModel_.getSelectedItem().toString();
         setBusy( true );
-        worker_ = new LoadWorker( new DialogConsumer( dialog_ ),
-                                  supplier.getTableID() ) {
-            protected StarTable attemptLoad() throws IOException {
-                return supplier.getTable( factory, format ); 
-            }
-        };
         worker_.invoke();
     }
 
-    /**
-     * Invoked when the Cancel button is pressed. 
-     */
-    private void cancel() {
-        if ( worker_ != null ) {
-            worker_.interrupt();
-            worker_ = null;
+    protected void cancelLoad() {
+        synchronized ( this ) {
+            if ( worker_ != null ) {
+                worker_.interrupt();
+                worker_ = null;
+            }
         }
-        if ( dialog_ != null ) {
-            dialog_.dispose();
+    }
+
+    /**
+     * TableConsumer implementation which handles aspects of the load
+     * sequence which are specific to this GUI.
+     * It passes on table consumption events to an underlying consumer
+     * object, but also makes appropriate changes to the state of the GUI.
+     */
+    private class DialogConsumer implements TableConsumer {
+        private final TableConsumer baseConsumer_;
+        private final JDialog dia_;
+        private String id_;
+        
+        /**
+         * Constructor.
+         *
+         * @param   baseConsumer  table consumer wrapped by this one
+         * @param   dia  dialogue on behalf of which this is operating
+         */
+        DialogConsumer( TableConsumer baseConsumer, JDialog dia ) {
+            baseConsumer_ = baseConsumer;
+            dia_ = dia;
+        }
+
+        public void loadStarted( String id ) {
+            baseConsumer_.loadStarted( id );
+        }
+
+        public void loadSucceeded( StarTable table ) {
+            setBusy( false );
+            baseConsumer_.loadSucceeded( table );
+            assert isActive( dia_ );
+            dia_.dispose();
+        }
+
+        public void loadFailed( Throwable th ) {
+            setBusy( false );
+            baseConsumer_.loadFailed( th );
         }
     }
 }
