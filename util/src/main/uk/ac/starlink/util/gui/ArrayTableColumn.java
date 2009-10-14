@@ -36,7 +36,7 @@ public abstract class ArrayTableColumn {
     /**
      * Returns the name of this column.
      *
-     * @param   column name
+     * @return   column name
      */
     public String getName() {
         return name_;

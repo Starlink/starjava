@@ -33,7 +33,6 @@ public class ArrayTableSorter {
      * Constructor.
      *
      * @param  model  table model
-     * @param  header
      */
     public ArrayTableSorter( ArrayTableModel model ) {
         model_ = model;
@@ -54,7 +53,7 @@ public class ArrayTableSorter {
     }
 
     /**
-     * Reverses the action of a previous {@link install} action.
+     * Reverses the action of a previous {@link #install} action.
      *
      * @param  header   table header component
      */
