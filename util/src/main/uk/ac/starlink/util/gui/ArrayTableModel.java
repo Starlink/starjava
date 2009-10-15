@@ -89,8 +89,17 @@ public class ArrayTableModel extends AbstractTableModel {
     public void sortByColumn( int icol, boolean descending ) {
         ArrayTableColumn col = columns_[ icol ];
         if ( Comparable.class.isAssignableFrom( col.getContentClass() ) ) {
-            Arrays.sort( items_, new ColumnComparator( col, descending ) );
-            fireTableDataChanged();
+            Comparator comparator = new ColumnComparator( col, descending );
+            boolean needsSort = false;
+            for ( int i = 1; i < items_.length && ! needsSort; i++ ) {
+                int comparison =
+                    comparator.compare( items_[ i - 1 ], items_[ i ] );
+                needsSort = needsSort || comparison > 0;
+            }
+            if ( needsSort ) {
+                Arrays.sort( items_, new ColumnComparator( col, descending ) );
+                fireTableDataChanged();
+            }
         }
     }
 

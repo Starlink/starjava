@@ -9,6 +9,8 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -37,6 +39,19 @@ public class ArrayTableSorter {
     public ArrayTableSorter( ArrayTableModel model ) {
         model_ = model;
         mouseListener_ = new SortMouseListener();
+        model.addTableModelListener( new TableModelListener() {
+            public void tableChanged( TableModelEvent evt ) {
+                if ( iSortcol_ >= 0 ) {
+                    final int iSortcol = iSortcol_;
+                    final boolean descending = descending_;
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            setSorting( iSortcol, descending );
+                        }
+                    } );
+                }
+            }
+        } );
         iSortcol_ = -1;
     }
 
