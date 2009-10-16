@@ -4,8 +4,11 @@
  *  History:
  *     06-MAR-2009 (Mark Taylor):
  *        Original version.
- *     14-JUL-200(Peter Draper):
- *       Give up on 1D FITS and always transmit FITS tables.
+ *     14-JUL-2009 (Peter Draper):
+ *        Give up on 1D FITS and always transmit FITS tables.
+ *     16-OCT-2009 (Peter Draper):
+ *        Send SSA meta-data as required by HIPE (paul.balm@sciops.esi.int)
+ *        More SSA 1.0 compatible.
  */
 package uk.ac.starlink.splat.util;
 
@@ -150,6 +153,8 @@ public class SpectrumSendActionManager
             if ( ! coordUnits.equals( "" ) ) {
                 meta.put( "vox:spectrum_units",
                           coordUnits + " " + dataUnits );
+                meta.put( "Spectrum.Char.SpectralAxis.unit", coordUnits );
+                meta.put( "Spectrum.Char.FluxAxis.unit", dataUnits );
             }
         }
 
@@ -158,6 +163,8 @@ public class SpectrumSendActionManager
         String yColName = spec.getYDataColumnName();
         if ( xColName != null && yColName != null ) {
             meta.put( "vox:spectrum_axes", xColName + " " + yColName );
+            meta.put( "Spectrum.Char.SpectralAxis.Name", xColName );
+            meta.put( "Spectrum.Char.FluxAxis.Name", yColName );
         }
 
         //  Prepare and return the actual message.

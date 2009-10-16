@@ -378,8 +378,8 @@ public class TableSpecDataImpl
             columnInfos[1] = 
                 new ColumnInfo( tsdi.columnInfos[tsdi.dataColumn] );
             if ( tsdi.errorColumn != -1 ) {
-                columnInfos[2] = 
-                    new ColumnInfo( tsdi.columnInfos[errorColumn] );
+                columnInfos[2] =
+                    new ColumnInfo( tsdi.columnInfos[tsdi.errorColumn] );
             }
             else {
                 columnInfos[2] = null;

@@ -1,11 +1,18 @@
 1 Starlink SPLAT news.
 
+   3.9-4
+   =====
+
+   The meta-data sent with a spectrum via SAMP now includes some SSA 
+   version 1 utypes (spectrum.char.fluxaxis.name, spectrum.char.fluxaxis.unit,
+   spectrum.char.spectralaxis.name and spectrum.char.spectralaxis.unit).
+
    3.9-3
    =====
 
    Table spectra sent via SAMP will now preserve the selected columns
    for coordinates, data and errors. Previously the first three columns
-   where always selected.
+   were always selected.
 
    The line identifier plot configuration options controlling the addition
    of the id name as a prefix or suffix are now saved between sessions.
