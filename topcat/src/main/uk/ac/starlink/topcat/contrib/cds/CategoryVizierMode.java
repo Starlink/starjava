@@ -4,6 +4,7 @@ import cds.vizier.VizieRQueryInterface;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -43,10 +44,22 @@ public class CategoryVizierMode extends SearchVizierMode {
     }
 
     protected Component createSearchComponent() {
-        final JComponent kwPanel = Box.createHorizontalBox();
-        kwPanel.add( createListBox( "Wavelength", lambdaList_ ) );
-        kwPanel.add( createListBox( "Mission", missionList_ ) );
-        kwPanel.add( createListBox( "Astronomy", astroList_ ) );
+        final JComponent[] listBoxes = new JComponent[] {
+            createListBox( "Wavelength", lambdaList_ ),
+            createListBox( "Mission", missionList_ ),
+            createListBox( "Astronomy", astroList_ ),
+        };
+        final JComponent kwPanel = new Box( BoxLayout.X_AXIS ) {
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                for ( int i = 0; i < listBoxes.length; i++ ) {
+                    listBoxes[ i ].setEnabled( enabled );
+                }
+            }
+        };
+        for ( int i = 0; i < listBoxes.length; i++ ) {
+            kwPanel.add( listBoxes[ i ] );
+        }
         kwPanel.addAncestorListener( new AncestorListener() {
             public void ancestorAdded( AncestorEvent evt ) {
                 kwPanel.removeAncestorListener( this );
@@ -126,15 +139,24 @@ public class CategoryVizierMode extends SearchVizierMode {
      * @param  list   list object
      * @return   component for display
      */
-    private static JComponent createListBox( String name, JList list ) {
-        JComponent box = new JPanel( new BorderLayout() );
-        box.add( new JLabel( name ), BorderLayout.NORTH );
-        list.setVisibleRowCount( 6 );
-        box.add( new JScrollPane( list,
-                                  JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                  JScrollPane.HORIZONTAL_SCROLLBAR_NEVER ),
-                 BorderLayout.CENTER );
+    private static JComponent createListBox( String name, final JList list ) {
+        final JLabel label = new JLabel( name );
+        final JScrollPane scroller =
+            new JScrollPane( list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                   JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+        JComponent box = new JPanel( new BorderLayout() ) {
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                label.setEnabled( enabled );
+                scroller.setEnabled( enabled );
+                scroller.getVerticalScrollBar().setEnabled( enabled );
+                list.setEnabled( enabled );
+            }
+        };
+        box.add( label, BorderLayout.NORTH );
+        box.add( scroller, BorderLayout.CENTER );
         box.setAlignmentY( Component.TOP_ALIGNMENT );
+        list.setVisibleRowCount( 6 );
         return box;
     }
 }

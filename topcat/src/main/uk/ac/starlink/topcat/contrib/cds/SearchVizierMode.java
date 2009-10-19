@@ -45,6 +45,7 @@ public abstract class SearchVizierMode implements VizierMode {
     private final Action startSearchAction_;
     private final Action cancelSearchAction_;
     private Component panel_;
+    private Component searchComponent_;
     private SearchWorker searchWorker_;
 
     /**
@@ -104,6 +105,8 @@ public abstract class SearchVizierMode implements VizierMode {
     /**
      * Constructs the GUI component which the user will fill in to 
      * specify what catalogues they want to select from.
+     * The setEnable() method on the returned component should ideally
+     * enable/disable all GUI controls visible in it.
      *
      * @return   search component
      */
@@ -124,13 +127,24 @@ public abstract class SearchVizierMode implements VizierMode {
     
     public Component getComponent() {
         if ( panel_ == null ) {
-            panel_ = createComponent( createSearchComponent() );
+            searchComponent_ = createSearchComponent();
+            panel_ = createComponent( searchComponent_ );
+            updateActions();
         }
         return panel_;
     }
 
     public JTable getQueryableTable() {
         return table_;
+    }
+
+    /**
+     * Returns the action which starts a search for catalogues.
+     *
+     * @return  start search action
+     */
+    public Action getSearchAction() {
+        return startSearchAction_;
     }
 
     /**
@@ -153,8 +167,11 @@ public abstract class SearchVizierMode implements VizierMode {
      * its current state.
      */
     private void updateActions() {
-        startSearchAction_.setEnabled( searchWorker_ == null &&
-                                       tld_.hasTarget() );
+        boolean canSearch = searchWorker_ == null && tld_.hasTarget();
+        startSearchAction_.setEnabled( canSearch );
+        if ( searchComponent_ != null ) {
+            searchComponent_.setEnabled( canSearch );
+        }
         cancelSearchAction_.setEnabled( searchWorker_ != null );
     }
 

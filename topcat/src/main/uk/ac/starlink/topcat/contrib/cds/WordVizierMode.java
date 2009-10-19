@@ -2,7 +2,9 @@ package uk.ac.starlink.topcat.contrib.cds;
 
 import cds.vizier.VizieRQueryInterface;
 import java.awt.Component;
+import javax.swing.JComponent;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
@@ -30,9 +32,17 @@ public class WordVizierMode extends SearchVizierMode {
     }
 
     protected Component createSearchComponent() {
-        Box line = Box.createHorizontalBox();
-        line.add( new JLabel( "Keywords: " ) );
+        final JLabel wordLabel = new JLabel( "Keywords: " );
+        JComponent line = new Box( BoxLayout.X_AXIS ) {
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                wordLabel.setEnabled( enabled );
+                wordField_.setEnabled( enabled );
+            }
+        };
+        line.add( wordLabel );
         line.add( wordField_ );
+        wordField_.addActionListener( getSearchAction() );
         return line;
     }
 
