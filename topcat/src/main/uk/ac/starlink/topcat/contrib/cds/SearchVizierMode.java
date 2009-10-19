@@ -162,7 +162,7 @@ public abstract class SearchVizierMode implements VizierMode {
      *
      * @param   searchComponent  the mode-specific GUI component
      */
-    protected Component createComponent( Component searchComponent ) {
+    private Component createComponent( Component searchComponent ) {
 
         /* Set up the container with the start/stop search buttons. */
         JComponent searchPanel = new JPanel( new BorderLayout() );
