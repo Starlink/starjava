@@ -155,6 +155,7 @@ public class DoubleValueField {
     public void setEnabled( boolean enabled ) {
         entryField_.setEnabled( enabled );
         convSelector_.setEnabled( enabled );
+        label_.setEnabled( enabled );
     }
 
     /**

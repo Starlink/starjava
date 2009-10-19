@@ -13,6 +13,7 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -35,6 +36,7 @@ public class SkyPositionEntry extends JPanel {
     private final DoubleValueField decField_;
     private final ValueFieldPanel qPanel_;
     private final List fieldList_;
+    private final JComponent[] enablables_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -50,12 +52,15 @@ public class SkyPositionEntry extends JPanel {
         super( new BorderLayout() );
         Box box = Box.createVerticalBox();
         add( box, BorderLayout.CENTER );
+        List enList = new ArrayList();
 
         /* Add name resolution field. */
         Box resolveBox = Box.createHorizontalBox();
         resolveField_ = new JTextField( 20 );
         resolveAction_ = new ResolveAction();
-        resolveBox.add( new JLabel( "Object Name: " ) );
+        JLabel resolveLabel = new JLabel( "Object Name: " );
+        enList.add( resolveLabel );
+        resolveBox.add( resolveLabel );
         resolveBox.add( resolveField_ );
         resolveBox.add( Box.createHorizontalStrut( 5 ) );
         resolveBox.add( new JButton( resolveAction_ ) );
@@ -68,21 +73,29 @@ public class SkyPositionEntry extends JPanel {
         decField_ = DoubleValueField.makeDecDegreesField();
 
         /* Place these fields. */
-        String sysLabel =
-            ( coordSysLabel == null || coordSysLabel.trim().length() == 0 )
-                ? null
-                : "(" + coordSysLabel + ")";
+        final JLabel raSysLabel;
+        final JLabel decSysLabel;
+        if ( coordSysLabel == null || coordSysLabel.trim().length() == 0 ) {
+            raSysLabel = null;
+            decSysLabel = null;
+        }
+        else {
+            String sysLabel = "(" + coordSysLabel + ")";
+            raSysLabel = new JLabel( sysLabel );
+            decSysLabel = new JLabel( sysLabel );
+            enList.add( raSysLabel );
+            enList.add( decSysLabel );
+        }
         qPanel_ = new ValueFieldPanel();
-        qPanel_.addField( raField_,
-                          sysLabel == null ? null : new JLabel( sysLabel ) );
-        qPanel_.addField( decField_,
-                          sysLabel == null ? null : new JLabel( sysLabel ) );
+        qPanel_.addField( raField_, raSysLabel );
+        qPanel_.addField( decField_, decSysLabel );
         box.add( qPanel_ );
 
         /* Set up list of fields. */
         fieldList_ = new ArrayList();
         fieldList_.add( raField_ );
         fieldList_.add( decField_ );
+        enablables_ = (JComponent[]) enList.toArray( new JComponent[ 0 ] );
     }
 
     /**
@@ -128,8 +141,12 @@ public class SkyPositionEntry extends JPanel {
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
         resolveField_.setEnabled( enabled );
+        resolveAction_.setEnabled( enabled );
         for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
             ((DoubleValueField) it.next()).setEnabled( enabled );
+        }
+        for ( int i = 0; i < enablables_.length; i++ ) {
+            enablables_[ i ].setEnabled( enabled );
         }
     }
 
