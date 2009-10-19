@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -173,6 +174,7 @@ public abstract class SearchVizierMode implements VizierMode {
         buttonLine.add( Box.createHorizontalStrut( 10 ) );
         buttonLine.add( new JButton( cancelSearchAction_ ) );
         buttonLine.add( Box.createHorizontalGlue() );
+        buttonLine.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         searchPanel.add( buttonLine, BorderLayout.SOUTH );
 
         /* Place the mode-specific search component appropriately. */

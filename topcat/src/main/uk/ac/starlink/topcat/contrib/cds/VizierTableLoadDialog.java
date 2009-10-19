@@ -21,6 +21,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -145,7 +146,11 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
         tabber_ = new JTabbedPane( JTabbedPane.TOP );
         for ( int iv = 0; iv < vizModes_.length; iv++ ) {
             VizierMode vizMode = vizModes_[ iv ];
-            tabber_.add( vizMode.getName(), vizMode.getComponent() );
+            JComponent container = new JPanel( new BorderLayout() );
+            container.setBorder( BorderFactory
+                                .createEmptyBorder( 5, 5, 5, 5 ) );
+            container.add( vizMode.getComponent(), BorderLayout.CENTER );
+            tabber_.add( vizMode.getName(), container );
         }
 
         /* Keep action enabledness up to date. */
@@ -170,16 +175,6 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
         }
         updateActions();
 
-        /* Cosmetics. */
-        Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
-        Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
-        rowsBox.setBorder( BorderFactory.createTitledBorder(
-            BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
-            "Row Selection" ) );
-        colsBox.setBorder( BorderFactory.createTitledBorder(
-            BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
-            "Column Selection" ) );
-
         /* Place components. */
         Box controlsBox = Box.createVerticalBox();
         controlsBox.add( rowsBox );
@@ -194,7 +189,17 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
         add( topLine, BorderLayout.NORTH );
         add( tabber_, BorderLayout.CENTER );
 
-        setPreferredSize( new Dimension( 500, 500 ) );
+        /* Cosmetics. */
+        Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
+        Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
+        rowsBox.setBorder( BorderFactory.createTitledBorder(
+            BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
+            "Row Selection" ) );
+        colsBox.setBorder( BorderFactory.createTitledBorder(
+            BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
+            "Column Selection" ) );
+        controlsBox.setBorder( gapBorder );
+        tabber_.setPreferredSize( new Dimension( 500, 300 ) );
     }
 
     public boolean isAvailable() {
