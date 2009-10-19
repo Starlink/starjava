@@ -1,10 +1,7 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import cds.vizier.VizieRQueryInterface;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import javax.swing.Box;
 import javax.swing.JComponent;
@@ -13,6 +10,8 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 /**
  * Vizier mode that allows the user to search for catalogues based on 
@@ -44,10 +43,20 @@ public class CategoryVizierMode extends SearchVizierMode {
     }
 
     protected Component createSearchComponent() {
-        JComponent kwPanel = Box.createHorizontalBox();
+        final JComponent kwPanel = Box.createHorizontalBox();
         kwPanel.add( createListBox( "Wavelength", lambdaList_ ) );
         kwPanel.add( createListBox( "Mission", missionList_ ) );
         kwPanel.add( createListBox( "Astronomy", astroList_ ) );
+        kwPanel.addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+                kwPanel.removeAncestorListener( this );
+                populateLists();
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
+            }
+        } );
         return kwPanel;
     }
 
@@ -57,21 +66,6 @@ public class CategoryVizierMode extends SearchVizierMode {
               .append( getKwArgs( "Mission", missionList_ ) )
               .append( getKwArgs( "Astronomy", astroList_ ) )
               .toString();
-    }
-
-    protected Component createComponent( Component searchComponent ) {
-        final Component c = super.createComponent( searchComponent );
-
-        /* Populate the lists of categories when the component is first
-         * made visible.  This doesn't work if the component listener is
-         * listening to the search component itself, I don't know why. */
-        c.addComponentListener( new ComponentAdapter() {
-            public void componentShown( ComponentEvent evt ) {
-                c.removeComponentListener( this );
-                populateLists();
-            }
-        } );
-        return c;
     }
 
     /**
@@ -94,6 +88,7 @@ public class CategoryVizierMode extends SearchVizierMode {
                         lambdaList_.setListData( lambdas );
                         missionList_.setListData( missions );
                         astroList_.setListData( astros );
+                        ((JComponent) getComponent()).revalidate();
                     }
                 } );
             }
@@ -135,7 +130,10 @@ public class CategoryVizierMode extends SearchVizierMode {
         JComponent box = new JPanel( new BorderLayout() );
         box.add( new JLabel( name ), BorderLayout.NORTH );
         list.setVisibleRowCount( 6 );
-        box.add( new JScrollPane( list ), BorderLayout.CENTER );
+        box.add( new JScrollPane( list,
+                                  JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                  JScrollPane.HORIZONTAL_SCROLLBAR_NEVER ),
+                 BorderLayout.CENTER );
         box.setAlignmentY( Component.TOP_ALIGNMENT );
         return box;
     }

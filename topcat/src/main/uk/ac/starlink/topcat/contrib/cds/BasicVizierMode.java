@@ -2,9 +2,6 @@ package uk.ac.starlink.topcat.contrib.cds;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -12,6 +9,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -53,10 +52,14 @@ public abstract class BasicVizierMode implements VizierMode {
         panel_.add( new JScrollPane( table_,
                                      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER ) );
-        panel_.addComponentListener( new ComponentAdapter() {
-            public void componentShown( ComponentEvent evt ) {
-                panel_.removeComponentListener( this );
+        panel_.addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+                panel_.removeAncestorListener( this );
                 populateTable();
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
             }
         } );
     }
