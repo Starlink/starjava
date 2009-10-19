@@ -17,6 +17,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
@@ -85,8 +87,13 @@ public abstract class SearchVizierMode implements VizierMode {
                 setSearchWorker( null );
             }
         };
-        tld_.addTargetListener( new ActionListener() {
+        tld_.addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
+                updateActions();
+            }
+        } );
+        tld_.addTargetCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
                 updateActions();
             }
         } );

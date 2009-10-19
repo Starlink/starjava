@@ -25,6 +25,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.border.Border;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -147,12 +149,16 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
         }
 
         /* Keep action enabledness up to date. */
-        ActionListener readyActionListener = new ActionListener() {
+        addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 updateActions();
             }
-        };
-        addTargetListener( readyActionListener );
+        } );
+        addTargetCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                updateActions();
+            }
+        } );
         ListSelectionListener readySelListener = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 updateActions();
@@ -339,21 +345,40 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
      *
      * @param  listener  listener to add
      */
-    public void addTargetListener( ActionListener listener ) {
+    public void addTargetActionListener( ActionListener listener ) {
         skyEntry_.addActionListener( listener );
         allButt_.addActionListener( listener );
         coneButt_.addActionListener( listener );
     }
 
     /**
-     * Removes a listener previously added by {@link #addTargetListener}.
+     * Removes a listener previously added by {@link #addTargetActionListener}.
      *
      * @param  listener   listener to remove
      */
-    public void removeTargetListener( ActionListener listener ) {
+    public void removeTargetActionListener( ActionListener listener ) {
         skyEntry_.removeActionListener( listener );
         allButt_.addActionListener( listener );
         coneButt_.addActionListener( listener );
+    }
+
+    /**
+     * Adds a listener which will be notified when the text entered in
+     * the user-selected target boxes may change.
+     *
+     * @param  listener  the listener to add
+     */
+    public void addTargetCaretListener( CaretListener listener ) {
+        skyEntry_.addCaretListener( listener );
+    }
+
+    /**
+     * Removes a listener previously added by {@link #addTargetCaretListener}.
+     *
+     * @param  listener  listener to remove
+     */
+    public void removeTargetCaretListener( CaretListener listener ) {
+        skyEntry_.removeCaretListener( listener );
     }
 
     /**
