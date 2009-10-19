@@ -71,7 +71,7 @@ public class Driver {
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.SsapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.topcat.contrib.cds.VizieRTableLoadDialog",
+        "uk.ac.starlink.topcat.contrib.cds.VizierTableLoadDialog",
         "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog",
     };
 
@@ -351,7 +351,7 @@ public class Driver {
             else if ( arg.equals( "-vizier" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.topcat.contrib.cds."
-                              + "VizieRTableLoadDialog" );
+                              + "VizierTableLoadDialog" );
             }
             else if ( arg.equals( "-gavo" ) ) {
                 it.remove();
