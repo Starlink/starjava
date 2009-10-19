@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.CaretListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -153,6 +154,30 @@ public class SkyPositionEntry extends JPanel {
         for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
             ((DoubleValueField) it.next()).getEntryField()
                                           .removeActionListener( listener );
+        }
+    }
+
+    /**
+     * Adds a caret listener to the entry fields of this component.
+     *
+     * @param  listener  listener to add
+     */
+    public void addCaretListener( CaretListener listener ) {
+        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
+            ((DoubleValueField) it.next()).getEntryField()
+                                          .addCaretListener( listener );
+        }
+    }
+
+    /**
+     * Removes a caret listener from the entry fields of this component.
+     *
+     * @param  listener  listener to remove
+     */
+    public void removeCaretListener( CaretListener listener ) {
+        for ( Iterator it = fieldList_.iterator(); it.hasNext(); ) {
+            ((DoubleValueField) it.next()).getEntryField()
+                                          .removeCaretListener( listener );
         }
     }
 
