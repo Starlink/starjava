@@ -261,6 +261,13 @@ public abstract class AbstractTableLoadDialog extends JPanel
         progBar_.setIndeterminate( busy );
     }
 
+    /**
+     * Indicates whether the given dialogue is currently being displayed
+     * to the user containing this component.
+     *
+     * @param  dialog  dialog window to test
+     * @return   true  iff <code>dialog</code> is being displayed
+     */
     protected boolean isActive( JDialog dialog ) {
         return dialog == dialog_;
     }
