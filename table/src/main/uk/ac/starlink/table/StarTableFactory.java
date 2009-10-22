@@ -396,6 +396,77 @@ public class StarTableFactory {
     }
 
     /**
+     * Constructs an array of StarTables from a DataSource using automatic
+     * format detection.  Only certain formats (those whose handlers 
+     * implement {@link MultiTableBuilder} will be capable of returning
+     * an array having more than one element.
+     *
+     * @param  datsrc  the data source containing the table data
+     * @return   an array of tables loaded from <code>datsrc</code>
+     * @throws TableFormatException if none of the default handlers
+     *         could turn <tt>datsrc</tt> into a table
+     * @throws IOException  if an I/O error is encountered
+     */
+    public StarTable[] makeStarTables( DataSource datsrc ) 
+            throws TableFormatException, IOException {
+        for ( Iterator it = defaultBuilders_.iterator(); it.hasNext(); ) {
+            TableBuilder builder = (TableBuilder) it.next();
+            try {
+                if ( builder instanceof MultiTableBuilder ) {
+                    StarTable[] startabs =
+                        ((MultiTableBuilder) builder)
+                       .makeStarTables( datsrc, getStoragePolicy() );
+                    for ( int i = 0; i < startabs.length; i++ ) {
+                        startabs[ i ] = prepareTable( startabs[ i ] );
+                        if ( startabs[ i ].getName() == null ) {
+                            startabs[ i ].setName( datsrc.getName() + "-"
+                                                 + ( i + 1 ) );
+                        }
+                    }
+                    return startabs;
+                }
+                else {
+                    StarTable startab =
+                        builder.makeStarTable( datsrc, requireRandom(),
+                                               getStoragePolicy() );
+                    startab = prepareTable( startab );
+                    startab.setURL( datsrc.getURL() );
+                    if ( startab.getName() == null ) {
+                        startab.setName( datsrc.getName() );
+                    }
+                    return new StarTable[] { startab };
+                }
+            }
+            catch ( TableFormatException e ) {
+                logger.info( "Table not " + builder.getFormatName() + " - "
+                           + e.getMessage() );
+            }
+        }
+
+        /* None of the handlers could make tables. */
+        StringBuffer msg = new StringBuffer();
+        msg.append( "Can't make StarTables from \"" )
+           .append( datsrc.getName() )
+           .append( "\"" );
+        Iterator it = defaultBuilders_.iterator();
+        if ( it.hasNext() ) {
+            msg.append( " (tried" );
+            while ( it.hasNext() ) {
+                msg.append( " " )
+                   .append( ((TableBuilder) it.next()).getFormatName() );
+                if ( it.hasNext() ) {
+                    msg.append( ',' );
+                }
+            }
+            msg.append( ')' );
+        }
+        else {
+            msg.append( " - no table handlers available" );
+        }
+        throw new TableFormatException( msg.toString() );
+    }
+
+    /**
      * Constructs a readable <tt>StarTable</tt> from a location string
      * using automatic format detection.  The location string
      * can represent a filename or URL, including a <tt>jdbc:</tt>
@@ -431,6 +502,7 @@ public class StarTableFactory {
      *        <tt>datsrc</tt> into a table is available
      * @throws IOException  if one of the handlers encounters an error
      *         constructing a table
+     * @deprecated  Use <code>makeStarTable(new URLDataSource(url))</code>
      */
     public StarTable makeStarTable( URL url ) throws IOException {
         return makeStarTable( new URLDataSource( url ) );
@@ -496,6 +568,79 @@ public class StarTableFactory {
     }
 
     /**
+     * Constructs an array of StarTables from a DataSource using a named
+     * table input handler.
+     * The input handler may be named either using its format name
+     * (as returned from the {@link TableBuilder#getFormatName} method)
+     * or by giving the full class name of the handler.  In the latter
+     * case this factory does not need to have been informed about the
+     * handler previously.  If <tt>null</tt> or the empty string or
+     * the special value {@link #AUTO_HANDLER} is 
+     * supplied for <tt>handler</tt>, it will fall back on automatic 
+     * format detection.
+     *
+     * <p>If the handler does not implement the {@link MultiTableBuilder}
+     * interface, then the returned array will have a single element.
+     *
+     * @param  datsrc  the data source containing the table data
+     * @param  handler  specifier for the handler which can handle tables
+     *         of the right format
+     * @return an array of StarTables loaded from <tt>datsrc</tt>
+     * @throws TableFormatException  if <tt>datsrc</tt> does not contain
+     *         a table in the format named by <tt>handler</tt>
+     * @throws IOException  if an I/O error is encountered
+     */
+    public StarTable[] makeStarTables( DataSource datsrc, String handler )
+            throws TableFormatException, IOException {
+        if ( handler == null || handler.trim().length() == 0 ||
+             handler.equals( AUTO_HANDLER ) ) {
+            return makeStarTables( datsrc );
+        }
+        TableBuilder builder = getTableBuilder( handler );
+        StarTable[] startabs;
+        try {
+            if ( builder instanceof MultiTableBuilder ) {
+                startabs = ((MultiTableBuilder) builder)
+                          .makeStarTables( datsrc, getStoragePolicy() );
+                for ( int i = 0; i < startabs.length; i++ ) {
+                    startabs[ i ] = prepareTable( startabs[ i ] );
+                    if ( startabs[ i ].getName() == null ) {
+                        startabs[ i ].setName( datsrc.getName() + "-"
+                                             + ( i + 1 ) );
+                    }
+                }
+                return startabs;
+            }
+            else {
+                StarTable startab =
+                    builder.makeStarTable( datsrc, requireRandom(),
+                                           getStoragePolicy() );
+                startab = prepareTable( startab );
+                startab.setURL( datsrc.getURL() );
+                if ( startab.getName() == null ) {
+                    startab.setName( datsrc.getName() );
+                }
+                return new StarTable[] { startab };
+            }
+        }
+
+        /* If the table handler fails to read the table, rethrow the exception
+         * with additional information about the handler that failed. */
+        catch ( TableFormatException e ) {
+            String msg = "Can't open " + datsrc.getName() + " as " +
+                         builder.getFormatName();
+            String emsg = e.getMessage();
+            if ( emsg != null && emsg.trim().length() > 0 ) {
+                msg += " (" + emsg + ")";
+            }
+            else {
+                msg += " (" + e.toString() + ")";
+            }
+            throw new TableFormatException( msg, e );
+        }
+    }
+
+    /**
      * Constructs a readable <tt>StarTable</tt> from a location string
      * using a named table input handler.
      * The input handler may be named either using its format name
@@ -552,6 +697,8 @@ public class StarTableFactory {
      * @throws TableFormatException  if the resource at <tt>url</tt> cannot
      *         be turned into a table by <tt>handler</tt>
      * @throws IOException  if an I/O error is encountered
+     * @deprecated  Use 
+     *         <code>makeStarTable(new URLDataSource(url),handler)</code>
      */
     public StarTable makeStarTable( URL url, String handler )
             throws TableFormatException, IOException {
