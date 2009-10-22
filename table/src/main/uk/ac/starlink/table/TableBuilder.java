@@ -8,6 +8,8 @@ import uk.ac.starlink.util.DataSource;
 /**
  * Interface for objects which can construct a <tt>StarTable</tt> from
  * a data resource.
+ * TableBuilder implementations may also choose to implement
+ * {@link MultiTableBuilder}.
  *
  * @author   Mark Taylor (Starlink)
  */
