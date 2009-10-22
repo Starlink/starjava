@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -436,8 +437,9 @@ public class TableLoadChooser extends JPanel {
                         tldList.add( tld );
                     }
                     catch ( Throwable th ) {
-                        logger_.info( "Error instantiating load dialogue " +
-                                      cname + ": " + th );
+                        logger_.log( Level.INFO,
+                                     "Error instantiating load dialogue " +
+                                      cname, th );
                     }
                 }
             }
