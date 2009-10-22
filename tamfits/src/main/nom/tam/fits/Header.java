@@ -437,12 +437,12 @@ public class Header implements FitsElement {
 
                 while (need > 0) {
                     len = dis.read(buffer, 80-need, need);
-		    count += 1;
                     if (len == 0) {
                         throw new TruncatedFileException();
                     }
                     need -= len;
                 }
+		count += 1;
 	    } catch (EOFException e) {
 
                 // Rethrow the EOF if we are at the beginning of the header,

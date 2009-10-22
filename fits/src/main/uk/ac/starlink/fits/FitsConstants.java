@@ -298,12 +298,12 @@ public class FitsConstants {
             try {
                 while ( need > 0 ) {
                     len = strm.read( buffer, 80 - need, need );
-                    count++;
-                    if ( len == 0 ) {
+                    if ( len <= 0 ) {
                         throw new TruncatedFileException();
                     }
                     need -= len;
                 }
+                count++;
             }
             catch ( EOFException e ) {
                 if ( firstCard && need == 80 ) {
