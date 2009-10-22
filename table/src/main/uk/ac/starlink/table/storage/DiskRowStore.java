@@ -8,8 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RandomRowSequence;
@@ -19,6 +17,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Implementation of RowStore which stores data on disk.
@@ -37,7 +36,7 @@ public class DiskRowStore implements RowStore {
     private final File file_;
     private StarTable template_;
     private Codec[] codecs_;
-    private List[] colSizeLists_;
+    private IntList[] colSizeLists_;
     private DataOutputStream out_;
     private long nrow_;
     private int ncol_;
@@ -83,14 +82,14 @@ public class DiskRowStore implements RowStore {
     }
 
     public void acceptMetadata( StarTable meta ) throws TableFormatException {
-        if ( template_ != null ){ 
+        if ( template_ != null ) {
             throw new IllegalStateException( "Metadata already submitted" );
         }
         logger_.info( "Storing table data in " + file_ );
         template_ = meta;
         ncol_ = meta.getColumnCount();
         codecs_ = new Codec[ ncol_ ];
-        colSizeLists_ = new List[ ncol_ ];
+        colSizeLists_ = new IntList[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             ColumnInfo cinfo = meta.getColumnInfo( icol );
             Codec codec = Codec.getCodec( cinfo );
@@ -100,7 +99,7 @@ public class DiskRowStore implements RowStore {
             }
             codecs_[ icol ] = codec;
             if ( codec.getItemSize() < 0 ) {
-                colSizeLists_[ icol ] = new ArrayList();
+                colSizeLists_[ icol ] = new IntList();
             }
         }
     }
@@ -115,7 +114,7 @@ public class DiskRowStore implements RowStore {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             int nbyte = codecs_[ icol ].encode( row[ icol ], out_ );
             if ( colSizeLists_[ icol ] != null ) {
-                colSizeLists_[ icol ].add( new Integer( nbyte ) );
+                colSizeLists_[ icol ].add( nbyte );
             }
         }
         nrow_++;
@@ -142,13 +141,8 @@ public class DiskRowStore implements RowStore {
                     .constantColumnWidth( codecs_[ icol ].getItemSize() );
             }
             else {
-                int[] widthArray = new int[ Tables.checkedLongToInt( nrow_ ) ];
-                List widthList = colSizeLists_[ icol ];
-                for ( int irow = 0; irow < nrow_; irow++ ) {
-                    widthArray[ irow ] = ((Integer) widthList.get( irow ))
-                                        .intValue();
-                }
-                cw = ColumnWidth.variableColumnWidth( widthArray );
+                cw = ColumnWidth.variableColumnWidth( colSizeLists_[ icol ]
+                                                     .toIntArray() );
                 colSizeLists_[ icol ] = null;
             }
             colWidths[ icol ] = cw;
