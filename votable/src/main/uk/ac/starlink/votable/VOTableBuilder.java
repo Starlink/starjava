@@ -3,6 +3,8 @@ package uk.ac.starlink.votable;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -10,6 +12,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -24,7 +27,7 @@ import uk.ac.starlink.util.SourceReader;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class VOTableBuilder implements TableBuilder {
+public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
 
     private boolean strict_;
     private static Pattern htmlPattern = 
@@ -82,34 +85,6 @@ public class VOTableBuilder implements TableBuilder {
                                     StoragePolicy storagePolicy )
             throws TableFormatException, IOException {
 
-        /* Check if the source looks like HTML.  If it does it is almost
-         * certainly not going to represent a valid VOTable, and trying
-         * to process it will be slow, since the parser may take some
-         * time to work out that it's not XML we are seeing.  
-         * In this case bail out. */
-        String sintro = new String( datsrc.getIntro() );
-        if ( htmlPattern.matcher( sintro ).lookingAt() ) {
-            throw new TableFormatException( "Data looks like HTML" );
-        }
-
-        /* Try to get a VOTable object from this source. */
-        VOElement voEl;
-        try {
-            voEl = new VOElementFactory( storagePolicy )
-                  .makeVOElement( datsrc );
-        }
-
-        /* If we have got an Exception it's probably because 
-         * it wasn't XML.  Return null to indicate it wasn't our kind
-         * of input. */
-        catch ( SAXException e ) {
-            throw new TableFormatException( "XML parse error (" 
-                                          + e.getMessage() + ")", e );
-        }
-        catch ( IOException e ) {
-            throw e;
-        }
-
         /* If the datasource has a position, try to use this to identify
          * the actual table we're after in the document. 
          * For now, this is just an integer indicating which table in 
@@ -133,21 +108,24 @@ public class VOTableBuilder implements TableBuilder {
             }
         }
 
-        /* Find the requested TABLE element within the VOTable. */
-        NodeList tables = voEl.getElementsByVOTagName( "TABLE" );
-        int ntab = tables.getLength();
+        /* Read the data. */
+        TableElement[] tEls = readTableElements( datsrc, storagePolicy );
+
+        /* Identify the requested TABLE element from the list that has been
+         * read. */
+        int ntab = tEls.length;
         if ( ntab == 0 ) {
-            throw new TableFormatException( "Document contains " 
+            throw new TableFormatException( "Document contains "
                                           + "no TABLE elements" );
         }
         else if ( itab >= ntab ) {
-            throw new IOException(
-                "VOTable document contained only " + ntab + " tables" );
+            throw new IOException( "VOTable document contained only " + ntab
+                                 + " tables; item " + itab + " requested" );
         }
-        TableElement tableEl = (TableElement) tables.item( itab );
+        TableElement tEl = tEls[ itab ];
 
         /* Adapt the TABLE element to a StarTable. */
-        StarTable st = new VOStarTable( tableEl );
+        StarTable st = new VOStarTable( tEl );
 
         /* Check it looks vaguely sensible. */
         if ( st.getColumnCount() == 0 ) {
@@ -156,6 +134,73 @@ public class VOTableBuilder implements TableBuilder {
 
         /* Return the StarTable. */
         return st;
+    }
+
+    public StarTable[] makeStarTables( DataSource datsrc,
+                                       StoragePolicy storagePolicy )
+            throws TableFormatException, IOException {
+        TableElement[] tEls = readTableElements( datsrc, storagePolicy );
+        List tableList = new ArrayList();
+        for ( int i = 0; i < tEls.length; i++ ) {
+            VOStarTable table = new VOStarTable( tEls[ i ] );
+            if ( table.getColumnCount() > 0 ) {
+                tableList.add( table );
+            }
+        }
+        return (StarTable[]) tableList.toArray( new StarTable[ 0 ] );
+    }
+
+    /**
+     * Reads a DataSource and returns an array of all the TableElements
+     * in it, in breadth-first order.
+     *
+     * @param  datsrc  the location of the VOTable document to use
+     * @param  storagePolicy  a StoragePolicy object which may be used to
+     *         supply scratch storage if the builder needs it
+     * @return  array of TableElements
+     */
+    private TableElement[] readTableElements( DataSource datsrc,
+                                              StoragePolicy storagePolicy )
+            throws TableFormatException, IOException {
+
+        /* Check if the source looks like HTML.  If it does it is almost
+         * certainly not going to represent a valid VOTable, and trying
+         * to process it will be slow, since the parser may take some
+         * time to work out that it's not XML we are seeing.
+         * In this case bail out. */
+        String sintro = new String( datsrc.getIntro() );
+        if ( htmlPattern.matcher( sintro ).lookingAt() ) {
+            throw new TableFormatException( "Data looks like HTML" );
+        }
+
+        /* Try to get a VOTable object from this source. */
+        VOElement voEl;
+        try {
+            voEl = new VOElementFactory( storagePolicy )
+                  .makeVOElement( datsrc );
+        }
+
+        /* If we have got a parse exception it's probably because
+         * it wasn't XML.  Rethrow as a TableFormatException 
+         * to indicate it wasn't our kind of input. */
+        catch ( SAXException e ) {
+            throw new TableFormatException( "XML parse error ("
+                                          + e.getMessage() + ")", e );
+        }
+        catch ( IOException e ) {
+            throw e;
+        }
+
+        /* Identify the TABLE elements within the VOTable document. */
+        NodeList tables = voEl.getElementsByVOTagName( "TABLE" );
+
+        /* Return them as an array of TableElements. */
+        int ntab = tables.getLength();
+        TableElement[] els = new TableElement[ ntab ];
+        for ( int itab = 0; itab < ntab; itab++ ) {
+            els[ itab ] = (TableElement) tables.item( itab );
+        }
+        return els;
     }
 
     /**
