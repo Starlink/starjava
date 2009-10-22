@@ -5,6 +5,12 @@ import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nom.tam.fits.AsciiTable;
 import nom.tam.fits.AsciiTableHDU;
 import nom.tam.fits.BinaryTable;
@@ -18,6 +24,7 @@ import nom.tam.fits.TableHDU;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.RandomAccess;
+import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -43,7 +50,10 @@ import uk.ac.starlink.util.IOUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class FitsTableBuilder implements TableBuilder {
+public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Returns "FITS".
@@ -135,6 +145,92 @@ public class FitsTableBuilder implements TableBuilder {
         finally {
             if ( strm != null && table == null ) {
                 strm.close();
+            }
+        }
+    }
+
+    public StarTable[] makeStarTables( DataSource datsrc, StoragePolicy policy )
+            throws IOException {
+        if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
+            throw new TableFormatException( "Doesn't look like a FITS file" );
+        }
+
+        ArrayDataInput in = null;
+        long pos = 0L;
+        List tableList = new ArrayList();
+        int ihdu = 0;
+        try {
+            for ( ; ; ihdu++ ) {
+                if ( in == null ) {
+                    in = FitsConstants.getInputStreamStart( datsrc );
+                    if ( pos > 0 ) {
+                        if ( in instanceof RandomAccess ) {
+                            ((RandomAccess) in).seek( pos );
+                        }
+                        else {
+                            IOUtils.skipBytes( in, pos );
+                        }
+                    }
+                }
+                TableResult tres = attemptReadTable( in, datsrc, pos );
+                StarTable table = tres.table_;
+                pos = tres.afterPos_;
+                if ( tres.streamUsed_ ) {
+                    in = null;
+                }
+                if ( table != null ) {
+                    table.setName( datsrc.getName() + "#" + ihdu );
+                    URL baseUrl = datsrc.getURL();
+                    if ( baseUrl != null &&
+                         baseUrl.toString().indexOf( '#' ) < 0 ) {
+                        String hduUrl = baseUrl + "#" + ihdu;
+                        try {
+                            table.setURL( new URL( hduUrl ) );
+                        }
+                        catch ( MalformedURLException e ) {
+                            logger.info( "Bad URL " + hduUrl + "?" );
+                        }
+                    }
+                    tableList.add( table );
+                }
+                if ( tres.streamEnded_ ) {
+                    return (StarTable[])
+                           tableList.toArray( new StarTable[ 0 ] );
+                }
+            }
+        }
+        catch ( IOException e ) {
+            if ( tableList.isEmpty() ) {
+                throw e;
+            }
+            else {
+                if ( ! ( e instanceof EOFException ) ) {
+                    logger.log( Level.WARNING,
+                                "Error reading FITS tables at extension "
+                              + ihdu + " in " + datsrc.getName() + "; "
+                              + "returning earlier tables" );
+                }
+                return (StarTable[])
+                       tableList.toArray( new StarTable[ 0 ] );
+            }
+        }
+        catch ( FitsException e ) {
+            if ( tableList.isEmpty() ) {
+                throw (TableFormatException)
+                      new TableFormatException( e.getMessage() ).initCause( e );
+            }
+            else {
+                logger.log( Level.WARNING,
+                            "Error reading FITS tables at extension "
+                          + ihdu + " in " + datsrc.getName() + "; "
+                          + "returning earlier tables" );
+                return (StarTable[])
+                       tableList.toArray( new StarTable[ 0 ] );
+            }
+        }
+        finally {
+            if ( in != null ) {
+                in.close();
             }
         }
     }
@@ -233,10 +329,16 @@ public class FitsTableBuilder implements TableBuilder {
     }
 
     /**
-     * Reads the next header, and if it represents a table HDU, makes a
-     * StarTable out of it and returns.  If it is some other kind of HDU, 
-     * <tt>null</tt> is returned.  In either case, the stream is advanced
-     * the end of that HDU.
+     * Reads the next header, and returns a StarTable based on it if it
+     * represents a table.  If a StarTable is returned, it may not be safe
+     * to use the supplied input stream subsequently for other purposes.
+     * If the next HDU is some non-table type, <code>null</code> is
+     * returned and the stream is advanced to the end of that HDU;
+     * in this case the stream may continue to be used (e.g. for 
+     * further calls to this method).
+     *
+     * <p>On exit, the first element of the <code>pos</code> array 
+     * contains the position after the current HDU.
      * 
      * @param  strm  stream to read from, positioned at the start of an HDU
      *         (before the header)
@@ -253,45 +355,155 @@ public class FitsTableBuilder implements TableBuilder {
                                               boolean wantRandom, 
                                               DataSource datsrc, long[] pos )
             throws FitsException, IOException {
+        TableResult tres = attemptReadTable( strm, datsrc, pos[ 0 ] );
+        pos[ 0 ] = tres.afterPos_;
+        return tres.table_;
+    }
+
+    /**
+     * Reads the next header, tries to turn it into a table, and returns
+     * information about the result.
+     * If the HDU represents a table, the returned value contains a
+     * StarTable based on it; in any case it contains information about
+     * the state of the stream following the attempt.
+     *
+     * @param   strm  stream to read for, positioned at the start of an HDU
+     *          (before the header)
+     * @param   datsrc  a DataSource which can supply the data
+     *          in <code>strm</code>
+     * @param   pos  the position in <code>datsrc</code> at which 
+     *          <code>strm</code> is positioned
+     * @return  an object which may contain a table and other information
+     */
+    private static TableResult attemptReadTable( ArrayDataInput strm,
+                                                 DataSource datsrc, long pos )
+           throws FitsException, IOException {
 
         /* Read the header. */
         Header hdr = new Header();
         int headsize = FitsConstants.readHeader( hdr, strm );
         long datasize = FitsConstants.getDataSize( hdr );
-        long datpos = pos[ 0 ] + headsize;
-        pos[ 0 ] += headsize + datasize;
+        long datpos = pos + headsize;
+        long afterpos = pos + headsize + datasize;
         String xtension = hdr.getStringValue( "XTENSION" );
-          
-        /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */ 
+
+        /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */
         if ( "BINTABLE".equals( xtension ) ) {
             if ( strm instanceof RandomAccess ) {
-                return BintableStarTable
-                      .makeRandomStarTable( hdr, (RandomAccess) strm );
+                StarTable table =
+                    BintableStarTable
+                   .makeRandomStarTable( hdr, ( RandomAccess) strm );
+                ((RandomAccess) strm).seek( afterpos );
+                return new TableResult( table, afterpos, true, isEof( strm ) );
             }
             else {
-                return BintableStarTable
-                      .makeSequentialStarTable( hdr, datsrc, datpos );
+                StarTable table =
+                    BintableStarTable
+                   .makeSequentialStarTable( hdr, datsrc, datpos );
+                return new TableResult( table, afterpos, false, isEof( strm ) );
             }
-
-            // BinaryTable tdata = new BinaryTable( hdr );
-            // tdata.read( strm );
-            // TableHDU thdu = new BinaryTableHDU( hdr, (Data) tdata );
-            // return new FitsStarTable( thdu );
         }
 
-        /* If it's a TABLE HDU (ASCII table), make a FitsStarTable. */
+        /* If it's a TABLE HDU (ASCII table) make a FitsStarTable. */
         else if ( "TABLE".equals( xtension ) ) {
             AsciiTable tdata = new AsciiTable( hdr );
             tdata.read( strm );
             tdata.getData();
             TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
-            return new FitsStarTable( thdu );
+            return new TableResult( new FitsStarTable( thdu ),
+                                    afterpos, false, isEof( strm ) );
         }
 
-        /* It's not a table HDU - just skip over it and return null. */
+        /* It's not a table HDU - skip over it and return no table. */
         else {
             IOUtils.skipBytes( strm, datasize );
-            return null;
+            return new TableResult( null, afterpos, false, isEof( strm ) );
+        }
+    }
+
+    /**
+     * Works out whether a given ArrayDataInput is positioned at the end
+     * of the stream or not.  A best effort is made.  The position of
+     * the stream is not affected; though note the possibility of 
+     * (common) InputStream mark/reset bugs causing trouble here.
+     *
+     * @param   in   input stream
+     * @return  true if <code>in</code> is known to contain no more bytes;
+     *          false if it may contain more
+     */
+    private static boolean isEof( ArrayDataInput in ) throws IOException {
+        if ( in instanceof InputStream && ((InputStream) in).available() > 0 ) {
+            return false;
+        }
+        else if ( in instanceof RandomAccess ) {
+            RandomAccess rin = (RandomAccess) in;
+            long pos = rin.getFilePointer();
+            boolean eof;
+            try {
+                rin.readByte();
+                eof = false;
+            }
+            catch ( EOFException e ) {
+                eof = true;
+            }
+            catch ( IOException e ) {
+                // ?? call it an EOF
+                eof = true;
+            }
+            if ( ! eof ) {
+                rin.seek( pos );
+            }
+            return eof;
+        }
+        else if ( in instanceof InputStream &&
+                  ((InputStream) in).markSupported() ) {
+            InputStream is = (InputStream) in;
+            is.mark( 1 );
+            boolean eof = is.read() < 0;
+            try {
+                is.reset();
+            }
+            catch ( IOException e ) {
+                if ( ! eof ) {
+                    throw e;
+                }
+            }
+            return eof;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Encapsulates information about the attempt to read a table from
+     * a FITS HDU in a stream.
+     */
+    private static class TableResult {
+        final StarTable table_;
+        final long afterPos_;
+        final boolean streamUsed_;
+        final boolean streamEnded_;
+
+        /**
+         * Constructor.
+         *
+         * @param  table  table, if one could be read;
+         *                null if the HDU was not a table type
+         * @param  afterPos  position in stream of first byte following the
+         *                   HDU just read
+         * @param  streamUsed  it is only safe to use the stream for other
+         *               purposes following the read attempt if this is
+         *               false
+         * @param  streamEnded  true only if there are known to be no
+         *               more bytes in the stream
+         */
+        TableResult( StarTable table, long afterPos, boolean streamUsed,
+                     boolean streamEnded ) {
+            table_ = table;
+            afterPos_ = afterPos;
+            streamUsed_ = streamUsed;
+            streamEnded_ = streamEnded;
         }
     }
 }
