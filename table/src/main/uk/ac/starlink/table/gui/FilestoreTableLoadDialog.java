@@ -25,7 +25,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor (Starlink)
  * @since    18 Feb 2005
  */
-public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
+public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
 
     private final FilestoreChooser chooser_;
     private final JComboBox formatSelector_;
@@ -67,7 +67,7 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
         formatSelector_.setModel( formatModel );
     }
 
-    protected TableSupplier getTableSupplier() {
+    protected TablesSupplier getTablesSupplier() {
         Node node = chooser_.getSelectedNode();
         if ( node instanceof Leaf ) {
             final Leaf leaf = (Leaf) node;
@@ -75,19 +75,19 @@ public class FilestoreTableLoadDialog extends BasicTableLoadDialog {
             final String pos = posText != null && posText.trim().length() > 0
                              ? posText.trim()
                              : null;
-            return new TableSupplier() {
+            return new TablesSupplier() {
 
-                public StarTable getTable( StarTableFactory factory,
-                                           String format )
+                public StarTable[] getTables( StarTableFactory factory,
+                                              String format )
                         throws IOException {
                     DataSource datsrc = leaf.getDataSource();
                     if ( pos != null ) {
                         datsrc.setPosition( pos );
                     }
-                    return factory.makeStarTable( datsrc, format );
+                    return factory.makeStarTables( datsrc, format );
                 }
 
-                public String getTableID() {
+                public String getTablesID() {
                     return leaf.toString()
                          + ( pos != null ? ( "#" + pos ) : "" );
                 }
