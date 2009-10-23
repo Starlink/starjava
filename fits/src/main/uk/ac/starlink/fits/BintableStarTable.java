@@ -137,9 +137,9 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *         at which the table data (not the corresponding HDU header)
      *         starts
      */
-    static StarTable makeSequentialStarTable( Header hdr, 
-                                              final DataSource datsrc,
-                                              final long offset ) 
+    public static StarTable makeSequentialStarTable( Header hdr, 
+                                                     final DataSource datsrc,
+                                                     final long offset ) 
             throws FitsException {
         final Object[] BEFORE_START = new Object[ 0 ];
         return new BintableStarTable( hdr, -1L ) {
