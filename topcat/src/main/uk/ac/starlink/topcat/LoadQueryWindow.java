@@ -191,7 +191,8 @@ public abstract class LoadQueryWindow extends QueryWindow {
                 /* Since at least one table has been successfully loaded,
                  * dispose the loader window.  This is a bit fiddly; 
                  * dispose it in such a way that the current consumer is
-                 * not cancelled, since it may receive more tables.
+                 * not cancelled, since it may receive more tables
+                 * if it's a multi-table load.
                  * Reinstate the canceler for next time it's made visible. */
                 final LoadQueryWindow window = LoadQueryWindow.this;
                 window.removeWindowListener( closeCanceler_ );
