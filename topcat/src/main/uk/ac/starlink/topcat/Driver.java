@@ -402,7 +402,7 @@ public class Driver {
         /* Install custom URL handlers. */
         URLUtils.installCustomHandlers();
 
-        /* Assemble pairs of (tables name, handler name) to be loaded. */
+        /* Assemble pairs of (table name, handler name) to be loaded. */
         List names = new ArrayList();
         List handlers = new ArrayList();
         String handler = null;
@@ -456,8 +456,16 @@ public class Driver {
             final LoadingToken token = new LoadingToken( name );
             control.addLoadingToken( token );
             try {
-                StarTable startab = tabfact.makeStarTable( name, hand );
-                addTableLater( tabfact.randomTable( startab ), name );
+                StarTable[] startabs =
+                    tabfact.makeStarTables( DataSource.makeDataSource( name ),
+                                            hand );
+                for ( int j = 0; j < startabs.length; j++ ) {
+                    String tName = startabs.length == 1
+                                 ? name
+                                 : name + "-" + ( j + 1 );
+                    addTableLater( tabfact.randomTable( startabs[ i ] ),
+                                   tName );
+                }
             }
             catch ( OutOfMemoryError e ) {
                 TopcatUtils.memoryError( e );
