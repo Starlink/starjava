@@ -400,6 +400,9 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                 StarTable table =
                     BintableStarTable
                    .makeSequentialStarTable( hdr, datsrc, datpos );
+                for ( long iskip = datasize; iskip > 0; ) {
+                    iskip -= strm.skip( iskip );
+                }
                 return new TableResult( table, afterpos, false, isEof( strm ) );
             }
         }
