@@ -12041,6 +12041,11 @@ introduced since the last version:
     <li>New VizieR catalogue service query load dialogue.</li>
     <li>Load dialogue improvements: loading table is named in table list
         while loading.</li>
+    <li>A load from a single source (such as a file) can now load multiple
+        tables at the same time.  This applies to the Filestore laod dialogue,
+        the new VizieR load dialogue, and supplying filenames 
+        on the command line.
+        </li>
     </ul>
     </p></dd>
 
