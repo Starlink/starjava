@@ -81,10 +81,15 @@ public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
                                               String format )
                         throws IOException {
                     DataSource datsrc = leaf.getDataSource();
-                    if ( pos != null ) {
+                    if ( pos != null && pos.trim().length() > 0 ) {
                         datsrc.setPosition( pos );
+                        return new StarTable[] {
+                            factory.makeStarTable( datsrc, format ),
+                        };
                     }
-                    return factory.makeStarTables( datsrc, format );
+                    else {
+                        return factory.makeStarTables( datsrc, format );
+                    }
                 }
 
                 public String getTablesID() {
