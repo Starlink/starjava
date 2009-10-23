@@ -34,9 +34,10 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.gui.BasicTableLoadDialog;
+import uk.ac.starlink.table.gui.MultiTableLoadDialog;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.DoubleValueField;
@@ -49,7 +50,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Thomas Boch
  * @since    19 Oct 2009
  */
-public class VizierTableLoadDialog extends BasicTableLoadDialog {
+public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
     private final SkyPositionEntry skyEntry_;
     private final DoubleValueField srField_;
@@ -249,7 +250,7 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
                            : CgiQuery.formatDouble( srField_.getValue() );
     }
 
-    protected TableSupplier getTableSupplier() {
+    protected TablesSupplier getTablesSupplier() {
 
         /* Identify the catalogue to query. */
         JTable catTable = getCurrentMode().getQueryableTable();
@@ -294,14 +295,16 @@ public class VizierTableLoadDialog extends BasicTableLoadDialog {
 
         /* Construct and return an object which will submit the query. */
         final String id = queryable.getQueryId();
-        return new TableSupplier() {
-            public String getTableID() {
+        return new TablesSupplier() {
+            public String getTablesID() {
                 return id;
             }
-            public StarTable getTable( StarTableFactory tfact, String format )
+            public StarTable[] getTables( StarTableFactory tfact,
+                                          String format )
                     throws IOException {
                 logger_.info( "VizieR query: " + url );
-                return tfact.makeStarTable( url, "votable" );
+                return tfact.makeStarTables( new URLDataSource( url ),
+                                             "votable" );
             }
         };
     }
