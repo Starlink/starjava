@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
     private final TableLoadChooser chooser_;
     private final StarTableFactory tableFactory_;
     private final JProgressBar progBar_;
+    private final WindowListener closeCanceler_;
     private BasicTableConsumer tableConsumer_;
 
     private final static Logger logger_ =
@@ -118,6 +120,19 @@ public abstract class LoadQueryWindow extends QueryWindow {
         }
         getToolBar().addSeparator();
 
+        /* Listener to arrange that if the window is disposed, any pending
+         * load action will be cancelled. */
+        closeCanceler_ = new WindowAdapter() {
+            public void windowClosed( WindowEvent evt ) {
+                if ( tableConsumer_ != null ) {
+                    tableConsumer_.cancel();
+                }
+                tableConsumer_ = null;
+                chooser_.setTableConsumer( null );
+            }
+        };
+        addWindowListener( closeCanceler_ );
+
         /* Help button. */
         addHelp( "LoadQueryWindow" );
     }
@@ -144,19 +159,6 @@ public abstract class LoadQueryWindow extends QueryWindow {
             chooser_.setEnabled( true );
         }
         super.makeVisible();
-    }
-
-    /**
-     * Hide the window.  The default implementation is overridden to
-     * perform some tidy up.
-     */
-    public void dispose() {
-        if ( tableConsumer_ != null ) {
-            tableConsumer_.cancel();
-        }
-        tableConsumer_ = null;
-        chooser_.setTableConsumer( null );
-        super.dispose();
     }
 
     protected boolean perform() {
@@ -186,21 +188,23 @@ public abstract class LoadQueryWindow extends QueryWindow {
             assert table != null;
             if ( tableConsumer_ == this ) {
 
-                /* Check we have at least one row. */
-                if ( table.getRowCount() > 0 ) {
+                /* Since at least one table has been successfully loaded,
+                 * dispose the loader window.  This is a bit fiddly; 
+                 * dispose it in such a way that the current consumer is
+                 * not cancelled, since it may receive more tables.
+                 * Reinstate the canceler for next time it's made visible. */
+                final LoadQueryWindow window = LoadQueryWindow.this;
+                window.removeWindowListener( closeCanceler_ );
+                window.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        window.removeWindowListener( this );
+                        window.addWindowListener( closeCanceler_ );
+                    }
+                } );
+                LoadQueryWindow.this.dispose();
 
-                    /* Hide the loader window. */
-                    LoadQueryWindow.this.dispose();
-
-                    /* Pass the table to the method that actually wants it. */
-                    performLoading( table, getLoadingId() );
-                }
-                else {
-                    JOptionPane.showMessageDialog( getParent(),
-                                                   "Table contained no rows",
-                                                   "Empty Table",
-                                                   JOptionPane.ERROR_MESSAGE );
-                }
+                /* Pass the table to the method that actually wants it. */
+                performLoading( table, getLoadingId() );
             }
         }
     }
