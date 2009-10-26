@@ -36,10 +36,17 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
+import uk.ac.starlink.table.gui.FileChooserLoader;
+import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
+import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
@@ -466,6 +473,7 @@ public class ResourceIcon implements Icon {
     /**
      * Returns a map of Icon objects which are <em>not</em> ResourceIcons.
      * Each (key,value) entry of the map is given by the (name,Icon) pair.
+     * This method is only called at build time, not at runtime.
      *
      * @return  member name => member value mapping for hand-drawn icons
      */
@@ -488,6 +496,20 @@ public class ResourceIcon implements Icon {
                      errX.getIcon( ErrorMode.UPPER, 24, 24, 1, 1 ) );
         nameMap.put( "ERROR_BOTH",
                      errX.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
+        nameMap.put( "FILESTORE_DIALOG",
+                     new FilestoreTableLoadDialog().getIcon() );
+        nameMap.put( "FILECHOOSER_DIALOG",
+                     new FileChooserLoader().getIcon() );
+        nameMap.put( "SQL_DIALOG",
+                     new SQLReadDialog().getIcon() );
+        nameMap.put( "CONE_DIALOG",
+                     new ConeSearchDialog().getIcon() );
+        nameMap.put( "SIAP_DIALOG",
+                     new SiapTableLoadDialog().getIcon() );
+        nameMap.put( "SSAP_DIALOG",
+                     new SsapTableLoadDialog().getIcon() );
+        nameMap.put( "REGISTRY_DIALOG",
+                     new RegistryTableLoadDialog().getIcon() );
         return nameMap;
     }
 

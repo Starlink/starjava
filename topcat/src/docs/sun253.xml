@@ -8141,12 +8141,11 @@ explicitly (again, see <ref id="inFormats"/> for details).
 described in the following subsections.
 The <label>Filestore Browser</label> button is always visible below
 the location field.  Depending on startup options, there may be
-other buttons here.  In any case, you can look in the 
-<label>DataSources</label> menu to see other table load dialogues.
-Exactly which ones are available will depend on your setup 
-(some may be absent or greyed out, and additional ones may be
-available).  The following subsections describe some of the
-options which may be available.
+other buttons here.  There are also a number of toolbar buttons
+which display various load dialogues; the <label>DataSources</label>
+contains all of these along with some lesser-used ones.
+The following subsections describe most of the available options,
+though others may be available in your installation.
 </p>
 
 <subsubsect id="FilestoreTableLoadDialog">
@@ -8157,7 +8156,8 @@ options which may be available.
 <figureimage src="&FIG.FilestoreTableLoadDialog;"/>
 </figure>
 
-<p>By clicking the <label>Filestore Browser</label> button in the
+<p>By clicking the <label>Filestore Browser</label> button 
+or toolbar button (&IMG.FILESTORE_DIALOG;) in the
 Load Window,
 you can obtain a file browser which will
 display the files in a given directory.
@@ -8238,7 +8238,7 @@ instead.
 </figure>
 
 <p>By selecting the <label>Hierarchy Browser</label> option from
-the Load Window's <label>DataSources</label> menu,
+the Load Window's toolbar or <label>DataSources</label> menu,
 you can obtain a browser which presents a table-aware
 hierarchical view of the file system.
 (Note that a freestanding version of this panel with additional
@@ -8385,8 +8385,8 @@ Changing the root of the tree will interrupt the search.
 <p>If you want to 
 <ref id="inSql" plaintextref="yes">read a table from an SQL database</ref>,
 you can use a specialised dialogue to specify the SQL query by selecting
-<label>SQL Query</label> option from the Load Window's 
-<label>DataSources</label> menu.
+<label>SQL Query</label> button from the Load Window's 
+toolbar (&IMG.SQL_DIALOG;) or <label>DataSources</label> menu.
 </p>
 
 <p>This provides you with a list of fields to fill in which make
@@ -8446,8 +8446,8 @@ these steps, this dialogue may be inaccessible.
 <figureimage src="&FIG.ConeSearchDialog;"/>
 </figure>
 
-<p>By selecting the <label>Cone Search</label> option from
-the Load Window's <label>DataSources</label> menu,
+<p>By selecting the <label>Cone Search</label> button (&IMG.CONE_DIALOG;) from
+the Load Window's toolbar or <label>DataSources</label> menu,
 you can obtain a dialogue which allows you to query one of a 
 number of external web services for a catalogue of objects 
 known in a given region of the sky.
@@ -8525,8 +8525,9 @@ The SSAP one looks very similar</px></caption>
 <figureimage src="&FIG.SiapTableLoadDialog;"/>
 </figure>
 
-<p>By selecting the <label>SIAP</label> or <label>SSAP</label> option from
-the Load Window's <label>DataSources</label> menu,
+<p>By selecting the <label>SIAP</label> (&IMG.SIAP_DIALOG;) or 
+<label>SSAP</label> (&IMG.SSAP_DIALOG;) option from
+the Load Window's toolbar or <label>DataSources</label> menu,
 you can obtain a dialogue which allows you to perform a
 <webref url="http://www.ivoa.net/Documents/latest/SIA.html"
         >Simple Image Access</webref>
@@ -8597,7 +8598,9 @@ and will not be available if you have the topcat-lite configuration.
 <figureimage src="&FIG.GavoTableLoadDialog;"/>
 </figure>
 
-<p>This dialogue permits direct queries to the services provided by
+<p>This dialogue, selected from the Load Window's toolbar
+button (&IMG.GAVO;) or <label>DataSources</label> menu,
+permits direct queries to the services provided by
 <webref url="http://www.g-vo.org/">GAVO</webref>,
 the German Astrophysical Virtual Observatory.
 The main databases of general interest available through these services
