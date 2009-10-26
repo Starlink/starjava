@@ -766,9 +766,8 @@ ASCII table, for instance by typing "<code>topcat -f ascii table.txt</code>".
 <subhead><title>FITS</title></subhead>
 
 <p>FITS binary and ASCII table extensions can be read.
-Unless told otherwise, TOPCAT will display the first TABLE or BINTABLE
-extension in a given FITS file.
-If a later extension is required, this is indicated by giving the
+Normally, TOPCAT will load all TABLE or BINTABLE extensions in a given file.
+If only a single extension is required, this is indicated by giving the
 extension number after a '#' at the end of the table location.
 The first extension (first HDU after the primary HDU) is numbered 1.
 Thus in a compressed FITS table named "spec23.fits.gz"
@@ -851,8 +850,8 @@ while the tabular data which can be encoded is by design close to
 what FITS allows, it provides for much richer encoding of structure 
 and metadata.
 TOPCAT is believed to read any table which conforms to the
-VOTable 1.0 or VOTable 1.1
-<webref plaintextref="yes" url="&URL.VOTABLE;">specification</webref>.
+VOTable 1.0, 1.1 or 1.2 
+<webref plaintextref="yes" url="&URL.VOTABLE;">specifications</webref>.
 This includes tables in which the cell data are
 included in-line as XML elements (VOTable/TABLEDATA format),
 or included/referenced as a FITS table (VOTable/FITS)
@@ -863,11 +862,9 @@ violate the standards in various ways.
 </p>
 
 <p>VOTable documents can have a complicated hierarchical structure,
-and may contain more than one actual table.
-Unless told otherwise, TOPCAT will load the first table it finds
-in the document, so in the (common) case that the document holds
-exactly one table, giving the filename will load that sole table.
-To display a table other than the first, you must indicate the
+and may contain more than one actual table (TABLE element).
+Normally, TOPCAT will load all tables it finds in the document.
+If you just want to load a single table, indicate the
 zero-based index of the TABLE element in a breadth-first search
 after a '#' character at the end of the table specification.
 Here is an example VOTable document:
@@ -880,9 +877,10 @@ Here is an example VOTable document:
    </VOTABLE>
 ]]></verbatim>
 If this is available in a file named "cats.xml"
-then open the Star Catalogue using the name "cats.xml"
-or "cats.xml#0", and the Galaxy Catalogue using the name
-"cats.xml#1".
+then loading the document in the usual way from the filestore browser
+or command line will open two new tables in TOPCAT.
+If you just want the Star Catalogue or the Galaxy Catalogue you can 
+use the name "cats.xml#0" or "cats.xml#1" respectively.
 </p>
 
 </subsubsubsect>
@@ -8219,9 +8217,13 @@ the file format: for FITS files, it is the index of the HDU containing
 the table you're after (the first extension after the primary HDU is
 numbered 1), and for VOTables it is the index of the TABLE element
 (the first TABLE encountered is numbered 0).  If you leave this blank,
-you will get the first table in the file in question - many file formats
-only allow one table per file in any case.
-For a more table-aware view of the file system, use the
+you will get all the tables in the file; this is usually just one table, 
+since most file formats cannot accommodate more than one table per file, 
+and even for those which can (FITS and VOTable) most files contain 
+only a single file in any case.
+</p>
+
+<p>For a more table-aware view of the file system, use the
 <ref id="TreeTableLoadDialog" plaintextref="yes">Hierarchy Browser</ref> 
 instead.
 </p>
