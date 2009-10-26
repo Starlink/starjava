@@ -2670,7 +2670,7 @@ available within TOPCAT from the
 <p>TOPCAT is able to communicate with other tools using one or other of two
 messaging protocols:
 <ul>
-<li><webref url="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP</webref>
+<li><webref url="http://www.ivoa.net/samp/">SAMP</webref>
     (Simple Applications Messaging Protocol)</li>
 <li><webref url="http://plastic.sourceforge.net/">PLASTIC</webref>
     (PLatform for AStronomical InterConnection</li>
