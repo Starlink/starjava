@@ -11961,92 +11961,159 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next Version</dt>
-<dd><p>
-    <ul>
-    <li>JSAMP library upgraded to v1.0; some SAMP behaviour changes,
-        enhancements and bugfixes.  Control of things like TOPCAT server port
-        and server endpoint hostname are now configurable using 
-        <code>jsamp.*</code> 
-        <ref id="jvmProperties">system properties</ref>.</li>
-    <li>Add <code>-jsamp</code> command-line flag.</li>
-    <li>HTML table output is now HTML 4.01 by default
-        (includes THEAD and TBODY tags).</li>
-    <li>Work around illegally truncated type declarations in IPAC tables.</li>
-    <li>Be more careful in XML, including VOTable, output; 
-        fix VOTable output encoding to be UTF-8,
-        and ensure no illegal XML characters are written.</li>
-    <li>Namespacing of VOTable documents made more intelligent, and
-        configurable using the <code>votable.namespacing</code> system
-        property.</li>
-    <li>VOTable 1.2 supported.</li>
-    <li>The VOTable 1.2 <code>xtype</code> attribute is now used to 
-        try to identify columns containing ISO-8601 format dates, 
-        which allows them to be treated as numeric values for 
-        plotting etc.</li>
-    <li>Bug fixed in crossmatching output: entries which should have been 
-        null were sometimes written as non-null (typically large negative
-        numbers) in FITS and in non-TABLEDATA VOTable output.
-        This affected cells in otherwise non-nullable columns
-        where the entire row was absent.  The previous behaviour is not
-        likely to have been mistaken for genuine results.
-        </li>
-    <li>Fixed plotting bugs - caused intermittent GUI corruption 
-        (e.g. missing toolbar buttons), especially on MacOS.
-        </li>
-    <li>Registry query UI improved.  Those windows which involve a query of
-        the VO registry (Cone Search, SIA, SSA and Registry load dialogues,
-        as well as the new Multi-Cone dialogues)
-        now allow the user to sort the registry search result table by 
-        clicking on the various columns.  Also, some feedback on the number
-        of results obtained so far is displayed on the registry search
-        scroll bar.
-        The (not very useful, and potentially confusing) 
-        <label>Update</label> button has been withdrawn from the registry
-        selector panel, and its function moved to a new 
-        <label>Registry</label> menu instead.
-        </li> 
-    <li>Cone search, SIA and SSA query load dialogues improved.
-        You can now enter the service URL directly as an alternative to
-        selecting one from the registry query.
-        The metadata for the table returned by a successful search is
-        also improved.
-        The SIA and SSA dialogues now have a selector for choosing the desired
-        image/spectrum format.
-        Less likely to run out of memory when searching for cone search
-        services.
-        SIA and SSA query dialogues now no longer require explicit entry
-        of size parameter (these protocols define default behaviour when
-        no non-zero size is provided).
-        SSA and SIA windows now automatically query registry for all services
-        on first use (there is currently a manageable number of these, 
-        unlike cone search services).
-        Cone search window provides better instruction on use when it
-        is first visible.
-        </li>
-    <li>Add multicone, multi-SIA and multi-SSA.
-        </li>
-    <li><code>parse*</code> string-&gt;numeric conversion 
-        functions now cope with leading or trailing whitespace.</li>
-    <li>Spectrum Display activation action now uses SAMP or PLASTIC.
-        The old behaviour was to display the spectrum in an in-JVM SPLAT
-        window, but it didn't work very well.</li>
-    <li>Add <label>VO</label> menu to ControlWindow.
-        The options provided here are mostly available elsewhere in the GUI,
-        but this groups Virtual Observatory-related actions together for
-        convenience.</li>
-    <li>Completed list of example queries in GAVO load dialogue.</li>
-    <li>Load Window now has toolbar buttons as well as menu items for 
-        different load dialogues.</li>
-    <li>New VizieR catalogue service query load dialogue.</li>
-    <li>Load dialogue improvements: loading table is named in table list
-        while loading.</li>
-    <li>A load from a single source (such as a file) can now load multiple
-        tables at the same time.  This applies to the Filestore laod dialogue,
-        the new VizieR load dialogue, and supplying filenames 
-        on the command line.
-        </li>
-    </ul>
+<dt>Version 3.5</dt>
+<dd><p>There are several improvements in this version, many of them to do
+    with improved functionality and usability for loading or acquiring 
+    data both from local files and from various Virtual Observatory services.
+    </p>
+    <p> 
+    <dl>
+    <dt>Multiple-table load</dt>
+    <dd><p>TOPCAT will now load multiple tables from a single file if
+        multiple tables are present, rather than just the first one.
+        This applies to multi-extension FITS files which contain more than
+        one table HDU, and to VOTable documents which contain more than one
+        TABLE element.  It affects the Filestore dialogue, naming files
+        on the command line, and the new VizieR load dialogue.
+        </p>
+        <p>In previous versions, when you selected a multi-extension FITS
+        file or VOTable from one of the load dialogues or on the command 
+        line, only the first table contained in it would be loaded, and
+        any others were silently ignored.
+        Such files often only contain a single table, but not always.
+        Now, if multiple tables are present in the container file, each
+        one will appear as a new table in the tables list.
+        Other table file formats are not currently affected, since there
+        is no mechanism for storing multiple tables in, say, a CSV file.
+        </p></dd>
+    <dt>Multiple Cone, SIA and SSA searches</dt>
+    <dd><p>In previous versions, it was possible to use the Virtual Observatory
+        Cone Search, Simple Image Access and Simple Spectral Access services
+        to locate catalogue records, images and spectra respectively in a
+        single (cone-shaped) region of the sky, with position and radius
+        entered manually.
+        In this version it is possible to execute such a query for each
+        row of an input table, with position and radius obtained from table
+        data in appropriate columns.  This effectively gives a join between a
+        local table and a remote one exposed by a cone-like searchable 
+        VO interface.
+        </p></dd>
+    <dt>VizieR load dialogue</dt>
+    <dd><p>A new load dialogue has been introduced to make queries directly
+        to CDS's VizieR service.  Thanks to Thomas Boch from CDS for help 
+        with this.
+        </p></dd>
+    <dt>VO menu</dt>
+    <dd><p>A new menu labelled <label>VO</label> (for Virtual Observatory)
+        has been added to the Control Window.
+        This currently contains single and multiple Cone, SIA and SSA
+        queries and the service specific load dialogues, namely the
+        VizieR and Millennium ones.
+        All these features are also available elsewhere in the GUI,
+        but the new menu groups together VO-related functionality for
+        convenience.
+        </p></dd>
+    <dt>Positional search dialogue enhancements</dt>
+    <dd><p>A number of improvements have been made to the Cone Search,
+        SIA and SSA dialogues; these applies both to the old single-region
+        search dialogues and the new multi-region searches.
+        <ul>
+        <li>The service URL can now be entered (e.g. cut'n'pasted) directly 
+            as an alternative to obtaining it from a registry search.
+            This allows use of unregistered services, as well as making it
+            easy to select the service URL for pasting elsewhere.</li>
+        <li>The resource table returned from the registry search can now
+            be sorted by column contents, by clicking on the selected
+            column header.</li> 
+        <li>While searching the registry, some indication of the number
+            of services found so far is displayed.</li>
+        <li>Searching the registry is less likely to result in an
+            out of memory error.</li>
+        <li>The (not very useful, and potentially confusing) registry
+            <label>Update</label> button has been withdrawn; its function
+            is now available only from the <label>Registry</label>
+            menu instead.</li>
+        <li>The metadata contained in tables returned from a successful 
+            search is improved.</li>
+        <li>The SIA and SSA dialogues now have a selector for choosing
+            the desired image/spectrum format.</li>
+        <li>The SIA and SSA dialogues now longer require explicit entry
+            of a size parameter (these protocols define default behaviour
+            for when no non-zero size has been specified).</li>
+        <li>The SIA and SSA now automatically query the registry for all
+            appropriate services when first displayed.  
+            This is sensible behaviour
+            at the moment, since there is at time of writing 
+            a reasonable number of them.  A directed search may be given 
+            instead at the user's option.</li>
+        <li>The Cone Search window provides better instructions on use
+            when first displayed.</li>
+        </ul>
+        </p></dd>
+    <dt>SAMP-related enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Spectrum Display activation action now uses SAMP or PLASTIC to
+            display in a suitably compliant external spectrum viewer.
+            The old behaviour was to display the spectrum in an internal SPLAT
+            window, but it didn't work very well.</li>
+        <li>The JSAMP library has been upgraded to v1.0, giving
+            some SAMP behaviour changes, enhancements and bugfixes.
+            Control of things like TOPCAT server port and server endpoint
+            hostname are now configurable using <code>jsamp.*</code> 
+            <ref id="jvmProperties">system properties</ref>.</li>
+        <li>The <code>-jsamp</code> command-line flag has been added 
+            for convenience so that the TOPCAT jar file can be used 
+            easily as a JSAMP toolkit.</li>
+        </ul>
+        </p></dd>
+    <dt>VOTable-related enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Namespacing of VOTable documents made more intelligent, and
+            configurable using the <code>votable.namespacing</code> system
+            property.</li>
+        <li>VOTable 1.2 supported.</li>
+        <li>The VOTable 1.2 <code>xtype</code> attribute is now used to 
+            try to identify columns containing ISO-8601 format dates, 
+            which allows them to be treated as numeric values for 
+            plotting etc.</li>
+        <li>As described above, when loading a VOTable document which
+            contains multiple TABLE elements, all the contained TABLEs
+            are now separately loaded into TOPCAT rather than just the
+            first one, which is what used to happen.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>The Load Window now has toolbar buttons as well as menu items for 
+            different load dialogues.</li>
+        <li>While a table is loading an entry is now visible in the 
+            Control Window table list.  Previously it was not always
+            clear whether a slow load was in progress or not.</li>
+        <li>HTML table output is now HTML 4.01 by default
+            (includes THEAD and TBODY tags).</li>
+        <li>There is a workaround for illegally truncated type declarations
+            in IPAC tables.</li>
+        <li>XML, including VOTable, output is handled more carefully; 
+            fix VOTable output encoding to be UTF-8,
+            and ensure no illegal XML characters are written.</li>
+        <li>Fixed plotting bugs - caused intermittent GUI corruption 
+            (e.g. missing toolbar buttons), especially on MacOS.</li>
+        <li>Bug fixed in crossmatching output: entries which should have been 
+            null were sometimes written as non-null (typically large negative
+            numbers) in FITS and in non-TABLEDATA VOTable output.
+            This affected cells in otherwise non-nullable columns
+            where the entire row was absent.  The previous behaviour is not
+            likely to have been mistaken for genuine results.</li>
+        <li><code>parse*</code> string-&gt;numeric conversion 
+            functions now cope with leading or trailing whitespace.</li>
+        <li>The list of example queries in the GAVO load dialogue has
+            been extended to match those in its web interface.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
