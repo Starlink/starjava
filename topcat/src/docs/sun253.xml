@@ -4439,9 +4439,8 @@ You can also paste the filename or URL of a table onto the table list,
 and it will be loaded.
 </p>
 
-<p>Sometimes while a table is being loaded from some source other than a
-load window (e.g. a table specified on the command line or received from
-an incoming SAMP or PLASTIC message) a greyed-out entry will appear in
+<p>Sometimes while a table is being loaded 
+a greyed-out entry will appear in
 this list with text like "<em>Loading SAMP table</em>" or similar.
 Such entries cannot be selected, but they let you know that something
 is happening.
@@ -8618,7 +8617,7 @@ documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
         No username or password is required (the User and Password
         boxes will be disabled).
         </p></dd>
-    <dt>Millennium (<code>http://www.g-vo.org/MyMillennium</code>)</dt>
+    <dt>Millennium (<code>http://www.g-vo.org/MyMillennium3</code>)</dt>
     <dd><p>Full, protected simulation results database.  
         The username and password must be filled in for these queries.
         Registration is by application to GAVO.
@@ -8648,7 +8647,8 @@ load the results into TOPCAT.  Clicking <label>Cancel</label> while it
 is in progress will stop it running.
 </p>
 
-<p>The <label>SampleQueries</label> menu provides some examples of
+<p>The <label>HaloSamples</label> and <label>GalaxySamples</label> menus
+provide some examples of
 queries on the Milli-Millennium database (these have been copied from 
 the <webref url="http://www.g-vo.org/Millennium/">GAVO query page</webref>).
 If you select one of these the <label>SQL Query</label> panel will be
