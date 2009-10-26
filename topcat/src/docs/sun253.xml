@@ -1477,9 +1477,9 @@ see <ref id="jdbcConfig"/>.
 <subsubsubsect>
 <subhead><title>HTML</title></subhead>
 
-<p>A table can be written out as an HTML 3.2
-<webref url="http://www.w3c.org/TR/REC-html32#table">TABLE</webref> element,
-suitable for use as a web page or insertion into one.
+<p>A table can be written out as an HTML 4.01
+<webref url="http://www.w3.org/TR/html401/struct/tables.html">TABLE</webref>
+element, suitable for use as a web page or insertion into one.
 </p>
 
 <p>There are two variants:
