@@ -9606,6 +9606,8 @@ in the control window will indicate the action you have configured.
     When you activate the row, the program will attempt to contact the
     web server which provides these images, retrieve the image, and
     display it in an image viewer window.
+    Unfortunately at present the viewer window is an internal one;
+    it does not display in an external SAMP/PLASTIC viewer.
     </p></dd>
 
 <dt>View URL as Image</dt>
@@ -9614,23 +9616,36 @@ in the control window will indicate the action you have configured.
     The image may be in FITS, GIF, JPEG or PNG format, optionally 
     compressed using gzip, Unix compress, or bzip2 format.
     Select the column which contains the location, and activating a 
-    row will pop up an image viewer to display it.
+    row will pop up an image viewer to display it
+    (if the table is the result of a single or multiple SIA query,
+    the correct column will probably be filled in automatically).
     The <label>Image Viewer</label> selector allows you to choose one 
     of the options in <ref id="imageViewers"/> or, if you are registered
     with a SAMP or PLASTIC hub, any SAMP/PLASTIC image viewer 
     which is also registered - see <ref id="interop"/>.
-    Unfortunately you cannot currently select image or spectrum viewers
-    for the other options in this window at present.
     </p></dd>
 
 <dt>View URL as Spectrum</dt>
 <dd><p>This option is suitable if one of the columns in your table
-    gives the location (filename or URL) of a spectrum file.
-    The spectrum may be in FITS or text format, optionally compressed.
-    Select the column which contains the location, and activating a
-    row will try to pop up a spectrum viewer to display it.
-    Note this may not be possible if some components are not installed -
-    see <ref id="spectrumViewers"/> for information about spectrum viewers.
+    gives the location (filename or URL) of a spectrum file,
+    and you wish to display the spectra in an external SAMP- or
+    PLASTIC-compatible spectrum viewer, such as
+    <webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref> or
+    <webref url="http://esavo.esa.int/vospec/">VOSpec</webref>.
+    First select the column which contains the 
+    <label>Spectrum Location</label>
+    (if the table is the result of a single or multiple SSA query,
+    the correct column will probably be filled in automatically).
+    Then choose the <label>Spectrum Viewer</label> appropriately.
+    Once this is done, activating a
+    row will try to send the corresponding spectrum to the selected
+    viewer application(s).
+    The details of what data formats are acceptable depend on the
+    viewer application, but FITS, VOTable and some ASCII table
+    variants are usually OK.
+    Note that TOPCAT, as well as a suitable spectrum viewer, 
+    must be connected to a running SAMP or PLASTIC hub for this to work
+    (see <ref id="interop"/>) - there is no internal spectrum viewer.
     </p></dd>
 
 <dt>View URL as Web Page</dt>
