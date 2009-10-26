@@ -235,8 +235,6 @@ public class Driver {
                   + " [-jsamp <jsamp-args>]\n"
             + pad + " [-verbose] [-demo] [-disk]\n"
             + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
-            + pad + " [-tree] [-file] [-sql] [-cone] [-vizier] [-gavo]"
-                  + " [-registry] [-sia] [-ssa]\n"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -330,45 +328,6 @@ public class Driver {
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
-            }
-            else if ( arg.equals( "-tree" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.datanode.tree." +
-                                "TreeTableLoadDialog" );
-            }
-            else if ( arg.equals( "-file" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.table.gui.FileChooserLoader" );
-            }
-            else if ( arg.equals( "-sql" ) ) {
-                it.remove();
-                loaderList.add( SQLReadDialog.class.getName() );
-            }
-            else if ( arg.equals( "-cone" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.vo.ConeSearchDialog" );
-            }
-            else if ( arg.equals( "-vizier" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.topcat.contrib.cds."
-                              + "VizierTableLoadDialog" );
-            }
-            else if ( arg.equals( "-gavo" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.topcat.contrib.gavo."
-                              + "GavoTableLoadDialog" );
-            }
-            else if ( arg.equals( "-registry" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.vo.RegistryTableLoadDialog" );
-            }
-            else if ( arg.equals( "-sia" ) || arg.equals( "-siap" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.vo.SiapTableLoadDialog" );
-            }
-            else if ( arg.equals( "-ssa" ) || arg.equals( "-ssap" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.vo.SsapTableLoadDialog" );
             }
             else if ( arg.startsWith( "-" ) && arg.length() > 1 ) {
                 System.err.println( usage );
@@ -726,18 +685,6 @@ public class Driver {
                                          + " (PLASTIC, SAMP or SOAP)" )
            .append( p2 + "-stilts <args> run STILTS not TOPCAT" )
            .append( p2 + "-jsamp <args>  run JSAMP not TOPCAT" );
-
-        /* Load dialogues. */
-        buf.append( p1 + "Optional load dialogue flags:" )
-           .append( p2 + "-tree      hierarchy browser" )
-           .append( p2 + "-file      basic file browser" )
-           .append( p2 + "-sql       SQL query on relational database" )
-           .append( p2 + "-cone      cone search dialogue" )
-           .append( p2 + "-vizier    VizieR catalogue service query" )
-           .append( p2 + "-gavo      GAVO Millennium run database query" )
-           .append( p2 + "-registry  VO registry query" )
-           .append( p2 + "-sia       Simple Image Access Protocol queries" )
-           .append( p2 + "-ssa       Simple Spectrum Access Protocol queries" );
 
         /* Java flags. */
         buf.append( p1 + "Useful Java flags:" )

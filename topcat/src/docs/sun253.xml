@@ -3312,77 +3312,11 @@ The meaning of the flags is as follows:
     JSAMP provides various 
     <webref url="http://www.ivoa.net/samp/">SAMP</webref>-related utilities,
     such as a freestanding hub and diagnostic tools.
+    See the JSAMP documentation, or do <code>topcat -jsamp -help</code>
+    for more information.
     </p></dd>
 
 </dl>
-</p>
-
-<p>Some of the flags control what load dialogues are visible in the
-<ref id="LoadQueryWindow">Load Window</ref>.  In fact all of these 
-load dialogues can be accessed from the Load Window's
-<label>DataSources</label> menu as long as the classes are available, 
-but if you specify these flags on the command line, 
-the corresponding button will appear in the main part
-of the window, making the option more obvious.
-The load dialogue flags are:
-<dl>
-
-<dt>-tree</dt>
-<dd><p>Hierarchy browser (<ref id="TreeTableLoadDialog"/>),
-    used for content-sensitive browsing of the filespace
-    (not available with topcat-lite).</p></dd>
-
-<dt>-file</dt>
-<dd><p>Basic file browser.  This doesn't do much that the 
-    <ref id="FilestoreTableLoadDialog">Filestore Browser</ref>
-    (which is present by default, and can also access remote filespaces)
-    can't do, but is provided as a fallback.
-    </p></dd>
-
-<dt>-sql</dt>
-<dd><p>SQL query (<ref id="SQLReadDialog"/>),
-    used for obtaining tables
-    from an SQL query on a rleational database
-    (only available if <ref id="jdbcConfig">JDBC</ref> 
-    is set up correctly).</p></dd>
-
-<dt>-cone</dt>
-<dd><p>Cone search dialogue (<ref id="ConeSearchDialog"/>),
-    used for obtaining catalogues of sources in a region of the sky
-    from remote data servers (not available with topcat-lite).</p></dd>
-
-<dt>-gavo</dt>
-<dd><p>GAVO database query dialogue (<ref id="GavoTableLoadDialog"/>).
-    Allows queries to the <webref url="http://www.g-vo.org">GAVO</webref>
-    (German Astrophysical Virtual Observatory) database services.
-    At time of writing, the most generally useful of these are queries to
-    the Virgo Millennium run database.
-    </p></dd>
-
-<dt>-sia</dt>
-<dd><p>Simple Image Access protocol dialogue (<ref id="DalTableLoadDialog"/>),
-    used for obtaining the results of 
-    <webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref>
-    queries on remote data servers
-    (not available with topcat-lite).</p></dd>
-
-<dt>-ssa</dt>
-<dd><p>Simple Spectral Access protocol dialogue
-    (<ref id="DalTableLoadDialog"/>),
-    used for obtaining the results of 
-    <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
-    queries on remote data servers
-    (not available with topcat-lite).</p></dd>
-
-<dt>-registry</dt>
-<dd><p>Registry query dialogue <em>(experimental)</em>,
-    used for obtaining the results of a query on a VO resource registry
-    as a table (not available with topcat-lite).</p></dd>
-
-</dl>
-These flags in most circumstances do just the same as adding the
-relevant dialogue class name to the <code>startable.load.dialogs</code>
-system property (see <ref id="jvmProperties"/>).
 </p>
 
 <p>Other arguments on the command line are taken to be the locations
@@ -12104,14 +12038,32 @@ introduced since the last version:
             first one, which is what used to happen.</li>
         </ul>
         </p></dd>
-    <dt>Bugfixes and minor enhancements</dt>
+    <dt>Loading changes</dt>
     <dd><p>
         <ul>
-        <li>The Load Window now has toolbar buttons as well as menu items for 
-            different load dialogues.</li>
+        <li>The Load Window now has toolbar buttons as well as items in the
+            <label>DataSources</label> menu for more convenient
+            access to the various load dialogues.</li>
+        <li>The command-line flags corresponding to load dialogues
+            (<code>-tree</code>,
+             <code>-file</code>,
+             <code>-sql</code>,
+             <code>-cone</code>,
+             <code>-gavo</code>,
+             <code>-registry</code>,
+             <code>-sia</code>,
+             <code>-ssa</code>)
+            have been withdrawn from use; they were probably not widely used,
+            and are of minimal usefulness with the new load window toolbar
+            buttons.</li>
         <li>While a table is loading an entry is now visible in the 
             Control Window table list.  Previously it was not always
             clear whether a slow load was in progress or not.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and minor enhancements</dt>
+    <dd><p>
+        <ul>
         <li>HTML table output is now HTML 4.01 by default
             (includes THEAD and TBODY tags).</li>
         <li>There is a workaround for illegally truncated type declarations
