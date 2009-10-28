@@ -77,6 +77,9 @@
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
   <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
   <!ENTITY FIG.columnSelector '&figs;columnSelector.gif'>
+  <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.gif'>
+  <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.gif'>
+  <!ENTITY FIG.DalMultiPanel '&figs;DalMultiPanel.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -1907,6 +1910,136 @@ or contact the author.
 </p>
 
 </subsect>
+
+</sect>
+
+<sect id="vo">
+<subhead><title>Virtual Observatory Access</title></subhead>
+
+<p>Several of the windows in TOPCAT allow you to interface with
+so-called <em>Data Access Layer</em> services provided within the
+Virtual Observatory (VO).
+The buzzwords are not important, but the basic idea is that this
+allows you to locate a service providing data which may be
+of interest you, and then query that service to obtain the data.
+The VO is not a single monolithic entity, but a set of protocols
+which allow a general purpose tool such as TOPCAT to talk to 
+services made available by many different participating data
+providers in a uniform way, without having to have prior knowledge
+of what services are out there or the details of how their data
+is arranged.
+</p>
+
+<p>The basic operation is similar for all of TOPCAT's access to 
+these services:
+<ol>
+<li>Select the <em>registry</em> to query for services</li>
+<li>Query the registry for services of interest</li>
+<li>Identify the service from the returned list of services that you wish to
+    query for data</li>
+<li>Specify the query to send to the data service
+    (single or multiple positional queries)</li>
+<li>Start the query and wait for the result</li>
+</ol>
+</p>
+
+<p>These ideas are explained in more detail in the following subsections.
+The windows from which this is done are documented in <ref id="vo-windows"/>.
+</p>
+
+<p><strong>Note:</strong>
+For information on SAMP or PLASTIC, which are protocols developed
+within the Virtual Observatory context, but are not necessarily 
+concerned with remote data access, see <ref id="interop"/>.
+</p>
+
+<subsect id="registry">
+<subhead><title>The Registry</title></subhead>
+
+<p>The <label>Registry</label> is fundamental to the way that the VO works.
+A registry is a list of
+all the services made available by different data providers.
+Each entry records some information about the type of service,
+who provided it, what kind of data it contains, and so on
+(registries may contain other types of entry as well, but we will
+not discuss these further here).
+Any data provider can add an entry to the registry
+to advertise that it has certain datasets available for access.
+</p>
+
+<p>Several registries exist; they tend to be maintained by different
+regional VO organisations.  At the time of writing, there are 
+registries maintained for public access by the UK's AstroGrid, 
+the USA's NVO/VAO, and ESA, amongst others.
+Particular projects may also maintain their own registries with
+limited holdings for internal use.
+The main public access registries talk to each other to synchronize 
+their contents,
+so to a first approximation, they contain similar lists of entries
+to each other, and it shouldn't matter too much which one you use.
+In practice, there are various differences of format and content
+between them, so one may work better than another for you or may
+contain a record that you need.
+</p>
+
+</subsect>
+
+<subsect>
+<subhead><title>Data Access Services</title></subhead>
+
+<p>A number of different service types are defined and listed
+in the registry; the ones that
+TOPCAT currently knows how to access are the following:
+<dl>
+<dt>Cone Search:</dt>
+<dd><p>retrieve entries in a certain region of the sky 
+    from a remote catalogue
+    </p></dd>
+<dt>Simple Image Access (SIA):</dt>
+<dd><p>find image data (often in FITS format) in a certain region of the sky
+    from a remote image archive
+    </p></dd>
+<dt>Simple Spectral Access (SSA):</dt>
+<dd><p>find spectral data from, usually in a certain region of the sky,
+    from a remote archive of spectral observations or theoretical models
+    </p></dd>
+</dl>
+Detailed technical information about these protocols can be found
+at the IVOA web site (<webref url="http://www.ivoa.net/"/>) in the
+<webref url="http://www.ivoa.net/Documents/latest/ConeSearch.html"
+        >Cone Search</webref>,
+<webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref> and
+<webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
+documents, but these are by no means required reading for users of the
+services.
+These protocols, especially SSA and SIA, are quite complex,
+and have many specialised and optional features.
+Note that TOPCAT provides only a fairly basic level of interaction with
+them, and many features (for instance SSA queries by wavelength, 
+or non-positional queries for theoretical data) are not accessible from it.
+</p>
+
+<p>TOPCAT provides access to these service types in two main ways:
+<dl>
+<dt>Single positional query</dt>
+<dd><p>If you enter by hand a sky position (RA, Dec) and radius,
+    you can download a table containing the results of a search for a
+    single (usually, small) region on the sky.
+    </p></dd>
+<dt>Multiple positional query</dt>
+<dd><p>You can define how each row of an input table selects a region on
+    the sky.  This will usually correspond to selecting a column for RA
+    and a column for Dec, and either a fixed radius or a column giving
+    the radius.  Then a positional query can be made for each row of
+    the input table.
+    The result is effectively a join between the input table and the
+    remote table of object data, images or spectra.
+    </p></dd>
+</dl>
+</p>
+
+</subsect>
+
 
 </sect>
 
@@ -4226,6 +4359,16 @@ used provides a common look and feel.
     first to the last.
     To add further rows to a set already selected without deselecting
     the first lot, hold the "Control" key down while you do it.
+    </p></dd>
+
+<dt>Sort rows (sometimes)</dt>
+<dd><p>In some, but not all cases, you may see a little up or down arrow
+    in one of the column headers.  This indicates that the rows of the
+    table have been sorted according to the values in that column.
+    If you click on another column header, the rows will be re-sorted
+    according to the values in that column.  Clicking again on the same
+    column reverses the sort order.
+    This feature is only available for certain displayed JTables.
     </p></dd>
 </dl>
 </p>
@@ -8383,20 +8526,39 @@ these steps, this dialogue may be inaccessible.
 <p>By selecting the <label>Cone Search</label> button (&IMG.CONE_DIALOG;) from
 the Load Window's toolbar or <label>DataSources</label> menu,
 you can obtain a dialogue which allows you to query one of a 
-number of external web services for a catalogue of objects 
-known in a given region of the sky.
+number of external web services for objects from a given catalogue
+in a given region of the sky.
 </p>
 
 <p>There are a lot of cone search services out there,
 so the first thing is to decide which one you want to query.
+This is done by asking a list of all known cone search services
+(known as the <em>Registry</em>) for ones which match your criteria.
 When this dialogue first appears you must fill in the 
-<label>Registry</label> and <label>Keywords</label>
-fields at the top of the window.
-The Registry value defaults to the AstroGrid registry, but you can choose
-another if you prefer.  In general, since the various registries
+<label>Registry</label> and <label>Keywords</label> fields,
+and hit the <label>Submit Query</label> button to obtain a list
+of suitable cone search services.
+</p>
+
+<p>The <label>Registry</label> value defaults to the AstroGrid registry;
+this is usually a sensible choice, but you can choose
+another if you prefer, either from the list supplied in the selector box,
+or by typing in a known registry URL of your own.
+In general, since the various registries
 harvest resources from each other, they can be expected to have similar
 content, but there will be exceptions.
-The <label>Update</label> button searches the currently selected
+Registries also differ in their reliability and correctness,
+so you may find that even some of those in the supplied list
+do not work.
+The <label>Update Registry List</label> option in the <label>Registry</label>
+menu queries the current registry for a list of other registries and
+updates the registry selector accordingly; at time of writing however
+this functionality does not work very well because there are errors
+in the way that many registries are stored in the registry.
+But if you're a registry enthusiast, feel free to explore its effect.
+</p>
+
+<p>The <label>Update</label> button searches the currently selected
 registry for more registry services, so gives you a longer list
 of registries to choose from.
 The Keywords value is a space-separated list with no wildcarding.
@@ -8854,6 +9016,359 @@ and so on) - see the section on
 <ref id="jdbcConfig" plaintextref="yes">JDBC configuration</ref>.
 If you don't take these steps, this dialogue may be inaccessible.
 </p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="vo-windows">
+<subhead><title>VO Service Windows</title></subhead>
+
+<p>Several windows in TOPCAT allow access to standard Virtual Observatory
+services.
+These share the idea of querying the <em>Registry</em> for suitable
+data services, selecting one of the services thus returned, and then
+submitting one or more queries to that data service to generate a
+tabular result.  
+These ideas are explained in more detail in <ref id="vo"/>.
+This section describes the windows.
+The <ref id="RegistryPanel">next subsection</ref> explains how the
+registry query part of the windows work, and the subsequent subsections
+the details of the query windows for the different VO functions.
+</p>
+
+<subsubsect>
+<subhead><title>Common Features</title></subhead>
+
+<subsubsubsect id="RegistryPanel">
+<subhead><title>Registry Query Panel</title></subhead>
+
+<figure>
+<caption><px>Registry Query Panel</px></caption>
+<figureimage src="&FIG.RegistryPanel;"/>
+</figure>
+
+<p>The Registry Query Panel allows you to search for entries
+in <ref id="registry">the Registry</ref> representing data services
+of the type appropriate to the window.
+Note that if you know the service URL for the service that you want
+to use, you don't need to use this panel at all; you can simply 
+fill in the URL in the lower part of the window.
+</p>
+
+<p>The top part of ths panel 
+contains the fields you can fill in to query the registry
+for services matching your constraints.
+This consists of the following parts:
+<dl>
+<dt>Registry</dt>
+<dd><p>This contains the URL for the registry that will be queried for
+    suitable data services.  You can select from the available options,
+    or enter a URL corresponding to some other registry service that 
+    you know about.  The default is the AstroGrid registry, which at 
+    time of writing usually works quite well, but other registries may
+    have somewhat different data holdings.  Some registries don't work
+    very well, so you may have trouble if you use other ones.
+    The <label>Update Registry List</label> item in the 
+    <label>Registry</label> menu queries the currently selected registry
+    for other registries, and adds more entries to the selector box.
+    Although this ought to work, it seems that registry records in the
+    registry are often misconfigured, so most of the reulting items at
+    the time of writing fail for one reason or another.  But if you're
+    a registry enthusiast, feel free to experiment with it.
+    </p></dd>
+<dt>Keywords</dt>
+<dd><p>Fill this in with keywords appropriate to the services you want to
+    find.  The format is space-separated words, and there is no wildcarding.
+    So for instance if you want to find services relating to quasars
+    in Sloan data you could enter the terms "SDSS QSO".  
+    These terms are matched against
+    the title, description, identifier, shortname and some other attributes
+    of each registry entry to see if it matches.
+    Usually one or two short words is the appropriate level of detail.
+    If no keywords are filled in, all the appropriate services are retrieved.
+    </p></dd>
+<dt>And/Or button:</dt>
+<dd><p>This determines whether a registry entry is considered to match 
+    the chosen keywords if it matches all of them, or any of them.
+    Clicking it toggles between "And" and "Or".
+    The default is "And", meaning that all keywords must be matched for
+    a selection.
+    </p></dd>
+<dt>Submit Query button:</dt>
+<dd><p>When the other fields have been filled in, hit the Submit button
+    and the registry will be searched to find data services that match
+    the constraints you have given.
+    </p></dd>
+</dl>
+</p>
+
+<p>In some cases, when the window first appears, it will automatically 
+query the registry for all known services of the appropriate type.
+This is currently the case for SIA and SSA services, since there is
+a manageable number of these.  There are thousands of cone searches
+however, so for the cone search windows you need to fill in a query
+and submit it yourself.
+In either case, you can resubmit a query 
+(hit the <label>Cancel Query</label> button first if necessary)
+to make another selection of registry entries.
+</p>
+
+<p>When the query completes, a table of matching entries is displayed
+below the Submit button.
+This contains one row for each matching entry, i.e. each service of
+the appropriate type that you can submit your data query to.
+The columns in the table give a short name, title, description and
+some other information about each service.
+You can sort the table rows according to the entries in different
+columns by clicking on the column header; click again on the same
+header to reverse the sort order.  A little up/down arrow in a 
+column header indicates that that column is currently determining
+the sort order.  
+You can adjust the columns which are visible using the <label>Columns</label>
+menu.
+</p>
+
+<p>You should select the service that you want to query for data by clicking
+on it.
+When this is done, you will see one or more rows appear in a second table
+underneath the first one.  In most cases, this contains a single row
+which will be automatically selected.
+However, some registry entries have multiple data services associated
+with a single record - in this case you should select the
+appropriate entry from the lower table as well.
+</p>
+
+<p>Once you have selected a data service in this way, its service URL
+will be entered in the lower part of the window (not shown in the
+figure above) and you are ready to perform the actual single or multiple 
+data query.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="DalQueryLoadDialog">
+<subhead><title>Single Positional Search Panel</title></subhead>
+
+<figure>
+<caption><px>Single Positional Search Panel</px></caption>
+<figureimage src="&FIG.DalTableLoadDialog;"/>
+</figure>
+
+<p>The Single Positional Search Panel is used for VO data queries
+on a single region of the sky.  The purpose is to load a new
+table (containing entries representing catalogue objects, images
+or spectra).
+To use it you must fill in the <label>URL</label> field and
+the position definition, and then hit the <label>OK</label> button.
+</p>
+
+<p>
+<dl>
+<dt>URL</dt>
+<dd><p>This must contain the service URL for the data service that you
+    are querying.  Usually, this will be filled in by selecting one
+    of the services obtained by the 
+    <ref id="RegistryPanel">registry query</ref>.
+    However, you can fill it in manually with the URL of a service you
+    know about if you prefer.  If you know what you're doing,
+    it's also possible to doctor a service URL
+    filled in by the registry selection, for instance by adding
+    <code>&amp;name=value</code> parameters to it.
+    </p></dd>
+<dt>Object Name</dt>
+<dd><p>You can fill this in with the name of an object to be resolved
+    by SIMBAD, and hit the <label>Resolve</label> button, which will
+    fill in the coordinates in the RA and Dec fields below.
+    If you enter the RA and Dec manually, you don't need to use this field.
+    </p></dd>
+<dt>RA and Dec</dt>
+<dd><p>Fill in the central position in terms of J2000 Right Ascension
+    and Declinatino that you are interested in here.
+    You can either do it manually, or by using the <label>Object Name</label>
+    field as above.
+    Select the units as appropriate.
+    </p></dd>
+<dt>Radius</dt>
+<dd><p>Indicates how large is the region you are interested in.
+    This field has slightly different appearance and meaning for the different
+    data service types; hover over it with the mouse to see a tooltip with
+    the details.  For SIA and SSA, but not for Cone Search, it is permissible
+    to leave it blank (though certain services don't seem to like that).
+    Select the units as appropriate.
+    </p></dd>
+</dl>
+</p>
+
+<p>When the fields are filled in, hit the <label>OK</label> button and
+wait for the new table defined by your query parameters to load.
+If you get bored waiting (the service may be down, or just very slow, or you
+may have submitted a query with a very large return set),
+you can hit the <label>Cancel</label> button,
+and perhaps adjust the parameters and try again.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="DalMultiPanel">
+<subhead><title>Multiple Positional Search Panel</title></subhead>
+
+<figure>
+<caption><px>Multiple Positional Search Panel</px></caption>
+<figureimage src="&FIG.DalMultiPanel;"/>
+</figure>
+
+<p>The Multiple Positional Search Panel is used for VO data queries
+where one query is made for each row of an input table.
+Each of the input rows defines a (probably small) region on the sky.
+The purpose is to find data records (about catalogue objects, images
+or spectra) in a remote catalogue corresponding to each row of a
+local catalogue.  As such, it is used to define a kind of join, 
+of a local table with a remote one, where the remote one is exposed
+via a VO data service.
+</p>
+
+<p>To use it you must fill in the <label>URL</label> field to select
+the remote service, and 
+fields defining how each row of the input table can be turned into
+a positional query.  You also need to define what form the result
+will be returned in.
+These parts are described below.
+</p>
+
+<p>The URL field specifies the data service which is to be queried:
+<dl>
+<dt>URL</dt>
+<dd><p>This must contain the service URL for the data service that you
+    are querying.  Usually, this will be filled in by selecting one
+    of the services obtained by the
+    <ref id="RegistryPanel">registry query</ref>.
+    However, you can fill it in manually with the URL of a service you
+    know about if you prefer.  If you know what you're doing,
+    it's also possible to doctor a service URL
+    filled in by the registry selection, for instance by adding
+    <code>&amp;name=value</code> parameters to it.
+    </p></dd>
+</dl>
+</p>
+
+<p>The following fields define what queries are to be sent to the service:
+<dl>
+<dt>Input Table</dt>
+<dd><p>Select one of the tables loaded into TOPCAT whose row positions
+    you want to search around.
+    </p></dd>
+<dt>RA and Dec columns</dt>
+<dd><p>Fill these in with the columns in the input table which contain
+    J2000 Right Ascension and Declination.
+    Select the units as appropriate.
+    If the input table has appropriate metadata, the correct values may
+    be filled in by default, but it may occasionally guess wrong, so
+    it's wise to check that they are filled in correctly.
+    </p></dd>
+<dt>Search Radius column</dt>
+<dd><p>Fill this in with a value that represents the size of search that
+    you want to make around each row's position.
+    You can either use a constant value, or a column name, or any 
+    numeric algebraic expression based on the table (see <ref id="jel"/>).
+    Select units as appropriate.
+    This field has slightly different appearance and meaning for the different
+    data service types; hover over it with the mouse to see a tooltip with
+    the details.  For SIA and SSA, but not for Cone Search, it is permissible
+    to leave it blank (though certain services don't seem to like that).
+    Select the units as appropriate.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Output Mode selector indicates what will be done with the result.
+<dl>
+<dt>Output Mode</dt>
+<dd><p>When the queries have been performed, there are different ways that
+    the results can be returned.  Since the operation here is basically
+    a crossmatch between a local table and a remote one, this effectively
+    describes what sort of join is to be done.
+    The options are as follows:
+    <dl>
+    <dt>New joined table with best matches</dt>
+    <dd><p>A new table will be generated, containing one row for each 
+        row in the input table which returned at least one search result
+        from the remote table.  The best (closest) match will be included;
+        any others will be discarded.
+        The new table will have all the columns of the input table 
+        and all the columns returned by the data service.
+        </p></dd>
+    <dt>New joined table with all matches</dt>
+    <dd><p>A new table will be generated, containing one row for each 
+        search result returned.  Rows from the input table will be duplicated
+        where more than one search result was returned corresponding to
+        that row.
+        The new table will have all the columns of the input table 
+        and all the columns returned by the data service.
+        </p></dd>
+    <dt>New joined table, one row per input row</dt>
+    <dd><p>A new table will be generated containing the same number of rows
+        as the input table.  If any search results were returned for each row,
+        the best (closest) one is included.  Any others will be discarded,
+        and cells will be empty for rows with no search results.
+        The new table will have all the columns of the input table 
+        and all the columns returned by the data service.
+        </p></dd>
+    <dt>Add subset for matched rows</dt>
+    <dd><p>No new table will be generated, but a new subset will be added
+        to the table which includes only those rows which returned at
+        least one search result.
+        </p></dd>
+    </dl>
+    </p></dd>
+</dl>
+</p>
+
+<p>The final controls adjust the details of how the individual queries
+are submitted to the remote service.
+<dl>
+<dt>Parallelism</dt>
+<dd><p>Controls how many cone search queries are running at once.
+    By making several queries to the service concurrently, the time it
+    takes to fill in the whole table can be much quicker than making the
+    query for the first row, waiting for the result, making the query for
+    the second row, etc.  The value here is approximately how many 
+    queries are running at the same time.  Increasing the value might
+    make your multiple query run faster; or it might overload the server
+    and make you unpopular with the service administrator, or result in
+    your query taking longer or failing altogether, or both.
+    The default value of 5 is probably reasonable, but experiment with
+    adjusting it if you want.
+    </p></dd>
+<dt>Error Handling</dt>
+<dd><p>Determines what happens if one of the queries fails with an error.
+    The options are:
+    <dl>
+    <dt>ignore</dt>
+    <dd><p>treat a failed query the same as one which returns zero rows</p></dd>
+    <dt>abort</dt>
+    <dd><p>terminate the operation; the whole multiple search fails</p></dd>
+    <dt>retry N times</dt>
+    <dd><p>try N times to get a non-fail result</p></dd>
+    <dt>retry indefinitely</dt>
+    <dd><p>keep trying for a non-fail result</p></dd>
+    </dl>
+    The best setting for this depends on the way the service is set up;
+    for unreliable or poorly implemented services it may be best to 
+    continue operation in the face of a few failures.
+    </p></dd>
+</dl>
+</p>
+
+<p>When all of the fields are filled in (defaults can be used for many
+of them), hit the <label>Go</label> button, and the search will commence.
+It may be quite slow; a progress bar is shown at the bottom of the window.
+When it completes, a popup window summarising the result will be shown.
+If you get bored waiting, you can hit the <label>Cancel</label> button,
+and perhaps adjust the parameters and try again.
+</p>
+
+</subsubsubsect>
 
 </subsubsect>
 
@@ -12003,6 +12518,9 @@ introduced since the last version:
         <li>The Cone Search window provides better instructions on use
             when first displayed.</li>
         </ul>
+        </p>
+        <p>A new section <ref id="vo"/> has been added to the manual 
+        providing an introduction to the concepts of VO data access.
         </p></dd>
     <dt>SAMP-related enhancements</dt>
     <dd><p>
