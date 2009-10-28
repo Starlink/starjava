@@ -81,6 +81,9 @@
   <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.gif'>
   <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.gif'>
   <!ENTITY FIG.DalMultiPanel '&figs;DalMultiPanel.gif'>
+  <!ENTITY FIG.ConeMultiWindow '&figs;ConeMultiWindow.gif'>
+  <!ENTITY FIG.SiaMultiWindow '&figs;SiaMultiWindow.gif'>
+  <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -9328,11 +9331,143 @@ formats.  By default, the service chooses which formats to return.
 is a table in which each row represents a spectrum that can be 
 downloaded from a remote site; one of the columns contains
 the spectrum download URL, and the other columns contain associated metadata
-such as spectrum format, WCS and curation information and so on.
+such as spectrum format, WCS, provenance information and so on.
 See the 
 <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
 standard for details.
 A useful thing to do with the resulting table might be to set its
+Activation Action to the <label>View URL as Spectrum</label> option
+using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+</p>
+
+</subsubsect>
+
+<subsubsect id="ConeMultiWindow">
+<subhead><title>Multiple Cone Search Window</title></subhead>
+
+<figure>
+<caption><px>Multiple cone search window</px></caption>
+<figureimage src="&FIG.ConeMultiWindow;"/>
+</figure>
+
+<p>The multiple cone search window can be opened using the Multicone
+button (&IMG.MULTICONE;) in the Control Window's toolbar, or its
+<label>VO</label> or <label>Joins</label> menus.
+It allows you to select one of a number of external web services which
+provide remote catalogue queries, and execute a query for each row
+of an input table.
+This effectively allows you to perform a positional crossmatch between a 
+local table and a remote one.
+</p>
+
+<p>The window consists of a
+<ref id="RegistryPanel">Registry Query Panel</ref> at the top, and a
+<ref id="DalMultiPanel">Multiple Positional Search Panel</ref> below.
+</p>
+
+</subsubsect>
+
+<subsubsect id="SiaMultiWindow">
+<subhead><title>Multiple SIA Window</title></subhead>
+
+<figure>
+<caption><px>Multiple SIA window</px></caption>
+<figureimage src="&FIG.SiaMultiWindow;"/>
+</figure>
+
+<p>The multiple Simple Image Access window can be opened using the 
+Multiple SIA button (&IMG.MULTISIA;) from the Control Window's 
+<label>VO</label> or <label>Joins</label> menus.
+It allows you to select one of a numer of external web services which
+provide queries on remotely accessible image holdings, and execute
+a query for each row of an input table.
+</p>
+
+<p>The window consists of a
+<ref id="RegistryPanel">Registry Query Panel</ref> at the top, and a
+<ref id="DalMultiPanel">Multiple Positional Search Panel</ref> below.
+The <label>Search Radius column</label> may be set to zero; this means that
+any image covering the chosen position will be selected.
+There is additionally an <label>Image Format</label> selector which
+allows you to restrict the result to contain only images in certain
+formats (the default is set to only FITS).
+</p>
+
+<p>The result of each single successful query
+is a table in which each row represents an image that
+can be downloaded from a remote site; one of the columns contains
+the image URL, and the other columns contain associated metadata
+such as image format, size, shape and so on.
+Different services provide different kinds of answer to these queries;
+some may have a static list of observed or reduced FITS files, and others
+may generate images on the fly.
+See the 
+<webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref>
+standard, and individual registry records, for details.
+</p>
+
+<p>Note that some services return multiple images at the same positions
+but at different wavelengths.  In this case TOPCAT's criterion for
+the "best" match (the one closest to the central query position)
+may not make much sense.  For this reason, take care if using the
+"New joined table with best matches" or 
+"New joined table, one row per input row" output modes.
+</p>
+
+<p>One use of this function is to add some columns to an existing table which 
+contain URLs of images from a given server corresponding to the
+sky positions of those rows.
+Having done this you might want to set the resulting table's
+Activation Action to the <label>View URL as Image</label> option
+using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+</p>
+
+</subsubsect>
+
+
+<subsubsect id="SsaMultiWindow">
+<subhead><title>Multiple SSA Window</title></subhead>
+
+<figure>
+<caption><px>Multiple SSA window</px></caption>
+<figureimage src="&FIG.SsaMultiWindow;"/>
+</figure>
+
+<p>The multiple Simple Spectral Access window can be opened using the
+Multiple SSA button (&IMG.MULTISSA;) from the Control Window's
+<label>VO</label> or <label>Joins</label> menus.
+It allows you to select one of a number of external web services which
+provide queries on remotely accessible spectral data holdings, and execute
+a query for each row of an input table.
+</p>
+
+<p>The window consists of a
+<ref id="RegistryPanel">Registry Query Panel</ref> at the top, and a
+<ref id="DalMultiPanel">Multiple Positional Search Panel</ref> below.
+The SSA specification says that the <label>Search Radius</label> column
+may be left blank, in which case the service "should supply a default
+value intended to find nearby objects".
+However, experience shows that this doesn't always work so it may be
+best to fill this in.
+There is additionally a <label>Spectrum Format</label> selector which
+allows you to restrict the result to contain only spectra in certain
+formats.  By default, the service chooses which formats to return.
+</p>
+
+<p>The result of each single successful query
+is a table in which each row represents a spectrum that
+can be downloaded from a remote site; one of the columns contains
+the specturm URL, and the other columns contain associated metadata
+such as spectrum format, WCS, provenance information and so on.
+See the
+<webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
+standard for details.
+</p>
+
+<p>One use of this function is to add some columns to an existing table which
+contain URLs of spectra from a given server corresponding to the
+sky positions of those rows.
+Having done this you might want to set the resulting table's
 Activation Action to the <label>View URL as Spectrum</label> option
 using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 </p>
