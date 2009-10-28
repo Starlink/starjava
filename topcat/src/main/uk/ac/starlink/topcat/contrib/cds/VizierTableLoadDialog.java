@@ -199,8 +199,11 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         colsBox.setBorder( BorderFactory.createTitledBorder(
             BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
             "Column Selection" ) );
-        controlsBox.setBorder( gapBorder );
+        tabber_.setBorder( BorderFactory.createTitledBorder(
+            BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
+            "Catalogue Selection" ) );
         tabber_.setPreferredSize( new Dimension( 500, 300 ) );
+        setBorder( gapBorder );
     }
 
     public boolean isAvailable() {
