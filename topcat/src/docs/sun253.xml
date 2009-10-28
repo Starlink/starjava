@@ -190,6 +190,7 @@ Here is a summary of its main capabilities:
 <li>Concatenate the rows of existing tables to create new ones</li>
 <li>Acquire tables from web services, external filestores or other 
     customisable sources</li>
+<li>Perform single and multiple queries to Virtual Observatory services</li>
 <li>Write modified tables out in original or different format</li>
 </ul>
 </p>
@@ -298,8 +299,8 @@ Along the top is a toolbar with a number of buttons, most of which
 open up new windows.  These fall into a few groups:
 
 <dl>
-<dt>&IMG.LOAD; &IMG.SAVE; &IMG.COPY;</dt>
-<dd><p>Load/save etc.</p></dd>
+<dt>&IMG.LOAD; &IMG.SAVE; &IMG.BROADCAST;</dt>
+<dd><p>Load/save/send table.</p></dd>
 
 <dt>&IMG.VIEWER; &IMG.PARAMS; &IMG.COLUMNS; &IMG.SUBSETS; &IMG.STATS;</dt>
 <dd><p>Display various aspects of information about the table's data and
@@ -309,7 +310,7 @@ open up new windows.  These fall into a few groups:
     &IMG.DENSITY;</dt>
 <dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
 
-<dt>&IMG.CONCAT; &IMG.MATCH1; &IMG.MATCH2;</dt>
+<dt>&IMG.MATCH2; &IMG.MULTICONE; &IMG.CONCAT;</dt>
 <dd><p>Join tables in various ways, including spatial crossmatching</p></dd>
 
 <dt>&IMG.HELP; &IMG.FUNCTION;</dt>
@@ -1854,7 +1855,7 @@ Control Window's <label>Join</label> menu.
 
 </subsect>
 
-<subsect>
+<subsect id="internalMatch">
 <subhead><title>Matching Rows Within a Table</title></subhead>
 
 <p>Although the effect is rather different, searching through a 
@@ -1864,7 +1865,8 @@ of the same information to be specified, mainly, what counts as
 a match.
 You can do this using the <ref id="MatchWindow1">Internal Match Window</ref>,
 obtained by using the <label>Internal Match</label> (&IMG.MATCH1;) button
-in the <ref id="ControlWindow">Control Window</ref>.
+in the <ref id="ControlWindow">Control Window</ref>'s <label>Joins</label>
+menu.
 </p>
 
 </subsect>
@@ -1872,7 +1874,10 @@ in the <ref id="ControlWindow">Control Window</ref>.
 <subsect>
 <subhead><title>Notes on Matching</title></subhead>
 
-<p>This section provides a bit more detail on the how the row matching is done.
+<p>This section provides a bit more detail on the how the row matching
+of local tables 
+(sections <ref id="pairMatch"/> and <ref id="internalMatch"/>)
+is done.
 It is designed to give a rough idea to interested parties;
 it is <em>not</em> a tutorial description from 
 first principles of how it all works.
@@ -1915,6 +1920,20 @@ or contact the author.
 
 </subsect>
 
+<subsect>
+<subhead><title>Matching against a Remote Table</title></subhead>
+
+<p>TOPCAT provides some facilities for positional crossmatches
+against tables which are exposed via Virtual Observatory web services
+(cone search, Simple Image Access and Simple Spectral Access).
+This works rather differently from the other functions described
+in this section, which operate on local tables, though conceptually
+the result is similar.
+See <ref id="DalMultiPanel"/> for more details.
+</p>
+
+</subsect>
+
 </sect>
 
 <sect id="vo">
@@ -1937,10 +1956,11 @@ is arranged.
 <p>The basic operation is similar for all of TOPCAT's access to 
 these services:
 <ol>
-<li>Select the <em>registry</em> to query for services</li>
-<li>Query the registry for services of interest</li>
-<li>Identify the service from the returned list of services that you wish to
-    query for data</li>
+<li>Select the <em>registry</em> to query for services
+    (or use the default one)</li>
+<li>Query that registry for services of interest</li>
+<li>From the returned list of services,
+    select one that you wish to query for data</li>
 <li>Specify the query to send to the data service
     (single or multiple positional queries)</li>
 <li>Start the query and wait for the result</li>
@@ -1981,9 +2001,11 @@ The main public access registries talk to each other to synchronize
 their contents,
 so to a first approximation, they contain similar lists of entries
 to each other, and it shouldn't matter too much which one you use.
-In practice, there are various differences of format and content
+In practice, there are some differences of format and content
 between them, so one may work better than another for you or may
 contain a record that you need.
+In most cases though, using the default registry (currently the AstroGrid one)
+will probably do what you want it to.
 </p>
 
 </subsect>
@@ -2004,7 +2026,7 @@ TOPCAT currently knows how to access are the following:
     from a remote image archive
     </p></dd>
 <dt>Simple Spectral Access (SSA):</dt>
-<dd><p>find spectral data from, usually in a certain region of the sky,
+<dd><p>find spectral data, usually in a certain region of the sky,
     from a remote archive of spectral observations or theoretical models
     </p></dd>
 </dl>
@@ -2029,6 +2051,11 @@ or non-positional queries for theoretical data) are not accessible from it.
 <dd><p>If you enter by hand a sky position (RA, Dec) and radius,
     you can download a table containing the results of a search for a
     single (usually, small) region on the sky.
+    See the sections on
+    <ref id="ConeSearchDialog">Cone</ref>,
+    <ref id="SiapTableLoadDialog">SIA</ref>,
+    <ref id="SsapTableLoadDialog">SSA</ref>
+    load dialogues in <ref id="vo-windows"/>.
     </p></dd>
 <dt>Multiple positional query</dt>
 <dd><p>You can define how each row of an input table selects a region on
@@ -2038,6 +2065,11 @@ or non-positional queries for theoretical data) are not accessible from it.
     the input table.
     The result is effectively a join between the input table and the
     remote table of object data, images or spectra.
+    See the sections on
+    <ref id="ConeMultiWindow">Cone</ref>,
+    <ref id="SiaMultiWindow">SIA</ref>,
+    <ref id="SsaMultiWindow">SSA</ref>
+    multiple query windows in <ref id="vo-windows"/>.
     </p></dd>
 </dl>
 </p>
@@ -2727,7 +2759,7 @@ or on a row in the
 Data Window, the corresponding table row will be <em>activated</em>.
 When a row is activated, three things happen:
 <ol>
-<li>If that row is represented by a point in any open 2- or 3-diemensional
+<li>If that row is represented by a point in any open 2- or 3-dimensional
     scatter plot windows, a visible cursor marker will be drawn
     centred on that point.</li>
 <li>If the Data Window is visible, the table will be scrolled to show the
@@ -3121,8 +3153,23 @@ unless you are a tool developer you can probably ignore these.
     window, since it doesn't have very sophisticated image display
     features (variable colour maps, contour plots etc).
     </p>
+    <p>Also, the <label>View URL as Image</label>
+    <ref id="activation">Activation Action</ref>
+    option allows you to identify a column which contains an image URL
+    and to send it to a suitable image viewer or viewers.
+    </p>
     <p>SAMP MType: <code>image.load.fits</code>;
        PLASTIC Message ID: <code>ivo://votech.org/fits/image/loadFromURL</code>
+    </p></dd>
+
+<dt>Transmit Spectrum</dt>
+<dd><p>The <label>View URL as Spectrum</label>
+    <ref id="activation">Activation Action</ref>
+    option allows you to identify a column which contains a spectrum URL
+    and to send it to a suitable spectrum viewer or viewers.
+    </p>
+    <p>SAMP MType: <code>spectrum.load.ssa-generic</code>;
+       PLASTIC Message ID: <code>ivo://votech.org/spectrum/loadFromURL</code>
     </p></dd>
 </dl>
 </p>
@@ -4311,7 +4358,7 @@ may provide some other less-commonly-required actions too.
 
 <p>Many of the windows, including the 
 <ref id="TableViewerWindow">Data Window</ref>,
-display their data in a Java widget called a <label>JTable</label>.
+display their data in a visual component called a <label>JTable</label>.
 This displays a grid of values, with headings for each column, in
 a window which you can scroll around.  Although JTables are used for
 a number of different things (for instance, showing the table data themselves
@@ -4365,7 +4412,7 @@ used provides a common look and feel.
     the first lot, hold the "Control" key down while you do it.
     </p></dd>
 
-<dt>Sort rows (sometimes)</dt>
+<dt>Sort rows</dt>
 <dd><p>In some, but not all cases, you may see a little up or down arrow
     in one of the column headers.  This indicates that the rows of the
     table have been sorted according to the values in that column.
@@ -4699,24 +4746,9 @@ functions.  They are grouped as follows:
         <ref id="apparent">Apparent Table</ref>.
         </p></dd>
 
-    <dt>&IMG.COPY; Duplicate Table</dt>
-    <dd><p>Adds a new copy of the current 
-        <ref id="apparent">Apparent Table</ref> to the list of known tables.
-        This is like loading in the current table again, except that 
-        its apparent characteristics become the basic characteristics
-        of the copied one, so for instance whatever is the current
-        row order becomes the natural order of the new one.
-        </p></dd>
-
     <dt>&IMG.BROADCAST; Broadcast Table</dt>
     <dd><p>Broadcasts the current <label>Apparent Table</label> to any
         applications registered using the SAMP or PLASTIC protocol.
-        See <ref id="interop"/>.
-        </p></dd>
-
-    <dt>&IMG.SEND; Send Table</dt>
-    <dd><p>Sends the current <label>Apparent Table</label> to a single
-        selected application registered using the SAMP or PLASTIC protocol.
         See <ref id="interop"/>.
         </p></dd>
 
@@ -4794,23 +4826,24 @@ functions.  They are grouped as follows:
 <dd><p>
     <dl>
 
-    <dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatenation Window</ref></dt>
-    <dd><p>Displays a dialog for joining tables top-to-bottom.
-        </p></dd>
-
-    <dt>&IMG.MATCH1; <ref id="MatchWindow1">Internal Match Window</ref></dt>
-    <dd><p>Displays a dialog for finding internal matches between the rows
-        of a table.
-        </p></dd>
-
     <dt>&IMG.MATCH2; <ref id="MatchWindow">Pair Match Window</ref></dt>
     <dd><p>Displays a dialog for joining tables side-by-side by locating
         rows which match between them.
         </p></dd>
 
+    <dt>&IMG.MULTICONE;
+        <ref id="ConeMultiWindow">Multiple Cone Search</ref></dt>
+    <dd><p>Displays a window which permits a positional crossmatch between
+        a local table and a remote table exposed via a VO Cone Search service.
+        </p></dd>
+
+    <dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatenation Window</ref></dt>
+    <dd><p>Displays a dialog for joining tables top-to-bottom.
+        </p></dd>
+
     </dl>
-    Note that matches involving more than two tables can be done using
-    the options in the <label>Joins</label> menu.
+    Note that matches involving a single table, or more than two tables,
+    can be done using the options in the <label>Joins</label> menu.
     </p></dd>
 
 <dt>Miscellaneous</dt>
@@ -4858,6 +4891,15 @@ and those common to other windows (described in <ref id="commonMenus"/>).
 <p>The <label>File</label> menu contains the following additional actions:
 <dl>
 
+<dt>&IMG.COPY; Duplicate Table</dt>
+<dd><p>Adds a new copy of the current
+    <ref id="apparent">Apparent Table</ref> to the list of known tables.
+    This is like loading in the current table again, except that
+    its apparent characteristics become the basic characteristics
+    of the copied one, so for instance whatever is the current
+    row order becomes the natural order of the new one.
+    </p></dd>
+
 <dt>&IMG.DELETE; Discard Table</dt>
 <dd><p>Removes the current table from the list and closes and forgets any 
     view windows associated with it.  A discarded table cannot be reinstated.
@@ -4868,11 +4910,10 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     where the table comes from.
     </p></dd>
 
-<dt>Export To Mirage</dt>
-<dd><p>Starts up the external Mirage application on the current apparent table.
-    This action is only available if Mirage is on your classpath.
-    See <ref id="mirage"/>.
-    </p></dd>
+<dt>&IMG.SEND; Send Table to ...</dt>
+<dd><p>Sends the currently selected table to a selected listening application
+    using SAMP or PLASTIC.  Select the desired recipient application from the
+    submenu.</p></dd>
 
 <dt>&IMG.LOG; View Log</dt>
 <dd><p>Pops up the <ref id="LogWindow">Log Window</ref> to display 
@@ -4893,10 +4934,30 @@ windows which give various plotting and visualisation options.
 These are all provided as toolbar buttons as well.
 </p>
 
-<p>The <label>Interop</label> menu
-contains options concerned with
-interoperating with other tools using the SAMP or PLASTIC protocol.
-See <ref id="interop"/> for more detail.
+<p>The <label>Joins</label> menu contains actions for various types of
+table join.  The items provided additional to those on the toolbar are:
+<dl>
+
+<dt>&IMG.MULTISIA; Multiple SIA</dt>
+<dd><p>Displays the <ref id="SiaMultiWindow">Multiple SIA Window</ref>
+    which allows you to crossmatch with a remote image service.
+    </p></dd>
+
+<dt>&IMG.MULTISSA; Multiple SSA</dt>
+<dd><p>Displays the <ref id="SsaMultiWindow">Multiple SSA Window</ref>
+    which allows you to crossmatch with a remote spectrum service.
+    </p></dd>
+
+<dt>&IMG.MATCH1; Internal Match</dt>
+<dd><p>Displays the <ref id="MatchWindow1">Internal Match Window</ref>
+    for finding internal matches between rows in the same table.
+    </p></dd>
+
+<dt>&IMG.MATCHN; N-Table Match</dt>
+<dd><p>Displays a dialog for matching more than two tables together.
+    </p></dd>
+
+</dl>
 </p>
 
 <p>The <label>Windows</label> menu contains actions for controlling which
@@ -4951,13 +5012,15 @@ on menus on all other windows is also useful for window management -
 it brings back the control window if it's been hidden.
 </p>
 
-<p>The <label>Joins</label> menu, as well as containing the actions
-for table concatenation, internal matching and pair matching which 
-are available from the toolbar, also gives you the option to join
-three or four tables at once by matching rows.
-The multi-table match windows work pretty much the same as the 
-<ref id="MatchWindow">Pair Matching Window</ref>,
-but with more tables.
+<p>The <label>VO</label> menu groups together those actions which access
+remote data sources.  All of these options can also be found in
+either the <ref id="LoadQueryWindow">Load Window</ref> toolbar or
+the <label>Joins</label> menu.
+</p>
+
+<p>The <label>Interop</label> menu contains options relevant to 
+tool interoperability (SAMP or PLASTIC).  These items are available
+elsewhere on the toolbar or <label>File</label> menu.
 </p>
 
 </subsubsect>
@@ -7555,7 +7618,7 @@ see <ref id="activation"/>.
 <dt>&IMG.ERROR_X; / &IMG.ERROR_Y; / &IMG.ERROR_Z; Toggle X/Y/Z error bars</dt>
 <dd><p>Switches between drawing symmetric error bars and no error bars
     in the X, Y and Z directions respectively.
-    Other optinos are available in the <label>Errors</label> menu.
+    Other options are available in the <label>Errors</label> menu.
     See <ref id="errorBars"/>.
     </p></dd>
 
@@ -8877,13 +8940,13 @@ If you don't take these steps, this dialogue may be inaccessible.
 <subhead><title>VO Data Access Windows</title></subhead>
 
 <p>Several windows in TOPCAT allow access to standard Virtual Observatory
-services.
+(VO) services.
 These share the idea of querying the <em>Registry</em> for suitable
 data services, selecting one of the services thus returned, and then
 submitting one or more queries to that data service to generate a
 tabular result.  
 These ideas are explained in more detail in <ref id="vo"/>,
-and this section describes the windows.
+while the current section describes the windows.
 The <ref id="vo-windows-common">next subsection</ref> 
 describes the components from which these windows are put together;
 all the windows contain a <ref id="RegistryPanel">registry query panel</ref>
@@ -8897,7 +8960,7 @@ The windows themselves are described in the following subsections.
 <subsubsect id="vo-windows-common">
 <subhead><title>Common Features</title></subhead>
 
-<p>This section describes the features which form part of the 
+<p>This section describes the graphical components which make up the 
 VO data access windows.
 </p>
 
@@ -8909,7 +8972,8 @@ VO data access windows.
 <figureimage src="&FIG.RegistryPanel;"/>
 </figure>
 
-<p>The Registry Query Panel allows you to search for entries
+<p>The Registry Query Panel appears in all VO query windows and 
+allows you to search for entries
 in <ref id="registry">the Registry</ref> representing data services
 of the type appropriate to the window.
 Note that if you know the service URL for the service that you want
@@ -8917,7 +8981,7 @@ to use, you don't need to use this panel at all; you can simply
 fill in the URL in the lower part of the window.
 </p>
 
-<p>The top part of ths panel 
+<p>The top part of this panel 
 contains the fields you can fill in to query the registry
 for services matching your constraints.
 This consists of the following parts:
@@ -8933,8 +8997,9 @@ This consists of the following parts:
     The <label>Update Registry List</label> item in the 
     <label>Registry</label> menu queries the currently selected registry
     for other registries, and adds more entries to the selector box.
-    Although this ought to work, it seems that registry records in the
-    registry are often misconfigured, so most of the reulting items at
+    Although this ought to work, it seems that records representing
+    registries themselves are often misconfigured, 
+    so most of the reulting items at
     the time of writing fail for one reason or another.  But if you're
     a registry enthusiast, feel free to experiment with it.
     </p></dd>
@@ -8948,10 +9013,13 @@ This consists of the following parts:
     of each registry entry to see if it matches.
     Usually one or two short words is the appropriate level of detail.
     If no keywords are filled in, all the appropriate services are retrieved.
+    Some experimentation may be required to specify a query with a reasonable
+    number of results; if your query returns no results, try fewer or more
+    general terms, and if it returns too many, try more or more specific ones.
     </p></dd>
 <dt>And/Or button:</dt>
 <dd><p>This determines whether a registry entry is considered to match 
-    the chosen keywords if it matches all of them, or any of them.
+    the chosen keywords if it matches all of them, or at least one of them.
     Clicking it toggles between "And" and "Or".
     The default is "And", meaning that all keywords must be matched for
     a selection.
@@ -9016,10 +9084,10 @@ data query.
 <figureimage src="&FIG.DalTableLoadDialog;"/>
 </figure>
 
-<p>The Single Positional Search Panel is used for VO data queries
-on a single region of the sky.  The purpose is to load a new
-table (containing entries representing catalogue objects, images
-or spectra).
+<p>The Single Positional Search Panel appears in VO-based table load dialogues
+and is used to specify data queries on a single region of the sky.  
+The purpose is to load a new table 
+(containing entries representing catalogue entries, images or spectra).
 To use it you must fill in the <label>URL</label> field and
 the position definition, and then hit the <label>OK</label> button.
 </p>
@@ -9045,7 +9113,7 @@ the position definition, and then hit the <label>OK</label> button.
     </p></dd>
 <dt>RA and Dec</dt>
 <dd><p>Fill in the central position in terms of J2000 Right Ascension
-    and Declinatino that you are interested in here.
+    and Declination that you are interested in here.
     You can either do it manually, or by using the <label>Object Name</label>
     field as above.
     Select the units as appropriate.
@@ -9079,10 +9147,11 @@ and perhaps adjust the parameters and try again.
 <figureimage src="&FIG.DalMultiPanel;"/>
 </figure>
 
-<p>The Multiple Positional Search Panel is used for VO data queries
-where one query is made for each row of an input table.
+<p>The Multiple Positional Search Panel appears in VO-based multiple query
+windows which specify a procedure in which
+one query is made for each row of an input table.
 Each of the input rows defines a (probably small) region on the sky.
-The purpose is to find data records (about catalogue objects, images
+The purpose is to find data records (about catalogue entries, images
 or spectra) in a remote catalogue corresponding to each row of a
 local catalogue.  As such, it is used to define a kind of join, 
 of a local table with a remote one, where the remote one is exposed
@@ -9121,7 +9190,9 @@ These parts are described below.
     </p></dd>
 <dt>RA and Dec columns</dt>
 <dd><p>Fill these in with the columns in the input table which contain
-    J2000 Right Ascension and Declination.
+    J2000 Right Ascension and Declination
+    (you can perform coordinate conversions using the 
+    <ref id="SkyColumnQueryWindow">Sky Coordinates Window</ref> if required).
     Select the units as appropriate.
     If the input table has appropriate metadata, the correct values may
     be filled in by default, but it may occasionally guess wrong, so
@@ -9194,7 +9265,7 @@ are submitted to the remote service.
     takes to fill in the whole table can be much quicker than making the
     query for the first row, waiting for the result, making the query for
     the second row, etc.  The value here is approximately how many 
-    queries are running at the same time.  Increasing the value might
+    queries will be run at the same time.  Increasing the value might
     make your multiple query run faster; or it might overload the server
     and make you unpopular with the service administrator, or result in
     your query taking longer or failing altogether, or both.
@@ -9241,12 +9312,14 @@ and perhaps adjust the parameters and try again.
 <figureimage src="&FIG.ConeSearchDialog;"/>
 </figure>
 
-<p>The cone search load dialogue can be opened using the Cone Search button
+<p>The cone search load dialogue can be opened using the 
+<label>Cone Search</label> button
 (&IMG.CONE_DIALOG;) from the Load Window's toolbar or the Control Window's
 <label>VO</label> menu.
 It allows you to query one of a number of external web services for
 objects from a given catalogue in a given region of the sky.
-Data held by cone search services are effectively source catalogues.
+Data held by cone search services are effectively source catalogues
+with sky position columns.
 </p>
 
 <p>The window consists of a
@@ -9264,8 +9337,9 @@ Data held by cone search services are effectively source catalogues.
 <figureimage src="&FIG.SiapTableLoadDialog;"/>
 </figure>
 
-<p>The SIA query load dialogue can be opened using the SIA button
-(&IMG.SIAP_DIALOG;) from the Load Window's toolbar or the Control Window's
+<p>The SIA query load dialogue can be opened using the 
+<label>SIA Query</label> button (&IMG.SIAP_DIALOG;) 
+from the Load Window's toolbar or the Control Window's
 <label>VO</label> menu.
 It allows you to query one of a number of external web services for
 images covering a given region of the sky.
@@ -9307,8 +9381,9 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 <figureimage src="&FIG.SsapTableLoadDialog;"/>
 </figure>
 
-<p>The SSA query load dialogue can be opened using the SSA button
-(&IMG.SSAP_DIALOG;) from the Load Window's toolbar or the Control Window's
+<p>The SSA query load dialogue can be opened using the 
+<label>SSA Query</label> button (&IMG.SSAP_DIALOG;)
+from the Load Window's toolbar or the Control Window's
 <label>VO</label> menu.
 It allows you to query one of a number of external web services for
 spectra in a given region of the sky.
@@ -9350,8 +9425,9 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 <figureimage src="&FIG.ConeMultiWindow;"/>
 </figure>
 
-<p>The multiple cone search window can be opened using the Multicone
-button (&IMG.MULTICONE;) in the Control Window's toolbar, or its
+<p>The multiple cone search window can be opened using the 
+<label>Multicone</label> button (&IMG.MULTICONE;) 
+in the Control Window's toolbar, or its
 <label>VO</label> or <label>Joins</label> menus.
 It allows you to select one of a number of external web services which
 provide remote catalogue queries, and execute a query for each row
@@ -9376,9 +9452,9 @@ local table and a remote one.
 </figure>
 
 <p>The multiple Simple Image Access window can be opened using the 
-Multiple SIA button (&IMG.MULTISIA;) from the Control Window's 
+<label>Multiple SIA</label> button (&IMG.MULTISIA;) from the Control Window's 
 <label>VO</label> or <label>Joins</label> menus.
-It allows you to select one of a numer of external web services which
+It allows you to select one of a number of external web services which
 provide queries on remotely accessible image holdings, and execute
 a query for each row of an input table.
 </p>
@@ -9434,7 +9510,7 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 </figure>
 
 <p>The multiple Simple Spectral Access window can be opened using the
-Multiple SSA button (&IMG.MULTISSA;) from the Control Window's
+<label>Multiple SSA</label> button (&IMG.MULTISSA;) from the Control Window's
 <label>VO</label> or <label>Joins</label> menus.
 It allows you to select one of a number of external web services which
 provide queries on remotely accessible spectral data holdings, and execute
@@ -12572,8 +12648,8 @@ introduced since the last version:
         </p></dd>
     <dt>VizieR load dialogue</dt>
     <dd><p>A new load dialogue has been introduced to make queries directly
-        to CDS's VizieR service.  Thanks to Thomas Boch from CDS for help 
-        with this.
+        to CDS's VizieR service.  Thanks to Thomas Boch for contributing code
+        for this.
         </p></dd>
     <dt>VO menu</dt>
     <dd><p>A new menu labelled <label>VO</label> (for Virtual Observatory)
@@ -12623,7 +12699,9 @@ introduced since the last version:
         </ul>
         </p>
         <p>A new section <ref id="vo"/> has been added to the manual 
-        providing an introduction to the concepts of VO data access.
+        providing an introduction to the concepts of VO data access,
+        and a new apendix section <ref id="vo-windows"/> describes the
+        various single- and multiple-query windows.
         </p></dd>
     <dt>SAMP-related enhancements</dt>
     <dd><p>
