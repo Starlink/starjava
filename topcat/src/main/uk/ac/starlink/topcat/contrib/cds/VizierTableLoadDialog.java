@@ -71,7 +71,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
      * Constructor.
      */
     public VizierTableLoadDialog() {
-        super( "VizieR Catalogues Service",
+        super( "VizieR Catalogue Service",
                "Access the VizieR library"
              + " of published astronomical catalogues" );
         setIcon( ResourceIcon.VIZIER );
