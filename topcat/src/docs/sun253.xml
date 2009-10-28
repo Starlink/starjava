@@ -76,6 +76,7 @@
   <!ENTITY FIG.SampWindow_clients '&figs;SampWindow_clients.gif'>
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
   <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
+  <!ENTITY FIG.SsapTableLoadDialog '&figs;SsapTableLoadDialog.gif'>
   <!ENTITY FIG.columnSelector '&figs;columnSelector.gif'>
   <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.gif'>
   <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.gif'>
@@ -8515,174 +8516,22 @@ these steps, this dialogue may be inaccessible.
 
 </subsubsect>
 
-<subsubsect id="ConeSearchDialog">
+<subsubsect>
 <subhead><title>Cone Search</title></subhead>
-
-<figure>
-<caption><px>Cone search table import dialogue</px></caption>
-<figureimage src="&FIG.ConeSearchDialog;"/>
-</figure>
-
-<p>By selecting the <label>Cone Search</label> button (&IMG.CONE_DIALOG;) from
-the Load Window's toolbar or <label>DataSources</label> menu,
-you can obtain a dialogue which allows you to query one of a 
-number of external web services for objects from a given catalogue
-in a given region of the sky.
+<p>See <ref id="ConeSearchDialog"/> for details.
 </p>
-
-<p>There are a lot of cone search services out there,
-so the first thing is to decide which one you want to query.
-This is done by asking a list of all known cone search services
-(known as the <em>Registry</em>) for ones which match your criteria.
-When this dialogue first appears you must fill in the 
-<label>Registry</label> and <label>Keywords</label> fields,
-and hit the <label>Submit Query</label> button to obtain a list
-of suitable cone search services.
-</p>
-
-<p>The <label>Registry</label> value defaults to the AstroGrid registry;
-this is usually a sensible choice, but you can choose
-another if you prefer, either from the list supplied in the selector box,
-or by typing in a known registry URL of your own.
-In general, since the various registries
-harvest resources from each other, they can be expected to have similar
-content, but there will be exceptions.
-Registries also differ in their reliability and correctness,
-so you may find that even some of those in the supplied list
-do not work.
-The <label>Update Registry List</label> option in the <label>Registry</label>
-menu queries the current registry for a list of other registries and
-updates the registry selector accordingly; at time of writing however
-this functionality does not work very well because there are errors
-in the way that many registries are stored in the registry.
-But if you're a registry enthusiast, feel free to explore its effect.
-</p>
-
-<p>The <label>Update</label> button searches the currently selected
-registry for more registry services, so gives you a longer list
-of registries to choose from.
-The Keywords value is a space-separated list with no wildcarding.
-Each keyword is matched against the title, description, identifier,
-shortname and some other attributes to find matching services.
-By default a resource must match all of these to be selected,
-but you can toggle it to match any of them by clicking the 
-<label>And/Or</label> button to the right of the selector.
-</p>
-
-<p>Once these fields are filled in, hit the <label>Submit</label>
-button, and TOPCAT will query the selected registry for a list
-of the services which contain the chosen keywords.
-The services found will be displayed in the table.
-For more information about each one, use the
-<label>Columns</label> menu to select what information, such as
-publisher, reference URL etc is displayed in the table.
-You can scroll up and down this table and select the one which you
-want to query by clicking on it.
-The lower table lists the actual cone search services associated with
-each registry resource found.  In most cases there is exactly one
-cone search service per resource, but if there is more than one you
-will need to select the one you want by clicking on it
-(it defaults to the first in the list).
-</p>
-
-<p>Having selected one of the cone search services from the table,
-you need to specify the sky region in which you are interested.
-If you enter the name of an astronomical object into the 
-<label>Object Name</label> field and hit the <label>Resolve</label>
-button, the coordinates will be entered into the <label>RA</label> 
-and <label>Dec</label> fields below.
-Alternatively you can type the coordinates in directly, choosing
-either degrees or sexagesimal coordinates using the unit selector
-boxes.  Enter the search radius too.
-</p>
-
-<p>Having done this, 
-hit the <label>OK</label> button.  This will send the query to
-the service you selected and, if successful, load into TOPCAT a
-table containing all the objects in the region of the sky you 
-have specified.  The exact format of the returned table will depend
-on the service you have selected, but it will contain at least 
-columns representing Right Ascension and Declination.
-</p>
-
-<p>Note that this window requires certain optional 
-components of the TOPCAT installation,
-and will not be available if you have the topcat-lite configuration.
-</p>
-
 </subsubsect>
 
-<subsubsect id="DalTableLoadDialog">
-<subhead><title>SIAP/SSAP Query</title></subhead>
-
-<figure>
-<caption><px>SIAP table import dialogue.
-The SSAP one looks very similar</px></caption>
-<figureimage src="&FIG.SiapTableLoadDialog;"/>
-</figure>
-
-<p>By selecting the <label>SIAP</label> (&IMG.SIAP_DIALOG;) or 
-<label>SSAP</label> (&IMG.SSAP_DIALOG;) option from
-the Load Window's toolbar or <label>DataSources</label> menu,
-you can obtain a dialogue which allows you to perform a
-<webref url="http://www.ivoa.net/Documents/latest/SIA.html"
-        >Simple Image Access</webref>
-or
-<webref url="http://www.ivoa.net/Documents/latest/SSA.html"
-        >Simple Spectral Access</webref>
-protocol query to one of the servers on the network which supports the
-Virtual Observatory protocol in question.
+<subsubsect>
+<subhead><title>SIA Query</title></subhead>
+<p>See <ref id="SiapTableLoadDialog"/> for details.
 </p>
+</subsubsect>
 
-<p>The purpose of these protocols is to allow you to locate 
-image or spectral data from virtual observatory servers.
-The basic idea is that you decide which server you want to query,
-specify constraints such as the region of sky in which you are interested,
-and then make the query.  The server responsds with a table 
-(a VOTable) which contains a row for each image/spectral data set
-matching the query.
-The load dialogues described here allow you to locate
-suitable servers, make simple queries along these lines, and
-view the returned tables in TOPCAT.
-This isn't the most sensible use of these protocols - typically
-they would be used by an image/spectrum viewer which would take care
-of acquiring the actual image/spectrum data described in the return
-table - so these dialogues are of somewhat limited use.
-Moreover, they only provide a subset of the options specified by the
-protocols (especially in the case of SSAP, which defines many possible
-constraints beyond sky position).
-However, they're here if you want to use them for whatever reason.
+<subsubsect>
+<subhead><title>SSA Query</title></subhead>
+<p>See <ref id="SsapTableLoadDialog"/> for details.
 </p>
-
-<p>Operation is quite similar to the 
-<ref id="ConeSearchDialog">Cone Search</ref> dialogue
-(see <ref id="ConeSearchDialog"/> for slightly more detail on this).
-First you need to select the server to use. 
-Fill in the <label>Registry</label> and <label>Keywords</label>
-fields at the top of the window to restrict which SIAP/SSAP servers
-you want to search for, and hit the <label>Submit Query</label> button.
-If you leave the <label>Keywords</label> field blank, all suitable
-servers will be listed; at the time of writing, there are not very 
-may SSAP servers in total, so it's not an unreasonable thing to do.
-Then select the server you want by clicking on its row in the table.
-</p>
-
-<p>Having selected the server, select the region of sky in which you
-are interested.  
-Either fill in the <label>RA</label> and <label>Dec</label> fields manually,
-or fill in the <label>Object Name</label> field to get it resolved to
-a position using Sesame.  Then enter the region size - 
-semantics of this differ slightly between protocols, see the tooltip
-for details.
-Finally, hit <label>OK</label> and the query will be performed,
-loading the result into TOPCAT as a new table.
-</p>
-
-<p>Note that this window requires certain optional
-components of the TOPCAT installation,
-and will not be available if you have the topcat-lite configuration.
-</p>
-
 </subsubsect>
 
 <subsubsect id="GavoTableLoadDialog">
@@ -9022,7 +8871,7 @@ If you don't take these steps, this dialogue may be inaccessible.
 </subsect>
 
 <subsect id="vo-windows">
-<subhead><title>VO Service Windows</title></subhead>
+<subhead><title>VO Data Access Windows</title></subhead>
 
 <p>Several windows in TOPCAT allow access to standard Virtual Observatory
 services.
@@ -9030,15 +8879,24 @@ These share the idea of querying the <em>Registry</em> for suitable
 data services, selecting one of the services thus returned, and then
 submitting one or more queries to that data service to generate a
 tabular result.  
-These ideas are explained in more detail in <ref id="vo"/>.
-This section describes the windows.
-The <ref id="RegistryPanel">next subsection</ref> explains how the
-registry query part of the windows work, and the subsequent subsections
-the details of the query windows for the different VO functions.
+These ideas are explained in more detail in <ref id="vo"/>,
+and this section describes the windows.
+The <ref id="vo-windows-common">next subsection</ref> 
+describes the components from which these windows are put together;
+all the windows contain a <ref id="RegistryPanel">registry query panel</ref>
+to select a suitable data access service, and they also contain either a
+<ref id="DalQueryLoadDialog">single</ref> or a
+<ref id="DalMultiPanel">multiple</ref> search panel
+to define the actual query or queries to submit to the selected service.
+The windows themselves are described in the following subsections.
 </p>
 
-<subsubsect>
+<subsubsect id="vo-windows-common">
 <subhead><title>Common Features</title></subhead>
+
+<p>This section describes the features which form part of the 
+VO data access windows.
+</p>
 
 <subsubsubsect id="RegistryPanel">
 <subhead><title>Registry Query Panel</title></subhead>
@@ -9372,7 +9230,117 @@ and perhaps adjust the parameters and try again.
 
 </subsubsect>
 
+<subsubsect id="ConeSearchDialog">
+<subhead><title>Cone Search</title></subhead>
+
+<figure>
+<caption><px>Cone table load dialogue</px></caption>
+<figureimage src="&FIG.ConeSearchDialog;"/>
+</figure>
+
+<p>The cone search load dialogue can be opened using the Cone Search button
+(&IMG.CONE_DIALOG;) from the Load Window's toolbar or the Control Window's
+<label>VO</label> menu.
+It allows you to query one of a number of external web services for
+objects from a given catalogue in a given region of the sky.
+Data held by cone search services are effectively source catalogues.
+</p>
+
+<p>The window consists of a
+<ref id="RegistryPanel">Registry Query Panel</ref> at the top, and a
+<ref id="DalQueryLoadDialog">Single Positional Search Panel</ref> below.
+</p>
+
+</subsubsect>
+
+<subsubsect id="SiapTableLoadDialog">
+<subhead><title>Simple Image Access Query</title></subhead>
+
+<figure>
+<caption><px>SIA query load dialog</px></caption>
+<figureimage src="&FIG.SiapTableLoadDialog;"/>
+</figure>
+
+<p>The SIA query load dialogue can be opened using the SIA button
+(&IMG.SIAP_DIALOG;) from the Load Window's toolbar or the Control Window's
+<label>VO</label> menu.
+It allows you to query one of a number of external web services for
+images covering a given region of the sky.
+</p>
+
+<p>The window consists of a
+<ref id="RegistryPanel">Registry Query Panel</ref> at the top, and a
+<ref id="DalQueryLoadDialog">Single Positional Search Panel</ref> below.
+The <label>Angular Size</label> may be set to zero; this means that
+any image covering the chosen position will be selected.
+There is additionally an <label>Image Format</label> selector which
+allows you to restrict the result to contain only images in certain
+formats (the default is set to only FITS).
+</p>
+
+<p>The result of a successful query 
+is a table in which each row represents an image that
+can be downloaded from a remote site; one of the columns contains
+the image URL, and the other columns contain associated metadata
+such as image format, size, shape and so on.
+Different services provide different kinds of answer to these queries;
+some may have a static list of observed or reduced FITS files, and others
+may generate images on the fly.
+See the 
+<webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref>
+standard, and individual registry records, for details.
+A useful thing to do with the resulting table might be to set its
+Activation Action to the <label>View URL as Image</label> option
+using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+</p>
+
+</subsubsect>
+
+<subsubsect id="SsapTableLoadDialog">
+<subhead><title>Simple Spectral Access Query</title></subhead>
+
+<figure>
+<caption><px>SSA query load dialog</px></caption>
+<figureimage src="&FIG.SsapTableLoadDialog;"/>
+</figure>
+
+<p>The SSA query load dialogue can be opened using the SSA button
+(&IMG.SSAP_DIALOG;) from the Load Window's toolbar or the Control Window's
+<label>VO</label> menu.
+It allows you to query one of a number of external web services for
+spectra in a given region of the sky.
+</p>
+
+<p>The window consists of a
+<ref id="RegistryPanel">Registry Query Panel</ref> at the top, and a
+<ref id="DalQueryLoadDialog">Single Positional Search Panel</ref> below.
+The SSA specification says that the <label>Diameter</label> field
+may be left blank, in which case the service "should supply a default 
+value intended to find nearby objects".
+However, experience shows that this doesn't always work, so it may be
+best to fill this in.
+There is additionally a <label>Spectrum Format</label> selector which
+allows you to restrict the result to contain only spectra in certain
+formats.  By default, the service chooses which formats to return.
+</p>
+
+<p>The result of a successful query
+is a table in which each row represents a spectrum that can be 
+downloaded from a remote site; one of the columns contains
+the spectrum download URL, and the other columns contain associated metadata
+such as spectrum format, WCS and curation information and so on.
+See the 
+<webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
+standard for details.
+A useful thing to do with the resulting table might be to set its
+Activation Action to the <label>View URL as Spectrum</label> option
+using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+</p>
+
+</subsubsect>
+
 </subsect>
+
 
 <subsect>
 <subhead><title>Other Windows</title></subhead>
@@ -12350,7 +12318,7 @@ introduced since the last version:
     <li>SIAP load dialogue now has name resolution capability.</li>
     <li>Added SSAP load dialogue.  Basic functionality only.</li>
     <li>Added documentation for previously-unadvertised
-        <ref id="DalTableLoadDialog">SIAP/SSAP</ref> load dialogues.</li>
+        SIAP/SSAP load dialogues.</li>
     <li>Fixed bug which caused registry queries (Cone, SIA, SSA) to fail
         for Java 1.6.</li>
     <li>Fixed bug which caused blank Contact field in registry query 
