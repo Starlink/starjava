@@ -8624,6 +8624,46 @@ but this load dialogue makes it convenient to load data directly from
 VizieR into TOPCAT.
 </p>
 
+<p>The dialogue consists of three parts: the 
+<label>Row Selection</label>,
+<label>Column Selection</label> and
+<label>Catalogue Selection</label> parts.
+These parts are described below.
+</p>
+
+<p>The <label>Row Selection</label> panel specifies which rows you 
+want to retrieve from the catalogue that you will select.
+You can choose one of the two radio buttons according to the kind
+of query that you want to make:
+<dl>
+<dt>Cone Selection</dt>
+<dd><p>In this case you must give a central sky position and the search
+    radius to define a cone-shaped region of interest.  Rows within that
+    range will be returned.
+    For the central position you can either fill in the <label>RA</label>
+    and <label>Dec</label> fields directly, or you can fill in the 
+    <label>Object Name</label> field and hit the <label>Resolve</label>
+    button; in the latter case, a SIMBAD query will be made to determine
+    the coordinates corresponding to the named object.
+    </p></dd>
+<dt>All Rows</dt>
+<dd><p>Alternatively, you can choose to download the whole catalogue
+    without spatial restrictions.
+    </p></dd>
+</dl>
+In either case, the <label>Maximum Row Count</label> selector indicates
+the largest number of rows which will be returned.
+If your query requests more rows than the limit given, extra rows will
+simply be omitted from the returned result.
+It is possible to choose any value for this field, including very 
+large ones or the special value "unlimited"; however consider 
+before doing this whether you want to download a potentially very
+large data set.
+The server may in any case time out in the case of a very long 
+connection, so it is probably not possible, for instance, to download
+the entire 2MASS point source catalogue.
+</p>
+
 <p>CDS make the following request:
 <blockquote>
 <em>
