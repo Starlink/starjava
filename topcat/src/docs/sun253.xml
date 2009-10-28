@@ -84,6 +84,7 @@
   <!ENTITY FIG.ConeMultiWindow '&figs;ConeMultiWindow.gif'>
   <!ENTITY FIG.SiaMultiWindow '&figs;SiaMultiWindow.gif'>
   <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.gif'>
+  <!ENTITY FIG.VizierTableLoadDialog '&figs;VizierTableLoadDialog.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -107,7 +108,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>31 July 2009</docdate>
+<docdate>5 November 2009</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -8600,6 +8601,45 @@ these steps, this dialogue may be inaccessible.
 </p>
 </subsubsect>
 
+<subsubsect id="VizierTableLoadDialog">
+<subhead><title>VizieR Catalogue Service Query</title></subhead>
+
+<figure>
+<caption><px>VizieR load dialogue</px></caption>
+<figureimage src="&FIG.VizierTableLoadDialog;"/>
+</figure>
+
+<p>The VizieR query dialogue can be opened using the
+<label>VizieR Catalogue Service</label> button (&IMG.VIZIER;)
+in the Load Window's toolbar button or the Control Window's 
+<label>VO</label> menu.
+It allows you to make queries directly to the 
+<webref url="http://vizier.u-strasbg.fr/">VizieR</webref> 
+service operated by 
+<webref url="http://cdsweb.u-strasbg.fr/">CDS</webref>.
+VizieR is a comprehensive library of very many published astronomical 
+catalogues.
+These items can equally be accessed from the web or other interfaces,
+but this load dialogue makes it convenient to load data directly from
+VizieR into TOPCAT.
+</p>
+
+<p>CDS make the following request:
+<blockquote>
+<em>
+If the access to catalogues with VizieR was helpful for your 
+research work, the following acknowledgment would be appreciated: 
+"This research has made use of the VizieR catalogue access tool, 
+CDS, Strasbourg, France". 
+The original description of the VizieR service was published in 
+<webref url="http://adswww.harvard.edu/abs/2000A%26AS..143...23O"
+        >A&amp;AS 143, 23 (2000)</webref>. 
+</em>
+</blockquote>
+</p>
+
+</subsubsect>
+
 <subsubsect id="GavoTableLoadDialog">
 <subhead><title>GAVO Millennium Database Query</title></subhead>
 
@@ -12647,9 +12687,9 @@ introduced since the last version:
         VO interface.
         </p></dd>
     <dt>VizieR load dialogue</dt>
-    <dd><p>A new load dialogue has been introduced to make queries directly
-        to CDS's VizieR service.  Thanks to Thomas Boch for contributing code
-        for this.
+    <dd><p>A new <ref id="VizierTableLoadDialog">VizieR load dialogue</ref>
+        has been introduced to make queries directly to CDS's VizieR service.
+        Thanks to Thomas Boch for contributing code for this.
         </p></dd>
     <dt>VO menu</dt>
     <dd><p>A new menu labelled <label>VO</label> (for Virtual Observatory)
