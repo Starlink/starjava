@@ -8633,7 +8633,7 @@ these steps, this dialogue may be inaccessible.
 
 <p>The VizieR query dialogue can be opened using the
 <label>VizieR Catalogue Service</label> button (&IMG.VIZIER;)
-in the Load Window's toolbar button or the Control Window's 
+in the Load Window's toolbar or the Control Window's 
 <label>VO</label> menu.
 It allows you to make queries directly to the 
 <webref url="http://vizier.u-strasbg.fr/">VizieR</webref> 
