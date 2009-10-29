@@ -8255,8 +8255,8 @@ it has no effect and is disabled.
 
 <p>This dialogue allows you to specify a new table to open in several
 different ways, described below.
-If you successfully load a table using any of these options,
-a new entry will be added into the Table List in the Control Window,
+If you perform a successful load using any of these options,
+a new entry or entries will be added into the Table List in the Control Window,
 which you can then use in the usual ways.
 If you choose a location which can't be turned into a table
 (for instance because the file doesn't exist),
@@ -8291,6 +8291,27 @@ which display various load dialogues; the <label>DataSources</label>
 contains all of these along with some lesser-used ones.
 The following subsections describe most of the available options,
 though others may be available in your installation.
+</p>
+
+<p>The options available on the toolbar by default are these:
+<ul>
+<li>&IMG.FILESTORE_DIALOG;
+    <ref id="FilestoreTableLoadDialog">Filestore Browser</ref></li>
+<li>&IMG.TREE_DIALOG;
+    <ref id="TreeTableLoadDialog">Hierarchy Browser</ref></li>
+<li>&IMG.SQL_DIALOG;
+    <ref id="SQLReadDialog">SQL Query</ref></li>
+<li>&IMG.CONE_DIALOG;
+    <ref id="ConeSearchDialog">Cone Search</ref></li>
+<li>&IMG.SIAP_DIALOG;
+    <ref id="SiapTableLoadDialog">Simple Image Access Query</ref></li>
+<li>&IMG.SSAP_DIALOG;
+    <ref id="SsapTableLoadDialog">Simple Spectral Access Query</ref></li>
+<li>&IMG.VIZIER;
+    <ref id="VizierTableLoadDialog">VizieR Catalogue Service Query</ref></li>
+<li>&IMG.GAVO;
+    <ref id="GavoTableLoadDialog">GAVO Millennium Database Query</ref></li>
+</ul>
 </p>
 
 <subsubsect id="FilestoreTableLoadDialog">
@@ -8382,8 +8403,9 @@ instead.
 <figureimage src="&FIG.TreeTableLoadDialog;"/>
 </figure>
 
-<p>By selecting the <label>Hierarchy Browser</label> option from
-the Load Window's toolbar or <label>DataSources</label> menu,
+<p>By selecting the <label>Hierarchy Browser</label> button
+(&IMG.TREE_DIALOG;) 
+from the Load Window's toolbar or <label>DataSources</label> menu,
 you can obtain a browser which presents a table-aware
 hierarchical view of the file system.
 (Note that a freestanding version of this panel with additional
@@ -8624,11 +8646,17 @@ but this load dialogue makes it convenient to load data directly from
 VizieR into TOPCAT.
 </p>
 
+<p>Note that VizieR's idea of a catalogue is more complex than a single
+table; this means that querying one of VizieR's catalogues may result
+in more than one table being loaded into TOPCAT.
+</p>
+
 <p>The dialogue consists of three parts: the 
 <label>Row Selection</label>,
 <label>Column Selection</label> and
-<label>Catalogue Selection</label> parts.
-These parts are described below.
+<label>Catalogue Selection</label> panels,
+arranged top to bottom in the window.
+These are described below.
 </p>
 
 <p>The <label>Row Selection</label> panel specifies which rows you 
@@ -8654,14 +8682,110 @@ of query that you want to make:
 In either case, the <label>Maximum Row Count</label> selector indicates
 the largest number of rows which will be returned.
 If your query requests more rows than the limit given, extra rows will
-simply be omitted from the returned result.
+simply be omitted from the returned result (the limit seems to be approximate).
 It is possible to choose any value for this field, including very 
 large ones or the special value "unlimited"; however consider 
 before doing this whether you want to download a potentially very
 large data set.
 The server may in any case time out in the case of a very long 
-connection, so it is probably not possible, for instance, to download
-the entire 2MASS point source catalogue.
+connection, so it is probably not possible, even if it were desirable,
+to download for instance the entire 2MASS point source catalogue.
+</p>
+
+<p>The <label>Column Selection</label> panel gives you some control
+over which columns will be included in the loaded table.
+This will include some or all of the columns the table has in the
+VizieR archive, and perhaps some standard ones added automatically 
+by the service.
+The options are currently:
+<dl>
+<dt>standard</dt>
+<dd><p>Contains a selection of those columns considered most interesting by 
+    the service.
+    </p></dd>
+<dt>default</dt>
+<dd><p>Contains the 'standard' columns plus numeric "_RAJ2000" and "_DEJ2000"
+    positional columns inserted by the service;
+    if the query is a Cone Selection rather than All Rows, it also contains
+    a column "_r" inserted by the service giving the distance between the
+    selected position and the row's position.
+    </p></dd>
+<dt>all</dt>
+<dd><p>Contains all the columns from the archived catalogue.
+    </p></dd>
+</dl>
+VizieR experts may fill in custom column requirements here by typing them
+into the selector box rather than choosing one of the 
+predefined options, for instance
+<code>-out.add=_GLON,_GLAT</code> would add galactic coordinates to the
+standard set; see 
+<webref url="http://vizier.u-strasbg.fr/doc/asu-summary.htx"/>
+for more details on VizieR hacking.
+(In fact, this trick can be used to add VizieR parameters unrelated to
+column selection as well).
+</p>
+
+<p>The <label>Catalogue Selection</label> panel offers several 
+different ways to identify which of the catalogues in the VizieR archive
+you want to query.  In all cases you will be presented with a
+<ref id="JTable">JTable</ref> 
+of VizieR catalogues, and you must select one by clicking on 
+the relevant row.  You can sort within the displayed table by
+clicking on the column header.
+<label>Note: </label> for some of these options it is necessary to
+fill in the Row Selection panel before you can operate them
+(the controls will be disabled if no row selection has been made).
+That is because the catalogues listed will depend on the region you
+are going to query; VizieR is smart enough to know which catalogues
+have some coverage in the region in question.
+The options for catalogue selection are as follows:
+<dl>
+<dt>By Category</dt>
+<dd><p>You may select one or more terms from one or more of the 
+    presented lists of predefined keywords in the categories 
+    <label>Wavelength</label>, <label>Mission</label> and
+    <label>Astronomy</label> to restrict the catalogues
+    that you are interested in.  How you select multiple entries from the
+    same list is platform-dependent, but CTRL-click may work.
+    When you have made your selections, hit the 
+    <label>Search Catalogues</label> button, and those catalogues in the 
+    categories you have identified, and with coverage in the region
+    defined by the Row Selection panel, will be listed below the
+    category selection panel.
+    Select one of these by clicking on it.
+    </p></dd>
+<dt>By Keyword</dt>
+<dd><p>A <label>Keywords</label> text field is shown; you may enter
+    a space-separated list of words which will be matched against 
+    catalogue names and descriptions.
+    When you have entered the search terms, hit the
+    <label>Search Catalogues</label> button, and those catalogues 
+    which match your terms, and with coverage in the region
+    defined by the Row Selection panel, will be listed below the 
+    Keywords field.
+    Select one of these by clicking on it.
+    </p></dd>
+<dt>Surveys</dt>
+<dd><p>A (fairly short) list of large surveys held by VizieR is presented
+    in a table.
+    An indication of the size of each, in terms of number of
+    thousands of rows, is given.
+    Select one of these by clicking on it.
+    </p></dd>
+<dt>Missions</dt>
+<dd><p>A (fairly short) list of data holdings at VizieR originating 
+    from large missions is presented in a table.
+    An indication of the size of each, in terms of number of
+    thousands of rows, is given.
+    Select one of these by clicking on it.
+    </p></dd>
+</dl>
+</p>
+
+<p>When you have made your selection of rows, columns and catalogue
+you can hit the <label>OK</label> button and TOPCAT will attempt to
+contact the VizieR service to load the resulting table or tables.
+You can cancel a request in progress with the <label>Cancel</label> button.
 </p>
 
 <p>CDS make the following request:
