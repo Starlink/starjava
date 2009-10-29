@@ -18,6 +18,8 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -282,7 +284,20 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
             ubuf.append( ((ColsSpec) colsSpec).getArgs( allRows ) );
         }
         else if ( colsSpec instanceof String ) {
-            ubuf.append( ((String) colsSpec).trim() );
+            String txt = ((String) colsSpec);
+            ComboBoxModel colModel = colSelector_.getModel();
+            assert colModel instanceof DefaultComboBoxModel;
+            if ( colModel instanceof DefaultComboBoxModel &&
+                 ((DefaultComboBoxModel) colModel).getIndexOf( txt ) < 0 ) {
+                colSelector_.addItem( txt );
+            }
+            txt = txt.trim();
+            if ( txt.length() > 0 ) {
+                if ( txt.charAt( 0 ) != '&' ) {
+                    ubuf.append( '&' );
+                }
+                ubuf.append( txt );
+            }
         }
         String maxrows = maxSelector_.getSelectedItem().toString();
         ubuf.append( encodeArg( "-out.max", maxrows ) );
