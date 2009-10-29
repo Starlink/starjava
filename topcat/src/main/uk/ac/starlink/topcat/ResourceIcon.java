@@ -139,6 +139,7 @@ public class ResourceIcon implements Icon {
         SAMP = makeIcon( "comms2.gif" ),
         GAVO = makeIcon( "virgo3.gif" ),
         VIZIER = makeIcon( "vizmini.gif" ),
+        TREE_DIALOG = makeIcon( "browse.gif" ),
 
         /* Specific actions. */
         UNSORT = makeIcon( "arrow_level.gif" ),
