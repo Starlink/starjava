@@ -6308,13 +6308,17 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.1</dt>
 <dd><p>
     <ul>
     <li><code>coneskymatch</code> can now match using SIA and SSA
         services as alternatives to Cone Search ones
         (see its new <code>servicetype</code> parameter).</li>
     </ul>
+    Note that the STIL API used by this release has changed in some
+    backwardly incompatible ways, and may change further.
+    If you're using STILTS as a library rather than an application
+    you might want to wait for a later release when the API has settled down.
     </p></dd>
 
 </dl>
