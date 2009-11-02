@@ -139,6 +139,11 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
     public StarTable[] makeStarTables( DataSource datsrc,
                                        StoragePolicy storagePolicy )
             throws TableFormatException, IOException {
+        String frag = datsrc.getPosition();
+        if ( frag != null && frag.trim().length() > 0 ) {
+            return new StarTable[] { makeStarTable( datsrc, false,
+                                                    storagePolicy ) };
+        }
         TableElement[] tEls = readTableElements( datsrc, storagePolicy );
         List tableList = new ArrayList();
         for ( int i = 0; i < tEls.length; i++ ) {

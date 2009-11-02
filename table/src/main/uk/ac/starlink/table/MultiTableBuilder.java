@@ -23,9 +23,10 @@ public interface MultiTableBuilder extends TableBuilder {
      * handle the source but an error occurs during processing, an
      * <code>IOException</code> can be thrown.
      *
-     * <p>The <code>position</code> of the data source should usually 
-     * be ignored by this method, since it will return all the tables
-     * in the given stream.
+     * <p>If the <code>position</code> of the data source is not null,
+     * then this method should return an array containing a single table,
+     * the one which would be returned by the <code>makeStarTable</code>
+     * method with that position.
      *
      * @param  datsrc  the DataSource containing the table resource
      * @param  storagePolicy  a StoragePolicy object which may be used to

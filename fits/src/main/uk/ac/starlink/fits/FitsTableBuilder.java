@@ -151,6 +151,10 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
 
     public StarTable[] makeStarTables( DataSource datsrc, StoragePolicy policy )
             throws IOException {
+        String frag = datsrc.getPosition();
+        if ( frag != null && frag.trim().length() > 0 ) {
+            return new StarTable[] { makeStarTable( datsrc, false, policy ) };
+        }
         if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
