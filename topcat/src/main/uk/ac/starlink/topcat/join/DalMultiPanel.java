@@ -460,8 +460,8 @@ public class DalMultiPanel extends JPanel {
      */
     private static ConeErrorPolicy[] getConeErrorPolicies() {
         List plist = new ArrayList();
-        plist.add( ConeErrorPolicy.IGNORE );
         plist.add( ConeErrorPolicy.ABORT );
+        plist.add( ConeErrorPolicy.IGNORE );
         int[] retries = new int[] { 1, 2, 3, 5, 10, };
         for ( int i = 0; i < retries.length; i++ ) {
             int ntry = retries[ i ];

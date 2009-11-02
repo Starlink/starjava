@@ -9480,17 +9480,18 @@ are submitted to the remote service.
 <dd><p>Determines what happens if one of the queries fails with an error.
     The options are:
     <dl>
-    <dt>ignore</dt>
-    <dd><p>treat a failed query the same as one which returns zero rows</p></dd>
     <dt>abort</dt>
     <dd><p>terminate the operation; the whole multiple search fails</p></dd>
+    <dt>ignore</dt>
+    <dd><p>treat a failed query the same as one which returns zero rows</p></dd>
     <dt>retry N times</dt>
     <dd><p>try N times to get a non-fail result</p></dd>
     <dt>retry indefinitely</dt>
     <dd><p>keep trying for a non-fail result</p></dd>
     </dl>
     The best setting for this depends on the way the service is set up;
-    for unreliable or poorly implemented services it may be best to 
+    the default is <label>abort</label>, but 
+    for unreliable or poorly implemented services it may be better to 
     continue operation in the face of a few failures.
     </p></dd>
 </dl>
