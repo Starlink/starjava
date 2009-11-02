@@ -240,7 +240,13 @@ public abstract class SearchVizierMode implements VizierMode {
             },
             new ArrayTableColumn( "Density", Integer.class ) {
                 public Object getValue( Object item ) {
-                    return new Integer( getCatalog( item ).getDensity() );
+                    String sdens = getCatalog( item ).getDensity();
+                    try {
+                        return new Integer( sdens );
+                    }
+                    catch ( NumberFormatException e ) {
+                        return null;
+                    }
                 }
             },
             new ArrayTableColumn( "Description", String.class ) {
