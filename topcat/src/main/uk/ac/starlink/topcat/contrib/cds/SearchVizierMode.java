@@ -12,7 +12,9 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -158,6 +160,9 @@ public abstract class SearchVizierMode implements VizierMode {
         if ( searchWorker_ != null ) {
             searchWorker_.cancel();
         }
+        tScroller_.setViewportView( worker == null
+                                        ? table_
+                                        : createSearchProgressPanel() );
         searchWorker_ = worker;
         updateActions();
     }
@@ -255,6 +260,35 @@ public abstract class SearchVizierMode implements VizierMode {
                 }
             },
         };
+    }
+
+    /**
+     * Returns a panel which can be used to indicate that a query for
+     * catalogues is taking place.
+     *
+     * @return  search progress panel
+     */
+    private static JComponent createSearchProgressPanel() {
+        JComponent msgLine = Box.createHorizontalBox();
+        msgLine.add( Box.createHorizontalGlue() );
+        msgLine.add( new JLabel( "Locating suitable catalogues" ) );
+        msgLine.add( Box.createHorizontalGlue() );
+
+        JComponent progLine = Box.createHorizontalBox();
+        JProgressBar progBar = new JProgressBar();
+        progBar.setIndeterminate( true );
+        progLine.add( Box.createHorizontalGlue() );
+        progLine.add( progBar );
+        progLine.add( Box.createHorizontalGlue() );
+
+        JComponent workBox = Box.createVerticalBox();
+        workBox.add( Box.createVerticalGlue() );
+        workBox.add( msgLine );
+        workBox.add( Box.createVerticalStrut( 5 ) );
+        workBox.add( progLine );
+        workBox.add( Box.createVerticalGlue() );
+
+        return workBox;
     }
 
     /**
