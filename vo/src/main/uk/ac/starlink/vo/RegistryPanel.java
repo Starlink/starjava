@@ -320,16 +320,31 @@ public class RegistryPanel extends JPanel {
                 final Throwable error1 = error;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
+                        boolean visible = RegistryPanel.this.isShowing();
                         if ( queryWorker_ == wk ) {
                             if ( errmsg != null ) {
-                                JOptionPane
-                               .showMessageDialog( RegistryPanel.this, errmsg,
-                                                   "Query Failed",
-                                                   JOptionPane.ERROR_MESSAGE );
+                                if ( visible ) {
+                                    JOptionPane
+                                   .showMessageDialog( RegistryPanel.this,
+                                                       errmsg, "Query Failed",
+                                                       JOptionPane
+                                                      .ERROR_MESSAGE );
+                                }
+                                else {
+                                    logger_.warning( "Registry query failed: "
+                                                   + errmsg );
+                                }
                             }
                             else if ( error1 != null ) {
-                                ErrorDialog.showError( RegistryPanel.this,
-                                                       "Query Error", error1 );
+                                if ( visible ) {
+                                    ErrorDialog.showError( RegistryPanel.this,
+                                                           "Query Error",
+                                                           error1 );
+                                }
+                                else {
+                                    logger_.warning( "Registry query failed: "
+                                                   + error1 );
+                                }
                             }
                             else {
                                 RegResource[] resources =
