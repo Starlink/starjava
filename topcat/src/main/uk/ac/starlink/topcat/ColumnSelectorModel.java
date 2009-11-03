@@ -168,8 +168,10 @@ public class ColumnSelectorModel {
             /* Otherwise, try to guess the converter type on the basis
              * of the selected column. */
             else {
-                convChooser_
-               .setSelectedItem( guessConverter( cdata.getColumnInfo() ) );
+                ColumnConverter conv = guessConverter( cdata.getColumnInfo() );
+                if ( conv != null ) {
+                    convChooser_.setSelectedItem( conv );
+                }
             }
         }
     }
@@ -266,8 +268,8 @@ public class ColumnSelectorModel {
             }
         }
 
-        /* Return default one if we haven't found a match yet. */
-        return (ColumnConverter) convChooser_.getElementAt( 0 );
+        /* Return null if we haven't found a match yet. */
+        return null;
     }
 
     /**
