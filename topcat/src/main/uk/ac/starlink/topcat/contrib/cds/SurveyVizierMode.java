@@ -1,7 +1,5 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import cds.vizier.VizieRQueryInterface;
-import cds.vizier.VizieRSurvey;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 
 /**
@@ -12,30 +10,26 @@ import uk.ac.starlink.util.gui.ArrayTableColumn;
  */
 public class SurveyVizierMode extends BasicVizierMode {
 
-    private final VizieRQueryInterface vqi_;
+    private final VizierInfo vizinfo_;
 
     /**
      * Constructor.
      *
-     * @param   vqi   vizier query interface
+     * @param   vizinfo   vizier query interface
      */
-    public SurveyVizierMode( VizieRQueryInterface vqi ) {
+    public SurveyVizierMode( VizierInfo vizinfo ) {
         super( "Surveys", createSurveyColumns() );
-        vqi_ = vqi;
+        vizinfo_ = vizinfo;
     }
 
     protected Queryable[] loadQueryables() {
-        VizieRSurvey[] surveys;
-        synchronized ( vqi_ ) {
-            surveys =
-                (VizieRSurvey[])
-                vqi_.getSurveys().toArray( new VizieRSurvey[ 0 ] );
+        InfoItem[] items = vizinfo_.getSurveys();
+        int ns = items.length;
+        Queryable[] queryables = new SurveyQueryable[ ns ];
+        for ( int i = 0; i < ns; i++ ) {
+            queryables[ i ] = new SurveyQueryable( items[ i ] );
         }
-        SurveyQueryable[] qs = new SurveyQueryable[ surveys.length ];
-        for ( int i = 0; i < surveys.length; i++ ) {
-            qs[ i ] = new SurveyQueryable( surveys[ i ] );
-        }
-        return qs;
+        return queryables;
     }
 
     /**
@@ -47,54 +41,54 @@ public class SurveyVizierMode extends BasicVizierMode {
         return new ArrayTableColumn[] {
             new ArrayTableColumn( "Name", String.class ) {
                 public Object getValue( Object item ) {
-                    return getSurvey( item ).getSmallName();
+                    return getInfo( item ).getName();
                 }
             },
             new ArrayTableColumn( "Description", String.class ) {
                 public Object getValue( Object item ) {
-                    return getSurvey( item ).getDescription();
+                    return getInfo( item ).getTitle();
                 }
             },
             new ArrayTableColumn( "KRows", Integer.class ) {
                 public Object getValue( Object item ) {
-                    return new Integer( getSurvey( item ).getNbKRow() );
+                    return getInfo( item ).getKrows();
                 }
             },
         };
     }
 
     /**
-     * Obtains a VizieRSurvey object from one of the data items in the
-     * table used by this object.
+     * Obtains an InfoItem object from one of the queryables loaded by
+     * this object.
      *
      * @param  item   data item in suitable array table
      * @return  VizieRSurvey object
      */
-    private static VizieRSurvey getSurvey( Object item ) {
-        return ((SurveyQueryable) item).survey_;
+    private static InfoItem getInfo( Object item ) {
+        return ((SurveyQueryable) item).item_;
     }
 
     /**
-     * Adapter class to present a VizieRSurvey as a Queryable.
+     * Adapter class to present an InfoItem as a Queryable.
      */
     private static class SurveyQueryable implements Queryable {
-        private final VizieRSurvey survey_;
+        private final InfoItem item_;
 
         /**
          * Constructor.
          *
-         * @param   survey  VizieRSurvey object
+         * @param   item  InfoItem object representing a survey
          */
-        SurveyQueryable( VizieRSurvey survey ) {
-            survey_ = survey;
+        SurveyQueryable( InfoItem item ) {
+            item_ = item;
         }
 
         public String getQuerySource() {
-            return survey_.getSmallName();
+            return item_.getName();
         }
 
         public String getQueryId() {
-            return survey_.getSmallName();
+            return item_.getName();
         }
     }
 }

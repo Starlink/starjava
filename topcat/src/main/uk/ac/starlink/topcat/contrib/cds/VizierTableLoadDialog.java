@@ -66,8 +66,6 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.contrib.cds" );
-    private static final String VIZIER_BASE_URL =
-        "http://vizier.u-strasbg.fr/viz-bin/votable";
 
     /**
      * Constructor.
@@ -138,11 +136,12 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
         /* Vizier query modes. */
         VizieRQueryInterface vqi = new VizieRQueryInterface();
+        VizierInfo vinf = new VizierInfo( this );
         vizModes_ = new VizierMode[] {
             new CategoryVizierMode( vqi, this ),
             new WordVizierMode( vqi, this ),
-            new SurveyVizierMode( vqi ),
-            new MissionVizierMode( vqi ),
+            new SurveyVizierMode( vinf ),
+            new MissionVizierMode( vinf ),
         };
 
         /* Tab pane, which presents one of the modes at any one time. */
@@ -269,7 +268,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
         /* Construct the query URL. */
         StringBuffer ubuf = new StringBuffer();
-        ubuf.append( new CgiQuery( VIZIER_BASE_URL )
+        ubuf.append( new CgiQuery( VizierInfo.VIZIER_BASE_URL )
                     .addArgument( "-source", queryable.getQuerySource() )
                     .toString() );
         ubuf.append( encodeArg( "-oc.form", "dec" ) );

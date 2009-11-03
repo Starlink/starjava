@@ -1,9 +1,5 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import cds.vizier.VizieRQueryInterface;
-import cds.vizier.VizieRMission;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 
 /**
@@ -14,106 +10,97 @@ import uk.ac.starlink.util.gui.ArrayTableColumn;
  */
 public class MissionVizierMode extends BasicVizierMode {
 
-    private final VizieRQueryInterface vqi_;
-    private static final Pattern MISSION_SOURCE_REGEX =
-        Pattern.compile( ".*&-source=([^&]*)&.*" );
+    private final VizierInfo vizinfo_;
 
     /**
      * Constructor.
      *
-     * @param  vqi  vizier query interface
+     * @param  vizinfo  vizier query object
      */
-    public MissionVizierMode( VizieRQueryInterface vqi ) {
+    public MissionVizierMode( VizierInfo vizinfo ) {
         super( "Missions", createMissionColumns() );
-        vqi_ = vqi;
+        vizinfo_ = vizinfo;
     }
 
     protected Queryable[] loadQueryables() {
-        VizieRMission[] missions;
-        synchronized ( vqi_ ) {
-            missions =
-                (VizieRMission[])
-                vqi_.getMissions().toArray( new VizieRMission[ 0 ] );
+        InfoItem[] items = vizinfo_.getArchives();
+        int nm = items.length;
+        Queryable[] queryables = new MissionQueryable[ nm ];
+        for ( int i = 0; i < nm; i++ ) {
+            queryables[ i ] = new MissionQueryable( items[ i ] );
         }
-        MissionQueryable[] qs = new MissionQueryable[ missions.length ];
-        for ( int i = 0; i < missions.length; i++ ) {
-            qs[ i ] = new MissionQueryable( missions[ i ] );
-        }
-        return qs;
+        return queryables;
     }
 
     /**
      * Returns the columns for display of MissionQueryable objects.
      *
-     * @return  column list
+     * @return   column list
      */
     private static ArrayTableColumn[] createMissionColumns() {
         return new ArrayTableColumn[] {
             new ArrayTableColumn( "Name", String.class ) {
                 public Object getValue( Object item ) {
-                    return getMission( item ).getSmallName();
+                    return unlog( getInfo( item ).getName() );
                 }
             },
             new ArrayTableColumn( "Description", String.class ) {
                 public Object getValue( Object item ) {
-                    return getMission( item ).getDescription();
+                    return getInfo( item ).getTitle();
                 }
             },
             new ArrayTableColumn( "KRows", Integer.class ) {
                 public Object getValue( Object item ) {
-                    return new Integer( getMission( item ).getNbKRow() );
+                    return getInfo( item ).getKrows();
                 }
             },
         };
     }
 
     /**
-     * Obtains a VizieRMission object from one of the data items in the
-     * table used by this object.
+     * Tidies up the InfoItem name attribute - it seems always to be 
+     * prepended with the string "log".
      *
-     * @param  item  data item in suitable array table
-     * @return   VizieRMission object
+     * @param  logName  name which may have "log" prepended
+     * @return   name without "log" prepended
      */
-    private static VizieRMission getMission( Object item ) {
-        return ((MissionQueryable) item).mission_;
+    private static String unlog( String logName ) {
+        return logName.startsWith( "log" ) ? logName.substring( 3 )
+                                           : logName;
     }
 
     /**
-     * Adapter class to present a VizieRMission as a Queryable.
+     * Obtains an InfoItem object from one of the queryables loaded by
+     * this object.
+     *
+     * @param  item   data item in suitable array table
+     * @return  VizieRSurvey object
+     */
+    private static InfoItem getInfo( Object item ) {
+        return ((MissionQueryable) item).item_;
+    }
+
+    /**
+     * Adapter class to present an InfoItem as a Queryable.
      */
     private static class MissionQueryable implements Queryable {
-        private final VizieRMission mission_;
+        private final InfoItem item_;
 
         /**
          * Constructor.
          *
-         * @param   mission  VizieRMission object
+         * @param  item  InfoItem object representing a mission
          */
-        MissionQueryable( VizieRMission mission ) {
-            mission_ = mission;
+        MissionQueryable( InfoItem item ) {
+            item_ = item;
         }
 
         public String getQuerySource() {
-
-            /* Complications.  There is a potential difference between the
-             * result of getSmallName() and the source itself (something to
-             * do with a "log" prefix.  Carve it out of a dummy search URL. */
-            String uargs = mission_.getQueryUrl( "x", 0 ).getQuery();
-            Matcher matcher = MISSION_SOURCE_REGEX.matcher( uargs );
-            if ( matcher.matches() ) {
-                String src =
-                    VizierTableLoadDialog.urlDecode( matcher.group( 1 ) );
-                assert src.endsWith( mission_.getSmallName() );
-                return src;
-            }
-            else {
-                assert false;
-                return mission_.getSmallName();
-            }
+            return item_.getName();
         }
 
         public String getQueryId() {
-            return mission_.getSmallName();
+            return unlog( item_.getName() );
         }
     }
 }
