@@ -143,15 +143,17 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
 
         public void run() {
             final String id = supplier_.getTablesID();
+            final boolean[] started = new boolean[ 1 ];
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( isActive() ) {
                         consumer_.loadStarted( id );
+                        started[ 0 ] = true;
                     }
                 }
             } );
             Throwable error = null;
-            StarTable[] tables = null;
+            StarTable[] tables = new StarTable[ 0 ];
             if ( isActive() ) {
                 try {
                     tables = supplier_.getTables( tfact_, format_ );
@@ -159,14 +161,18 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
                 catch ( Throwable e ) {
                     error = e;
                 }
-                final StarTable[] tables1 = tables;
-                final Throwable error1 = error;
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( isActive() &&
-                             tables1 != null && tables1.length > 0 ) {
+            }
+            final StarTable[] tables1 = tables;
+            final Throwable error1 = error;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( isActive() ) {
+                        setBusy( false );
+                    }
+                    if ( started[ 0 ] ) {
+                        if ( isActive() && tables1.length > 0 ) {
                             consumer_.loadSucceeded( tables1[ 0 ] );
-                            for ( int i = 1; i < tables1.length; i++ ) {
+                            for ( int i = 0; i < tables1.length; i++ ) {
                                 consumer_.loadStarted( id + "-" + ( i + 1 ) );
                                 consumer_.loadSucceeded( tables1[ i ] );
                             }
@@ -175,13 +181,11 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
                             consumer_.loadFailed( error1 );
                         }
                     }
-                } );
-            }
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
                     if ( isActive() ) {
                         setLoader( null );
-                        dialog_.dispose();
+                        if ( tables1.length > 0 ) {
+                            dialog_.dispose();
+                        }
                     }
                 }
             } );

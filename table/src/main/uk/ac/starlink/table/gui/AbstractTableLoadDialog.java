@@ -285,6 +285,7 @@ public abstract class AbstractTableLoadDialog extends JPanel
             submitLoad( dialog_, factory_, format, consumer_ );
         }
         catch ( Exception e ) {
+            setBusy( false );
             ErrorDialog.showError( dialog_, "Dialogue Error", e );
             return;
         }
