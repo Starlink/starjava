@@ -172,7 +172,7 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
                     if ( started[ 0 ] ) {
                         if ( isActive() && tables1.length > 0 ) {
                             consumer_.loadSucceeded( tables1[ 0 ] );
-                            for ( int i = 0; i < tables1.length; i++ ) {
+                            for ( int i = 1; i < tables1.length; i++ ) {
                                 consumer_.loadStarted( id + "-" + ( i + 1 ) );
                                 consumer_.loadSucceeded( tables1[ i ] );
                             }
