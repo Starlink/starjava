@@ -14,13 +14,18 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
+import uk.ac.starlink.votable.ValuesElement;
 
 /**
  * Can obtain information about VizieR service.
+ * Most of the methods in this class may take time to interrogate the
+ * VizieR server, and therefore ought not to be called on the event
+ * dispatch thread.
  *
  * @author   Mark Taylor
  * @since    3 Nov 2009
@@ -34,6 +39,9 @@ public class VizierInfo {
     private final Component parent_;
     private InfoItem[] surveyItems_;
     private InfoItem[] archiveItems_;
+    private String[] lambdaKws_;
+    private String[] missionKws_;
+    private String[] astroKws_;
     private boolean loaded_;
 
     /**
@@ -47,62 +55,100 @@ public class VizierInfo {
 
     /**
      * Returns a list of the known survey resources.
-     * May take time; do not call on the event dispatch thread.
      *
      * @return  survey array; may be empty, but not null, if there was an error
      */
-    public synchronized InfoItem[] getSurveys() {
-        if ( ! loaded_ ) {
-            readTables();
-        }
-        assert loaded_;
+    public InfoItem[] getSurveys() {
+        checkLoaded();
         return surveyItems_;
     }
 
     /**
      * Returns a list of the known archive resources.
-     * May take time; do not call on the event dispatch thread.
      *
      * @return  archive array; may be empty, but not null, if there was an error
      */
-    public synchronized InfoItem[] getArchives() {
-        if ( ! loaded_ ) {
-            readTables();
-        }
-        assert loaded_;
+    public InfoItem[] getArchives() {
+        checkLoaded();
         return archiveItems_;
     }
 
     /**
-     * Reads the resource information from VizieR service.
-     * If there is an error, a dialogue will be posted.
-     * May take time; do not call on the event dispatch thread.
+     * Returns the list of keyword values permitted for the Wavelength
+     * controlled vocabulary.
+     *
+     * @return  wavelength keywords
      */
-    private void readTables() {
-        try {
-            attemptReadTables();
+    public String[] getWavelengthKws() {
+        checkLoaded();
+        return lambdaKws_;
+    }
+
+    /**
+     * Returns the list of keyword values permitted for the Mission
+     * controlled vocabulary.
+     *
+     * @return  mission keywords
+     */
+    public String[] getMissionKws() {
+        checkLoaded();
+        return missionKws_;
+    }
+
+    /**
+     * Returns the list of keyword values permitted for the Astronomy
+     * controlled vocabulary.
+     *
+     * @return  astronomy keywords
+     */
+    public String[] getAstronomyKws() {
+        checkLoaded();
+        return astroKws_;
+    }
+ 
+    /**
+     * Returns the declared parent component used by this object for
+     * placing warning messages.
+     *
+     * @return  parent component
+     */
+    public Component getParent() {
+        return parent_;
+    }
+
+    /**
+     * Checks that the the resource information has been read from the
+     * VizieR service.
+     * If a read error occurs, a dialogue will be posted.
+     */
+    private synchronized void checkLoaded() {
+        if ( ! loaded_ ) {
+            try {
+                attemptReadTables();
+            }
+            catch ( IOException e ) {
+                ErrorDialog.showError( parent_, "VizieR Error", e,
+                                       "Couldn't read metadata from VizieR" );
+            }
+            catch ( SAXException e ) {
+                ErrorDialog.showError( parent_, "VizieR Error", e,
+                                       "Couldn't read metadata from VizieR" );
+            }
+            loaded_ = true;
         }
-        catch ( IOException e ) {
-            ErrorDialog.showError( parent_, "VizieR Error", e,
-                                   "Couldn't read metadata from VizieR" );
-        }
-        catch ( SAXException e ) {
-            ErrorDialog.showError( parent_, "VizieR Error", e,
-                                   "Couldn't read metadata from VizieR" );
-        }
-        loaded_ = true;
+        assert loaded_;
     }
 
     /**
      * Attempts to read the resource information from VizieR service.
-     * May take time; do not call on the event dispatch thread.
      */
     private void attemptReadTables() throws IOException, SAXException {
         URL url = new URL( VIZIER_BASE_URL + "?-meta.aladin=all" );
         logger_.info( url.toString() );
-        VOElementFactory vfact =
-            new VOElementFactory( StoragePolicy.PREFER_MEMORY );
-        VOElement top = vfact.makeVOElement( new URLDataSource( url ) );
+        VOElement top = new VOElementFactory( StoragePolicy.PREFER_MEMORY )
+                       .makeVOElement( new URLDataSource( url ) );
+
+        /* Get Survey and Archive lists. */
         NodeList tableList = top.getElementsByVOTagName( "TABLE" );
         for ( int i = 0; i < tableList.getLength(); i++ ) {
             VOElement el = (VOElement) tableList.item( i );
@@ -114,6 +160,28 @@ public class VizierInfo {
                 }
                 else if ( "AladinArchives".equals( id ) ) {
                     archiveItems_ = getItems( new VOStarTable( tEl ) );
+                }
+            }
+        }
+
+        /* Get controlled vocabulary keyword lists. */
+        NodeList paramList = top.getElementsByVOTagName( "PARAM" );
+        lambdaKws_ = new String[ 0 ];
+        missionKws_ = new String[ 0 ];
+        astroKws_ = new String[ 0 ];
+        for ( int i = 0; i < paramList.getLength(); i++ ) {
+            VOElement el = (VOElement) paramList.item( i );
+            if ( el instanceof ParamElement ) {
+                ParamElement pEl = (ParamElement) el;
+                String id = pEl.getID();
+                if ( "Wavelength".equals( id ) ) {
+                    lambdaKws_ = readOptions( pEl );
+                }
+                else if ( "Mission".equals( id ) ) {
+                    missionKws_ = readOptions( pEl );
+                }
+                else if ( "Astronomy".equals( id ) ) {
+                    astroKws_ = readOptions( pEl );
                 }
             }
         }
@@ -159,5 +227,17 @@ public class VizierInfo {
             itemList.add( new InfoItem( name, title, krows ) );
         }
         return (InfoItem[]) itemList.toArray( new InfoItem[ 0 ] );
+    }
+
+    /**
+     * Reads a list of legal value options from a parameter element.
+     *
+     * @param  pEl  parameter element
+     * @return   option list
+     */
+    private static String[] readOptions( ParamElement pEl ) {
+        ValuesElement valsEl = pEl.getLegalValues();
+        return valsEl == null ? null
+                              : valsEl.getOptions();
     }
 }
