@@ -74,7 +74,7 @@ public class MissionVizierMode extends BasicVizierMode {
      * this object.
      *
      * @param  item   data item in suitable array table
-     * @return  VizieRSurvey object
+     * @return  InfoItem object
      */
     private static InfoItem getInfo( Object item ) {
         return ((MissionQueryable) item).item_;

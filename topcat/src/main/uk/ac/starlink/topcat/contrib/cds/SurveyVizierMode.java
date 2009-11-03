@@ -62,7 +62,7 @@ public class SurveyVizierMode extends BasicVizierMode {
      * this object.
      *
      * @param  item   data item in suitable array table
-     * @return  VizieRSurvey object
+     * @return  InfoItem object
      */
     private static InfoItem getInfo( Object item ) {
         return ((SurveyQueryable) item).item_;
