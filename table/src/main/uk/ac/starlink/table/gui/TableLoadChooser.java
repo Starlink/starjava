@@ -289,10 +289,11 @@ public class TableLoadChooser extends JPanel {
                 setEnabled( ! isLoading );
                 progBar.setIndeterminate( isLoading );
             }
-            protected void tableLoaded( StarTable table ) {
+            protected boolean tableLoaded( StarTable table ) {
                 assert table != null;
                 result[ 0 ] = table;
                 dialog.dispose();
+                return true;
             }
         };
         setTableConsumer( tc );
@@ -676,8 +677,7 @@ public class TableLoadChooser extends JPanel {
               * slow, but I don't *think* there's any alternative. */
              eater.loadStarted( "Dropped Table" );
              try {
-                 eater.loadSucceeded( factory.makeStarTable( trans ) );
-                 return true;
+                 return eater.loadSucceeded( factory.makeStarTable( trans ) );
              }
              catch ( Throwable th ) {
                  eater.loadFailed( th );

@@ -184,9 +184,9 @@ public abstract class LoadQueryWindow extends QueryWindow {
             }
         }
 
-        protected void tableLoaded( StarTable table ) {
+        protected boolean tableLoaded( StarTable table ) {
             assert table != null;
-            if ( tableConsumer_ == this ) {
+            if ( tableConsumer_ == this && table.getRowCount() > 0 ) {
 
                 /* Since at least one table has been successfully loaded,
                  * dispose the loader window.  This is a bit fiddly; 
@@ -206,6 +206,10 @@ public abstract class LoadQueryWindow extends QueryWindow {
 
                 /* Pass the table to the method that actually wants it. */
                 performLoading( table, getLoadingId() );
+                return true;
+            }
+            else {
+                return false;
             }
         }
     }

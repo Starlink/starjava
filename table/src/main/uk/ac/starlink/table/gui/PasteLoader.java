@@ -66,8 +66,9 @@ public abstract class PasteLoader extends StringPaster {
      *
      * @param  table  table
      * @param  location    the pasted string (trimmed of spaces)
+     * @return  true if this loader accepts the presented table
      */
-    protected abstract void tableLoaded( StarTable table, String location );
+    protected abstract boolean tableLoaded( StarTable table, String location );
 
     /**
      * Table consumer implementation which calls PasteLoader's 
@@ -90,8 +91,8 @@ public abstract class PasteLoader extends StringPaster {
             super.setLoading( loading );
         }
 
-        protected void tableLoaded( StarTable table ) {
-            PasteLoader.this.tableLoaded( table, id_ );
+        protected boolean tableLoaded( StarTable table ) {
+            return PasteLoader.this.tableLoaded( table, id_ );
         }
     }
 }

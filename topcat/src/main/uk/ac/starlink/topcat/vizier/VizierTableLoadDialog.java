@@ -11,8 +11,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -318,8 +318,15 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                                           String format )
                     throws IOException {
                 logger_.info( "VizieR query: " + url );
-                return tfact.makeStarTables( new URLDataSource( url ),
-                                             "votable" );
+                StarTable[] tables =
+                    tfact.makeStarTables( new URLDataSource( url ), "votable" );
+                List tList = new ArrayList();
+                for ( int i = 0; i < tables.length; i++ ) {
+                    if ( tables[ i ].getRowCount() != 0 ) {
+                        tList.add( tables[ i ] );
+                    }
+                }
+                return (StarTable[]) tList.toArray( new StarTable[ 0 ] );
             }
         };
     }

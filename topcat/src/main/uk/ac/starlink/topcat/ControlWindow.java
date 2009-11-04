@@ -388,8 +388,14 @@ public class ControlWindow extends AuxWindow
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
         MouseListener pasteLoader = new PasteLoader( this ) {
-            protected void tableLoaded( StarTable table, String loc ) {
-                addTable( table, loc, true );
+            protected boolean tableLoaded( StarTable table, String loc ) {
+                if ( table.getRowCount() > 0 ) {
+                    addTable( table, loc, true );
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
             public StarTableFactory getTableFactory() {
                 return tabfact_;
@@ -971,7 +977,6 @@ public class ControlWindow extends AuxWindow
      */
     private Action[] createTableLoadActions( Class[] tldClasses ) {
 
-
         /* For each requested class, identify the instance of that class
          * in the load chooser list of dialogues (better to use the same
          * instance than create a new one, since it may have state imparted
@@ -1002,11 +1007,12 @@ public class ControlWindow extends AuxWindow
                             TableConsumer loadConsumer =
                                 new TopcatTableConsumer( parent,
                                                          ControlWindow.this ) {
-                                    protected void tableLoaded( StarTable
-                                                                table ) {
+                                    protected boolean tableLoaded( StarTable
+                                                                   table ) {
                                         if ( table.getRowCount() > 0 ) {
                                             addTable( table, getLoadingId(),
                                                       true );
+                                            return true;
                                         }
                                         else {
                                             JOptionPane.showMessageDialog(
@@ -1014,6 +1020,7 @@ public class ControlWindow extends AuxWindow
                                                 "Table contained no rows",
                                                 "Empty Table",
                                                 JOptionPane.ERROR_MESSAGE );
+                                            return false;
                                         }
                                     }
                                 };

@@ -62,8 +62,7 @@ public class TreeTableLoadDialog extends TableNodeChooser
             }
             if ( ! factory.requireRandom() || table.isRandom() ) {
                 eater.loadStarted( id );
-                eater.loadSucceeded( table );
-                return true;
+                return eater.loadSucceeded( table );
             }
             else {
                 new LoadWorker( eater, id ) {

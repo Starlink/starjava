@@ -134,9 +134,10 @@ public class SSARegistryQueryDialog
         {
             super( parent );
         }
-        protected void tableLoaded( StarTable table )
+        protected boolean tableLoaded( StarTable table )
         {
             table_ = table;
+            return true;
         }
     }
 

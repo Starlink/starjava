@@ -7,11 +7,13 @@ import uk.ac.starlink.table.StarTable;
  * The correct sequence must be observed when an instance of this 
  * class is used: you must either call 
  * <blockquote>
- *    {@link #loadStarted} followed by {@link #loadSucceeded} or
+ *    {@link #loadStarted loadStarted} followed by 
+ *    {@link #loadSucceeded loadSucceeded} or
  * </blockquote>
  * or
  * <blockquote>
- *    {@link #loadStarted} followed by {@link #loadFailed}.
+ *    {@link #loadStarted loadStarted} followed by
+ *    {@link #loadFailed loadFailed}.
  * </blockquote>
  * You can't nest these.
  * All these calls must be performed from the event dispatch thread.
@@ -31,10 +33,13 @@ public interface TableConsumer {
 
     /**
      * Called when a table has successfully been loaded.
+     * The return value should indicate whether this consumer considers
+     * the table load a success.
      *
      * @param   table  the table that has been acquired
+     * @return   true if this consumer accepts the presented table
      */
-    void loadSucceeded( StarTable table );
+    boolean loadSucceeded( StarTable table );
 
     /**
      * Called when a table load has failed for some reason.

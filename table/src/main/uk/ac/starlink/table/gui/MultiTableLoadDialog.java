@@ -157,6 +157,9 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
             if ( isActive() ) {
                 try {
                     tables = supplier_.getTables( tfact_, format_ );
+                    if ( tables == null || tables.length == 0 ) {
+                        throw new IOException( "No tables found" );
+                    }
                 }
                 catch ( Throwable e ) {
                     error = e;
@@ -166,15 +169,20 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
             final Throwable error1 = error;
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
+                    int loadCount = 0;
                     if ( isActive() ) {
                         setBusy( false );
                     }
                     if ( started[ 0 ] ) {
                         if ( isActive() && tables1.length > 0 ) {
-                            consumer_.loadSucceeded( tables1[ 0 ] );
+                            if ( consumer_.loadSucceeded( tables1[ 0 ] ) ) {
+                                loadCount++;
+                            }
                             for ( int i = 1; i < tables1.length; i++ ) {
                                 consumer_.loadStarted( id + "-" + ( i + 1 ) );
-                                consumer_.loadSucceeded( tables1[ i ] );
+                                if ( consumer_.loadSucceeded( tables1[ i ] ) ) {
+                                    loadCount++;
+                                }
                             }
                         }
                         else {
@@ -183,7 +191,7 @@ public abstract class MultiTableLoadDialog extends AbstractTableLoadDialog {
                     }
                     if ( isActive() ) {
                         setLoader( null );
-                        if ( tables1.length > 0 ) {
+                        if ( loadCount > 0 ) {
                             dialog_.dispose();
                         }
                     }

@@ -55,11 +55,12 @@ public abstract class TopcatTableConsumer extends BasicTableConsumer {
         super.loadStarted( id );
     }
 
-    public void loadSucceeded( StarTable table ) {
+    public boolean loadSucceeded( StarTable table ) {
         control_.removeLoadingToken( token_ );
         token_ = null;
-        super.loadSucceeded( table );
+        boolean success = super.loadSucceeded( table );
         id_ = null;
+        return success;
     }
 
     public void loadFailed( Throwable error ) {

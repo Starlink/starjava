@@ -32,10 +32,13 @@ public abstract class BasicTableConsumer implements TableConsumer {
     /**
      * Called from the event dispatch thread if and when a table is
      * successfully loaded.
+     * The return value should indicate whether this consumer considers
+     * the table load a success.
      *
      * @param  table  the loaded table
+     * @return   true if this consumer accepts the presented table
      */
-    protected abstract void tableLoaded( StarTable table );
+    protected abstract boolean tableLoaded( StarTable table );
 
     /**
      * Called when the loading sequence is over, because a table load
@@ -91,10 +94,13 @@ public abstract class BasicTableConsumer implements TableConsumer {
      *
      * @param  table  table
      */
-    public synchronized void loadSucceeded( StarTable table ) {
+    public synchronized boolean loadSucceeded( StarTable table ) {
         if ( isLoading() ) {
             cancel();
-            tableLoaded( table );
+            return tableLoaded( table );
+        }
+        else {
+            return false;
         }
     }
 

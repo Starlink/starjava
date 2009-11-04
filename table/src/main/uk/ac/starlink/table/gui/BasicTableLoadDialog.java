@@ -131,11 +131,14 @@ public abstract class BasicTableLoadDialog extends AbstractTableLoadDialog {
             baseConsumer_.loadStarted( id );
         }
 
-        public void loadSucceeded( StarTable table ) {
+        public boolean loadSucceeded( StarTable table ) {
             setBusy( false );
-            baseConsumer_.loadSucceeded( table );
+            boolean success = baseConsumer_.loadSucceeded( table );
             assert isActive( dia_ );
-            dia_.dispose();
+            if ( success ) {
+                dia_.dispose();
+            }
+            return success;
         }
 
         public void loadFailed( Throwable th ) {
