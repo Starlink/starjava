@@ -1,11 +1,14 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import cds.vizier.VizieRCatalog;
-import cds.vizier.VizieRQueryInterface;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -22,11 +25,15 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.table.TableModel;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ArrayTableSorter;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Abstract VizierMode which presents a list of catalogues as selected
@@ -38,8 +45,8 @@ import uk.ac.starlink.util.gui.ArrayTableSorter;
 public abstract class SearchVizierMode implements VizierMode {
 
     private final String name_;
-    private final VizieRQueryInterface vqi_;
-    private final VizierTableLoadDialog tld_;
+    private final VizierInfo vizinfo_;
+    private final VizierTableLoadDialog tld_; 
     private final boolean useSplit_;
     private final ArrayTableModel tModel_;
     private final JTable table_;
@@ -50,19 +57,22 @@ public abstract class SearchVizierMode implements VizierMode {
     private Component searchComponent_;
     private SearchWorker searchWorker_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.contrib.cds" );
+
     /**
      * Constructor.
      *
      * @param   name  mode name
-     * @param   vqi  vizier query interface
+     * @param   vizinfo  vizier query interface
      * @param   tld  controlling load dialogue instance
      * @param   useSplit  true to use a JSplitPane to separate query panel
      *          from catalogue display table; false to use a fixed layout
-     */
-    public SearchVizierMode( String name, VizieRQueryInterface vqi,
+     */     
+    public SearchVizierMode( String name, VizierInfo vizinfo,
                              VizierTableLoadDialog tld, boolean useSplit ) {
-        name_ = name;
-        vqi_ = vqi;
+        name_ = name; 
+        vizinfo_ = vizinfo;
         tld_ = tld;
         useSplit_ = useSplit;
         tModel_ = new ArrayTableModel();
@@ -79,8 +89,7 @@ public abstract class SearchVizierMode implements VizierMode {
         startSearchAction_ = new AbstractAction( "Search Catalogues" ) {
             public void actionPerformed( ActionEvent evt ) {
                 SearchWorker worker =
-                    new SearchWorker( tld_.getTarget(),
-                                      tld_.getRadius() + " deg",
+                    new SearchWorker( tld_.getTarget(), tld_.getRadius(),
                                       getSearchArgs() );
                 setSearchWorker( worker );
                 worker.start();
@@ -105,7 +114,7 @@ public abstract class SearchVizierMode implements VizierMode {
     }
 
     /**
-     * Constructs the GUI component which the user will fill in to 
+     * Constructs the GUI component which the user will fill in to
      * specify what catalogues they want to select from.
      * The setEnable() method on the returned component should ideally
      * enable/disable all GUI controls visible in it.
@@ -115,7 +124,7 @@ public abstract class SearchVizierMode implements VizierMode {
     protected abstract Component createSearchComponent();
 
     /**
-     * Returns the arguments, based on the current state of the search 
+     * Returns the arguments, based on the current state of the search
      * component, to pass to the VizieR server to search for available
      * catalogues.
      *
@@ -126,7 +135,7 @@ public abstract class SearchVizierMode implements VizierMode {
     public String getName() {
         return name_;
     }
-    
+
     public Component getComponent() {
         if ( panel_ == null ) {
             searchComponent_ = createSearchComponent();
@@ -216,53 +225,6 @@ public abstract class SearchVizierMode implements VizierMode {
     }
 
     /**
-     * Obtains a VizieRCatalog object from one of the data items in the
-     * table used by this object.
-     *
-     * @param  item  data item in suitable array table
-     * @return  VizieRCatalog object
-     */
-    private static VizieRCatalog getCatalog( Object item ) {
-        return ((CatalogQueryable) item).catalog_;
-    }
-
-    /**
-     * Returns the columns for display of CatalogQueryable objects.
-     *
-     * @return   column list
-     */
-    private static ArrayTableColumn[] createCatalogColumns() {
-        return new ArrayTableColumn[] {
-            new ArrayTableColumn( "Name", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCatalog( item ).getName();
-                }
-            },
-            new ArrayTableColumn( "Category", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCatalog( item ).getCategory();
-                }
-            },
-            new ArrayTableColumn( "Density", Integer.class ) {
-                public Object getValue( Object item ) {
-                    String sdens = getCatalog( item ).getDensity();
-                    try {
-                        return new Integer( sdens );
-                    }
-                    catch ( NumberFormatException e ) {
-                        return null;
-                    }
-                }
-            },
-            new ArrayTableColumn( "Description", String.class ) {
-                public Object getValue( Object item ) {
-                    return getCatalog( item ).getDesc();
-                }
-            },
-        };
-    }
-
-    /**
      * Returns a panel which can be used to indicate that a query for
      * catalogues is taking place.
      *
@@ -292,32 +254,112 @@ public abstract class SearchVizierMode implements VizierMode {
     }
 
     /**
-     * Adapter class to present a VizieRCatalog as a Queryable.
+     * Returns a list of catalogues appropriate for a given position.
+     * If a read error occurs, a warning dialogue is posted and an 
+     * empty list returned.
+     *
+     * @param   target   central position in vizier format
+     * @param   radius   search radius in degrees in vizier format
+     * @param   queryArgs  any additional args ready for appending to
+     *                     a vizier query URL
      */
-    private static class CatalogQueryable implements Queryable {
-        private final VizieRCatalog catalog_;
-
-        /**
-         * Constructor.
-         *
-         * @param   catalog  VizieRCatalog object
-         */
-        CatalogQueryable( VizieRCatalog catalog ) {
-            catalog_ = catalog;
+    private VizierCatalog[] loadCatalogs( String target, String radius,
+                                          String queryArgs ) {
+        Throwable error;
+        try {
+            return attemptLoadCatalogs( target, radius, queryArgs );
         }
-
-        public String getQuerySource() {
-            return catalog_.getName();
+        catch ( IOException e ) {
+            error = e;
         }
-
-        public String getQueryId() {
-            return catalog_.getName().replace( '/', '.' );
+        catch ( ParserConfigurationException e ) {
+            error = e;
         }
+        catch ( SAXException e ) {
+            error = e;
+        }
+        assert error != null;
+        final Throwable error1 = error;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                ErrorDialog
+               .showError( vizinfo_.getParent(), "VizieR Error", error1,
+                           "Couldn't read catalog list from VizieR" );
+            }
+        } );
+        return new VizierCatalog[ 0 ];
+    }
+
+    /**
+     * Attempts to search VizieR for a list of catalogues appropriate
+     * for a given position.
+     *
+     * @param   target   central position in vizier format
+     * @param   radius   search radius in degrees in vizier format
+     * @param   queryArgs  any additional args ready for appending to
+     *                     a vizier query URL
+     */
+    private VizierCatalog[] attemptLoadCatalogs( String target, String radius,
+                                                 String queryArgs )
+            throws IOException, ParserConfigurationException, SAXException {
+        StringBuffer ubuf = new StringBuffer()
+            .append( VizierInfo.VIZIER_BASE_URL )
+            .append( "?-meta" );
+        if ( target != null && target.trim().length() > 0 ) {
+            ubuf.append( VizierTableLoadDialog.encodeArg( "-c", target ) );
+        }
+        if ( radius != null && radius.trim().length() > 0 ) {
+            ubuf.append( VizierTableLoadDialog.encodeArg( "-c.r", radius ) );
+            ubuf.append( VizierTableLoadDialog.encodeArg( "-c.u", "deg" ) );
+        }
+        if ( queryArgs != null && queryArgs.trim().length() > 0 ) {
+            ubuf.append( queryArgs );
+        }
+        URL url = new URL( ubuf.toString() );
+        logger_.info( url.toString() );
+        SAXParserFactory spfact = SAXParserFactory.newInstance();
+        spfact.setNamespaceAware( false );
+        spfact.setValidating( false );
+        SAXParser parser = spfact.newSAXParser();
+        CatalogSaxHandler catHandler = new CatalogSaxHandler();
+        InputStream in = new BufferedInputStream( url.openStream() );
+        try {
+            parser.parse( in, catHandler );
+        }
+        finally {
+            in.close();
+        }
+        return catHandler.getCatalogs();
+    }
+
+    /**
+     * Returns the columns for display of VizierCatalog objects.
+     *
+     * @return   column list
+     */
+    private static ArrayTableColumn[] createCatalogColumns() {
+        return new ArrayTableColumn[] {
+            new ArrayTableColumn( "Name", String.class ) {
+                public Object getValue( Object item ) {
+                    return ((VizierCatalog) item).getName();
+                }
+            },
+            new ArrayTableColumn( "Density", Integer.class ) {
+                public Object getValue( Object item ) {
+                    return ((VizierCatalog) item).getDensity();
+                }
+            },
+            new ArrayTableColumn( "Description", String.class ) {
+                public Object getValue( Object item ) {
+                    return ((VizierCatalog) item).getDescription();
+                }
+            },
+        };
     }
 
     /**
      * Thread which performs the search to locate suitable catalogues
-     * for interrogation, based on the user's preferences as filled in 
+     * for interrogation, based on the user's preferences as filled in
      * to the mode-specific parts of this mode's GUI.
      */
     private class SearchWorker extends Thread {
@@ -335,13 +377,14 @@ public abstract class SearchVizierMode implements VizierMode {
          * @param   queryArgs  other query arguments as a URL fragment string
          */
         SearchWorker( String target, String radius, String queryArgs ) {
-            target_ = target; 
+            target_ = target;
             radius_ = radius;
             queryArgs_ = queryArgs;
         }
 
         public void run() {
-            final CatalogQueryable[] qcats = loadCatalogs();
+            final VizierCatalog[] qcats =
+                loadCatalogs( target_, radius_, queryArgs_ );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( isActive() ) {
@@ -361,23 +404,6 @@ public abstract class SearchVizierMode implements VizierMode {
          */
         public void cancel() {
             // should interrupt VizieR query here?
-        }
-
-        /**
-         * Queries VizieR for catalogues and returns the result.
-         *
-         * @return   array of known queryables
-         */
-        private CatalogQueryable[] loadCatalogs() { 
-            VizieRCatalog[] cats =
-                (VizieRCatalog[]) 
-                vqi_.queryVizieR( target_, radius_, null, null, queryArgs_ )
-                    .toArray( new VizieRCatalog[ 0 ] );
-            CatalogQueryable[] qcats = new CatalogQueryable[ cats.length ];
-            for ( int i = 0; i < cats.length; i++ ) {
-                qcats[ i ] = new CatalogQueryable( cats[ i ] );
-            }
-            return qcats;
         }
 
         /**

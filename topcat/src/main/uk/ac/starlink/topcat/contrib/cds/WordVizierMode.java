@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import cds.vizier.VizieRQueryInterface;
 import java.awt.Component;
 import javax.swing.JComponent;
 import javax.swing.Box;
@@ -22,12 +21,12 @@ public class WordVizierMode extends SearchVizierMode {
     /**
      * Constructor.
      *
-     * @param   vqi  Vizier query interface
+     * @param   vizinfo  Vizier query interface
      * @param   tld  controlling load dialogue
      */
-    public WordVizierMode( VizieRQueryInterface vqi,
+    public WordVizierMode( VizierInfo vizinfo,
                            VizierTableLoadDialog tld ) {
-        super( "By Keyword", vqi, tld, false );
+        super( "By Keyword", vizinfo, tld, false );
         wordField_ = new JTextField();
     }
 

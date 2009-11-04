@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import cds.vizier.VizieRQueryInterface;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import javax.swing.Box;
@@ -23,7 +22,7 @@ import javax.swing.event.AncestorListener;
  */
 public class CategoryVizierMode extends SearchVizierMode {
 
-    private final VizieRQueryInterface vqi_;
+    private final VizierInfo vizinfo_;
     private final JList lambdaList_;
     private final JList missionList_;
     private final JList astroList_;
@@ -31,13 +30,13 @@ public class CategoryVizierMode extends SearchVizierMode {
     /**
      * Constructor.
      *
-     * @param   vqi  vizier query interface
+     * @param   vizinfo  vizier query interface
      * @param   tld  controlling load dialogue
      */
-    public CategoryVizierMode( VizieRQueryInterface vqi,
+    public CategoryVizierMode( VizierInfo vizinfo,
                                VizierTableLoadDialog tld ) {
-        super( "By Category", vqi, tld, true );
-        vqi_ = vqi;
+        super( "By Category", vizinfo, tld, true );
+        vizinfo_ = vizinfo;
         lambdaList_ = new JList();
         missionList_ = new JList();
         astroList_ = new JList();
@@ -88,14 +87,9 @@ public class CategoryVizierMode extends SearchVizierMode {
     private void populateLists() {
         new Thread( "Vizier KW acquisition" ) {
             public void run() {
-                final Object[] lambdas;
-                final Object[] missions;
-                final Object[] astros;
-                synchronized ( vqi_ ) {
-                    lambdas = vqi_.getWavelengthKW().toArray( new String[ 0 ] );
-                    missions = vqi_.getMissionKW().toArray( new String[ 0 ] );
-                    astros = vqi_.getAstronomyKW().toArray( new String[ 0 ] );
-                }
+                final String[] lambdas = vizinfo_.getWavelengthKws();
+                final String[] missions = vizinfo_.getMissionKws();
+                final String[] astros = vizinfo_.getAstronomyKws();
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         lambdaList_.setListData( lambdas );

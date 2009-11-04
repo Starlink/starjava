@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
@@ -51,6 +52,11 @@ public class VizierInfo {
      */
     VizierInfo( Component parent ) {
         parent_ = parent;
+        surveyItems_ = new InfoItem[ 0 ];
+        archiveItems_ = new InfoItem[ 0 ];
+        lambdaKws_ = new String[ 0 ];
+        missionKws_ = new String[ 0 ];
+        astroKws_ = new String[ 0 ];
     }
 
     /**
@@ -123,18 +129,27 @@ public class VizierInfo {
      */
     private synchronized void checkLoaded() {
         if ( ! loaded_ ) {
+            Throwable error = null;
             try {
                 attemptReadTables();
             }
             catch ( IOException e ) {
-                ErrorDialog.showError( parent_, "VizieR Error", e,
-                                       "Couldn't read metadata from VizieR" );
+                error = e;
             }
             catch ( SAXException e ) {
-                ErrorDialog.showError( parent_, "VizieR Error", e,
-                                       "Couldn't read metadata from VizieR" );
+                error = e;
             }
             loaded_ = true;
+            if ( error != null ) {
+                final Throwable error1 = error;
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        ErrorDialog
+                       .showError( parent_, "VizieR Error", error1,
+                                   "Couldn't read metadata from VizieR" );
+                    }
+                } );
+            }
         }
         assert loaded_;
     }
@@ -166,9 +181,6 @@ public class VizierInfo {
 
         /* Get controlled vocabulary keyword lists. */
         NodeList paramList = top.getElementsByVOTagName( "PARAM" );
-        lambdaKws_ = new String[ 0 ];
-        missionKws_ = new String[ 0 ];
-        astroKws_ = new String[ 0 ];
         for ( int i = 0; i < paramList.getLength(); i++ ) {
             VOElement el = (VOElement) paramList.item( i );
             if ( el instanceof ParamElement ) {

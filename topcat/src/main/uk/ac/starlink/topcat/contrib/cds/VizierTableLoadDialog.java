@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat.contrib.cds;
 
-import cds.vizier.VizieRQueryInterface;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -135,11 +134,10 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         colsBox.add( colLine );
 
         /* Vizier query modes. */
-        VizieRQueryInterface vqi = new VizieRQueryInterface();
         VizierInfo vinf = new VizierInfo( this );
         vizModes_ = new VizierMode[] {
-            new CategoryVizierMode( vqi, this ),
-            new WordVizierMode( vqi, this ),
+            new CategoryVizierMode( vinf, this ),
+            new WordVizierMode( vinf, this ),
             new SurveyVizierMode( vinf ),
             new MissionVizierMode( vinf ),
         };
@@ -432,7 +430,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
      * @param  txt  arg text
      * @return  &amp;txt (properly encoded)
      */
-    private static String encodeArg( String txt ) {
+    public static String encodeArg( String txt ) {
         return new StringBuffer()
               .append( '&' )
               .append( urlEncode( txt ) )
