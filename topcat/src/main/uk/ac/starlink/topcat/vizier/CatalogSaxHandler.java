@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -14,10 +15,9 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author   Mark Taylor
  * @since    4 nov 2009
  */
-public class CatalogSaxHandler extends DefaultHandler {
+public abstract class CatalogSaxHandler extends DefaultHandler {
 
     private final StringBuffer txtbuf_;
-    private final List catList_;
     private Entry entry_;
 
     /**
@@ -25,18 +25,14 @@ public class CatalogSaxHandler extends DefaultHandler {
      */
     public CatalogSaxHandler() {
         txtbuf_ = new StringBuffer();
-        catList_ = new ArrayList();
     }
 
     /**
-     * Following a successful parse, this returns a list of the catalogues
-     * represented in the stream.
+     * Called when a catalogue has been obtained from the SAX stream.
      *
-     * @return  catalogue list
+     * @param  cat  newly acquired catlogue
      */
-    public VizierCatalog[] getCatalogs() {
-        return (VizierCatalog[]) catList_.toArray( new VizierCatalog[ 0 ] );
-    }
+    protected abstract void gotCatalog( VizierCatalog cat ) throws SAXException;
 
     public void characters( char[] ch, int start, int length ) {
         txtbuf_.append( ch, start, length );
@@ -59,10 +55,11 @@ public class CatalogSaxHandler extends DefaultHandler {
         }
     }
 
-    public void endElement( String uri, String localName, String qName ) {
+    public void endElement( String uri, String localName, String qName )
+            throws SAXException {
         String tagName = getTagName( uri, localName, qName );
         if ( "RESOURCE".equals( tagName ) ) {
-            catList_.add( createCatalog( entry_ ) );
+            gotCatalog( createCatalog( entry_ ) );
             entry_ = null;
         }
         else if ( "DESCRIPTION".equals( tagName ) ) {

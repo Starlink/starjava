@@ -8,6 +8,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -29,6 +31,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
@@ -172,7 +175,7 @@ public abstract class SearchVizierMode implements VizierMode {
         }
         tScroller_.setViewportView( worker == null
                                         ? table_
-                                        : createSearchProgressPanel() );
+                                        : worker.getProgressPanel() );
         searchWorker_ = worker;
         updateActions();
     }
@@ -231,15 +234,14 @@ public abstract class SearchVizierMode implements VizierMode {
      *
      * @return  search progress panel
      */
-    private static JComponent createSearchProgressPanel() {
+    private static JComponent createProgressPanel( JProgressBar progBar ) {
+
         JComponent msgLine = Box.createHorizontalBox();
         msgLine.add( Box.createHorizontalGlue() );
         msgLine.add( new JLabel( "Locating suitable catalogues" ) );
         msgLine.add( Box.createHorizontalGlue() );
 
         JComponent progLine = Box.createHorizontalBox();
-        JProgressBar progBar = new JProgressBar();
-        progBar.setIndeterminate( true );
         progLine.add( Box.createHorizontalGlue() );
         progLine.add( progBar );
         progLine.add( Box.createHorizontalGlue() );
@@ -255,43 +257,6 @@ public abstract class SearchVizierMode implements VizierMode {
     }
 
     /**
-     * Returns a list of catalogues appropriate for a given position.
-     * If a read error occurs, a warning dialogue is posted and an 
-     * empty list returned.
-     *
-     * @param   target   central position in vizier format
-     * @param   radius   search radius in degrees in vizier format
-     * @param   queryArgs  any additional args ready for appending to
-     *                     a vizier query URL
-     */
-    private VizierCatalog[] loadCatalogs( String target, String radius,
-                                          String queryArgs ) {
-        Throwable error;
-        try {
-            return attemptLoadCatalogs( target, radius, queryArgs );
-        }
-        catch ( IOException e ) {
-            error = e;
-        }
-        catch ( ParserConfigurationException e ) {
-            error = e;
-        }
-        catch ( SAXException e ) {
-            error = e;
-        }
-        assert error != null;
-        final Throwable error1 = error;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                ErrorDialog
-               .showError( vizinfo_.getParent(), "VizieR Error", error1,
-                           "Couldn't read catalog list from VizieR" );
-            }
-        } );
-        return new VizierCatalog[ 0 ];
-    }
-
-    /**
      * Attempts to search VizieR for a list of catalogues appropriate
      * for a given position.
      *
@@ -300,8 +265,9 @@ public abstract class SearchVizierMode implements VizierMode {
      * @param   queryArgs  any additional args ready for appending to
      *                     a vizier query URL
      */
-    private VizierCatalog[] attemptLoadCatalogs( String target, String radius,
-                                                 String queryArgs )
+    private static void parseCatalogQuery( String target, String radius,
+                                           String queryArgs,
+                                           DefaultHandler catHandler )
             throws IOException, ParserConfigurationException, SAXException {
         StringBuffer ubuf = new StringBuffer()
             .append( VizierInfo.VIZIER_BASE_URL )
@@ -322,7 +288,6 @@ public abstract class SearchVizierMode implements VizierMode {
         spfact.setNamespaceAware( false );
         spfact.setValidating( false );
         SAXParser parser = spfact.newSAXParser();
-        CatalogSaxHandler catHandler = new CatalogSaxHandler();
         InputStream in = new BufferedInputStream( url.openStream() );
         try {
             parser.parse( in, catHandler );
@@ -330,7 +295,6 @@ public abstract class SearchVizierMode implements VizierMode {
         finally {
             in.close();
         }
-        return catHandler.getCatalogs();
     }
 
     /**
@@ -396,9 +360,12 @@ public abstract class SearchVizierMode implements VizierMode {
      * to the mode-specific parts of this mode's GUI.
      */
     private class SearchWorker extends Thread {
-        final String target_;
-        final String radius_;
-        final String queryArgs_;
+        private final String target_;
+        private final String radius_;
+        private final String queryArgs_;
+        private final JProgressBar progBar_;
+        private final JComponent progPanel_;
+        private volatile boolean cancelled_;
 
         /**
          * Constructor.
@@ -413,11 +380,14 @@ public abstract class SearchVizierMode implements VizierMode {
             target_ = target;
             radius_ = radius;
             queryArgs_ = queryArgs;
+            progBar_ = new JProgressBar();
+            progBar_.setIndeterminate( true );
+            progBar_.setStringPainted( true );
+            progPanel_ = createProgressPanel( progBar_ );
         }
 
         public void run() {
-            final VizierCatalog[] qcats =
-                loadCatalogs( target_, radius_, queryArgs_ );
+            final VizierCatalog[] qcats = loadCatalogs();
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( isActive() ) {
@@ -431,10 +401,78 @@ public abstract class SearchVizierMode implements VizierMode {
         }
 
         /**
+         * Returns a list of catalogues.
+         * If a read error occurs, a warning dialogue is posted and an 
+         * empty list returned.
+         *
+         * @return   requested catalogue list
+         */
+        private VizierCatalog[] loadCatalogs() {
+            Throwable error;
+            try {
+                return attemptLoadCatalogs();
+            }
+            catch ( IOException e ) {
+                error = e;
+            }
+            catch ( ParserConfigurationException e ) {
+                error = e;
+            }
+            catch ( SAXException e ) {
+                error = e;
+            }
+            assert error != null;
+            final Throwable error1 = error;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( isActive() ) {
+                        ErrorDialog
+                       .showError( vizinfo_.getParent(), "VizieR Error", error1,
+                                   "Couldn't read catalog list from VizieR" );
+                    }
+                }
+            } );
+            return new VizierCatalog[ 0 ];
+        }
+
+        /**
+         * Attempts to return a list of catalogues.
+         *
+         * @return  catalogue list
+         */
+        private VizierCatalog[] attemptLoadCatalogs()
+                throws IOException, ParserConfigurationException, SAXException {
+            final List catList = new ArrayList();
+            progBar_.setString( "Found 0" );
+            CatalogSaxHandler catHandler = new CatalogSaxHandler() {
+                public void gotCatalog( VizierCatalog cat )
+                        throws SAXException {
+                    if ( cancelled_ ) {
+                        throw new SAXException( "search cancelled" );
+                    }
+                    catList.add( cat );
+                    progBar_.setString( "Found " + catList.size() );
+                }
+            };
+            parseCatalogQuery( target_, radius_, queryArgs_, catHandler );
+            return (VizierCatalog[]) catList.toArray( new VizierCatalog[ 0 ] );
+        }
+
+        /**
          * Frees resources if the result of this search will not be required.
          */
         public void cancel() {
-            // should interrupt VizieR query here?
+            cancelled_ = true;
+        }
+
+        /**
+         * Returns a component suitable for displaying while this worker
+         * is active.
+         *
+         * @return   progress panel
+         */
+        public JComponent getProgressPanel() {
+            return progPanel_;
         }
 
         /**
