@@ -79,9 +79,10 @@ public abstract class SearchVizierMode implements VizierMode {
         tModel_.setColumns( createCatalogColumns() );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        tScroller_ = new JScrollPane( table_,
-                                      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+        tScroller_ =
+            new JScrollPane( table_,
+                             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
         ArrayTableSorter sorter = new ArrayTableSorter( tModel_ );
         sorter.install( table_.getTableHeader() );
         sorter.setSorting( 0, false );
@@ -344,6 +345,11 @@ public abstract class SearchVizierMode implements VizierMode {
                     return ((VizierCatalog) item).getName();
                 }
             },
+            new ArrayTableColumn( "Popularity", Integer.class ) {
+                public Object getValue( Object item ) {
+                    return ((VizierCatalog) item).getCpopu();
+                }
+            },
             new ArrayTableColumn( "Density", Integer.class ) {
                 public Object getValue( Object item ) {
                     return ((VizierCatalog) item).getDensity();
@@ -354,7 +360,34 @@ public abstract class SearchVizierMode implements VizierMode {
                     return ((VizierCatalog) item).getDescription();
                 }
             },
+            new ArrayTableColumn( "Wavelengths", String.class ) {
+                public Object getValue( Object item ) {
+                    return concat( ((VizierCatalog) item).getLambdas() );
+                }
+            },
+            new ArrayTableColumn( "Astronomy", String.class ) {
+                public Object getValue( Object item ) {
+                    return concat( ((VizierCatalog) item).getAstros() );
+                }
+            },
         };
+    }
+
+    /**
+     * Concatenates strings together for display.
+     *
+     * @param   strings  array of input strings
+     * @return  single string with comma-separated values
+     */
+    private static String concat( String[] strings ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < strings.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( ", " );
+            }
+            sbuf.append( strings[ i ] );
+        }
+        return sbuf.toString();
     }
 
     /**
@@ -392,8 +425,6 @@ public abstract class SearchVizierMode implements VizierMode {
                         tModel_.setItems( qcats );
                         tScroller_.getVerticalScrollBar().setValue( 0 );
                         StarJTable.configureColumnWidths( table_, 600, 1000 );
-                        table_.setAutoResizeMode( JTable
-                                                 .AUTO_RESIZE_ALL_COLUMNS );
                     }
                 }
             } );
