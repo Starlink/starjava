@@ -12968,6 +12968,9 @@ introduced since the last version:
     <dt>Bugfixes and minor enhancements</dt>
     <dd><p>
         <ul>
+        <li>There are improvements (and possibly new problems) in the loading
+            dialogue framework.  One item is that a failed load less often
+            closes the dialogue.</li>
         <li>HTML table output is now HTML 4.01 by default
             (includes THEAD and TBODY tags).</li>
         <li>There is a workaround for illegally truncated type declarations
