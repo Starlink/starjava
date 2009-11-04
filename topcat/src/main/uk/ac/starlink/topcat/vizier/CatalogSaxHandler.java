@@ -97,8 +97,8 @@ public class CatalogSaxHandler extends DefaultHandler {
                                   entry.getIntValue( "-density" ),
                                   entry.getStringsValue( "-kw.Wavelength" ),
                                   entry.getStringsValue( "kw.Astronomy" ),
-                                  entry.getIntValue( "ipopu" ),
-                                  entry.getFloatValue( "cpopu" ) );
+                                  entry.getIntValue( "cpopu" ),
+                                  entry.getFloatValue( "ipopu" ) );
     }
 
     /**
