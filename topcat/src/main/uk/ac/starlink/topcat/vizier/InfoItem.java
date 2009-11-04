@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib.cds;
+package uk.ac.starlink.topcat.vizier;
 
 /**
  * Represents one of the static VizieR resources as obtained by the

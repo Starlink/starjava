@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib.cds;
+package uk.ac.starlink.topcat.vizier;
 
 import java.awt.Component;
 import javax.swing.JComponent;

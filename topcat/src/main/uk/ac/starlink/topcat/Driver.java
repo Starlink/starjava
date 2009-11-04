@@ -71,7 +71,7 @@ public class Driver {
         "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.SsapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.topcat.contrib.cds.VizierTableLoadDialog",
+        "uk.ac.starlink.topcat.vizier.VizierTableLoadDialog",
         "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog",
     };
 

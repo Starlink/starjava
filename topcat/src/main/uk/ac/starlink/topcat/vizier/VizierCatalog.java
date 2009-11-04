@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib.cds;
+package uk.ac.starlink.topcat.vizier;
 
 /**
  * Constains all known information about a catalogue resource.

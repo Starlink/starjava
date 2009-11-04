@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib.cds;
+package uk.ac.starlink.topcat.vizier;
 
 import java.awt.Component;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class VizierInfo {
     public static final String VIZIER_BASE_URL =
         "http://vizier.u-strasbg.fr/viz-bin/votable";
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.contrib.cds" );
+        Logger.getLogger( "uk.ac.starlink.topcat.vizier" );
 
     private final Component parent_;
     private InfoItem[] surveyItems_;

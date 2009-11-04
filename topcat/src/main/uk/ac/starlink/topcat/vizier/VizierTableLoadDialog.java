@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib.cds;
+package uk.ac.starlink.topcat.vizier;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -64,7 +64,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
     private final static ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
     private final static Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.contrib.cds" );
+        Logger.getLogger( "uk.ac.starlink.topcat.vizier" );
 
     /**
      * Constructor.

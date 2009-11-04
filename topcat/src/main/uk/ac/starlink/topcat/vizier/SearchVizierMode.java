@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.contrib.cds;
+package uk.ac.starlink.topcat.vizier;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -58,7 +58,7 @@ public abstract class SearchVizierMode implements VizierMode {
     private SearchWorker searchWorker_;
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.contrib.cds" );
+        Logger.getLogger( "uk.ac.starlink.topcat.vizier" );
 
     /**
      * Constructor.
