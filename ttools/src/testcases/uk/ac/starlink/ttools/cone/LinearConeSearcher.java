@@ -27,6 +27,10 @@ public class LinearConeSearcher implements ConeSearcher {
 
     private static final ValueInfo ID_INFO =
          new DefaultValueInfo( "ID", Integer.class );
+    private static final ValueInfo RA_INFO =
+         new DefaultValueInfo( "RA", Double.class, null );
+    private static final ValueInfo DEC_INFO =
+         new DefaultValueInfo( "Dec", Double.class, null );
 
     /**
      * Constructor.
@@ -66,8 +70,8 @@ public class LinearConeSearcher implements ConeSearcher {
         RowListStarTable table =
             new RowListStarTable( new ColumnInfo[] {
                                       new ColumnInfo( ID_INFO ),
-                                      new ColumnInfo( Tables.RA_INFO ),
-                                      new ColumnInfo( Tables.DEC_INFO ), } ); 
+                                      new ColumnInfo( RA_INFO ),
+                                      new ColumnInfo( DEC_INFO ), } ); 
         for ( Iterator it = rowList.iterator(); it.hasNext(); ) {
             table.addRow( (Object[]) it.next() );
         }
