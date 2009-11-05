@@ -228,7 +228,7 @@ public abstract class SearchVizierMode implements VizierMode {
             JSplitPane splitter =
                 new JSplitPane( JSplitPane.VERTICAL_SPLIT, true,
                                 searchPanel, tScroller_ );
-            splitter.setResizeWeight( 0.5 );
+            splitter.setResizeWeight( 0.4 );
             return splitter;
         }
         else {
