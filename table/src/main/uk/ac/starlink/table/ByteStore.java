@@ -2,6 +2,7 @@ package uk.ac.starlink.table;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * Defines a place where bytes can be written to and then read from.
@@ -30,6 +31,19 @@ public interface ByteStore {
      * @param  out  data destination stream
      */
     void copy( OutputStream out ) throws IOException;
+
+    /**
+     * Returns a byte buffer containing the bytes written to this store.
+     * The buffer's <em>limit</em> indicates the amount of data written.
+     *
+     * <p>Usual usage will be to write all data, then call this method once;
+     * this model may affect implementation decisions about efficiency.
+     *
+     * @return   byte buffer containing bytes written
+     * @throws   IOException  if there is a problem, including if the
+     *           number of byte written exceeds <code>Integer.MAX_VALUE</code>
+     */
+    ByteBuffer toByteBuffer() throws IOException;
 
     /**
      * Tidies up.  Should be called when the data in this object is no 

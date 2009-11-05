@@ -3,6 +3,7 @@ package uk.ac.starlink.table.storage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import uk.ac.starlink.table.ByteStore;
 
 /**
@@ -24,6 +25,13 @@ public class MemoryByteStore extends ByteArrayOutputStream
     public void copy( OutputStream out ) throws IOException {
         flush();
         out.write( this.buf, 0, this.count );
+    }
+
+    public ByteBuffer toByteBuffer() {
+        byte[] buf2 = new byte[ count ];
+        System.arraycopy( buf, 0, buf2, 0, count );
+        buf = buf2;
+        return ByteBuffer.wrap( buf, 0, count );
     }
 
     public void close() {

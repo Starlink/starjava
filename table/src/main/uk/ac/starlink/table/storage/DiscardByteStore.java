@@ -2,6 +2,7 @@ package uk.ac.starlink.table.storage;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import uk.ac.starlink.table.ByteStore;
 
 /**
@@ -29,6 +30,10 @@ public class DiscardByteStore implements ByteStore {
     }
 
     public void copy( OutputStream out ) {
+    }
+
+    public ByteBuffer toByteBuffer() {
+        return ByteBuffer.allocate( 0 );
     }
 
     public void close() {
