@@ -32,12 +32,11 @@ import uk.ac.starlink.votable.ValuesElement;
  * @since    3 Nov 2009
  */
 public class VizierInfo {
-    public static final String VIZIER_BASE_URL =
-        "http://vizier.u-strasbg.fr/viz-bin/votable";
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.vizier" );
 
     private final Component parent_;
+    private final URL vizierBaseUrl_;
     private InfoItem[] surveyItems_;
     private InfoItem[] archiveItems_;
     private String[] lambdaKws_;
@@ -50,13 +49,18 @@ public class VizierInfo {
      *
      * @param   parent  parent component, used for placing error messages
      */
-    VizierInfo( Component parent ) {
+    VizierInfo( Component parent, URL vizierBaseUrl ) {
         parent_ = parent;
+        vizierBaseUrl_ = vizierBaseUrl;
         surveyItems_ = new InfoItem[ 0 ];
         archiveItems_ = new InfoItem[ 0 ];
         lambdaKws_ = new String[ 0 ];
         missionKws_ = new String[ 0 ];
         astroKws_ = new String[ 0 ];
+    }
+
+    public URL getBaseUrl() {
+        return vizierBaseUrl_;
     }
 
     /**
@@ -158,7 +162,7 @@ public class VizierInfo {
      * Attempts to read the resource information from VizieR service.
      */
     private void attemptReadTables() throws IOException, SAXException {
-        URL url = new URL( VIZIER_BASE_URL + "?-meta.aladin=all" );
+        URL url = new URL( vizierBaseUrl_ + "?-meta.aladin=all" );
         logger_.info( url.toString() );
         VOElement top = new VOElementFactory( StoragePolicy.PREFER_MEMORY )
                        .makeVOElement( new URLDataSource( url ) );

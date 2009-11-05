@@ -22,7 +22,6 @@ import javax.swing.event.AncestorListener;
  */
 public class CategoryVizierMode extends SearchVizierMode {
 
-    private final VizierInfo vizinfo_;
     private final JList lambdaList_;
     private final JList missionList_;
     private final JList astroList_;
@@ -30,13 +29,10 @@ public class CategoryVizierMode extends SearchVizierMode {
     /**
      * Constructor.
      *
-     * @param   vizinfo  vizier query interface
      * @param   tld  controlling load dialogue
      */
-    public CategoryVizierMode( VizierInfo vizinfo,
-                               VizierTableLoadDialog tld ) {
-        super( "By Category", vizinfo, tld, true );
-        vizinfo_ = vizinfo;
+    public CategoryVizierMode( VizierTableLoadDialog tld ) {
+        super( "By Category", tld, true );
         lambdaList_ = new JList();
         missionList_ = new JList();
         astroList_ = new JList();
@@ -87,9 +83,10 @@ public class CategoryVizierMode extends SearchVizierMode {
     private void populateLists() {
         new Thread( "Vizier KW acquisition" ) {
             public void run() {
-                final String[] lambdas = vizinfo_.getWavelengthKws();
-                final String[] missions = vizinfo_.getMissionKws();
-                final String[] astros = vizinfo_.getAstronomyKws();
+                VizierInfo vizinfo = getVizierInfo();
+                final String[] lambdas = vizinfo.getWavelengthKws();
+                final String[] missions = vizinfo.getMissionKws();
+                final String[] astros = vizinfo.getAstronomyKws();
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         lambdaList_.setListData( lambdas );

@@ -21,12 +21,10 @@ public class WordVizierMode extends SearchVizierMode {
     /**
      * Constructor.
      *
-     * @param   vizinfo  Vizier query interface
      * @param   tld  controlling load dialogue
      */
-    public WordVizierMode( VizierInfo vizinfo,
-                           VizierTableLoadDialog tld ) {
-        super( "By Keyword", vizinfo, tld, false );
+    public WordVizierMode( VizierTableLoadDialog tld ) {
+        super( "By Keyword", tld, false );
         wordField_ = new JTextField();
     }
 

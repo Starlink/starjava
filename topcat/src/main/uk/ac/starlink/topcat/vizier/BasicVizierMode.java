@@ -31,6 +31,7 @@ public abstract class BasicVizierMode implements VizierMode {
     private final String name_;
     private final JTable table_;
     private final ArrayTableModel tModel_;
+    private VizierInfo vizinfo_;
 
     /**
      * Constructor.
@@ -62,6 +63,19 @@ public abstract class BasicVizierMode implements VizierMode {
             public void ancestorRemoved( AncestorEvent evt ) {
             }
         } );
+    }
+
+    public void setVizierInfo( VizierInfo vizinfo ) {
+        vizinfo_ = vizinfo;
+    }
+
+    /**
+     * Returns the vizier info object.
+     *
+     * @return  vizinfo
+     */
+    public VizierInfo getVizierInfo() {
+        return vizinfo_;
     }
 
     public Component getComponent() {

@@ -3,8 +3,11 @@ package uk.ac.starlink.topcat.vizier;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -53,6 +56,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  */
 public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
+    private final JComboBox serverSelector_;
     private final SkyPositionEntry skyEntry_;
     private final DoubleValueField srField_;
     private final JComboBox colSelector_;
@@ -61,10 +65,24 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
     private final JTabbedPane tabber_;
     private final JRadioButton allButt_;
     private final JRadioButton coneButt_;
+    private VizierInfo vizinfo_;
     private final static ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.vizier" );
+
+    /** URLs known to host a standard VizieR service. */
+    public static final String[] SERVER_URLS = new String[] {
+        "http://vizier.u-strasbg.fr/",
+        "http://vizier.nao.ac.jp/",
+        "http://vizier.hia.nrc.ca/",
+        "http://vizier.ast.cam.ac.uk/",
+        "http://vizier.iucaa.ernet.in/",
+        "http://vizier.inasan.ru/",
+        "http://data.bao.ac.cn/",
+        "http://vizier.cfa.harvard.edu/",
+        "http://www.ukirt.jach.hawaii.edu/",
+    };
 
     /**
      * Constructor.
@@ -75,6 +93,20 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
              + " of published astronomical catalogues" );
         setIcon( ResourceIcon.VIZIER );
         setLayout( new BorderLayout() );
+
+        /* Server panel. */
+        JComponent serverBox = Box.createHorizontalBox();
+        serverBox.add( new JLabel( "Server: " ) );
+        serverSelector_ = new JComboBox( SERVER_URLS );
+        serverSelector_.setSelectedIndex( 0 );
+        serverSelector_.setEditable( true );
+        serverBox.add( new ShrinkWrapper( serverSelector_ ) );
+        serverBox.add( Box.createHorizontalGlue() );
+        serverSelector_.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                updateServer();
+            }
+        } );
 
         /* Rows panel. */
         JComponent rowsBox = Box.createVerticalBox();
@@ -134,13 +166,14 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         colsBox.add( colLine );
 
         /* Vizier query modes. */
-        VizierInfo vinf = new VizierInfo( this );
         vizModes_ = new VizierMode[] {
-            new CategoryVizierMode( vinf, this ),
-            new WordVizierMode( vinf, this ),
-            new SurveyVizierMode( vinf ),
-            new MissionVizierMode( vinf ),
+            new CategoryVizierMode( this ),
+            new WordVizierMode( this ),
+            new SurveyVizierMode(),
+            new MissionVizierMode(),
         };
+        updateServer();
+        assert vizinfo_ != null;
 
         /* Tab pane, which presents one of the modes at any one time. */
         tabber_ = new JTabbedPane( JTabbedPane.TOP );
@@ -177,6 +210,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
         /* Place components. */
         Box controlsBox = Box.createVerticalBox();
+        controlsBox.add( serverBox );
         controlsBox.add( rowsBox );
         controlsBox.add( colsBox );
         Box logoBox = Box.createVerticalBox();
@@ -192,6 +226,9 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         /* Cosmetics. */
         Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
+        serverBox.setBorder( BorderFactory.createTitledBorder(
+            BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
+            "VizieR Server" ) );
         rowsBox.setBorder( BorderFactory.createTitledBorder(
             BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
             "Row Selection" ) );
@@ -266,7 +303,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
         /* Construct the query URL. */
         StringBuffer ubuf = new StringBuffer();
-        ubuf.append( new CgiQuery( VizierInfo.VIZIER_BASE_URL )
+        ubuf.append( new CgiQuery( vizinfo_.getBaseUrl().toString() )
                     .addArgument( "-source", queryable.getQuerySource() )
                     .toString() );
         ubuf.append( encodeArg( "-oc.form", "dec" ) );
@@ -349,6 +386,29 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         boolean hasCatalog =
             getCurrentMode().getQueryableTable().getSelectedRow() >= 0;
         getOkAction().setEnabled( hasCatalog && hasTarget() );
+    }
+
+    /**
+     * Looks at the contents of the server selector, and makes the 
+     * appropriate updates to objects which need a VizerInfo.
+     */
+    private void updateServer() {
+        Object server = serverSelector_.getSelectedItem();
+        if ( server instanceof String ) {
+            URL url;
+            try {
+                url = new URL( (String) server + "viz-bin/votable" );
+            }
+            catch ( MalformedURLException e ) {
+                Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+            VizierInfo vizinfo = new VizierInfo( this, url );
+            vizinfo_ = vizinfo;
+            for ( int i = 0; i < vizModes_.length; i++ ) {
+                vizModes_[ i ].setVizierInfo( vizinfo );
+            }
+        }
     }
 
     /**

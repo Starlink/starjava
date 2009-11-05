@@ -10,20 +10,17 @@ import uk.ac.starlink.util.gui.ArrayTableColumn;
  */
 public class SurveyVizierMode extends BasicVizierMode {
 
-    private final VizierInfo vizinfo_;
-
     /**
      * Constructor.
      *
      * @param   vizinfo   vizier query interface
      */
-    public SurveyVizierMode( VizierInfo vizinfo ) {
+    public SurveyVizierMode() {
         super( "Surveys", createSurveyColumns() );
-        vizinfo_ = vizinfo;
     }
 
     protected Queryable[] loadQueryables() {
-        InfoItem[] items = vizinfo_.getSurveys();
+        InfoItem[] items = getVizierInfo().getSurveys();
         int ns = items.length;
         Queryable[] queryables = new SurveyQueryable[ ns ];
         for ( int i = 0; i < ns; i++ ) {

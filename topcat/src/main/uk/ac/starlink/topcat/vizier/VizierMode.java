@@ -35,4 +35,13 @@ public interface VizierMode {
      * @return  table of queryable objects representing Vizier catalogues
      */
     JTable getQueryableTable();
+
+    /**
+     * Sets the object which can query a VizieR server and store metadata.
+     * This method must be called before the mode is called upon to 
+     * contact the server.
+     *
+     * @param  vizinfo  vizier search object
+     */
+    void setVizierInfo( VizierInfo info );
 }

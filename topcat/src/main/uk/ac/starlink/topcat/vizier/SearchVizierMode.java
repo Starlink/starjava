@@ -48,7 +48,6 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public abstract class SearchVizierMode implements VizierMode {
 
     private final String name_;
-    private final VizierInfo vizinfo_;
     private final VizierTableLoadDialog tld_; 
     private final boolean useSplit_;
     private final ArrayTableModel tModel_;
@@ -56,6 +55,7 @@ public abstract class SearchVizierMode implements VizierMode {
     private final JScrollPane tScroller_;
     private final Action startSearchAction_;
     private final Action cancelSearchAction_;
+    private VizierInfo vizinfo_;
     private Component panel_;
     private Component searchComponent_;
     private SearchWorker searchWorker_;
@@ -67,15 +67,13 @@ public abstract class SearchVizierMode implements VizierMode {
      * Constructor.
      *
      * @param   name  mode name
-     * @param   vizinfo  vizier query interface
      * @param   tld  controlling load dialogue instance
      * @param   useSplit  true to use a JSplitPane to separate query panel
      *          from catalogue display table; false to use a fixed layout
      */     
-    public SearchVizierMode( String name, VizierInfo vizinfo,
-                             VizierTableLoadDialog tld, boolean useSplit ) {
+    public SearchVizierMode( String name, VizierTableLoadDialog tld,
+                             boolean useSplit ) {
         name_ = name; 
-        vizinfo_ = vizinfo;
         tld_ = tld;
         useSplit_ = useSplit;
         tModel_ = new ArrayTableModel();
@@ -138,6 +136,19 @@ public abstract class SearchVizierMode implements VizierMode {
 
     public String getName() {
         return name_;
+    }
+
+    public void setVizierInfo( VizierInfo vizinfo ) {
+        vizinfo_ = vizinfo;
+    }
+
+    /**
+     * Returns the vizier info object.
+     *
+     * @return  vizinfo
+     */
+    public VizierInfo getVizierInfo() {
+        return vizinfo_;
     }
 
     public Component getComponent() {
@@ -265,12 +276,12 @@ public abstract class SearchVizierMode implements VizierMode {
      * @param   queryArgs  any additional args ready for appending to
      *                     a vizier query URL
      */
-    private static void parseCatalogQuery( String target, String radius,
-                                           String queryArgs,
-                                           DefaultHandler catHandler )
+    private void parseCatalogQuery( String target, String radius,
+                                    String queryArgs,
+                                    DefaultHandler catHandler )
             throws IOException, ParserConfigurationException, SAXException {
         StringBuffer ubuf = new StringBuffer()
-            .append( VizierInfo.VIZIER_BASE_URL )
+            .append( getVizierInfo().getBaseUrl().toString() )
             .append( "?-meta" );
         if ( target != null && target.trim().length() > 0 ) {
             ubuf.append( VizierTableLoadDialog.encodeArg( "-c", target ) );

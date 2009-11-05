@@ -10,20 +10,17 @@ import uk.ac.starlink.util.gui.ArrayTableColumn;
  */
 public class MissionVizierMode extends BasicVizierMode {
 
-    private final VizierInfo vizinfo_;
-
     /**
      * Constructor.
      *
      * @param  vizinfo  vizier query object
      */
-    public MissionVizierMode( VizierInfo vizinfo ) {
+    public MissionVizierMode() {
         super( "Missions", createMissionColumns() );
-        vizinfo_ = vizinfo;
     }
 
     protected Queryable[] loadQueryables() {
-        InfoItem[] items = vizinfo_.getArchives();
+        InfoItem[] items = getVizierInfo().getArchives();
         int nm = items.length;
         Queryable[] queryables = new MissionQueryable[ nm ];
         for ( int i = 0; i < nm; i++ ) {
