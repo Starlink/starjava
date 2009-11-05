@@ -51,6 +51,7 @@ public class SidewaysRowStore implements RowStore {
      */
     public SidewaysRowStore() throws IOException {
         this( File.createTempFile( "SidewaysRowStore", ".bin" ) );
+        file_.deleteOnExit();
     }
 
     public void acceptMetadata( StarTable meta ) throws TableFormatException {
