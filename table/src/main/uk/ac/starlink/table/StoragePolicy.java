@@ -30,6 +30,7 @@ import uk.ac.starlink.util.Loader;
  * You may also use the name of a class which extends <tt>StoragePolicy</tt>
  * and has a no-arg constructor, in which case one of these will be
  * instantiated and used.
+ * The default, if not otherwise set, corresponds to "<code>adaptive</code>".
  *
  * <p>Code which wants to store data in a particular way may use one of
  * the predefined policies {@link #ADAPTIVE}, {@link #PREFER_MEMORY},
@@ -91,11 +92,11 @@ public abstract class StoragePolicy {
                         Loader.getClassInstance( pref, StoragePolicy.class );
                     defaultInstance_ = named != null 
                                      ? named
-                                     : (StoragePolicy) PREFER_MEMORY;
+                                     : (StoragePolicy) ADAPTIVE;
                 }
             }
             catch ( SecurityException e ) {
-                defaultInstance_ = PREFER_MEMORY;
+                defaultInstance_ = ADAPTIVE;
             }
         }
         return defaultInstance_;
