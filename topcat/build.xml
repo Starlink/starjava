@@ -1254,6 +1254,7 @@
      !   understand. -->
     <java classname="uk.ac.starlink.topcat.ResourceIcon" 
           output="${build.docs}/image.defs"
+          logerror="true"
           fork="true"
           failonerror="yes">
       <sysproperty key="java.awt.headless" value="true"/>
