@@ -6314,6 +6314,9 @@ but my thanks are especially due to the following:
     <li><code>coneskymatch</code> can now match using SIA and SSA
         services as alternatives to Cone Search ones
         (see its new <code>servicetype</code> parameter).</li>
+    <li>Fixed an obscure bug which could under rare circumstances cause
+        truncation of strings with leading/trailing whitespace read
+        from text-format files.</li>
     </ul>
     Note that the STIL API used by this release has changed in some
     backwardly incompatible ways, and may change further.

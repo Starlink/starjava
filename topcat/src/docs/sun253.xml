@@ -12990,6 +12990,9 @@ introduced since the last version:
             functions now cope with leading or trailing whitespace.</li>
         <li>The list of example queries in the GAVO load dialogue has
             been extended to match those in its web interface.</li>
+        <li>Fixed an obscure bug which could under rare circumstances cause
+            truncation of strings with leading/trailing whitespace read
+            from text-format files.</li>
         </ul>
         </p></dd>
     </dl>

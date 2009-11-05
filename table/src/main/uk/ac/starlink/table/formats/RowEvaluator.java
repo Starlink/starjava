@@ -98,14 +98,15 @@ public class RowEvaluator {
         }
         for ( int icol = 0; icol < ncol_; icol++ ) {
             boolean done = false;
-            String cell = (String) row.get( icol );
-            cell = cell == null ? "" : cell.trim();
+            String cell0 = (String) row.get( icol );
+            int leng0 = cell0 == null ? 0 : cell0.length();
+            String cell = cell0 == null ? "" : cell0.trim();
             int leng = cell.length();
             if ( leng == 0 ) {
                 done = true;
             }
-            if ( leng > stringLength_[ icol ] ) {
-                stringLength_[ icol ] = leng;
+            if ( leng0 > stringLength_[ icol ] ) {
+                stringLength_[ icol ] = leng0;
             }
             if ( ! done && maybeBoolean_[ icol ] ) {
                 if ( cell.equalsIgnoreCase( "false" ) ||
