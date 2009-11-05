@@ -128,12 +128,12 @@ public class ByteStoreRowStore implements RowStore {
         }
         colSizeLists_ = null;
         offsets_ = Offsets.getOffsets( colWidths, nrow_ );
-        logger_.info( "Offset type is " + ( offsets_.isFixed() ? "fixed"
-                                                               : "variable" ) );
+        logger_.config( "Offset type is "
+                      + ( offsets_.isFixed() ? "fixed" : "variable" ) );
 
         /* Create a new StarTable instance based on the data we've cached. */
         ByteBuffer bbuf = byteStore_.toByteBuffer();
-        logger_.info( nrow_ + " rows stored in " + bbuf.limit() + " bytes" );
+        logger_.config( nrow_ + " rows stored in " + bbuf.limit() + " bytes" );
         storedTable_ = new ByteBufferStarTable( template_, nrow_, codecs_,
                                                 offsets_, bbuf );
     }
