@@ -3,6 +3,7 @@ package uk.ac.starlink.table.storage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import junit.framework.AssertionFailedError;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ByteStore;
@@ -38,6 +39,7 @@ public class StorageTest extends TestCase {
         assertEquals( StoragePolicy.PREFER_DISK, getPolicy( "disk" ) );
         assertEquals( StoragePolicy.SIDEWAYS, getPolicy( "sideways" ) );
         assertEquals( StoragePolicy.DISCARD, getPolicy( "discard" ) );
+        assertEquals( StoragePolicy.ADAPTIVE, getPolicy( "adaptive" ) );
 
         assertEquals( "StoragePolicy.PREFER_MEMORY",
                        StoragePolicy.PREFER_MEMORY.toString() );
@@ -47,6 +49,8 @@ public class StorageTest extends TestCase {
                        StoragePolicy.SIDEWAYS.toString() );
         assertEquals( "StoragePolicy.DISCARD",
                        StoragePolicy.DISCARD.toString() );
+        assertEquals( "StoragePolicy.ADAPTIVE",
+                       StoragePolicy.ADAPTIVE.toString() );
 
         assertTrue( StoragePolicy.PREFER_MEMORY.makeRowStore()
                     instanceof ListRowStore );
@@ -56,6 +60,8 @@ public class StorageTest extends TestCase {
                     instanceof SidewaysRowStore );
         assertTrue( StoragePolicy.DISCARD.makeRowStore()
                     instanceof DiscardRowStore );
+        assertTrue( StoragePolicy.ADAPTIVE.makeRowStore()
+                    instanceof ByteStoreRowStore );
 
         assertTrue( StoragePolicy.PREFER_MEMORY.makeByteStore()
                     instanceof MemoryByteStore );
@@ -65,6 +71,8 @@ public class StorageTest extends TestCase {
                     instanceof FileByteStore );
         assertTrue( StoragePolicy.DISCARD.makeByteStore()
                     instanceof DiscardByteStore );
+        assertTrue( StoragePolicy.ADAPTIVE.makeByteStore()
+                    instanceof AdaptiveByteStore );
     }
 
     public StoragePolicy getPolicy( String policyName ) {
@@ -162,6 +170,14 @@ public class StorageTest extends TestCase {
         testByteStore( StoragePolicy.PREFER_MEMORY.makeByteStore() );
         testByteStore( StoragePolicy.PREFER_DISK.makeByteStore() );
         testByteStore( StoragePolicy.SIDEWAYS.makeByteStore() );
+        testByteStore( StoragePolicy.ADAPTIVE.makeByteStore() );
+        int[] limits = new int[] { 331, 332, 333, 334,
+                                   998, 999, 1000, 1001,
+                                   Integer.MAX_VALUE };
+        testByteStore( new AdaptiveByteStore() );
+        for ( int il = 0; il < limits.length; il++ ) {
+            testByteStore( new AdaptiveByteStore( limits[ il ] ) );
+        }
     }
 
     private void testByteStore( ByteStore bs ) throws IOException {
@@ -181,6 +197,14 @@ public class StorageTest extends TestCase {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bs.copy( bos );
         assertArrayEquals( buf, bos.toByteArray() );
+
+        ByteBuffer bbuf = bs.toByteBuffer();
+        assertEquals( buf.length, bbuf.limit() );
+        assertEquals( 0, bbuf.position() );
+        byte[] bbufcopy = new byte[ bbuf.limit() ];
+        bbuf.get( bbufcopy );
+        assertArrayEquals( buf, bbufcopy );
+
         bs.close();
     }
 
@@ -195,6 +219,13 @@ public class StorageTest extends TestCase {
         }
         try {
             new SidewaysRowStore().acceptMetadata( table );
+            fail();
+        }
+        catch ( TableFormatException e ) {
+        }
+        try {
+            new ByteStoreRowStore( new MemoryByteStore() )
+                                  .acceptMetadata( table );
             fail();
         }
         catch ( TableFormatException e ) {

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
+import uk.ac.starlink.table.storage.AdaptiveByteStore;
+import uk.ac.starlink.table.storage.ByteStoreStoragePolicy;
 import uk.ac.starlink.table.storage.ListRowStore;
 import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.DiscardRowStore;
@@ -24,16 +26,15 @@ import uk.ac.starlink.util.Loader;
  * an instance of this class using the {@link #getDefaultPolicy} method.
  * The initial value of this may be selected by setting the 
  * system property named by the string {@link #PREF_PROPERTY}
- * ("startable.storage"); currently recognised values
- * are the strings "<tt>disk</tt>", "<tt>memory</tt>" and "<tt>discard</tt>".
+ * ("startable.storage").
  * You may also use the name of a class which extends <tt>StoragePolicy</tt>
  * and has a no-arg constructor, in which case one of these will be
  * instantiated and used.
  *
  * <p>Code which wants to store data in a particular way may use one of
- * the predefined policies {@link #PREFER_MEMORY}, {@link #PREFER_DISK}
- * {@link #SIDEWAYS} or {@link #DISCARD}, or may implement their 
- * own policy by extending this class.
+ * the predefined policies {@link #ADAPTIVE}, {@link #PREFER_MEMORY},
+ * {@link #PREFER_DISK} {@link #SIDEWAYS} or {@link #DISCARD},
+ * or may implement their own policy by extending this class.
  * If you want more control, you can always create instances of the 
  * public {@link RowStore} implementations directly.
  *
@@ -55,7 +56,8 @@ public abstract class StoragePolicy {
     /**
      * Name of the system property which can be set to indicate the
      * initial setting of the default storage policy.
-     * Currently recognised values are "disk", "memory" and "discard";
+     * Currently recognised values are "adaptive", "memory", "disk",
+     * "sideways", and "discard".
      */
     public static final String PREF_PROPERTY = "startable.storage";
 
@@ -68,11 +70,14 @@ public abstract class StoragePolicy {
         if ( defaultInstance_ == null ) {
             try {
                 String pref = System.getProperty( PREF_PROPERTY );
-                if ( "disk".equals( pref ) ) {
-                    defaultInstance_ = PREFER_DISK;
+                if ( "adaptive".equals( pref ) ) {
+                    defaultInstance_ = ADAPTIVE;
                 }
                 else if ( "memory".equals( pref ) ) {
                     defaultInstance_ = PREFER_MEMORY;
+                }
+                else if ( "disk".equals( pref ) ) {
+                    defaultInstance_ = PREFER_DISK;
                 }
                 else if ( "sideways".equals( pref ) ) {
                     defaultInstance_ = SIDEWAYS;
@@ -123,7 +128,7 @@ public abstract class StoragePolicy {
 
     /**
      * Creates a new RowStore and primes it by calling
-     * {@link RowStore#acceptMetadata} on it.
+     * {@link uk.ac.starlink.table.RowStore#acceptMetadata} on it.
      *
      * @param   meta  template giving the metadata which describes the rows
      *          that will have to be stored
@@ -147,20 +152,6 @@ public abstract class StoragePolicy {
         /* If it's random already, we don't need to do any work. */
         if ( table.isRandom() ) {
             return table;
-        }
-
-        /* If it's JDBC we can try to turn it random. */
-        if ( table instanceof JDBCStarTable ) {
-            try {
-                ((JDBCStarTable) table).setRandom();
-                return table;
-            }
-            catch ( SQLException e ) {
-                // drop through
-            }
-            catch ( OutOfMemoryError e ) {
-                // drop through
-            }
         }
 
         /* Otherwise get a suitable row store and stream the rows into it. */
@@ -199,6 +190,8 @@ public abstract class StoragePolicy {
 
     /**
      * Storage policy which will always store table data in memory.
+     * Table cells are stored as objects, which will be fast to write,
+     * and can cope with any object type, but may be expensive on memory.
      */
     public static final StoragePolicy PREFER_MEMORY = new StoragePolicy() {
         public ByteStore makeByteStore() {
@@ -284,6 +277,26 @@ public abstract class StoragePolicy {
         }
         public String toString() {
             return "StoragePolicy.DISCARD";
+        }
+    };
+
+    /**
+     * Storage policy which will store small amounts of data in an array
+     * in memory, and larger amounts in a scratch disk file.
+     * Temporary disk files are written in the default temporary 
+     * directory, which is the value of the <tt>java.io.tmpdir</tt>
+     * system property.  These files will be deleted when the JVM exits,
+     * if not before.  They will <em>probably</em> be deleted around the
+     * time they are no longer needed (when the RowStore in question is 
+     * garbage collected), though this cannot be guaranteed since it
+     * depends on the details of the JVM's GC implementation.
+     */
+    public static final StoragePolicy ADAPTIVE = new ByteStoreStoragePolicy() {
+        protected ByteStore attemptMakeByteStore() throws IOException {
+            return new AdaptiveByteStore();
+        } 
+        public String toString() {
+            return "StoragePolicy.ADAPTIVE";
         }
     };
 
