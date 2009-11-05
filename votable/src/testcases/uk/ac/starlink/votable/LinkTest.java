@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.net.URL;
 import junit.framework.TestCase;
 import org.w3c.dom.NodeList;
@@ -18,6 +20,7 @@ public class LinkTest extends TestCase {
 
     public LinkTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testLink() throws Exception {

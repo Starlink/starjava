@@ -26,6 +26,8 @@ public class TableMatch1Test extends TableTestCase {
                  true, StoragePolicy.PREFER_MEMORY );
         Logger.getLogger( "uk.ac.starlink.ttools" )
               .setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.table.storage" )
+              .setLevel( Level.WARNING );
     }
 
     public void testMessier1Degree() throws Exception {

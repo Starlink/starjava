@@ -21,6 +21,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         super( name );
         Logger.getLogger( "uk.ac.starlink.ttools.cone" )
               .setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testLinear() throws Exception {

@@ -22,6 +22,7 @@ public class AxisTest extends TableTestCase {
         Logger.getLogger( "org.mortbay" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.soap" ).setLevel( Level.WARNING );
         Logger.getLogger( "org.apache.axis" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     public void testAxis() throws Exception {

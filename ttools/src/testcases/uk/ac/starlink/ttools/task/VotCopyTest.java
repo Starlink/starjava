@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -31,6 +33,7 @@ public class VotCopyTest extends TableTestCase {
 
     public VotCopyTest( String name ) throws Exception {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         multiDOM_ = checkAndRemoveData( new VOElementFactory()
                                        .makeVOElement( multiLoc_ ),
                                         "TABLEDATA" );

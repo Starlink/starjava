@@ -33,6 +33,8 @@ public class TablePipeTest extends TableTestCase {
 
         Logger.getLogger( "uk.ac.starlink.ttools.filter" )
               .setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.table.storage" )
+              .setLevel( Level.WARNING );
     }
 
     private StarTable apply( String cmd ) throws Exception {

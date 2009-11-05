@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.ColumnInfo;
@@ -17,6 +19,10 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
 public class MultiTest extends TestCase {
+
+    public void setUp() {
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+    }
 
     public void testMultiWrite() throws IOException {
         multiWriteTrial( new FileIOer( File.createTempFile( "multi",
