@@ -183,11 +183,6 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         /* Tab pane, which presents one of the modes at any one time. */
         dataReadSet_ = new HashSet();
         tabber_ = new JTabbedPane( JTabbedPane.TOP );
-        tabber_.addChangeListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                readData( getCurrentMode() );
-            }
-        } );
         for ( int iv = 0; iv < vizModes_.length; iv++ ) {
             VizierMode vizMode = vizModes_[ iv ];
             JComponent container = new JPanel( new BorderLayout() );
@@ -196,6 +191,11 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
             container.add( vizMode.getComponent(), BorderLayout.CENTER );
             tabber_.add( vizMode.getName(), container );
         }
+        tabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                readData( getCurrentMode() );
+            }
+        } );
 
         /* Keep action enabledness up to date. */
         addTargetActionListener( new ActionListener() {
