@@ -345,9 +345,9 @@ in the table that you save.
 <p>A notable point to bear in mind concerns memory.
 TOPCAT is fairly efficient in use of memory, but in some cases when 
 dealing with large tables you might see an OutOfMemoryError.
-It is usually possible to work round this by using either or both
-of the <code>-disk</code> or <code>-Xmx</code><em>NNN</em><code>M</code>
-flags on startup - see <ref id="jvmMemory"/>.
+It is usually possible to work round this by using the
+<code>-Xmx</code><em>NNN</em><code>M</code>
+flag on startup - see <ref id="jvmMemory"/>.
 </p>
 
 <p>Finally, if you have queries, comments or requests about the software,
@@ -806,9 +806,7 @@ HISTORY and COMMENT cards are run together as one multi-line value.
 
 <p>If the table is stored in a FITS binary table extension in a file
 on local disk in uncompressed form, then the table is 'mapped' into
-memory - this generally means fast loading and low memory use, 
-even in the absence of TOPCAT's <code>-disk</code> flag
-(<ref id="topcatArgs"/>).
+memory - this generally means fast loading and low memory use.
 </p>
 
 </subsubsubsect>
@@ -3414,22 +3412,24 @@ The meaning of the flags is as follows:
     contain particularly sensible data, they are just to give an idea.
     </p></dd>
 
+<dt>-memory</dt>
+<dd><p>If the <code>-memory</code> flag is given then the program will
+    store table data in memory,
+    rather than the default which is to store small tables in memory,
+    and larger ones in temporary disk files.
+    </p></dd>
+
 <dt>-disk</dt>
-<dd><p>If the <code>-disk</code> flag is given then the program will use
-    disk backing storage for caching table data that is read in, rather
-    than keeping it in memory.  This means that tables much larger than
-    the heap memory assigned to Java can be used.  It may lead to slower
-    processing, but usually the performance is not greatly reduced.
-    If you find TOPCAT running out of memory (you see 
-    <code>OutOfMemoryError</code>s popping up in windows or on the console)
-    then re-running with the <code>-disk</code> flag is a good idea.
+<dd><p>If the <code>-disk</code> flag is given then the program will
+    store table data in temporary disk files,
+    rather than the default which is to store small tables in memory,
+    and larger ones on disk.
+    If you get out of memory messages, running with the <code>-disk</code>
+    flag might help, though the default policy should work fairly well.
     The temporary data files are written in the default temporary 
     directory (defined by the <code>java.io.tmpdir</code> system property -
     often <code>/tmp</code> - and deleted when the program exits, unless
     it exits in an unusual way.
-    Note however that uncompressed FITS binary tables on disk are not 
-    read into memory in any case (they are <em>mapped</em>)
-    so the <code>-disk</code> flag may not make much difference with FITS.
     </p></dd>
 
 <dt>-samp</dt>
@@ -3611,7 +3611,7 @@ or using java directly:
     java -Xmx256M ...
 </verbatim>
 which means use up to 256 megabytes of memory (don't forget the "M"
-for megabyte).  JVMs typically default to a heap size of 64M.
+for megabyte).  JVMs often default to a heap size of 64M.
 You probably don't want to specify a heap size larger than the
 physical memory of the machine that you are running on.
 </p>
@@ -3781,8 +3781,11 @@ The following ones have special significance within TOPCAT:
     Setting it to "<code>disk</code>" has basically the same effect as
     supplying the "<code>-disk</code>" argument on the TOPCAT command line
     (see <ref id="topcatArgs"/>).
-    Other possible values are "<code>memory</code>" (the default),
-    "<code>sideways</code>" and "<code>discard</code>".
+    Other possible values are "<code>adaptive</code>", "<code>memory</code>", 
+    "<code>sideways</code>" and "<code>discard</code>";
+    see <docxref doc="sun252" loc="storagePolicy"/>.
+    The default is "<code>adaptive</code>", which means storing smaller
+    tables in memory, and larger ones on disk.
     </p></dd>
 
 <dt><code>startable.writers</code></dt>
@@ -4014,19 +4017,6 @@ report on the console), and there are some things you can do about this:
 
 <p>
 <dl>
-<dt>Use the -disk flag</dt>
-<dd><p>By default, TOPCAT reads the data from tables in most file formats 
-    (everything except FITS binary tables) into memory when it loads them.
-    By specifying the <code>-disk</code> flag on the command line,
-    you can tell it to use temporary files for storing this data instead.
-    This makes it much less likely to run out of memory.
-    You can achieve the same effect by adding the line 
-    <code>startable.storage=disk</code> in the 
-    <code>.starjava.properties</code> in your home directory.
-    This is the best thing to do if you're seeing an out of memory
-    error when loading tables.
-    See <ref id="topcatArgs"/>, <ref id="jvmProperties"/>.
-    </p></dd>
 
 <dt>Increase Java's heap memory</dt>
 <dd><p>When a Java program runs, it has a fixed maximum amount of memory
@@ -4063,6 +4053,21 @@ report on the console), and there are some things you can do about this:
     As well as speeding things up, using FITS files will 
     also reduce the need to use <code>-disk</code> or
     <code>-Xmx</code> flags as above.
+    </p></dd>
+
+<dt>Use the -disk flag</dt>
+<dd><p>The way TOPCAT stores table data is configurable, and 
+    the details can be controlled by setting its <em>Storage Policy</em>.
+    The default storage policy (since version 3.5),
+    "<code>adaptive</code>", means that the data for relatively small
+    tables are stored in memory, and for larger ones in temporary disk files.
+    This usually works fairly well, but you can save some memory by
+    encouraging it to store all table data on disk,
+    by specifying the <code>-disk</code> flag on the command line.
+    You can achieve the same effect by adding the line 
+    <code>startable.storage=disk</code> in the 
+    <code>.starjava.properties</code> in your home directory.
+    See <ref id="topcatArgs"/>, <ref id="jvmProperties"/>.
     </p></dd>
 
 <dt>Use column-oriented storage</dt>
@@ -12918,6 +12923,34 @@ introduced since the last version:
         and a new apendix section <ref id="vo-windows"/> describes the
         various single- and multiple-query windows.
         </p></dd>
+    <dt>Storage Policy change</dt>
+    <dd><p>The way that TOPCAT stores large tables has changed.
+        In previous versions, table data was held in memory 
+        (the default <em>Storage Policy</em> was "<code>memory</code>"))
+        unless the <code>-disk</code> flag was specified 
+        (to use the "<code>disk</code>" storage policy), in which case it was
+        stored in temporary disk files.  If you didn't put <code>-disk</code>
+        on the command line, it was common to run out of memory when working
+        with large tables.
+        </p>
+        <p>Now, the default storage policy is "<code>adaptive</code>".
+        This means that relatively small tables are held in memory,
+        and larger ones are stored in temporary files.
+        The effect should be that most of the time, you don't need to
+        specify any special options, and you can work with small or 
+        large tables without running out of memory.
+        Using <code>-disk</code> is still permissible, and may help in
+        unusual circumstances.
+        Running out of memory is still a possibility, but should be much
+        less common.
+        </p>
+        <p>The old behaviour can be restored by using the new
+        <code>-memory</code> command-line flag.
+        </p>
+        <p>The only differences you notice from this change should be good
+        ones, however it is slightly experimental.  Please contact the author
+        if you suspect it has introduced any problems.
+        </p></dd> 
     <dt>SAMP-related enhancements</dt>
     <dd><p>
         <ul>
