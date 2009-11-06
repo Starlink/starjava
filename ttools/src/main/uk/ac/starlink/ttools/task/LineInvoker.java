@@ -115,6 +115,13 @@ public class LineInvoker {
                     it.remove();
                     verbosity--;
                 }
+                else if ( arg.equals( "-memory" ) ) {
+                    it.remove();
+                    StoragePolicy.setDefaultPolicy( StoragePolicy
+                                                   .PREFER_MEMORY );
+                    env.getTableFactory()
+                       .setStoragePolicy( StoragePolicy.PREFER_MEMORY );
+                }
                 else if ( arg.equals( "-disk" ) ) {
                     it.remove();
                     StoragePolicy.setDefaultPolicy( StoragePolicy.PREFER_DISK );
@@ -536,14 +543,17 @@ public class LineInvoker {
             .append( " [-help]" )
             .append( " [-version]" )
             .append( " [-verbose]" )
+            .append( " [-memory]" )
             .append( " [-disk]" )
             .append( " [-debug]" )
-            .append( " [-prompt]" )
-            .append( " [-batch]" )
             .append( '\n' )
             .append( pad )
+            .append( " [-prompt]" )
+            .append( " [-batch]" )
             .append( " [-bench]" )
             .append( " [-checkversion <vers>]" )
+            .append( '\n' )
+            .append( pad )
             .append( " [-stdout <file>]" )
             .append( " [-stderr <file>]" )
             .append( '\n' )

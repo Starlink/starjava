@@ -326,10 +326,19 @@ follows:
     further.
     </p></dd>
 
+<dt><code>-memory</code></dt>
+<dd><p>Encourages the command to use java heap memory for caching
+    large amounts of data rather than using temporary disk files.
+    The default is to use memory for small tables, and disk for large ones.
+    This flag is in most cases equivalent to specifying the system
+    property <code>-Dstartable.storage=memory</code>.
+    </p></dd>
+
 <dt><code>-disk</code></dt>
 <dd><p>Encourages the command to use temporary files on disk for caching
-    large amounts of data rather than doing it in memory.
-    This is a good flag to try if you are running out of memory.
+    table data.
+    The default is to use memory for small tables, and disk for large ones.
+    Using this flag may help if you are running out of memory.
     This flag is in most cases equivalent to specifying the system
     property <code>-Dstartable.storage=disk</code>.
     </p></dd>
@@ -752,15 +761,6 @@ specify directly to Java are these:
     (don't forget the 'M' for megabyte).  You will probably find
     performance is dreadful if you specify a heap size larger than 
     the physical memory of the machine you're running on.
-    </p>
-
-    <p>Note however that encouraging STILTS to use disk files
-    rather than memory for temporary storage is often a
-    better idea than boosting the heap memory - 
-    this is done by specifying the <code>-disk</code> flag 
-    (<code>stilts -disk &lt;task-name&gt; ...</code>),
-    or possibly setting the system property 
-    <code>-Dstartable.storage=disk</code> (see <ref id="stilts-flags"/>).
     </p></dd>
 
 </dl>
@@ -858,9 +858,12 @@ on the command line is equivalent to having the following in your
 <dd><p>Can be set to determine the default storage policy.
     Setting it to "<code>disk</code>" has basically the same effect as
     supplying the "<code>-disk</code>" argument on the command line
-    (see <ref id="stilts-flags"/>).  Other possible values are
-    "<code>memory</code>", "<code>sideways</code>" and "<code>discard</code>";
+    (see <ref id="stilts-flags"/>).
+    Other possible values are "<code>adaptive</code>", "<code>memory</code>",
+    "<code>sideways</code>" and "<code>discard</code>";
     see <docxref doc="sun252" loc="storagePolicy"/>.
+    The default is "<code>adaptive</code>", which means storing smaller
+    tables in memory, and larger ones on disk.
     </p></dd>
 
 <dt><code>startable.writers</code></dt>
@@ -6317,6 +6320,10 @@ but my thanks are especially due to the following:
     <li>Fixed an obscure bug which could under rare circumstances cause
         truncation of strings with leading/trailing whitespace read
         from text-format files.</li>
+    <li>A new <code>startable.storage</code> policy "<code>adaptive</code>"
+        is now the default.  This should mean running out of memory less
+        often.  The old behaviour can be restored by giving the new
+        <code>-memory</code> command line flag.</li>
     </ul>
     Note that the STIL API used by this release has changed in some
     backwardly incompatible ways, and may change further.
