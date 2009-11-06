@@ -102,8 +102,8 @@ public abstract class StoragePolicy {
         }
         if ( ! defaultLogged_ ) {
             defaultLogged_ = true;
-            logger_.info( "Initial default StoragePolicy is "
-                        + defaultInstance_ );
+            logger_.config( "Initial default StoragePolicy is "
+                          + defaultInstance_ );
         }
         return defaultInstance_;
     }
