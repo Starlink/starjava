@@ -12,8 +12,6 @@ public class MissionVizierMode extends BasicVizierMode {
 
     /**
      * Constructor.
-     *
-     * @param  vizinfo  vizier query object
      */
     public MissionVizierMode() {
         super( "Missions", createMissionColumns() );

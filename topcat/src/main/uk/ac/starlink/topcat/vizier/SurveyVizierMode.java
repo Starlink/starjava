@@ -12,8 +12,6 @@ public class SurveyVizierMode extends BasicVizierMode {
 
     /**
      * Constructor.
-     *
-     * @param   vizinfo   vizier query interface
      */
     public SurveyVizierMode() {
         super( "Surveys", createSurveyColumns() );

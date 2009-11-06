@@ -43,5 +43,14 @@ public interface VizierMode {
      *
      * @param  vizinfo  vizier search object
      */
-    void setVizierInfo( VizierInfo info );
+    void setVizierInfo( VizierInfo vizinfo );
+
+    /**
+     * Perform whatever updating from the remote server is necessary
+     * to initialise the state of this component from the currently
+     * installed VizierInfo.  This method is called from the event 
+     * dispatch thread, but should work asynchronously so as not to
+     * block the GUI.
+     */
+    void readData();
 }

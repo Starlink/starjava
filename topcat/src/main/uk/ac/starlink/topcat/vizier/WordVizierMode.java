@@ -28,6 +28,9 @@ public class WordVizierMode extends SearchVizierMode {
         wordField_ = new JTextField();
     }
 
+    public void readData() {
+    }
+
     protected Component createSearchComponent() {
         final JLabel wordLabel = new JLabel( "Keywords: " );
         JComponent line = new Box( BoxLayout.X_AXIS ) {

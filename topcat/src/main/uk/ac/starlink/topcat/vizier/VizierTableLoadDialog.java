@@ -15,7 +15,9 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -30,8 +32,12 @@ import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -65,6 +71,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
     private final JTabbedPane tabber_;
     private final JRadioButton allButt_;
     private final JRadioButton coneButt_;
+    private final Set dataReadSet_;
     private VizierInfo vizinfo_;
     private final static ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
@@ -172,11 +179,15 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
             new SurveyVizierMode(),
             new MissionVizierMode(),
         };
-        updateServer();
-        assert vizinfo_ != null;
 
         /* Tab pane, which presents one of the modes at any one time. */
+        dataReadSet_ = new HashSet();
         tabber_ = new JTabbedPane( JTabbedPane.TOP );
+        tabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                readData( getCurrentMode() );
+            }
+        } );
         for ( int iv = 0; iv < vizModes_.length; iv++ ) {
             VizierMode vizMode = vizModes_[ iv ];
             JComponent container = new JPanel( new BorderLayout() );
@@ -207,6 +218,19 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                           .addListSelectionListener( readySelListener );
         }
         updateActions();
+
+        /* Arrange to initialise the visual state with asynchronous reads
+         * from the server when the window is first displayed. */
+        addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+                VizierTableLoadDialog.this.removeAncestorListener( this );
+                updateServer();
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
+            }
+        } );
 
         /* Place components. */
         Box controlsBox = Box.createVerticalBox();
@@ -408,6 +432,8 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
             for ( int i = 0; i < vizModes_.length; i++ ) {
                 vizModes_[ i ].setVizierInfo( vizinfo );
             }
+            dataReadSet_.clear();
+            readData( getCurrentMode() );
         }
     }
 
@@ -533,6 +559,18 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         catch ( UnsupportedEncodingException e ) {
             assert false;
             return txt;
+        }
+    }
+
+    /**
+     * Tell the given mode to update its state by reading from the server, 
+     * if it hasn't already done so since it got its current VizInfo.
+     *
+     * @param  mode to update
+     */
+    private void readData( VizierMode mode ) {
+        if ( dataReadSet_.add( mode ) ) {
+            mode.readData();
         }
     }
 

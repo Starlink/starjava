@@ -10,8 +10,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
 
 /**
  * Vizier mode that allows the user to search for catalogues based on 
@@ -55,16 +53,6 @@ public class CategoryVizierMode extends SearchVizierMode {
         for ( int i = 0; i < listBoxes.length; i++ ) {
             kwPanel.add( listBoxes[ i ] );
         }
-        kwPanel.addAncestorListener( new AncestorListener() {
-            public void ancestorAdded( AncestorEvent evt ) {
-                kwPanel.removeAncestorListener( this );
-                populateLists();
-            }
-            public void ancestorMoved( AncestorEvent evt ) {
-            }
-            public void ancestorRemoved( AncestorEvent evt ) {
-            }
-        } );
         return kwPanel;
     }
 
@@ -74,6 +62,10 @@ public class CategoryVizierMode extends SearchVizierMode {
               .append( getKwArgs( "Mission", missionList_ ) )
               .append( getKwArgs( "Astronomy", astroList_ ) )
               .toString();
+    }
+
+    public void readData() {
+        populateLists();
     }
 
     /**

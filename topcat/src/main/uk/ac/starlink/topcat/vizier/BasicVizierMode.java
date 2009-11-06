@@ -9,8 +9,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -53,16 +51,6 @@ public abstract class BasicVizierMode implements VizierMode {
         panel_.add( new JScrollPane( table_,
                                      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER ) );
-        panel_.addAncestorListener( new AncestorListener() {
-            public void ancestorAdded( AncestorEvent evt ) {
-                panel_.removeAncestorListener( this );
-                populateTable();
-            }
-            public void ancestorMoved( AncestorEvent evt ) {
-            }
-            public void ancestorRemoved( AncestorEvent evt ) {
-            }
-        } );
     }
 
     public void setVizierInfo( VizierInfo vizinfo ) {
@@ -88,6 +76,10 @@ public abstract class BasicVizierMode implements VizierMode {
 
     public JTable getQueryableTable() {
         return table_;
+    }
+
+    public void readData() {
+        populateTable();
     }
 
     /**
