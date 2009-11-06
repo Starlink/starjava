@@ -40,7 +40,7 @@ public class AdaptiveByteStore implements ByteStore {
     private File file_;
 
     /** Fraction of total maximum memory for default memory limit. */
-    private static final float MAX_FRACT = 0.2f;
+    private static final float MAX_FRACT = 0.125f;
 
     private static int defaultLimit_;
     private static final Logger logger_ =
