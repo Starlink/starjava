@@ -46,6 +46,7 @@ public abstract class StoragePolicy {
     private static StoragePolicy defaultInstance_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
+    private static boolean defaultLogged_;
 
     /**
      * Smallest number of cells that will get written to disk by default.
@@ -98,7 +99,10 @@ public abstract class StoragePolicy {
             catch ( SecurityException e ) {
                 defaultInstance_ = ADAPTIVE;
             }
-            logger_.info( "StoragePolicy default instance is "
+        }
+        if ( ! defaultLogged_ ) {
+            defaultLogged_ = true;
+            logger_.info( "Initial default StoragePolicy is "
                         + defaultInstance_ );
         }
         return defaultInstance_;
