@@ -98,6 +98,8 @@ public abstract class StoragePolicy {
             catch ( SecurityException e ) {
                 defaultInstance_ = ADAPTIVE;
             }
+            logger_.info( "StoragePolicy default instance is "
+                        + defaultInstance_ );
         }
         return defaultInstance_;
     }
