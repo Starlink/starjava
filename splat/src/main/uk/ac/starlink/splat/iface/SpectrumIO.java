@@ -121,6 +121,12 @@ public class SpectrumIO
     private final int globalIndex = 0;
 
     /**
+     * Object to receive callbacks whenever the queue of files to load
+     * is cleared.
+     */
+    private Watch watcher = null;
+
+    /**
      * Load an array of spectra whose specifications are contained in the
      * elements of an array of Strings. If the loading process takes a "long"
      * time then a ProgressMonitor dialog with be displayed, which can also be
@@ -299,7 +305,6 @@ public class SpectrumIO
         int validFiles = 0;
         int failedFiles = 0;
         int initialsize = globalList.specCount();
-        //int initialsize = queue.count();
         filesDone = 0;
         StringBuffer failures = null;
         SplatException lastException = null;
@@ -322,6 +327,7 @@ public class SpectrumIO
         }
 
         //  Report any failures. If there is just one make usual report.
+        //  Report to the registered instance of Watch if set.
         if ( failures != null ) {
             String message = null;
             if ( failedFiles == 1 ) {
@@ -331,7 +337,16 @@ public class SpectrumIO
                 message = "Failed to open " + failedFiles + " spectra";
                 lastException = new SplatException( failures.toString() );
             }
-            ErrorDialog.showError( browser, message, lastException );
+            if ( watcher != null ) {
+                watcher.emptied( failedFiles, message );
+            }
+            else {
+                ErrorDialog.showError( browser, message, lastException );
+            }
+        }
+        else if ( watcher != null ) {
+            //  OK, report files are loaded.
+            watcher.emptied( 0, null );
         }
 
         //  And now display them if we can.
@@ -630,10 +645,8 @@ public class SpectrumIO
         }
     }
 
-
     // Inner class for loading and saving Spectra.
     // Extend with other operations if needed.
-    //
     private class Loader
         extends Thread
     {
@@ -697,5 +710,32 @@ public class SpectrumIO
                 }
             }
         }
+    }
+
+    /**
+     * Set a watcher to be informed when the load queue has been emptied.
+     *
+     * @param watcher an instance of the Watch interface. Set to null
+     *                to clear. Remember to do that otherwise you'll
+     *                get reports about all spectra being loaded.
+     */
+    public void setWatcher( Watch watcher )
+    {
+        this.watcher = watcher;
+    }
+
+
+    // Simple interface for objects that can receive the status of 
+    // a call to addSpectra() following a clearing of the queue to 
+    // load spectra.
+    public interface Watch
+    {
+        /**
+         * Report about last empty of queue of files to load.
+         *
+         * @param failures number of files that failed to load.
+         * @param message an error report about the failures.
+         */
+        public void emptied( int failures, String message );
     }
 }
