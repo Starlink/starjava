@@ -3342,10 +3342,12 @@ for cone search, SIA or SSA services.
 Another option is to use
 <webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>;
 the 
-<webref url="http://www.starlink.ac.uk/topcat/ConeSearchDialog.html"
-        >Cone Search</webref> and
-<webref url="http://www.starlink.ac.uk/topcat/DalTableLoadDialog.html"
-        >SIA/SSA</webref>
+<webref url="http://www.starlink.ac.uk/topcat/sun253/ConeSearchDialog.html"
+        >Cone Search</webref>,
+<webref url="http://www.starlink.ac.uk/topcat/sun253/SiapTableLoadDialog.html"
+        >SIA</webref> and
+<webref url="http://www.starlink.ac.uk/topcat/sun253/SsapTableLoadDialog.html"
+        >SSA</webref>
 load dialogues allow you to search the registry for these services 
 prior to performing a query;
 you can just use the registry part and cut'n'paste the URL which
