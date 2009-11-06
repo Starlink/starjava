@@ -233,7 +233,7 @@ public class Driver {
         String usage = 
               pre + " [-help] [-version] [-stilts <stilts-args>]"
                   + " [-jsamp <jsamp-args>]\n"
-            + pad + " [-verbose] [-demo] [-disk]\n"
+            + pad + " [-verbose] [-demo] [-memory] [-disk]\n"
             + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
             + pad + " [[-f <format>] table ...]";
 
@@ -285,6 +285,10 @@ public class Driver {
             else if ( arg.equals( "-demo" ) ) {
                 it.remove();
                 demo = true;
+            }
+            else if ( arg.equals( "-memory" ) ) {
+                it.remove();
+                tabfact.setStoragePolicy( StoragePolicy.PREFER_MEMORY );
             }
             else if ( arg.equals( "-disk" ) ) {
                 it.remove();
@@ -673,6 +677,7 @@ public class Driver {
            .append( p2 + "-verbose       increase verbosity of "
                                          + "reports to console" )
            .append( p2 + "-demo          start with demo data" )
+           .append( p2 + "-memory        use memory storage for tables" )
            .append( p2 + "-disk          use disk backing store for "
                                          + "large tables" ) 
            .append( p2 + "-samp          use SAMP for tool interoperability" )
@@ -739,7 +744,7 @@ public class Driver {
            .append( p2 )
            .append( "startable.writers       custom table output handlers" )
            .append( p2 )
-           .append( "startable.storage       default storage policy" )
+           .append( "startable.storage       storage policy" )
            .append( p2 )
            .append( "mark.workaround         work around mark/reset bug" )
            .append( p2 )
