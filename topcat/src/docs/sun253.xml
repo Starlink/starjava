@@ -8651,12 +8651,22 @@ table; this means that querying one of VizieR's catalogues may result
 in more than one table being loaded into TOPCAT.
 </p>
 
-<p>The dialogue consists of three parts: the 
+<p>The dialogue consists of four parts: the 
+<label>VizieR Server</label>,
 <label>Row Selection</label>,
 <label>Column Selection</label> and
 <label>Catalogue Selection</label> panels,
 arranged top to bottom in the window.
 These are described below.
+</p>
+
+<p>The <label>VizieR Server</label> panel allows you to specify which
+VizieR server you want to use for data download.
+By default the server at CDS is used, but there are mirrors elsewhere,
+whose URLs can be chosen from the selector.
+If you see a popup window complaining that the server cannot be contacted,
+you can choose a different one; you might also want to select one that 
+is close to you for performance reasons.
 </p>
 
 <p>The <label>Row Selection</label> panel specifies which rows you 
