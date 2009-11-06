@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>2 October 2009</docdate>
+<docdate>6 November 2009</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6311,7 +6311,7 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Version 2.1</dt>
+<dt>Version 2.1 (6 November 2009)</dt>
 <dd><p>
     <ul>
     <li><code>coneskymatch</code> can now match using SIA and SSA
