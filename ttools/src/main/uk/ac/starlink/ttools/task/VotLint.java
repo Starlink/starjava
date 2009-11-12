@@ -83,7 +83,7 @@ public class VotLint implements Task {
         versionParam_.setDescription( new String[] {
             "<p>Selects the version of the VOTable standard which the input",
             "table is supposed to exemplify.",
-            "Currently the version can be 1.0 or 1.1.",
+            "Currently the version can be 1.0, 1.1 or 1.2.",
             "The version may also be specified within the document",
             "using the \"version\" attribute of the document's VOTABLE",
             "element; if it is and it conflicts with the value specified",
