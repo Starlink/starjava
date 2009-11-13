@@ -7,6 +7,9 @@
    version 1 utypes (spectrum.char.fluxaxis.name, spectrum.char.fluxaxis.unit,
    spectrum.char.spectralaxis.name and spectrum.char.spectralaxis.unit).
 
+   The statistics window has been extended to include some alpha trimmed
+   means in the extended statistics option.
+
    3.9-3
    =====
 

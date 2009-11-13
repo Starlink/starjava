@@ -72,7 +72,7 @@ public class Statistics
     {
         return bin1D.sum();
     }
-    
+
     /**
      * Get the median.
      */
@@ -98,6 +98,18 @@ public class Statistics
     }
 
     /**
+     * Get an alpha trimmed mean.
+     *
+     * @param fraction of values to remove from distribution, 0 to 0.5.
+     */
+    public double getAlphaTrimmedMean( double frac )
+    {
+        double size = (double) bin1D.size();
+        int nremove = (int)( size * frac );
+        return bin1D.trimmedMean( nremove, nremove );
+    }
+
+    /**
      * Get the sample standard deviation.
      */
     public double getStandardDeviation()
@@ -107,7 +119,7 @@ public class Statistics
 
     public String toString()
     {
-        return super.toString() + ":\n" + 
+        return super.toString() + ":\n" +
             "Maximum = " + getMaximum() + ", " +
             "Minimum = " + getMinimum() + ", " +
             "Sum = "     + getSum()     + ", " +
@@ -139,8 +151,8 @@ public class Statistics
             buf.append( "  RMS = " + bin1D.rms() + "\n" );
             buf.append( "  Variance = " + bin1D.variance() + "\n" );
             buf.append( "  Standard error = " + bin1D.standardError() + "\n" );
-            buf.append( "  25%, 75% quantiles = " + 
-                        bin1D.quantile( 0.25 ) + ", " + 
+            buf.append( "  25%, 75% quantiles = " +
+                        bin1D.quantile( 0.25 ) + ", " +
                         bin1D.quantile( 0.75 ) + "\n");
             int maxOrder = bin1D.getMaxOrderForSumOfPowers();
             if ( maxOrder > 2 ) {
@@ -151,11 +163,18 @@ public class Statistics
                     buf.append( "  Kurtosis = " + bin1D.kurtosis() + "\n" );
                 }
             }
+            buf.append( "  Alpha trimmed means:\n" );
+            buf.append( "     0.01 = " + getAlphaTrimmedMean( 0.01 ) + "\n" );
+            buf.append( "     0.05 = " + getAlphaTrimmedMean( 0.05 ) + "\n" );
+            buf.append( "     0.1 = " + getAlphaTrimmedMean( 0.1 ) + "\n" );
+            buf.append( "     0.2 = " + getAlphaTrimmedMean( 0.2 ) + "\n" );
+            buf.append( "     0.3 = " + getAlphaTrimmedMean( 0.3 ) + "\n" );
+            buf.append( "     0.4 = " + getAlphaTrimmedMean( 0.4 ) + "\n" );
         }
         return buf.toString();
     }
 
-    public static void main( String[] args ) 
+    public static void main( String[] args )
     {
         double[] values = new double[101];
         for ( int i = 0; i < 101; i++ ) {
@@ -163,8 +182,8 @@ public class Statistics
         }
 
         Statistics stats = new Statistics( values );
-        
+
         System.out.println( "Statistics of values from 1 to 101" );
-        System.out.println( stats.toString() ); 
+        System.out.println( stats.toString() );
     }
 }
