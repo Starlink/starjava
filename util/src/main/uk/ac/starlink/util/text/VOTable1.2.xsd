@@ -15,9 +15,10 @@
 .Version 1.20: FO: Added xtype; content-role is less restrictive (May2009)
 .Version 1.20a: FO: PR-20090710 Cosmetics.
 .Version 1.20b: FO: INFO does not accept sub-elements (2009-09-29)
+.Version 1.20c: FO: elementFormDefault="qualified" to stay compatible with 1.1
 -->
 <xs:schema 
-   xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+   xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
    xmlns="http://www.ivoa.net/xml/VOTable/v1.2"
    targetNamespace="http://www.ivoa.net/xml/VOTable/v1.2" 
 >
