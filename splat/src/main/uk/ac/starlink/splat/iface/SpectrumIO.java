@@ -311,9 +311,12 @@ public class SpectrumIO
 
         // Add all spectra to the browser until the queue is empty.
         while( ! queue.isEmpty() ) {
+            Props props = getSpectrumProps();
+            boolean success = false;
             try {
-                browser.tryAddSpectrum( getSpectrumProps() );
+                browser.tryAddSpectrum( props );
                 validFiles++;
+                success = true;
             }
             catch (SplatException e) {
                 if ( failures == null ) {
@@ -322,6 +325,16 @@ public class SpectrumIO
                 failures.append( e.getMessage() + "\n" );
                 failedFiles++;
                 lastException = e;
+            }
+            finally {
+                if ( watcher != null ) {
+                    if ( success ) {
+                        watcher.loadSucceeded( props );
+                    }
+                    else {
+                        watcher.loadFailed( props, lastException );
+                    }
+                }
             }
             filesDone++;
         }
@@ -337,16 +350,7 @@ public class SpectrumIO
                 message = "Failed to open " + failedFiles + " spectra";
                 lastException = new SplatException( failures.toString() );
             }
-            if ( watcher != null ) {
-                watcher.emptied( failedFiles, message );
-            }
-            else {
-                ErrorDialog.showError( browser, message, lastException );
-            }
-        }
-        else if ( watcher != null ) {
-            //  OK, report files are loaded.
-            watcher.emptied( 0, null );
+            ErrorDialog.showError( browser, message, lastException );
         }
 
         //  And now display them if we can.
@@ -724,18 +728,26 @@ public class SpectrumIO
         this.watcher = watcher;
     }
 
-
-    // Simple interface for objects that can receive the status of 
-    // a call to addSpectra() following a clearing of the queue to 
-    // load spectra.
+    /**
+     * Interface for objects that wish to be informed about the result of
+     * spectrum load attempts performed by addSpectra().  One or other
+     * of the methods will be called for each load attempt.
+     */
     public interface Watch
     {
         /**
-         * Report about last empty of queue of files to load.
+         * Reports that a spectrum with given props was successfully loaded.
          *
-         * @param failures number of files that failed to load.
-         * @param message an error report about the failures.
+         * @param   props  props object giving spectrum characteristics
          */
-        public void emptied( int failures, String message );
+        public void loadSucceeded( Props props );
+
+        /**
+         * Reports that a load attempt for the given props failed.
+         *
+         * @param   props  props object giving spectrum characteristics
+         * @param   error  exception resulting from load attempt
+         */
+        public void loadFailed( Props props, Throwable error );
     }
 }
