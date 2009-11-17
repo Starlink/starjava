@@ -10,6 +10,9 @@
    The statistics window has been extended to include some alpha trimmed
    means in the extended statistics option.
 
+   The loading of spectra using SSAP downloads no longer blocks the 
+   interface. The previous behaviour was a bug.
+
    3.9-3
    =====
 

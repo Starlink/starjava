@@ -224,7 +224,8 @@ public class SpectrumIO
 
 
     /**
-     * Get properties of the next spectrum to load. Returns null when none left.
+     * Get properties of the next spectrum to load. Returns null when none
+     * left.
      */
     protected synchronized Props getSpectrumProps()
     {
@@ -239,7 +240,6 @@ public class SpectrumIO
 
     /**
      * Load all the spectra that are waiting to be processed.
-     * Use a new Thread so that we do not block the GUI or event threads.
      */
     protected void loadSpectra()
     {
@@ -275,11 +275,8 @@ public class SpectrumIO
             browser.setWaitCursor();
             waitTimer.start();
 
-            //  Set up thread to read the spectra.
+            //  Set up thread to start reading the spectra.
             loadThread.setAdd( true );
-
-            //  Start loading spectra.
-            loadThread.run();
         }
     }
 
@@ -361,8 +358,7 @@ public class SpectrumIO
     }
 
     /**
-     * Save a given spectrum as a file. Use a thread so that we do not
-     * block the GUI or event threads.
+     * Save a given spectrum as a file.
      *
      * @param globalIndex global list index of the spectrum to save.
      * @param target the file to write the spectrum into.
@@ -387,9 +383,6 @@ public class SpectrumIO
         //  Set up thread to save the spectrum.
         loadThread.setAdd( false );
         loadThread.setSave( globalIndex, target );
-
-        //  Start saving spectrum.
-        loadThread.run();
     }
 
     /**
@@ -663,55 +656,82 @@ public class SpectrumIO
             super( "Spectra loader" );
         }
 
-        //  Add to browser or save to disk.
+        //  Set run action, either add to browser or save to disk.
         public void setAdd( boolean action )
         {
             addAction = action;
         }
 
-        //  If saving necessary parameters.
+        //  If saving set the necessary parameters.
         public void setSave( int globalIndex, String target )
         {
             this.globalIndex = globalIndex;
             this.target = target;
         }
 
+        //  Thread run() method. This never exits as that would cause the
+        //  thread to die and we'd lose the context. When there are no spectra
+        //  to load or save this waits for a while and then checks again.
+        //  In principle this could be hurried by using notify(), but that
+        //  isn't necessary.
         public void run()
         {
-            if ( browser == null ) return;
-
-            if ( addAction ) {
-                try {
-                    //  Of parent.
-                    addSpectra();
+            while ( !interrupted() ) {
+                if ( browser != null ) {
+                    if ( addAction ) {
+                        try {
+                            addSpectra();
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        finally {
+                            //  Always tidy up and rewaken interface when
+                            //  complete (including if an error is thrown).
+                            browser.resetWaitCursor();
+                            waitTimer.stop();
+                            closeProgressMonitor();
+                        }
+                    }
+                    else {
+                        try {
+                            if ( target != null ) {
+                                synchronized( target ) {
+                                    //  Next loop will re-save if target is
+                                    //  set, so clear that now, also do this
+                                    //  before any exceptions could be thrown.
+                                    String tcopy = target;
+                                    target = null;
+                                    browser.saveSpectrum( globalIndex,
+                                                          tcopy );
+                                }
+                            }
+                        }
+                        catch (Exception e) {
+                            ErrorDialog.showError( browser,
+                                                   "Failed to save spectrum: "
+                                                   + e.getMessage(), e );
+                        }
+                        finally {
+                            //  Always tidy up and rewaken interface when
+                            //  complete (including if an error is thrown).
+                            browser.resetWaitCursor();
+                            waitTimer.stop();
+                            closeProgressMonitor();
+                        }
+                    }
                 }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                finally {
-                    //  Always tidy up and rewaken interface when
-                    //  complete (including if an error is thrown).
-                    browser.resetWaitCursor();
-                    waitTimer.stop();
-                    closeProgressMonitor();
-                }
+                waitDelay();
             }
-            else {
-                try {
-                    browser.saveSpectrum( globalIndex, target );
-                }
-                catch (Exception e) {
-                    ErrorDialog.showError( browser,
-                                           "Failed to save spectrum: " +
-                                           e.getMessage(), e );
-                }
-                finally {
-                    //  Always tidy up and rewaken interface when
-                    //  complete (including if an error is thrown).
-                    browser.resetWaitCursor();
-                    waitTimer.stop();
-                    closeProgressMonitor();
-                }
+        }
+
+        //  Wait for a while, then service the run method again for new
+        //  actions.
+        synchronized void waitDelay() {
+            try {
+                wait( 500 );
+            }
+            catch (InterruptedException e) {
             }
         }
     }
