@@ -6104,9 +6104,13 @@ configuring axis range:
     on the central part of the window.  The 'active region' for
     dragging is to the left or right of the plot (the region on the right
     is rather thin, and does not include the width used by the legend).
-    When the pointer is in these regions, the mouse cursor symbol changes
-    to indicate that zooming can be done.
+    When the pointer is in these regions, the mouse cursor symbol 
+    should change to indicate that zooming can be done.
     Drag down to zoom in and up to zoom out.
+    </p>
+    <p>An easier alternative for zooming in the 3D windows is to use the
+    mouse wheel, if you have one: wheel forward to zoom in and 
+    backward to zoom out.
     </p></dd>
 
 <dt>Axis Zoom</dt>
@@ -6120,7 +6124,7 @@ configuring axis range:
     is just below the X axis and just to the left of the Y axis, in the
     region where the numeric and text labels are written.
     When the pointer is in one of these regions, the mouse cursor
-    symbol changes to indicate that zooming can be done.
+    symbol should change to indicate that zooming can be done.
     As for the X-Y Zoom, drag left-to-right or up-to-down
     to zoom in and right-to-left or down-to-up to zoom out.
     </p></dd>
@@ -7476,9 +7480,11 @@ come back again.
 
 <p><label>Zooming</label> is also possible.  You can zoom in around the
 centre of the plot so that the viewing window only covers the middle.
-This resembles the <label>Axis Zoom</label> in some of the 2-d plots,
-but in this case the active region is the space to the left of the 
-plot.  Drag the mouse down to zoom in or up to zoom
+The easiest way to do this is to use the mouse wheel if you have one -
+wheel forward to zoom in and backward to zoom out.
+Alternatively you can do it by dragging on the region to the left of
+the plot, like the <label>Axis Zoom</label> in some of the 2-d plots.
+Drag the mouse down to zoom in or up to zoom
 out on this part of the window.  Currently it is only possible
 to zoom in/out around the centre of the plot.
 When zoomed you can use the 
@@ -7785,6 +7791,39 @@ activated, you can optionally fill in a value in the
 <label>Radial Axis</label> selector as well.
 In this case points will be plotted in the interior of the sphere, 
 at a distance from the centre given by the value of the radial coordinate.
+</p>
+
+<p>The 3D space can be rotated by dragging the mouse around on the
+surface - it will rotate around the centre of the sphere.
+By default the points are rendered as though the 3D space is filled
+with a 'fog', so that more distant points appear more washed out - 
+this provides a visual cue which can help to distinguish the depth
+of plotted points.  However, you can turn this off if you want.
+If there are many points, then you may find that they're not all plotted
+while a drag-to-rotate gesture is in progress.  This is done to cut down on 
+rendering time so that GUI response stays fast.  When the drag is
+finished (i.e. when you release the mouse button) all the points will
+come back again.
+</p>
+
+<p><label>Zooming</label> is also possible.  You can zoom in around the
+centre of the plot so that the viewing window only covers the middle.
+The easiest way to do this is to use the mouse wheel if you have one -
+wheel forward to zoom in and backward to zoom out.
+Alternatively you can do it by dragging on the region to the left of
+the plot, like the <label>Axis Zoom</label> in some of the 2-d plots.
+Drag the mouse down to zoom in or up to zoom
+out on this part of the window.  Currently it is only possible
+to zoom in/out around the centre of the plot.
+When zoomed you can use the 
+<label>Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button
+to define a new <label>Row Subset</label> consisting only of the
+points which are currently visible.
+See <ref id="plotSubsets"/> for more explanation.
+</p>
+
+<p>Clicking on any of the plotted points will <label>activate</label> it - 
+see <ref id="activation"/>.
 </p>
 
 <p>The following buttons are available on the toolbar:
@@ -13046,6 +13085,7 @@ introduced since the last version:
     <ul>
     <li>Fixed a bug which caused an error when attempting to load multiple
         files from the command line.</li>
+    <li>Improve documentation of 3D windows, including zoom options.</li>
     </ul>
     </p></dd>
 
