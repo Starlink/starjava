@@ -9,6 +9,9 @@ package uk.ac.starlink.splat.util;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -22,10 +25,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.MessageHandler;
@@ -87,17 +91,18 @@ public class SampCommunicator
         server = SplatHTTPServer.getInstance();
         ClientProfile profile = server.getSampProfile();
         hubConnector = new MessageTrackerHubConnector( profile );
-        initConnector();
+        SpectrumLoadHandler loadHandler = new SpectrumLoadHandler();
+        SpectrumIO.getInstance().setWatcher( loadHandler );
+        initConnector( new MessageHandler[] { loadHandler, } );
     }
 
     /**
      * Initialises the hub connection, including notifying the hub of
      * this client's metadata and subscriptions.
      */
-    private void initConnector()
+    private void initConnector( MessageHandler[] handlers )
     {
         hubConnector.declareMetadata( createMetadata() );
-        MessageHandler[] handlers = createMessageHandlers();
         for ( int i = 0; i < handlers.length; i++ ) {
             hubConnector.addMessageHandler( handlers[ i ] );
         } 
@@ -135,16 +140,6 @@ public class SampCommunicator
                  .replaceAll( "&lt;", "<" )
                  .replaceAll( "&gt;", ">" )
                  .replaceAll( "<br */?>", "\n" );
-    }
-
-    /**
-     * Returns an array of handlers for all the SAMP messages (MTypes)
-     * which SPLAT is prepared to process (is subscrbed to).
-     */
-    private MessageHandler[] createMessageHandlers() {
-        return new MessageHandler[] {
-            new SpectrumLoadHandler(),
-        };
     }
 
     public String getProtocolName()
@@ -215,19 +210,89 @@ public class SampCommunicator
     /**
      * MessageHandler implementation for dealing with spectrum load MTypes.
      */
-    private class SpectrumLoadHandler extends AbstractMessageHandler
+    private class SpectrumLoadHandler
+            implements MessageHandler, SpectrumIO.Watch
     {
+        private final Subscriptions subs;
+        private final Map propsMap;
+
         SpectrumLoadHandler()
         {
-            super( "spectrum.load.ssa-generic" );
+            subs = new Subscriptions();
+            subs.addMType( "spectrum.load.ssa-generic" );
+            propsMap = Collections.synchronizedMap( new IdentityHashMap() );
+        }
+
+        public Map getSubscriptions()
+        {
+            return subs;
         }
 
         /**
-         * Invoked by SAMP to request SPLAT spectrum load.
+         * Invoked by SAMP to request SPLAT spectrum load, with no response
+         * required.
          */
-        public Map processCall( HubConnection connection, String senderId,
-                                Message msg )
-            throws Exception
+        public void receiveNotification( HubConnection connection,
+                                         String senderId, Message message )
+        {
+            SpectrumIO.Props props = createProps( message );
+            loadSpectrum( props );
+        }
+
+        /**
+         * Invoked by SAMP to request SPLAT spectrum load, with an
+         * asynchronous response required.
+         */
+        public void receiveCall( HubConnection connection, String senderId,
+                                 String msgId, Message message )
+        {
+            SpectrumIO.Props props = createProps( message );
+            propsMap.put( props, new MsgInfo( connection, msgId ) );
+            loadSpectrum( props );
+        }
+
+        /**
+         * Invoked by SpectrumIO when a load has completed with success.
+         */
+        public void loadSucceeded( SpectrumIO.Props props )
+        {
+            MsgInfo msginfo = (MsgInfo) propsMap.remove( props );
+            if ( msginfo != null ) {
+                Response response =
+                    Response.createSuccessResponse( new HashMap() );
+                msginfo.reply( response );
+            }
+            else {
+                logger.info( "Orphaned SAMP spectrum load success?" );
+            }
+        }
+
+        /**
+         * Invoked by SpectrumIO when a load has completed with failure.
+         */
+        public void loadFailed( SpectrumIO.Props props, Throwable error )
+        {
+            MsgInfo msginfo = (MsgInfo) propsMap.remove( props );
+            if ( msginfo != null ) {
+                ErrInfo errInfo = new ErrInfo( error );
+                errInfo.setErrortxt( "Spectrum load failed" );
+                Response response =
+                    Response.createErrorResponse( errInfo );
+                msginfo.reply( response );
+            }
+            else {
+                logger.info( "Orphaned SAMP spectrum load failure?" );
+            }
+        }
+
+        /**
+         * Constructs a SpectrumIO.Props object corresponding to an
+         * incoming SAMP spectrum load message.
+         * 
+         * @param   msg  spectrum load message
+         * @return  new Props object
+         */
+        private SpectrumIO.Props createProps( Message msg )
         {
             //  Extract MType-specific parameters from message.
             String location = (String) msg.getRequiredParam( "url" );
@@ -239,19 +304,55 @@ public class SampCommunicator
             if ( shortName != null && shortName.trim().length() > 0 ) {
                 props.setShortName( shortName );
             }
+            return props;
+        }
 
-            //  Attempt to load the spectrum synchronously on the 
+        /**
+         * Dispatches load of a spectrum defined by a Props object.
+         *
+         * @param  props   spectrum properties
+         */
+        private void loadSpectrum( SpectrumIO.Props props )
+        {
+            //  Attempt to load the spectrum asynchronously on the 
             //  event dispatch thread.
             SpectrumAdder specAdder = new SpectrumAdder( props );
-            SwingUtilities.invokeAndWait( specAdder );
+            SwingUtilities.invokeLater( specAdder );
+        }
+    }
 
-            //  Throw an exception if there was one, else return null (success).
-            Exception error = specAdder.getError();
-            if ( error != null ) {
-                throw error;
+    /**
+     * Encapsulates information about a message which has been received.
+     */
+    private class MsgInfo
+    {
+        private final HubConnection connection;
+        private final String msgId;
+
+        /**
+         * Constructor.
+         *
+         * @param  connection  connection on which the message was received
+         * @param  msgId  message ID
+         */
+        MsgInfo( HubConnection connection, String msgId )
+        {
+            this.connection = connection;
+            this.msgId = msgId;
+        }
+
+        /**
+         * Sends a given response object to the appropriate destination
+         * for this message.
+         *
+         * @param  response   reply to send back
+         */
+        void reply( Response response ) {
+            try {
+                connection.reply( msgId, response );
             }
-            else {
-                return null;
+            catch ( Throwable e ) {
+                logger.info( "SAMP response failed: " + e );
             }
         }
     }
@@ -262,8 +363,7 @@ public class SampCommunicator
      */
     private class SpectrumAdder implements Runnable
     {
-        SpectrumIO.Props props;
-        Exception error;
+        final SpectrumIO.Props props;
 
         /**
          * Constructor.
@@ -280,23 +380,8 @@ public class SampCommunicator
          */
         public void run()
         {
-            try {
-                browser.tryAddSpectrum( props );
-            }
-            catch (Exception e) {
-                error = e;
-            }
-        }
-
-        /**
-         * Returns any error which was encountered during spectrum load
-         * (run method).
-         * 
-         * @return   load error, or null on success
-         */
-        public Exception getError()
-        {
-            return error;
+            SpectrumIO.getInstance()
+                      .load( browser, false, new SpectrumIO.Props[] { props } );
         }
     }
 
