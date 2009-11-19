@@ -10,7 +10,7 @@
  *       Original version based on Jsky ProgressPanel.
  */
 
-package uk.ac.starlink.splat.vo;
+package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

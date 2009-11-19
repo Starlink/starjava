@@ -32,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.util.Utilities;
 
 /**
