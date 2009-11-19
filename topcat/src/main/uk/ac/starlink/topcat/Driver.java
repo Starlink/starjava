@@ -426,7 +426,7 @@ public class Driver {
                     String tName = startabs.length == 1
                                  ? name
                                  : name + "-" + ( j + 1 );
-                    addTableLater( tabfact.randomTable( startabs[ i ] ),
+                    addTableLater( tabfact.randomTable( startabs[ j ] ),
                                    tName );
                 }
             }
