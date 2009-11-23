@@ -13086,6 +13086,8 @@ introduced since the last version:
     <li>Fixed a bug which caused an error when attempting to load multiple
         files from the command line.</li>
     <li>Improve documentation of 3D windows, including zoom options.</li>
+    <li>Fixed a bug which caused an error when attempting to do cone/SIA/SSA 
+        search from directly supplied service URL.</li>
     </ul>
     </p></dd>
 
