@@ -92,6 +92,9 @@ public class DalMultiPanel extends JPanel {
     /** Name for distance column. */
     private static final String DIST_NAME = "Separation";
 
+    /** Name for erract selector box. */
+    private static final String ERRACT_LABEL = "Error Handling";
+
     /**
      * Constructor.
      *
@@ -204,8 +207,8 @@ public class DalMultiPanel extends JPanel {
         JSpinner parallelSpinner = new JSpinner( parallelModel_ );
         cList.add( parallelLabel );
         cList.add( parallelSpinner );
-        erractSelector_ = new JComboBox( getConeErrorPolicies() );
-        JLabel erractLabel = new JLabel( "Error Handling: " );
+        erractSelector_ = new JComboBox( getConeErrorPolicies( service ) );
+        JLabel erractLabel = new JLabel( ERRACT_LABEL + ": " );
         cList.add( erractLabel );
         cList.add( erractSelector_ );
         Box accessLine = Box.createHorizontalBox();
@@ -458,9 +461,15 @@ public class DalMultiPanel extends JPanel {
      *
      * @return  multicone error handling policy list
      */
-    private static ConeErrorPolicy[] getConeErrorPolicies() {
+    private static ConeErrorPolicy[]
+            getConeErrorPolicies( DalMultiService service ) {
+        String abortAdvice =
+            service.getName()
+          + " failed - try non-\"" + ConeErrorPolicy.ABORT + "\" value for "
+          + ERRACT_LABEL + "?";
         List plist = new ArrayList();
-        plist.add( ConeErrorPolicy.ABORT );
+        plist.add( ConeErrorPolicy
+                  .addAdvice( ConeErrorPolicy.ABORT, abortAdvice ) );
         plist.add( ConeErrorPolicy.IGNORE );
         int[] retries = new int[] { 1, 2, 3, 5, 10, };
         for ( int i = 0; i < retries.length; i++ ) {
