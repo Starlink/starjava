@@ -23,6 +23,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -55,7 +56,7 @@ public class MarkStyleEditor extends StyleEditor {
     private final ValueButtonGroup lineSelector_;
     private final JComboBox errorSelector_;
     private final ErrorModeSelectionModel[] errorModeModels_;
-    private final JLabel corrLabel_;
+    private final JComponent corrBox_;
     private final Map statMap_;
     private final String helpId_;
 
@@ -159,7 +160,7 @@ public class MarkStyleEditor extends StyleEditor {
         lineSelector_.add( dotsButton, MarkStyle.DOT_TO_DOT );
         lineSelector_.add( corrButton, MarkStyle.LINEAR );
         lineSelector_.addChangeListener( this );
-        corrLabel_ = new JLabel();
+        corrBox_ = Box.createHorizontalBox();
 
         /* Place marker selection components. */
         JComponent formBox = Box.createHorizontalBox();
@@ -243,7 +244,7 @@ public class MarkStyleEditor extends StyleEditor {
             dotsLineBox.add( Box.createHorizontalGlue() );
             Box corrLineBox = Box.createHorizontalBox();
             corrLineBox.add( corrButton );
-            corrLineBox.add( corrLabel_ );
+            corrLineBox.add( corrBox_ );
             corrLineBox.add( Box.createHorizontalGlue() );
 
             Box lineBox = Box.createVerticalBox();
@@ -347,7 +348,6 @@ public class MarkStyleEditor extends StyleEditor {
         XYStats stats = (XYStats) statMap_.get( setId );
         if ( stats != null ) {
             statText = new StringBuffer()
-                .append( " - " )
                 .append( "m=" )
                 .append( (float) stats.getLinearCoefficients()[ 1 ] )
                 .append( "; c=" )
@@ -359,7 +359,15 @@ public class MarkStyleEditor extends StyleEditor {
         else {
             statText = "";
         }
-        corrLabel_.setText( statText );
+        corrBox_.removeAll();
+        if ( statText != null && statText.trim().length() > 0 ) {
+            JTextField corrField = new JTextField();
+            corrField.setText( statText );
+            corrField.setCaretPosition( 0 );
+            corrField.setEditable( false );
+            corrBox_.add( corrField );
+            corrBox_.revalidate();
+        }
 
         /* See if we are capable of plotting errors. */
         boolean permitErrors = ! ErrorMode.allBlank( getErrorModes() );

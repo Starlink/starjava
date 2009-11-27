@@ -7116,6 +7116,7 @@ with the current set and if so what their appearance will be.
         window to see them all).  The values cited are
         <m>m</m> (gradient), <m>c</m> (intercept) and 
         <m>r</m> (product moment correlation coefficient).
+        You can cut and paste from this text.
         </p>
         <p><strong>Note</strong> that for both the plotted line and the
         quoted coefficients the data is taken only from the points which
@@ -13095,6 +13096,8 @@ introduced since the last version:
     <li>Fixed a bug which caused an error when attempting to do cone/SIA/SSA 
         search from directly supplied service URL.</li>
     <li>Improve error reporting from multi-cone (etc) window.</li>
+    <li>You can now cut and paste from the linear correlation coefficient
+        display in the 2-d plot style editor.</li>
     </ul>
     </p></dd>
 
