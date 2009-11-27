@@ -3904,6 +3904,9 @@ with the following RDBMSs and corresponding JDBC drivers:
     written owing to SQL statement length restrictions.
     Note there is known to be a column metadata bug in version 3.0.6 of the
     driver which can cause a ClassCastException error when tables are written.
+    Check the driver's documentation for additional parameters, for instance
+    "<code>useUnicode=true&amp;characterEncoding=UTF8</code>" may be required
+    to handle some non-ASCII characters.
     </p></dd>
 
 <dt><webref url="http://www.postgresql.org/">PostgreSQL</webref></dt>
@@ -11364,7 +11367,9 @@ Maintenance and development has been funded from July 2006 until
 December 2007 by the
 European <webref url="http://eurovotech.org/">VOTech project</webref> 
 within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
-and directly from AstroGrid funding beyond that.
+and directly from AstroGrid funding following that until June 2009,
+and from Euro-VO AIDA funding from then until November 2009.
+From December 2009 it is funded by an STFC grant.
 </p>
 
 <p>Inspiration for many of TOPCAT's features has been taken from the
@@ -11448,6 +11453,7 @@ comments (apologies for any missed out):
 <li>Sebastien Derriere (CDS)</li>
 <li>Thomas Boch (CDS)</li>
 <li>Pierre Fernique (CDS)</li>
+<li>Guillaume Mella (JMMC)</li>
 </ul>
 </p>
 
