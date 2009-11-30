@@ -121,7 +121,13 @@ public abstract class Namespacing {
      */
     public static Namespacing getInstance() {
         if ( instance_ == null ) {
-            String policy = System.getProperty( POLICY_PROP, POLICY_DEFAULT );
+            String policy;
+            try {
+                policy = System.getProperty( POLICY_PROP, POLICY_DEFAULT );
+            }
+            catch ( SecurityException e ) {
+                policy = POLICY_DEFAULT;
+            }
             Namespacing ns = null;
             for ( int i = 0; i < KNOWN_POLICIES.length; i++ ) {
                 if ( KNOWN_POLICIES[ i ].toString()

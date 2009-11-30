@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.List;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -1145,6 +1146,27 @@ public class ControlWindow extends AuxWindow
      */
     private static TopcatCommunicator
                    createCommunicator( ControlWindow control ) {
+        try {
+            return attemptCreateCommunicator( control );
+        }
+        catch ( SecurityException e ) {
+            logger_.log( Level.WARNING,
+                         "No tool interop, permission denied: ", e );
+            return null;
+        }
+    }
+
+    /**
+     * Attempts to construct a new TopcatCommunicator.
+     * The implementation used is determined by the value of the 
+     * <code>interopType_</code> static variable.
+     *
+     * @param  control   control window
+     * @return   communicator, or null if interop is disabled
+     * @throws  SecurityException  in case of insufficient permissions
+     */
+    private static TopcatCommunicator
+                   attemptCreateCommunicator( ControlWindow control ) {
         if ( "plastic".equals( interopType_ ) ) {
             logger_.info( "Run in PLASTIC mode by request" );
             return new PlasticCommunicator( control );

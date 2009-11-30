@@ -128,6 +128,9 @@ public class BrowserHelpAction extends AbstractAction {
         catch ( IOException e ) {
             return null;
         }
+        catch ( SecurityException e ) {
+            return null;
+        }
     }
 
     /**

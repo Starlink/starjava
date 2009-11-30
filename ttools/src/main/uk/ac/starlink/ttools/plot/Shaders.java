@@ -391,7 +391,13 @@ public class Shaders {
      */
     public static Shader[] getCustomShaders() {
         if ( customShaders_ == null ) {
-            String fileset = System.getProperty( LUTFILES_PROPERTY );
+            String fileset;
+            try {
+                fileset = System.getProperty( LUTFILES_PROPERTY );
+            }
+            catch ( SecurityException e ) {
+                fileset = null;
+            }
             List shaderList = new ArrayList();
             if ( fileset != null && fileset.length() > 0 ) {
                 String[] files =
