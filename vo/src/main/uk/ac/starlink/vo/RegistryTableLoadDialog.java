@@ -26,7 +26,7 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 public class RegistryTableLoadDialog extends BasicTableLoadDialog {
 
     private RegistryQueryPanel rqPanel_;
-    private static Boolean available_;
+    private static Boolean hasRegistry_;
 
     /** List of preset queries available by default. */
     public static String[] defaultQueries_ = new String[] {
@@ -60,7 +60,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
     }
 
     public boolean isAvailable() {
-        return true;
+        return isRegistryAvailable();
     }
 
     protected TableSupplier getTableSupplier() {
@@ -87,4 +87,22 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
         }
     }
 
+    /**
+     * Indicates whether SOAP classes are available in this JVM.
+     * Tests for javax.xml.soap.SOAPException.
+     *
+     * @return   true iff SOAP classes are present
+     */
+    public static boolean isRegistryAvailable() {
+        if ( hasRegistry_ == null ) {
+            try {
+                Class.forName( "javax.xml.soap.SOAPException" );
+                hasRegistry_ = Boolean.TRUE;
+            }
+            catch ( ClassNotFoundException e ) {
+                hasRegistry_ = Boolean.FALSE;
+            }
+        }
+        return hasRegistry_ == Boolean.TRUE;
+    }
 }
