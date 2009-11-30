@@ -8,6 +8,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -19,14 +20,14 @@ import uk.ac.starlink.table.StarTableFactory;
  * @author   Mark Taylor (Starlink)
  * @since    1 Dec 2004
  */
-public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
+public class SQLReadDialog implements TableLoadDialog {
     private final Icon icon_;
+    private SQLDialog sqlDialog_;
 
     /**
      * Constructs a new <tt>SQLReadDialog</tt>.
      */
     public SQLReadDialog() {
-        super( "SQL query" );
         icon_ = new ImageIcon( getClass().getResource( "sqlread.gif" ) );
     }
 
@@ -42,18 +43,25 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
         return icon_;
     }
 
+    public boolean isAvailable() {
+        return SQLDialog.isSqlAvailable();
+    }
+
     public boolean showLoadDialog( Component parent, 
                                    final StarTableFactory factory,
                                    ComboBoxModel formatModel,
                                    TableConsumer eater ) {
-        useAuthenticator( factory.getJDBCHandler().getAuthenticator() );
-        JDialog dialog = createDialog( parent, "Open JDBC table" );
+        SQLDialog sqlDialog = getSqlDialog();
+        sqlDialog.useAuthenticator( factory.getJDBCHandler()
+                                           .getAuthenticator() );
+        JDialog dialog = sqlDialog.createDialog( parent, "Open JDBC table" );
         while ( true ) {
             dialog.show();
-            if ( getValue() instanceof Integer &&
-                 ((Integer) getValue()).intValue() == OK_OPTION ) {
-                String qtext = getRef();
-                final String url = getFullURL();
+            if ( sqlDialog.getValue() instanceof Integer &&
+                 ((Integer) sqlDialog.getValue()).intValue()
+                   == JOptionPane.OK_OPTION ) {
+                String qtext = sqlDialog.getRef();
+                final String url = sqlDialog.getFullURL();
                 new LoadWorker( eater, qtext ) {
                     public StarTable attemptLoad() throws IOException {
                         return factory.makeStarTable( url );
@@ -66,5 +74,17 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
                 return false;
             }
         }
+    }
+
+    /**
+     * Returns a lazily-constructed SQLDialog.
+     *
+     * @return  SQLDialog for use with this component
+     */
+    private SQLDialog getSqlDialog() {
+        if ( sqlDialog_ == null ) {
+            sqlDialog_ = new SQLDialog( "SQL query" );
+        }
+        return sqlDialog_;
     }
 }

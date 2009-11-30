@@ -13098,6 +13098,7 @@ introduced since the last version:
     <li>Improve error reporting from multi-cone (etc) window.</li>
     <li>You can now cut and paste from the linear correlation coefficient
         display in the 2-d plot style editor.</li>
+    <li>Faster display of load window and VO menu options.</li>
     </ul>
     </p></dd>
 

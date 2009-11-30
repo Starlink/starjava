@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.Component;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -24,7 +25,7 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
  */
 public class RegistryTableLoadDialog extends BasicTableLoadDialog {
 
-    private final RegistryQueryPanel rqPanel_;
+    private RegistryQueryPanel rqPanel_;
     private static Boolean available_;
 
     /** List of preset queries available by default. */
@@ -41,9 +42,12 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
         super( "Registry Query", 
                "Imports a table describing the result of querying a registry" );
         setIconUrl( getClass().getResource( "registry.gif" ) );
+    }
+
+    protected Component createQueryPanel() {
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQueries_ );
-        add( rqPanel_ );
+        return rqPanel_;
     }
 
     public String getName() {
@@ -57,11 +61,6 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
 
     public boolean isAvailable() {
         return true;
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        rqPanel_.setEnabled( enabled );
     }
 
     protected TableSupplier getTableSupplier() {

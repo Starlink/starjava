@@ -25,10 +25,11 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
 
-    private boolean isAvailable_;
+    private final boolean isAvailable_;
     private final JComboBox formatSelector_;
     private final ComboBoxModel dummyModel_;
     private final Icon icon_;
+    private JFileChooser fileChooser_;
 
     /**
      * Constructor.
@@ -37,38 +38,22 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
         icon_ = new ImageIcon( getClass().getResource( "filechooser.gif" ) );
 
         /* See if we have permissions to operate. */
+        boolean isAvailable;
         try {
             SecurityManager manager = System.getSecurityManager();
             if ( manager != null ) {
                 manager.checkRead( getCurrentDirectory().toString() );
             }
-            isAvailable_ = true;
+            isAvailable = true;
         }
         catch ( SecurityException e ) {
-            isAvailable_ = false;
+            isAvailable = false;
         }
+        isAvailable_ = isAvailable;
 
-        /* Customise chooser. */
-        setFileSelectionMode( JFileChooser.FILES_ONLY );
-        setMultiSelectionEnabled( false );
-        setCurrentDirectory( new File( "." ) );
-
-        /* Construct and install format selector. */
-        Box formatBox = Box.createVerticalBox();
-        Box labelLine = Box.createHorizontalBox();
-        labelLine.add( new JLabel( "Format: " ) );
-        labelLine.add( Box.createHorizontalGlue() );
-        formatBox.add( Box.createVerticalGlue() );
-        formatBox.add( labelLine );
-        formatBox.add( Box.createVerticalStrut( 5 ) );
+        /* Set up some components. */
         formatSelector_ = new JComboBox();
         dummyModel_ = formatSelector_.getModel();
-        Box selectorLine = Box.createHorizontalBox();
-        selectorLine.add( formatSelector_ );
-        selectorLine.add( Box.createHorizontalGlue() );
-        formatBox.add( selectorLine );
-        formatBox.setBorder( BorderFactory.createEmptyBorder( 0, 5, 0, 0 ) );
-        setAccessory( formatBox );
     }
 
     public String getName() {
@@ -93,8 +78,9 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
                                    TableConsumer eater ) {
         formatSelector_.setModel( formatModel );
         formatSelector_.setMaximumSize( formatSelector_.getPreferredSize() );
-        while ( showOpenDialog( parent ) == APPROVE_OPTION ) {
-            File file = getSelectedFile();
+        JFileChooser chooser = getFileChooser();
+        while ( chooser.showOpenDialog( parent ) == APPROVE_OPTION ) {
+            File file = chooser.getSelectedFile();
             if ( file != null ) {
                 try {
                     final DataSource datsrc = new FileDataSource( file );
@@ -114,5 +100,38 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
             }
         }
         return false;
+    }
+
+    /**
+     * Returns a lazily-constructed file chooser for use with this dialogue.
+     *
+     * @return  chooser
+     */
+    private JFileChooser getFileChooser() {
+        if ( fileChooser_ == null ) {
+            fileChooser_ = new JFileChooser();
+
+            /* Customise chooser. */
+            fileChooser_.setFileSelectionMode( JFileChooser.FILES_ONLY );
+            fileChooser_.setMultiSelectionEnabled( false );
+            fileChooser_.setCurrentDirectory( new File( "." ) );
+
+            /* Place format selector. */
+            Box formatBox = Box.createVerticalBox();
+            Box labelLine = Box.createHorizontalBox();
+            labelLine.add( new JLabel( "Format: " ) );
+            labelLine.add( Box.createHorizontalGlue() );
+            formatBox.add( Box.createVerticalGlue() );
+            formatBox.add( labelLine );
+            formatBox.add( Box.createVerticalStrut( 5 ) );
+            Box selectorLine = Box.createHorizontalBox();
+            selectorLine.add( formatSelector_ );
+            selectorLine.add( Box.createHorizontalGlue() );
+            formatBox.add( selectorLine );
+            formatBox.setBorder( BorderFactory
+                                .createEmptyBorder( 0, 5, 0, 0 ) );
+            fileChooser_.setAccessory( formatBox );
+        }
+        return fileChooser_;
     }
 }

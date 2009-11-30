@@ -18,8 +18,8 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
  * @author   Mark Taylor (Starlink)
  * @since    1 Dec 2004
  */
-public class TreeTableLoadDialog extends TableNodeChooser
-                                 implements TableLoadDialog {
+public class TreeTableLoadDialog implements TableLoadDialog {
+    private TableNodeChooser nodeChooser_;
 
     /**
      * Constructor. 
@@ -48,7 +48,10 @@ public class TreeTableLoadDialog extends TableNodeChooser
                                    ComboBoxModel formatModel,
                                    TableConsumer eater ) {
         NodeUtil.setGUI( true );
-        final StarTable table = chooseStarTable( parent );
+        if ( nodeChooser_ == null ) {
+            nodeChooser_ = createNodeChooser();
+        }
+        final StarTable table = nodeChooser_.chooseStarTable( parent );
         if ( table != null ) {
             String id = null;
             if ( id == null && table.getURL() != null ) {
@@ -76,5 +79,14 @@ public class TreeTableLoadDialog extends TableNodeChooser
         else {
             return false;
         }
+    }
+
+    /**
+     * Constructs a node chooser for use with this dialogue.
+     *
+     * @return   new node chooser
+     */
+    protected TableNodeChooser createNodeChooser() {
+        return new TableNodeChooser();
     }
 }

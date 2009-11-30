@@ -1,10 +1,12 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 
 /**
@@ -18,7 +20,7 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 public abstract class RemoteTreeTableLoadDialog extends BasicTableLoadDialog {
 
     private final RemoteTreeBrowser browser_;
-    private final JComboBox formatComboBox_;
+    private JComboBox formatComboBox_;
 
     /**
      * Constructor.
@@ -31,16 +33,21 @@ public abstract class RemoteTreeTableLoadDialog extends BasicTableLoadDialog {
                                       RemoteTreeBrowser browser ) {
         super( name, description );
         browser_ = browser;
-        add( browser );
-        browser.setAllowContainerSelection( false );
+    }
+
+    protected Component createQueryPanel() {
+        JPanel queryPanel = new JPanel( new BorderLayout() );
+        queryPanel.add( browser_ );
+        browser_.setAllowContainerSelection( false );
         formatComboBox_ = new JComboBox();
         Box formatBox = Box.createHorizontalBox();
         formatBox.add( new JLabel( "Format: " ) );
         formatBox.add( formatComboBox_ );
         formatBox.add( Box.createHorizontalGlue() );
-        browser.getExtraPanel().add( formatBox, BorderLayout.WEST );
-        browser.getExtraPanel().add( Box.createVerticalStrut( 5 ),
-                                    BorderLayout.SOUTH );
+        browser_.getExtraPanel().add( formatBox, BorderLayout.WEST );
+        browser_.getExtraPanel().add( Box.createVerticalStrut( 5 ),
+                                      BorderLayout.SOUTH );
+        return queryPanel;
     }
 
     /**
@@ -61,5 +68,4 @@ public abstract class RemoteTreeTableLoadDialog extends BasicTableLoadDialog {
     protected TableSupplier getTableSupplier() {
         return makeTableSupplier( browser_.getSelectedNode() );
     }
-
 }

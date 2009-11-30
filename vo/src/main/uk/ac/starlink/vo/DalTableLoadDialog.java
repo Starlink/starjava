@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,6 +11,7 @@ import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -28,11 +30,10 @@ import uk.ac.starlink.table.ValueInfo;
 public abstract class DalTableLoadDialog
         extends RegistryServiceTableLoadDialog {
 
-    private final SkyPositionEntry skyEntry_;
-    private final JTextField urlField_;
     private final String name_;
     private final boolean autoQuery_;
-    private boolean setup_;
+    private SkyPositionEntry skyEntry_;
+    private JTextField urlField_;
 
     /**
      * Constructor.
@@ -53,6 +54,20 @@ public abstract class DalTableLoadDialog
         super( name, description, queryFactory, showCapabilities );
         name_ = name;
         autoQuery_ = autoQuery;
+    }
+
+    protected Component createQueryPanel() {
+        Component queryPanel = new JPanel( new BorderLayout() ) {
+            {
+                add( DalTableLoadDialog.super.createQueryPanel(),
+                     BorderLayout.CENTER );
+            }
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                urlField_.setEnabled( enabled );
+                skyEntry_.setEnabled( enabled );
+            }
+        };
 
         /* Add a field for holding the service URL.  This will typically be
          * populated by selecting an entry from the result of the displayed
@@ -60,7 +75,7 @@ public abstract class DalTableLoadDialog
          * user typing (or cut'n'pasting) into it. */
         urlField_ = new JTextField();
         JComponent urlBox = Box.createHorizontalBox();
-        urlBox.add( new JLabel( name + " URL: " ) );
+        urlBox.add( new JLabel( name_ + " URL: " ) );
         urlBox.add( urlField_ );
         getControlBox().add( urlBox );
         getControlBox().add( Box.createVerticalStrut( 5 ) );
@@ -107,8 +122,13 @@ public abstract class DalTableLoadDialog
         skyEntry_.addActionListener( getOkAction() );
         getControlBox().add( skyEntry_ );
 
-        /* If no autoquery, provide some advice about what to do now. */
-        if ( ! autoQuery_ ) {
+        /* Either initiate an automatic query, or provide some user-visible
+         * advice about what to do now. */
+        if ( autoQuery_ ) {
+            regPanel.performAutoQuery( "Searching registry for all known "
+                                     + name_ + " services" );
+        }
+        else {
             regPanel.displayAdviceMessage( new String[] {
                 "Query registry for " + name_ + " services:",
                 "enter keywords like \"2mass qso\" and click "
@@ -119,24 +139,7 @@ public abstract class DalTableLoadDialog
                 "Alternatively, enter " + name_ + " URL in field below.",
             } );
         }
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        urlField_.setEnabled( enabled );
-        skyEntry_.setEnabled( enabled );
-    }
-
-    public JDialog createDialog( Component parent ) {
-        if ( ! setup_ ) {
-            setup_ = true;
-            if ( autoQuery_ ) {
-                getRegistryPanel()
-               .performAutoQuery( "Searching registry for all known "
-                                + name_ + " services" );
-            }
-        }
-        return super.createDialog( parent );
+        return queryPanel;
     }
 
     /**

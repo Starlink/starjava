@@ -42,7 +42,7 @@ import net.ivoa.registry.RegistryAccessException;
 public class SSARegistryQueryDialog
     extends RegistryTableLoadDialog
 {
-    private final RegistryQueryPanel rqPanel_;
+    private RegistryQueryPanel rqPanel_;
     private static Boolean available_;
     private StarTable table_;
 
@@ -52,14 +52,11 @@ public class SSARegistryQueryDialog
             "capability/@standardID = 'ivo://ivoa.net/std/SSA'"
         };
 
-    /**
-     * Constructor.
-     */
-    public SSARegistryQueryDialog()
+    protected Component createQueryPanel()
     {
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQuery_ );
-        add( rqPanel_ );
+        return rqPanel_;
     }
 
     public String getName()
@@ -70,12 +67,6 @@ public class SSARegistryQueryDialog
     public String getDescription()
     {
         return "Query a registry for all known SSAP services";
-    }
-
-    public void setEnabled( boolean enabled )
-    {
-        super.setEnabled( enabled );
-        rqPanel_.setEnabled( enabled );
     }
 
     public boolean showLoadDialog( Component parent, StarTableFactory factory )

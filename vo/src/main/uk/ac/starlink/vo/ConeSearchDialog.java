@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,9 +20,9 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class ConeSearchDialog extends DalTableLoadDialog {
 
-    private final DoubleValueField raField_;
-    private final DoubleValueField decField_;
-    private final DoubleValueField srField_;
+    private DoubleValueField raField_;
+    private DoubleValueField decField_;
+    private DoubleValueField srField_;
     private static final ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
 
@@ -33,11 +34,16 @@ public class ConeSearchDialog extends DalTableLoadDialog {
                "Obtain source catalogues using cone search web services",
                new KeywordServiceQueryFactory( Capability.CONE ), true, false );
         setIconUrl( getClass().getResource( "cone.gif" ) );
+    }
+
+    protected Component createQueryPanel() {
+        Component queryPanel = super.createQueryPanel();
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
         skyEntry.addField( srField_ );
+        return queryPanel;
     }
 
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {

@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,10 +26,10 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class SiapTableLoadDialog extends DalTableLoadDialog {
 
-    private final DoubleValueField raField_;
-    private final DoubleValueField decField_;
-    private final DoubleValueField sizeField_;
-    private final JComboBox formatSelector_;
+    private DoubleValueField raField_;
+    private DoubleValueField decField_;
+    private DoubleValueField sizeField_;
+    private JComboBox formatSelector_;
     private static final ValueInfo SIZE_INFO =
         new DefaultValueInfo( "Angular Size", Double.class,
                               "Angular size of the search region"
@@ -42,6 +43,10 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
                "Get results of a Simple Image Access Protocol query",
                new KeywordServiceQueryFactory( Capability.SIA ), true, true );
         setIconUrl( getClass().getResource( "sia.gif" ) );
+    }
+
+    protected Component createQueryPanel() {
+        Component queryPanel = super.createQueryPanel();
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
@@ -59,6 +64,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         formatLine.add( Box.createHorizontalGlue() );
         getControlBox().add( Box.createVerticalStrut( 5 ) );
         getControlBox().add( formatLine );
+        return queryPanel;
     }
 
     public TableSupplier getTableSupplier() {

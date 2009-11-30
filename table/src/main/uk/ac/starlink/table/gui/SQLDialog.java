@@ -184,7 +184,7 @@ public class SQLDialog extends JOptionPane {
     }
 
     public boolean isAvailable() {
-        return DriverManager.getDrivers().hasMoreElements();
+        return isSqlAvailable();
     }
 
     /**
@@ -194,5 +194,14 @@ public class SQLDialog extends JOptionPane {
      */
     protected LabelledComponentStack getStack() {
         return stack;
+    }
+
+    /**
+     * Indicates whether JDBC is set up so that it might work.
+     *
+     * @return  true iff any JDBC drivers are installed
+     */
+    public static boolean isSqlAvailable() {
+        return DriverManager.getDrivers().hasMoreElements();
     }
 }

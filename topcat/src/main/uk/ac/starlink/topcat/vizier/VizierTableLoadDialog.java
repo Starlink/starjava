@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.vizier;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -62,16 +63,16 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  */
 public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
-    private final JComboBox serverSelector_;
-    private final SkyPositionEntry skyEntry_;
-    private final DoubleValueField srField_;
-    private final JComboBox colSelector_;
-    private final JComboBox maxSelector_;
-    private final VizierMode[] vizModes_;
-    private final JTabbedPane tabber_;
-    private final JRadioButton allButt_;
-    private final JRadioButton coneButt_;
-    private final Set dataReadSet_;
+    private JComboBox serverSelector_;
+    private SkyPositionEntry skyEntry_;
+    private DoubleValueField srField_;
+    private JComboBox colSelector_;
+    private JComboBox maxSelector_;
+    private VizierMode[] vizModes_;
+    private JTabbedPane tabber_;
+    private JRadioButton allButt_;
+    private JRadioButton coneButt_;
+    private Set dataReadSet_;
     private VizierInfo vizinfo_;
     private final static ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
@@ -99,7 +100,9 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                "Access the VizieR library"
              + " of published astronomical catalogues" );
         setIcon( ResourceIcon.VIZIER );
-        setLayout( new BorderLayout() );
+    }
+
+    protected Component createQueryPanel() {
 
         /* Server panel. */
         JComponent serverBox = Box.createHorizontalBox();
@@ -221,9 +224,10 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
         /* Arrange to initialise the visual state with asynchronous reads
          * from the server when the window is first displayed. */
-        addAncestorListener( new AncestorListener() {
+        final JPanel queryPanel = new JPanel( new BorderLayout() );
+        queryPanel.addAncestorListener( new AncestorListener() {
             public void ancestorAdded( AncestorEvent evt ) {
-                VizierTableLoadDialog.this.removeAncestorListener( this );
+                queryPanel.removeAncestorListener( this );
                 updateServer();
             }
             public void ancestorMoved( AncestorEvent evt ) {
@@ -244,8 +248,8 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         topLine.add( controlsBox );
         topLine.add( Box.createHorizontalGlue() );
         topLine.add( logoBox );
-        add( topLine, BorderLayout.NORTH );
-        add( tabber_, BorderLayout.CENTER );
+        queryPanel.add( topLine, BorderLayout.NORTH );
+        queryPanel.add( tabber_, BorderLayout.CENTER );
 
         /* Cosmetics. */
         Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
@@ -263,7 +267,8 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
             BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
             "Catalogue Selection" ) );
         tabber_.setPreferredSize( new Dimension( 500, 300 ) );
-        setBorder( gapBorder );
+        queryPanel.setBorder( gapBorder );
+        return queryPanel;
     }
 
     public boolean isAvailable() {
@@ -427,7 +432,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                 Toolkit.getDefaultToolkit().beep();
                 return;
             }
-            VizierInfo vizinfo = new VizierInfo( this, url );
+            VizierInfo vizinfo = new VizierInfo( getQueryPanel(), url );
             vizinfo_ = vizinfo;
             for ( int i = 0; i < vizModes_.length; i++ ) {
                 vizModes_[ i ].setVizierInfo( vizinfo );

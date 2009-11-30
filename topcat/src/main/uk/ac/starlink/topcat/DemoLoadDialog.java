@@ -1,24 +1,19 @@
 package uk.ac.starlink.topcat;
 
-import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
 import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.datanode.nodes.DefaultDataNode;
 import uk.ac.starlink.datanode.nodes.ErrorDataNode;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 import uk.ac.starlink.datanode.nodes.ResourceListDataNode;
+import uk.ac.starlink.datanode.tree.TableNodeChooser;
 import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.TableConsumer;
-import uk.ac.starlink.table.gui.TableLoadDialog;
 
 /**
  * Table load dialogue which presents some demonstration data.
@@ -27,10 +22,6 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
  * @since    1 Dec 2004
  */
 public class DemoLoadDialog extends TreeTableLoadDialog {
-
-    private boolean initialized_;
-    private final static Logger logger_ = 
-        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     public String getName() {
         return "Browse Demo Data";
@@ -44,15 +35,11 @@ public class DemoLoadDialog extends TreeTableLoadDialog {
         return true;
     }
 
-    public boolean showLoadDialog( Component parent, StarTableFactory factory,
-                                   ComboBoxModel formatModel,
-                                   TableConsumer eater ) {
-        if ( ! initialized_ ) {
-            clear();
-            setRoot( getDemoNode() );
-            initialized_ = true;
-        }
-        return super.showLoadDialog( parent, factory, formatModel, eater );
+    protected TableNodeChooser createNodeChooser() {
+        TableNodeChooser nodeChooser = super.createNodeChooser();
+        nodeChooser.clear();
+        nodeChooser.setRoot( getDemoNode() );
+        return nodeChooser;
     }
 
     /**

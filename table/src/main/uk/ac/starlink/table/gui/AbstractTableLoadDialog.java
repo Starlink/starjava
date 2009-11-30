@@ -37,8 +37,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor (Starlink)
  * @since    8 Oct 2009
  */
-public abstract class AbstractTableLoadDialog extends JPanel
-                                              implements TableLoadDialog {
+public abstract class AbstractTableLoadDialog implements TableLoadDialog {
 
     private final String name_;
     private final String description_;
@@ -46,6 +45,7 @@ public abstract class AbstractTableLoadDialog extends JPanel
     private final Action cancelAction_;
     private final JProgressBar progBar_;
     private final ComboBoxModel emptyModel_;
+    private Component queryPanel_;
     private Icon icon_;
     private JDialog dialog_;
     private StarTableFactory factory_;
@@ -60,7 +60,6 @@ public abstract class AbstractTableLoadDialog extends JPanel
      *         tooltip text)
      */
     public AbstractTableLoadDialog( String name, String description ) {
-        super( new BorderLayout() );
         name_ = name;
         description_ = description;
         okAction_ = new AbstractAction( "OK" ) {
@@ -129,6 +128,26 @@ public abstract class AbstractTableLoadDialog extends JPanel
      */
     protected abstract void cancelLoad();
 
+    /**
+     * Returns the component which contains all the implementation-specific
+     * GUI components, including query controls etc.  Only called once.
+     *
+     * @return  returns the component containing query controls
+     */
+    protected abstract Component createQueryPanel();
+
+    /**
+     * Returns the lazily-constructed query panel.
+     *
+     * @return  query panel
+     */
+    public Component getQueryPanel() {
+        if ( queryPanel_ == null ) {
+            queryPanel_ = createQueryPanel();
+        }
+        return queryPanel_;
+    }
+
     public boolean showLoadDialog( Component parent,
                                    StarTableFactory factory,
                                    ComboBoxModel formatModel,
@@ -166,7 +185,8 @@ public abstract class AbstractTableLoadDialog extends JPanel
     }
 
     /**
-     * Constructs a dialogue based on this component; this component forms
+     * Constructs a dialogue based on the component returned by 
+     * {@link #createQueryPanel}; that component forms
      * the main part of the dialogue window, with an OK and Cancel button
      * shown as well.  This method may be overridden by subclasses to
      * customise the dialogue's appearance.
@@ -193,10 +213,10 @@ public abstract class AbstractTableLoadDialog extends JPanel
         controlPanel.add( new JButton( okAction_ ) );
         controlPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
 
-        /* Create the dialogue containing this component. */
+        /* Create the dialogue containing the query panel. */
         JDialog dialog = new JDialog( frame, getName(), true );
         JComponent main = new JPanel( new BorderLayout() );
-        main.add( this, BorderLayout.CENTER );
+        main.add( getQueryPanel(), BorderLayout.CENTER );
         main.add( controlPanel, BorderLayout.SOUTH );
         dialog.getContentPane().setLayout( new BorderLayout() );
         dialog.getContentPane().add( main, BorderLayout.CENTER );
@@ -256,7 +276,7 @@ public abstract class AbstractTableLoadDialog extends JPanel
      * @param  busy  whether we're busy
      */
     protected void setBusy( boolean busy ) {
-        setEnabled( ! busy );
+        getQueryPanel().setEnabled( ! busy );
         okAction_.setEnabled( ! busy );
         progBar_.setIndeterminate( busy );
     }

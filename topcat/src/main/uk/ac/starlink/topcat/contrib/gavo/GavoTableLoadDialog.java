@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.contrib.gavo;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -66,10 +67,10 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.topcat.contrib" );
 
-    private final JComboBox urlField_;
-    private final JTextField userField_;
-    private final JPasswordField passField_;
-    private final JEditorPane sqlField_;
+    private JComboBox urlField_;
+    private JTextField userField_;
+    private JPasswordField passField_;
+    private JEditorPane sqlField_;
 
     /**
      * Constructor.  A public no-arg constructor is required by STIL's
@@ -80,6 +81,9 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                "Uses the GAVO service to query the " +
                "Millennium Simulation Database" );
         setIcon( ResourceIcon.GAVO );
+    }
+
+    protected Component createQueryPanel() {
 
         /* Set up fields for user interaction. */
         urlField_ = new JComboBox(DATABASES);
@@ -99,7 +103,6 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         final JLabel passLabel =
             stack.getLabels()[ stack.getLabels().length - 1 ];
 //        stack.addLine( "Is numeric", isNumericCB_ );
-        setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
 
         ActionListener urlListener = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
@@ -122,11 +125,21 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         sqlHolder.add( new JScrollPane( sqlField_ ), BorderLayout.CENTER );
         sqlHolder.setBorder( BorderFactory.createEmptyBorder( 5, 0, 0, 0 ) );
 
-        /* Place the container in the body of this component for display. */
-        setLayout( new BorderLayout() );
-        add( stack, BorderLayout.NORTH );
-        add( sqlHolder, BorderLayout.CENTER );
-        setPreferredSize( new Dimension( 400, 300 ) );
+        /* Place the components in a container panel and return it. */
+        JPanel queryPanel = new JPanel( new BorderLayout() ) {
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                urlField_.setEnabled( enabled );
+                userField_.setEnabled( enabled );
+                passField_.setEnabled( enabled );
+                sqlField_.setEnabled( enabled );
+            }
+        };
+        queryPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        queryPanel.add( stack, BorderLayout.NORTH );
+        queryPanel.add( sqlHolder, BorderLayout.CENTER );
+        queryPanel.setPreferredSize( new Dimension( 400, 300 ) );
+        return queryPanel;
     }
 
     protected JDialog createDialog( java.awt.Component parent ) {
@@ -258,7 +271,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 StarTable table;
                 GavoCSVTableParser csvParser =
                     new GavoCSVTableParser( tabFact.getStoragePolicy(),
-                                            GavoTableLoadDialog.this );
+                                            getQueryPanel() );
                 try {
                     table = csvParser.parse(stream);
                 }
@@ -276,20 +289,6 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 return id;
             }
         };
-    }
-
-    /**
-     * Configures the components of this panel to match the enabledness of
-     * this panel itself.
-     *
-     * @param  enabled  enabled status
-     */
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        urlField_.setEnabled( enabled );
-        userField_.setEnabled( enabled );
-        passField_.setEnabled( enabled );
-        sqlField_.setEnabled( enabled );
     }
 
     /**

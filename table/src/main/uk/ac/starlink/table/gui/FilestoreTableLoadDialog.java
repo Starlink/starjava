@@ -10,6 +10,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import uk.ac.starlink.connect.Leaf;
 import uk.ac.starlink.connect.Node;
@@ -27,14 +28,18 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  */
 public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
 
-    private final FilestoreChooser chooser_;
-    private final JComboBox formatSelector_;
-    private final JTextField posField_;
+    private FilestoreChooser chooser_;
+    private JComboBox formatSelector_;
+    private JTextField posField_;
 
     public FilestoreTableLoadDialog() {
         super( "Filestore Browser",
                "Loader for files from local or remote filespace" );
         setIconUrl( getClass().getResource( "filestore.gif" ) );
+    }
+
+    protected Component createQueryPanel() {
+        JPanel panel = new JPanel( new BorderLayout() );
         final FilestoreTableLoadDialog tld = this;
         chooser_ = new FilestoreChooser() {
             public void leafSelected( Leaf leaf ) {
@@ -43,7 +48,7 @@ public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
             }
         };
         chooser_.addDefaultBranches();
-        add( chooser_, BorderLayout.CENTER );
+        panel.add( chooser_, BorderLayout.CENTER );
         formatSelector_ = new JComboBox();
         JLabel posLabel = new JLabel( "Position in file: #" );
         posField_ = new JTextField( 6 );
@@ -60,7 +65,8 @@ public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
         formatBox.add( new JLabel( "Position in file: #" ) );
         formatBox.add( new ShrinkWrapper( posField_ ) );
         formatBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        add( formatBox, BorderLayout.SOUTH );
+        panel.add( formatBox, BorderLayout.SOUTH );
+        return panel;
     }
 
     protected void setFormatModel( ComboBoxModel formatModel ) {
@@ -108,22 +114,23 @@ public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
     }
 
     public FilestoreChooser getChooser() {
+        getQueryPanel();
         return chooser_;
     }
 
     public void setEnabled( boolean enabled ) {
-        if ( enabled != isEnabled() ) {
+        Component queryPanel = getQueryPanel();
+        if ( enabled != queryPanel.isEnabled() ) {
             chooser_.setEnabled( enabled );
             formatSelector_.setEnabled( enabled );
         }
-        super.setEnabled( enabled );
+        queryPanel.setEnabled( enabled );
     }
 
     public boolean showLoadDialog( Component parent, StarTableFactory factory,
                                    ComboBoxModel formatModel,
                                    TableConsumer consumer ) {
-        chooser_.refreshList();
+        getChooser().refreshList();
         return super.showLoadDialog( parent, factory, formatModel, consumer );
     }
-
 }

@@ -33,11 +33,11 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 public abstract class RegistryServiceTableLoadDialog 
                       extends BasicTableLoadDialog {
 
-    private final JComponent controlBox_;
-    private final RegistryPanel regPanel_;
     private final String name_;
     private final RegistryQueryFactory queryFactory_;
-    private boolean setup_;
+    private final boolean showCapabilities_;
+    private JComponent controlBox_;
+    private RegistryPanel regPanel_;
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -57,11 +57,20 @@ public abstract class RegistryServiceTableLoadDialog
         super( name, description );
         name_ = name;
         queryFactory_ = queryFactory;
-        setLayout( new BorderLayout() );
+        showCapabilities_ = showCapabilities;
+    }
+
+    protected Component createQueryPanel() {
+        JPanel queryPanel = new JPanel( new BorderLayout() ) {
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                regPanel_.setEnabled( enabled );
+            }
+        };
 
         /* Construct and configure a panel which knows how to query the
          * registry and display the result. */
-        regPanel_ = new RegistryPanel( queryFactory, showCapabilities ) {
+        regPanel_ = new RegistryPanel( queryFactory_, showCapabilities_ ) {
             public RegCapabilityInterface[] getCapabilities( RegResource res ) {
                 return RegistryServiceTableLoadDialog.this
                       .getCapabilities( res );
@@ -69,11 +78,17 @@ public abstract class RegistryServiceTableLoadDialog
         };
         regPanel_.getResourceSelectionModel()
                  .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        add( regPanel_, BorderLayout.CENTER );
+        queryPanel.add( regPanel_, BorderLayout.CENTER );
 
         /* Add controls for invoking the selected service. */
         controlBox_ = Box.createVerticalBox();
-        add( controlBox_, BorderLayout.SOUTH );
+        queryPanel.add( controlBox_, BorderLayout.SOUTH );
+
+        /* Initiate default query if appropriate. */
+        if ( queryFactory_.getComponent() == null ) {
+            String msg = "Searching registry for " + name_ + " services";
+            regPanel_.performAutoQuery( msg );
+        }
 
         /* Cosmetics. */
         Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
@@ -82,20 +97,21 @@ public abstract class RegistryServiceTableLoadDialog
         regPanel_.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
-                "Available " + name + " Services" ) );
+                "Available " + name_ + " Services" ) );
         controlBox_.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
-                name + " Parameters" ) );
-        setBorder( gapBorder );
+                name_ + " Parameters" ) );
+        queryPanel.setBorder( gapBorder );
         Dimension prefSize = new Dimension( 600, 400 );
-        if ( showCapabilities ) {
+        if ( showCapabilities_ ) {
             prefSize.height += 70;
         }
-        if ( queryFactory.getComponent() != null ) {
+        if ( queryFactory_.getComponent() != null ) {
             prefSize.height += 100;
         }
-        setPreferredSize( prefSize );
+        queryPanel.setPreferredSize( prefSize );
+        return queryPanel;
     }
 
     public boolean isAvailable() {
@@ -105,6 +121,7 @@ public abstract class RegistryServiceTableLoadDialog
     /**
      * Returns the component within which service-specific components should
      * be placed.
+     * Will return null if called before {@link #createQueryPanel}.
      *
      * @return  control box
      */
@@ -114,6 +131,7 @@ public abstract class RegistryServiceTableLoadDialog
 
     /**
      * Returns the registry panel for this dialogue.
+     * Will return null if called before {@link #createQueryPanel}.
      *
      * @return  registry panel
      */
@@ -137,15 +155,6 @@ public abstract class RegistryServiceTableLoadDialog
 
     protected JDialog createDialog( Component parent ) {
 
-        /* Do one-time setup.  Doing it in the constructor is too early. */
-        if ( ! setup_ ) {
-            setup_ = true;
-            if ( queryFactory_.getComponent() == null ) {
-                String msg = "Searching registry for " + name_ + " services";
-                regPanel_.performAutoQuery( msg );
-            }
-        }
-
         /* Embellish the dialogue with a menu allowing selection of which
          * columns are visible in the displayed registry table. */
         JDialog dia = super.createDialog( parent );
@@ -167,10 +176,5 @@ public abstract class RegistryServiceTableLoadDialog
             dia.getJMenuBar().add( regMenu );
         }
         return dia;
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        regPanel_.setEnabled( enabled );
     }
 }
