@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
 
 /**
@@ -42,6 +43,8 @@ public class DensityPlot extends SurfacePlot {
     private double[] loCuts_;
     private double[] hiCuts_;
     private DensityStyle[] styles_;
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot" );
 
     /**
      * Constructor.
@@ -99,15 +102,17 @@ public class DensityPlot extends SurfacePlot {
              * if the pixel size multiplier is large on MacOS X 10.4.9.
              * Don't know any particular reason this should be the case,
              * but something to do with OSX AWT implementation probably.
+             * Same thing when using iText (PDF output) for J2SE 1.4.
              * Try to indicate where the trouble might lie by writing a
              * message on the plot surface. */
             catch ( OutOfMemoryError e ) {
                 String msg = "Out of memory";
                 if ( psize > 4 ) {
-                    msg += " (Mac OSX inefficiency?)";
-                    msg += " - try smaller pixels";
+                    msg += " (known but not well-understood problem)";
+                    msg += " - try smaller pixels or more up-to-date Java";
                 }
                 g2.drawString( msg, 100, 100 );
+                logger_.warning( msg );
             }
             loCuts = loCuts_;
             hiCuts = hiCuts_;
