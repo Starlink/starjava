@@ -44,6 +44,7 @@ public abstract class PaintMode {
         GraphicExporter.PNG,
         GraphicExporter.GIF,
         GraphicExporter.JPEG,
+        GraphicExporter.PDF,
         GraphicExporter.EPS,
         GraphicExporter.EPS_GZIP,
         // Note there is another option for postscript - net.sf.epsgraphics.

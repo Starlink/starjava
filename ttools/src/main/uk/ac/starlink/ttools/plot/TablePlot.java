@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot;
 
+import com.lowagie.text.pdf.PdfGraphics2D;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -195,6 +196,7 @@ public abstract class TablePlot extends JComponent {
      */
     public static boolean isVectorContext( Graphics g ) {
         return ( g instanceof EpsGraphics2D )
+            || ( g instanceof PdfGraphics2D )
             || ( g instanceof Graphics2D
                  && ((Graphics2D) g).getDeviceConfiguration().getDevice()
                                     .getType() == GraphicsDevice.TYPE_PRINTER );

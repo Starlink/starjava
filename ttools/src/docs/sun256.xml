@@ -2247,6 +2247,32 @@ specific to STILTS graphical output as discussed below.
     using it generally look a bit smudged.
     </p></dd>
 
+<dt><code>pdf</code></dt>
+<dd><p>Portable Document Format.
+    This is the format which can be read by Adobe's Acrobat Reader.
+    It is a widely portable vector format, and is suitable for printing
+    at high resolution, either standalone or imported into some other 
+    presentation format.
+    However, there are a couple of caveats when it comes to using it with
+    STILTS plots.
+    <ol>
+    <li>If used to plot a very large number of points, the output PDF file
+        can get quite large, though it's much better than for
+        <code>eps</code> output (see below).
+        </li>
+    <li>Because of the way that STILTS does its transparency rendering,
+        the only way that plots with partially transparent points can 
+        be rendered is to draw the body
+        of the plot as a bitmap rather than as vector graphics.
+        This is probably a blessing in disguise since with very large numbers
+        of points a vector PDF file could get unmanageably large in any case.
+        So if there is any transparency in the plot, the interior of the
+        plot will be pixellated.  The axes and annotations outside of the
+        plot will still be drawn in vector format however.
+        </li>
+    </ol>
+    </p></dd>
+
 <dt><code>eps</code></dt>
 <dd><p>Encapsulated Postscript.
     This is a vector format which is suitable for printing at high resolution
@@ -2258,7 +2284,9 @@ specific to STILTS graphical output as discussed below.
     <li>Unfortunately the postscript driver used by STILTS is not very 
         efficient and can result in large, sometimes very large, postscript
         output files.  This is likely to be a problem for plots with a large
-        number of non-transparent points.  See <code>eps-gzip</code>.
+        number of non-transparent points.
+        For this reason <code>eps-gzip</code> or <code>pdf</code> may be
+        a better choice.
         </li>
     <li>Postscript has no support for partial transparency, so if plots 
         are drawn with partially transparent points (common for very large
@@ -5502,6 +5530,8 @@ functionality:
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+<li><webref url="http://www.1t3xt.com/about/">iText</webref>
+    (1T3XT BVBA) for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
@@ -6331,6 +6361,14 @@ but my thanks are especially due to the following:
     backwardly incompatible ways, and may change further.
     If you're using STILTS as a library rather than an application
     you might want to wait for a later release when the API has settled down.
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Plotting commands can now output to PDF as well as existing graphics
+        formats.</li>
+    </ul>
     </p></dd>
 
 </dl>
