@@ -93,6 +93,7 @@ public class ResourceIcon implements Icon {
         SAVE = makeIcon( "Save24.gif" ),
         IMPORT = makeIcon( "browser1.gif" ),
         PRINT = makeIcon( "Print24.gif" ),
+        PRINT_ZIP = makeIcon( "Print24_compressed.gif" ),
         IMAGE = makeIcon( "picture.gif" ),
         FITS = makeIcon( "fits1.gif" ),
         COPY = makeIcon( "Copy24.gif" ),
@@ -205,6 +206,7 @@ public class ResourceIcon implements Icon {
         RADIAL = makeIcon( "clock1.gif" ),
         CONNECT = makeIcon( "connected-24.gif" ),
         DISCONNECT = makeIcon( "disconnected-24.gif" ),
+        PDF = makeIcon( "pdf3.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
