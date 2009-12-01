@@ -6495,11 +6495,13 @@ using the <label>Row Subsets</label> box at the bottom of the Plot Window.
 
 <p>All the graphics windows have the following export options in the toolbar:
 <dl>
-<dt>&IMG.PRINT; Export as Encapsulated PostScript</dt>
+<dt>&IMG.PDF; Export as PDF</dt>
 <dt>&IMG.IMAGE; Export as GIF</dt>
 </dl>
-and additionally, the <label>Export</label> menu will probably contain:
+and additionally, the <label>Export</label> contains:
 <dl>
+<dt>&IMG.PRINT; Export as Encapsulated PostScript</dt>
+<dt>&IMG.PRINT_ZIP; Export as Gzipped Encapsulated PostScript</dt>
 <dt>&IMG.JPEG; Export as JPEG</dt>
 <dt>&IMG.IMAGE; Export as PNG</dt>
 </dl>
@@ -6517,8 +6519,9 @@ transparency and is lossy, so close inspection of image features
 will reveal blurring.
 </p>
 
-<p>When exporting to Encapsulated PostScript (EPS), which is a vector
-graphics format, there are a few things to consider:
+<p>When exporting to Portable Document Format (PDF) or
+Encapsulated PostScript (EPS), which are vector graphics formats,
+there are a few things to consider:
 <dl>
 <dt>Positional Quantisation</dt>
 <dd><p>The output file will render text, lines and
@@ -6553,7 +6556,9 @@ graphics format, there are a few things to consider:
     plotting some points as transparent so that the plot is rendered
     as a bitmap (see the discussion of transparency above) which 
     scales as the number of pixels rather than the number of points.
-    There may be some improvement to this in future releases.
+    The Gzipped EPS format helps somewhat (though can be slow); 
+    PDF output is better still.  Even PDF files may be unmanageably large
+    for very many points however.
     </p></dd>
 </dl>
 </p>
@@ -6621,8 +6626,8 @@ is on a bin boundary.
     axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+<dt>&IMG.PDF; Export as PDF</dt>
+<dd><p>Pops up a dialogue which will write the current plot as a PDF file.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -6894,16 +6899,13 @@ see <ref id="activation"/>.
     axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+<dt>&IMG.PDF; Export as PDF</dt>
+<dd><p>Pops up a dialogue which will write the current plot as a PDF file.
     In general this is a faithful and high quality rendering of what
     is displayed in the plot window.  However, if plotting is being done
-    using the transparent markers, it won't come out right since 
-    transparency cannot be represented in PostScript; the markers will
+    using the transparent markers, the markers will
     be rendered as if they were opaque.
-    Currently, if there are many points being plotted, this can result
-    in a rather large output file.
-    <!-- getting on for 0.5 kbyte per point! Too embarassed to write this. --> 
+    Plots with very many points can result in rather large output PDFs.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -7236,8 +7238,8 @@ see <ref id="activation"/>.
     see <ref id="axisConfig"/>. 
     </p></dd>
 
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+<dt>&IMG.PDF; Export as PDF</dt>
+<dd><p>Pops up a dialogue which will write the current plot as a PDF file.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -7527,15 +7529,13 @@ see <ref id="activation"/>.
     axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+<dt>&IMG.PDF; Export as PDF</dt>
+<dd><p>Pops up a dialogue which will write the current plot as a PDF file.
     In general this is a faithful and high quality rendering of what
     is displayed in the plot window.  However, if plotting is being done
-    using the transparent markers, it won't come out right since
-    transparency cannot be represented in PostScript; the markers will
+    using the transparent markers, the markers will
     be rendered as if they were opaque.
-    Currently, if there are many points being plotted, this can result
-    in a rather large output file.
+    Plots with very many points can result in rather large output PDFs.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -7856,15 +7856,13 @@ see <ref id="activation"/>.
     The only configurable axis range is the upper limit of the radial axis.
     </p></dd>
 
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+<dt>&IMG.PDF; Export as PDF</dt>
+<dd><p>Pops up a dialogue which will write the current plot as a PDF file.
     In general this is a faithful and high quality rendering of what
     is displayed in the plot window.  However, if plotting is being done
-    using the transparent markers, it won't come out right since
-    transparency cannot be represented in PostScript; the markers will
+    using the transparent markers, the markers will
     be rendered as if they were opaque.
-    Currently, if there are many points being plotted, this can result
-    in a rather large output file.
+    Plots with very many points can result in rather large output PDFs.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -8123,8 +8121,8 @@ or manually as described in <ref id="axisConfig"/>.
     axis labels and plot title - see <ref id="axisConfig"/>.
     </p></dd>
 
-<dt>&IMG.PRINT; Export as EPS</dt>
-<dd><p>Pops up a dialogue which will write the current plot as an EPS file.
+<dt>&IMG.PDF; Export as PDF</dt>
+<dd><p>Pops up a dialogue which will write the current plot as a PDF file.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export as GIF</dt>
@@ -11400,6 +11398,8 @@ functionality:
     (now deprecated within TOPCAT)</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
     (Ptolemy) for axis plotting</li>
+<li><webref url="http://www.1t3xt.com/about/">iText</webref>
+    (1T3XT BVBA) for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
@@ -13090,6 +13090,7 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Plot windows can now export to PDF as well as other formats.</li>
     <li>Fixed a bug which caused an error when attempting to load multiple
         files from the command line.</li>
     <li>Improve documentation of 3D windows, including zoom options.</li>

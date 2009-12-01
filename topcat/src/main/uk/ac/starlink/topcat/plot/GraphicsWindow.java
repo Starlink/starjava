@@ -478,12 +478,15 @@ public abstract class GraphicsWindow extends AuxWindow {
         Action gifAction =
             new GraphicExportAction( GraphicExporter.GIF, ResourceIcon.IMAGE,
                                      "Save plot as a GIF file" );
+        Action pdfAction =
+            new GraphicExportAction( GraphicExporter.PDF, ResourceIcon.PDF,
+                                     "Save plot as a PDF file" );
         Action epsAction =
             new GraphicExportAction( GraphicExporter.EPS, ResourceIcon.PRINT,
                                      "Export to Encapsulated Postscript file" );
         Action epsgzAction =
             new GraphicExportAction( GraphicExporter.EPS_GZIP,
-                                     ResourceIcon.PRINT,
+                                     ResourceIcon.PRINT_ZIP,
                                      "Export to Gzipped Encapsulated Postscript"
                                    + " file" );
         Action jpegAction =
@@ -494,9 +497,10 @@ public abstract class GraphicsWindow extends AuxWindow {
                                      "Save plot as a PNG file" );
         exportMenu_ = new JMenu( "Export" );
         exportMenu_.setMnemonic( KeyEvent.VK_E );
+        exportMenu_.add( pdfAction );
+        exportMenu_.add( gifAction );
         exportMenu_.add( epsAction );
         exportMenu_.add( epsgzAction );
-        exportMenu_.add( gifAction );
         exportMenu_.add( jpegAction );
         exportMenu_.add( pngAction );
         getJMenuBar().add( exportMenu_ );
@@ -525,7 +529,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         getToolBar().add( splitModel.createToolbarButton() );
         getToolBar().add( replotAction_ );
         getToolBar().add( axisEditAction_ );
-        getToolBar().add( epsAction );
+        getToolBar().add( pdfAction );
         getToolBar().add( gifAction );
     }
 
