@@ -80,6 +80,8 @@ public class ResourceIcon implements Icon {
         TABLE = makeIcon( "browser1.gif" ),
         TOPCAT_LOGO = makeIcon( "tc3.gif" ),
         TOPCAT_LOGO_SMALL = makeIcon( "tc3_24.gif" ),
+        TOPCAT_LOGO_XM = makeIcon( "tc_santa.gif" ),
+        TOPCAT_LOGO_XM_SMALL = makeIcon( "tc_santa_24.gif" ),
         STAR_LOGO = makeIcon( "starlink48.gif" ),
         ASTROGRID_LOGO = makeIcon( "ag48.gif" ),
         BRISTOL_LOGO = makeIcon( "bris48.gif" ),
