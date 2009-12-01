@@ -53,10 +53,18 @@ public class AdaptiveByteStore implements ByteStore {
      */
     public AdaptiveByteStore( int memLimit ) throws IOException {
         try {
+
+            /* Attempt to allocate twice the maximum amount that this 
+             * byte store will use.  The point of this is that we don't
+             * want to use the last little bit of memory here as it may 
+             * cause problems for other JVM operations.  If there isn't
+             * at least twice what we're going to need, fall back to
+             * disk storage instead. */
+            byte[] dummy = new byte[ memLimit ];
             baseOut_ = new BytesOutputStream( memLimit );
         }
         catch ( OutOfMemoryError e ) {
-            logger_.info( "Can't allocate " + memLimit
+            logger_.info( "Insufficient heap for " + memLimit
                         + " bytes - go direct to file storage" );
             file_ = createFile();
             baseOut_ = new FileOutputStream( file_ );
