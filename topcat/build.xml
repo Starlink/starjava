@@ -523,7 +523,6 @@
       <arg value="-x"/><arg value="ndx.jar"/>
       <arg value="-x"/><arg value="sog.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
-      <arg value="-x"/><arg value="vo.jar"/>
       <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="-x"/><arg value="srb.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
