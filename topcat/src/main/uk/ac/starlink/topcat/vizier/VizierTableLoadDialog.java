@@ -298,8 +298,8 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         else {
             double ra = skyEntry_.getRaDegreesField().getValue();
             double dec = skyEntry_.getDecDegreesField().getValue();
-            String sra = Double.toString( ra );
-            String sdec = Double.toString( dec );
+            String sra = CgiQuery.formatDouble( ra );
+            String sdec = CgiQuery.formatDouble( dec );
             char sd0 = sdec.charAt( 0 );
             if ( sd0 != '+' && sd0 != '-' ) {
                 sdec = '+' + sdec;

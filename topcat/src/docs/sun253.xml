@@ -13100,6 +13100,8 @@ introduced since the last version:
     <li>You can now cut and paste from the linear correlation coefficient
         display in the 2-d plot style editor.</li>
     <li>Faster display of load window and VO menu options.</li>
+    <li>Fixed internationalisation bug which could cause cone searches etc
+        to fail in locales that use "," for a decimal point.</li>
     </ul>
     </p></dd>
 

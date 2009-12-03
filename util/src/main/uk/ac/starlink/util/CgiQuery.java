@@ -3,6 +3,8 @@ package uk.ac.starlink.util;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 /**
  * Utility class for constructing CGI query strings.
@@ -192,8 +194,10 @@ public class CgiQuery {
             for ( int i = 0; i < nsf - log10; i++ ) {
                 fbuf.append( '0' );
             }
-            String fval =
-                new DecimalFormat( fbuf.toString() ).format( value );
+            DecimalFormat format = new DecimalFormat( fbuf.toString() );
+            format.setDecimalFormatSymbols( new DecimalFormatSymbols( Locale
+                                                                     .US ) );
+            String fval = format.format( value );
             fval = fval.replaceFirst( "0+$", "" );
             if ( fval.length() <= maxleng ) {
                 return fval;
