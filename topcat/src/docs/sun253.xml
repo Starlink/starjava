@@ -13102,6 +13102,9 @@ introduced since the last version:
     <li>Faster display of load window and VO menu options.</li>
     <li>Fixed internationalisation bug which could cause cone searches etc
         to fail in locales that use "," for a decimal point.</li>
+    <li>Registry searches are now faster and less likely to run out of memory.
+        Registry-search-based operations (cone search dialogues etc) now 
+        run in topcat-lite configuration as well as topcat-full.</li>
     </ul>
     </p></dd>
 

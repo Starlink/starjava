@@ -958,11 +958,10 @@ public class ControlWindow extends AuxWindow
      */
     public void updateControls() {
         boolean hasTables = tablesModel_.getSize() > 0;
-        boolean hasReg = RegistryTableLoadDialog.isRegistryAvailable();
         concatAct_.setEnabled( hasTables );
-        multiconeAct_.setEnabled( hasTables && hasReg );
-        multisiaAct_.setEnabled( hasTables && hasReg );
-        multissaAct_.setEnabled( hasTables && hasReg );
+        multiconeAct_.setEnabled( hasTables );
+        multisiaAct_.setEnabled( hasTables );
+        multissaAct_.setEnabled( hasTables );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             matchActs_[ i ].setEnabled( hasTables );
         }
