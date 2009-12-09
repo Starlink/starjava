@@ -108,9 +108,15 @@ public class RegistryClient {
     public RegResource[] searchAdql( String adqls ) throws IOException {
         String soapAction = ACTION_BASE + "#Search";
         String searchBody = createSearchBody( adqls );
-        ResourceHandler resourceHandler = new ResourceHandler();
-        soapClient_.execute( searchBody, soapAction, resourceHandler );
-        return resourceHandler.getResources();
+        final List resList = new ArrayList();
+        ResourceSink sink = new ResourceSink() {
+            public void addResource( RegResource resource ) {
+                resList.add( resource );
+            }
+        };
+        soapClient_.execute( searchBody, soapAction,
+                             new ResourceHandler( sink ) );
+        return (RegResource[]) resList.toArray( new RegResource[ 0 ] );
     }
 
     /**
@@ -265,16 +271,16 @@ public class RegistryClient {
         private Map capabilityMap_;
         private StringBuffer txtBuf_;
         private List capabilityList_;
-        private final List resourceList_;
         private final Set resourcePathSet_;
         private final Set capabilityPathSet_;
         private final StringBuffer path_;
+        private final ResourceSink sink_;
 
         /**
          * Constructor.
          */
-        ResourceHandler() {
-            resourceList_ = new ArrayList();
+        ResourceHandler( ResourceSink sink ) {
+            sink_ = sink;
             path_ = new StringBuffer();
             resourcePathSet_ = new HashSet( Arrays.asList( new String[] {
                 TITLE_PATH,
@@ -340,7 +346,7 @@ public class RegistryClient {
                        .toArray( new RegCapabilityInterface[ 0 ] );
                     capabilityList_ = null;
                     trimValues( resourceMap_ );
-                    resourceList_.add( new Resource( resourceMap_, caps ) );
+                    sink_.addResource( new Resource( resourceMap_, caps ) );
                     resourceMap_ = null;
                 }
                 else if ( CAPINTERFACE_PATH.equals( path ) ) {
@@ -377,11 +383,6 @@ public class RegistryClient {
             }
         }
 
-        public RegResource[] getResources() {
-            return (RegResource[])
-                   resourceList_.toArray( new RegResource[ 0 ] );
-        }
-
         /**
          * Strips leading and trailing whitespace from string values of
          * map entries.
@@ -403,5 +404,18 @@ public class RegistryClient {
                 }
             }
         }
-    } 
+    }
+
+    /**
+     * Interface for receiving resources.
+     */
+    private static abstract class ResourceSink {
+
+        /**
+         * Accept a newly discovered resource.
+         *
+         * @param   resource resource
+         */
+        abstract void addResource( RegResource resource );
+    }
 }
