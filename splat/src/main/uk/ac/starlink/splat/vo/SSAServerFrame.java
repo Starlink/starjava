@@ -48,8 +48,6 @@ import uk.ac.starlink.vo.RegistryTable;
 import uk.ac.starlink.vo.ResourceTableModel;
 import uk.ac.starlink.vo.RegResource;
 
-import net.ivoa.registry.search.VOResource;
-
 /**
  * Class for interactively managing the list of SSAP servers. Allows the
  * selection of servers to be used, the update of the list from a Registry and

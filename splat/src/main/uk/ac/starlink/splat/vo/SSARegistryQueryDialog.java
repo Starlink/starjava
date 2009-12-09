@@ -28,8 +28,6 @@ import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryQueryPanel;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 
-import net.ivoa.registry.RegistryAccessException;
-
 /**
  * Dialog for performing a simple query on a registry for its SSAP servers.
  * The user can choose which registry to use. A StarTable is returned which
@@ -86,13 +84,7 @@ public class SSARegistryQueryDialog
                                                String format )
                         throws IOException
                     {
-                        RegResource[] resources;
-                        try {
-                            resources = query.getQueryResources();
-                        }
-                        catch ( RegistryAccessException e ) {
-                            throw asIOException( e );
-                        }
+                        RegResource[] resources = query.getQueryResources();
                         BeanStarTable st;
                         try {
                             st = new BeanStarTable( RegResource.class );
