@@ -320,6 +320,7 @@ public class RegistryPanel extends JPanel {
                 final Throwable error1 = error;
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
+                        progBar.setIndeterminate( false );
                         boolean visible = RegistryPanel.this.isShowing();
                         if ( queryWorker_ == wk ) {
                             if ( errmsg != null ) {
