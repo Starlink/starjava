@@ -115,7 +115,7 @@ public abstract class RegistryServiceTableLoadDialog
     }
 
     public boolean isAvailable() {
-        return RegistryTableLoadDialog.isRegistryAvailable();
+        return true;
     }
 
     /**
