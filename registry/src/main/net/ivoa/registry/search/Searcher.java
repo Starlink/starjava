@@ -85,8 +85,10 @@ abstract class Searcher {
                 String name = tex.getClass().getName();
                 int dot = name.lastIndexOf(".");
                 if (dot >= 0) name = name.substring(dot+1);
-                throw new RegistryServiceException(name + ": " +
-                                                   tex.getMessage());
+                throw (RegistryServiceException)
+                      new RegistryServiceException(name + ": " +
+                                                   tex.getMessage())
+                     .initCause(tex);
             }
         }
     }
