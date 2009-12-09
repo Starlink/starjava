@@ -1,10 +1,10 @@
 package uk.ac.starlink.vo;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import net.ivoa.registry.RegistryAccessException;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -84,8 +84,7 @@ public class RegistryStarTable extends ColumnStarTable {
      *
      * @param   query   the query whose results are to be represented
      */
-    public RegistryStarTable( RegistryQuery query )
-            throws RegistryAccessException {
+    public RegistryStarTable( RegistryQuery query ) throws IOException {
         records_ = getRecords( query );
         setParameters( new ArrayList( Arrays.asList( query.getMetadata() ) ) );
         addColumn( new ColumnData( IDENTIFIER_INFO ) {
@@ -162,7 +161,7 @@ public class RegistryStarTable extends ColumnStarTable {
      * @return   record list
      */
     private static Record[] getRecords( RegistryQuery query )
-            throws RegistryAccessException {
+            throws IOException {
         List recList = new ArrayList();
         for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {
             RegResource resource = (RegResource) it.next();

@@ -12,7 +12,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
-import net.ivoa.registry.search.RegistrySearchClient;
 
 /**
  * Component which allows the user to select a registry to interrogate
@@ -98,14 +97,7 @@ public class RegistryQueryPanel extends JPanel {
                 ((MutableComboBoxModel) qModel).addElement( query );
             }
         }
-        final URL regURL1 = regURL;
-        RegistrySearchClient client = new RegistrySearchClient( regURL );
-        client.setRecordBufferSize( 100 );
-        return new RegistryQuery( client, query ) {
-            public URL getRegistry() {
-                return regURL1;
-            }
-        };
+        return new RegistryQuery( new RegistryClient( regURL ), query );
     }
 
     public void setEnabled( boolean enabled ) {

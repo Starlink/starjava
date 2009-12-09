@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -19,7 +20,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
-import net.ivoa.registry.RegistryAccessException;
 
 /**
  * Component for selecting a registry service.
@@ -81,7 +81,7 @@ public class RegistrySelector extends JPanel {
                                 }
                             } );
                         }
-                        catch ( RegistryAccessException e ) {
+                        catch ( IOException e ) {
                             logger_.warning( "Registry search failed: " + e );
                         }
                     }

@@ -1,9 +1,7 @@
 package uk.ac.starlink.vo;
 
-import net.ivoa.registry.RegistryAccessException;
-
 /**
- * Unchecked exception used to contain a RegistryAccessException.
+ * Unchecked exception used to contain a checked Exception.
  * This is needed because it may have to be thrown from an Iterator.
  *
  * @author   Mark Taylor
@@ -17,7 +15,7 @@ public class RegistryQueryException extends RuntimeException {
      *
      * @param   cause  underlying exception
      */
-    public RegistryQueryException( RegistryAccessException cause ) {
+    public RegistryQueryException( Exception cause ) {
         super( cause.getMessage() == null ? "Registry Access Exception"
                                           : cause.getMessage(), cause );
     }

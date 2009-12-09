@@ -1,18 +1,14 @@
 package uk.ac.starlink.vo;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import net.ivoa.registry.RegistryAccessException;
-import net.ivoa.registry.search.Records;
-import net.ivoa.registry.search.RegistrySearchClient;
-import net.ivoa.registry.search.VOResource;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -25,7 +21,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class RegistryQuery {
 
-    private final RegistrySearchClient searchClient_;
+    private final RegistryClient regClient_;
     private final String text_;
     private URL endpoint_;
     private static final Logger logger_ =
@@ -79,15 +75,14 @@ public class RegistryQuery {
     };
 
     /**
-     * Constructs a new query object from a search client and a query.
+     * Constructs a new query object from a registry client and a query.
      *
-     * @param  searchClient  registry search client
+     * @param  regClient  registry client
      * @param  text   ADQL WHERE clause for the registry query
      */
-    public RegistryQuery( RegistrySearchClient searchClient, String text ) {
-        searchClient_ = searchClient;
+    public RegistryQuery( RegistryClient regClient, String text ) {
+        regClient_ = regClient;
         text_ = text;
-        endpoint_ = null;  // not currently accessible from RegistrySearchClient
     }
 
     /**
@@ -97,20 +92,7 @@ public class RegistryQuery {
      * @param  text   ADQL WHERE clause for the registry query
      */
     public RegistryQuery( String endpoint, String text ) {
-        this( new RegistrySearchClient( toUrl( endpoint ) ), text );
-        searchClient_.setRecordBufferSize( RECORD_BUFFER_SIZE );
-        endpoint_ = toUrl( endpoint );
-    }
-
-    /**
-     * Executes the query described by this object and returns the
-     * result.
-     *
-     * @return   query result
-     */
-    public Records performQuery() throws RegistryAccessException {
-        logger_.info( "Making query \"" + text_ + "\" to " + getRegistry() );
-        return searchClient_.searchByADQL( text_ );
+        this( new RegistryClient( toUrl( endpoint ) ), text );
     }
 
     /**
@@ -122,40 +104,8 @@ public class RegistryQuery {
      *
      * @return  iterator over {@link RegResource}s
      */
-    public Iterator getQueryIterator() throws RegistryAccessException {
-        final Records records = performQuery();
-        return new Iterator() {
-            private RegResource next_ = getNext();
-            public boolean hasNext() {
-                return next_ != null;
-            }
-            public Object next() {
-                RegResource next = next_;
-                if ( next != null ) {
-                    try {
-                        next_ = getNext();
-                    }
-                    catch ( RegistryAccessException e ) {
-                        throw new RegistryQueryException( e );
-                    }
-                    return next;
-                }
-                else {
-                    throw new NoSuchElementException();
-                }
-            }
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-            private RegResource getNext() throws RegistryAccessException {
-                VOResource next = null;
-                while ( records.hasNext() && next == null ) {
-                    next = records.next();
-                }
-                return next == null ? null
-                                    : new VORegResource( next );
-            }
-        };
+    public Iterator getQueryIterator() throws IOException {
+        return Arrays.asList( getQueryResources() ).iterator();
     }
 
     /**
@@ -164,16 +114,8 @@ public class RegistryQuery {
      *
      * @return   resource list
      */
-    public RegResource[] getQueryResources() throws RegistryAccessException {
-        List resList = new ArrayList();
-        Records records = performQuery();
-        while ( records.hasNext() ) {
-            VOResource vores = records.next();
-            if ( vores != null ) {
-                resList.add( new VORegResource( vores ) );
-            }
-        }
-        return (VORegResource[]) resList.toArray( new VORegResource[ 0 ] );
+    public RegResource[] getQueryResources() throws IOException {
+        return regClient_.searchAdql( text_ );
     }
 
     /**
@@ -191,7 +133,7 @@ public class RegistryQuery {
      * @return url
      */
     public URL getRegistry() {
-        return endpoint_;
+        return regClient_.getEndpoint();
     }
 
     /**
@@ -199,8 +141,8 @@ public class RegistryQuery {
      *
      * @return  search client
      */
-    public RegistrySearchClient getSearchClient() {
-        return searchClient_;
+    public RegistryClient getRegistryClient() {
+        return regClient_;
     }
 
     /**
@@ -224,31 +166,25 @@ public class RegistryQuery {
      * @return   array of registries which can be searched
      */
     public static String[] getSearchableRegistries( String regUrl )
-            throws RegistryAccessException {
+            throws IOException {
         RegistryQuery regQuery = 
             new RegistryQuery( regUrl, SEARCHABLE_REG_QUERY );
         Set acurlSet = new TreeSet();
-        try {
-            for ( Iterator it = regQuery.getQueryIterator(); it.hasNext(); ) {
-                RegResource res = (RegResource) it.next();
-                RegCapabilityInterface[] caps = res.getCapabilities();
-                for ( int ic = 0; ic < caps.length; ic++ ) {
-                    RegCapabilityInterface cap = caps[ ic ];
-                    String xsiType = cap.getXsiType();
-                    if ( xsiType != null && xsiType.endsWith( ":Search" ) ) {
-                        String acurl = cap.getAccessUrl();
-                        if ( acurl != null ) {
-                            acurlSet.add( acurl );
-                        }
+        for ( Iterator it = regQuery.getQueryIterator(); it.hasNext(); ) {
+            RegResource res = (RegResource) it.next();
+            RegCapabilityInterface[] caps = res.getCapabilities();
+            for ( int ic = 0; ic < caps.length; ic++ ) {
+                RegCapabilityInterface cap = caps[ ic ];
+                String xsiType = cap.getXsiType();
+                if ( xsiType != null && xsiType.endsWith( ":Search" ) ) {
+                    String acurl = cap.getAccessUrl();
+                    if ( acurl != null ) {
+                        acurlSet.add( acurl );
                     }
                 }
             }
-            return (String[]) acurlSet.toArray( new String[ 0 ] );
         }
-        catch ( RegistryQueryException e ) {
-            throw (RegistryAccessException) new RegistryAccessException()
-                                           .initCause( e );
-        }
+        return (String[]) acurlSet.toArray( new String[ 0 ] );
     }
 
     /**

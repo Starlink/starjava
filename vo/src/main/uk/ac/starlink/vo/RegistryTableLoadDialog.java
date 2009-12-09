@@ -7,7 +7,6 @@ import java.rmi.RemoteException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.xml.rpc.ServiceException;
-import net.ivoa.registry.RegistryAccessException;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -70,12 +69,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
                 public StarTable getTable( StarTableFactory factory,
                                            String format )
                         throws IOException {
-                    try {
-                        return new RegistryStarTable( query );
-                    }
-                    catch ( RegistryAccessException e ) {
-                        throw asIOException( e );
-                    }
+                    return new RegistryStarTable( query );
                 }
                 public String getTableID() {
                     return query.toString();
