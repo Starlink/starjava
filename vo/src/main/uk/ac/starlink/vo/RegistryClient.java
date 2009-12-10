@@ -78,7 +78,7 @@ public class RegistryClient {
      *
      * @param  endpoint   SOAP endpoint for RI-compliant registry service
      */
-    RegistryClient( URL endpoint ) {
+    public RegistryClient( URL endpoint ) {
         this( new SoapClient( endpoint ) );
     }
 
@@ -88,7 +88,7 @@ public class RegistryClient {
      * @param  soapClient  SOAP client which talks to an RI-compliant
      *         registry service
      */
-    RegistryClient( SoapClient soapClient ) {
+    public RegistryClient( SoapClient soapClient ) {
         soapClient_ = soapClient;
     }
 
