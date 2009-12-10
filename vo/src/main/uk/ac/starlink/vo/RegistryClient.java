@@ -463,7 +463,7 @@ public class RegistryClient {
     /**
      * ResourceSink implementation which also implements an Iterator
      * over the received resources.  Feeding the sink and iterating
-     * over the results have to be done in different threads, obviously.
+     * over the results will generally be done in different threads.
      */
     private static class IteratorResourceSink extends ResourceSink
                                               implements Iterator {
