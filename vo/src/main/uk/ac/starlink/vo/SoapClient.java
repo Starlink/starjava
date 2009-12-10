@@ -94,7 +94,7 @@ public class SoapClient {
      */
     public void execute( String bodyContent, String soapAction,
                          ContentHandler bodyHandler )
-            throws IOException {
+            throws IOException, SAXException {
         byte[] request = createRequest( bodyContent );
         URLConnection conn = endpoint_.openConnection();
         if ( ! ( conn instanceof HttpURLConnection ) ) {
@@ -129,10 +129,6 @@ public class SoapClient {
             }
             try {
                 createSaxParser().parse( in, handler );
-            }
-            catch ( SAXException e ) {
-                throw (IOException) new IOException( "SAX Parse error" )
-                                   .initCause( e );
             }
             finally {
                 in.close();

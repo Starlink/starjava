@@ -312,7 +312,7 @@ public class RegistryPanel extends JPanel {
                     }
                 }
                 catch ( RegistryQueryException e ) {
-                    error = e.getCause() == null ? e : e.getCause();
+                    error = e;
                 }
                 catch ( Throwable e ) {
                     error = e;
