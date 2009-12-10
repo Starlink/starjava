@@ -1,5 +1,8 @@
 package uk.ac.starlink.xdoc.fig;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.PdfWriter;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
@@ -33,7 +36,7 @@ import javax.swing.KeyStroke;
 
 /**
  * Base class for drawings.
- * As well as implemnting {@link javax.swing.Icon} it provides some 
+ * As well as implementing {@link javax.swing.Icon} it provides some 
  * utility methods for output.
  *
  * @author   Mark Taylor
@@ -169,6 +172,31 @@ public abstract class FigureIcon implements Icon {
          * eps file is not flushed or correctly terminated.
          * This closes the output stream too. */
         g2.close();
+    }
+
+    /**
+     * Exports the currently displayed plot to PDF.
+     *
+     * @param   out  destination stream for the PDF
+     */
+    public void exportPdf( OutputStream out ) throws IOException {
+        Document doc =
+            new Document( new com.lowagie.text.Rectangle( bounds_.width,
+                                                          bounds_.height ) );
+        try {
+            PdfWriter pWriter = PdfWriter.getInstance( doc, out );
+            doc.open();
+            Graphics2D g2 = pWriter.getDirectContent()
+                           .createGraphics( bounds_.width, bounds_.height );
+            g2.translate( -bounds_.x, -bounds_.y );
+            doDrawing( g2 );
+            g2.dispose();
+            doc.close();
+        }
+        catch ( DocumentException e ) {
+            throw (IOException)
+                  new IOException( e.getMessage() ).initCause( e );
+        }
     }
 
     /**
@@ -359,6 +387,7 @@ public abstract class FigureIcon implements Icon {
             return new Mode[] {
                 SWING,
                 EPS,
+                PDF,
                 new ImageIOMode( "png", "png", false ),
                 new ImageIOMode( "jpeg", "jpeg", false ),
             };
@@ -375,6 +404,13 @@ public abstract class FigureIcon implements Icon {
         private static final Mode EPS = new Mode( "eps" ) {
             void process( FigureIcon fig, String dest ) throws IOException {
                 fig.exportEps( getOutputStream( dest ) );
+            }
+        };
+
+        /** Output mode for PDF generation. */
+        private static final Mode PDF = new Mode( "pdf" ) {
+            void process( FigureIcon fig, String dest ) throws IOException {
+                fig.exportPdf( getOutputStream( dest ) );
             }
         };
 

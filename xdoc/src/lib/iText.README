@@ -1,0 +1,17 @@
+The iText_shrunk.jar file is derived from the distributed file iText-2.1.7.jar,
+but with some of the classes removed since they are not required by ttools.
+
+The stripping was done by proguard, using the following incantation:
+
+   java -jar proguard.jar \
+        -libraryjars '<java.home>/lib/rt.jar' \
+        -injars iText-2.1.7.jar \
+        -keep 'class com.lowagie.text.Document {*;}' \
+        -keep 'class com.lowagie.text.pdf.PdfWriter {*;}' \
+        -keep 'class com.lowagie.text.pdf.PdfContentByte {*;}' \
+        -dontoptimize -dontobfuscate \
+        -outjars iText_shrunk.jar
+
+The stripping cuts it down to about half its original (1.3Mb) size.
+If this leads to problems (NoClassDefFoundError etc), probably best
+just to use the full jar file instead.
