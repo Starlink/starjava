@@ -8,8 +8,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import net.ivoa.registry.search.ParseException;
 import net.ivoa.registry.search.Where2DOM;
@@ -103,20 +105,59 @@ public class RegistryClient {
      * Returns a list of resources corresponding to a given ADQL/S query.
      *
      * @param  adqls  WHERE clause (minus WHERE) in ADQL specifying search
-     * @return   array of resources
+     * @return  array of resources
      */
-    public RegResource[] searchAdql( String adqls ) throws IOException {
-        String soapAction = ACTION_BASE + "#Search";
-        String searchBody = createSearchBody( adqls );
+    public RegResource[] getAdqlSearchResources( String adqls )
+            throws IOException {
+        final String soapAction = ACTION_BASE + "#Search";
+        final String searchBody = createSearchBody( adqls );
         final List resList = new ArrayList();
         ResourceSink sink = new ResourceSink() {
             public void addResource( RegResource resource ) {
                 resList.add( resource );
             }
         };
-        soapClient_.execute( searchBody, soapAction,
-                             new ResourceHandler( sink ) );
+        try {
+            soapClient_.execute( searchBody, soapAction,
+                                 new ResourceHandler( sink ) );
+        }
+        catch ( SAXException e ) {
+            String msg = e.getMessage();
+            if ( msg == null ) {
+                msg = "SAX parse error";
+            }
+            throw (IOException) new IOException( msg ).initCause( e );
+        }
         return (RegResource[]) resList.toArray( new RegResource[ 0 ] );
+    }
+
+    /**
+     * Returns an iterator over resources returned from a given ADQL/S query.
+     * The iterator's <code>next</code> or <code>hasNext</code> method
+     * may throw a {@link RegistryQueryException}.
+     *
+     * @param  adqls  WHERE clause (minus WHERE) in ADQL specifying search
+     * @return   iterator which returns {@link RegResource} objects
+     */
+    public Iterator getAdqlSearchIterator( String adqls ) throws IOException {
+        final String soapAction = ACTION_BASE + "#Search";
+        final String searchBody = createSearchBody( adqls );
+        final IteratorResourceSink sink = new IteratorResourceSink();
+        new Thread( "RegistrySearch" ) {
+            public void run() {
+                try {
+                    soapClient_.execute( searchBody, soapAction,
+                                         new ResourceHandler( sink ) );
+                }
+                catch ( Throwable e ) {
+                    sink.setError( e );
+                }
+                finally {
+                    sink.close();
+                }
+            }
+        }.start();
+        return sink;
     }
 
     /**
@@ -417,5 +458,75 @@ public class RegistryClient {
          * @param   resource resource
          */
         abstract void addResource( RegResource resource );
+    }
+
+    /**
+     * ResourceSink implementation which also implements an Iterator
+     * over the received resources.  Feeding the sink and iterating
+     * over the results have to be done in different threads, obviously.
+     */
+    private static class IteratorResourceSink extends ResourceSink
+                                              implements Iterator {
+        private final List queue_ = new LinkedList();
+        private volatile Throwable error_;
+        private volatile boolean done_;
+
+        synchronized void addResource( RegResource resource ) {
+            queue_.add( resource );
+            notifyAll();
+        }
+
+        /**
+         * Arrange for an error to be thrown from a subsequent iterator
+         * method at a later date.
+         *
+         * @param  error  error to signal
+         */
+        synchronized void setError( Throwable error ) {
+            queue_.add( error );
+            notifyAll();
+        }
+
+        /**
+         * Notify that no more resources will be added.
+         */
+        synchronized void close() {
+            done_ = true;
+            notifyAll();
+        }
+
+        public synchronized boolean hasNext() {
+            while ( ! done_ && queue_.isEmpty() ) {
+                try {
+                    wait();
+                }
+                catch ( InterruptedException e ) {
+                    setError( e );
+                }
+            }
+            return ! queue_.isEmpty();
+        }
+
+        public synchronized Object next() {
+            if ( hasNext() ) {
+                Object item = queue_.remove( 0 );
+                if ( item instanceof RegResource ) {
+                    return (RegResource) item;
+                }
+                else if ( item instanceof Throwable ) {
+                    throw new RegistryQueryException( (Throwable) item );
+                }
+                else {
+                    throw new AssertionError();
+                }
+            }
+            else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

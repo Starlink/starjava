@@ -3,7 +3,6 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -105,7 +104,7 @@ public class RegistryQuery {
      * @return  iterator over {@link RegResource}s
      */
     public Iterator getQueryIterator() throws IOException {
-        return Arrays.asList( getQueryResources() ).iterator();
+        return regClient_.getAdqlSearchIterator( text_ );
     }
 
     /**
@@ -115,7 +114,7 @@ public class RegistryQuery {
      * @return   resource list
      */
     public RegResource[] getQueryResources() throws IOException {
-        return regClient_.searchAdql( text_ );
+        return regClient_.getAdqlSearchResources( text_ );
     }
 
     /**
