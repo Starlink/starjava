@@ -15,7 +15,7 @@ public class RegistryQueryException extends RuntimeException {
      *
      * @param   cause  underlying exception
      */
-    public RegistryQueryException( Exception cause ) {
+    public RegistryQueryException( Throwable cause ) {
         super( cause.getMessage() == null ? "Registry Access Exception"
                                           : cause.getMessage(), cause );
     }
