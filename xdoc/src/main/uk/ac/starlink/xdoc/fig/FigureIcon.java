@@ -44,7 +44,7 @@ import javax.swing.KeyStroke;
  */
 public abstract class FigureIcon implements Icon {
 
-    private final Rectangle bounds_;
+    private Rectangle bounds_;
 
     /**
      * Constructor.
@@ -52,7 +52,7 @@ public abstract class FigureIcon implements Icon {
      * @param   bounds of image
      */
     protected FigureIcon( Rectangle bounds ) {
-        bounds_ = new Rectangle( bounds );
+        setBounds( bounds );
     }
 
     /**
@@ -61,6 +61,24 @@ public abstract class FigureIcon implements Icon {
      * @param  g2  graphics context
      */
     protected abstract void doDrawing( Graphics2D g2 );
+
+    /**
+     * Sets the bounds for this figure.
+     *
+     * @param  bounds   new bounds
+     */
+    public void setBounds( Rectangle bounds ) {
+        bounds_ = new Rectangle( bounds );
+    }
+
+    /**
+     * Returns the bounds for this figure.
+     *
+     * @return  bounds
+     */
+    public Rectangle getBounds() {
+        return bounds_;
+    }
 
     public int getIconWidth() {
         return bounds_.width;
