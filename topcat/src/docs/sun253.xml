@@ -13105,6 +13105,8 @@ introduced since the last version:
     <li>Registry searches are now faster and less likely to run out of memory.
         Registry-search-based operations (cone search dialogues etc) now 
         run in topcat-lite configuration as well as topcat-full.</li>
+    <li>Now warns about non-active resources returned from registry searches
+        (which shouldn't happen).</li>
     </ul>
     </p></dd>
 

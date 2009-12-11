@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.logging.Logger;
 import net.ivoa.registry.search.ParseException;
 import net.ivoa.registry.search.Where2DOM;
 import org.w3c.dom.Element;
@@ -39,6 +40,8 @@ public class RegistryClient {
         "http://www.w3.org/2001/XMLSchema-instance";
     private static final String ACTION_BASE =
         "http://www.ivoa.net/wsdl/RegistrySearch/v1.0";
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     private static final String RESOURCE_PATH =
         "/SearchResponse/VOResources/Resource";
@@ -48,6 +51,8 @@ public class RegistryClient {
         RESOURCE_PATH + "/identifier";
     private static final String SHORTNAME_PATH =
         RESOURCE_PATH + "/shortName";
+    private static final String STATUS_PATH =
+        RESOURCE_PATH + "/@status";
     private static final String PUBLISHER_PATH =
         RESOURCE_PATH + "/curation/publisher";
     private static final String CONTACTNAME_PATH =
@@ -214,6 +219,11 @@ public class RegistryClient {
             contact_ = makeContact( (String) rMap.remove( CONTACTNAME_PATH ),
                                     (String) rMap.remove( CONTACTEMAIL_PATH ) );
             referenceUrl_ = (String) rMap.remove( REFURL_PATH );
+            String status = (String) rMap.remove( STATUS_PATH );
+            if ( ! "active".equals( status ) ) {
+                logger_.warning( "Resource " + identifier_ + " has status='"
+                               + status + "' - RI standard violation" );
+            }
             assert rMap.isEmpty();
         }
 
@@ -331,6 +341,7 @@ public class RegistryClient {
                 CONTACTNAME_PATH,
                 CONTACTEMAIL_PATH,
                 REFURL_PATH,
+                STATUS_PATH,
             } ) );
             capabilityPathSet_ = new HashSet( Arrays.asList( new String[] {
                 STDID_PATH,
