@@ -58,6 +58,9 @@ public class ProgressPanel
     /** Button to interrupt the task */
     protected JButton stopButton;
 
+    /** Whether to grey out the Stop button when stop is called. */
+    protected boolean disableOnStop = true;
+
     /** Displays the progress bar and status text */
     protected StatusPanel statusPanel;
 
@@ -155,17 +158,7 @@ public class ProgressPanel
      */
     public void logMessage( final String msg ) 
     {
-        if ( !SwingUtilities.isEventDispatchThread() ) {
-            SwingUtilities.invokeLater( new Runnable() 
-                {
-                    public void run() 
-                    {
-                        statusPanel.setText( msg );
-                    }
-                });
-            return;
-        }
-        statusPanel.setText( msg );
+        setText( msg );
     }
 
     /** 
@@ -230,14 +223,16 @@ public class ProgressPanel
             return;
         }
         interrupted = false;
+        stopButton.setEnabled( true );
+        stopButton.setText( "Stop" );
         statusPanel.getProgressBar().startAnimation();
     }
 
 
     /**
-     * Stop displaying the progress panel. This method may be called
-     * from any thread, but will always run in the event dispatching
-     * thread.
+     * Stop displaying the progress panel and record that a request for
+     * interruption has been made. This method may be called from any thread,
+     * but will always run in the event dispatching thread.
      */
     public void stop()
     {
@@ -258,8 +253,10 @@ public class ProgressPanel
         statusPanel.getProgressBar().setStringPainted( false );
         statusPanel.getProgressBar().setValue( 0 );
 
-        stopButton.setText( "Done" );
-        stopButton.setEnabled( false );
+        if ( disableOnStop ) {
+            stopButton.setText( "Done" );
+            stopButton.setEnabled( false );
+        }
     }
 
 
@@ -280,5 +277,24 @@ public class ProgressPanel
             return;
         }
         statusPanel.setProgress(percent);
+    }
+
+    /**
+     * Whether to disable the "Stop" button when stop has been called.
+     * Use this when only one action is associated with progress and you want
+     * to show that completion has been achieved without closing the
+     * associated window. This is on by default.
+     */
+    public void setDisableOnStop( boolean disableOnStop )
+    {
+        this.disableOnStop = disableOnStop;
+    }
+
+    /**
+     * Whether we're disabling the "Stop" button when stop has been called.
+     */
+    public boolean isDisableOnStop()
+    {
+        return disableOnStop;
     }
 }

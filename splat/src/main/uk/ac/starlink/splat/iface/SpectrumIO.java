@@ -11,8 +11,6 @@ package uk.ac.starlink.splat.iface;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
-import javax.swing.ProgressMonitor;
-import javax.swing.Timer;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
@@ -34,6 +32,13 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * To avoid this problem it would be necessary to free the NDF cache
  * AST reference directly. Exported AST references are unlocked so using
  * those in other threads should be OK.
+ * <p>
+ * When loading spectra you can add further spectra which will join the queue
+ * of spectra to load. When a list of spectra takes a long time to load a
+ * progress dialog window will be shown displaying the number of spectra
+ * remaining to load and the currently loading spectrum. Cancelling this
+ * window clears the queue of spectra and further loading, after the current
+ * spectrum completes, will not be done.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -42,8 +47,7 @@ public class SpectrumIO
 {
     //  XXX deficiencies: cannot stop during load of a spectrum. This would
     //  require a lot of work catching the problems with interrupting
-    //  incomplete objects. The ProgressMonitor is hacked to display after a
-    //  certain time, not just an amount of loading, this could be done better.
+    //  incomplete objects.
 
     /**
      * Private constructor so that only one instance can exist.
@@ -87,11 +91,10 @@ public class SpectrumIO
     private Loader loadThread = null;
 
     /**
-     * The ProgressMonitor.
+     * The ProgressFrame. This appears to denote that something is happening.
      */
-    private int progressValue;
-    private int progressMaximum;
-    private ProgressMonitor progressMonitor = null;
+    private ProgressFrame progressFrame =
+        new ProgressFrame( "Loading spectra..." );
 
     /**
      * The SplatBrowser to notify about any spectra that are loaded.
@@ -109,13 +112,6 @@ public class SpectrumIO
     private Props lastSpectrum = null;
 
     /**
-     * Step to push ProgressMonitor into displaying more often (there's a need
-     * to shift by 10% before it even thinks about displaying, which means
-     * single spectra never get a ProgressMonitor).
-     */
-    private static final int USTEP = 200;
-
-    /**
      * Index of saved file.
      */
     private final int globalIndex = 0;
@@ -128,10 +124,7 @@ public class SpectrumIO
 
     /**
      * Load an array of spectra whose specifications are contained in the
-     * elements of an array of Strings. If the loading process takes a "long"
-     * time then a ProgressMonitor dialog with be displayed, which can also be
-     * cancelled (which causes the next spectrum not to be loaded, the
-     * currently loaded spectrum will complete). This version uses a single
+     * elements of an array of Strings. This version uses a single
      * defined type for all spectra (set to {@link SpecDataFactory.DEFAULT}
      * for the usual file extensions rules).
      */
@@ -146,10 +139,7 @@ public class SpectrumIO
 
     /**
      * Load an array of spectra whose specifications are contained in the
-     * elements of an array of Strings. If the loading process takes a "long"
-     * time then a ProgressMonitor dialog with be displayed, which can also be
-     * cancelled (which causes the next spectrum not to be loaded, the
-     * currently loaded spectrum will complete). This method uses a different
+     * elements of an array of Strings. This method uses a different
      * type for each input spectrum, so the usertypes array is required to be
      * the same size as the spectra array.
      */
@@ -164,14 +154,10 @@ public class SpectrumIO
 
     /**
      * Load an array of spectra whose specifications are contained in the
-     * elements of the props array. If the loading process takes a "long"
-     * time then a ProgressMonitor dialog with be displayed, which can also be
-     * cancelled (which causes the next spectrum not to be loaded, the
-     * currently loaded spectrum will complete).
+     * elements of the props array.
      */
     public void load( SplatBrowser browser, boolean display, Props[] props )
     {
-        queue.clear();
         for ( int i = 0; i < props.length; i++ ) {
             queue.add( props[i] );
         }
@@ -185,7 +171,6 @@ public class SpectrumIO
      */
     protected synchronized void setSpectra( String[] spectra, int type )
     {
-        queue.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
                 queue.add( new Props( spectra[i], type, null ) );
@@ -199,7 +184,6 @@ public class SpectrumIO
      */
     protected synchronized void setSpectra( String[] spectra, int[] types )
     {
-        queue.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
                 queue.add( new Props( spectra[i], types[i], null ) );
@@ -214,7 +198,6 @@ public class SpectrumIO
     protected synchronized void setSpectra( String[] spectra, int[] types,
                                             String[] shortNames )
     {
-        queue.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
                 queue.add( new Props( spectra[i], types[i], shortNames[i] ) );
@@ -230,12 +213,12 @@ public class SpectrumIO
     protected synchronized Props getSpectrumProps()
     {
         try {
-            lastSpectrum = (Props) queue.remove( 0 );
+            return (Props) queue.remove( 0 );
         }
-        catch (ArrayIndexOutOfBoundsException e) {
-            lastSpectrum = null;
+        catch (Exception e) {
+            e.printStackTrace();
         }
-        return lastSpectrum;
+        return null;
     }
 
     /**
@@ -244,46 +227,16 @@ public class SpectrumIO
     protected void loadSpectra()
     {
         if ( ! queue.isEmpty() ) {
-            initProgressMonitor( queue.size(), "Loading spectra..." );
-            waitTimer = new Timer ( 2000, new ActionListener()
-                {
-                    private int soFar = 0;
-                    public void actionPerformed( ActionEvent e )
-                    {
-                        progressMonitor.setProgress( filesDone*USTEP + soFar );
-                        soFar++;
-                        if ( soFar >= USTEP ) soFar = 0;
-                        progressMonitor.setNote( lastSpectrum.getSpectrum() );
+            progressFrame.setTitle( "Loading "+ queue.size() +" spectra..." );
+            progressFrame.start();
 
-                        //  Stop loading spectra if asked.
-                        if (progressMonitor.isCanceled() ) {
-                            waitTimer.stop();
-
-                            //  If interrupted do not display already loaded
-                            //  spectra and clear the queue.
-                            if ( progressMonitor.isCanceled() ) {
-                                display = false;
-                                queue.clear();
-                            }
-                            //loadThread.interrupt();
-                        }
-                    }
-                });
-
-            //  Block the browser window and start the timer that updates the
-            //  ProgressMonitor.
+            //  Block the browser window during the load.
             browser.setWaitCursor();
-            waitTimer.start();
 
             //  Set up thread to start reading the spectra.
             loadThread.setAdd( true );
         }
     }
-
-    /**
-     * Timer for used for event queue actions.
-     */
-    private Timer waitTimer;
 
     /**
      * Number of files which we have loaded.
@@ -306,9 +259,12 @@ public class SpectrumIO
         StringBuffer failures = null;
         SplatException lastException = null;
 
-        // Add all spectra to the browser until the queue is empty.
-        while( ! queue.isEmpty() ) {
+        // Add all spectra to the browser until the queue is empty or
+        // the load is interrupted.
+        while( ! queue.isEmpty() && ! progressFrame.isInterrupted() ) {
+            progressFrame.setTitle( "Loading "+ queue.size() +" spectra..." );
             Props props = getSpectrumProps();
+            progressFrame.setMessage( props.getSpectrum() );
             boolean success = false;
             try {
                 browser.tryAddSpectrum( props );
@@ -366,69 +322,14 @@ public class SpectrumIO
     public void save( SplatBrowser browser, int globalIndex, String target )
     {
         //  Monitor progress by checking the filesDone variable.
-        initProgressMonitor( 1, "Saving spectrum..." );
-        progressMonitor.setNote( "as " + target );
-        waitTimer = new Timer ( 2000, new ActionListener()
-            {
-                int soFar = 0;
-                public void actionPerformed( ActionEvent e )
-                {
-                    progressMonitor.setProgress( soFar );
-                    if ( soFar > USTEP ) soFar = 0;
-                }
-            });
+        progressFrame.setTitle( "Saving spectrum..." );
+        progressFrame.setMessage( "as " + target );
+        progressFrame.start();
         browser.setWaitCursor();
-        waitTimer.start();
 
         //  Set up thread to save the spectrum.
         loadThread.setAdd( false );
         loadThread.setSave( globalIndex, target );
-    }
-
-    /**
-     * Initialise the startup progress monitor.
-     *
-     * @param intervals the number of intervals (i.e. calls to
-     *                   updateProgressMonitor) expected before action
-     *                   is complete.
-     * @param title the title for the monitor window.
-     * @see #updateProgressMonitor
-     */
-    protected void initProgressMonitor( int intervals, String title )
-    {
-        closeProgressMonitor();
-        progressValue = 0;
-        progressMaximum = intervals * USTEP;
-        progressMonitor = new ProgressMonitor( browser, title, "", 0,
-                                               progressMaximum );
-        progressMonitor.setMillisToDecideToPopup( 2000 );
-        progressMonitor.setMillisToPopup( 2000 );
-    }
-
-    /**
-     *  Update the progress monitor.
-     *
-     *  @param note note to show in the progress monitor dialog.
-     *
-     *  @see #initProgressMonitor
-     */
-    protected void updateProgressMonitor( String note )
-    {
-        progressMonitor.setProgress( ++progressValue );
-        progressMonitor.setNote( note );
-    }
-
-    /**
-     *  Close the progress monitor.
-     *
-     *  @see #initProgressMonitor
-     */
-    protected void closeProgressMonitor()
-    {
-        if ( progressMonitor != null ) {
-            progressMonitor.close();
-            progressMonitor = null;
-        }
     }
 
     /**
@@ -689,8 +590,10 @@ public class SpectrumIO
                             //  Always tidy up and rewaken interface when
                             //  complete (including if an error is thrown).
                             browser.resetWaitCursor();
-                            waitTimer.stop();
-                            closeProgressMonitor();
+                            progressFrame.stop();
+                            if ( progressFrame.isInterrupted() ) {
+                                queue.clear();
+                            }
                         }
                     }
                     else {
@@ -716,12 +619,17 @@ public class SpectrumIO
                             //  Always tidy up and rewaken interface when
                             //  complete (including if an error is thrown).
                             browser.resetWaitCursor();
-                            waitTimer.stop();
-                            closeProgressMonitor();
+                            progressFrame.stop();
+                            if ( progressFrame.isInterrupted() ) {
+                                queue.clear();
+                            }
                         }
                     }
                 }
                 waitDelay();
+                if ( progressFrame.isInterrupted() ) {
+                    queue.clear();
+                }
             }
         }
 
