@@ -57,26 +57,6 @@ public class JdbcConer implements Coner {
             "</p>",
         } );
 
-        dbraParam_ = new Parameter( "dbra" );
-        dbraParam_.setUsage( "<sql-col>" );
-        dbraParam_.setPrompt( "Name of right ascension column in database" );
-        dbraParam_.setDescription( new String[] {
-            "<p>The name of a column in the SQL database table",
-            "<code>" + dbtableParam_.getName() + "</code>",
-            "which gives the " + sys + "right ascension in degrees.",
-            "</p>",
-        } );
-
-        dbdecParam_ = new Parameter( "dbdec" );
-        dbdecParam_.setUsage( "<sql-col>" );
-        dbdecParam_.setPrompt( "Name of declination column in database" );
-        dbdecParam_.setDescription( new String[] {
-            "<p>The name of a column in the SQL database table",
-            "<code>" + dbtableParam_.getName() + "</code>",
-            "which gives the " + sys + "declination in degrees.",
-            "</p>",
-        } );
-
         dbunitParam_ = new ChoiceParameter( "dbunit" );
         dbunitParam_.addOption( AngleUnits.DEGREES, "deg" );
         dbunitParam_.addOption( AngleUnits.RADIANS, "rad" );
@@ -86,6 +66,28 @@ public class JdbcConer implements Coner {
             "<p>Units of the right ascension and declination columns",
             "identified in the database table.",
             "May be either deg[rees] (the default) or rad[ians].",
+            "</p>",
+        } );
+
+        dbraParam_ = new Parameter( "dbra" );
+        dbraParam_.setUsage( "<sql-col>" );
+        dbraParam_.setPrompt( "Name of right ascension column in database" );
+        dbraParam_.setDescription( new String[] {
+            "<p>The name of a column in the SQL database table",
+            "<code>" + dbtableParam_.getName() + "</code>",
+            "which gives the " + sys + "right ascension.",
+            "Units are given by <code>" + dbunitParam_.getName() + "</code>.",
+            "</p>",
+        } );
+
+        dbdecParam_ = new Parameter( "dbdec" );
+        dbdecParam_.setUsage( "<sql-col>" );
+        dbdecParam_.setPrompt( "Name of declination column in database" );
+        dbdecParam_.setDescription( new String[] {
+            "<p>The name of a column in the SQL database table",
+            "<code>" + dbtableParam_.getName() + "</code>",
+            "which gives the " + sys + "declination.",
+            "Units are given by <code>" + dbunitParam_.getName() + "</code>.",
             "</p>",
         } );
 
