@@ -343,9 +343,9 @@ public class ConeMatcher implements TableProducer {
      * <code>Double.NaN</code>s.
      *
      * @param  inTable  input table
-     * @param  ira  index of column in inTable giving right ascension in degrees
+     * @param  ira  index of column in inTable giving right ascension
      *              - may be -1 if unknown
-     * @param  idec index of column in inTable giving declination in degrees
+     * @param  idec index of column in inTable giving declination
      *              - may be -1 if unknown
      * @param  ra0  right ascension in degrees of position to calculate
      *              distances from
@@ -373,20 +373,47 @@ public class ConeMatcher implements TableProducer {
             };
         }
         else {
+            final double raUnit =
+                getAngleUnit( inTable.getColumnInfo( ira ).getUnitString() );
+            final double decUnit =
+                getAngleUnit( inTable.getColumnInfo( idec ).getUnitString() );
             return new AddColumnsTable( inTable, new int[] { ira, idec },
                                         addCols, ncolIn ) {
                 protected Object[] calculateValues( Object[] inValues ) {
                     double ra1 = inValues[ 0 ] instanceof Number
                                ? ((Number) inValues[ 0 ]).doubleValue()
+                                 * raUnit
                                : Double.NaN;
                     double dec1 = inValues[ 1 ] instanceof Number
                                 ? ((Number) inValues[ 1 ]).doubleValue()
+                                  * decUnit
                                 : Double.NaN;
                     double dist =
                         Coords.skyDistanceDegrees( ra0, dec0, ra1, dec1 );
                     return new Object[] { new Double( dist ) };
                 }
             };
+        }
+    }
+
+    /**
+     * Returns the conversion factor from a named angular unit to degrees.
+     *
+     * @param   unitString  unit string value
+     * @return   factor to multiply angles by to get degrees
+     */
+    private static double getAngleUnit( String unitString ) {
+        if ( unitString == null || unitString.trim().length() == 0 ) {
+            return 1.0;
+        }
+        else if ( unitString.toLowerCase().startsWith( "deg" ) ) {
+            return 1.0;
+        }
+        else if ( unitString.toLowerCase().startsWith( "rad" ) ) {
+            return 180. / Math.PI;
+        }
+        else {
+            return Double.NaN;
         }
     }
 
