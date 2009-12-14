@@ -13107,6 +13107,7 @@ introduced since the last version:
         run in topcat-lite configuration as well as topcat-full.</li>
     <li>Now warns about non-active resources returned from registry searches
         (which shouldn't happen).</li>
+    <li>Improved helpfulness of error messages in multi-cone etc windows.</li>
     </ul>
     </p></dd>
 

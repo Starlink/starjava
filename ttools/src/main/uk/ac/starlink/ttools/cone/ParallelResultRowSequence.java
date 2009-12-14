@@ -80,9 +80,11 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
 
             /* If there is an error, throw it. */
             if ( error_ != null ) {
-                throw (IOException)
-                      new IOException( "Rethrowing error from read thread" )
-                     .initCause( error_ );
+                String msg = error_.getMessage();
+                if ( msg == null || msg.length() == 0 ) {
+                    msg = error_.toString();
+                }
+                throw (IOException) new IOException( msg ).initCause( error_ );
             }
 
             /* If we have a result, note it as the current one for purposes

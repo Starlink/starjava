@@ -190,9 +190,11 @@ public class OnceRowPipe implements RowPipe, RowSequence {
      */
     private void checkError() throws IOException {
         if ( error_ != null ) {
-            throw (IOException)
-                  new IOException( "Rethrowing cached error from read thread" )
-                 .initCause( error_ );
+            String msg = error_.getMessage();
+            if ( msg == null || msg.length() == 0 ) {
+                msg = error_.toString();
+            }
+            throw (IOException) new IOException( msg ).initCause( error_ );
         }
     }
 }
