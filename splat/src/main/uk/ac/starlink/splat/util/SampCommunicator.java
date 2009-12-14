@@ -92,7 +92,6 @@ public class SampCommunicator
         ClientProfile profile = server.getSampProfile();
         hubConnector = new MessageTrackerHubConnector( profile );
         SpectrumLoadHandler loadHandler = new SpectrumLoadHandler();
-        SpectrumIO.getInstance().setWatcher( loadHandler );
         initConnector( new MessageHandler[] { loadHandler, } );
     }
 
@@ -236,6 +235,7 @@ public class SampCommunicator
                                          String senderId, Message message )
         {
             SpectrumIO.Props props = createProps( message );
+            SpectrumIO.getInstance().setWatcher( this );
             loadSpectrum( props );
         }
 
@@ -248,6 +248,7 @@ public class SampCommunicator
         {
             SpectrumIO.Props props = createProps( message );
             propsMap.put( props, new MsgInfo( connection, msgId ) );
+            SpectrumIO.getInstance().setWatcher( this );
             loadSpectrum( props );
         }
 
@@ -264,6 +265,9 @@ public class SampCommunicator
             }
             else {
                 logger.info( "Orphaned SAMP spectrum load success?" );
+            }
+            if ( propsMap.size() == 0 ) {
+                SpectrumIO.getInstance().setWatcher( null );
             }
         }
 
@@ -282,6 +286,9 @@ public class SampCommunicator
             }
             else {
                 logger.info( "Orphaned SAMP spectrum load failure?" );
+            }
+            if ( propsMap.size() == 0 ) {
+                SpectrumIO.getInstance().setWatcher( null );
             }
         }
 
