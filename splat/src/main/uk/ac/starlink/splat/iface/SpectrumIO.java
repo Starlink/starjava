@@ -257,7 +257,7 @@ public class SpectrumIO
         int initialsize = globalList.specCount();
         filesDone = 0;
         StringBuffer failures = null;
-        SplatException lastException = null;
+        Exception lastException = null;
 
         // Add all spectra to the browser until the queue is empty or
         // the load is interrupted.
@@ -271,13 +271,16 @@ public class SpectrumIO
                 validFiles++;
                 success = true;
             }
-            catch (SplatException e) {
+            catch (Exception e) {
+                //  Catch all exceptions, we need to make sure that the
+                //  watcher notification proceeds regardless.
+                e.printStackTrace();
+                lastException = e;
                 if ( failures == null ) {
                     failures = new StringBuffer();
                 }
                 failures.append( e.getMessage() + "\n" );
                 failedFiles++;
-                lastException = e;
             }
             finally {
                 if ( watcher != null ) {
