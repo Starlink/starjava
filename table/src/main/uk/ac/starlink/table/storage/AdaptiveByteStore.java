@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.storage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class AdaptiveByteStore implements ByteStore {
 
     /* This object works in two phases.
      * In the first phase,
-     *     baseOut_ instanceof BytesOutputStream
+     *     baseOut_ instanceof ByteArrayOutputStream
      *     count_ == number of bytes written < memLimit_
      *     file_ == null
      * In the second phase:
@@ -53,15 +54,7 @@ public class AdaptiveByteStore implements ByteStore {
      */
     public AdaptiveByteStore( int memLimit ) throws IOException {
         try {
-
-            /* Attempt to allocate twice the maximum amount that this 
-             * byte store will use.  The point of this is that we don't
-             * want to use the last little bit of memory here as it may 
-             * cause problems for other JVM operations.  If there isn't
-             * at least twice what we're going to need, fall back to
-             * disk storage instead. */
-            byte[] dummy = new byte[ memLimit ];
-            baseOut_ = new BytesOutputStream( memLimit );
+            baseOut_ = new ByteArrayOutputStream();
         }
         catch ( OutOfMemoryError e ) {
             logger_.info( "Insufficient heap for " + memLimit
@@ -87,7 +80,7 @@ public class AdaptiveByteStore implements ByteStore {
     public void copy( OutputStream out ) throws IOException {
         out_.flush();
         if ( file_ == null ) {
-            ((BytesOutputStream) baseOut_).writeTo( out );
+            ((ByteArrayOutputStream) baseOut_).writeTo( out );
         }
         else {
             FileByteStore.copy( file_, out );
@@ -96,8 +89,9 @@ public class AdaptiveByteStore implements ByteStore {
 
     public ByteBuffer toByteBuffer() throws IOException {
         out_.flush();
-        return file_ == null 
-             ? ((BytesOutputStream) baseOut_).toByteBuffer()
+        return file_ == null
+             ? ByteBuffer.wrap( ((ByteArrayOutputStream) baseOut_)
+                               .toByteArray() )
              : FileByteStore.toByteBuffer( file_ );
     }
 
@@ -138,7 +132,8 @@ public class AdaptiveByteStore implements ByteStore {
             if ( c1 > memLimit_ ) {
                 baseOut_.close();
                 file_ = createFile();
-                BytesOutputStream byteOut = (BytesOutputStream) baseOut_;
+                ByteArrayOutputStream byteOut =
+                    (ByteArrayOutputStream) baseOut_;
                 logger_.info( "AdaptiveByteStore: switching from memory buffer"
                             + " to temp file " + file_ + " at " + memLimit_
                             + " bytes" );
@@ -201,72 +196,6 @@ public class AdaptiveByteStore implements ByteStore {
 
         public void close() throws IOException {
             baseOut_.close();
-        }
-    }
-
-    /**
-     * OutputStream implementation which writes all data to a fixed-size
-     * byte array.  This is similar to java.io.ByteArrayOutputStream,
-     * but more transparent, will not reallocate larger buffers, and
-     * does not need to do as much limit checking.
-     */
-    private static class BytesOutputStream extends OutputStream {
-        private final int size_;
-        private final byte[] buffer_;
-        private int memCount_;
-
-        /**
-         * Constructor.
-         *
-         * @param  size   fixed size of byte buffer
-         */
-        BytesOutputStream( int size ) {
-            size_ = size;
-            buffer_ = new byte[ size ];
-        }
-
-        public void write( byte[] bs, int off, int len ) {
-            System.arraycopy( bs, off, buffer_, memCount_, len );
-            memCount_ += len;
-        }
-
-        public void write( byte[] bs ) {
-            write( bs, 0, bs.length );
-        }
-
-        public void write( int b ) {
-            buffer_[ memCount_++ ] = (byte) b;
-        }
-
-        /**
-         * Copies the contents of this buffer to an output stream.
-         *
-         * @param  out  destination stream
-         */
-        public void writeTo( OutputStream out ) throws IOException {
-            out.write( buffer_, 0, memCount_ );
-        }
-
-        /**
-         * Returns a ByteBuffer containing the contents of this stream.
-         *
-         * @return  byte buffer
-         */
-        public ByteBuffer toByteBuffer() {
-
-            /* Copy to a new byte array of exactly the same size.
-             * This is efficient on the assumption that this method will
-             * only be called once, after all the writing has been done;
-             * the general contract of ByteStore suggests this usage pattern. */
-            byte[] outArray = new byte[ memCount_ ];
-            System.arraycopy( buffer_, 0, outArray, 0, memCount_ );
-            return ByteBuffer.wrap( outArray );
-        }
-
-        public void flush() {
-        }
-
-        public void close() {
         }
     }
 }
