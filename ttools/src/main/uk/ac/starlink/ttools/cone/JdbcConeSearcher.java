@@ -9,10 +9,13 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.SelectorStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
+import uk.ac.starlink.ttools.func.Coords;
 
 /**
  * ConeSearcher implementation using JDBC access to an SQL database.
@@ -87,7 +90,8 @@ public class JdbcConeSearcher implements ConeSearcher {
                                               prepareSql );
     }
 
-    public StarTable performSearch( double ra, double dec, double sr )
+    public StarTable performSearch( final double ra, final double dec,
+                                    final double sr )
             throws IOException {
 
         /* Execute the statement and turn it into a StarTable. */
@@ -116,6 +120,8 @@ public class JdbcConeSearcher implements ConeSearcher {
         /* Identify the columns containing RA and Dec first time around
          * (it should be the same for every query, so we only do it once). */
         boolean convertAngles = ! AngleUnits.DEGREES.equals( units_ );
+        final double angleFactor =
+            AngleUnits.DEGREES.getCircle() / units_.getCircle();
         if ( first_ ) {
             first_ = false;
             try {
@@ -148,6 +154,25 @@ public class JdbcConeSearcher implements ConeSearcher {
             }
         }
 
+        /* Filter the output table so that it contains only results 
+         * inside the requested cone.  The result of the SQL query may 
+         * contain some additional ones, since it queries a box-like shape. */
+        StarTable coneTable = new SelectorStarTable( rsetTable ) {
+            public boolean isIncluded( RowSequence rseq ) throws IOException {
+                Object raCell = rseq.getCell( raRsetIndex_ );
+                Object decCell = rseq.getCell( decRsetIndex_ );
+                double rowRa = ( raCell instanceof Number )
+                             ? ((Number) raCell).doubleValue() * angleFactor
+                             : Double.NaN;
+                double rowDec = ( decCell instanceof Number )
+                              ? ((Number) decCell).doubleValue() * angleFactor
+                              : Double.NaN;
+                double dist =
+                    Coords.skyDistanceDegrees( ra, dec, rowRa, rowDec );
+                return ! ( dist > sr );
+            }
+        };
+
         /* Doctor the output table: if the angles are not in degrees as
          * supplied, append columns which are in degrees, since they are
          * required by the interface. */
@@ -156,8 +181,6 @@ public class JdbcConeSearcher implements ConeSearcher {
             inColIndices[ i ] = i;
         }
         List outInfoList = new ArrayList();
-        final double angleFactor =
-            AngleUnits.DEGREES.getCircle() / units_.getCircle();
         final boolean addDegCols =
             convertAngles && raRsetIndex_ >= 0 && decRsetIndex_ >= 0;
         if ( addDegCols ) {
@@ -166,7 +189,7 @@ public class JdbcConeSearcher implements ConeSearcher {
         }
         ColumnInfo[] outInfos =
             (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
-        StarTable result = new AddColumnsTable( rsetTable, inColIndices,
+        StarTable result = new AddColumnsTable( coneTable, inColIndices,
                                                 outInfos, ncolRset ) {
             protected Object[] calculateValues( Object[] inValues ) {
                 List calcValues = new ArrayList();
