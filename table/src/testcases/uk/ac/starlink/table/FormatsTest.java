@@ -287,7 +287,6 @@ public class FormatsTest extends TableCase {
         assertValidXML( new InputSource( loc.toString() ) );
         StarTable t2 = new StarTableFactory()
                       .makeStarTable( loc.toString() );
-        assertTrue( t2 instanceof VOStarTable );
         checkStarTable( t2 );
 
         assertVOTableEquals( t1, t2, squashNulls );
