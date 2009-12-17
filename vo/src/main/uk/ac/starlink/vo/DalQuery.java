@@ -3,19 +3,11 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Logger;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import org.xml.sax.InputSource;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.CgiQuery;
-import uk.ac.starlink.util.DOMUtils;
-import uk.ac.starlink.votable.TableElement;
-import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
-import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Represents a particular query to a DAL-like service.
@@ -108,83 +100,11 @@ public class DalQuery {
         /* Submit the CGI query and create a DOM from the resulting stream. */
         URL qurl = cgi_.toURL();
         logger_.info( "Submitting query: " + qurl );
-        StoragePolicy storage = tfact.getStoragePolicy();
-        VOElement topEl;
-        try {
-            topEl = new VOElementFactory( storage )
-                   .makeVOElement( qurl.openStream(), qurl.toString() );
-        }
-        catch ( SAXException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
-
-        /* Locate the first RESOURCE element with type="results", which
-         * is defined to contain the result. */
-        NodeList resources = topEl.getElementsByTagName( "RESOURCE" );
-        Element results = null;
-        for ( int i = 0; i < resources.getLength(); i++ ) {
-            Element resource = (Element) resources.item( i );
-
-            /* Since the VOTable 1.1 schema defines "results" as the default
-             * value of the type attribute, an absent type should probably
-             * count.  Use this if we don't find an explicit results value. */
-            if ( ! resource.hasAttribute( "type" ) ) {
-                results = resource;
-            }
-
-            /* If we have one explicitly marked results though, use that. */
-            else if ( "results".equals( resource.getAttribute( "type" ) ) ) {
-                results = resource;
-                break;
-            }
-        }
-
-        /* If there is no results element, throw an exception. */
-        if ( results == null ) {
-            throw new IOException( "No suitable RESOURCE found " +
-                                   "in returned VOTable" );
-        }
-
-        /* Try to find the status info. */
-        String status = null;
-        String message = null;
-        for ( Node node = results.getFirstChild(); node != null;
-              node = node.getNextSibling() ) {
-            if ( node instanceof Element ) {
-                Element el = (Element) node;
-                if ( "INFO".equals( el.getTagName() ) &&
-                     "QUERY_STATUS".equals( el.getAttribute( "name" ) ) ) {
-                    status = el.getAttribute( "value" );
-                    message = DOMUtils.getTextContent( el );
-                    break;
-                }
-            }
-        }
-
-        /* If the query status is error, throw an exception. */
-        if ( "ERROR".equals( status ) ) {
-            throw new IOException( serviceType_ + " query error: " + message );
-        }
-
-        /* Locate the table within the results resource. */
-        StarTable st = null;
-        for ( Node node = results.getFirstChild(); node != null;
-              node = node.getNextSibling() ) {
-            if ( node instanceof TableElement ) {
-                st = new VOStarTable( (TableElement) node );
-                break;
-            }
-        }
-
-        /* If there was no table, throw an exception. */
-        if ( st == null ) {
-            throw new IOException( "No TABLE element found in " + serviceType_
-                                 + " returned VOTable" );
-        }
-
-        /* Return the StarTable. */
-        return st;
+        VOElementFactory vofact =
+            new VOElementFactory( tfact.getStoragePolicy() );
+        InputSource inSrc = new InputSource( qurl.openStream() );
+        inSrc.setSystemId( qurl.toString() );
+        return DalResultXMLFilter.getDalResultTable( vofact, inSrc );
     }
 
     public String toString() {
