@@ -13,6 +13,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.MultiTableBuilder;
+import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -98,42 +99,30 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
             }
             catch ( NumberFormatException e ) {
                 throw new TableFormatException( 
-                    "Expecting integer for position in " +
-                    datsrc + "(" +  e + ")" );
+                    "Expecting integer for position in " + datsrc +
+                    " (got \"" + pos + "\")", e );
             }
             if ( itab < 0 ) {
                 throw new TableFormatException(
-                    "Expecting integer >= 0 for position in " + 
-                    datsrc + "(got " + itab + ")" );
+                    "Expecting integer >= 0 for position in" + datsrc +
+                    " (got " + itab + ")" );
             }
         }
 
-        /* Read the data. */
-        TableElement[] tEls = readTableElements( datsrc, storagePolicy );
-
-        /* Identify the requested TABLE element from the list that has been
-         * read. */
-        int ntab = tEls.length;
-        if ( ntab == 0 ) {
-            throw new TableFormatException( "Document contains "
-                                          + "no TABLE elements" );
+        /* Stream the result to a new table store. */
+        final RowStore rowStore = storagePolicy.makeRowStore();
+        InputSource saxSrc = new InputSource( datsrc.getInputStream() );
+        saxSrc.setSystemId( datsrc.getSystemId() );
+        try {
+            TableStreamer.streamStarTable( saxSrc, rowStore, itab, strict_ );
         }
-        else if ( itab >= ntab ) {
-            throw new IOException( "VOTable document contained only " + ntab
-                                 + " tables; item " + itab + " requested" );
-        }
-        TableElement tEl = tEls[ itab ];
-
-        /* Adapt the TABLE element to a StarTable. */
-        StarTable st = new VOStarTable( tEl );
-
-        /* Check it looks vaguely sensible. */
-        if ( st.getColumnCount() == 0 ) {
-            throw new TableFormatException( "TABLE contains no columns" );
+        catch ( SAXException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
 
-        /* Return the StarTable. */
-        return st;
+        /* Return the resulting table. */
+        return rowStore.getStarTable();
     }
 
     public StarTable[] makeStarTables( DataSource datsrc,

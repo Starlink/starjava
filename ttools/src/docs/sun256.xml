@@ -6371,6 +6371,8 @@ but my thanks are especially due to the following:
     <li>Fixed internationalisation bug which could cause
         <code>coneskymatch</code> to fail in locales that use ","
         for a decimal point.</li>
+    <li>Significant performance improvements related to the case of VOTable
+        documents containing many tables.</li>
     </ul>
     </p></dd>
 
