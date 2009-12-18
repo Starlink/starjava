@@ -108,7 +108,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>6 November 2009</docdate>
+<docdate>21 December 2009</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -13087,10 +13087,14 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
-<dd><p>
+<dt>Version 3.5-1 (21 December 2009)</dt>
+<dd><p>This version has one significant new feature:
     <ul>
     <li>Plot windows can now export to PDF as well as other formats.</li>
+    </ul>
+    Other than that, is is mostly performance and usability enhancements and
+    bugfixes:
+    <ul>
     <li>Fixed a bug which caused an error when attempting to load multiple
         files from the command line.</li>
     <li>Improve documentation of 3D windows, including zoom options.</li>
