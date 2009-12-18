@@ -47,10 +47,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 
@@ -63,6 +63,8 @@ import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
+
+import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
@@ -91,6 +93,7 @@ import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
+import uk.ac.starlink.vo.DalResultXMLFilter;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.votable.DataFormat;
@@ -352,7 +355,7 @@ public class SSAQueryBrowser
         resolverMenu.add( jrbmi );
         jrbmi.setSelected( false );
         bg.add( jrbmi );
-        jrbmi.setAction( new ResolverAction( "SIMBAD via CADC", 
+        jrbmi.setAction( new ResolverAction( "SIMBAD via CADC",
                                              simbadCatalogue ) );
         jrbmi.setToolTipText( "SIMBAD service served by CADC" );
 
@@ -782,11 +785,11 @@ public class SSAQueryBrowser
                 dec = null;
             }
             else {
-              JOptionPane.showMessageDialog( this, "You have not supplied "+
-                                             "a search centre or object name",
-                                             "No RA or Dec",
-                                             JOptionPane.ERROR_MESSAGE );
-              return;
+                JOptionPane.showMessageDialog( this, "You have not supplied " +
+                                               "a search centre or object " +
+                                               "name", "No RA or Dec",
+                                               JOptionPane.ERROR_MESSAGE );
+                return;
             }
         }
 
@@ -944,10 +947,6 @@ public class SSAQueryBrowser
 
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
-        StarTableFactory factory = new StarTableFactory();
-        TableBuilder[] blist = { new VOTableBuilder() };
-        factory.setDefaultBuilders( blist );
-
         StarTable starTable = null;
 
         // int j = 0;
@@ -956,7 +955,13 @@ public class SSAQueryBrowser
             URL url = ssaQuery.getQueryURL();
             progressPanel.logMessage( ssaQuery.getBaseURL() );
             logger.info( "Querying: " + url );
-            starTable = factory.makeStarTable( url );
+
+            //  Do the query and get the result as a StarTable. Uses this
+            //  method for efficiency as non-result tables are ignored.
+            InputSource inSrc = new InputSource( url.openStream() );
+            inSrc.setSystemId( url.toString() );
+            VOElementFactory vofact = new VOElementFactory();
+            starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
 
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
@@ -1072,14 +1077,18 @@ public class SSAQueryBrowser
         }
         if ( starTable != null ) {
             //  Check if table has rows, if not skip.
-            if ( starTable.getRowCount() > 0 ) {
+            int nrows = (int) starTable.getRowCount();
+            if (  nrows > 0 ) {
                 table = new StarJTable( starTable, true );
                 scrollPane = new JScrollPane( table );
                 resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
                 //  Set widths of columns.
-                table.configureColumnWidths( 200, 5 );
+                if ( nrows > 1 ) {
+                    nrows = ( nrows > 5 ) ? 5 : nrows;
+                    table.configureColumnWidths( 200, nrows );
+                }
 
                 //  Double click on row means load just that spectrum.
                 table.addMouseListener( this );
