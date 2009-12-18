@@ -13,6 +13,8 @@
    The loading of spectra using SSAP downloads no longer blocks the 
    interface. The previous behaviour was a bug.
 
+   Support for asynchronous calls from SAMP has been improved.
+
    3.9-3
    =====
 
