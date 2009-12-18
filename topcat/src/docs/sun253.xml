@@ -8842,19 +8842,21 @@ The options for catalogue selection are as follows:
 of the catalogues in question will be listed in the table for selection:
 <dl>
 <dt>Name</dt>
-<dd>Unique VizieR identifier for the catalogue</dd>
+<dd><p>Unique VizieR identifier for the catalogue</p></dd>
 <dt>Description</dt>
-<dd>Short description of contents</dd>
+<dd><p>Short description of contents</p></dd>
 <dt>KRows</dt>
-<dd>Approximate number of thousands of rows</dd>
+<dd><p>Approximate number of thousands of rows</p></dd>
 <dt>Popularity</dt>
-<dd>A measure of the number of queries on the catalogue served by VizieR</dd>
+<dd><p>A measure of the number of queries on the catalogue served by
+    VizieR</p></dd>
 <dt>Density</dt>
-<dd>A measure of the number of sources per unit solid angle on the sky</dd>
+<dd><p>A measure of the number of sources per unit solid angle
+    on the sky</p></dd>
 <dt>Wavelengths</dt>
-<dd>Keywords describing wavelength regimes covered</dd>
+<dd><p>Keywords describing wavelength regimes covered</p></dd>
 <dt>Astronomy</dt>
-<dd>Keywords describing subject domain</dd>
+<dd><p>Keywords describing subject domain</p></dd>
 </dl>
 </p>
 
