@@ -71,8 +71,8 @@ public class ProgressFrame
     {
         synchronized( this ) {
             makeVisible = false;
-            setVisible( false );
             progressPanel.stop();
+            setVisible( false );
         }
     }
 
@@ -84,8 +84,8 @@ public class ProgressFrame
         synchronized( this ) {
             if ( ! isVisible() ) {
                 makeVisible = true;
-                eventuallyMakeVisible();
                 progressPanel.start();
+                eventuallyMakeVisible();
             }
         }
     }
@@ -106,8 +106,10 @@ public class ProgressFrame
                         public void actionPerformed( ActionEvent e )
                         {
                             if ( makeVisible ) {
-                                setVisible( true );
-                                makeVisible = false;
+                                synchronized( this ) {
+                                    setVisible( true );
+                                    makeVisible = false;
+                                }
                             }
                         }
                     });
