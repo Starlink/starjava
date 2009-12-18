@@ -8838,6 +8838,26 @@ The options for catalogue selection are as follows:
 </dl>
 </p>
 
+<p>Depending on the type of catalogue search you make, various attributes
+of the catalogues in question will be listed in the table for selection:
+<dl>
+<dt>Name</dt>
+<dd>Unique VizieR identifier for the catalogue</dd>
+<dt>Description</dt>
+<dd>Short description of contents</dd>
+<dt>KRows</dt>
+<dd>Approximate number of thousands of rows</dd>
+<dt>Popularity</dt>
+<dd>A measure of the number of queries on the catalogue served by VizieR</dd>
+<dt>Density</dt>
+<dd>A measure of the number of sources per unit solid angle on the sky</dd>
+<dt>Wavelengths</dt>
+<dd>Keywords describing wavelength regimes covered</dd>
+<dt>Astronomy</dt>
+<dd>Keywords describing subject domain</dd>
+</dl>
+</p>
+
 <p>When you have made your selection of rows, columns and catalogue
 you can hit the <label>OK</label> button and TOPCAT will attempt to
 contact the VizieR service to load the resulting table or tables.
