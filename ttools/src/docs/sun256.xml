@@ -95,7 +95,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>6 November 2009</docdate>
+<docdate>21 December 2009</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -6363,7 +6363,7 @@ but my thanks are especially due to the following:
     you might want to wait for a later release when the API has settled down.
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.1-1 (21 December 2009)</dt>
 <dd><p>
     <ul>
     <li>Plotting commands can now output to PDF as well as existing graphics
