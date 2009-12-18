@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -375,6 +376,18 @@ public class TablePipeTest extends TableTestCase {
         catch ( IOException e ) {
             assertTrue( e.getMessage().indexOf( "not fixed" ) > 0 );
         }
+    }
+
+    public void testFixNames() throws Exception {
+        assertSameData( inTable_, apply( "fixcolnames" ) );
+        StarTable t1 = apply( "addcol 'a b c' 99" );
+        t1.setParameter( new DescribedValue(
+                             new DefaultValueInfo( "d e f", Integer.class ),
+                             new Integer( 2112 ) ) );
+        StarTable t2 = process( t1, "fixcolnames" );
+        assertEquals( "a_b_c", getColNames( t2 )[ inTable_.getColumnCount() ] );
+        assertEquals( new Integer( 2112 ),
+                      t2.getParameterByName( "d_e_f" ).getValue() );
     }
 
     public void testHead() throws Exception {

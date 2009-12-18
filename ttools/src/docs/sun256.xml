@@ -6368,6 +6368,7 @@ but my thanks are especially due to the following:
     <ul>
     <li>Plotting commands can now output to PDF as well as existing graphics
         formats.</li>
+    <li>New filter <ref id="fixcolnames"><code>fixcolnames</code></ref>.</li>
     <li>Fixed internationalisation bug which could cause
         <code>coneskymatch</code> to fail in locales that use ","
         for a decimal point.</li>
