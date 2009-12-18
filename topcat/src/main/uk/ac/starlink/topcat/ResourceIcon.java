@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -328,6 +329,41 @@ public class ResourceIcon implements Icon {
             resourceFound = Boolean.FALSE;
         }
         return icon;
+    }
+
+    /**
+     * Returns a full-size TOPCAT logo for display.
+     *
+     * @return  topcat logo
+     */
+    public static Icon getTopcatLogo() {
+        return isFestive() ? ResourceIcon.TOPCAT_LOGO_XM
+                           : ResourceIcon.TOPCAT_LOGO;
+    }
+
+    /**
+     * Returns an icon-size TOPCAT logo.
+     *
+     * @return   24x24 pixel topcat logo
+     */
+    public static Icon getTopcatLogoSmall() {
+        return isFestive() ? ResourceIcon.TOPCAT_LOGO_XM_SMALL
+                           : ResourceIcon.TOPCAT_LOGO_SMALL;
+    }
+
+    /**
+     * This entirely frivolous method determines whether the date is close
+     * enough to Christmas to put a santa hat on the TOPCAT logo.
+     * The corresponding functionality is largely undocumented.
+     *
+     * @return  true  iff it's festive time
+     */
+    static boolean isFestive() {
+        Calendar now = Calendar.getInstance();
+        int month = now.get( Calendar.MONTH );
+        int day = now.get( Calendar.DAY_OF_MONTH );
+        return ( month == Calendar.DECEMBER && day >= 15 )
+            || ( month == Calendar.JANUARY && day <= 6 );
     }
 
     /**
@@ -678,5 +714,4 @@ public class ResourceIcon implements Icon {
             System.exit( 1 );
         }
     }
-
 }

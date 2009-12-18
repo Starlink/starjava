@@ -203,7 +203,7 @@ public class AuxWindow extends JFrame {
 
         /* Add an About action. */
         aboutAct = new AuxAction( "About TOPCAT",
-                                  ResourceIcon.TOPCAT_LOGO_SMALL, null );
+                                  ResourceIcon.getTopcatLogoSmall(), null );
         helpMenu.add( aboutAct );
 
         /* Add a close button. */
@@ -650,7 +650,7 @@ public class AuxWindow extends JFrame {
                                                msg,
                                                "About TOPCAT",
                                                JOptionPane.INFORMATION_MESSAGE,
-                                               ResourceIcon.TOPCAT_LOGO );
+                                               ResourceIcon.getTopcatLogo() );
             }
         }
     }
