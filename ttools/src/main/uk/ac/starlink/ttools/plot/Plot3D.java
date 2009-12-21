@@ -230,7 +230,7 @@ public abstract class Plot3D extends TablePlot {
         PlotVolume vol;
         if ( isVectorContext( g ) ) {
             if ( ! allOpaque ) {
-                logger_.warning( "Can't render transparency in PostScript" );
+                logger_.warning( "Can't render transparency to vector format" );
             }
             vol = new VectorSortPlotVolume( c, g, styles, padFactor,
                                             padBorders_, fog, tweaker );
