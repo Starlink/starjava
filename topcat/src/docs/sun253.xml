@@ -11413,8 +11413,9 @@ functionality:
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
-<li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
-            >IVOARegistry</webref> (NVO) for IVOA registry access</li>
+<li><webref url="http://trac.us-vo.org/project/nvo/wiki/ADQLlib"
+            >ADQLlib</webref>
+    (NVO) for ADQL/X-&gt;S translations in registry searches</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within TOPCAT)</li>
@@ -11441,42 +11442,43 @@ functionality:
 </ul>
 </p>
 
-<p>The following users, testers and programmers have supplied useful
-comments (apologies for any missed out):
+<p>TOPCAT has benefitted from, and is largely shaped by, advice,
+comments and feedback from very many users, testers and developers.
+Some of the notable contributers are these:
 <ul>
-<li>Malcolm Currie (Starlink, RAL)</li>
-<li>David Giaretta (Starlink, RAL)</li>
-<li>Clive Page (Leicester)</li>
-<li>Clive Davenhall (Royal Observatory Edinburgh)</li>
-<li>Tim Jenness (JACH)</li>
-<li>Mike Read (ROE)</li>
-<li>Peter Draper (Starlink, Durham)</li>
 <li>Alasdair Allan (Starlink, Exeter)</li>
-<li>Roy Platon (RAL)</li>
-<li>Norman Gray (Starlink, Glasgow)</li>
-<li>Jonathan Irwin (Cambridge)</li>
 <li>Mark Allen (CDS)</li>
-<li>Francois Ochsenbein (CDS)</li>
-<li>Mike Watson (Leicester)</li>
-<li>Bob Mann (Royal Observatory Edinburgh)</li>
-<li>Richard McMahon (IoA)</li>
-<li>Anita Richards (Jodrell Bank)</li>
-<li>Eduardo Gonzalez-Solares (IoA)</li>
-<li>Gerard Lemson (MPE Garching)</li>
-<li>Evanthia Hatziminaoglou (ESO)</li>
-<li>James Price (Bristol)</li>
-<li>Aaron Robotham (Bristol)</li>
+<li>Thomas Boch (CDS)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
-<li>David Mills (Bristol)</li>
-<li>Douglas Morgan (Bristol)</li>
-<li>Haggis Harris (Bath)</li>
-<li>Shashikiran Ganesh (PRL, India)</li>
-<li>Ivan Zolotukhin (SAI MSU)</li>
+<li>Malcolm Currie (Starlink, RAL)</li>
+<li>Clive Davenhall (Royal Observatory Edinburgh)</li>
 <li>Luke Davies (Bristol)</li>
 <li>Sebastien Derriere (CDS)</li>
-<li>Thomas Boch (CDS)</li>
+<li>Peter Draper (Starlink, Durham)</li>
 <li>Pierre Fernique (CDS)</li>
+<li>Shashikiran Ganesh (PRL, India)</li>
+<li>David Giaretta (Starlink, RAL)</li>
+<li>Eduardo Gonzalez-Solares (IoA)</li>
+<li>Norman Gray (Starlink, Glasgow)</li>
+<li>Haggis Harris (Bath)</li>
+<li>Evanthia Hatziminaoglou (ESO)</li>
+<li>Jonathan Irwin (Cambridge)</li>
+<li>Tim Jenness (JACH)</li>
+<li>Gerard Lemson (MPE Garching)</li>
+<li>Bob Mann (Royal Observatory Edinburgh)</li>
+<li>Richard McMahon (IoA)</li>
 <li>Guillaume Mella (JMMC)</li>
+<li>David Mills (Bristol)</li>
+<li>Douglas Morgan (Bristol)</li>
+<li>Francois Ochsenbein (CDS)</li>
+<li>Clive Page (Leicester)</li>
+<li>Roy Platon (RAL)</li>
+<li>James Price (Bristol)</li>
+<li>Anita Richards (Jodrell Bank)</li>
+<li>Aaron Robotham (Bristol)</li>
+<li>Mike Read (ROE)</li>
+<li>Mike Watson (Leicester)</li>
+<li>Ivan Zolotukhin (SAI MSU)</li>
 </ul>
 </p>
 
