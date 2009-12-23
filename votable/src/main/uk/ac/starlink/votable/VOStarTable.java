@@ -7,8 +7,8 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -367,27 +367,16 @@ public class VOStarTable extends AbstractStarTable {
         }
 
         /* Work out how many TABLE elements there are in the document. */
-        Element top = table.getOwnerDocument().getDocumentElement();
-        int index = 0;
-        if ( top instanceof VOElement ) {
-            NodeList tables =
-                ((VOElement) top).getElementsByVOTagName( "TABLE" );
-            int ntab = tables.getLength();
-            if ( ntab > 1 ) {
-                for ( int i = 0; i < ntab; i++ ) {
-                    if ( tables.item( i ) == table ) {
-                        index = i + 1;
-                        break;
-                    }
-                }
-            }
-        }
-        if ( index == 0 ) {
-            return sysid == null ? "votable" : sysid;
+        Document doc = table.getOwnerDocument();
+        boolean multiTable = (doc instanceof VODocument)
+                           ? ((VODocument) doc).getElementCount( "TABLE" ) > 1
+                           : true;
+        if ( multiTable ) {
+            return ( sysid == null ? "" : sysid )
+                 + "#" + ( table.getElementSequence() + 1 );
         }
         else {
-            return ( sysid == null ? "" : sysid )
-                 + "#" + index;
+            return sysid == null ? "votable" : sysid;
         }
     }
 

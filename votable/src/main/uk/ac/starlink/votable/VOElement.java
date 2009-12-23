@@ -35,6 +35,8 @@ import uk.ac.starlink.votable.dom.DelegatingElement;
  */
 public class VOElement extends DelegatingElement {
 
+    private final int iseq_;
+
     /**
      * Constructs a VOElement from a DOM element.
      *
@@ -43,6 +45,7 @@ public class VOElement extends DelegatingElement {
      */
     VOElement( Element base, VODocument doc ) {
         super( base, doc );
+        iseq_ = doc.getElementCount( doc.getVOTagName( this ) ) - 1;
     }
 
     /**
@@ -264,6 +267,16 @@ public class VOElement extends DelegatingElement {
      */
     public String getVOTagName() {
         return getVOTagName( this );
+    }
+
+    /**
+     * Returns the number of elements with the same tag name as this one
+     * which were present in the document when this one was added to it.
+     *
+     * @return   sequence number of this element among similarly named ones
+     */
+    public int getElementSequence() {
+        return iseq_;
     }
 
     /**

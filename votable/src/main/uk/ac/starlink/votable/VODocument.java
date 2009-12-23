@@ -27,6 +27,7 @@ public class VODocument extends DelegatingDocument {
     private final String systemId_;
     private final Map idMap_ = new HashMap();
     private final Namespacing namespacing_;
+    private final IntMap elCountMap_ = new IntMap();
     private StoragePolicy storagePolicy_ = StoragePolicy.PREFER_MEMORY;
     private boolean strict_;
 
@@ -47,7 +48,6 @@ public class VODocument extends DelegatingDocument {
         strict_ = strict;
         namespacing_ = Namespacing.getInstance();
     }
-
 
     /**
      * Constructs a new VODocument with a specified System ID.
@@ -122,8 +122,20 @@ public class VODocument extends DelegatingDocument {
         return super.getDelegator( base );
     }
 
+    /**
+     * Returns the number of elements of a given name
+     * which have so far been added to this document.
+     *
+     * @param  voTagName  VOTable-domain tag name
+     * @return  number of elements of that type
+     */
+    public int getElementCount( String voTagName ) {
+        return elCountMap_.getValue( voTagName );
+    }
+
     protected DelegatingElement createDelegatingElement( Element node ) {
         String tagName = getVOTagName( node );
+        elCountMap_.incValue( tagName );
         if ( "FIELD".equals( tagName ) ) {
             return new FieldElement( node, this );
         }
@@ -179,5 +191,50 @@ public class VODocument extends DelegatingDocument {
      */
     public String getVOTagName( Element el ) {
         return namespacing_.getVOTagName( el );
+    }
+
+    /**
+     * Helper class that keeps track of an integer value for a number 
+     * of string-valued keys.  If unset, a value is considered to be
+     * equal to zero.
+     */
+    private static class IntMap {
+        private final Map map_ = new HashMap();
+
+        /**
+         * Returns the value for a given key.
+         *
+         * @param  key  key
+         * @return   value; zero if not previously set
+         */
+        int getValue( String key ) {
+            return map_.containsKey( key ) ? ((int[]) map_.get( key ))[ 0 ]
+                                           : 0;
+        }
+
+        /**
+         * Sets the value for a given key.
+         *
+         * @param  key  key 
+         * @param  ival   new value
+         */
+        void putValue( String key, int ival ) {
+            if ( ! map_.containsKey( key ) ) {
+                map_.put( key, new int[ 1 ] );
+            }
+            ((int[]) map_.get( key ))[ 0 ] = ival;
+        }
+
+        /**
+         * Increments the value for a given key.
+         *
+         * @param  key  key
+         */
+        void incValue( String key ) {
+            if ( ! map_.containsKey( key ) ) {
+                map_.put( key, new int[ 1 ] );
+            }
+            ((int[]) map_.get( key ))[ 0 ]++;
+        }
     }
 }

@@ -6383,6 +6383,8 @@ but my thanks are especially due to the following:
     <li>Memory management adjusted further - default (Adaptive) storage policy 
         now uses direct allocation (=<code>malloc()</code>) 
         to avoid running out of java heap space.</li>
+    <li>Further performance improvement for VOTable documents with
+        very many TABLEs.</li>
     </ul>
     </p>
     </dd>
