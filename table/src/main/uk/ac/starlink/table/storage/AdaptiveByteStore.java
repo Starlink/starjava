@@ -14,8 +14,16 @@ import uk.ac.starlink.table.ByteStore;
  * and use of disk.  Bytes are written into an array in memory up to
  * a given size limit; if the amount written exceeds this limit, 
  * it's all put in a temporary file instead.
- * This is intended to be a general purpose implementation that does
- * something sensible most of the time.
+ *
+ * <p>This class is intended to be a general purpose StoragePolicy 
+ * implementation that does something sensible most of the time.
+ * The details of the implementation may be changed following
+ * experience.
+ *
+ * <p>The current implementation uses {@link java.nio.ByteBuffer#allocateDirect}
+ * for byte arrays in memory apart from rather small ones.
+ * On most OSes this corresponds to using <code>malloc()</code>,
+ * thus avoiding heavy use of JVM heap memory.
  *
  * @author   Mark Taylor
  * @since    5 Nov 2009
@@ -24,7 +32,7 @@ public class AdaptiveByteStore implements ByteStore {
 
     /* This object works in two phases.
      * In the first phase,
-     *     baseOut_ instanceof ByteArrayOutputStream
+     *     baseOut_ instanceof BytesOutputStream
      *     count_ == number of bytes written < memLimit_
      *     file_ == null
      * In the second phase:
@@ -43,6 +51,9 @@ public class AdaptiveByteStore implements ByteStore {
     /** Fraction of total maximum memory for default memory limit. */
     private static final float MAX_FRACT = 0.125f;
 
+    /** Largest byte array to keep in heap (larger ones allocated direct). */
+    private static final int MAX_HEAP = 64 * 1024;
+
     private static int defaultLimit_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
@@ -54,7 +65,7 @@ public class AdaptiveByteStore implements ByteStore {
      */
     public AdaptiveByteStore( int memLimit ) throws IOException {
         try {
-            baseOut_ = new ByteArrayOutputStream();
+            baseOut_ = new BytesOutputStream();
         }
         catch ( OutOfMemoryError e ) {
             logger_.info( "Insufficient heap for " + memLimit
@@ -80,7 +91,7 @@ public class AdaptiveByteStore implements ByteStore {
     public void copy( OutputStream out ) throws IOException {
         out_.flush();
         if ( file_ == null ) {
-            ((ByteArrayOutputStream) baseOut_).writeTo( out );
+            ((BytesOutputStream) baseOut_).writeTo( out );
         }
         else {
             FileByteStore.copy( file_, out );
@@ -89,10 +100,24 @@ public class AdaptiveByteStore implements ByteStore {
 
     public ByteBuffer toByteBuffer() throws IOException {
         out_.flush();
-        return file_ == null
-             ? ByteBuffer.wrap( ((ByteArrayOutputStream) baseOut_)
-                               .toByteArray() )
-             : FileByteStore.toByteBuffer( file_ );
+        if ( file_ == null ) {
+            BytesOutputStream byteOut = (BytesOutputStream) baseOut_;
+            byte[] buf = byteOut.toByteArray();
+            if ( count_ < MAX_HEAP ) {
+                return ByteBuffer.wrap( byteOut.toByteArray() );
+            }
+            else {
+                ByteBuffer dbuf = ByteBuffer.allocateDirect( count_ );
+                if ( dbuf.isDirect() ) {
+                    logger_.info( "malloc " + count_ + " bytes" );
+                }
+                dbuf.put( byteOut.getBuf(), 0, byteOut.getCount() );
+                return dbuf;
+            }
+        }
+        else {
+            return FileByteStore.toByteBuffer( file_ );
+        }
     }
 
     public void close() {
@@ -132,8 +157,7 @@ public class AdaptiveByteStore implements ByteStore {
             if ( c1 > memLimit_ ) {
                 baseOut_.close();
                 file_ = createFile();
-                ByteArrayOutputStream byteOut =
-                    (ByteArrayOutputStream) baseOut_;
+                BytesOutputStream byteOut = (BytesOutputStream) baseOut_;
                 logger_.info( "AdaptiveByteStore: switching from memory buffer"
                             + " to temp file " + file_ + " at " + memLimit_
                             + " bytes" );
@@ -160,14 +184,24 @@ public class AdaptiveByteStore implements ByteStore {
      */
     private static int getDefaultLimit() {
         if ( defaultLimit_ <= 0 ) {
-            long maxmem = Runtime.getRuntime().maxMemory();
-            defaultLimit_ =
-                Math.min( (int) ( maxmem * MAX_FRACT ), Integer.MAX_VALUE );
+            int maxmem = (int) Math.min( Runtime.getRuntime().maxMemory(),
+                                         Integer.MAX_VALUE );
+            defaultLimit_ = (int) ( maxmem * MAX_FRACT );
             logger_.info( "AdaptiveByteStore default memory limit = "
-                        + "min( " + maxmem + " * " + MAX_FRACT + ", 2^31 ) = "
-                        + defaultLimit_ );
+                        + formatByteCount( maxmem ) + " * " + MAX_FRACT + " = "
+                        + formatByteCount( defaultLimit_ ) );
         }
         return defaultLimit_;
+    }
+
+    /**
+     * Formats a number of bytes for human readability.
+     *
+     * @param  nbyte  number of bytes
+     * @return  string
+     */
+    private static String formatByteCount( int nbyte ) {
+        return (int) Math.round( (double) nbyte / 1024 / 1024 ) + "M";
     }
 
     /**
@@ -196,6 +230,18 @@ public class AdaptiveByteStore implements ByteStore {
 
         public void close() throws IOException {
             baseOut_.close();
+        }
+    }
+
+    /**
+     * Extension of ByteArrayOutputStream which publicises protected fields.
+     */
+    private static class BytesOutputStream extends ByteArrayOutputStream {
+        public byte[] getBuf() {
+            return buf;
+        }
+        public int getCount() {
+            return count;
         }
     }
 }

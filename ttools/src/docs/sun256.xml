@@ -6377,6 +6377,16 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Memory management adjusted further - default (Adaptive) storage policy 
+        now uses direct allocation (=<code>malloc()</code>) 
+        to avoid running out of java heap space.</li>
+    </ul>
+    </p>
+    </dd>
+
 </dl>
 </p>
 </subsect>
