@@ -29,7 +29,6 @@ import uk.ac.starlink.util.IOUtils;
 public class TopcatUtils {
 
     private static Boolean canSog_;
-    private static Boolean canSplat_;
     private static Boolean canExec_;
     private static Boolean canJel_;
     private static String[] about_;
@@ -269,7 +268,6 @@ public class TopcatUtils {
                 "STIL Version " + getSTILVersion(),
                 "Starjava revision: " + getRevision(),
                 "JVM: " + InvokeUtils.getJavaVM(),
-                "SPLAT: " + ( canSplat() ? "available" : "absent" ),
                 "SoG: " + ( canSog() ? "available" : "absent" ),
                 "",
                 "Author: Mark Taylor (Bristol University)",
@@ -350,33 +348,6 @@ public class TopcatUtils {
             }
         }
         return canSog_.booleanValue();
-    }
-
-    /**
-     * Indicates whether there are enough classes to make SoG work at runtime.
-     *
-     * @return  true iff it's safe to use a SoG-based viewer
-     */
-    public static boolean canSplat() {
-        if ( canSplat_ == null ) {
-            synchronized ( TopcatUtils.class ) {
-                try {
-                    Class.forName( "uk.ac.starlink.splat.data.SpecData" );
-                    if ( AstPackage.isAvailable() ) {
-                        canSplat_ = Boolean.TRUE;
-                    }
-                    else {
-                        canSplat_ = Boolean.FALSE;
-                    }
-                }
-                catch ( Throwable th ) {
-                    logger_.info( "No SPLAT: " + th );
-                    logger_.log( Level.CONFIG, "SPLAT load error", th );
-                    canSplat_ = Boolean.FALSE;
-                }
-            }
-        }
-        return canSplat_.booleanValue();
     }
 
     /**

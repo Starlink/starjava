@@ -47,7 +47,6 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
-import uk.ac.starlink.topcat.func.Spectrum;
 import uk.ac.starlink.topcat.interop.ImageActivity;
 import uk.ac.starlink.topcat.interop.RowActivity;
 import uk.ac.starlink.topcat.interop.SkyPointActivity;

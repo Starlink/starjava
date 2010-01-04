@@ -477,7 +477,7 @@
    !  Builds jar files which can be used on their own, without needing any
    !  other jars to be present.  Two of them are built: topcat-lite.jar
    !  which contains enough classes to do most things but not support for
-   !  peripheral items like SPLAT interoperability, MySpace access etc etc.
+   !  peripheral items like MySpace access etc.
    !-->
   <target name="build-standalone"
           depends="install"
@@ -522,7 +522,6 @@
       <arg value="-x"/><arg value="junit.jar"/>
       <arg value="-x"/><arg value="ndx.jar"/>
       <arg value="-x"/><arg value="sog.jar"/>
-      <arg value="-x"/><arg value="splat.jar"/>
       <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="-x"/><arg value="srb.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
@@ -537,7 +536,6 @@
       <arg value="-x"/><arg value="log4j-core.jar"/>
       <arg value="-x"/><arg value="jsky/jel.jar"/>
       <arg value="-x"/><arg value="diva/acme.jar"/>
-      <arg value="-x"/><arg value="splat.jar"/>
       <arg value="-x"/><arg value="gsi-classes.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
@@ -733,18 +731,6 @@
                 jvmversion="1.4+"
                 version="${version}"
                 jar="${dist.lib.pkg}/topcat-full.jar">
-
-      <!-- We could copy the ppc JNI libraries here.  However, since 
-       !   the topcat-full.jar file does not contain the SPLAT classes,
-       !   there's little point in this.  The fact that we currently
-       !   only have ppc and not intel binaries makes it even more
-       !   attractive not to get involved in shared libraries
-       !   (see <http://developer.apple.com/qa/qa2005/qa1295.html>).
-       !  <resourcefileset dir="${star.dir}/lib"
-       !                   includes="ppc/*.jnilib"/>
-       !  <javaproperty name="java.library.path"
-       !                value="$APP_PACKAGE/Contents/Resources/ppc"/>
-       !-->
 
       <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->
       <resourcefileset dir="${src.etc}"

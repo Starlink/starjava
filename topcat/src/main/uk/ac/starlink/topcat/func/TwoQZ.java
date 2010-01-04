@@ -43,23 +43,6 @@ public class TwoQZ {
     }
 
     /**
-     * Displays all the spectra relating to a 2QZ object in an external
-     * viewer (SPLAT).
-     *
-     * @param   name  object name (NAME column)
-     * @param   nobs  number of observations to display (NOBS column)
-     * @return  short log message
-     */
-    public static String spectra2QZ( String name, int nobs ) {
-        String[] locs = new String[ nobs ];
-        String base = TWOQZ_SPEC_BASE + getSubdir( name );
-        for ( int i = 0; i < nobs; i++ ) {
-            locs[ i ] = base + name + (char) ( 'a' + i ) + TWOQZ_SPEC_TAIL;
-        }
-        return Spectrum.displaySpectra( "2QZ", locs );
-    }
-
-    /**
      * Displays the postage stamp FITS image for a 2QZ object in an
      * image viewer.
      *

@@ -13153,6 +13153,12 @@ introduced since the last version:
         very many TABLEs.</li>
     <li>Fix issue when sending some SAMP messages
         (unhelpful reuse of message tags).</li>
+    <li>Withdraw embedded SPLAT application.
+        SPLAT could previously be used in some circumstances for in-JVM
+        display of spectra, but this facility didn't work well and was
+        presumably little used.  You can still view spectra by configuring
+        an Activation Action to talk to an external spectrum viewer
+        (SPLAT or some other choice) via SAMP or PLASTIC.</li>
     </ul>
     </p></dd>
 
