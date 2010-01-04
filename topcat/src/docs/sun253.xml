@@ -13151,6 +13151,8 @@ introduced since the last version:
         to avoid running out of java heap space.</li>
     <li>Further performance improvement for VOTable documents with
         very many TABLEs.</li>
+    <li>Fix issue when sending some SAMP messages
+        (unhelpful reuse of message tags).</li>
     </ul>
     </p></dd>
 

@@ -1,4 +1,5 @@
 package uk.ac.starlink.topcat.interop;
+
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractListModel;
@@ -7,9 +8,11 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.ResponseHandler;
+import org.astrogrid.samp.client.LogResultHandler;
+import org.astrogrid.samp.client.ResultHandler;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.SubscribedClientListModel;
@@ -28,7 +31,6 @@ public class SendManager {
     private final GuiHubConnector connector_;
     private final SendComboBoxModel comboBoxModel_;
     private final String mtype_;
-    private String tag_;
 
     private static final Object BROADCAST = "All Clients";
     private static final Logger logger_ =
@@ -90,46 +92,15 @@ public class SendManager {
         HubConnection connection = connector_.getConnection();
         if ( connection != null ) {
             Client client = comboBoxModel_.getClient();
+            ResultHandler resHandler =
+                new LogResultHandler( Message.asMessage( message ) );
             if ( client == null ) {
-                connection.callAll( getTag(), message );
+                connector_.callAll( message, resHandler, 0 );
             }
             else {
-                connection.call( client.getId(), getTag(), message );
+                connector_.call( client.getId(), message, resHandler, 0 );
             }
         }
-    }
-
-    /**
-     * Returns the message tag which is used for asynchronous call/response
-     * sends by this object.
-     * 
-     * @return   tag
-     */
-    private synchronized String getTag() {
-        if ( tag_ == null ) {
-            final String tag = connector_.createTag( this );
-            ResponseHandler handler = new ResponseHandler() {
-                public boolean ownsTag( String msgTag ) {
-                    return tag.equals( msgTag );
-                }
-                public void receiveResponse( HubConnection connection,
-                                             String responderId, String msgTag,
-                                             Response response ) {
-                    if ( response.isOK() ) {
-                        logger_.info( "Success response for " + mtype_
-                                    + " from " + responderId );
-                    }
-                    else {
-                        logger_.warning( "Error response for " + mtype_
-                                       + " from " + responderId + ": "
-                                       + response.getStatus() );
-                    }
-                }
-            };
-            connector_.addResponseHandler( handler );
-            tag_ = tag;
-        }
-        return tag_;
     }
 
     /**
