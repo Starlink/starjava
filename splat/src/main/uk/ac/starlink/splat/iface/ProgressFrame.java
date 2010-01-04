@@ -105,8 +105,8 @@ public class ProgressFrame
                     {
                         public void actionPerformed( ActionEvent e )
                         {
-                            if ( makeVisible ) {
-                                synchronized( this ) {
+                            synchronized( this ) {
+                                if ( makeVisible ) {
                                     setVisible( true );
                                     makeVisible = false;
                                 }
