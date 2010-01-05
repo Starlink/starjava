@@ -499,6 +499,8 @@
       <arg value="-x"/><arg value="hdx.jar"/>
       <arg value="-x"/><arg value="ndx.jar"/>
       <arg value="-x"/><arg value="topcat.jar"/>
+      <arg value="-x"/><arg value="org.mortbay.jmx.jar"/>
+      <arg value="-x"/><arg value="jasper-combined.jar"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
