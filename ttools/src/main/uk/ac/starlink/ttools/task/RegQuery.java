@@ -71,6 +71,12 @@ public class RegQuery extends ConsumerTask {
         urlParam_.setDescription( new String[] {
             "<p>The URL of a SOAP endpoint which provides",
             "a VOResource1.0 IVOA registry service.",
+            "Some known suitable registry endpoints at time of writing are",
+            "<ul>",
+            "<li><code>" + RegistryQuery.AG_REG + "</code></li>",
+            "<li><code>" + RegistryQuery.EUROVO_REG + "</code></li>",
+            "<li><code>" + RegistryQuery.NVO_REG + "</code></li>",
+            "</ul>",
             "</p>",
         } );
         paramList.add( urlParam_ );
