@@ -3462,16 +3462,9 @@ The meaning of the flags is as follows:
     See <ref id="interop"/>.
     </p></dd>
 
-<dt>-soap</dt>
-<dd><p>Controls whether TOPCAT will start up a SOAP server which can 
-    accept requests using the SOAP protocol to display tables from 
-    other applications.  Currently, the default is that it does not
-    start a server.  This option may be withdrawn in future releases.
-    </p></dd>
-
 <dt>-noserv</dt>
 <dd><p>Prevents TOPCAT from running any services.  Currently the services
-    which it may run are SAMP, PLASTIC and SOAP (see above).
+    which it may run are SAMP or PLASTIC (see above).
     </p></dd>
 
 <dt>-stilts &lt;stilts-args&gt;</dt>
@@ -13159,6 +13152,10 @@ introduced since the last version:
         presumably little used.  You can still view spectra by configuring
         an Activation Action to talk to an external spectrum viewer
         (SPLAT or some other choice) via SAMP or PLASTIC.</li>
+    <li>Withdraw SOAP server functionality.  This has been deprecated since
+        v2.1.  External control is better handled using SAMP (or PLASTIC).
+        If anybody misses this functionality, get in touch and I will
+        consider a similar but less SOAPy alternative.</li>
     </ul>
     </p></dd>
 

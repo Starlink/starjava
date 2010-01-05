@@ -32,7 +32,6 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
-import uk.ac.starlink.topcat.soap.TopcatSOAPServer;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
@@ -234,7 +233,7 @@ public class Driver {
               pre + " [-help] [-version] [-stilts <stilts-args>]"
                   + " [-jsamp <jsamp-args>]\n"
             + pad + " [-verbose] [-demo] [-memory] [-disk]\n"
-            + pad + " [-hub] [-exthub] [-samp] [-plastic] [-soap] [-noserv]\n"
+            + pad + " [-hub] [-exthub] [-samp] [-plastic] [-noserv]\n"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -245,7 +244,6 @@ public class Driver {
         List loaderList = new ArrayList();
         boolean demo = false;
         int verbosity = 0;
-        boolean soapServe = false;
         boolean interopServe = true;
         boolean internalHub = false;
         boolean externalHub = false;
@@ -316,17 +314,8 @@ public class Driver {
                 it.remove();
                 interopServe = false;
             }
-            else if ( arg.equals( "-soap" ) ) {
-                it.remove();
-                soapServe = true;
-            }
-            else if ( arg.equals( "-nosoap" ) ) {
-                it.remove();
-                soapServe = false;
-            }
             else if ( arg.startsWith( "-noserv" ) ) {
                 it.remove();
-                soapServe = false;
                 interopServe = false;
                 ControlWindow.interopType_ = "none";
             }
@@ -477,14 +466,6 @@ public class Driver {
        
         /* Start up remote services.  Do it in a separate, low-priority
          * thread to avoid impact on startup time. */
-        if ( soapServe ) {
-            try {
-                TopcatSOAPServer.initServices( getControlWindow() );
-            }
-            catch ( Throwable e ) {
-                logger.warning( "No SOAP server: " + e );
-            }
-        }
         if ( internalHub || externalHub ) {
             TopcatCommunicator communicator =
                 getControlWindow().getCommunicator();
@@ -685,9 +666,8 @@ public class Driver {
                                          + "tool interoperability" )
            .append( p2 + "-hub           run internal SAMP/PLASTIC hub" )
            .append( p2 + "-exthub        run external SAMP/PLASTIC hub" )
-           .append( p2 + "-soap          start SOAP services" )
            .append( p2 + "-noserv        don't run any services"
-                                         + " (PLASTIC, SAMP or SOAP)" )
+                                         + " (PLASTIC or SAMP)" )
            .append( p2 + "-stilts <args> run STILTS not TOPCAT" )
            .append( p2 + "-jsamp <args>  run JSAMP not TOPCAT" );
 
