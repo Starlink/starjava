@@ -73,6 +73,10 @@ public class FuncTest extends TestCase {
             assertEquals( -3.0, Arrays.minimum( array ) );
             assertEquals( 6.0, Arrays.maximum( array ) );
             assertEquals( 1.6, Arrays.mean( array ) );
+            assertEquals( Arrays.minimum( array ),
+                          Arrays.quantile( array, 0.0 ) );
+            assertEquals( Arrays.maximum( array ),
+                          Arrays.quantile( array, 1.0 ) );
         }
         Object[] a2s = new Object[] { f2, d2, };
         for ( int ia = 0; ia < a2s.length; ia++ ) {
@@ -82,7 +86,36 @@ public class FuncTest extends TestCase {
             assertEquals( -3.0, Arrays.minimum( array ) );
             assertEquals( 6.0, Arrays.maximum( array ) );
             assertEquals( 2.0, Arrays.mean( array ) );
+            assertEquals( Arrays.minimum( array ),
+                          Arrays.quantile( array, 0.0 ) );
+            assertEquals( Arrays.maximum( array ),
+                          Arrays.quantile( array, 1.0 ) );
         }
+
+        double[][] a5s = new double[][] {
+            Arrays.array( 1, 5, 4, 3, Math.E ),
+            Arrays.array( 5, 4, 3, Math.E, 1 ),
+            Arrays.array( Double.NaN, 1, Math.E, 3, 4, 5 ),
+            Arrays.array( Double.NaN, Double.NaN, 1, Math.E, 3, 4, 5 ),
+            Arrays.array( 4, 5, Float.NaN, Float.NaN, Float.NaN, 3, Math.E, 1 ),
+        };
+        for ( int i = 0; i < a5s.length; i++ ) {
+            double[] a5 = a5s[ i ];
+            assertEquals( 3.0, Arrays.median( a5 ) );
+            assertEquals( 1.0, Arrays.quantile( a5, 0 ) );
+            assertEquals( 5.0, Arrays.quantile( a5, 1 ) );
+            assertEquals( Math.E, Arrays.quantile( a5, 0.2 ), 0.001 );
+        }
+
+        assertEquals( 1, Arrays.median( Arrays.array( 1 ) ) );
+        assertEquals( 1, Arrays.median( Arrays.array( 1, 1 ) ) );
+        assertEquals( 1, Arrays.median( Arrays.array( 1, 0, 2 ) ) );
+        assertEquals( 1, Arrays.median( Arrays.array( 1, 1, 0, 2 ) ) );
+        assertEquals( 1, Arrays.median( Arrays.array( 1, 0, 0, 2, 2 ) ) );
+        assertEquals( 1, Arrays.median( Arrays.array( 1, 1, 0, 0, 2, 2 ) ) );
+        assertEquals( 1, Arrays.median( Arrays.array( 1, 0, 0, 0, 2, 2, 2 ) ) );
+        assertEquals( 1, Arrays.median( Arrays
+                                       .array( 1, 1, 0, 0, 0, 2, 2, 2 ) ) );
     }
 
     public void testConversions() {

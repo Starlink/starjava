@@ -6390,6 +6390,11 @@ but my thanks are especially due to the following:
         so this isn't likely to cause trouble, and it permits removal of
         SOAP (Axis) classes from the application jar file, saving several
         megabytes and reducing potential version clash problems.</li>
+    <li>Add new functions to 
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>:
+        <code>array</code> functions for constructing arrays,
+        and new aggregating functions <code>median</code> and
+        <code>quantile</code>.</li>
     </ul>
     </p>
     </dd>
