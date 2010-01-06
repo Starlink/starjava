@@ -533,7 +533,6 @@ public class SpecDataComp
     public void add( SpecData inspec )
         throws SplatException
     {
-        //  NOTE: This method may be used by TOPCAT classes.
         if ( currentSpec == null ) {
             // First spectrum is current.
             currentSpec = inspec;

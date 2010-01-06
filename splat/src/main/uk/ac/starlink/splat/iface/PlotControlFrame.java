@@ -322,8 +322,6 @@ public class PlotControlFrame
      */
     public PlotControl getPlot()
     {
-        // NOTE: This method may be used by TOPCAT classes.
-
         return plot;
     }
 

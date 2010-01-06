@@ -306,8 +306,6 @@ public class SpecDataFactory
     public SpecData get( String specspec )
         throws SplatException
     {
-        // NOTE: This method may be used by TOPCAT classes.
-
         SpecDataImpl impl = null;
         URL url = null;
         boolean isRemote = false;
