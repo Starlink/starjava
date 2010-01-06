@@ -57,7 +57,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.topcat.ControlWindow;
-import uk.ac.starlink.topcat.soap.TopcatSOAPClient;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -728,25 +727,7 @@ public class ApplicationDetailViewer implements DetailViewer {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            if ( controlWindow_ != null ) {
-                localDisplay();
-            }
-            else {
-                new Thread() {
-                    public void run() {
-                        try {
-                            remoteDisplay();
-                        }
-                        catch ( IOException e ) {
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    localDisplay();
-                                }
-                            } );
-                        }
-                    }
-                }.start();
-            }
+            localDisplay();
         }
 
         private void localDisplay() {
@@ -760,22 +741,6 @@ public class ApplicationDetailViewer implements DetailViewer {
             catch ( IOException e ) {
                 Toolkit.getDefaultToolkit().beep();
                 e.printStackTrace();
-            }
-        }
-
-        private void remoteDisplay() throws IOException {
-            TopcatSOAPClient soapClient = new TopcatSOAPClient();
-            if ( url_ != null ) {
-                try {
-                    soapClient.displayTableByLocation( url_.toString(), null );
-                    return;
-                }
-                catch ( IOException e ) {
-                    // didn't work - fall through
-                }
-            }
-            else {
-                soapClient.displayTable( tgetter_.getTable(), location_ );
             }
         }
     }
