@@ -4,19 +4,17 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -26,8 +24,8 @@ import java.util.jar.Manifest;
 /**
  * Utility to generate a single jar file containing all the resources
  * referenced by a given jar file.  As well as the contents of the
- * named jar file itself, the contents of any jar files referenced 
- * in the Class-Path line of that file's Manifest will be included, and 
+ * named jar file itself, the contents of any jar files referenced
+ * in the Class-Path line of that file's Manifest will be included, and
  * so on recursively.  This can be used to produce a standalone jar
  * file for applications which do not require JNI components.
  * <p>
@@ -38,14 +36,221 @@ import java.util.jar.Manifest;
  */
 public class SuperJar {
 
-    private static Set doneJars = new HashSet();
-    private static JarOutputStream jarOut;
-    private static PrintStream logStrm = System.err;
-    private static Set jarExcludes = new HashSet();
-    private static Set fileExcludes = new HashSet();
-    private static Set dirExcludes = new HashSet();
-    static {
-        dirExcludes.add( "META-INF/" );
+    private final File[] jarFiles_;
+    private final Collection jarExcludeSet_;
+    private final Collection fileExcludeSet_;
+    private final Collection dirExcludeSet_;
+    PrintStream logStrm_ = System.err;
+
+    /**
+     * Constructor.
+     *
+     * @param   jarFiles  top-level jar files containing files and dependencies
+     * @param   jarExcludes  names of jar files which may be named as class-path
+     *          dependencies but which should not be included in the result
+     * @param   entryExcludes  jar file entries which should be excluded 
+     *          from the result
+     */
+    public SuperJar( File[] jarFiles, String[] jarExcludes,
+                     String[] entryExcludes ) {
+        jarFiles_ = jarFiles;
+        jarExcludeSet_ = new HashSet( Arrays.asList( jarExcludes ) );
+        fileExcludeSet_ = new HashSet();
+        dirExcludeSet_ = new HashSet();
+        for ( int i = 0; i < entryExcludes.length; i++ ) {
+            String name = entryExcludes[ i ];
+            ( ( name.charAt( name.length() - 1 ) == '/' ) ? dirExcludeSet_
+                                                          : fileExcludeSet_ )
+                .add( name );
+        }
+    }
+
+    /**
+     * Writes the data from this object to a single jar file combining the
+     * contents of all the dependencies.
+     *
+     * @param   out  destination stream
+     */
+    public void writeSingleJar( OutputStream out ) throws IOException {
+        File[] jdeps = getDependencies( jarFiles_ );
+
+        /* Construct a manifest for the output jar file.
+         * This contains the main (not per-entry) attributes from the first
+         * input jar file, minus any class-path entry. */
+        Manifest inManifest = readManifest( jarFiles_[ 0 ] );
+        Manifest outManifest = new Manifest();
+        for ( Iterator it = inManifest.getMainAttributes().entrySet()
+                                      .iterator();
+              it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            Attributes outAtts = outManifest.getMainAttributes();
+            if ( ! entry.getKey().equals( Attributes.Name.CLASS_PATH ) ) {
+                outAtts.put( entry.getKey(), entry.getValue() );
+            }
+        }
+
+        /* Write all items from input jar files to the single output file. */
+        JarOutputStream jout = new JarOutputStream( out, outManifest );
+        for ( int ij = 0; ij < jdeps.length; ij++ ) {
+            JarInputStream jin =
+                new JarInputStream(
+                    new BufferedInputStream(
+                        new FileInputStream( jdeps[ ij ] ) ) );
+            for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
+                  jin.closeEntry() ) {
+                if ( ! excludeEntry( jent ) &&
+                     ! jent.getName().startsWith( "META-INF" ) ) {
+                    jout.putNextEntry( jent );
+                    IOUtils.copy( jin, jout );
+                }
+            }
+        }
+        jout.finish();
+    }
+
+    public void writeZipOfJars( OutputStream out ) throws IOException {
+    }
+
+    /**
+     * Returns an array of all the jar files which count as dependencies of
+     * the given array of jar files.  This is the given files themselves,
+     * as well as any files named in their Class-Path manifest attributes,
+     * assembled recursively, and excluding duplicates and any that 
+     * have been marked for exclusion.
+     *
+     * @param   jarfiles  input jar files
+     * @return  input jarfiles plus recursive dependencies
+     */
+    public File[] getDependencies( File[] jarfiles ) throws IOException {
+        Collection jfSet = new HashSet();
+        for ( int ij = 0; ij < jarfiles.length; ij++ ) {
+            accumulateDependencies( jarfiles[ ij ], jfSet );
+        }
+        File[] jfiles = (File[]) jfSet.toArray( new File[ 0 ] );
+        Arrays.sort( jfiles );
+        return jfiles;
+    }
+
+    /**
+     * Recursively accumulate dependencies for a given jar file.
+     *
+     * @param   jfile  input jar file
+     * @param   jfSet  set of File objects representing the current list of
+     *          known dependencies; this method appends to it
+     */
+    private void accumulateDependencies( File jfile, Collection jfSet )
+            throws IOException {
+        if ( jfile.isDirectory() ) {
+            throw new IllegalArgumentException( jfile + " is a directory, " +
+                                                "only jarfiles allowed" );
+        }
+        if ( containsFilename( jarExcludeSet_, jfile ) ) {
+            if ( logStrm_ != null ) {
+                logStrm_.println( "        Excluding: " + jfile );
+            }
+        }
+        else if ( containsFile( jfSet, jfile ) ) {
+            if ( logStrm_ != null ) {
+                logStrm_.println( "        Duplicate: " + jfile );
+            }
+        }
+        else {
+            if ( logStrm_ != null ) {
+                logStrm_.println( jfile );
+            }
+            jfSet.add( jfile );
+            Manifest manifest = readManifest( jfile );
+            if ( manifest != null ) {
+                Attributes atts = manifest.getMainAttributes();
+                String classpath = atts.getValue( Attributes.Name.CLASS_PATH );
+                if ( classpath != null && classpath.trim().length() > 0 ) {
+                    File dir = jfile.getParentFile();
+                    String[] cpents = classpath.trim().split( " +" );
+                    for ( int ie = 0; ie < cpents.length; ie++ ) {
+                        accumulateDependencies( new File( dir, cpents[ ie ] ),
+                                                jfSet );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads the manifest from a jar file.
+     *
+     * @param   jfile   jar file
+     * @return   manifest
+     */
+    private Manifest readManifest( File jfile ) throws IOException {
+        JarInputStream jin =
+            new JarInputStream(
+                new BufferedInputStream( new FileInputStream( jfile ) ) );
+        Manifest manifest = jin.getManifest();
+        jin.close();
+        return manifest;
+    }
+
+    /**
+     * Determines whether a given file is named in a collection of filenames.
+     *
+     * @param fnameSet  collection of Strings, each which may be the 
+     *        trailing part of a canonical filename
+     * @param file  file to test
+     * @return   true iff <code>file</code> is named in <code>fnameSet</code>
+     */
+    private boolean containsFilename( Collection fnameSet, File file )
+            throws IOException {
+        String cname = file.getCanonicalPath();
+        for ( Iterator it = fnameSet.iterator(); it.hasNext(); ) {
+            String excl = (String) it.next();
+            if ( cname.equals( excl ) ||
+                 cname.endsWith( File.separator + excl ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determines whether a given file is one of a collection of filenames.
+     *
+     * @param   fileSet  collection of Files, may be relative
+     * @param   file   file to test
+     * @param   true iff <code>file</code> is listed in <code>fileSet</code>
+     */
+    private boolean containsFile( Collection fileSet, File file )
+            throws IOException {
+        String cname = file.getCanonicalPath();
+        for ( Iterator it = fileSet.iterator(); it.hasNext(); ) {
+            if ( ((File) it.next()).getCanonicalPath().equals( cname ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determines whether this object has marked a given jar file entry for
+     * exclusion from the result.
+     *
+     * @param  entry   entry to test
+     * @return  true iff <code>entry</code> is marked for exclusion
+     */
+    private boolean excludeEntry( JarEntry entry ) {
+        if ( entry.isDirectory() ) {
+            return true;
+        }
+        String name = entry.getName();
+        if ( fileExcludeSet_.contains( name ) ) {
+            return true;
+        }
+        for ( Iterator it = dirExcludeSet_.iterator(); it.hasNext(); ) {
+            String exclude = (String) it.next();
+            if ( name.startsWith( exclude ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -69,7 +274,7 @@ public class SuperJar {
      * jarfiles which should not be included, even if they are referenced
      * in the manifest's Class-Path entry of a jar file which is included.
      * The <tt>exclude</tt> argument thus defined is the name, optionally
-     * with one or more prepended path elements of the jar file to be 
+     * with one or more prepended path elements of the jar file to be
      * excluded (e.g. axis.jar or axis/axis.jar would both work).
      *
      * <p>The <tt>-xent</tt> flag may be supplied one or more times to define
@@ -82,7 +287,7 @@ public class SuperJar {
      * referenced in their Class-Path manifest entries will be used.
      * The manifest of the first one will be used as the manifest of
      * the output file (though its Class-Path entry will be empty).
-     * Zip files can be used as well, they work the same but have no 
+     * Zip files can be used as well, they work the same but have no
      * manifest.
      *
      * @param  args  an array of command-line arguments as described above
@@ -93,14 +298,16 @@ public class SuperJar {
                      + "         [-xent entry [-xent entry] ..]\n"
                      + "         jarfile [jarfile ..]";
 
-        /* Turn the arguments into a list of jar files. */
+        /* Process arguments. */
         List arglist = new ArrayList( Arrays.asList( args ) );
         List jarlist = new ArrayList();
         File outfile = new File( "superjar.jar" );
+        List jarExcludeList = new ArrayList();
+        List entryExcludeList = new ArrayList();
         for ( Iterator it = arglist.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-h" ) ) {
-                logStrm.println( usage );
+                System.err.println( usage );
                 System.exit( 0 );
             }
             else if ( arg.equals( "-o" ) ) {
@@ -111,175 +318,34 @@ public class SuperJar {
             else if ( arg.equals( "-x" ) ||
                       arg.equals( "-xjar" ) ) {
                 it.remove();
-                jarExcludes.add( (String) it.next() );
+                jarExcludeList.add( (String) it.next() );
                 it.remove();
             }
             else if ( arg.equals( "-xent" ) ) {
                 it.remove();
-                String name = (String) it.next();
+                entryExcludeList.add( (String) it.next() );
                 it.remove();
-                ( name.endsWith( "/" ) ? dirExcludes : fileExcludes )
-                                     .add( name );
             }
             else {
-                jarlist.add( arg );
+                jarlist.add( new File( arg ) );
             }
         }
         if ( jarlist.size() == 0 ) {
-            logStrm.println( usage );
+            System.err.println( usage );
             System.exit( 1 );
         }
+        File[] jarFiles =
+            (File[]) jarlist.toArray( new File[ 0 ] );
+        String[] jarExcludes =
+            (String[]) jarExcludeList.toArray( new String[ 0 ] );
+        String[] entryExcludes =
+            (String[]) entryExcludeList.toArray( new String[ 0 ] );
 
-        /* Construct a Manifest; this will have the same Main-Class as
-         * the one from the first input jar file, but no Class-Path. */
-        InputStream istrm = new FileInputStream( (String) jarlist.get( 0 ) );
-        JarInputStream primaryJar = new JarInputStream( istrm, false );
-        Manifest manifest = primaryJar.getManifest();
-        istrm.close();
-        Attributes mainAtts = manifest.getMainAttributes();
-        for ( Iterator it = mainAtts.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            if ( entry.getKey().equals( Attributes.Name.CLASS_PATH ) ) {
-                it.remove();
-            }
-            else {
-                logStrm.println( entry.getKey() + ": " + entry.getValue() );
-            }
-        }
-
-        /* Open the output file. */
-        OutputStream ostrm = 
+        /* Construct and use the jar writer to output the result. */
+        SuperJar sj = new SuperJar( jarFiles, jarExcludes, entryExcludes );
+        OutputStream out =
             new BufferedOutputStream( new FileOutputStream( outfile ) );
-        jarOut = new JarOutputStream( ostrm, manifest );
-
-        /* Process each jar in turn. */
-        for ( Iterator it = jarlist.iterator(); it.hasNext(); ) {
-            processJar( new File( (String) it.next() ), 0 );
-        }
-
-        /* Close the output stream. */
-        jarOut.close();
+        sj.writeSingleJar( out );
+        out.close();
     }
-
-    /**
-     * Takes an input jar file and copies all its entries into the output
-     * jar file.
-     *
-     * @param  jfile  a jarfile whose contents is to be integrated into
-     *         the output
-     * @param  level  the recursion level at which this is being included.
-     *         Used for logging display only
-     */
-    private static void processJar( File jfile, int level )
-            throws IOException {
-
-        /* Check we have a file not directory entry. */
-        if ( jfile.isDirectory() ) {
-            throw new IllegalArgumentException( jfile + " is a directory, " +
-                                                "only jarfiles allowed" );
-        }
-
-        /* Skip this one if we've already seen it. */
-        String name = jfile.toString();
-        String cname = jfile.getCanonicalPath();
-        if ( doneJars.contains( cname ) ) {
-            logStrm.println( "        Duplicate: " + name );
-            return;
-        }
-        doneJars.add( cname );
-        logStrm.println( levelPrefix( level ) + name );
-
-        /* Open a stream from the jar file. */
-        InputStream istrm = 
-            new BufferedInputStream( new FileInputStream( jfile ) );
-        JarInputStream jstrm = new JarInputStream( istrm, false );
-        Manifest manifest = jstrm.getManifest();
-
-        /* Copy all the entries to the output jar. */
-        byte[] buffer = new byte[ 4096 ];
-        for ( JarEntry jent; ( jent = jstrm.getNextJarEntry() ) != null; ) {
-            if ( ! excludeEntry( jent ) ) {
-                jarOut.putNextEntry( jent );
-                for ( int nbyte; ( nbyte = jstrm.read( buffer ) ) >= 0; ) {
-                    jarOut.write( buffer, 0, nbyte );
-                }
-            }
-            jstrm.closeEntry();
-        }
-        jstrm.close();
-
-        /* Recurse. */
-        if ( manifest != null ) {
-            Attributes atts = manifest.getMainAttributes();
-            String classpath = atts.getValue( Attributes.Name.CLASS_PATH );
-            if ( classpath != null && classpath.trim().length() > 0 ) {
-                File dir = jfile.getParentFile();
-                String[] cpents = classpath.trim().split( " +" );
-                for ( int i = 0; i < cpents.length; i++ ) {
-                    File jf = new File( dir, cpents[ i ] );
-                    if ( excludeJar( jf ) ) {
-                        logStrm.println( levelPrefix( level ) 
-                                       + "        Excluding: " + jf );
-                    }
-                    else {
-                        processJar( jf, level + 1 );
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Whether to exclude a given jar file from the list.
-     *
-     * @param   file to test
-     */
-    private static boolean excludeJar( File file ) throws IOException {
-        String cname = file.getCanonicalPath();
-        for ( Iterator it = jarExcludes.iterator(); it.hasNext(); ) {
-            String excl = (String) it.next();
-            if ( cname.equals( excl ) ||
-                 cname.endsWith( File.separator + excl ) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Whether to exclude a given jar entry from the output.
-     *
-     * @param  jar entry to test
-     */
-    private static boolean excludeEntry( JarEntry entry ) {
-        if ( entry.isDirectory() ) {
-            return true;
-        }
-        String name = entry.getName();
-        if ( fileExcludes.contains( name ) ) {
-            return true;
-        }
-        for ( Iterator it = dirExcludes.iterator(); it.hasNext(); ) {
-            String exclude = (String) it.next();
-            if ( name.startsWith( exclude ) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Outputs a prefix string which serves as a indent for logging at
-     * a given level.
-     *
-     * @param  level  the logging level
-     */
-    private static String levelPrefix( int level ) {
-        StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < level; i++ ) {
-            sbuf.append( "" );  // do nothing
-        }
-        return sbuf.toString();
-    }
- 
 }
