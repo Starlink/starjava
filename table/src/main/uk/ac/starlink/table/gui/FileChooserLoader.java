@@ -28,14 +28,13 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
     private final boolean isAvailable_;
     private final JComboBox formatSelector_;
     private final ComboBoxModel dummyModel_;
-    private final Icon icon_;
     private JFileChooser fileChooser_;
+    private static Icon icon_;
 
     /**
      * Constructor.
      */
     public FileChooserLoader() {
-        icon_ = new ImageIcon( getClass().getResource( "filechooser.gif" ) );
 
         /* See if we have permissions to operate. */
         boolean isAvailable;
@@ -65,7 +64,7 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
     }
 
     public Icon getIcon() {
-        return icon_;
+        return getFileChooserIcon();
     }
 
     public boolean isAvailable() {
@@ -133,5 +132,18 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
             fileChooser_.setAccessory( formatBox );
         }
         return fileChooser_;
+    }
+
+    /**
+     * Returns the icon for this loader.
+     *
+     * @return  dialogue icon
+     */
+    public static Icon getFileChooserIcon() {
+        if ( icon_ == null ) {
+            icon_ = new ImageIcon( FileChooserLoader.class
+                                  .getResource( "filechooser.gif" ) );
+        }
+        return icon_;
     }
 }

@@ -540,7 +540,7 @@ public class ResourceIcon implements Icon {
         nameMap.put( "FILESTORE_DIALOG",
                      new FilestoreTableLoadDialog().getIcon() );
         nameMap.put( "FILECHOOSER_DIALOG",
-                     new FileChooserLoader().getIcon() );
+                     FileChooserLoader.getFileChooserIcon() );
         nameMap.put( "SQL_DIALOG",
                      new SQLReadDialog().getIcon() );
         nameMap.put( "CONE_DIALOG",
