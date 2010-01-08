@@ -22,6 +22,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -139,35 +140,60 @@ public class SuperJar {
         /* Write each of the jar files. */
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
             File jfile = jarDeps_[ ij ];
+            String jtail = jfile.getName();
             Manifest manifest = readManifest( jfile );
-            String[] cpents = getClassPath( manifest );
-            StringBuffer cpbuf = new StringBuffer();
-            for ( int ic = 0; ic < cpents.length; ic++ ) {
-                String tail = new File( cpents[ ic ] ).getName();
-                if ( tailMap.containsKey( tail ) ) {
-                    if ( cpbuf.length() > 0 ) {
-                        cpbuf.append( ' ' );
+
+            /* If it's a jar file (has a manifest), doctor the manifest
+             * to get the classpath right, and then copy entries. */
+            if ( manifest != null ) {
+                String[] cpents = getClassPath( manifest );
+                StringBuffer cpbuf = new StringBuffer();
+                for ( int ic = 0; ic < cpents.length; ic++ ) {
+                    String cptail = new File( cpents[ ic ] ).getName();
+                    if ( tailMap.containsKey( cptail ) ) {
+                        if ( cpbuf.length() > 0 ) {
+                            cpbuf.append( ' ' );
+                        }
+                        cpbuf.append( cptail );
                     }
-                    cpbuf.append( tail );
                 }
-            }
-            manifest.getMainAttributes()
-                    .put( Attributes.Name.CLASS_PATH, cpbuf.toString() );
-            String tail = jfile.getName();
-            zout.putNextEntry( new ZipEntry( tail ) );
-            JarOutputStream jout = new JarOutputStream( zout, manifest );
-            JarInputStream jin =
-                new JarInputStream(
-                    new BufferedInputStream( new FileInputStream( jfile ) ) );
-            for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
-                  jin.closeEntry() ) {
-                if ( ! excludeEntry( jent ) ) {
-                    jout.putNextEntry( jent );
-                    IOUtils.copy( jin, jout );
+                manifest.getMainAttributes()
+                        .put( Attributes.Name.CLASS_PATH, cpbuf.toString() );
+                zout.putNextEntry( new ZipEntry( jtail ) );
+                JarOutputStream jout = new JarOutputStream( zout, manifest );
+                JarInputStream jin =
+                    new JarInputStream(
+                        new BufferedInputStream(
+                            new FileInputStream( jfile ) ) );
+                for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
+                      jin.closeEntry() ) {
+                    if ( ! excludeEntry( jent ) ) {
+                        jout.putNextEntry( jent );
+                        IOUtils.copy( jin, jout );
+                    }
                 }
+                jout.finish();
+                zout.closeEntry();
             }
-            jout.finish();
-            zout.closeEntry();
+
+            /* Otherwise just copy it as a zip file. */
+            else {
+                zout.putNextEntry( new ZipEntry( jtail ) );
+                ZipOutputStream z2out = new ZipOutputStream( zout );
+                ZipInputStream zin =
+                    new ZipInputStream(
+                        new BufferedInputStream(
+                            new FileInputStream( jfile ) ) );
+                for ( ZipEntry zent; ( zent = zin.getNextEntry() ) != null;
+                      zin.closeEntry() ) {
+                    if ( ! excludeEntry( zent ) ) {
+                        z2out.putNextEntry( zent );
+                        IOUtils.copy( zin, z2out );
+                    }
+                }
+                z2out.finish();
+                zout.closeEntry();
+            }
         }
         zout.finish();
     }
@@ -179,7 +205,7 @@ public class SuperJar {
      * @param  entry   entry to test
      * @return  true iff <code>entry</code> is marked for exclusion
      */
-    private boolean excludeEntry( JarEntry entry ) {
+    private boolean excludeEntry( ZipEntry entry ) {
         if ( entry.isDirectory() ) {
             return true;
         }
