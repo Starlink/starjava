@@ -482,10 +482,7 @@
     </exec>
     <echo message="${svnversion}"
           file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
-    <zip destfile="${dist.lib.pkg}/extras.zip">
-      <fileset dir="${star.bin}" includes="stilts"/>
-      <fileset dir="${star.docs.pkg}" includes="README.*"/>
-      <fileset dir="${star.build.dir}/src/etc" includes="LICENCE.txt"/>
+    <zip destfile="${dist.lib.pkg}/stilts-version.zip">
       <fileset dir="${build.classes}"
                includes="uk/ac/starlink/ttools/revision-string"/>
     </zip>
@@ -504,10 +501,13 @@
       <arg value="-xjar"/><arg value="org.mortbay.jmx.jar"/>
       <arg value="-xjar"/><arg value="jasper-combined.jar"/>
       <arg value="-xent"/><arg value="uk/ac/starlink/util/gui/"/>
+      <arg value="-file"/><arg value="${star.bin}/stilts"/>
+      <arg value="-file"/><arg value="${star.build.dir}/src/etc/LICENCE.txt"/>
+      <arg value="-file"/><arg value="${star.docs.pkg}/README.cea"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
-      <arg value="${dist.lib.pkg}/extras.zip"/>
+      <arg value="${dist.lib.pkg}/stilts-version.zip"/>
     </java>
-    <delete file="${dist.lib.pkg}/extras.zip"/>
+    <delete file="${dist.lib.pkg}/stilts-version.zip"/>
   </target>
 
   <!--
