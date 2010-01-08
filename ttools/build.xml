@@ -485,6 +485,7 @@
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="stilts"/>
       <fileset dir="${star.docs.pkg}" includes="README.*"/>
+      <fileset dir="${star.build.dir}/src/etc" includes="LICENCE.txt"/>
       <fileset dir="${build.classes}"
                includes="uk/ac/starlink/ttools/revision-string"/>
     </zip>
@@ -492,15 +493,17 @@
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
-      <arg value="-o"/><arg value="${dist.lib.pkg}/stilts.jar"/>
-      <arg value="-x"/><arg value="junit.jar"/>
-      <arg value="-x"/><arg value="array.jar"/>
-      <arg value="-x"/><arg value="jniast.jar"/>
-      <arg value="-x"/><arg value="hdx.jar"/>
-      <arg value="-x"/><arg value="ndx.jar"/>
-      <arg value="-x"/><arg value="topcat.jar"/>
-      <arg value="-x"/><arg value="org.mortbay.jmx.jar"/>
-      <arg value="-x"/><arg value="jasper-combined.jar"/>
+      <arg value="-oj"/><arg value="${dist.lib.pkg}/stilts.jar"/>
+      <arg value="-oz"/><arg value="${dist.lib.pkg}/stilts_jars.zip"/>
+      <arg value="-xjar"/><arg value="junit.jar"/>
+      <arg value="-xjar"/><arg value="array.jar"/>
+      <arg value="-xjar"/><arg value="jniast.jar"/>
+      <arg value="-xjar"/><arg value="hdx.jar"/>
+      <arg value="-xjar"/><arg value="ndx.jar"/>
+      <arg value="-xjar"/><arg value="topcat.jar"/>
+      <arg value="-xjar"/><arg value="org.mortbay.jmx.jar"/>
+      <arg value="-xjar"/><arg value="jasper-combined.jar"/>
+      <arg value="-xent"/><arg value="uk/ac/starlink/util/gui/"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
       <arg value="${dist.lib.pkg}/extras.zip"/>
     </java>
@@ -555,8 +558,9 @@
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
-                                 excludes="**/stilts.jar **/stilts-app.jar"/>
+      <fileset dir="${dist.lib}"
+               includes="**/*.jar **/*.zip"
+               excludes="**/stilts.jar **/stilts-app.jar **/stilts_jars.zip"/>
     </signjar>
 
   </target>
@@ -600,7 +604,8 @@
 
          <!-- All jar files of this application -->
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
-                  excludes="**/stilts.jar **/stilts-app.jar"/>
+                  excludes="**/stilts.jar **/stilts-app.jar
+                            **/stilts_jars.zip"/>
 
          <!-- Components that this component depends on (non applications
           !   named in the application jar file class-path). -->
