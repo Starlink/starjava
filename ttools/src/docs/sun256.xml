@@ -6395,6 +6395,10 @@ but my thanks are especially due to the following:
         <code>array</code> functions for constructing arrays,
         and new aggregating functions <code>median</code> and
         <code>quantile</code>.</li>
+    <li>Classes now distributed as a zip of jars (<code>stilts_jars.zip</code>)
+        as an alternative to monolithic jar file (<code>stilts.jar</code>).
+        This may be more appropriate for those using STILTS classes in a
+        framework that contains other third party class libraries.</li>
     </ul>
     </p>
     </dd>
