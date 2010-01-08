@@ -27,6 +27,7 @@
 #       one of the following jar files should exist and contain the
 #       STILTS classes:
 #          ../../lib/ttools/stilts-app.jar
+#          ./stilts-app.jar
 #          ./topcat-full.jar
 #          ./topcat-lite.jar
 #          ./stilts.jar
@@ -38,6 +39,7 @@
 #  Set locations of acceptable jar files (relative to this script).
 stilts_jars="\
  ../lib/ttools/stilts-app.jar\
+ stilts-app.jar\
  topcat-full.jar\
  topcat-lite.jar\
  stilts.jar\
