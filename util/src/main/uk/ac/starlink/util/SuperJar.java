@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ import java.util.zip.ZipOutputStream;
 public class SuperJar {
 
     private final File[] jarFiles_;
+    private final File[] flatFiles_;
     private final File[] jarDeps_;
     private final Collection fileExcludeSet_;
     private final Collection dirExcludeSet_;
@@ -50,14 +52,16 @@ public class SuperJar {
      * Constructor.
      *
      * @param   jarFiles  top-level jar files containing files and dependencies
+     * @param   flatFiles  files for inclusion at top level of output
      * @param   jarExcludes  names of jar files which may be named as class-path
      *          dependencies but which should not be included in the result
      * @param   entryExcludes  jar file entries which should be excluded 
      *          from the result
      */
-    public SuperJar( File[] jarFiles, String[] jarExcludes,
+    public SuperJar( File[] jarFiles, File[] flatFiles, String[] jarExcludes,
                      String[] entryExcludes ) throws IOException {
         jarFiles_ = jarFiles;
+        flatFiles_ = flatFiles;
         fileExcludeSet_ = new HashSet();
         dirExcludeSet_ = new HashSet();
         for ( int i = 0; i < entryExcludes.length; i++ ) {
@@ -92,8 +96,13 @@ public class SuperJar {
             }
         }
 
-        /* Write all items from input jar files to the single output file. */
+        /* Set up output to single output jar file. */
         JarOutputStream jout = new JarOutputStream( out, outManifest );
+
+        /* Write flat files. */
+        writeFlatFiles( jout );
+
+        /* Write all items from input jar files. */
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
             JarInputStream jin =
                 new JarInputStream(
@@ -105,6 +114,7 @@ public class SuperJar {
                      ! jent.getName().startsWith( "META-INF" ) ) {
                     jout.putNextEntry( jent );
                     IOUtils.copy( jin, jout );
+                    jout.closeEntry();
                 }
             }
         }
@@ -136,6 +146,9 @@ public class SuperJar {
 
         /* Prepare to write to a big zip file. */
         ZipOutputStream zout = new ZipOutputStream( out );
+
+        /* Write flat files. */
+        writeFlatFiles( zout );
 
         /* Write each of the jar files. */
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
@@ -170,6 +183,7 @@ public class SuperJar {
                     if ( ! excludeEntry( jent ) ) {
                         jout.putNextEntry( jent );
                         IOUtils.copy( jin, jout );
+                        jout.closeEntry();
                     }
                 }
                 jout.finish();
@@ -220,6 +234,24 @@ public class SuperJar {
             }
         }
         return false;
+    }
+
+    /**
+     * Outputs this objects designated flat files to a given zip output stream.
+     *
+     * @param  zout  destination archive stream
+     */
+    private void writeFlatFiles( ZipOutputStream zout ) throws IOException {
+        for ( int i = 0; i < flatFiles_.length; i++ ) {
+            File file = flatFiles_[ i ];
+            String ftail = file.getName();
+            ZipEntry zent = new ZipEntry( ftail );
+            zout.putNextEntry( zent );
+            InputStream fin = new FileInputStream( file );
+            IOUtils.copy( fin, zout );
+            fin.close();
+            zout.closeEntry();
+        }
     }
 
     /**
@@ -404,17 +436,22 @@ public class SuperJar {
      * Zip files can be used as well, they work the same but have no
      * manifest.
      *
+     * <p>Any <tt>flat-file</tt> arguments will be included as files
+     * at the top level of the output jar or zip file.
+     *
      * @param  args  an array of command-line arguments as described above
      */
     public static void main( String[] args ) throws IOException {
         String usage = "SuperJar [-oj out-jar] [-oz out-zip]\n"
                      + "         [-xjar jar [-xjar jar] ..]\n"
                      + "         [-xent entry [-xent entry] ..]\n"
+                     + "         [-file flatfile [-file flatfile] ..]\n"
                      + "         jarfile [jarfile ..]";
 
         /* Process arguments. */
         List arglist = new ArrayList( Arrays.asList( args ) );
         List jarlist = new ArrayList();
+        List flatFileList = new ArrayList();
         File outJar = null;
         File outZip = null;
         List jarExcludeList = new ArrayList();
@@ -447,8 +484,14 @@ public class SuperJar {
                 entryExcludeList.add( (String) it.next() );
                 it.remove();
             }
+            else if ( arg.equals( "-file" ) ) {
+                it.remove();
+                flatFileList.add( new File( (String) it.next() ) );
+                it.remove();
+            }
             else {
                 jarlist.add( new File( arg ) );
+                it.remove();
             }
         }
         if ( jarlist.size() == 0 ) {
@@ -457,13 +500,16 @@ public class SuperJar {
         }
         File[] jarFiles =
             (File[]) jarlist.toArray( new File[ 0 ] );
+        File[] flatFiles =
+            (File[]) flatFileList.toArray( new File[ 0 ] );
         String[] jarExcludes =
             (String[]) jarExcludeList.toArray( new String[ 0 ] );
         String[] entryExcludes =
             (String[]) entryExcludeList.toArray( new String[ 0 ] );
 
         /* Construct the writer. */
-        SuperJar sj = new SuperJar( jarFiles, jarExcludes, entryExcludes );
+        SuperJar sj =
+            new SuperJar( jarFiles, flatFiles, jarExcludes, entryExcludes );
 
         /* Warn if no output. */
         if ( outJar == null && outZip == null ) {
