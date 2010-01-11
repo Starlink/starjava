@@ -85,6 +85,7 @@
   <!ENTITY FIG.SiaMultiWindow '&figs;SiaMultiWindow.gif'>
   <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.gif'>
   <!ENTITY FIG.VizierTableLoadDialog '&figs;VizierTableLoadDialog.gif'>
+  <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -4525,12 +4526,14 @@ currently selected table.
 </p>
 
 <p>Additionally there is a toolbar and some menus at the top which
-display windows and perform other actions, and there may, depending on
+display windows and perform other actions, there is a memory monitor
+at the bottom left, and there may, depending on
 how TOPCAT was invoked, be a panel labelled <label>SAMP</label> 
 at the bottom of the right hand panel.
 </p>
 
-<p>The Table List, Current Table Properties panel, SAMP panel, and
+<p>The Table List, Current Table Properties panel, memory monitor, 
+SAMP panel, and
 actions available from the Control Window's toolbar and menus 
 are described in the following subsections.
 </p>
@@ -4667,6 +4670,27 @@ Here is what the individual items mean:
 
 </subsubsect>
 
+<subsubsect id="MemoryMonitor">
+<subhead><title>Memory Monitor</title></subhead>
+
+<figure>
+<caption><px>Control Window Memory Monitor</px></caption>
+<figureimage src="&FIG.MemoryMonitor;"/>
+</figure>
+
+<p>The memory monitor is a small widget at the bottom left of the 
+Control Window which gives an indication of TOPCAT's memory usage.
+The number indicates the maximum heap size that Java will use
+(e.g. "64 M" for 64 megabytes), and the two darker colours filled in
+from the left indicate the current total and used proportions of this.
+It's not necessary to understand in detail what these mean, but if
+the darkest (used) colour comes to fill up the whole area, the 
+application will slow down and then signal an Out Of Memory Error.
+See <ref id="largeTables"/> for some tips on what to do if this
+happens.
+</p>
+
+</subsubsect>
 
 <subsubsect id="sampPanel">
 <subhead><title>SAMP Panel</title></subhead>
@@ -13142,6 +13166,8 @@ introduced since the last version:
     <li>Memory management adjusted further - default (Adaptive) storage policy
         now uses direct allocation (=<code>malloc()</code>) 
         to avoid running out of java heap space.</li>
+    <li>Add <ref id="MemoryMonitor">memory monitor</ref> 
+        indicator in control window.</li>
     <li>Further performance improvement for VOTable documents with
         very many TABLEs.</li>
     <li>Fix issue when sending some SAMP messages

@@ -108,6 +108,7 @@ import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
@@ -247,13 +248,18 @@ public class ControlWindow extends AuxWindow
         JList loadingList = new LoadingList( loadingModel_ );
         JScrollPane listScroller =
             new JScrollPane( new JList2( tablesList_, loadingList ) );
+        JPanel listPanel = new JPanel( new BorderLayout() );
+        listPanel.add( listScroller, BorderLayout.CENTER );
         JScrollPane infoScroller = new JScrollPane( info );
         JComponent infoPanel = new JPanel( new BorderLayout() );
+        MemoryMonitor memmon = new MemoryMonitor();
+        memmon.setPreferredSize( new Dimension( Integer.MAX_VALUE, 24 ) );
+        listPanel.add( memmon, BorderLayout.SOUTH );
         infoPanel.add( infoScroller, BorderLayout.CENTER );
         listScroller.setBorder( makeTitledBorder( "Table List" ) );
         infoScroller.setBorder( makeTitledBorder( "Current Table " +
                                                   "Properties" ) );
-        splitter.setLeftComponent( listScroller );
+        splitter.setLeftComponent( listPanel );
         splitter.setRightComponent( infoPanel );
         splitter.setPreferredSize( new Dimension( 600, 250 ) );
         splitter.setDividerLocation( 192 );
