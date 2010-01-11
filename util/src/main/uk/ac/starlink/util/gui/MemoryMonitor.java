@@ -40,8 +40,8 @@ public class MemoryMonitor extends JComponent {
      */
     public MemoryMonitor() {
         maxColor_ = new Color( 0xc0f0ff );
-        totalColor_ = new Color( 0x20a0f0 );
-        usedColor_ = new Color( 0x4070e0 );
+        totalColor_ = new Color( 0x30c0ff );
+        usedColor_ = new Color( 0x5080f0 );
         runtime_ = Runtime.getRuntime();
         timer_ = new Timer( 1000, new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
