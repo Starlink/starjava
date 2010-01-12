@@ -4690,6 +4690,14 @@ See <ref id="largeTables"/> for some tips on what to do if this
 happens.
 </p>
 
+<p>If you click on the memory monitor, you will request that the
+Java Virtual Machine performs a garbage collection round, 
+which may have the effect of reclaiming some memory and 
+modifying the current usage.
+This is not really useful (Java will garbage collect at sensible times
+without prompting), but you can do it if you're bored.
+</p>
+
 </subsubsect>
 
 <subsubsect id="sampPanel">
