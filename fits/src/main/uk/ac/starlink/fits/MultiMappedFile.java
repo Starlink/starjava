@@ -73,7 +73,7 @@ public class MultiMappedFile extends AbstractArrayDataIO
     }
 
     public void seek( long offsetFromStart ) throws IOException {
-        if ( offsetFromStart < 0 || offsetFromStart >= length_ ) {
+        if ( offsetFromStart < 0 || offsetFromStart > length_ ) {
             throw new IllegalArgumentException( "Seek out of range: "
                                               + offsetFromStart );
         }
