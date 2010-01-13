@@ -59,6 +59,7 @@ public class ArrayDataTest extends TestCase {
             }
             in.close();
         }
+        file.delete();
     }
 
     private void writeBlock( int i, DataOutput out ) throws IOException {
@@ -79,7 +80,7 @@ public class ArrayDataTest extends TestCase {
             assertEquals( (double) i, in.readDouble() );
         }
         else if ( phase == 1 ) {
-            in.skip( cblock );
+            for ( int skip = cblock; skip > 0; skip -= in.skip( skip ) );
         }
         else if ( phase == 2 ) {
             byte[] bbuf = new byte[ 1 ];
