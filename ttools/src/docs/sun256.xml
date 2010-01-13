@@ -6399,6 +6399,8 @@ but my thanks are especially due to the following:
         as an alternative to monolithic jar file (<code>stilts.jar</code>).
         This may be more appropriate for those using STILTS classes in a
         framework that contains other third party class libraries.</li>
+    <li>Fix bug in code for handling very large mapped FITS files.
+        This was causing fatal read errors in some cases.</li>
     </ul>
     </p>
     </dd>

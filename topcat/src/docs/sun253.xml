@@ -13195,6 +13195,8 @@ introduced since the last version:
         <code>array</code> functions for constructing arrays,
         and new aggregating functions <code>median</code> and
         <code>quantile</code>.</li>
+    <li>Fix bug in code for handling very large mapped FITS files.
+        This was causing fatal read errors in some cases.</li>
     </ul>
     </p></dd>
 

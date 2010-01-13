@@ -56,6 +56,8 @@ public class MultiMappedFile extends AbstractArrayDataIO
         }
         nblock_ = toInt( nb );
         niobufs_ = new MappedByteBuffer[ nblock_ ];
+        logger_.info( "FITS file mapped as " + nblock_ + " blocks of "
+                    + blockBytes_ + " bytes" );
     }
 
     /**
@@ -111,7 +113,9 @@ public class MultiMappedFile extends AbstractArrayDataIO
                 throw (IOException) new EOFException().initCause( e );
             }
             else {
-                return getBuffer( ++iblock_ ).get();
+                MappedByteBuffer buf = getBuffer( ++iblock_ );
+                buf.position( 0 );
+                return buf.get();
             }
         }
     }
@@ -126,6 +130,7 @@ public class MultiMappedFile extends AbstractArrayDataIO
             offset += nr;
             if ( length > 0 ) {
                 iblock_++;
+                getBuffer( iblock_ ).position( 0 );
             }
         }
     }
@@ -139,7 +144,9 @@ public class MultiMappedFile extends AbstractArrayDataIO
                 throw (IOException) new EOFException().initCause( e );
             }
             else {
-                getBuffer( ++iblock_ ).put( b );
+                MappedByteBuffer buf = getBuffer( ++iblock_ );
+                buf.position( 0 );
+                buf.put( b );
             }
         }
     }
@@ -154,6 +161,7 @@ public class MultiMappedFile extends AbstractArrayDataIO
             offset += nw;
             if ( length > 0 ) {
                 iblock_++;
+                getBuffer( iblock_ ).position( 0 );
             }
         }
     }
