@@ -388,61 +388,74 @@ public class RowMatcher {
     private LinkSet findInterPairs( LinkSet possibleLinks,
                                     int index1, int index2 )
             throws IOException, InterruptedException {
+        if ( index1 == index2 ) {
+            throw new IllegalArgumentException();
+        }
         LinkSet pairs = createLinkSet();
         double nLink = (double) possibleLinks.size();
         int iLink = 0;
         indicator.startStage( "Locating inter-table pairs" );
-        for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+        for ( Iterator linkIt = possibleLinks.iterator(); linkIt.hasNext(); ) {
 
             /* Get the next link and delete it from the input list, for
              * memory efficiency. */
-            RowLink link = (RowLink) it.next();
-            it.remove();
+            RowLink link = (RowLink) linkIt.next();
+            linkIt.remove();
 
             /* Check if we have a non-trivial link. */
             int nref = link.size();
             if ( nref > 1 ) {
 
+                /* Get separate lists of the RowRefs from the two tables
+                 * we're interested in. */
+                List refList1 = new ArrayList();
+                List refList2 = new ArrayList();
+                for ( int ir = 0; ir < nref; ir++ ) {
+                    RowRef ref = link.getRef( ir );
+                    int iTable = ref.getTableIndex();
+                    if ( iTable == index1 ) {
+                        refList1.add( ref );
+                    }
+                    else if ( iTable == index2 ) {
+                        refList2.add( ref );
+                    }
+                }
+                link = null;
+
                 /* Check if rows from both the required tables are present
                  * in this link - if not, there can't be any suitable pairs. */
-                boolean got1 = false;
-                boolean got2 = false;
-                for ( int i = 0; i < nref && ! ( got1 && got2 ); i++ ) {
-                    int tableIndex = link.getRef( i ).getTableIndex();
-                    got1 = got1 || tableIndex == index1;
-                    got2 = got2 || tableIndex == index2;
-                }
-                if ( got1 && got2 ) {
+                int nr1 = refList1.size();
+                int nr2 = refList2.size();
+                if ( nr1 > 0 && nr2 > 0 ) {
+                    StarTable table1 = tables[ index1 ];
+                    StarTable table2 = tables[ index2 ];
 
-                    /* Cache the rows from each ref, since it may be expensive
-                     * to get them multiple times. */
-                    Object[][] binnedRows = new Object[ nref ][];
-                    for ( int i = 0; i < nref; i++ ) {
-                        RowRef ref = link.getRef( i );
-                        StarTable table = tables[ ref.getTableIndex() ];
-                        binnedRows[ i ] = table.getRow( ref.getRowIndex() );
+                    /* Cache rows used for the inner checking loop, since it
+                     * may be expensive to retrieve them multiple times. */
+                    Object[][] binnedRow2s = new Object[ nr2 ][];
+                    for ( int ir2 = 0; ir2 < nr2; ir2++ ) {
+                        RowRef ref2 = (RowRef) refList2.get( ir2 );
+                        binnedRow2s[ ir2 ] =
+                            table2.getRow( ref2.getRowIndex() );
                     }
 
                     /* Do a pairwise comparison of each eligible pair in the
                      * group.  If they match, add the new pair to the set
                      * of matched pairs. */
-                    for ( int i = 0; i < nref; i++ ) {
-                        RowRef refI = link.getRef( i );
-                        int iTableI = refI.getTableIndex();
-                        for ( int j = 0; j < i; j++ ) {
-                            RowRef refJ = link.getRef( j );
-                            int iTableJ = refJ.getTableIndex();
-                            if ( iTableI == index1 && iTableJ == index2 ||
-                                 iTableI == index2 && iTableJ == index1 ) {
-                                RowLink2 pair = new RowLink2( refI, refJ );
-                                if ( ! pairs.containsLink( pair ) ) {
-                                    double score = 
-                                        engine.matchScore( binnedRows[ i ],
-                                                           binnedRows[ j ] );
-                                    if ( score >= 0 ) {
-                                        pair.setScore( score );
-                                        pairs.addLink( pair );
-                                    }
+                    for ( int ir1 = 0; ir1 < nr1; ir1++ ) {
+                        RowRef ref1 = (RowRef) refList1.get( ir1 );
+                        Object[] binnedRow1 =
+                            table1.getRow( ref1.getRowIndex() );
+                        for ( int ir2 = 0; ir2 < nr2; ir2++ ) {
+                            RowRef ref2 = (RowRef) refList2.get( ir2 );
+                            RowLink2 pair = new RowLink2( ref1, ref2 );
+                            if ( ! pairs.containsLink( pair ) ) {
+                                Object[] binnedRow2 = binnedRow2s[ ir2 ];
+                                double score =
+                                    engine.matchScore( binnedRow1, binnedRow2 );
+                                if ( score >= 0 ) {
+                                    pair.setScore( score );
+                                    pairs.addLink( pair );
                                 }
                             }
                         }
