@@ -733,7 +733,7 @@ public class MatchStarTables {
     private static class Token implements Comparable {
 
         private final int id_;
-        private Set group_;
+        private TokenGroup group_;
 
         /**
          * Constructs a token with an ID value.
@@ -755,7 +755,7 @@ public class MatchStarTables {
          */
         public void join( Token other ) {
             if ( this.group_ == null && other.group_ == null ) {
-                this.group_ = new HashSet();
+                this.group_ = new TokenGroup();
                 this.group_.add( this );
                 this.group_.add( other );
                 other.group_ = this.group_;
@@ -772,10 +772,11 @@ public class MatchStarTables {
                 assert this.group_.contains( this );
                 assert other.group_.contains( other );
                 if ( this.group_ != other.group_ ) {
-                    Token[] others =
-                        (Token[]) other.group_.toArray( new Token[ 0 ] );
-                    for ( int i = 0; i < others.length; i++ ) {
-                        Token tok = others[ i ];
+                    TokenGroup otherGroup = other.group_;
+                    for ( Iterator it = other.group_.tokenIterator();
+                          it.hasNext(); ) {
+                        Token tok = (Token) it.next();
+                        assert tok.group_ == otherGroup;
                         assert tok.group_ != this.group_;
                         this.group_.add( tok );
                         tok.group_ = this.group_;
@@ -789,23 +790,14 @@ public class MatchStarTables {
         }
 
         /**
-         * Returns an ID value which is the same for all memebers of this
+         * Returns an ID value which is the same for all members of this
          * token's group.
          *
          * @return  group id
          */
         public int getGroupId() {
-            if ( group_ == null ) {
-                return id_;
-            }
-            else {
-                int id = Integer.MAX_VALUE;
-                for ( Iterator it = group_.iterator(); it.hasNext(); ) {
-                    Token token = (Token) it.next();
-                    id = Math.min( id, token.id_ );
-                }
-                return id;
-            }
+            return group_ == null ? id_ 
+                                  : group_.getId();
         }
 
         /**
@@ -834,4 +826,61 @@ public class MatchStarTables {
         }
     }
 
+    /**
+     * Container for Token objects.  Like a Set, each token (by equals())
+     * can only be contained once.
+     */
+    private static class TokenGroup {
+        private final Set set_ = new HashSet();
+        private int minTokenId_ = Integer.MAX_VALUE;
+
+        /**
+         * Adds a token to the set.
+         *
+         * @param  token  token to add
+         */
+        void add( Token token ) {
+            set_.add( token );
+            minTokenId_ = Math.min( minTokenId_, token.id_ );
+        }
+
+        /**
+         * Indicates whether a given token has been added to this group.
+         *
+         * @param   token  token to test
+         * @return   true iff token is in this group
+         */
+        boolean contains( Token token ) {
+            return set_.contains( token );
+        }
+
+        /**
+         * Returns the number of distince tokens in this group.
+         *
+         * @return  size
+         */
+        int size() {
+            return set_.size();
+        }
+
+        /**
+         * Returns a unique identifier for this group.
+         * In the current implementation, it's the ID of the lowest-numbered
+         * token.
+         *
+         * @return  group id
+         */
+        int getId() {
+            return minTokenId_;
+        }
+
+        /**
+         * Returns an interator over the unique tokens in this group.
+         *
+         * @return  iterator over Token objects
+         */
+        Iterator tokenIterator() {
+            return set_.iterator();
+        }
+    }
 }
