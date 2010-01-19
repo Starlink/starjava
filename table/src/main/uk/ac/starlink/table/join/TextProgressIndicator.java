@@ -13,20 +13,28 @@ public class TextProgressIndicator implements ProgressIndicator {
     final int fullWidth = 78;
     int blankWidth;
     PrintStream out = System.out;
+    final Profiler profiler;
+    long lastUsedMem;
 
     /**
      * Constructs a new indicator which will output to a given stream.
      *
      * @param  out  output stream
+     * @param  profile  true iff profiling reports are to be made along with
+     *         the normal progress log
      */
-    public TextProgressIndicator( PrintStream out ) {
+    public TextProgressIndicator( PrintStream out, boolean profile ) {
         this.out = out;
+        this.profiler = profile ? new Profiler() : null;
     }
 
     public void startStage( String stage ) {
         out.print( stage );
         blankWidth = fullWidth - stage.length();
         dotCount = 0;
+        if ( profiler != null ) {
+            profiler.reset();
+        }
     }
 
     public void setLevel( double level ) {
@@ -41,6 +49,9 @@ public class TextProgressIndicator implements ProgressIndicator {
 
     public void endStage() {
         out.println();
+        if ( profiler != null ) {
+            logMessage( profiler.report() );
+        }
     }
 
     public void logMessage( String msg ) {

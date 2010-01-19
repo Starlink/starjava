@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import uk.ac.starlink.table.join.NullProgressIndicator;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.TextProgressIndicator;
-import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 
@@ -14,9 +14,12 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    20 Nov 2007
  */
-public class ProgressIndicatorParameter extends BooleanParameter {
+public class ProgressIndicatorParameter extends ChoiceParameter {
 
     private ProgressIndicator indicator_;
+    private static final String NONE = "none";
+    private static final String LOG = "log";
+    private static final String PROFILE = "profile";
 
     /**
      * Constructor.
@@ -24,9 +27,9 @@ public class ProgressIndicatorParameter extends BooleanParameter {
      * @param   name  parameter name
      */
     public ProgressIndicatorParameter( String name ) {
-        super( name );
-        setPrompt( "Report progress to screen" );
-        setDefault( "true" );
+        super( name, new String[] { NONE, LOG, PROFILE, } );
+        setPrompt( "How to report progress to screen" );
+        setDefault( LOG );
         setDescription( new String[] {
             "<p>Determines whether information on progress of the match",
             "should be output to the standard error stream as it progresses.",
@@ -34,23 +37,37 @@ public class ProgressIndicatorParameter extends BooleanParameter {
             "guidance about how much longer it will take.",
             "It can also be useful as a performance diagnostic.",
             "</p>",
+            "<p>The options are:",
+            "<ul>",
+            "<li><code>" + NONE + "</code>:",
+                 "no progress is shown",
+                 "</li>",
+            "<li><code>" + LOG + "</code>:",
+                 "progress information is shown",
+                 "</li>",
+            "<li><code>" + PROFILE + "</code>:",
+                 "progress information and limited time/memory profiling",
+                 "information are shown",
+                 "</li>",
+            "</ul>",
+            "</p>",
         } );
     }
 
     public void setValueFromString( Environment env, String sval )
              throws TaskException {
         super.setValueFromString( env, sval );
-        ProgressIndicator indicator;
-        if ( booleanValue( env ) ) {
-            PrintStream strm = env.getErrorStream();
-            if ( strm != null ) {
-                indicator = new TextProgressIndicator( strm );
+        ProgressIndicator indicator = null;
+        PrintStream strm = env.getErrorStream();
+        if ( strm != null ) {
+            if ( LOG.equals( sval ) ) {
+                indicator = new TextProgressIndicator( strm, false );
             }
-            else {
-                indicator = new NullProgressIndicator();
+            else if ( PROFILE.equals( sval ) ) {
+                indicator = new TextProgressIndicator( strm, true );
             }
         }
-        else {
+        if ( indicator == null ) {
             indicator = new NullProgressIndicator();
         }
         indicator_ = indicator;

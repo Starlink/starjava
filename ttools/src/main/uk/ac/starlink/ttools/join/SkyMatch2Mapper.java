@@ -119,8 +119,9 @@ public class SkyMatch2Mapper implements TableMapper {
             JoinFixAction.makeRenameDuplicatesAction( "_2", false, true );
         PrintStream err = env.getErrorStream();
         ProgressIndicator progger =
-            err == null ? (ProgressIndicator) new NullProgressIndicator()
-                        : (ProgressIndicator) new TextProgressIndicator( err );
+            err == null
+                ? (ProgressIndicator) new NullProgressIndicator()
+                : (ProgressIndicator) new TextProgressIndicator( err, false );
         return new SkyMatch2Mapping( new HEALPixMatchEngine( error, false ),
                                      ra1, dec1, ra2, dec2, join, bestOnly,
                                      fixact1, fixact2, progger );

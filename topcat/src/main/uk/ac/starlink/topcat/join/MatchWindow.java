@@ -266,7 +266,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
          * to the event dispatch thread.
          */
         public void run() {
-            currentIndicator = new MatchProgressIndicator();
+            currentIndicator = new MatchProgressIndicator( true );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     setBusy( true );
@@ -308,6 +308,9 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * with information about how the calculation is going.
      */
     private class MatchProgressIndicator extends RangeModelProgressIndicator {
+        MatchProgressIndicator( boolean profile ) {
+            super( profile );
+        }
         public void startStage( String stage ) {
             if ( currentIndicator == this ) {
                 appendLogLine( stage + "..." );

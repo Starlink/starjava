@@ -6401,6 +6401,10 @@ but my thanks are especially due to the following:
         framework that contains other third party class libraries.</li>
     <li>Fix bug in code for handling very large mapped FITS files.
         This was causing fatal read errors in some cases.</li>
+    <li>Syntax of <code>tmatch2</code>'s <code>progress</code> parameter
+        has changed; it now has an additional option which will write
+        limited profiling information as well as logging as the match
+        progresses.</li>
     </ul>
     </p>
     </dd>

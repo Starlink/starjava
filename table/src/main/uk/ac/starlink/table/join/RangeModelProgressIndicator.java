@@ -9,8 +9,8 @@ import javax.swing.SwingUtilities;
  * Calls to <tt>startStage</tt>, <tt>setLevel</tt> and <tt>endStage</tt>
  * cause the state of the {@link javax.swing.BoundedRangeModel} that
  * this implements to be updated accordingly (asynchronously of course).
- * The string messages passed to <tt>startStage</tt> and <tt>logMessage</tt> 
- * are ignored -
+ * The string messages passed to <tt>startStage</tt> and
+ * <tt>logMessage</tt> are ignored -
  * subclasses should override these methods (calling the superclass
  * implementations as well) to do something with these strings.
  *
@@ -23,17 +23,22 @@ public class RangeModelProgressIndicator extends DefaultBoundedRangeModel
 
     double level;
     double lastUpdatedLevel;
+    final Profiler profiler;
     final static int MAX = 1000;
     final static double DMAX = (double) MAX;
   
-    public RangeModelProgressIndicator() {
+    public RangeModelProgressIndicator( boolean profile ) {
         super( 0, MAX, 0, MAX );
+        profiler = profile ? new Profiler() : null;
     }
 
     public void startStage( String stage ) {
         level = 0.0;
         lastUpdatedLevel = 0.0;
         updateNow();
+        if ( profiler != null ) {
+            profiler.reset();
+        }
     }
 
     public void setLevel( double lev ) throws InterruptedException {
@@ -48,6 +53,9 @@ public class RangeModelProgressIndicator extends DefaultBoundedRangeModel
         level = 0.0;
         lastUpdatedLevel = 0.0;
         updateNow();
+        if ( profiler != null ) {
+            logMessage( profiler.report() );
+        }
     }
 
     public void logMessage( String msg ) {
