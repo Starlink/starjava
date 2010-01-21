@@ -479,17 +479,17 @@ public class RowMatcher {
     private LinkSet getAllPossibleLinks()
             throws IOException, InterruptedException {
         Range range = new Range( tables[ 0 ].getColumnCount() );
-        BinContents bins = new BinContents( indicator );
+        ObjectBinner binner = Binners.createObjectBinner();
         long totalRows = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
-            binRows( itab, range, bins, true );
+            binRows( itab, range, binner, true );
             totalRows += tables[ itab ].getRowCount();
         }
-        long nBin = bins.getRowCount();
+        long nBin = binner.getBinCount();
         indicator.logMessage( "Average bin count per row: " +
                               (float) ( nBin / (double) totalRows ) );
         LinkSet links = createLinkSet();
-        bins.addRowLinks( links );
+        binsToLinks( binner, links );
         return links;
     }
 
@@ -572,13 +572,13 @@ public class RowMatcher {
          * then add any entries from the second table which are in bins
          * we have already seen.  There is no point adding entries from the
          * second table into bins which do not appear in the first one. */
-        BinContents bins = new BinContents( indicator );
-        binRows( indexA, range, bins, true );
-        binRows( indexB, range, bins, false );
+        ObjectBinner binner = Binners.createObjectBinner();
+        binRows( indexA, range, binner, true );
+        binRows( indexB, range, binner, false );
 
         /* Return the result. */
         LinkSet links = createLinkSet();
-        bins.addRowLinks( links );
+        binsToLinks( binner, links );
         return links;
     }
 
@@ -735,21 +735,21 @@ public class RowMatcher {
         }
 
         /* Bin all the rows in the interesting region of the reference table. */
-        BinContents bins = new BinContents( indicator );
-        binRows( index0, range, bins, true );
+        ObjectBinner binner = Binners.createObjectBinner();
+        binRows( index0, range, binner, true );
 
         /* Bin any rows in the other tables which have entries in the bins
          * we have already created for the reference table.  Rows without
          * such entries can be ignored. */
         for ( int itab = 0; itab < nTable; itab++ ) {
             if ( itab != index0 ) {
-                binRows( itab, range, bins, false );
+                binRows( itab, range, binner, false );
             }
         }
 
         /* Convert the result to a link set and return. */
         LinkSet linkSet = createLinkSet();
-        bins.addRowLinks( linkSet );
+        binsToLinks( binner, linkSet );
         return linkSet;
     }
 
@@ -847,8 +847,7 @@ public class RowMatcher {
 
         /* Store all the pairs in a map keyed by row reference of the reference
          * table. */
-        Map pairMap = new HashMap();
-        ListStore store = ListStores.createListStore();
+        ObjectBinner pairBinner = Binners.createObjectBinner();
         for ( Iterator it = pairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
             it.remove();
@@ -872,17 +871,16 @@ public class RowMatcher {
             }
             Object key = ref0;
             Object value = new ScoredRef( ref1, pair.getScore() );
-            pairMap.put( key, store.addItem( pairMap.get( key ), value ) );
+            pairBinner.addItem( key, value );
         }
 
         /* Convert the pairs in pairMap to a LinkSet. */
         LinkSet multiLinks = createLinkSet();
-        for ( Iterator it = pairMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            RowRef ref0 = (RowRef) entry.getKey();
+        for ( Iterator it = pairBinner.getKeyIterator(); it.hasNext(); ) {
+            RowRef ref0 = (RowRef) it.next();
             ScoredRef[] sref1s =
-                (ScoredRef[]) store.getList( entry.getValue() )
-                             .toArray( new ScoredRef[ 0 ] );
+                (ScoredRef[]) pairBinner.getList( ref0 )
+                                        .toArray( new ScoredRef[ 0 ] );
             int nref1 = sref1s.length;
             if ( nref1 > 0 ) {
                 RowRef[] ref1s = new RowRef[ nref1 ];
@@ -1027,14 +1025,13 @@ public class RowMatcher {
 
         /* Construct a new hash mapping each RowRef in the given set of
          * links to a list of all the links it appears in. */
-        Map refMap = new HashMap();
-        ListStore listStore = ListStores.createModifiableListStore();
+        ObjectBinner refBinner = Binners.createModifiableObjectBinner();
         for ( Iterator linkIt = links.iterator(); linkIt.hasNext(); ) {
             RowLink link = (RowLink) linkIt.next();
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
-                refMap.put( ref, listStore.addItem( refMap.get( ref ), link ) );
+                refBinner.addItem( ref, link );
             }
         }
 
@@ -1054,7 +1051,7 @@ public class RowMatcher {
             boolean isolated = true;
             for ( int i = 0; isolated && i < nref; i++ ) {
                 RowRef ref = link.getRef( i );
-                Collection refLinks = listStore.getList( refMap.get( ref ) );
+                Collection refLinks = refBinner.getList( ref );
                 assert refLinks.size() > 0;
                 isolated = isolated && refLinks.size() == 1;
             } 
@@ -1065,8 +1062,7 @@ public class RowMatcher {
                 agglomeratedLinks.addLink( link );
                 for ( int i = 0; i < nref; i++ ) {
                     RowRef ref = link.getRef( i );
-                    Object removed = refMap.remove( ref );
-                    assert removed != null;
+                    refBinner.remove( ref );
                 }
             }
         }
@@ -1079,13 +1075,13 @@ public class RowMatcher {
          * which means we don't encounter them more than once
          * (and it's also good for memory usage).
          * Repeat until there are no nodes left in the input map. */
-        double nRefs = refMap.size();
+        double nRefs = refBinner.getBinCount();
         indicator.startStage( "Walking links" );
-        while ( ! refMap.isEmpty() ) {
-            indicator.setLevel( 1.0 - ( refMap.size() / nRefs ) );
-            RowRef ref1 = (RowRef) refMap.keySet().iterator().next();
+        while ( refBinner.getBinCount() > 0 ) {
+            indicator.setLevel( 1.0 - ( refBinner.getBinCount() / nRefs ) );
+            RowRef ref1 = (RowRef) refBinner.getKeyIterator().next();
             Set refSet = new HashSet();
-            walkLinks( ref1, refMap, listStore, refSet );
+            walkLinks( ref1, refBinner, refSet );
             agglomeratedLinks.addLink( new RowLink( refSet ) );
         }
         indicator.endStage();
@@ -1099,22 +1095,20 @@ public class RowMatcher {
      * RowRefs to RowLinks and dumps them in a set of nodes.
      *
      * @param   baseRef  the RowRef at which to start/continue the search
-     * @param   refMap   a map of RowRefs storing Lists of 
-     *                   (all so far untraversed) RowLinks
-     * @param   listStore  list storage object for interrogating 
-     *                     <code>refMap</code>
+     * @param   refBinner  a modifiable ObjectBinner mapping RowRefs to lists
+     *                   of (all so far untraversed) RowLinks
      * @param   outSet   an existing set of RowRefs into which new RowRefs
      *                   connected to baseRef should be inserted
      */
-    private static void walkLinks( RowRef baseRef, Map refMap,
-                                   ListStore listStore, Set outSet ) {
+    private static void walkLinks( RowRef baseRef, ObjectBinner refBinner,
+                                   Set outSet ) {
 
         /* Do nothing if the output set already contains the requested
          * reference; without this test we would recurse to infinite depth. */
         if ( ! outSet.contains( baseRef ) ) {
 
             /* Get all the links of which this reference is a member. */
-            Collection links = listStore.getList( refMap.get( baseRef ) );
+            Collection links = refBinner.getList( baseRef );
             if ( ! links.isEmpty() ) {
 
                 /* Add the current row to the output set. */
@@ -1126,7 +1120,7 @@ public class RowMatcher {
                     RowLink link = (RowLink) linkIt.next();
                     for ( int i = 0; i < link.size(); i++ ) {
                         RowRef rref = link.getRef( i );
-                        walkLinks( rref, refMap, listStore, outSet );
+                        walkLinks( rref, refBinner, outSet );
                     }
 
                     /* Having traversed this link, remove it so it is never
@@ -1138,7 +1132,7 @@ public class RowMatcher {
             /* If there are no more links in this list, we can forget
              * about it. */
             if ( links.isEmpty() ) {
-                refMap.remove( baseRef );
+                refBinner.remove( baseRef );
             }
         }
     }
@@ -1260,7 +1254,9 @@ public class RowMatcher {
     }
 
     /**
-     * Adds entries for the rows of a table to a given BinContents object.
+     * Adds entries for the rows of a table to a given ObjectBinner object.
+     * The binner is populated with keys that are match engine bins,
+     * and list items that are {@link RowRef}s.
      *
      * <p>The <code>newBins</code> parameter determines whether new bins
      * will be started in the <code>bins</code> object.  If true, then
@@ -1271,10 +1267,10 @@ public class RowMatcher {
      * @param   itab   index of table to operate on
      * @param   range  range of row coordinates of interest - any rows outside
      *                 this range are ignored
-     * @param   bins   bin container object to modify
+     * @param   binner   binner object to modify
      * @param   newBins  whether new bins may be added to <code>bins</code>
      */
-    private void binRows( int itab, Range range, BinContents bins,
+    private void binRows( int itab, Range range, ObjectBinner binner,
                           boolean newBins )
             throws IOException, InterruptedException {
         StarTable table = tables[ itab ];
@@ -1293,8 +1289,8 @@ public class RowMatcher {
                         RowRef rref = new RowRef( itab, lrow );
                         for ( int ikey = 0; ikey < nkey; ikey++ ) {
                             Object key = keys[ ikey ];
-                            if ( newBins || bins.containsKey( key ) ) {
-                                bins.putRowInBin( keys[ ikey ], rref );
+                            if ( newBins || binner.containsKey( key ) ) {
+                                binner.addItem( key, rref );
                             }
                         }
                     }
@@ -1313,6 +1309,52 @@ public class RowMatcher {
             indicator.logMessage( nexclude + "/" + nrow + " rows excluded "
                                 + "(out of match region)" );
         }
+    }
+
+    /**
+     * Calculates a set of RowLink objects which represent all the
+     * distinct groups of RowRefs associated with any of the bins,
+     * and adds them to a given LinkSet.
+     * Only RowLinks containing more than one entry are put in the
+     * resulting set, since the others aren't interesting.
+     *
+     * <p><strong>Note</strong> that this method will
+     * (for memory efficiency purposes)
+     * clear out the binner; following a call to this method the binner
+     * is effectively empty of any data.
+     *
+     * @param   binner with bin item values which are {@link RowRef}s;
+     *          contents may be disrupted
+     * @param   linkSet  link set into which created RowLinks will be dumped
+     */
+    private void binsToLinks( ObjectBinner binner, LinkSet linkSet )
+            throws InterruptedException {
+        long nrow = binner.getItemCount();
+        long nbin = binner.getBinCount();
+        indicator.logMessage( nrow + " row refs in " + nbin + " bins" );
+        indicator.logMessage( "(average bin occupancy " +
+                              ( (float) nrow / (float) nbin ) + ")" );
+        indicator.startStage( "Consolidating potential match groups" );
+        double nl = (double) nbin;
+        int il = 0;
+        for ( Iterator it = binner.getKeyIterator(); it.hasNext(); ) {
+            Object key = it.next();
+            List refList = binner.getList( key );
+
+            /* If there is more than one RowRef, create and store the
+             * corresponding RowLink.  Items with 0 or 1 entry are not
+             * potential matches - take no action. */
+            if ( refList.size() > 1 ) {
+                linkSet.addLink( new RowLink( refList ) );
+            }
+
+            /* Remove the entry from the map as we're going along,
+             * to save on memory. */
+            it.remove();
+            indicator.setLevel( ++il / nl );
+        }
+        assert binner.getBinCount() == 0;
+        indicator.endStage();
     }
 
     /**
