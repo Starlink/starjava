@@ -13197,6 +13197,9 @@ introduced since the last version:
         <code>quantile</code>.</li>
     <li>Fix bug in code for handling very large mapped FITS files.
         This was causing fatal read errors in some cases.</li>
+    <li>Fixed a small crossmatch bug; it was giving a small possibility of
+        suboptimal "best" match assignments when pair matching in crowded
+        fields.</li>
     </ul>
     </p></dd>
 

@@ -6405,6 +6405,9 @@ but my thanks are especially due to the following:
         has changed; it now has an additional option which will write
         limited profiling information as well as logging as the match
         progresses.</li>
+    <li>Fixed a small crossmatch bug; it was giving a small possibility of
+        suboptimal "best" match assignments when pair matching in crowded
+        fields.</li>
     </ul>
     </p>
     </dd>

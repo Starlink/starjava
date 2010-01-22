@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -932,24 +933,42 @@ public class RowMatcher {
     private LinkSet eliminateMultipleRowEntries( LinkSet pairs ) 
             throws InterruptedException {
 
-        /* Set up a map to keep track of the best score so far keyed by
-         * RowRef. */
-        Map bestRowScores = new HashMap();
+        /* Sort the input pairs in ascending score order.  In this way,
+         * better links will be favoured (inserted into the output set)
+         * over worse ones. */
+        Collection inPairs = toSortedList( pairs, new Comparator() {
+            public int compare( Object o1, Object o2 ) {
+                RowLink2 r1 = (RowLink2) o1;
+                RowLink2 r2 = (RowLink2) o2;
+                double score1 = r1.getScore();
+                double score2 = r2.getScore();
+                if ( score1 < score2 ) {
+                    return -1;
+                }
+                else if ( score1 > score2 ) {
+                    return +1;
+                }
+                else {
+                    return r1.compareTo( r2 );
+                }
+            }
+        } );
+        pairs = null;
 
         /* We will be copying entries from the input map to an output one,
          * retaining only the best matches for each row. */
-        LinkSet inPairs = pairs;
         LinkSet outPairs = createLinkSet();
 
-        /* Iterate over each entry in the input set, deleting it and 
-         * selectively copying to the output set as we go. 
-         * This means we don't need double the amount of memory. */
+        /* Prepare to keep track of which rows we have seen. */
+        Set seenRows = new HashSet();
+
+        /* Iterate over each entry in the input set, selectively copying
+         * to the output set as we go. */
         double nPair = inPairs.size();
         int iPair = 0;
         indicator.startStage( "Eliminating multiple row references" );
         for ( Iterator it = inPairs.iterator(); it.hasNext(); ) {
             RowLink2 pair = (RowLink2) it.next();
-            it.remove();
             double score = pair.getScore();
             if ( pair.size() != 2 || Double.isNaN( score ) || score < 0.0 ) {
                 throw new IllegalArgumentException();
@@ -959,38 +978,19 @@ public class RowMatcher {
             if ( ref1.getTableIndex() != 0 || ref2.getTableIndex() != 1 ) {
                 throw new IllegalArgumentException();
             }
-            RowLink2 best1 = (RowLink2) bestRowScores.get( ref1 );
-            RowLink2 best2 = (RowLink2) bestRowScores.get( ref2 );
+            boolean seen1 = ! seenRows.add( ref1 );
+            boolean seen2 = ! seenRows.add( ref2 );
 
-            /* If neither row in this pair has been seen before, or we
-             * have a better match this time than previous appearances,
-             * copy this entry across to the output set. */
-            if ( ( best1 == null || score < best1.getScore() ) &&
-                 ( best2 == null || score < best2.getScore() ) ) {
-
-                /* If a pair associated with either of these rows has been
-                 * encountered before now, remove it from the output set. */
-                if ( best1 != null ) {
-                    outPairs.removeLink( best1 );
-                }
-                if ( best2 != null ) {
-                    outPairs.removeLink( best2 );
-                }
-
-                /* Copy the current pair into the output set. */
+            /* If neither row in this pair has been seen before,
+             * copy it across to the output set. */
+            if ( ! seen1 && ! seen2 ) {
                 outPairs.addLink( pair );
-
-                /* Record the current pair indexed under both its constituent
-                 * rows. */
-                bestRowScores.put( ref1, pair );
-                bestRowScores.put( ref2, pair );
             }
 
             /* Report on progress. */
             indicator.setLevel( ++iPair / nPair );
         }
         indicator.endStage();
-        assert inPairs.size() == 0;
         return outPairs;
     }
 
@@ -1386,6 +1386,28 @@ public class RowMatcher {
         }
         indicator.logMessage( nInclude + " rows in match region" );
         return nInclude;
+    }
+
+    /**
+     * Returns a list with the same content of RowLinks as the
+     * input LinkSet, but ordered according to the given comparator.
+     *
+     * @param  linkSet  set of RowLinks
+     * @param  comparator  comparator that operates on the members of 
+     *                     <code>linkSet</code>, or null for natural order
+     * @return  sorted collection of {@link RowLink}s  
+     */
+    private Collection toSortedList( LinkSet linkSet, Comparator comparator ) {
+        int nLink = linkSet.size();
+        RowLink[] links = new RowLink[ nLink ];
+        int il = 0;
+        for ( Iterator it = linkSet.iterator(); it.hasNext(); ) {
+            links[ il++ ] = (RowLink) it.next();
+        }
+
+        /* Don't use Collections.sort, it's evil. */
+        Arrays.sort( links, comparator );
+        return Arrays.asList( links );
     }
 
     /**
