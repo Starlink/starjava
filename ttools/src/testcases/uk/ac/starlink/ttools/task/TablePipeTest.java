@@ -528,6 +528,13 @@ public class TablePipeTest extends TableTestCase {
         assertEquals( String.class, info.getContentClass() );
     }
 
+    public void testRowRange() throws Exception {
+        assertSameData( inTable_, apply( "rowrange 1 4" ) );
+        assertSameData( inTable_, apply( "rowrange 1 999" ) );
+        assertArrayEquals( new Object[] { "Beauchamp", "Taylor", },
+                           getColData( apply( "rowrange 2 3" ), 3 ) );
+    }
+
     public void testSelect() throws Exception {
         assertSameData( inTable_, apply( "select true" ) );
         assertSameData( inTable_, apply( "select 'a < 1e8 && ! NULL_c'" ) );

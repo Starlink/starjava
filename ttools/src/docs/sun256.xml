@@ -6408,6 +6408,7 @@ but my thanks are especially due to the following:
     <li>Fixed a small crossmatch bug; it was giving a small possibility of
         suboptimal "best" match assignments when pair matching in crowded
         fields.</li>
+    <li>Add new filter <ref id="rowrange"><code>rowrange</code></ref>.</li>
     </ul>
     </p>
     </dd>
