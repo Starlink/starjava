@@ -36,6 +36,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
     private final DoubleParameter yloParam_;
     private final DoubleParameter yhiParam_;
     private final BooleanParameter ylogParam_;
+    private final Parameter ylabelParam_;
     private final DoubleParameter binwidthParam_;
     private final BooleanParameter normParam_;
     private final BooleanParameter cumulativeParam_;
@@ -49,6 +50,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
      */
     public HistogramPlotStateFactory() {
         super( new String[] { "X", }, false, false, 0 );
+
 
         yloParam_ = new DoubleParameter( "ylo" );
         yloParam_.setPrompt( "Lower bound for Y axis" );
@@ -74,6 +76,17 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "</p>",
         } );
         ylogParam_.setDefault( "false" );
+
+        ylabelParam_ = new Parameter( "ylabel" );
+        ylabelParam_.setPrompt( "Label for vertical axis" );
+        ylabelParam_.setDescription( new String[] {
+            "<p>Specifies a label for annotating the vertical axis.",
+            "A default value based on the type of histogram will be used",
+            "if no value is supplied for this parameter.",
+            "</p>",
+        } );
+        ylabelParam_.setDefault( Histogram.getYInfo( false, false ).getName() );
+        ylabelParam_.setNullPermitted( true );
 
         binwidthParam_ = new DoubleParameter( "binwidth" );
         binwidthParam_.setPrompt( "Bin width" );
@@ -132,6 +145,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         paramList.add( yloParam_ );
         paramList.add( yhiParam_ );
         paramList.add( ylogParam_ );
+        paramList.add( ylabelParam_ );
         paramList.add( createWeightParameter( tSuffix ) );
         paramList.add( binwidthParam_ );
         paramList.add( normParam_ );
@@ -194,10 +208,12 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
 
         state.setNormalised( normParam_.booleanValue( env ) );
 
+        ylabelParam_.setDefault( Histogram.getYInfo( state.getWeighted(),
+                                                     state.getNormalised() )
+                                          .getName() );
         state.setAxisLabels( new String[] {
             state.getAxisLabels()[ 0 ],
-            Histogram.getYInfo( state.getWeighted(), state.getNormalised() )
-                     .getName(),
+            ylabelParam_.stringValue( env ),
         } );
 
         state.setNormalised( normParam_.booleanValue( env ) );

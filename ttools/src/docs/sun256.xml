@@ -6411,6 +6411,7 @@ but my thanks are especially due to the following:
     <li>Add new filter <ref id="rowrange"><code>rowrange</code></ref>.</li>
     <li>Document previously undocumented <code>legend</code> parameter to
         plotting commands.</li>
+    <li>Add <code>ylabel</code> parameter to <code>plothist</code> command.</li>
     </ul>
     </p>
     </dd>
