@@ -33,6 +33,9 @@ public class FileBranch extends FileNode implements Branch {
 
     public Node[] getChildren() {
         File[] files = file_.listFiles();
+        if ( files == null ) {
+            return new Node[ 0 ];
+        }
         List nodeList = new ArrayList( files.length );
         for ( int i = 0; i < files.length; i++ ) {
             File file = files[ i ];
