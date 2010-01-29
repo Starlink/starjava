@@ -13200,6 +13200,8 @@ introduced since the last version:
     <li>Fixed a small crossmatch bug; it was giving a small possibility of
         suboptimal "best" match assignments when pair matching in crowded
         fields.</li>
+    <li>Fixed minor error when a directory in the file browser got deleted
+        while visible.</li>
     </ul>
     </p></dd>
 
