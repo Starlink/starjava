@@ -6409,6 +6409,8 @@ but my thanks are especially due to the following:
         suboptimal "best" match assignments when pair matching in crowded
         fields.</li>
     <li>Add new filter <ref id="rowrange"><code>rowrange</code></ref>.</li>
+    <li>Document previously undocumented <code>legend</code> parameter to
+        plotting commands.</li>
     </ul>
     </p>
     </dd>

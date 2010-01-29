@@ -34,6 +34,7 @@ public class ParameterTest extends TestCase {
         "select", "assign", "sql",
            // plotting
         "out", "ofmt",
+        "legend",
         "xdataN", "ydataN", "zdataN", "auxdataN",
         "subsetNS", "colourNS", "shapeNS", "transparencyNS",
     } ) );

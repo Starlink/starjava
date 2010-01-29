@@ -96,6 +96,7 @@ public abstract class PlotTask implements Task {
             "Defaults to true if there is more than one set, false otherwise.",
             "</p>",
         } );
+        paramList_.add( legendParam_ );
 
         titleParam_ = new Parameter( "title" );
         titleParam_.setPrompt( "Plot title" );
