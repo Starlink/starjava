@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -47,6 +48,8 @@ public class SoapClient {
     private final URL endpoint_;
     private OutputStream echoStream_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
     private static final String SOAP_ENV_NS =
         "http://schemas.xmlsoap.org/soap/envelope/";
 
@@ -96,6 +99,7 @@ public class SoapClient {
                          ContentHandler bodyHandler )
             throws IOException, SAXException {
         byte[] request = createRequest( bodyContent );
+        logger_.info( "SOAP " + soapAction + " -> " + endpoint_ );
         URLConnection conn = endpoint_.openConnection();
         if ( ! ( conn instanceof HttpURLConnection ) ) {
             throw new IOException( "Not an HTTP connection??" );
@@ -119,6 +123,7 @@ public class SoapClient {
         out.flush();
         out.close();
         int responseCode = hconn.getResponseCode();
+        logger_.info( "SOAP response " + responseCode );
 
         /* Success. */
         if ( responseCode == 200 ) {

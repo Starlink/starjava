@@ -123,6 +123,7 @@ public class RegistryClient {
             }
         };
         try {
+            logger_.info( "Search WHERE " + adqls );
             soapClient_.execute( searchBody, soapAction,
                                  new ResourceHandler( sink ) );
         }
@@ -144,13 +145,15 @@ public class RegistryClient {
      * @param  adqls  WHERE clause (minus WHERE) in ADQL specifying search
      * @return   iterator which returns {@link RegResource} objects
      */
-    public Iterator getAdqlSearchIterator( String adqls ) throws IOException {
+    public Iterator getAdqlSearchIterator( final String adqls )
+            throws IOException {
         final String soapAction = ACTION_BASE + "#Search";
         final String searchBody = createSearchBody( adqls );
         final IteratorResourceSink sink = new IteratorResourceSink();
         new Thread( "RegistrySearch" ) {
             public void run() {
                 try {
+                    logger_.info( "Search WHERE " + adqls );
                     soapClient_.execute( searchBody, soapAction,
                                          new ResourceHandler( sink ) );
                 }
