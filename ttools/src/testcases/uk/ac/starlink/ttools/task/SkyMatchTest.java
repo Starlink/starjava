@@ -115,7 +115,6 @@ public class SkyMatchTest extends TableTestCase {
         assertEquals( 550, skyCount( ta, null, null, tb, "", "", 5 ) );
 
         ra2col.setUnitString( "radians" );
-        dec2col.setUnitString( "radians" );
         assertEquals( 0, skyCount( ta, "ra1", "dec1",
                                    tb, "", "", 5 ) );
     }
