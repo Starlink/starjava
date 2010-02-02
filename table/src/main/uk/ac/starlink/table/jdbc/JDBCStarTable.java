@@ -107,7 +107,7 @@ public class JDBCStarTable extends AbstractStarTable {
     }
 
     public List getColumnAuxDataInfos() {
-        return StarResultSet.getColumnAuxDataInfos();
+        return TypeMappers.STANDARD.getColumnAuxDataInfos();
     }
 
     public int getColumnCount() {

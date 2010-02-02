@@ -26,75 +26,48 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor
  * @since    23 Jul 2007
  */
-class StarResultSet {
+public class StarResultSet {
 
     private final ResultSet rset_;
+    private final TypeMapper typeMapper_;
+    private final ValueHandler[] valueHandlers_;
     private final ColumnInfo[] colInfos_;
     private final boolean isRandom_;
     private long nrow_ = -1L;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
-    private final static ValueInfo LABEL_INFO =
-        new DefaultValueInfo( "Label", String.class );
-    private final static List AUX_DATA_INFOS =
-        Collections.unmodifiableList( Arrays.asList( new ValueInfo[] {
-            LABEL_INFO,
-        } ) );
 
 
     /**
-     * Constructor.
+     * Constructs a StarResultSet with default type mapping behaviour.
      *
-     * @param   rset   result set
+     * @param  rset  result set
      */
     public StarResultSet( ResultSet rset ) throws SQLException {
+        this( rset, TypeMappers.STANDARD );
+    }
+
+    /**
+     * Constructs a StarResultSet with given type mapping behaviour.
+     *
+     * @param   rset   result set
+     * @param   typeMapper  handles conversion of JDBC types to cell types
+     */
+    public StarResultSet( ResultSet rset, TypeMapper typeMapper )
+            throws SQLException {
         rset_ = rset;
+        typeMapper_ = typeMapper;
 
         /* Assemble metadata for each column. */
         ResultSetMetaData meta = rset.getMetaData();
         int ncol = meta.getColumnCount();
+        valueHandlers_ = new ValueHandler[ ncol ];
         colInfos_ = new ColumnInfo[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-
-            /* SQL columns are based at 1 not 0. */
-            int jcol = icol + 1;
-
-            /* Set up the name and metadata for this column. */
-            String name = meta.getColumnName( jcol );
-            colInfos_[ icol ] = new ColumnInfo( name );
-            ColumnInfo col = colInfos_[ icol ];
-
-            /* Find out what class objects will have.  If the class hasn't
-             * been loaded yet, just call it an Object (could try obtaining
-             * an object from that column and using its class, but then it
-             * might be null...). */
-            String className = meta.getColumnClassName( jcol );
-            if ( className != null ) {
-                try {
-                    Class clazz = getClass().forName( className );
-                    col.setContentClass( clazz );
-                }
-                catch ( ClassNotFoundException e ) {
-                    logger_.warning( "Cannot determine class " + className
-                                   + " for column " + name );
-                    col.setContentClass( Object.class );
-                }
-            }
-            else {
-                logger_.warning( "No column class given for column " + name );
-                col.setContentClass( Object.class );
-            }
-            if ( meta.isNullable( jcol ) == ResultSetMetaData.columnNoNulls ) {
-                col.setNullable( false );
-            }
-            List auxdata = col.getAuxData();
-            String label = meta.getColumnLabel( jcol );
-            if ( label != null &&
-                 label.trim().length() > 0 &&
-                 ! label.equalsIgnoreCase( name ) ) {
-                auxdata.add( new DescribedValue( LABEL_INFO, label.trim() ) );
-            }
+            valueHandlers_[ icol ] =
+                typeMapper.createValueHandler( meta, icol + 1 );
+            colInfos_[ icol ] = valueHandlers_[ icol ].getColumnInfo();
         }
 
         /* Work out whether we have random access. */
@@ -186,8 +159,8 @@ class StarResultSet {
      * @see   uk.ac.starlink.table.StarTable#getColumnAuxDataInfos
      * @return  an unmodifiable ordered set of known metadata keys
      */
-    public static List getColumnAuxDataInfos() {
-        return AUX_DATA_INFOS;
+    public List getColumnAuxDataInfos() {
+        return typeMapper_.getColumnAuxDataInfos();
     }
 
     /**
@@ -232,15 +205,7 @@ class StarResultSet {
             throw (IOException) new IOException( "SQL read error" + e )
                                .initCause( e );
         }
-        Class colclass = colInfos_[ icol ].getContentClass();
-        if ( base instanceof byte[] && ! colclass.equals( byte[].class ) ) {
-            return new String( (byte[]) base );
-        }
-        else if ( base instanceof char[] &&
-                  ! colclass.equals( char[].class ) ) {
-            return new String( (char[]) base );
-        }
-        return base;
+        return valueHandlers_[ icol ].getValue( base );
     }
 
     /**
@@ -251,7 +216,7 @@ class StarResultSet {
      * @return   array of cell values in current row
      */
     public Object[] getRow() throws IOException {
-        int ncol = colInfos_.length;
+        int ncol = valueHandlers_.length;
         Object[] row = new Object[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             row[ icol ] = getCell( icol );

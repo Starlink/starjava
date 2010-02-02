@@ -13203,6 +13203,10 @@ introduced since the last version:
     <li>Fixed minor error when a directory in the file browser got deleted
         while visible.</li>
     <li>Improved logging of registry searches.</li>
+    <li>Adjusted the way that data types are read from JDBC databases.
+        Date, Time and Timestamp columns will now be converted to Strings
+        which means they can be written to most output formats
+        (previously they were omitted from output tables).</li>
     </ul>
     </p></dd>
 

@@ -6412,6 +6412,10 @@ but my thanks are especially due to the following:
     <li>Document previously undocumented <code>legend</code> parameter to
         plotting commands.</li>
     <li>Add <code>ylabel</code> parameter to <code>plothist</code> command.</li>
+    <li>Adjusted the way that data types are read from JDBC databases.
+        Date, Time and Timestamp columns will now be converted to Strings
+        which means they can be written to most output formats
+        (previously they were omitted from output tables).</li>
     </ul>
     </p>
     </dd>

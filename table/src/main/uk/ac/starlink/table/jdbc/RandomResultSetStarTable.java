@@ -39,7 +39,7 @@ public class RandomResultSetStarTable extends RandomStarTable {
      * @throws  IllegalArgumentException  if <code>srset</code> is not 
      *          random access
      */
-    RandomResultSetStarTable( StarResultSet srset ) {
+    public RandomResultSetStarTable( StarResultSet srset ) {
         if ( ! srset.isRandom() ) {
             throw new IllegalArgumentException( "ResultSet does not provide " +
                                                 "random access (wrong type)" );

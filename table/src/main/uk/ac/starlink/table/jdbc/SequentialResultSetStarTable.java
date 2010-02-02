@@ -41,7 +41,7 @@ public class SequentialResultSetStarTable extends AbstractStarTable {
      *
      * @param srset  result set containing data - should be positioned at start
      */
-    SequentialResultSetStarTable( StarResultSet srset ) {
+    public SequentialResultSetStarTable( StarResultSet srset ) {
         srset_ = srset;
     }
 
