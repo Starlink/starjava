@@ -1,0 +1,36 @@
+package uk.ac.starlink.table.join;
+
+/**
+ * Map which can store lists of <code>long</code> integer values.
+ * The keys of the map can be viewed as identifiers of bins, and each
+ * bin stores one or more integers.  Items are added one at a time, with
+ * bins being created as required.
+ *
+ * @author   Mark Taylor
+ * @since    28 Jan 2010
+ */
+interface LongBinner {
+
+    /**
+     * Adds an integer item.
+     *
+     * @param  key  bin key
+     * @param  item  value to add to list in bin
+     */
+    void addItem( Object key, long item );
+
+    /**
+     * Returns the contents of a bin as an array of longs.
+     *
+     * @param  key  bin key
+     * @return   bin contents
+     */
+    long[] getLongs( Object key );
+
+    /**
+     * Returns the number of non-empty bins used.
+     *
+     * @return  bin count
+     */
+    long getBinCount();
+}

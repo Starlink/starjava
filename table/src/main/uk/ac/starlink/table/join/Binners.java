@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.util.LongList;
 
 /**
  * Provides Binner implementations.
@@ -39,6 +40,15 @@ class Binners {
      */
     public static ObjectBinner createModifiableObjectBinner() {
         return new StorageListObjectBinner();
+    }
+
+    /**
+     * Returns a new binner for storing long integer values.
+     *
+     * @return   new LongBinner
+     */
+    public static LongBinner createLongBinner( long nrow ) {
+        return new LongListLongBinner();
     }
 
     /**
@@ -166,7 +176,56 @@ class Binners {
                 return Collections.singletonList( listable );
             }
         }
+    }
 
+    /**
+     * LongBinner implementation which uses 
+     * {@link uk.ac.starlink.util.LongList}s as listables.
+     */
+    private static class LongListLongBinner implements LongBinner {
+        private final Map map_ = new HashMap();
+
+        public void addItem( Object key, long item ) {
+            map_.put( key, addToListable( map_.get( key ), item ) );
+        }
+
+        public long[] getLongs( Object key ) {
+            return getLongsFromListable( map_.get( key ) );
+        }
+
+        public long getBinCount() {
+            return map_.size();
+        }
+
+        protected Object addToListable( Object listable, long item ) {
+            if ( listable == null ) {
+                LongList list = new LongList( 1 );
+                list.add( item );
+                return list;
+            }
+            else {
+                LongList list = (LongList) listable;
+                list.add( item );
+                return list;
+            }
+        }
+
+        protected long[] getLongsFromListable( Object listable ) {
+            if ( listable == null ) {
+                return null;
+            }
+            else {
+                return ((LongList) listable).toLongArray();
+            }
+        }
+
+        /**
+         * Determines whether a <code>long</code> value can be cast 
+         * without loss of data to an <code>int</code>.
+         */
+        private static boolean isInt( long lval ) {
+            return lval >= Integer.MIN_VALUE && lval <= Integer.MAX_VALUE;
+        }
     }
 
     /**

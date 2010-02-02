@@ -98,7 +98,6 @@ public class RowMatcher {
      */
     public LinkSet findPairMatches( boolean bestOnly )
             throws IOException, InterruptedException {
-        checkRandom();
 
         /* Check we have two tables. */
         if ( nTable != 2 ) {
@@ -107,14 +106,11 @@ public class RowMatcher {
         }
         startMatch();
 
-        /* Get the possible candidates for inter-table links. */
-        LinkSet possibleLinks = getPossibleInterLinks( 0, 1 );
+        /* Locate pairs, possibly including unwanted multiple entries for
+         * the same row. */
+        LinkSet pairs = findAllPairs( 0, 1, bestOnly );
 
-        /* Get all the possible inter-table pairs. */
-        LinkSet pairs = findInterPairs( possibleLinks, 0, 1 );
-
-        /* If it has been requested, restrict the set of links to the
-         * best available matches.  That is, ensure that no row is
+        /* If it has been requested ensure that no row is
          * represented  more than once in the set of matches. */
         if ( bestOnly ) {
             pairs = eliminateMultipleRowEntries( pairs );
@@ -123,6 +119,215 @@ public class RowMatcher {
         /* Return. */
         endMatch();
         return pairs;
+    }
+
+    /**
+     * Returns a set of RowLink objects corresponding to a pairwise match
+     * between tables with given indices, possibly including unwanted
+     * multiple entries.  At least one of the input tables must provide
+     * random access.
+     *
+     * @param  index1  index of first table to match
+     * @param  index2  index of second table to match
+     * @param  bestOnly  if false, all matches will be included in the result;
+     *         if true, the best matches will be included and some non-best
+     *         ones may be as well
+     * @return  links representing pair matches
+     */
+    private LinkSet findAllPairs( int index1, int index2, boolean bestOnly )
+             throws IOException, InterruptedException {
+        int ncol = tables[ index1 ].getColumnCount();
+        if ( tables[ index2 ].getColumnCount() != ncol ) {
+            throw new IllegalArgumentException( "Column count mismatch" );
+        }
+
+        /* Work out which table will have its rows cached in bins 
+         * (R for Random) and which will just be scanned (S for Sequential),
+         * and possibly calculate a common range within which any matches
+         * must fall. */
+        final int indexR;
+        final int indexS;
+        final Range range;
+
+        /* If neither table has random access, we can't proceed. */
+        if ( ! tables[ index1 ].isRandom() && ! tables[ index2 ].isRandom() ) {
+            throw new IllegalArgumentException( "Neither table random-access" );
+        }
+
+        /* If only one table has random access, use that as table R. */
+        else if ( ! tables[ index1 ].isRandom() ) {
+            assert tables[ index2 ].isRandom();
+            indexS = index1;
+            indexR = index2;
+            range = new Range( ncol );
+        }
+        else if ( ! tables[ index2 ].isRandom() ) {
+           assert tables[ index1 ].isRandom();
+            indexS = index2;
+            indexR = index1;
+            range = new Range( ncol );
+        }
+
+        /* If both tables have random access, calculate the possible match
+         * ranges.  Then use the one with the smaller number of rows in range
+         * as the random access one, since this should be cheaper. */
+        else {
+            Intersection intersect =
+                getIntersection( new int[] { index1, index2 } );
+            range = intersect.range_;
+
+            /* No overlap means no matches. */
+            if ( range == null ) {
+                return createLinkSet();
+            }
+            else {
+                long inRangeCount1 = intersect.inRangeCounts_[ 0 ];
+                long inRangeCount2 = intersect.inRangeCounts_[ 1 ];
+                if ( inRangeCount1 < inRangeCount2 ) {
+                    indexR = index1;
+                    indexS = index2;
+                }
+                else {
+                    indexR = index2;
+                    indexS = index1;
+                }
+            }
+        }
+
+        /* Perform the actual match given the table ordering and range we
+         * have calculated. */
+        return scanForPairs( indexR, indexS, range, bestOnly );
+    }
+
+    /**
+     * Processes one table using random access and another using sequential
+     * access within a given range to locate matched inter-table pairs.
+     *
+     * @param  indexR  index of table which will be accessed randomly
+     * @param  indexS  index of table which will be accessed sequentially
+     * @param  range   range outside which pairs can be ignored
+     * @param  bestOnly  if false, all matches will be included in the result;
+     *         if true, the best matches will be included and some non-best
+     *         ones may be as well
+     * @return  links representing pair matches
+     */
+    private LinkSet scanForPairs( int indexR, int indexS, Range range,
+                                  boolean bestOnly )
+            throws IOException, InterruptedException {
+
+        /* Bin the row indices for the random table. */
+        ProgressRowSequence rseq =
+            new ProgressRowSequence( tables[ indexR ], indicator,
+                                     "Binning rows for table "
+                                     + ( indexR + 1 ) );
+        LongBinner binner =
+            Binners.createLongBinner( tables[ indexR ].getRowCount() );
+        long nrow = 0;
+        long nref = 0;
+        long nexclude = 0;
+        try {
+            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
+                Object[] row = rseq.getRow();
+                if ( range.isInside( row ) ) {
+                    Object[] keys = engine.getBins( row );
+                    int nkey = keys.length;
+                    for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                        binner.addItem( keys[ ikey ], lrow );
+                    }
+                    nref += nkey;
+                }
+                else {
+                    nexclude++;
+                }
+                nrow++;
+            }
+            assert nrow == tables[ indexR ].getRowCount();
+        }
+        finally {
+            rseq.close();
+        }
+        if ( nexclude > 0 ) {
+            indicator.logMessage( nexclude + "/" + nrow + " rows excluded "
+                                + "(out of match region)" );
+        }
+        long nbin = binner.getBinCount();
+        indicator.logMessage( nref + " row refs for " + nrow + " rows in "
+                            + nbin + " bins" );
+        indicator.logMessage( "(average bin occupancy " +
+                              ( (float) nref / (float) nbin ) + ")" );
+
+        /* Scan the rows for the sequential table. */
+        LinkSet linkSet = createLinkSet();
+        ProgressRowSequence sseq =
+            new ProgressRowSequence( tables[ indexS ], indicator,
+                                     "Scanning rows for table "
+                                   + ( indexS + 1 ) );
+        try {
+            for ( long isrow = 0; sseq.nextProgress(); isrow++ ) {
+                Object[] srowData = sseq.getRow();
+                if ( range.isInside( srowData ) ) {
+
+                    /* Identify rows from table R which may match table S. */
+                    Object[] keys = engine.getBins( srowData );
+                    int nkey = keys.length;
+                    Set rrowSet = new HashSet();
+                    for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                        long[] rrows = binner.getLongs( keys[ ikey ] );
+                        if ( rrows != null ) {
+                            for ( int ir = 0; ir < rrows.length; ir++ ) {
+                                rrowSet.add( new Long( rrows[ ir ] ) );
+                            }
+                        }
+                    }
+                    long[] rrows = new long[ rrowSet.size() ];
+                    int ir = 0;
+                    for ( Iterator it = rrowSet.iterator(); it.hasNext(); ) {
+                        rrows[ ir++ ] = ((Long) it.next()).longValue();
+                    }
+                    Arrays.sort( rrows );
+
+                    /* Score and accumulate matched links. */
+                    List linkList = new ArrayList();
+                    double bestScore = Double.MAX_VALUE;
+                    for ( ir = 0; ir < rrows.length; ir++ ) {
+                        long irrow = rrows[ ir ];
+                        Object[] rrowData = tables[ indexR ].getRow( irrow );
+                        double score = engine.matchScore( srowData, rrowData );
+                        if ( score >= 0 &&
+                             ( ! bestOnly || score < bestScore ) ) {
+                            RowRef rref = new RowRef( indexR, irrow );
+                            RowRef sref = new RowRef( indexS, isrow );
+                            RowLink2 pairLink = new RowLink2( rref, sref );
+                            pairLink.setScore( score );
+                            if ( bestOnly ) {
+                                bestScore = score;
+                                if ( linkList.isEmpty() ) {
+                                    linkList.add( pairLink );
+                                }
+                                else {
+                                    linkList.set( 0, pairLink );
+                                }
+                                assert linkList.size() == 1;
+                            }
+                            else {
+                                linkList.add( pairLink );
+                            }
+                        }
+                    }
+
+                    /* Add matched links to output set. */
+                    for ( Iterator it = linkList.iterator(); it.hasNext(); ) {
+                        RowLink2 pairLink = (RowLink2) it.next();
+                        assert ! linkSet.containsLink( pairLink );
+                        linkSet.addLink( pairLink );
+                    }
+                }
+            }
+        }
+        finally {
+            sseq.close();
+        }
+        return linkSet;
     }
 
     /**
@@ -370,106 +575,6 @@ public class RowMatcher {
     }
 
     /**
-     * Identifies all the pairs of equivalent rows from a set of RowLinks
-     * between rows from two specified tables.  All the elements of the
-     * output set will be {@link RowLink2} objects.
-     *
-     * <p>The input set, <code>possibleLinks</code>, may be affected.
-     *
-     * <p>Since links are being sought between a pair of tables, a more
-     * efficient algorithm can be used than for {@link #findPairs}.
-     *
-     * @param  possibleLinks  a set of {@link RowLink} objects which 
-     *         correspond to groups of possibly matched objects 
-     *         according to the match engine's criteria
-     * @param  index1  index of the first table
-     * @param  index2  index of the second table
-     * @return   matched row pairs
-     */
-    private LinkSet findInterPairs( LinkSet possibleLinks,
-                                    int index1, int index2 )
-            throws IOException, InterruptedException {
-        if ( index1 == index2 ) {
-            throw new IllegalArgumentException();
-        }
-        LinkSet pairs = createLinkSet();
-        double nLink = (double) possibleLinks.size();
-        int iLink = 0;
-        indicator.startStage( "Locating inter-table pairs" );
-        for ( Iterator linkIt = possibleLinks.iterator(); linkIt.hasNext(); ) {
-
-            /* Get the next link and delete it from the input list, for
-             * memory efficiency. */
-            RowLink link = (RowLink) linkIt.next();
-            linkIt.remove();
-
-            /* Check if we have a non-trivial link. */
-            int nref = link.size();
-            if ( nref > 1 ) {
-
-                /* Get separate lists of the RowRefs from the two tables
-                 * we're interested in. */
-                List refList1 = new ArrayList();
-                List refList2 = new ArrayList();
-                for ( int ir = 0; ir < nref; ir++ ) {
-                    RowRef ref = link.getRef( ir );
-                    int iTable = ref.getTableIndex();
-                    if ( iTable == index1 ) {
-                        refList1.add( ref );
-                    }
-                    else if ( iTable == index2 ) {
-                        refList2.add( ref );
-                    }
-                }
-                link = null;
-
-                /* Check if rows from both the required tables are present
-                 * in this link - if not, there can't be any suitable pairs. */
-                int nr1 = refList1.size();
-                int nr2 = refList2.size();
-                if ( nr1 > 0 && nr2 > 0 ) {
-                    StarTable table1 = tables[ index1 ];
-                    StarTable table2 = tables[ index2 ];
-
-                    /* Cache rows used for the inner checking loop, since it
-                     * may be expensive to retrieve them multiple times. */
-                    Object[][] binnedRow2s = new Object[ nr2 ][];
-                    for ( int ir2 = 0; ir2 < nr2; ir2++ ) {
-                        RowRef ref2 = (RowRef) refList2.get( ir2 );
-                        binnedRow2s[ ir2 ] =
-                            table2.getRow( ref2.getRowIndex() );
-                    }
-
-                    /* Do a pairwise comparison of each eligible pair in the
-                     * group.  If they match, add the new pair to the set
-                     * of matched pairs. */
-                    for ( int ir1 = 0; ir1 < nr1; ir1++ ) {
-                        RowRef ref1 = (RowRef) refList1.get( ir1 );
-                        Object[] binnedRow1 =
-                            table1.getRow( ref1.getRowIndex() );
-                        for ( int ir2 = 0; ir2 < nr2; ir2++ ) {
-                            RowRef ref2 = (RowRef) refList2.get( ir2 );
-                            RowLink2 pair = new RowLink2( ref1, ref2 );
-                            if ( ! pairs.containsLink( pair ) ) {
-                                Object[] binnedRow2 = binnedRow2s[ ir2 ];
-                                double score =
-                                    engine.matchScore( binnedRow1, binnedRow2 );
-                                if ( score >= 0 ) {
-                                    pair.setScore( score );
-                                    pairs.addLink( pair );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            indicator.setLevel( ++iLink / nLink );
-        }
-        indicator.endStage();
-        return pairs;
-    }
-
-    /**
      * Goes through all tables and gets a preliminary set of all
      * the groups of rows which are possibly linked by a chain of
      * matches.  This includes all inter- and intra-table matches.
@@ -495,46 +600,47 @@ public class RowMatcher {
     }
 
     /**
-     * Gets a list of all the pairs of rows which constitute possible 
-     * links between two tables.
+     * Attempts to locate an intersection between multiple tables.
+     * If we have a match engine which is capable of working out a restricted
+     * region over which matches are possible, an intersection can be 
+     * identified.  Subsequent work can be restricted to such a range,
+     * which can save CPU time and memory in some cases.
+     * If the match engine is not capable of making range calculations,
+     * an unrestrictive range will be returned.
      *
-     * @param   index1   index of the first table
-     * @param   index2   index of the second table
-     * @return  set of {@link RowLink} objects which constitute possible
-     *          matches
+     * @param   iTables  indices of tables whose common range is to be found
+     * @return  range within which the intersection of all input tables
+     *          is guaranteed to be located
      */
-    private LinkSet getPossibleInterLinks( int index1, int index2 )
+    private Intersection getIntersection( int[] iTables )
             throws IOException, InterruptedException {
-        int ncol = tables[ index1 ].getColumnCount();
-        if ( tables[ index2 ].getColumnCount() != ncol ) {
-            throw new IllegalStateException();
+        int ncol = tables[ iTables[ 0 ] ].getColumnCount();
+        long[] inRangeCounts = new long[ iTables.length ];
+        for ( int iTable = 0; iTable < iTables.length; iTable++ ) {
+            int index = iTables[ iTable ];
+            inRangeCounts[ iTable ] = tables[ index ].getRowCount();
         }
-
-        long nIncludedRows1 = tables[ index1 ].getRowCount();
-        long nIncludedRows2 = tables[ index2 ].getRowCount();
-
-        /* If we have a match engine which is capable of working out a 
-         * restricted region over which matches are possible, find the
-         * intersection of those ranges for the two tables being matched.
-         * This will enable us to throw out any potential matches outside
-         * this region without having to bin them, and can save a lot
-         * of time and memory for some cases. */
         Range range;
-        if ( engine.canBoundMatch() ) {
+        if ( engine.canBoundMatch() && iTables.length > 1 ) {
             indicator.logMessage( "Attempt to locate " +
                                   "restricted common region" );
             try {
-                range = Range.intersection( getRange( index1 ),
-                                            getRange( index2 ) );
+                range = getRange( 0 );
+                for ( int iTable = 1; iTable < iTables.length; iTable++ ) {
+                    int index = iTables[ iTable ];
+                    range = Range.intersection( range, getRange( index ) );
+                }
                 if ( range != null ) {
                     indicator.logMessage( "Potential match region: " + range );
-                    nIncludedRows1 = countInRange( index1, range );
-                    nIncludedRows2 = countInRange( index2, range );
+                    for ( int iTable = 0; iTable < iTables.length; iTable++ ) {
+                        int index = iTables[ iTable ];
+                        inRangeCounts[ iTable ] = countInRange( index, range );
+                    }
                 }
                 else {
                     indicator.logMessage( "No region overlap"
                                         + " - matches not possible" );
-                    return createLinkSet();
+                    return new Intersection( null, new long[ iTables.length ] );
                 }
             }
 
@@ -553,34 +659,7 @@ public class RowMatcher {
         else {
             range = new Range( ncol );
         }
-
-        /* Prepare to do the binning.
-         * For efficiency, we want to do the table which will fill the 
-         * smallest number of bins first (presumably the one with the
-         * smallest number of rows in the match region. */
-        final int indexA;
-        final int indexB;
-        if ( nIncludedRows1 < nIncludedRows2 ) {
-            indexA = index1;
-            indexB = index2;
-        }
-        else {
-            indexA = index2;
-            indexB = index1;
-        }
-
-        /* Now do the actual binning.  Bin all the rows in the first table,
-         * then add any entries from the second table which are in bins
-         * we have already seen.  There is no point adding entries from the
-         * second table into bins which do not appear in the first one. */
-        ObjectBinner binner = Binners.createObjectBinner();
-        binRows( indexA, range, binner, true );
-        binRows( indexB, range, binner, false );
-
-        /* Return the result. */
-        LinkSet links = createLinkSet();
-        binsToLinks( binner, links );
-        return links;
+        return new Intersection( range, inRangeCounts );
     }
 
     /**
@@ -1393,9 +1472,9 @@ public class RowMatcher {
      * input LinkSet, but ordered according to the given comparator.
      *
      * @param  linkSet  set of RowLinks
-     * @param  comparator  comparator that operates on the members of 
+     * @param  comparator  comparator that operates on the members of
      *                     <code>linkSet</code>, or null for natural order
-     * @return  sorted collection of {@link RowLink}s  
+     * @return  sorted collection of {@link RowLink}s
      */
     private Collection toSortedList( LinkSet linkSet, Comparator comparator ) {
         int nLink = linkSet.size();
@@ -1450,6 +1529,25 @@ public class RowMatcher {
         public ScoredRef( RowRef ref, double score ) {
             ref_ = ref;
             score_ = score;
+        }
+    }
+
+    /**
+     * Encapsulates information about a range intersection of multiple tables.
+     */
+    private static class Intersection {
+        final Range range_;
+        final long[] inRangeCounts_;
+
+        /**
+         * Constructor.
+         *
+         * @param   range  common range
+         * @param   inRangeCounts  per-table count of rows within the range
+         */
+        public Intersection( Range range, long[] inRangeCounts ) {
+            range_ = range;
+            inRangeCounts_ = inRangeCounts;
         }
     }
 }
