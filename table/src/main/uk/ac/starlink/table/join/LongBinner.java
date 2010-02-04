@@ -1,5 +1,7 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Iterator;
+
 /**
  * Map which can store lists of <code>long</code> integer values.
  * The keys of the map can be viewed as identifiers of bins, and each
@@ -26,6 +28,15 @@ interface LongBinner {
      * @return   bin contents
      */
     long[] getLongs( Object key );
+
+    /**
+     * Returns an iterator over the bin identifiers.
+     * The <code>remove</code> method of this iterator may or may not
+     * be supported.
+     *
+     * @return  iterator over non-empty bins
+     */
+    Iterator getKeyIterator();
 
     /**
      * Returns the number of non-empty bins used.

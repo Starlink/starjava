@@ -193,6 +193,10 @@ class Binners {
             return getLongsFromListable( map_.get( key ) );
         }
 
+        public Iterator getKeyIterator() {
+            return map_.keySet().iterator();
+        }
+
         public long getBinCount() {
             return map_.size();
         }
