@@ -249,7 +249,7 @@ the Starlink Tables Infrastructure Library
 which is documented more fully in 
 <docxref doc="sun252" plaintextref="yes"/>.
 The software is written in pure Java, and should run on any 
-J2SE 1.4 or 1.5 platform.
+J2SE platform version 1.4 or later.
 This makes it highly portable, since it can run on any machine which has
 a suitable Java installation, which is available for MS Windows, Mac OS X and
 most flavours of Unix amongst others.
@@ -9243,6 +9243,584 @@ If you don't take these steps, this dialogue may be inaccessible.
 
 </subsect>
 
+<subsect id="match-windows">
+<subhead><title>Match Windows</title></subhead>
+
+<p>This section documents the windows used to crossmatch 
+rows either between two or more local tables or within a single table.
+This topic is discussed in more detail in <ref id="join"/>.
+Windows for other kinds of joins are described elsewhere:
+concatenation in <ref id="ConcatWindow"/> and matching with 
+remote tables via VO services in <ref id="vo-windows"/>.
+</p>
+
+
+<subsubsect id="MatchWindow">
+<subhead><title>Pair Match Window</title></subhead>
+
+<figure>
+<caption><px>Pair Match Window</px></caption>
+<figureimage src="&FIG.MatchWindow;"/>
+</figure>
+
+<p>The Pair Match Window allows you to join two tables together
+side-by-side, aligning rows by matching values in some of their
+columns between the tables.  It can be obtained using the
+<label>Pair Match</label> (&IMG.MATCH2;) button in the 
+<ref id="ControlWindow">Control Window</ref> toolbar or 
+<label>Joins</label> menu.
+</p>
+
+<p>In a typical scenario you might have two tables each representing
+a catalogue of astronomical objects, and you want a
+third table with one row for each object which has an entry in both
+of the original tables.  An object is defined as being the same one
+in both tables if the co-ordinates in both rows are "similar",
+for instance if the
+difference between the positions indicated by RA and Dec columns
+differ by no more than a specified angle on the sky.
+Matching rows to produce the join requires you to specify the criteria
+for rows in both tables to refer to the same object and
+what to do when one is found - the options are discussed in
+more detail in <ref id="pairMatch"/>.
+</p>
+
+<p>The result is created from the <ref id="apparent">Apparent</ref>
+versions of the tables being joined, so that any row subsets,
+hidden columns, or sorts currently in force will be reflected in the
+output.
+Progress information on the match, which may take a little while,
+is provided in the logging window and by a progress bar at the bottom
+of the window.  When it is completed, you will be informed by a
+popup window which indicates that a new table has been created.
+This table will be added to the list in the Control Window and can
+be examined, manipulated and saved like any other.
+In some cases, some additional columns will be added to the 
+output table which give you more information about how it
+has progressed (see <ref id="matchRowSelect"/>.
+</p>
+
+<p>The Match Window provides a set of controls which allow you
+to choose how the match is done and what the results will look like.
+It consists of these main parts:
+<dl>
+
+<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
+<dd><p>Allows you to define what counts as a match between two rows.
+    </p></dd>
+
+<dt><ref id="matchColumnSelect">Column Selection boxes</ref></dt>
+<dd><p>Allows you to select which tables are to be joined and which 
+    columns in them supply the matching coordinates.
+    </p></dd>
+
+<dt><ref id="matchRowSelect">Output Rows selector</ref></dt>
+<dd><p>Allows selection of which rows are to be included in the output
+    table (for instance whether only those rows matching in both tables
+    should be output or not).
+    </p></dd>
+
+<dt>Log window</dt>
+<dd><p>Reports on progress as the match is taking place.  The progress bar
+    at the bottom of the window also provides an indication of how
+    far through each stage processing has got.
+    </p></dd>
+
+<dt>Control buttons</dt>
+<dd><p>The <label>Go</label> button starts the search when you are
+    happy with the selections that you have made, and the
+    <label>Stop</label> button interrupts it midway if you decide
+    you no longer want the results (closing the Match Window also
+    interrupts the calculation).
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The following sections describe some of these components in more detail.
+</p>
+
+<subsubsubsect id="matchCriteria">
+<subhead><title>Match Criteria</title></subhead>
+
+<p>The match criteria box allows you to specify what counts as a match
+between two rows.  The selection you make in this box will determine
+which columns you have to fill in for the table(s) being matched
+in the rest of the window.  In most cases what you are selecting here
+is the coordinate space in which rows will be compared against each other,
+and a numerical value or values to determine how close two rows have to be
+in terms of a metric on that space to count as a match.
+</p>
+
+<p>The following match types are offered:
+<dl>
+
+<dt>Sky</dt>
+<dd><p>Comparison of positions on the celestial sphere.
+    In this case you will need to specify columns giving
+    Right Ascension and Declination
+    for each table participating in the match.
+    The Max Error value you must fill in is the 
+    maximum separation of matched points around a great circle.
+    </p></dd>
+
+<dt>Sky with Errors</dt>
+<dd><p>The matching is like that for the <label>Sky</label> option above,
+    but an error radius (positional uncertainty) can be given for each
+    row in the input tables, rather than just a single value for the whole
+    match.
+    You need to specify a single Max Error value, which gives the
+    global maximum separation applying to all matches, and for each
+    of the input tables, along with the Right Ascension and 
+    Declination columns, you also specify an Error column
+    which gives the error radius corresponding to that position.
+    Two rows are considered to match when the separation between the
+    two RA,Dec positions is smaller than <em>both</em> the 
+    Max Error value <em>and</em> the sum of the two
+    Error values for the corresponding rows.
+    If either of the per-row Error values is blank, then any separation
+    up to the Max Error is considered to match.
+    According to these rules, you might decide to set the Max Error
+    to an arbitarily large number so that only the sum of per-row Errors
+    will determine the actual match criteria.  
+    However please <em>don't</em> do this, since the Max Error also 
+    functions as a tuning parameter for the matching algorithm,
+    and ought to be reasonably close to the actual maximum acceptable
+    separation - 
+    if necessary use the <ref id="StatsWindow">Statistics Window</ref>
+    to determine the actual maximum uncertainty.
+    </p></dd>
+
+<dt>Sky 3D</dt>
+<dd><p>Comparison of positions in the sky taking account of 
+    distance from the observer.
+    In this case you will need to specify columns giving
+    Right Ascension and Declination in angular units, 
+    as well as distance along the line of sight in arbitrary units
+    for each table participating in the match.
+    The Error value is a maximum separation in Cartesian space 
+    of matched points in the same units as the radial distance.
+    </p></dd>
+
+<dt>Exact Value</dt>
+<dd><p>Requires exact matching of values.
+    In this case you will need to specify the column containing the match key
+    for each table participating in the match;
+    this might typically be an object name or index number.
+    Two rows count as matching if they have exactly the same entry in
+    the specified field, except rows with a null value in that column,
+    which don't match any other row.
+    </p></dd>
+
+<dt>N-dimensional Cartesian</dt>
+<dd><p>Comparison of positions in an isotropic N-dimensional Cartesian space.
+    In this case you will need to specify N columns giving
+    coordinates for each table participating in the match.
+    The Error value is the maximum spatial separation of matched points.
+    Currently the highest dimensionality you can select is 3-d -
+    does anyone want a higher number?
+    </p></dd>
+
+<dt>N-dimensional Cartesian (anisotropic)</dt>
+<dd><p>Comparison of positions in an N-dimensional Cartesian space
+    with an anisotropic metric.
+    In this case you will need to specify N columns giving coordinates
+    for each table participating in the match,
+    and an error radius for each of these dimensions.
+    Points P1 and P2 are considered to match if P2 falls within
+    the ellipsoid defined by the error radii centered on P1.
+    This kind of match will typically be used for non-'spatial' spaces,
+    for instance (magnitude,redshift) space, in which the metrics in 
+    different dimensions are not related to each other.
+    Currently the highest dimensionality you can select is 4-d -
+    does anyone want a higher number?
+    </p></dd>
+
+<dt>Sky + X</dt>
+<dd><p>Comparison of positions on the celestial sphere with an additional
+    numeric constraint.
+    This is a combination of the Sky and 
+    1-d Cartesian matches above, so the columns you need
+    to supply are RA, Dec and one extra, and the errors are 
+    angular separation on the sky and the error in the extra column.
+    A match is registered if it matches in both of the constituent tests.
+    You could use this for instance to match objects which are both close
+    on the sky and have similar luminosities.
+    </p></dd>
+
+<dt>Sky + XY</dt>
+<dd><p>Comparison of positions on the celestial sphere with an additional
+    2-d anisotropic Cartesian constraint.
+    This is a combination of the Sky and 2-d Anisotropic Cartesian
+    matches above, so the columns you need to supply are
+    RA, Dec and two extra, and the errors are 
+    angular separation on the sky and the error radii corresponding to
+    the extra columns.
+    A match is registered if it matches in both of the constituent tests.
+    You could use this for instance to match objects which are both close
+    on the sky and have similar luminosities and redshifts.
+    </p></dd>
+
+<dt>HTM</dt>
+<dd><p>Performs sky matching in just the same way as the <label>Sky</label>
+    option above, but using a different algorithm (pixelisation of the
+    celestial sphere is performed using the Hierarchical Triangular Mesh
+    rather than the HEALPix scheme).  The results in both cases 
+    should be identical, but HTM is much slower.  Hence, this option
+    is only useful for debugging.  It may be withdrawn in future releases.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>Depending on the match type, the units of the error value(s) you enter
+may be significant.  In this case, there will be a unit selector
+displayed alongside the entry box.  You must choose units which 
+are correct for the number you enter.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="matchColumnSelect">
+<subhead><title>Column Selection Boxes</title></subhead>
+
+<p>The column selection boxes allow you to select which of the
+columns in the input tables will provide the data
+(the coordinates which have to match).
+For each table you must select the names of the required columns;
+the ones you need to select will depend on the 
+<ref id="matchCriteria">match criteria</ref> you have chosen.
+</p>
+
+<p>For some columns, such as Right Ascension and Declination in sky matches,
+units are important for the columns you select.
+In this case, there will be a selector box for the units alongside
+the selector box for the column itself.  You must ensure that the
+correct units have been selected, or the results of the match will be 
+rubbish.
+</p>
+
+<p>In some cases these column and/or unit selectors may have a value filled in
+automatically (if the program thinks it can guess appropriate ones)
+but you should ensure that it has guessed correctly in this case.
+Only suitable columns are available for choosing from these column
+selectors; in most cases this means numeric ones.
+</p>
+
+<p>Instead of selecting a column name from the list provided in these
+boxes, you may type in an expression.  This can be a column name,
+or an algebraic expression based on column names, or even a constant.
+The expression language syntax is described in <ref id="jel"/>.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="matchRowSelect">
+<subhead><title>Output Rows Selector Box</title></subhead>
+
+<p>When the match is complete a new table will be created which 
+contains rows determined by the matches which have taken place.
+The <label>Output Rows</label> selector box allows you to choose on what 
+basis the rows will be included in the output table as a function
+of the matches that were found.
+</p>
+
+<p>In all cases each row will refer to only one matched
+(or possibly unmatched) "object", so that any non-blank columns
+in a given row come from only rows in the input tables
+which match according to the specified <ref id="matchCriteria">criteria</ref>.
+However, you have two (somewhat interlinked) choices to make
+about which rows are produced.
+</p>
+
+<p>The <label>Match Selection</label> selector allows you to choose
+what happens when a given row in one table can be matched by 
+more than one row in the other table.  There are two choices:
+<dl>
+<dt>Best Match Only</dt>
+<dd><p>Only the best match is chosen, and the other correct but inferior
+    matches are ignored.  The best match is usually the "closest" - it
+    is the one with the lowest match score, where the definition of this
+    score is determined by the match criteria you have selected.
+    </p></dd>
+
+<dt>All Matches</dt>
+<dd><p>Any pairs which meet the match criteria are retained in
+    the output table.
+    This means that you may have data from some of the same input rows
+    appearing more than once in the output.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Join Type</label> selector allows you to choose what
+output rows result from a match in the input tables.
+<dl>
+<dt>1 and 2</dt>
+<dd><p>The output table contains only rows which have an entry from 
+    both of the input tables, so that every output row represents an
+    actual matched pair.
+    </p></dd>
+
+<dt>All from 1</dt>
+<dd><p>All of the matched rows are present in the output as for
+    <label>1 and 2</label>, but additionally the unmatched rows from
+    the first table are present with the columns from the second
+    table blank.
+    </p></dd>
+
+<dt>All from 2</dt>
+<dd><p>As for <label>All from 1</label> but the other way round.
+    </p></dd>
+
+<dt>1 or 2</dt>
+<dd><p>Every row, matched and unmatched, from both of the input 
+    tables appears in the output.
+    This is the union of rows from <label>All from 1</label> and
+    <label>All from 2</label>.
+    </p></dd>
+
+<dt>1 not 2</dt>
+<dd><p>This presents all the rows in the first table which
+    do <em>not</em> have matches in the second table.
+    Consequently, it only contains columns from the first table, since
+    all the entries from the second one would be blank in any case.
+    </p></dd>
+
+<dt>2 not 1</dt>
+<dd><p>The same as <label>1 not 2</label> but the other way round.
+    </p></dd>
+
+<dt>1 xor 2</dt>
+<dd><p>The "exclusive or" of the match - the output only contains 
+    rows from the first table which don't have matches in the second
+    table and vice versa.  It is the union of <label>1 not 2</label>
+    and <label>2 not 1</label>.
+    </p></dd>
+    
+</dl>
+</p>
+
+<p>In most cases (all the above except for <label>1 not 2</label> and
+<label>2 not 1</label>, the set of columns in the output table contains
+all the columns from the first table followed by all the columns
+from the second table.  If this causes a clash of column names,
+offending columns will be renamed with a trailing "<code>_1</code>" or 
+"<code>_2</code>".
+Depending on the details of the match however,
+some additional useful columns may be added:
+<dl>
+<dt>Match Score</dt>
+<dd><p>For rows that represent a match, a numeric value representing
+    how good the match was will usually be present.  This is typically
+    a separation in real or notional space - for instance for a 
+    <label>Sky</label> match it is the distance between the two matched
+    celestial positions in arcseconds along a great circle.  It will
+    always be greater than or equal to zero, and a smaller value 
+    represents a better match.  The name and exact meaning of this
+    column depends on the match criteria - examine its description 
+    in the <ref id="ColumnInfoWindow">Columns Window</ref> for details.
+    </p></dd>
+
+<dt>GroupSize, GroupID</dt>
+<dd><p>If you choose the <label>All Matches</label> option and some of
+    the rows match more than once, two columns named 
+    <label>GroupID</label> and <label>GroupSize</label> will be added.
+    These allow you to identify which matches are multiple.
+    In the case of rows which represent a unique match, they are blank.
+    But for rows which represent a set of multiple matches, the 
+    GroupSize value tells you how many rows participate in this match,
+    and the GroupID value is an integer which is the same for 
+    all the rows which participate in the same match.
+    So if you do a sort on the GroupID value, you'll see all the rows
+    in the first non-unique match group together,
+    followed by all the rows in the second non-unique group...
+    and after them all the unique matches.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>Here is an example.  If your input tables are these:
+<verbatim>
+      X          Y         Vmag
+      -          -         ----
+   1134.822    599.247     13.8
+    659.68    1046.874     17.2
+    909.613    543.293      9.3
+</verbatim>
+and
+<verbatim>
+     X           Y         Bmag
+     -           -         ---- 
+   909.523     543.800     10.1
+   1832.114    409.567     12.3
+   1135.201    600.100     14.6
+    702.622   1004.972     19.0
+</verbatim>
+then a Cartesian match of the two sets of X and Y values with an error of 1.0
+using the <label>1 and 2</label> option would give you a result like this:
+<verbatim>
+     X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
+     ---       ---         ----    ---        ---         ----    ----------
+   1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
+    909.613    543.293      9.3    909.523    543.800     10.1     0.515
+</verbatim>
+using <label>All from 1</label> would give you this:
+<verbatim>
+     X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
+     ---       ---         ----    ---        ---         ----    ----------
+   1134.822    599.247     13.8    1135.201   600.100     14.6     0.933
+    659.68    1046.874     17.2
+    909.613    543.293      9.3     909.523   543.800     10.1     0.515
+</verbatim>
+and <label>1 not 2</label> would give you this:
+<verbatim>
+     X         Y           Vmag
+     -         -           ----
+    659.68    1046.874     17.2
+</verbatim>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+
+<subsubsect id="MatchWindow1">
+<subhead><title>Internal Match Window</title></subhead>
+
+<figure>
+<caption><px>Internal Match Window</px></caption>
+<figureimage src="&FIG.MatchWindow1;"/>
+</figure>
+
+<p>The Internal Match Window allows you to perform matching between
+rows of the same table, grouping rows that have the same or similar 
+values in specified columns and producing a new table as a result.
+It can be obtained by using the <label>Internal Match</label>
+(&IMG.MATCH1;) button in the <ref id="ControlWindow">Control Window</ref>
+toolbar or <label>Joins</label> menu.
+</p>
+
+<p>You might want to use this functionality to remove all rows which
+refer to the same object from an object catalogue, 
+or to ensure that only one entry exists for each object,
+or to identify groups of several "nearby" objects in some way.
+</p>
+
+<p>The result is created from the <ref id="apparent">Apparent</ref>
+versions of the tables being joined, so that any row subsets,
+hidden columns, or sorts currently in force will be reflected in the
+output.
+Progress information on the match, which may take some time,
+is provided in the logging window and by a progress bar at the bottom
+of the window.  When it is completed, you will be informed by a
+popup window which indicates that a new table has been created.
+This table will be added to the list in the Control Window and can
+be examined, manipulated and saved like any other.
+</p>
+
+<p>The window has the following parts:
+<dl>
+
+<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
+<dd><p>Allows you to define what counts as a match between two rows
+    (the same as for pair matching).
+    </p></dd>
+
+<dt><ref id="matchColumnSelect">Column Selection box</ref></dt>
+<dd><p>Allows you to select which table to operate on and which columns
+    supply the matching coordinates
+    (the same as for pair matching).
+    </p></dd>
+
+<dt><ref id="matchInternalAction">Match Action box</ref></dt>
+<dd><p>Allows you to select what will be done (what new table will be
+    created) when the matching groups of rows have been identified.
+    </p></dd>
+
+<dt>Log Panel</dt>
+<dd><p>Displays progress as the match is taking place.  The progress bar
+    at the bottom of the window also provides an indication of how
+    far through each stage processing has got.
+    </p></dd>
+
+<dt>Control buttons</dt>
+<dd><p>The <label>Go</label> button starts the search when you are
+    happy with the selections that you have made, and the
+    <label>Stop</label> button interrupts it midway if you decide
+    you no longer want the results (closing the Match Window also
+    interrupts the calculation).
+    </p></dd>
+
+</dl>
+</p>
+
+<subsubsubsect id="matchInternalAction">
+<subhead><title>Internal Match Action box</title></subhead>
+
+<p>The Internal Match Action box gives a list of options for what
+will happen when an internal match calculation has completed.
+In each case a new table will be
+created as a result of the match.  The options for what it will look like
+are these:
+<dl>
+
+<dt>Mark Groups of Rows</dt>
+<dd><p>The result is a table the same as the input table but with two
+    additional columns: <label>GroupID</label> and <label>GroupSize</label>.
+    Each group of rows which matched is assigned a unique integer,
+    recorded in the GroupId column, and the size of each group is
+    recorded in the GroupSize column.
+    Rows which don't match any others (singles) have null values in
+    both these columns.
+    So for example by sorting the resulting table
+    on GroupID you can group rows that match next to each other;
+    or by sorting on GroupSize you can see all the pairs, followed by
+    all the triples, ...
+    </p>
+    <p>You can use this information in other ways, for instance if you
+    create a new <ref id="subsets">Row Subset</ref> using the expression
+    "<code>GroupSize == 5</code>" you could select only those
+    rows which form part of 5-object clusters.
+    </p></dd>
+
+<dt>Eliminate All Grouped Rows</dt>
+<dd><p>The result is a new table containing only "single" rows, that is
+    ones which don't match any other rows in the table according to the
+    match criteria.  Any rows which match are thrown out.
+    </p></dd>
+
+<dt>Eliminate All But First of Each Group</dt>
+<dd><p>The result is a new table in which only one row (the first in the
+    input table order) from each group of matching ones is retained.
+    A subsequent internal match with the same criteria would therefore
+    show no matches.
+    </p></dd>
+
+<dt>New Table With Groups of Size N</dt>
+<dd><p>The result is a new "wide" table consisting of matched rows in
+    the input table stacked next to each other.
+    Only groups of exactly N rows in the input table are used to
+    form the output table; each row of the output table consists of
+    the columns of the first group member, followed by the columns of
+    the second group member and so on.  The output table therefore has
+    N times as many columns as the input table.
+    The column names in the new table have "_1", "_2", ...
+    appended to them to avoid duplication.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+
+</subsect>
+
 <subsect id="vo-windows">
 <subhead><title>VO Data Access Windows</title></subhead>
 
@@ -9919,568 +10497,6 @@ output.
 
 </subsubsect>
 
-<subsubsect id="MatchWindow">
-<subhead><title>Pair Match Window</title></subhead>
-
-<figure>
-<caption><px>Pair Match Window</px></caption>
-<figureimage src="&FIG.MatchWindow;"/>
-</figure>
-
-<p>The Pair Match Window allows you to join two tables together
-side-by-side, aligning rows by matching values in some of their
-columns between the tables.  It can be obtained using the
-<label>Pair Match</label> (&IMG.MATCH2;) button in the 
-<ref id="ControlWindow">Control Window</ref> toolbar or 
-<label>Joins</label> menu.
-</p>
-
-<p>In a typical scenario you might have two tables each representing
-a catalogue of astronomical objects, and you want a
-third table with one row for each object which has an entry in both
-of the original tables.  An object is defined as being the same one
-in both tables if the co-ordinates in both rows are "similar",
-for instance if the
-difference between the positions indicated by RA and Dec columns
-differ by no more than a specified angle on the sky.
-Matching rows to produce the join requires you to specify the criteria
-for rows in both tables to refer to the same object and
-what to do when one is found - the options are discussed in
-more detail in <ref id="pairMatch"/>.
-</p>
-
-<p>The result is created from the <ref id="apparent">Apparent</ref>
-versions of the tables being joined, so that any row subsets,
-hidden columns, or sorts currently in force will be reflected in the
-output.
-Progress information on the match, which may take a little while,
-is provided in the logging window and by a progress bar at the bottom
-of the window.  When it is completed, you will be informed by a
-popup window which indicates that a new table has been created.
-This table will be added to the list in the Control Window and can
-be examined, manipulated and saved like any other.
-In some cases, some additional columns will be added to the 
-output table which give you more information about how it
-has progressed (see <ref id="matchRowSelect"/>.
-</p>
-
-<p>The Match Window provides a set of controls which allow you
-to choose how the match is done and what the results will look like.
-It consists of these main parts:
-<dl>
-
-<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
-<dd><p>Allows you to define what counts as a match between two rows.
-    </p></dd>
-
-<dt><ref id="matchColumnSelect">Column Selection boxes</ref></dt>
-<dd><p>Allows you to select which tables are to be joined and which 
-    columns in them supply the matching coordinates.
-    </p></dd>
-
-<dt><ref id="matchRowSelect">Output Rows selector</ref></dt>
-<dd><p>Allows selection of which rows are to be included in the output
-    table (for instance whether only those rows matching in both tables
-    should be output or not).
-    </p></dd>
-
-<dt>Log window</dt>
-<dd><p>Reports on progress as the match is taking place.  The progress bar
-    at the bottom of the window also provides an indication of how
-    far through each stage processing has got.
-    </p></dd>
-
-<dt>Control buttons</dt>
-<dd><p>The <label>Go</label> button starts the search when you are
-    happy with the selections that you have made, and the
-    <label>Stop</label> button interrupts it midway if you decide
-    you no longer want the results (closing the Match Window also
-    interrupts the calculation).
-    </p></dd>
-
-</dl>
-</p>
-
-<p>The following sections describe some of these components in more detail.
-</p>
-
-<subsubsubsect id="matchCriteria">
-<subhead><title>Match Criteria</title></subhead>
-
-<p>The match criteria box allows you to specify what counts as a match
-between two rows.  The selection you make in this box will determine
-which columns you have to fill in for the table(s) being matched
-in the rest of the window.  In most cases what you are selecting here
-is the coordinate space in which rows will be compared against each other,
-and a numerical value or values to determine how close two rows have to be
-in terms of a metric on that space to count as a match.
-</p>
-
-<p>The following match types are offered:
-<dl>
-
-<dt>Sky</dt>
-<dd><p>Comparison of positions on the celestial sphere.
-    In this case you will need to specify columns giving
-    Right Ascension and Declination
-    for each table participating in the match.
-    The Max Error value you must fill in is the 
-    maximum separation of matched points around a great circle.
-    </p></dd>
-
-<dt>Sky with Errors</dt>
-<dd><p>The matching is like that for the <label>Sky</label> option above,
-    but an error radius (positional uncertainty) can be given for each
-    row in the input tables, rather than just a single value for the whole
-    match.
-    You need to specify a single Max Error value, which gives the
-    global maximum separation applying to all matches, and for each
-    of the input tables, along with the Right Ascension and 
-    Declination columns, you also specify an Error column
-    which gives the error radius corresponding to that position.
-    Two rows are considered to match when the separation between the
-    two RA,Dec positions is smaller than <em>both</em> the 
-    Max Error value <em>and</em> the sum of the two
-    Error values for the corresponding rows.
-    If either of the per-row Error values is blank, then any separation
-    up to the Max Error is considered to match.
-    According to these rules, you might decide to set the Max Error
-    to an arbitarily large number so that only the sum of per-row Errors
-    will determine the actual match criteria.  
-    However please <em>don't</em> do this, since the Max Error also 
-    functions as a tuning parameter for the matching algorithm,
-    and ought to be reasonably close to the actual maximum acceptable
-    separation - 
-    if necessary use the <ref id="StatsWindow">Statistics Window</ref>
-    to determine the actual maximum uncertainty.
-    </p></dd>
-
-<dt>Sky 3D</dt>
-<dd><p>Comparison of positions in the sky taking account of 
-    distance from the observer.
-    In this case you will need to specify columns giving
-    Right Ascension and Declination in angular units, 
-    as well as distance along the line of sight in arbitrary units
-    for each table participating in the match.
-    The Error value is a maximum separation in Cartesian space 
-    of matched points in the same units as the radial distance.
-    </p></dd>
-
-<dt>Exact Value</dt>
-<dd><p>Requires exact matching of values.
-    In this case you will need to specify the column containing the match key
-    for each table participating in the match;
-    this might typically be an object name or index number.
-    Two rows count as matching if they have exactly the same entry in
-    the specified field, except rows with a null value in that column,
-    which don't match any other row.
-    </p></dd>
-
-<dt>N-dimensional Cartesian</dt>
-<dd><p>Comparison of positions in an isotropic N-dimensional Cartesian space.
-    In this case you will need to specify N columns giving
-    coordinates for each table participating in the match.
-    The Error value is the maximum spatial separation of matched points.
-    Currently the highest dimensionality you can select is 3-d -
-    does anyone want a higher number?
-    </p></dd>
-
-<dt>N-dimensional Cartesian (anisotropic)</dt>
-<dd><p>Comparison of positions in an N-dimensional Cartesian space
-    with an anisotropic metric.
-    In this case you will need to specify N columns giving coordinates
-    for each table participating in the match,
-    and an error radius for each of these dimensions.
-    Points P1 and P2 are considered to match if P2 falls within
-    the ellipsoid defined by the error radii centered on P1.
-    This kind of match will typically be used for non-'spatial' spaces,
-    for instance (magnitude,redshift) space, in which the metrics in 
-    different dimensions are not related to each other.
-    Currently the highest dimensionality you can select is 4-d -
-    does anyone want a higher number?
-    </p></dd>
-
-<dt>Sky + X</dt>
-<dd><p>Comparison of positions on the celestial sphere with an additional
-    numeric constraint.
-    This is a combination of the Sky and 
-    1-d Cartesian matches above, so the columns you need
-    to supply are RA, Dec and one extra, and the errors are 
-    angular separation on the sky and the error in the extra column.
-    A match is registered if it matches in both of the constituent tests.
-    You could use this for instance to match objects which are both close
-    on the sky and have similar luminosities.
-    </p></dd>
-
-<dt>Sky + XY</dt>
-<dd><p>Comparison of positions on the celestial sphere with an additional
-    2-d anisotropic Cartesian constraint.
-    This is a combination of the Sky and 2-d Anisotropic Cartesian
-    matches above, so the columns you need to supply are
-    RA, Dec and two extra, and the errors are 
-    angular separation on the sky and the error radii corresponding to
-    the extra columns.
-    A match is registered if it matches in both of the constituent tests.
-    You could use this for instance to match objects which are both close
-    on the sky and have similar luminosities and redshifts.
-    </p></dd>
-
-<dt>HTM</dt>
-<dd><p>Performs sky matching in just the same way as the <label>Sky</label>
-    option above, but using a different algorithm (pixelisation of the
-    celestial sphere is performed using the Hierarchical Triangular Mesh
-    rather than the HEALPix scheme).  The results in both cases 
-    should be identical, but HTM is much slower.  Hence, this option
-    is only useful for debugging.  It may be withdrawn in future releases.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>Depending on the match type, the units of the error value(s) you enter
-may be significant.  In this case, there will be a unit selector
-displayed alongside the entry box.  You must choose units which 
-are correct for the number you enter.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="matchColumnSelect">
-<subhead><title>Column Selection Boxes</title></subhead>
-
-<p>The column selection boxes allow you to select which of the
-columns in the input tables will provide the data
-(the coordinates which have to match).
-For each table you must select the names of the required columns;
-the ones you need to select will depend on the 
-<ref id="matchCriteria">match criteria</ref> you have chosen.
-</p>
-
-<p>For some columns, such as Right Ascension and Declination in sky matches,
-units are important for the columns you select.
-In this case, there will be a selector box for the units alongside
-the selector box for the column itself.  You must ensure that the
-correct units have been selected, or the results of the match will be 
-rubbish.
-</p>
-
-<p>In some cases these column and/or unit selectors may have a value filled in
-automatically (if the program thinks it can guess appropriate ones)
-but you should ensure that it has guessed correctly in this case.
-Only suitable columns are available for choosing from these column
-selectors; in most cases this means numeric ones.
-</p>
-
-<p>Instead of selecting a column name from the list provided in these
-boxes, you may type in an expression.  This can be a column name,
-or an algebraic expression based on column names, or even a constant.
-The expression language syntax is described in <ref id="jel"/>.
-</p>
-
-</subsubsubsect>
-
-<subsubsubsect id="matchRowSelect">
-<subhead><title>Output Rows Selector Box</title></subhead>
-
-<p>When the match is complete a new table will be created which 
-contains rows determined by the matches which have taken place.
-The <label>Output Rows</label> selector box allows you to choose on what 
-basis the rows will be included in the output table as a function
-of the matches that were found.
-</p>
-
-<p>In all cases each row will refer to only one matched
-(or possibly unmatched) "object", so that any non-blank columns
-in a given row come from only rows in the input tables
-which match according to the specified <ref id="matchCriteria">criteria</ref>.
-However, you have two (somewhat interlinked) choices to make
-about which rows are produced.
-</p>
-
-<p>The <label>Match Selection</label> selector allows you to choose
-what happens when a given row in one table can be matched by 
-more than one row in the other table.  There are two choices:
-<dl>
-<dt>Best Match Only</dt>
-<dd><p>Only the best match is chosen, and the other correct but inferior
-    matches are ignored.  The best match is usually the "closest" - it
-    is the one with the lowest match score, where the definition of this
-    score is determined by the match criteria you have selected.
-    </p></dd>
-
-<dt>All Matches</dt>
-<dd><p>Any pairs which meet the match criteria are retained in
-    the output table.
-    This means that you may have data from some of the same input rows
-    appearing more than once in the output.
-    </p></dd>
-</dl>
-</p>
-
-<p>The <label>Join Type</label> selector allows you to choose what
-output rows result from a match in the input tables.
-<dl>
-<dt>1 and 2</dt>
-<dd><p>The output table contains only rows which have an entry from 
-    both of the input tables, so that every output row represents an
-    actual matched pair.
-    </p></dd>
-
-<dt>All from 1</dt>
-<dd><p>All of the matched rows are present in the output as for
-    <label>1 and 2</label>, but additionally the unmatched rows from
-    the first table are present with the columns from the second
-    table blank.
-    </p></dd>
-
-<dt>All from 2</dt>
-<dd><p>As for <label>All from 1</label> but the other way round.
-    </p></dd>
-
-<dt>1 or 2</dt>
-<dd><p>Every row, matched and unmatched, from both of the input 
-    tables appears in the output.
-    This is the union of rows from <label>All from 1</label> and
-    <label>All from 2</label>.
-    </p></dd>
-
-<dt>1 not 2</dt>
-<dd><p>This presents all the rows in the first table which
-    do <em>not</em> have matches in the second table.
-    Consequently, it only contains columns from the first table, since
-    all the entries from the second one would be blank in any case.
-    </p></dd>
-
-<dt>2 not 1</dt>
-<dd><p>The same as <label>1 not 2</label> but the other way round.
-    </p></dd>
-
-<dt>1 xor 2</dt>
-<dd><p>The "exclusive or" of the match - the output only contains 
-    rows from the first table which don't have matches in the second
-    table and vice versa.  It is the union of <label>1 not 2</label>
-    and <label>2 not 1</label>.
-    </p></dd>
-    
-</dl>
-</p>
-
-<p>In most cases (all the above except for <label>1 not 2</label> and
-<label>2 not 1</label>, the set of columns in the output table contains
-all the columns from the first table followed by all the columns
-from the second table.  If this causes a clash of column names,
-offending columns will be renamed with a trailing "<code>_1</code>" or 
-"<code>_2</code>".
-Depending on the details of the match however,
-some additional useful columns may be added:
-<dl>
-<dt>Match Score</dt>
-<dd><p>For rows that represent a match, a numeric value representing
-    how good the match was will usually be present.  This is typically
-    a separation in real or notional space - for instance for a 
-    <label>Sky</label> match it is the distance between the two matched
-    celestial positions in arcseconds along a great circle.  It will
-    always be greater than or equal to zero, and a smaller value 
-    represents a better match.  The name and exact meaning of this
-    column depends on the match criteria - examine its description 
-    in the <ref id="ColumnInfoWindow">Columns Window</ref> for details.
-    </p></dd>
-
-<dt>GroupSize, GroupID</dt>
-<dd><p>If you choose the <label>All Matches</label> option and some of
-    the rows match more than once, two columns named 
-    <label>GroupID</label> and <label>GroupSize</label> will be added.
-    These allow you to identify which matches are multiple.
-    In the case of rows which represent a unique match, they are blank.
-    But for rows which represent a set of multiple matches, the 
-    GroupSize value tells you how many rows participate in this match,
-    and the GroupID value is an integer which is the same for 
-    all the rows which participate in the same match.
-    So if you do a sort on the GroupID value, you'll see all the rows
-    in the first non-unique match group together,
-    followed by all the rows in the second non-unique group...
-    and after them all the unique matches.
-    </p></dd>
-
-</dl>
-</p>
-
-<p>Here is an example.  If your input tables are these:
-<verbatim>
-      X          Y         Vmag
-      -          -         ----
-   1134.822    599.247     13.8
-    659.68    1046.874     17.2
-    909.613    543.293      9.3
-</verbatim>
-and
-<verbatim>
-     X           Y         Bmag
-     -           -         ---- 
-   909.523     543.800     10.1
-   1832.114    409.567     12.3
-   1135.201    600.100     14.6
-    702.622   1004.972     19.0
-</verbatim>
-then a Cartesian match of the two sets of X and Y values with an error of 1.0
-using the <label>1 and 2</label> option would give you a result like this:
-<verbatim>
-     X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
-     ---       ---         ----    ---        ---         ----    ----------
-   1134.822    599.247     13.8   1135.201    600.100     14.6     0.933
-    909.613    543.293      9.3    909.523    543.800     10.1     0.515
-</verbatim>
-using <label>All from 1</label> would give you this:
-<verbatim>
-     X_1       Y_1         Vmag    X_2        Y_2         Bmag    Separation
-     ---       ---         ----    ---        ---         ----    ----------
-   1134.822    599.247     13.8    1135.201   600.100     14.6     0.933
-    659.68    1046.874     17.2
-    909.613    543.293      9.3     909.523   543.800     10.1     0.515
-</verbatim>
-and <label>1 not 2</label> would give you this:
-<verbatim>
-     X         Y           Vmag
-     -         -           ----
-    659.68    1046.874     17.2
-</verbatim>
-</p>
-
-</subsubsubsect>
-
-</subsubsect>
-
-
-<subsubsect id="MatchWindow1">
-<subhead><title>Internal Match Window</title></subhead>
-
-<figure>
-<caption><px>Internal Match Window</px></caption>
-<figureimage src="&FIG.MatchWindow1;"/>
-</figure>
-
-<p>The Internal Match Window allows you to perform matching between
-rows of the same table, grouping rows that have the same or similar 
-values in specified columns and producing a new table as a result.
-It can be obtained by using the <label>Internal Match</label>
-(&IMG.MATCH1;) button in the <ref id="ControlWindow">Control Window</ref>
-toolbar or <label>Joins</label> menu.
-</p>
-
-<p>You might want to use this functionality to remove all rows which
-refer to the same object from an object catalogue, 
-or to ensure that only one entry exists for each object,
-or to identify groups of several "nearby" objects in some way.
-</p>
-
-<p>The result is created from the <ref id="apparent">Apparent</ref>
-versions of the tables being joined, so that any row subsets,
-hidden columns, or sorts currently in force will be reflected in the
-output.
-Progress information on the match, which may take some time,
-is provided in the logging window and by a progress bar at the bottom
-of the window.  When it is completed, you will be informed by a
-popup window which indicates that a new table has been created.
-This table will be added to the list in the Control Window and can
-be examined, manipulated and saved like any other.
-</p>
-
-<p>The window has the following parts:
-<dl>
-
-<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
-<dd><p>Allows you to define what counts as a match between two rows
-    (the same as for pair matching).
-    </p></dd>
-
-<dt><ref id="matchColumnSelect">Column Selection box</ref></dt>
-<dd><p>Allows you to select which table to operate on and which columns
-    supply the matching coordinates
-    (the same as for pair matching).
-    </p></dd>
-
-<dt><ref id="matchInternalAction">Match Action box</ref></dt>
-<dd><p>Allows you to select what will be done (what new table will be
-    created) when the matching groups of rows have been identified.
-    </p></dd>
-
-<dt>Log Panel</dt>
-<dd><p>Displays progress as the match is taking place.  The progress bar
-    at the bottom of the window also provides an indication of how
-    far through each stage processing has got.
-    </p></dd>
-
-<dt>Control buttons</dt>
-<dd><p>The <label>Go</label> button starts the search when you are
-    happy with the selections that you have made, and the
-    <label>Stop</label> button interrupts it midway if you decide
-    you no longer want the results (closing the Match Window also
-    interrupts the calculation).
-    </p></dd>
-
-</dl>
-</p>
-
-<subsubsubsect id="matchInternalAction">
-<subhead><title>Internal Match Action box</title></subhead>
-
-<p>The Internal Match Action box gives a list of options for what
-will happen when an internal match calculation has completed.
-In each case a new table will be
-created as a result of the match.  The options for what it will look like
-are these:
-<dl>
-
-<dt>Mark Groups of Rows</dt>
-<dd><p>The result is a table the same as the input table but with two
-    additional columns: <label>GroupID</label> and <label>GroupSize</label>.
-    Each group of rows which matched is assigned a unique integer,
-    recorded in the GroupId column, and the size of each group is
-    recorded in the GroupSize column.
-    Rows which don't match any others (singles) have null values in
-    both these columns.
-    So for example by sorting the resulting table
-    on GroupID you can group rows that match next to each other;
-    or by sorting on GroupSize you can see all the pairs, followed by
-    all the triples, ...
-    </p>
-    <p>You can use this information in other ways, for instance if you
-    create a new <ref id="subsets">Row Subset</ref> using the expression
-    "<code>GroupSize == 5</code>" you could select only those
-    rows which form part of 5-object clusters.
-    </p></dd>
-
-<dt>Eliminate All Grouped Rows</dt>
-<dd><p>The result is a new table containing only "single" rows, that is
-    ones which don't match any other rows in the table according to the
-    match criteria.  Any rows which match are thrown out.
-    </p></dd>
-
-<dt>Eliminate All But First of Each Group</dt>
-<dd><p>The result is a new table in which only one row (the first in the
-    input table order) from each group of matching ones is retained.
-    A subsequent internal match with the same criteria would therefore
-    show no matches.
-    </p></dd>
-
-<dt>New Table With Groups of Size N</dt>
-<dd><p>The result is a new "wide" table consisting of matched rows in
-    the input table stacked next to each other.
-    Only groups of exactly N rows in the input table are used to
-    form the output table; each row of the output table consists of
-    the columns of the first group member, followed by the columns of
-    the second group member and so on.  The output table therefore has
-    N times as many columns as the input table.
-    The column names in the new table have "_1", "_2", ...
-    appended to them to avoid duplication.
-    </p></dd>
-
-</dl>
-</p>
-
-</subsubsubsect>
-
-</subsubsect>
 
 <subsubsect id="ActivationQueryWindow">
 <subhead><title>Activation Window</title></subhead>
@@ -13207,6 +13223,8 @@ introduced since the last version:
         Date, Time and Timestamp columns will now be converted to Strings
         which means they can be written to most output formats
         (previously they were omitted from output tables).</li>
+    <li>Reorganise manual slightly - match windows now get their own
+        appendix subsection.</li>
     </ul>
     </p></dd>
 
