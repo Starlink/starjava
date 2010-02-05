@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -1494,6 +1495,25 @@ public class RowMatcher {
      */
     private void startMatch() {
         startTime = new Date().getTime();
+        indicator.logMessage( "Params:"
+                            + formatParams( engine.getMatchParameters() ) );
+        indicator.logMessage( "Tuning:"
+                            + formatParams( engine.getTuningParameters() ) );
+    }
+
+    /**
+     * Formats a list of DescribedValues for compact display.
+     *
+     * @param  params  values
+     * @return   values line
+     */
+    private static String formatParams( DescribedValue[] params ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < params.length; i++ ) {
+            sbuf.append( i == 0 ? " " : ", " )
+                .append( params[ i ] );
+        }
+        return sbuf.toString();
     }
 
     /**
