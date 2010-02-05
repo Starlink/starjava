@@ -32,6 +32,16 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     private double scaleFactor_;
 
     /**
+     * Scale factor which determines bin size to use,
+     * as a multiple of the maximum error distance, if no
+     * scale factor is set explicitly.
+     * This is a tuning factor (any value will give correct results,
+     * but performance may be affected).
+     * The current value may not be optimal.
+     */
+    private static final double DEFAULT_SCALE_FACTOR = 2;
+
+    /**
      * Constructs a matcher which matches points in an
      * <tt>ndim</tt>-dimensional Cartesian space.
      * The error array (error ellipsoid dimensions) is not initialised to
@@ -50,7 +60,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         cellScales_ = new double[ ndim ];
         scaleFactorParam_ = new ScaleFactorParameter();
         setNormaliseScores( normaliseScores );
-        setScaleFactor( 2.0 );
+        setScaleFactor( DEFAULT_SCALE_FACTOR );
     }
 
     /**
