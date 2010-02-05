@@ -529,7 +529,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * @param  info  value metadata specification
      * @return  usage fragment
      */
-    private String getInfoUsage( ValueInfo info ) {
+    public static String getInfoUsage( ValueInfo info ) {
         StringBuffer sbuf = new StringBuffer()
             .append( info.getName().toLowerCase().replaceAll( " ", "-" ) );
         String units = info.getUnitString();
