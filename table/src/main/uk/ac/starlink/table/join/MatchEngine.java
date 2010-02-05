@@ -138,6 +138,24 @@ public interface MatchEngine {
     DescribedValue[] getMatchParameters();
 
     /**
+     * Returns a set of DescribedValue objects whose values can be modified
+     * to tune the performance of the match.
+     * This match engine's performance can be influenced by calling 
+     * {@link uk.ac.starlink.table.DescribedValue#setValue} on the 
+     * returned objects.
+     *
+     * <p>Changing these values will make no difference to the output of
+     * {@link #matchScore}, but may change the output of {@link #getBins}.
+     * This may change the CPU and memory requirements of the match,
+     * but will not change the result.  The default value should be
+     * something sensible, so that setting the value of these parameters
+     * is not in general required.
+     *
+     * @return  array of described values which may influence match performance
+     */
+    DescribedValue[] getTuningParameters();
+
+    /**
      * Given a range of tuple values, returns a range outside which 
      * no match to anything within that range can result.
      * If the tuples on which this engine works represent some kind of

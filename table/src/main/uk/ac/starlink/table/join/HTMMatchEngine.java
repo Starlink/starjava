@@ -9,6 +9,9 @@ import edu.jhu.htm.geometry.Circle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Implements the object matching interface for sky coordinates
@@ -24,10 +27,18 @@ import java.util.List;
  */
 public class HTMMatchEngine extends SkyMatchEngine {
 
+    private final DescribedValue levelParam_;
+    private int level_;
     private HTMindexImp htm_;
 
-    /** Minimum resolution in degrees supported by HTM implementation. */
-    public static final double HTM_MIN_RESOLUTION = 2.7e-6;
+    /**
+     * Scale factor which determines the sky pixel size scale to use,
+     * as a multiple of the separation size, if no level value is set
+     * explicitly.  This is a tuning factor (any value will give
+     * correct results, but performance may be affected).
+     * The current value may not be optimal.
+     */
+    private static final double DEFAULT_SCALE_FACTOR = 2;
 
     /**
      * Scaling factor which determines the size of the mesh cells used
@@ -47,27 +58,15 @@ public class HTMMatchEngine extends SkyMatchEngine {
      *          separation value counts
      */
     public HTMMatchEngine( double separation, boolean useErrors ) {
-        super( separation, useErrors );
+        super( useErrors );
+        levelParam_ = new LevelParameter();
+        level_ = -1;
+        setSeparation( separation );
     }
 
     public void setSeparation( double separation ) {
         super.setSeparation( separation );
-
-        /* Construct an HTM index with mesh elements of a size suitable
-         * for the requested resolution. */
-        // assert MESH_SCALE > ??; not sure what is the maximum sensible value
-        double resolution = Math.max( Math.toDegrees( separation ) * MESH_SCALE,
-                                      HTM_MIN_RESOLUTION );
-        try {
-            htm_ = new HTMindexImp( resolution );
-        }
-        catch ( HTMException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad resolution? "
-                                              + resolution + " degrees"
-                                              + " - shouldn't happen" )
-                 .initCause( e );
-        }
+        configureLevel();
     }
 
     /**
@@ -107,5 +106,93 @@ public class HTMMatchEngine extends SkyMatchEngine {
             throw new RuntimeException( "Uh-oh", e );
         }
         return binList.toArray();
+    }
+
+    public DescribedValue[] getTuningParameters() {
+        return new DescribedValue[] { levelParam_ };
+    }
+
+    /**
+     * Sets the HTM level value, which determines sky pixel size.
+     * May be in the range 0 (90deg) to 24 (0.01").
+     * If set to -1, a suitable value will be used based on the separation.
+     *
+     * @param  level  new level value
+     */
+    public void setLevel( int level ) {
+        if ( level < -1 || level > 24 ) {
+            throw new IllegalArgumentException( "HTM level " + level
+                                              + " out of range 0..24" );
+        }
+        level_ = level;
+        configureLevel();
+    }
+
+    /**
+     * Returns the HTM level, which determines sky pixel size.
+     * The returned value may be the result of a default determination based
+     * on separation if no explicit level has been set hitherto, and
+     * a non-zero separation is available.
+     *
+     * @return   level   level value used by this engine
+     */
+    public int getLevel() {
+        if ( level_ >= 0 ) {
+            return level_;
+        }
+        else {
+            double sep = getSeparation();
+            return sep > 0 ? calculateDefaultLevel( sep )
+                           : -1;
+        }
+    }
+
+    /**
+     * Updates internal state for the current values of separation and level.
+     */
+    private void configureLevel() {
+        int level = getLevel();
+        htm_ = new HTMindexImp( level, Math.min( level, 2 ) );
+    }
+
+    /**
+     * Determines a default value to use for the level paramer
+     * based on a given separation.
+     *
+     * @param  sep  max sky separation angle for a match, in radians
+     */
+    public int calculateDefaultLevel( double sep ) {
+        double pixelSize = DEFAULT_SCALE_FACTOR * sep;
+        double pixelSizeDeg = Math.toDegrees( pixelSize );
+
+        /* This code stolen from HTMindexImp constructor. */
+        int lev = 5;
+        double htmwidth = 2.8125;
+        while ( htmwidth > pixelSizeDeg && lev < 25 ) {
+            htmwidth /= 2;
+            lev++;
+        }
+        return lev;
+    }
+
+    /**
+     * Implements the tuning parameter which controls the level value.
+     * This determines the absolute size of the bins.
+     */
+    private class LevelParameter extends DescribedValue {
+        LevelParameter() {
+            super( new DefaultValueInfo( "HTM Level", Integer.class ) );
+            DefaultValueInfo info = (DefaultValueInfo) getInfo();
+            info.setDescription( "Controls sky pixel size. "
+                               + "Legal range 0 (90deg) - 24 (.01\")." );
+            info.setNullable( true );
+        }
+        public Object getValue() {
+            int level = getLevel();
+            return level >= 0 ? new Integer( level ) : null;
+        }
+        public void setValue( Object value ) {
+            setLevel( value == null ? -1 : ((Integer) value).intValue() );
+        }
     }
 }

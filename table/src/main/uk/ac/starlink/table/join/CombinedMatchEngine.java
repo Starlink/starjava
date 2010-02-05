@@ -171,6 +171,15 @@ public class CombinedMatchEngine implements MatchEngine {
         return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
     }
 
+    public DescribedValue[] getTuningParameters() {
+        List params = new ArrayList();
+        for ( int i = 0; i < nPart; i++ ) {
+            params.addAll( Arrays.asList( engines[ i ]
+                                         .getTuningParameters() ) );
+        }
+        return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
+    }
+
     public boolean canBoundMatch() {
         for ( int i = 0; i < nPart; i++ ) {
             if ( engines[ i ].canBoundMatch() ) {

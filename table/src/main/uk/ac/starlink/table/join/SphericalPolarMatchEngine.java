@@ -45,6 +45,10 @@ public class SphericalPolarMatchEngine implements MatchEngine {
                            .setUnitString( "Units of distance" );
     }
 
+    public DescribedValue[] getTuningParameters() {
+        return spaceEngine_.getTuningParameters();
+    }
+
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         polarToCartesian( tuple1, work1_ );
         polarToCartesian( tuple2, work2_ );
@@ -82,10 +86,10 @@ public class SphericalPolarMatchEngine implements MatchEngine {
     public boolean canBoundMatch() {
         return false;
     }
+
     public Comparable[][] getMatchBounds( Comparable[] min, Comparable[] max ) {
         throw new UnsupportedOperationException();
     }
-
 
     public String toString() {
         return "Sky 3D";

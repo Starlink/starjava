@@ -51,13 +51,11 @@ public abstract class SkyMatchEngine implements MatchEngine {
      * (RA,Dec tuples) to match if they are within a given angular
      * distance on the celestial sphere.
      *
-     * @param   separation   match radius in radians
      * @param   useErrors   if true, per-row errors can be specified as
      *          a third element of the tuples; otherwise only the fixed
      *          separation value counts
      */
-    public SkyMatchEngine( double separation, boolean useErrors ) {
-        setSeparation( separation );
+    public SkyMatchEngine( boolean useErrors ) {
         setUseErrors( useErrors );
     }
 

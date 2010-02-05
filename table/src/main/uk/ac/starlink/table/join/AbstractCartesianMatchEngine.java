@@ -12,8 +12,7 @@ import uk.ac.starlink.table.ValueInfo;
  * All tuples (coordinate vectors) submitted to it must be 
  * <ndim>-element arrays of {@link java.lang.Number} objects.
  * Tuples are considered matching if they fall within an ellipsoid
- * defined by a scalar or vector error parameter submitted at construction
- * time.
+ * defined by a scalar or vector error parameter.
  *
  * <p>This abstract class defines the mechanics of the matching,
  * but not the match parameters, which will presumably be to do 
@@ -25,17 +24,12 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
     private final int ndim_;
     private final int blockSize_;
+    private final double[] errors_;
+    private final double[] err2rs_;
+    private final double[] cellScales_;
+    private final DescribedValue scaleFactorParam_;
     private boolean normaliseScores_;
-    private double[] errors_;
-    private double[] err2rs_;
-    private double[] cellScales_;
-
-    /**
-     * Scaling factor determining the size of a grid cell as a multiple of
-     * the size of the matching error in each dimension.  It can be
-     * used as a tuning parameter.  It must be &gt;=1.
-     */
-    public final static double CELL_SCALE = 2.0;
+    private double scaleFactor_;
 
     /**
      * Constructs a matcher which matches points in an
@@ -50,11 +44,13 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     protected AbstractCartesianMatchEngine( int ndim, 
                                             boolean normaliseScores ) {
         ndim_ = ndim;
+        blockSize_ = (int) Math.pow( 3, ndim );
         errors_ = new double[ ndim ];
         err2rs_ = new double[ ndim ];
         cellScales_ = new double[ ndim ];
-        blockSize_ = (int) Math.pow( 3, ndim );
+        scaleFactorParam_ = new ScaleFactorParameter();
         setNormaliseScores( normaliseScores );
+        setScaleFactor( 2.0 );
     }
 
     /**
@@ -127,7 +123,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
     /**
      * Returns a set of Cell objects representing the cell in which 
-     * this tuple falls and somr or all of its neighbouring ones.
+     * this tuple falls and some or all of its neighbouring ones.
      *
      * @param  tuple  <tt>ndim</tt>-element array of <tt>Number</tt> objects
      *                representing coordinates of an object
@@ -244,6 +240,10 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
     public abstract DescribedValue[] getMatchParameters();
 
+    public DescribedValue[] getTuningParameters() {
+        return new DescribedValue[] { scaleFactorParam_ };
+    }
+
     /**
      * Returns the matching error along a given axis.
      * This is the principle radius of an ellipsoid within which two points
@@ -256,18 +256,56 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Sets one of the principle radii of the ellipsoid within which 
+     * Sets one of the principal radii of the ellipsoid within which 
      * two points have to fall in order to match.
      *
      * @param  idim  index of axis
      * @param  error  error along axis <tt>idim</tt>
      */
     public void setError( int idim, double error ) {
-        assert CELL_SCALE >= 1.0;
         errors_[ idim ] = error;
         err2rs_[ idim ] = error == 0.0 ? Double.MAX_VALUE
                                        : 1.0 / ( error * error );
-        cellScales_[ idim ] = 1.0 / ( CELL_SCALE * error );
+        configureScale( idim );
+    }
+
+    /**
+     * Returns the grid scaling factor.
+     *
+     * @return   grid scaling factor
+     */
+    public double getScaleFactor() {
+        return scaleFactor_;
+    }
+
+    /**
+     * Sets the grid scaling factor which determines the size of a grid cell
+     * as a multiple of the size of the matching error in each dimension.
+     * It can be used as a tuning parameter.  It must be >= 1.
+     *
+     * @param   scaleFactor   new scaling factor
+     * @throws  IllegalArgumentException  if out of range
+     */
+    public void setScaleFactor( double scaleFactor ) {
+        if ( ! ( scaleFactor >= 1.0 ) ) {
+            throw new IllegalArgumentException( "Scale factor " + scaleFactor
+                                              + " must be >= 1" );
+        }
+        scaleFactor_ = scaleFactor;
+        for ( int idim = 0; idim < ndim_; idim++ ) {
+            configureScale( idim );
+        }
+    }
+
+    /**
+     * Updates internal state for the current values of error and 
+     * scaling factor in a given dimension.
+     *
+     * @param  idim  dimension index
+     */
+    private void configureScale( int idim ) {
+        assert scaleFactor_ >= 1.0;
+        cellScales_[ idim ] = 1.0 / ( scaleFactor_ * errors_[ idim ] );
     }
 
     /**
@@ -385,6 +423,23 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return (Cell[]) cells.toArray( new Cell[ cells.size() ] );
     }
 
+    /**
+     * Implements the tuning parameter which controls scale factor.
+     */
+    private class ScaleFactorParameter extends DescribedValue {
+        ScaleFactorParameter() {
+            super( new DefaultValueInfo( "Scale Factor", Double.class,
+                                         "Scaling factor to adjust bin size; "
+                                       + "larger values mean larger bins. "
+                                       + "Minimum legal value is 1." ) );
+        }
+        public Object getValue() {
+            return new Double( getScaleFactor() );
+        }
+        public void setValue( Object value ) {
+            setScaleFactor( ((Number) value).doubleValue() );
+        }
+    }
 
     /**
      * Represents cells in the grid which represents the cartesian space.

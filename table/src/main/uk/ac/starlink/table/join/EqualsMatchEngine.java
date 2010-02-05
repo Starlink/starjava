@@ -57,6 +57,10 @@ public class EqualsMatchEngine implements MatchEngine {
         return new DescribedValue[ 0 ];
     }
 
+    public DescribedValue[] getTuningParameters() {
+        return new DescribedValue[ 0 ];
+    }
+
     public boolean canBoundMatch() {
         return true;
     }
