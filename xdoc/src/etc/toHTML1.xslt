@@ -58,6 +58,7 @@
     <p>
       <i>
         <xsl:value-of select="$DOCTYPE"/>
+        <xsl:text> </xsl:text>
         <xsl:apply-templates select="docnumber"/>
         <br/>
         <xsl:apply-templates select="authorlist"/>
