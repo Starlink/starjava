@@ -119,6 +119,7 @@ public class MatchMapper implements TableMapper {
             irefParam_,
             matcherParam_,
             matcherParam_.getMatchParametersParameter(),
+            matcherParam_.getTuningParametersParameter(),
             matcherParam_.createMatchTupleParameter( "N" ),
             new MultiJoinTypeParameter( "N" ),
             fixcolsParam_,

@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.task.WordsParameter;
 public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
     private final WordsParameter paramsParam_;
+    private final WordsParameter tuningParam_;
     private final Parameter scoreParam_;
     private MatchEngine matchEngine_;
 
@@ -49,6 +50,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         super( name );
 
         paramsParam_ = new WordsParameter( "params" );
+        tuningParam_ = new WordsParameter( "tuning" );
 
         setDefault( "sky" );
         setPreferExplicit( true );
@@ -65,8 +67,10 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "is given in <ref id='MatchEngine'/>.",
             "The value supplied for this parameter determines the meanings",
             "of the values required by the ",
-            "<code>" + paramsParam_.getName() + "</code> and",
-            "<code>values*</code> parameter(s).",
+            "<code>" + paramsParam_.getName() + "</code>,",
+            "<code>values*</code> and",
+            "<code>" + tuningParam_.getName() + "</code>",
+            "parameter(s).",
             "</p>",
         } );
 
@@ -83,6 +87,21 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         } );
         paramsParam_.setNullPermitted( true );
         paramsParam_.setUsage( "<match-params>" );
+
+        tuningParam_.setPrompt( "Tuning parameters" );
+        tuningParam_.setDescription( new String[] {
+            "<p>Tuning values for the matching process, if appropriate.",
+            "It may contain zero or more values; the values that are",
+            "permitted depend on the match type selected by the",
+            "<code>" + getName() + "</code> parameter.",
+            "If it contains multiple values, they must be separated by spaces;",
+            "values which contain a space can be 'quoted' or \"quoted\".",
+            "If this optional parameter is not supplied, sensible defaults",
+            "will be chosen.",
+            "</p>",
+        } );
+        tuningParam_.setNullPermitted( true );
+        tuningParam_.setUsage( "<tuning-params>" );
 
         scoreParam_ = new Parameter( "scorecol" );
         scoreParam_.setUsage( "<col-name>" );
@@ -120,14 +139,28 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                     .append( name );
                 String pad = line.toString().replaceAll( ".", " " );
                 String vu = getValuesUsage( engine );
-                String pu = getParamsUsage( engine );
+                String pu = getConfigUsage( engine, paramsParam_,
+                                            engine.getMatchParameters() );
+                String tu = getConfigUsage( engine, tuningParam_,
+                                            engine.getTuningParameters() );
+                int leng = line.length();
                 line.append( vu );
-                if ( line.length() + pu.length() > 78 ) {
+                leng += vu.length();
+                if ( leng + pu.length() > 78 ) {
                     line.append( '\n' )
                         .append( pad );
+                    leng = pad.length();
                 }
-                line.append( pu )
-                    .append( '\n' );
+                line.append( pu );
+                leng += pu.length();
+                if ( leng + tu.length() > 78 ) {
+                    line.append( '\n' )
+                        .append( pad );
+                    leng = pad.length();
+                }
+                line.append( tu );
+                leng += tu.length();
+                line.append( '\n' );
                 sbuf.append( line );
             }
         }
@@ -145,6 +178,16 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      */
     public Parameter getMatchParametersParameter() {
         return paramsParam_;
+    }
+
+    /**
+     * Returns the associated parameter which is used for specifying
+     * optional tuning parameters for the engine supplied by this parameter.
+     *
+     * @return  tuning parameter
+     */
+    public Parameter getTuningParametersParameter() {
+        return tuningParam_;
     }
 
     /**
@@ -303,50 +346,74 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         scoreParam_.setDefault( scoreInfo == null ? null
                                                   : scoreInfo.getName() );
 
-        /* See about the match parameter constants that the resulting
-         * match engine requires. */
-        DescribedValue[] params = engine.getMatchParameters();
-        int nParam = params.length;
+        /* Configure the engine's subparameters. */
+        setConfigValues( env, engine.getMatchParameters(), paramsParam_,
+                         true );
+        setConfigValues( env, engine.getTuningParameters(), tuningParam_,
+                         false );
 
-        /* If there are no such parameters, we don't need to acquire them. */
-        if ( nParam == 0 ) {
-            paramsParam_.setNullPermitted( true );
-            paramsParam_.setDefault( null );
+        /* Set this parameter's value to the configured engine. */
+        matchEngine_ = engine;
+        super.setValueFromString( env, stringVal );
+    }
+
+    /**
+     * Configures a MatchEngine bye setting an array of DescribedValues
+     * according to the value(s) of a suitable task parameter.
+     *
+     * @param  env  execution environment
+     * @param  config   array of DescribedValues that provide a means to
+     *                  configure the MatchEngine
+     * @param  wordsParam  task parameter whose value is a list of words,
+     *                     one for each of the <code>configs</code> elements
+     * @param  required  true iff supplying values for <code>wordsParam</code>
+     *                   is mandatory
+     */
+    private void setConfigValues( Environment env, DescribedValue[] configs,
+                                  WordsParameter wordsParam,
+                                  boolean required )
+            throws TaskException {
+
+        /* If there are no parameters, we don't need to acquire them. */
+        int nConfig = configs.length;
+        if ( nConfig == 0 ) {
+            wordsParam.setNullPermitted( true );
+            wordsParam.setDefault( null );
         }
 
-        /* If there are, enquire about the values to use via the 
-         * params parameter. */
+        /* Otherwise, enquire about the values to use via the relevant
+         * parameter. */
         else {
-            paramsParam_.setNullPermitted( false );
-            StringBuffer sbuf = new StringBuffer( "Match parameters (" );
-            for ( int i = 0; i < nParam; i++ ) {
+            wordsParam.setNullPermitted( ! required );
+            StringBuffer sbuf = new StringBuffer( wordsParam.getPrompt() )
+                .append( " (" );
+            for ( int i = 0; i < nConfig; i++ ) {
                 if ( i > 0 ) {
                     sbuf.append( ' ' );
                 }
-                sbuf.append( getInfoUsage( params[ i ].getInfo() ) );
+                sbuf.append( getInfoUsage( configs[ i ].getInfo() ) );
             }
             sbuf.append( ')' );
-            paramsParam_.setPrompt( sbuf.toString() );
-            paramsParam_.setRequiredWordCount( nParam );
-            String[] words = paramsParam_.wordsValue( env );
-            for ( int i = 0; i < nParam; i++ ) {
-                String word = words[ i ];
-                try {
-
-                    /* Set the values in the match engine accordingly. */
-                    params[ i ].setValueFromString( word );
-                    logger_.info( params[ i ].toString() );
-                }
-                catch ( IllegalArgumentException e ) {
-                    throw new UsageException( "Value " + words[ i ]
-                                            + " not suitable "
-                                            + "for matching parameter "
-                                            + params[ i ].getInfo(), e );
+            wordsParam.setPrompt( sbuf.toString() );
+            wordsParam.setRequiredWordCount( nConfig );
+            String[] words = wordsParam.wordsValue( env );
+            if ( words != null ) {
+                for ( int i = 0; i < nConfig; i++ ) {
+                    String word = words[ i ];
+                    try {
+                        configs[ i ].setValueFromString( word );
+                    }
+                    catch ( RuntimeException e ) {
+                        throw new UsageException( "Value " + words[ i ]
+                                                + " not suitable for "
+                                                + configs[ i ].getInfo(), e );
+                    }
                 }
             }
+            for ( int i = 0; i < nConfig; i++ ) {
+                logger_.info( configs[ i ].toString() );
+            }
         }
-        matchEngine_ = engine;
-        super.setValueFromString( env, stringVal );
     }
 
     /**
@@ -425,23 +492,28 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
     }
 
     /**
-     * Returns a string giving the usage for the match parameters part
-     * of the matching command line.
+     * Returns a string giving the usage for a parameter with configuration
+     * subparameters.
      * 
      * @param  engine  match engine
+     * @param  wordsParam   parameter providing values for the subparameters
+     * @param  configs   modifiable subparameters
      * @return  params usage - possibly empty, not null
      */
-    public String getParamsUsage( MatchEngine engine ) {
+    public String getConfigUsage( MatchEngine engine, Parameter wordsParam,
+                                  DescribedValue[] configs ) {
         StringBuffer sbuf = new StringBuffer();
-        DescribedValue[] params = engine.getMatchParameters();
-        if ( params.length > 0 ) {
-            sbuf.append( " params='" );
-            for ( int i = 0; i < params.length; i++ ) {
+        if ( configs.length > 0 ) {
+            sbuf.append( ' ' )
+                .append( wordsParam.getName() )
+                .append( '=' )
+                .append( '\'' );
+            for ( int i = 0; i < configs.length; i++ ) {
                 if ( i > 0 ) {
                     sbuf.append( ' ' );
                 }
                 sbuf.append( '<' )
-                    .append( getInfoUsage( params[ i ].getInfo() ) )
+                    .append( getInfoUsage( configs[ i ].getInfo() ) )
                     .append( '>' );
             }
             sbuf.append( '\'' );

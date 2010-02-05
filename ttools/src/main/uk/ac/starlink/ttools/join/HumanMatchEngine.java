@@ -24,6 +24,7 @@ public class HumanMatchEngine implements MatchEngine {
     private final MatchEngine baseEngine_;
     private final ValueInfo[] tupleInfos_;
     private final DescribedValue[] matchParams_;
+    private final DescribedValue[] tuningParams_;
     private final ValueWrapper[] tupleWrappers_;
     private final ValueWrapper scoreWrapper_;
     private final ValueInfo scoreInfo_;
@@ -51,12 +52,21 @@ public class HumanMatchEngine implements MatchEngine {
 
         /* Get translators for each of this engine's match parameters,
          * and store appropriately modified versions of the parameters. */
-        DescribedValue[] params = baseEngine.getMatchParameters();
-        matchParams_ = new DescribedValue[ params.length ];
-        for ( int i = 0; i < params.length; i++ ) {
-            DescribedValue param = params[ i ];
+        DescribedValue[] mParams = baseEngine.getMatchParameters();
+        matchParams_ = new DescribedValue[ mParams.length ];
+        for ( int i = 0; i < mParams.length; i++ ) {
+            DescribedValue param = mParams[ i ];
             matchParams_[ i ] = createWrapper( param.getInfo() )
                                .wrapDescribedValue( param );
+        }
+
+        /* Do the same for tuning parameters. */
+        DescribedValue[] tParams = baseEngine.getTuningParameters();
+        tuningParams_ = new DescribedValue[ tParams.length ];
+        for ( int i = 0; i < tParams.length; i++ ) {
+            DescribedValue param = tParams[ i ];
+            tuningParams_[ i ] = createWrapper( param.getInfo() )
+                                .wrapDescribedValue( param );
         }
 
         /* Get and store a wrapper for this engine's match score. */
@@ -73,6 +83,10 @@ public class HumanMatchEngine implements MatchEngine {
 
     public DescribedValue[] getMatchParameters() {
         return matchParams_;
+    }
+
+    public DescribedValue[] getTuningParameters() {
+        return tuningParams_;
     }
 
     public ValueInfo[] getTupleInfos() {

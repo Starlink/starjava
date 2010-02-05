@@ -40,6 +40,7 @@ public class TableMatch1 extends SingleMapperTask {
         matcherParam_ = new MatchEngineParameter( "matcher" );
         paramList.add( matcherParam_ );
         paramList.add( matcherParam_.getMatchParametersParameter() );
+        paramList.add( matcherParam_.getTuningParametersParameter() );
 
         tupleParam_ = matcherParam_.createMatchTupleParameter( "" );
         paramList.add( tupleParam_ );

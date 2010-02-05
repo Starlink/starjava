@@ -11,6 +11,7 @@ import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
@@ -31,6 +32,7 @@ public class SkyMatch2Mapper implements TableMapper {
     private final DoubleParameter errorParam_;
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
+    private final IntegerParameter healpixkParam_;
 
     /**
      * Constructor.
@@ -83,6 +85,32 @@ public class SkyMatch2Mapper implements TableMapper {
             "</p>",
         } );
 
+        healpixkParam_ = new IntegerParameter( "tuning" );
+        healpixkParam_.setUsage( "<healpix-k>" );
+        healpixkParam_.setPrompt( "HEALPix pixel size parameter" );
+        healpixkParam_.setDescription( new String[] {
+            "<p>Tuning parameter that controls the pixel size used when",
+            "binning the rows.",
+            "The legal range is from",
+            "0 (corresponding to pixel size of about 60 degrees) to",
+            "20 (about 0.2 arcsec).",
+            "The value of this parameter will not affect the result",
+            "but may affect the performance in terms of CPU and memory",
+            "resources required.",
+            "A default value will be chosen based on the size of the",
+            "<code>" + errorParam_.getName() + "</code>",
+            "parameter, but it may be possible to improve performance by",
+            "adjusting the default value.",
+            "The value used can be seen by examining the progress output.",
+            "If your match is taking a long time or is failing from lack",
+            "of memory it may be worth trying different values",
+            "for this parameter.",
+            "</p>",
+        } );
+        healpixkParam_.setNullPermitted( true );
+        healpixkParam_.setMinimum( 0 );
+        healpixkParam_.setMaximum( 20 );
+
         joinParam_ = new JoinTypeParameter( "join" );
         modeParam_ = new FindModeParameter( "find" );
     }
@@ -94,6 +122,7 @@ public class SkyMatch2Mapper implements TableMapper {
             raParams_[ 1 ],
             decParams_[ 1 ],
             errorParam_,
+            healpixkParam_,
             joinParam_,
             modeParam_,
         }; 
@@ -110,6 +139,13 @@ public class SkyMatch2Mapper implements TableMapper {
             throw new ParameterValueException( errorParam_,
                                                "Negative value illegal" );
         }
+        HEALPixMatchEngine matcher = new HEALPixMatchEngine( error, false );
+        int defk = matcher.getHealpixK();
+        if ( defk >= 0 ) {
+            healpixkParam_.setDefault( Integer.toString( defk ) );
+        }
+        int k = healpixkParam_.intValue( env );
+        matcher.setHealpixK( k );
         JoinType join = joinParam_.joinTypeValue( env );
         boolean bestOnly = modeParam_.bestOnlyValue( env );
 
@@ -122,8 +158,7 @@ public class SkyMatch2Mapper implements TableMapper {
             err == null
                 ? (ProgressIndicator) new NullProgressIndicator()
                 : (ProgressIndicator) new TextProgressIndicator( err, false );
-        return new SkyMatch2Mapping( new HEALPixMatchEngine( error, false ),
-                                     ra1, dec1, ra2, dec2, join, bestOnly,
-                                     fixact1, fixact2, progger );
+        return new SkyMatch2Mapping( matcher, ra1, dec1, ra2, dec2, join,
+                                     bestOnly, fixact1, fixact2, progger );
     }
 }

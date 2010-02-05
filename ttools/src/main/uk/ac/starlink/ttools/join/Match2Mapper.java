@@ -54,6 +54,7 @@ public class Match2Mapper implements TableMapper {
             tupleParams_[ 0 ],
             tupleParams_[ 1 ],
             matcherParam_.getMatchParametersParameter(),
+            matcherParam_.getTuningParametersParameter(),
             joinParam_,
             modeParam_,
             fixcolParam_,

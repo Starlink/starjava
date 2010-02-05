@@ -1711,6 +1711,19 @@ by setting the following parameters:
     match, so for <code>tmatch2</code> you must specify both 
     <code>values1</code> and <code>values2</code>.
     </p></dd>
+<dt><code>tuning</code></dt>
+    <dd><p>Fixed value(s) supplying tuning parameters for the match
+    algorithm.  If there is more than one value, they should be
+    separated by spaces.
+    This value will have a sensible default, so you do not
+    need to supply it, but providing adjusted values may make your match
+    run faster or require less memory (or the reverse).
+    Adjusting tuning parameters will not change the result of any match,
+    only the resources required to run it.
+    Looking at the progress output of a match will indicate what 
+    tuning values have been used; adjusting the value a bit up or down
+    is a good way to experiment.
+    </p></dd>
 </dl>
 </p>
 
@@ -1736,13 +1749,13 @@ the roster below, or run the following command:
    stilts tmatch2 help=matcher
 </verbatim>
 which will tell you about all the known matchers and their associated
-<code>params</code> and <code>values*</code> parameters.
+<code>params</code>, <code>values*</code> and <code>tuning</code> parameters.
 </p>
 
 <p>The following subsections list the basic <code>matcher</code> types and the
-requirements of their associated <code>params</code> and 
-<code>values*</code> parameters.  The units of the required values
-are given where significant.
+requirements of their associated <code>params</code>,
+<code>values*</code> and <code>tuning</code> parameters.
+The units of the required values are given where significant.
 </p>
 
 <subsubsect id="SkyMatchEngine">
@@ -1788,7 +1801,8 @@ will determine the actual match criteria.
 However please <em>don't</em> do this, since <code>max-error</code>
 also functions as a tuning parameter for the matching algorithm,
 and ought to be reasonably close to the actual maximum acceptable
-separation.
+separation.  Note that if you set the <code>healpix-k</code> parameter
+explicitly, you may set <code>max-error</code> as large as you like.
 </p>
 
 <p>As with <ref id="SkyMatchEngine"><code>sky</code></ref> matching,
@@ -6416,6 +6430,12 @@ but my thanks are especially due to the following:
         Date, Time and Timestamp columns will now be converted to Strings
         which means they can be written to most output formats
         (previously they were omitted from output tables).</li>
+    <li>Add tuning parameters to crossmatch commands
+        (parameter <code>tuning</code> for 
+        <code>tmatch1</code>, <code>tmatch2</code> and <code>tmatchn</code>,
+        and parameter <code>healpixk</code> for <code>tskymatch2</code>).
+        Experimentation with these can lead to significant performance
+        improvements for given matches.</li>
     </ul>
     </p>
     </dd>

@@ -27,12 +27,24 @@ public class MatcherUsage {
             .append( matcherName_ );
         String pad = sbuf.toString().replaceAll( ".", " " );
         String vu = matcherParam.getValuesUsage( engine );
-        String pu = matcherParam.getParamsUsage( engine );
+        String pu = matcherParam
+                   .getConfigUsage( engine,
+                                    matcherParam.getMatchParametersParameter(),
+                                    engine.getMatchParameters() );
+        String tu = matcherParam
+                   .getConfigUsage( engine,
+                                    matcherParam.getTuningParametersParameter(),
+                                    engine.getTuningParameters() );
         sbuf.append( vu );
         if ( pu != null && pu.trim().length() > 0 ) {
             sbuf.append( '\n' )
                 .append( pad )
                 .append( pu );
+        }
+        if ( tu != null && tu.trim().length() > 0 ) {
+            sbuf.append( '\n' )
+                .append( pad )
+                .append( tu );
         }
         return sbuf.toString();
     }
