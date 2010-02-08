@@ -92,13 +92,29 @@ public abstract class PrimitiveList {
     }
 
     /**
+     * Determines by how much the storage array will grow if it needs to
+     * expand.  
+     * Any return value is legal; if a value less than the 
+     * <code>currentCapacity</code> is returned, Integer.MAX_VALUE will be
+     * used.  The effect of this is that implementations probably do not
+     * need to worry about integer arithmetic overflow.
+     * May be overridden by subclasses.
+     *
+     * @param  currentCapacity  initial size of buffer
+     * @return   next size up
+     */
+    protected int nextCapacity( int currentCapacity ) {
+        return ( currentCapacity * 3 ) / 2 + 1;
+    }
+
+    /**
      * Expands the capacity of this list so that it is at least a given
      * size.
      *
      * @param   minCapacity  minimum capacity required
      */
     private void expandCapacity( int minCapacity ) {
-        int newCapacity = ( Array.getLength( array_ ) + 1 ) * 2;
+        int newCapacity = nextCapacity( Array.getLength( array_ ) );
         if ( newCapacity < 0 ) {
             newCapacity = Integer.MAX_VALUE;
         }
