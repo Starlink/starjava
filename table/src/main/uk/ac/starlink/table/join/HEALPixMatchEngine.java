@@ -44,7 +44,7 @@ public class HEALPixMatchEngine extends SkyMatchEngine {
      * but performance may be affected).
      * The current value may not be optimal.
      */
-    private static final double DEFAULT_SCALE_FACTOR = 2;
+    private static final double DEFAULT_SCALE_FACTOR = 8;
 
     /**
      * Constructs a new match engine which considers two points 

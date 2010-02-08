@@ -38,7 +38,7 @@ public class HTMMatchEngine extends SkyMatchEngine {
      * correct results, but performance may be affected).
      * The current value may not be optimal.
      */
-    private static final double DEFAULT_SCALE_FACTOR = 2;
+    private static final double DEFAULT_SCALE_FACTOR = 8;
 
     /**
      * Scaling factor which determines the size of the mesh cells used
