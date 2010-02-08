@@ -1,11 +1,14 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.util.LongList;
 
 /**
@@ -48,7 +51,9 @@ class Binners {
      * @return   new LongBinner
      */
     public static LongBinner createLongBinner( long nrow ) {
-        return new LongListLongBinner();
+        return nrow >= 0 && nrow < Integer.MAX_VALUE
+             ? (LongBinner) new CombinationIntLongBinner()
+             : (LongBinner) new LongListLongBinner();
     }
 
     /**
@@ -179,10 +184,13 @@ class Binners {
     }
 
     /**
-     * LongBinner implementation which uses 
-     * {@link uk.ac.starlink.util.LongList}s as listables.
+     * LongBinner implementation based on a HashMap.
+     * Concrete subclasses must arrange for storing and retreiving
+     * "listable" map values as lists of longs.  A listable is an 
+     * untyped object which this class knows how to treat as if it were 
+     * a list of integer values.
      */
-    private static class LongListLongBinner implements LongBinner {
+    private static abstract class MapLongBinner implements LongBinner {
         private final Map map_ = new HashMap();
 
         public void addItem( Object key, long item ) {
@@ -200,6 +208,37 @@ class Binners {
         public long getBinCount() {
             return map_.size();
         }
+
+        /**
+         * Takes an existing listable, adds an item to it, and returns 
+         * a new listable containing the concatenation.
+         * The <code>listable</code> argument will be either on object
+         * returned by a previous call to this method,
+         * or null indicating a previously empty list.
+         *
+         * @param   listable  existing listable or null
+         * @param   item  object to append
+         * @return  new listable including added item
+         */
+        protected abstract Object addToListable( Object listable, long item );
+
+        /**
+         * Returns an array view of a listable.
+         * The <code>listable</code> argument will be either an object
+         * returned by a previous call to {@link #addToListable},
+         * or null indicating a previously empty list.
+         *
+         * @param  listable  existing listable or null
+         * @return  array containing <code>listable</code>'s items
+         */
+        protected abstract long[] getLongsFromListable( Object listable );
+    }
+
+    /**
+     * LongBinner implementation which stores listables as LongLists.
+     * Can store long values in any range.
+     */
+    private static class LongListLongBinner extends MapLongBinner {
 
         protected Object addToListable( Object listable, long item ) {
             if ( listable == null ) {
@@ -222,13 +261,92 @@ class Binners {
                 return ((LongList) listable).toLongArray();
             }
         }
+    }
 
-        /**
-         * Determines whether a <code>long</code> value can be cast 
-         * without loss of data to an <code>int</code>.
-         */
-        private static boolean isInt( long lval ) {
-            return lval >= Integer.MIN_VALUE && lval <= Integer.MAX_VALUE;
+    /**
+     * LongBinner implemenation which uses a variety of tricks to store
+     * values in a compact way.  It can only store values in the range
+     * of integers.
+     */
+    private static class CombinationIntLongBinner extends MapLongBinner {
+        private static int MAX_ARRAY_SIZE = 32;
+        private Integer lastInt_ = new Integer( -1 );
+        private int[] lastInts_ = new int[ 0 ];
+
+        protected Object addToListable( Object listable, long ltem ) {
+            int item = Tables.checkedLongToInt( ltem );
+            if ( listable == null ) {
+                if ( lastInt_.intValue() != item ) {
+                    lastInt_ = new Integer( item );
+                }
+                return lastInt_;
+            }
+            else if ( listable instanceof Integer ) {
+                int i1 = ((Integer) listable).intValue();
+                int i2 = item;
+                return ( lastInts_.length == 2 &&
+                         lastInts_[ 0 ] == i1 &&
+                         lastInts_[ 1 ] == i2 )
+                     ? lastInts_
+                     : new int[] { i1, i2 };
+            }
+            else if ( listable instanceof int[] ) {
+                int[] oldItems = (int[]) listable;
+                int nItem = oldItems.length;
+                if ( nItem < MAX_ARRAY_SIZE ) {
+                    int[] newItems = new int[ nItem + 1 ];
+                    System.arraycopy( oldItems, 0, newItems, 0, nItem );
+                    newItems[ nItem ] = item;
+                    return Arrays.equals( newItems, lastInts_ )
+                         ? lastInts_
+                         : newItems;
+                }
+                else {
+                    assert nItem == MAX_ARRAY_SIZE;
+                    IntList list = new IntList( oldItems );
+                    list.add( item );
+                    return list;
+                }
+            }
+            else if ( listable instanceof IntList ) {
+                IntList list = (IntList) listable;
+                list.add( item );
+                return list;
+            }
+            else {
+                assert false;
+                return null;
+            }
+        }
+
+        protected long[] getLongsFromListable( Object listable ) {
+            if ( listable == null ) {
+                return null;
+            }
+            else if ( listable instanceof Integer ) {
+                return new long[] { ((Integer) listable).intValue(), };
+            }
+            else if ( listable instanceof int[] ) {
+                int[] items = (int[]) listable;
+                long[] ltems = new long[ items.length ];
+                for ( int i = 0; i < items.length; i++ ) {
+                    ltems[ i ] = items[ i ];
+                }
+                return ltems;
+            }
+            else if ( listable instanceof IntList ) {
+                IntList list = (IntList) listable;
+                int nItem = list.size();
+                long[] ltems = new long[ nItem ];
+                for ( int i = 0; i < nItem; i++ ) {
+                    ltems[ i ] = (long) list.get( i );
+                }
+                return ltems;
+            }
+            else {
+                assert false;
+                return null;
+            }
         }
     }
 
