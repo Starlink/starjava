@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -494,7 +494,7 @@ public class RowMatcher {
         startMatch();
 
         /* Locate all the pairs. */
-        LinkSet links = findPairs( getAllPossibleLinks() );
+        LinkSet links = findPairs( getAllPossibleInternalLinks( 0 ) );
 
         /* Join up pairs into larger groupings. */
         links = agglomerateLinks( links );
@@ -597,6 +597,43 @@ public class RowMatcher {
                               (float) ( nBin / (double) totalRows ) );
         LinkSet links = createLinkSet();
         binsToLinks( binner, links );
+        return links;
+    }
+
+    /**
+     * Goes through the rows of a single table and gets a set of all
+     * the groups of rows which are possibly linked by a chain of matches.
+     *
+     * @param   itable  index of table to examine
+     * @return  set of {@link RowLink} objects which constitute possible
+     *          matches
+     */
+    private LinkSet getAllPossibleInternalLinks( int itable )
+            throws IOException, InterruptedException {
+        StarTable table = tables[ itable ];
+        long nRow = table.getRowCount();
+        LongBinner binner = Binners.createLongBinner( nRow );
+        ProgressRowSequence rseq =
+            new ProgressRowSequence( table, indicator, "Binning rows" );
+        try {
+            for ( long lrow = 0; rseq.nextProgress(); lrow++ ) {
+                Object[] row = rseq.getRow();
+                Object[] keys = engine.getBins( row );
+                int nkey = keys.length;
+                for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                    binner.addItem( keys[ ikey ], lrow );
+                }
+            }
+        }
+        finally {
+            rseq.close();
+        }
+        long nBin = binner.getBinCount();
+        indicator.logMessage( "Average bin count per row: " +
+                              (float) ( nBin / (double) nRow ) );
+
+        LinkSet links = createLinkSet();
+        binsToInternalLinks( binner, links, itable );
         return links;
     }
 
@@ -1403,7 +1440,7 @@ public class RowMatcher {
      * clear out the binner; following a call to this method the binner
      * is effectively empty of any data.
      *
-     * @param   binner with bin item values which are {@link RowRef}s;
+     * @param   binner  binner with bin item values which are {@link RowRef}s;
      *          contents may be disrupted
      * @param   linkSet  link set into which created RowLinks will be dumped
      */
@@ -1416,7 +1453,7 @@ public class RowMatcher {
                               ( (float) nrow / (float) nbin ) + ")" );
         indicator.startStage( "Consolidating potential match groups" );
         double nl = (double) nbin;
-        int il = 0;
+        long il = 0;
         for ( Iterator it = binner.getKeyIterator(); it.hasNext(); ) {
             Object key = it.next();
             List refList = binner.getList( key );
@@ -1430,6 +1467,44 @@ public class RowMatcher {
 
             /* Remove the entry from the map as we're going along,
              * to save on memory. */
+            it.remove();
+            indicator.setLevel( ++il / nl );
+        }
+        assert binner.getBinCount() == 0;
+        indicator.endStage();
+    }
+
+    /**
+     * Accumulates a set of RowLink objects which represent all the
+     * distinct groups of RowRefs associated with any of the bins,
+     * and adds them to a given LinkSet.
+     * Only RowLinks containing more than one entry are put in the the
+     * resulting set, since the others aren't interesting.
+     *
+     * @param  binner  binner with items that represent row indices in a
+     *         single table; contents may be disrupted
+     * @param  linkSet  set to add links to
+     * @param  itable  index of table which <code>binner</code>'s row indices
+     *                 refer to
+     */
+    private void binsToInternalLinks( LongBinner binner, LinkSet linkSet,
+                                      int itable )
+            throws InterruptedException {
+        long nbin = binner.getBinCount();
+        indicator.startStage( "Consolidating potential match groups" );
+        double nl = (double) nbin;
+        long il = 0;
+        for ( Iterator it = binner.getKeyIterator(); it.hasNext(); ) {
+            Object key = it.next();
+            long[] irs = binner.getLongs( key );
+            int nir = irs.length;
+            if ( nir > 1 ) {
+                RowRef[] refs = new RowRef[ nir ];
+                for ( int iir = 0; iir < nir; iir++ ) {
+                    refs[ iir ] = new RowRef( itable, irs[ iir ] );
+                }
+                linkSet.addLink( new RowLink( refs ) );
+            }
             it.remove();
             indicator.setLevel( ++il / nl );
         }
