@@ -1176,6 +1176,7 @@ public class RowMatcher {
             /* If it is isolated, just copy the link to the agglomerated list,
              * and remove the refs from the map. */
             if ( isolated ) {
+                assert ! agglomeratedLinks.containsLink( link );
                 agglomeratedLinks.addLink( link );
                 for ( int i = 0; i < nref; i++ ) {
                     RowRef ref = link.getRef( i );
@@ -1199,6 +1200,8 @@ public class RowMatcher {
             RowRef ref1 = (RowRef) refBinner.getKeyIterator().next();
             Set refSet = new HashSet();
             walkLinks( ref1, refBinner, refSet );
+            RowLink link = new RowLink( refSet );
+            assert ! agglomeratedLinks.containsLink( link );
             agglomeratedLinks.addLink( new RowLink( refSet ) );
         }
         indicator.endStage();
