@@ -266,7 +266,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
          * to the event dispatch thread.
          */
         public void run() {
-            currentIndicator = new MatchProgressIndicator( true );
+            currentIndicator = new MatchProgressIndicator( false );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     setBusy( true );
