@@ -313,13 +313,13 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         }
         public void startStage( String stage ) {
             if ( currentIndicator == this ) {
-                appendLogLine( stage + "..." );
+                scheduleAppendLogLine( stage + "..." );
             }
             super.startStage( stage );
         }
         public void logMessage( String msg ) {
             if ( currentIndicator == this ) {
-                appendLogLine( msg );
+                scheduleAppendLogLine( msg );
             }
             super.logMessage( msg );
         }
@@ -328,6 +328,13 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                 throw new InterruptedException( "Interrupted by user" );
             }
             super.setLevel( level );
+        }
+        private void scheduleAppendLogLine( final String line ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    appendLogLine( line );
+                }
+            } );
         }
     }
 
