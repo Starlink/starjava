@@ -303,7 +303,11 @@ class Binners {
                 }
                 else {
                     assert nItem == MAX_ARRAY_SIZE;
-                    IntList list = new IntList( oldItems );
+                    IntList list = new IntList( oldItems ) {
+                        protected int nextCapacity( int currentCapacity ) {
+                            return ( currentCapacity * 5 ) / 4 + 1;
+                        }
+                    };
                     list.add( item );
                     return list;
                 }
