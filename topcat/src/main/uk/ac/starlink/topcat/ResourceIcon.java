@@ -210,6 +210,8 @@ public class ResourceIcon implements Icon {
         CONNECT = makeIcon( "connected-24.gif" ),
         DISCONNECT = makeIcon( "disconnected-24.gif" ),
         PDF = makeIcon( "pdf3.gif" ),
+        TUNING = makeIcon( "TuningFork.gif" ),
+        PROFILE = makeIcon( "vu-meter.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),

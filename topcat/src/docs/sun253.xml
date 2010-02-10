@@ -13225,6 +13225,8 @@ introduced since the last version:
         (previously they were omitted from output tables).</li>
     <li>Reorganise manual slightly - match windows now get their own
         appendix subsection.</li>
+    <li>Add <label>Tuning Parameters</label> and <label>Full Profiling</label>
+        options to match windows.</li>
     </ul>
     </p></dd>
 

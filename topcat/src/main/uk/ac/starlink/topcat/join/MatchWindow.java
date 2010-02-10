@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,12 +17,15 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
@@ -34,6 +38,8 @@ import uk.ac.starlink.table.join.RangeModelProgressIndicator;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.func.Coords;
 
 /**
@@ -55,6 +61,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     private final Action startAct;
     private final Action stopAct;
     private final JProgressBar progBar;
+    private final ToggleButtonModel profileModel;
     private MatchProgressIndicator currentIndicator;
 
     /**
@@ -74,10 +81,11 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         /* Prepare specific parameter fields for each engine. */
         paramCards = new CardLayout();
         paramContainer = new JPanel( paramCards );
+        final ParameterPanel[] paramPanels = new ParameterPanel[ nEngine ];
         for ( int i = 0; i < nEngine; i++ ) {
             MatchEngine engine = engines[ i ];
-            paramContainer.add( new ParameterPanel( engine ),
-                                labelFor( engine ) );
+            paramPanels[ i ] = new ParameterPanel( engine );
+            paramContainer.add( paramPanels[ i ], labelFor( engine ) );
         }
 
         /* Prepare a combo box which can select the engines. */
@@ -88,6 +96,26 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         startAct = new MatchAction( "Go", null, "Perform the match" );
         stopAct = new MatchAction( "Stop", null, "Cancel the calculation" );
         stopAct.setEnabled( false );
+
+        /* Set up an action to display tuning information. */
+        final ToggleButtonModel tuningModel =
+            new ToggleButtonModel( "Tuning Parameters", ResourceIcon.TUNING,
+                                   "Display tuning parameters" );
+        tuningModel.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                boolean showTuning = tuningModel.isSelected();
+                for ( int i = 0; i < paramPanels.length; i++ ) {
+                    paramPanels[ i ].setTuningVisible( showTuning );
+                }
+                paramContainer.revalidate();
+            }
+        } );
+
+        /* Set up an action to perform profiling during match. */
+        profileModel =
+            new ToggleButtonModel( "Full Profiling", ResourceIcon.PROFILE,
+                                   "Determine and show timing and memory "
+                                 + "profiling information in calculation log" );
 
         /* Place the components. */
         Box buttonBox = Box.createHorizontalBox();
@@ -119,7 +147,17 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         engineBox.setBorder( makeTitledBorder( "Match Criteria" ) );
         common.add( engineBox );
 
+        /* Place actions. */
+        getToolBar().add( tuningModel.createToolbarButton() );
+        getToolBar().add( profileModel.createToolbarButton() );
+        JMenu tuningMenu = new JMenu( "Tuning" );
+        tuningMenu.setMnemonic( KeyEvent.VK_T );
+        tuningMenu.add( tuningModel.createMenuItem() );
+        tuningMenu.add( profileModel.createMenuItem() );
+        getJMenuBar().add( tuningMenu );
+
         /* Add standard help actions. */
+        getToolBar().addSeparator();
         addHelp( nTable == 1 ? "MatchWindow1"
                              : "MatchWindow" );
 
@@ -266,7 +304,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
          * to the event dispatch thread.
          */
         public void run() {
-            currentIndicator = new MatchProgressIndicator( false );
+            currentIndicator =
+                new MatchProgressIndicator( profileModel.isSelected() );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     setBusy( true );
