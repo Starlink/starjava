@@ -577,6 +577,9 @@ public class DefaultValueInfo implements ValueInfo {
          * I am writing demos that need to be working in a few days
          * and don't have time for it now.  mbt.
          */
+        if ( rep == null || rep.length() == 0 ) {
+            return null;
+        }
         Class clazz = getContentClass();
         if ( clazz == Boolean.class ) {
             return Boolean.valueOf( rep );
