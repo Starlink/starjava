@@ -86,6 +86,8 @@
   <!ENTITY FIG.SsaMultiWindow '&figs;SsaMultiWindow.gif'>
   <!ENTITY FIG.VizierTableLoadDialog '&figs;VizierTableLoadDialog.gif'>
   <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.gif'>
+  <!ENTITY FIG.ParameterPanel '&figs;ParameterPanel.gif'>
+  <!ENTITY FIG.TupleSelector '&figs;TupleSelector.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -1871,7 +1873,7 @@ menu.
 
 </subsect>
 
-<subsect>
+<subsect id="matchAlgorithm">
 <subhead><title>Notes on Matching</title></subhead>
 
 <p>This section provides a bit more detail on the how the row matching
@@ -9254,105 +9256,41 @@ concatenation in <ref id="ConcatWindow"/> and matching with
 remote tables via VO services in <ref id="vo-windows"/>.
 </p>
 
-
-<subsubsect id="MatchWindow">
-<subhead><title>Pair Match Window</title></subhead>
-
-<figure>
-<caption><px>Pair Match Window</px></caption>
-<figureimage src="&FIG.MatchWindow;"/>
-</figure>
-
-<p>The Pair Match Window allows you to join two tables together
-side-by-side, aligning rows by matching values in some of their
-columns between the tables.  It can be obtained using the
-<label>Pair Match</label> (&IMG.MATCH2;) button in the 
-<ref id="ControlWindow">Control Window</ref> toolbar or 
-<label>Joins</label> menu.
+<p>The <ref id="match-windows-common">next subsection</ref>
+describes the features which are common to the different types of 
+match window, and the following subsections detail the operation
+of each distinct match window
+(<ref id="MatchWindow1">internal</ref> and
+ <ref id="MatchWindow">pair</ref>).
+Multi-table match windows resemble the pair match window.
 </p>
 
-<p>In a typical scenario you might have two tables each representing
-a catalogue of astronomical objects, and you want a
-third table with one row for each object which has an entry in both
-of the original tables.  An object is defined as being the same one
-in both tables if the co-ordinates in both rows are "similar",
-for instance if the
-difference between the positions indicated by RA and Dec columns
-differ by no more than a specified angle on the sky.
-Matching rows to produce the join requires you to specify the criteria
-for rows in both tables to refer to the same object and
-what to do when one is found - the options are discussed in
-more detail in <ref id="pairMatch"/>.
-</p>
-
-<p>The result is created from the <ref id="apparent">Apparent</ref>
-versions of the tables being joined, so that any row subsets,
-hidden columns, or sorts currently in force will be reflected in the
-output.
-Progress information on the match, which may take a little while,
-is provided in the logging window and by a progress bar at the bottom
-of the window.  When it is completed, you will be informed by a
-popup window which indicates that a new table has been created.
-This table will be added to the list in the Control Window and can
-be examined, manipulated and saved like any other.
-In some cases, some additional columns will be added to the 
-output table which give you more information about how it
-has progressed (see <ref id="matchRowSelect"/>.
-</p>
-
-<p>The Match Window provides a set of controls which allow you
-to choose how the match is done and what the results will look like.
-It consists of these main parts:
-<dl>
-
-<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
-<dd><p>Allows you to define what counts as a match between two rows.
-    </p></dd>
-
-<dt><ref id="matchColumnSelect">Column Selection boxes</ref></dt>
-<dd><p>Allows you to select which tables are to be joined and which 
-    columns in them supply the matching coordinates.
-    </p></dd>
-
-<dt><ref id="matchRowSelect">Output Rows selector</ref></dt>
-<dd><p>Allows selection of which rows are to be included in the output
-    table (for instance whether only those rows matching in both tables
-    should be output or not).
-    </p></dd>
-
-<dt>Log window</dt>
-<dd><p>Reports on progress as the match is taking place.  The progress bar
-    at the bottom of the window also provides an indication of how
-    far through each stage processing has got.
-    </p></dd>
-
-<dt>Control buttons</dt>
-<dd><p>The <label>Go</label> button starts the search when you are
-    happy with the selections that you have made, and the
-    <label>Stop</label> button interrupts it midway if you decide
-    you no longer want the results (closing the Match Window also
-    interrupts the calculation).
-    </p></dd>
-
-</dl>
-</p>
-
-<p>The following sections describe some of these components in more detail.
-</p>
+<subsubsect id="match-windows-common">
+<subhead><title>Common Features</title></subhead>
 
 <subsubsubsect id="matchCriteria">
 <subhead><title>Match Criteria</title></subhead>
 
+<figure>
+<caption>
+<px>Match Criteria panel.
+The details will differ depending on what match type is chosen.</px>
+</caption>
+<figureimage src="&FIG.ParameterPanel;"/>
+</figure>
+
 <p>The match criteria box allows you to specify what counts as a match
-between two rows.  The selection you make in this box will determine
-which columns you have to fill in for the table(s) being matched
-in the rest of the window.  In most cases what you are selecting here
-is the coordinate space in which rows will be compared against each other,
-and a numerical value or values to determine how close two rows have to be
-in terms of a metric on that space to count as a match.
+between two rows.
+It has two parts.
+First, you must select one of the options in the <label>Algorithm</label>
+selector.  This effectively selects the coordinate space in which rows
+will be compared with each other.  Depending on the chosen value,
+a number of fields will be displayed below, which you must fill in
+with values that determine how close two rows have to be in terms
+of a metric on that space to count as a match.
 </p>
 
-<p>The following match types are offered:
+<p>The following match types (algorithm values) are offered:
 <dl>
 
 <dt>Sky</dt>
@@ -9389,6 +9327,9 @@ in terms of a metric on that space to count as a match.
     separation - 
     if necessary use the <ref id="StatsWindow">Statistics Window</ref>
     to determine the actual maximum uncertainty.
+    If you set the tuning parameters explicitly however 
+    (see <ref id="matchTuning"/>) the value of this parameter is not
+    significant.
     </p></dd>
 
 <dt>Sky 3D</dt>
@@ -9479,10 +9420,36 @@ displayed alongside the entry box.  You must choose units which
 are correct for the number you enter.
 </p>
 
+<p>More information is available in the GUI as a tooltip by hovering with
+the mouse pointer over the field in question.
+</p>
+
+<p>See <ref id="matchTuning"/> for information on optional
+<em>tuning parameters</em> which are sometimes displayed in this panel.
+</p>
+
+<p>The matching framework is capable of performing even more complicated
+types of match, for instance Sky + 6-dimensional anisotropic Cartesian.
+These are not offered purely to avoid complicating the GUI.
+More flexible matching requirements in this in and other respects
+can be achieved by using the matching commands in 
+<webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>
+instead.
+</p>
+
 </subsubsubsect>
+
 
 <subsubsubsect id="matchColumnSelect">
 <subhead><title>Column Selection Boxes</title></subhead>
+
+<figure>
+<caption>
+<px>Column Selection Box.
+The details will differ depending on what match type is chosen.</px>
+</caption>
+<figureimage src="&FIG.TupleSelector;"/>
+</figure>
 
 <p>The column selection boxes allow you to select which of the
 columns in the input tables will provide the data
@@ -9514,6 +9481,192 @@ The expression language syntax is described in <ref id="jel"/>.
 </p>
 
 </subsubsubsect>
+
+
+<subsubsubsect id="matchTuning">
+<subhead><title>Tuning</title></subhead>
+
+<p>This subsection describes the use of two toolbar buttons available
+in the match windows:
+<dl>
+<dt>&IMG.TUNING; Tuning Parameters</dt>
+<dd><p>Displays <em>tuning parameters</em> alongside match parameters
+    in the Match Criteria panel.
+    </p></dd>
+<dt>&IMG.PROFILE; Full Profiling</dt>
+<dd><p>Increases the amount of timing and memory use information displayed
+    in the Logging Panel.
+    </p></dd>
+</dl>
+</p>
+
+<p>The parameters such as Max Error visible by default in the 
+<ref id="matchCriteria">Match Criteria</ref> panel
+define what counts as a match
+and must be filled in for the match to proceed.
+</p>
+
+<p>Optionally, you can see and adjust another set of parameters 
+known as <em>Tuning parameters</em>.
+These will not affect the result of the match, but may affect 
+its performance, in terms of how much CPU time and memory it takes.
+Most of the time, you can forget about this option, since TOPCAT
+attempts to pick reasonable defaults, but if your match is very
+slow (especially if it's unexpectedly slow given the sizes of the
+tables involved), or if it's failing with messages about running
+out of memory, then adjusting the tuning parameters may help.
+</p>
+
+<p>To view the tuning parameters, use the 
+<label>Tuning Parameters</label> (&IMG.TUNING;) toolbar button or 
+menu item.  This will add display of tuning parameters to the
+match parameters in the Match Criteria panel.
+Suggested values are filled in by default, and may be affected by
+the match parameters that you fill in; you can play around with
+different values and see the effect on match performance.
+If you do this, it is useful to use also the
+<label>Full Profiling</label> (&IMG.PROFILE;) toolbar button to
+turn on full profiling.  This will cause additional information
+on the amount of CPU time and memory used by each step to be
+displayed in the logging panel at the bottom.  There is a small
+penalty in CPU time required to gather this information, which
+is one reason it is not turned on by default.
+</p>
+
+<p>What tuning parameters are available depends on the match type
+you have chosen.  Some additional description is available as 
+tooltips if you hover over the query field.
+In most cases, they are one or other of the following:
+<dl>
+<dt>HEALPix k</dt>
+<dd><p>Used for sky-like matches.
+    <m>k</m> is an integer value which determines the size of pixels into 
+    which the celestial sphere is decomposed for binning rows.
+    The legal range is between 0 (corresponding to a pixel size around
+    60 degrees) and 20 (around 0.2 arcsec).
+    In HEALPix language, k is log<sub>2</sub>(<m>N</m><sub>side</sub>).
+    </p></dd>
+<dt>Scale Factor</dt>
+<dd><p>Used for Cartesian-like matches.
+    The scale factor is a floating point 
+    value which determines the size of the notional N-dimensional pixels
+    into which the space is decomposed for binning rows,
+    as a multiple of the match error.
+    The smallest legal value is 1.
+    </p></dd>
+</dl>
+In either case, the number of rows per bin should be not too large,
+and not too small (though exactly what that means in quantitative terms is
+another matter).  Larger bins/pixels generally mean less memory use
+and more CPU time, though that's not always the case.
+</p>
+
+<p>Even if you happen to have a good understanding of 
+<ref id="matchAlgorithm">how the matching algorithm works</ref>
+(and you probably don't), this kind of tuning is a bit of a black art, 
+and depends considerably on the details of the particular match. 
+In some cases however it is quite
+possible to improve the time taken by a match, or the size of 
+table which can be matched in a given amount of memory, by a
+factor of several.
+If you want to try to improve performance, try the default, 
+adjust the tuning parameters slightly, look at how the performance
+changes by examining the logging output, and maybe repeat to taste.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+
+<subsubsect id="MatchWindow">
+<subhead><title>Pair Match Window</title></subhead>
+
+<figure>
+<caption><px>Pair Match Window</px></caption>
+<figureimage src="&FIG.MatchWindow;"/>
+</figure>
+
+<p>The Pair Match Window allows you to join two tables together
+side-by-side, aligning rows by matching values in some of their
+columns between the tables.  It can be obtained using the
+<label>Pair Match</label> (&IMG.MATCH2;) button in the 
+<ref id="ControlWindow">Control Window</ref> toolbar or 
+<label>Joins</label> menu.
+</p>
+
+<p>In a typical scenario you might have two tables each representing
+a catalogue of astronomical objects, and you want a
+third table with one row for each object which has an entry in both
+of the original tables.  An object is defined as being the same one
+in both tables if the co-ordinates in both rows are "similar",
+for instance if the
+difference between the positions indicated by RA and Dec columns
+differ by no more than a specified angle on the sky.
+Matching rows to produce the join requires you to specify the criteria
+for rows in both tables to refer to the same object and
+what to do when one is found - the options are discussed in
+more detail in <ref id="pairMatch"/>.
+</p>
+
+<p>The result is created from the <ref id="apparent">Apparent</ref>
+versions of the tables being joined, so that any row subsets,
+hidden columns, or sorts currently in force will be reflected in the
+output.
+Progress information on the match, which may take a little while,
+is provided in the logging window and by a progress bar at the bottom
+of the window.  When it is completed, you will be informed by a
+popup window which indicates that a new table has been created.
+This table will be added to the list in the Control Window and can
+be examined, manipulated and saved like any other.
+In some cases, some additional columns will be added to the 
+output table which give you more information about how it
+has progressed (see <ref id="matchRowSelect"/>.
+</p>
+
+<p>The Match Window provides a set of controls which allow you
+to choose how the match is done and what the results will look like.
+It consists of these main parts:
+<dl>
+
+<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
+<dd><p>Allows you to define what counts as a match between two rows.
+    </p></dd>
+
+<dt><ref id="matchColumnSelect">Column Selection boxes</ref></dt>
+<dd><p>Allows you to select which tables are to be joined and which 
+    columns in them supply the matching coordinates.
+    </p></dd>
+
+<dt><ref id="matchRowSelect">Output Rows selector</ref></dt>
+<dd><p>Allows selection of which rows are to be included in the output
+    table (for instance whether only those rows matching in both tables
+    should be output or not).
+    </p></dd>
+
+<dt>Log window</dt>
+<dd><p>Reports on progress as the match is taking place.  The progress bar
+    at the bottom of the window also provides an indication of how
+    far through each stage processing has got.
+    </p></dd>
+
+<dt>Control buttons</dt>
+<dd><p>The <label>Go</label> button starts the search when you are
+    happy with the selections that you have made, and the
+    <label>Stop</label> button interrupts it midway if you decide
+    you no longer want the results (closing the Match Window also
+    interrupts the calculation).
+    </p></dd>
+
+</dl>
+</p>
+
+<p>For information on the 
+<label>Tuning Parameters</label> (&IMG.TUNING;) and
+<label>Full Profiling</label> (&IMG.PROFILE;) toolbar buttons,
+see <ref id="matchTuning"/>.
+</p>
+
 
 <subsubsubsect id="matchRowSelect">
 <subhead><title>Output Rows Selector Box</title></subhead>
@@ -9699,8 +9852,8 @@ and <label>1 not 2</label> would give you this:
 rows of the same table, grouping rows that have the same or similar 
 values in specified columns and producing a new table as a result.
 It can be obtained by using the <label>Internal Match</label>
-(&IMG.MATCH1;) button in the <ref id="ControlWindow">Control Window</ref>
-toolbar or <label>Joins</label> menu.
+(&IMG.MATCH1;) item in the <ref id="ControlWindow">Control Window</ref>'s
+<label>Joins</label> menu.
 </p>
 
 <p>You might want to use this functionality to remove all rows which
@@ -9756,6 +9909,13 @@ be examined, manipulated and saved like any other.
 
 </dl>
 </p>
+
+<p>For information on the 
+<label>Tuning Parameters</label> (&IMG.TUNING;) and
+<label>Full Profiling</label> (&IMG.PROFILE;) toolbar buttons,
+see <ref id="matchTuning"/>.
+</p>
+
 
 <subsubsubsect id="matchInternalAction">
 <subhead><title>Internal Match Action box</title></subhead>
@@ -9817,7 +9977,6 @@ are these:
 </subsubsubsect>
 
 </subsubsect>
-
 
 </subsect>
 
