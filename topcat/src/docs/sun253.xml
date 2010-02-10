@@ -41,6 +41,7 @@
   <!ENTITY FIG.ConcatWindow '&figs;ConcatWindow.gif'>
   <!ENTITY FIG.MatchWindow '&figs;MatchWindow.gif'>
   <!ENTITY FIG.MatchWindow1 '&figs;MatchWindow1.gif'>
+  <!ENTITY FIG.MatchWindowN '&figs;MatchWindowN.gif'>
   <!ENTITY FIG.ActivationQueryWindow '&figs;ActivationQueryWindow.gif'>
   <!ENTITY FIG.SoG '&figs;SoG.gif'>
   <!ENTITY FIG.ImageWindow '&figs;ImageWindow.gif'>
@@ -88,6 +89,9 @@
   <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.gif'>
   <!ENTITY FIG.ParameterPanel '&figs;ParameterPanel.gif'>
   <!ENTITY FIG.TupleSelector '&figs;TupleSelector.gif'>
+  <!ENTITY FIG.IntraMatchSpec '&figs;IntraMatchSpec.gif'>
+  <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.gif'>
+  <!ENTITY FIG.InterMatchSpec '&figs;InterMatchSpec.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -9260,9 +9264,9 @@ remote tables via VO services in <ref id="vo-windows"/>.
 describes the features which are common to the different types of 
 match window, and the following subsections detail the operation
 of each distinct match window
-(<ref id="MatchWindow1">internal</ref> and
- <ref id="MatchWindow">pair</ref>).
-Multi-table match windows resemble the pair match window.
+(<ref id="MatchWindow1">internal</ref>, 
+ <ref id="MatchWindow">pair</ref> and 
+ <ref id="MatchWindowN">multi-table</ref>).
 </p>
 
 <subsubsect id="match-windows-common">
@@ -9574,6 +9578,12 @@ adjust the tuning parameters slightly, look at how the performance
 changes by examining the logging output, and maybe repeat to taste.
 </p>
 
+<p>Another thing which can affect speed and memory usage is whether
+your Java Virtual Machine is running in 32-bit or 64-bit mode.
+There are pros and cons of each - sometimes one will be better,
+sometimes the other.  If you need to improve performance, experiment!
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -9670,6 +9680,11 @@ see <ref id="matchTuning"/>.
 
 <subsubsubsect id="matchRowSelect">
 <subhead><title>Output Rows Selector Box</title></subhead>
+
+<figure>
+<caption><px>Pair match Output Rows Selector Box</px></caption>
+<figureimage src="&FIG.PairMatchSpec;"/>
+</figure>
 
 <p>When the match is complete a new table will be created which 
 contains rows determined by the matches which have taken place.
@@ -9878,14 +9893,12 @@ be examined, manipulated and saved like any other.
 <dl>
 
 <dt><ref id="matchCriteria">Match Criteria box</ref></dt>
-<dd><p>Allows you to define what counts as a match between two rows
-    (the same as for pair matching).
+<dd><p>Allows you to define what counts as a match between two rows.
     </p></dd>
 
 <dt><ref id="matchColumnSelect">Column Selection box</ref></dt>
 <dd><p>Allows you to select which table to operate on and which columns
-    supply the matching coordinates
-    (the same as for pair matching).
+    supply the matching coordinates.
     </p></dd>
 
 <dt><ref id="matchInternalAction">Match Action box</ref></dt>
@@ -9918,7 +9931,12 @@ see <ref id="matchTuning"/>.
 
 
 <subsubsubsect id="matchInternalAction">
-<subhead><title>Internal Match Action box</title></subhead>
+<subhead><title>Internal Match Action Box</title></subhead>
+
+<figure>
+<caption><px>Internal Match Action Box</px></caption>
+<figureimage src="&FIG.IntraMatchSpec;"/>
+</figure>
 
 <p>The Internal Match Action box gives a list of options for what
 will happen when an internal match calculation has completed.
@@ -9977,6 +9995,112 @@ are these:
 </subsubsubsect>
 
 </subsubsect>
+
+<subsubsect id="MatchWindowN">
+<subhead><title>Multiple Match Window</title></subhead>
+
+<p>The Multiple Match Window allows you to perform matching between 
+more than two tables.
+It can be obtained by using the <label>Triple Match</label>,
+<label>Quadruple Match</label> etc (&IMG.MATCHN;) items
+in the <ref id="ControlWindow">Control Window</ref>'s 
+<label>Joins</label> menu.
+</p>
+
+<p>The result is created from the <ref id="apparent">Apparent</ref>
+versions of the tables being joined, so that any row subsets,
+hidden columns, or sorts currently in force will be reflected in the
+output.
+Progress information on the match, which may take some time,
+is provided in the logging window and by a progress bar at the bottom
+of the window.  When it is completed, you will be informed by a
+popup window which indicates that a new table has been created.
+This table will be added to the list in the Control Window and can
+be examined, manipulated and saved like any other.
+</p>
+
+<p>The window has the following parts:
+<dl>
+
+<dt><ref id="matchCriteria">Match Criteria box</ref></dt>
+<dd><p>Allows you to define what counts as a match between two rows.
+    </p></dd>
+
+<dt><ref id="matchColumnSelect">Column Selection box</ref></dt>
+<dd><p>Allows you to select which table to operate on and which columns
+    supply the matching coordinates.
+    </p></dd>
+
+<dt><ref id="matchNAction">Match Action box</ref></dt>
+<dd><p>Allows selection of which rows are to be included in the output table
+    (for instance whether only those matches which appear in all input
+    tables should result in output rows).
+    </p></dd>
+
+<dt>Log window</dt>
+<dd><p>Reports on progress as the match is taking place.  The progress bar
+    at the bottom of the window also provides an indication of how
+    far through each stage processing has got.
+    </p></dd>
+
+<dt>Control buttons</dt>
+<dd><p>The <label>Go</label> button starts the search when you are
+    happy with the selections that you have made, and the
+    <label>Stop</label> button interrupts it midway if you decide
+    you no longer want the results (closing the Match Window also
+    interrupts the calculation).
+    </p></dd>
+
+</dl>
+</p>
+
+<p>For information on the
+<label>Tuning Parameters</label> (&IMG.TUNING;) and
+<label>Full Profiling</label> (&IMG.PROFILE;) toolbar buttons,
+see <ref id="matchTuning"/>.
+</p>
+
+
+<subsubsubsect id="matchNAction">
+<subhead><title>Multiple Match Action Box</title></subhead>
+
+<figure>
+<caption><px>Multiple Match Action Box</px></caption>
+<figureimage src="&FIG.InterMatchSpec;"/>
+</figure>
+
+<p>The Multiple Match Action Box allows you to choose which rows
+appear in the output table following a successful multi-table match.
+For each input table you have two options to choose from:
+<dl>
+
+<dt>Matched Rows Only</dt><!-- MultiJoinType.MATCH -->
+<dd><p>Rows will appear in the output table only if they contain an
+    entry from the table in question (but see below).
+    </p></dd>
+
+<dt>All Rows</dt><!-- MultiJoinType.ALWAYS -->
+<dd><p>Rows will appear in the output table if they contain an entry
+    from the table in question, regardless of constraints on other
+    input tables (overrides the previous option).
+    </p></dd>
+
+</dl>
+</p>
+
+<p>At present the multi-table options available within TOPCAT are not
+so comprehensive as those provided by the corresponding STILTS
+command 
+<webref url="http://www.starlink.ac.uk/stilts/sun256/tmatchn.html"
+        ><code>tmatchn</code></webref>.
+This may be improved in future.
+</p>
+
+</subsubsubsect>
+
+
+</subsubsect>
+
 
 </subsect>
 
@@ -13382,8 +13506,8 @@ introduced since the last version:
         Date, Time and Timestamp columns will now be converted to Strings
         which means they can be written to most output formats
         (previously they were omitted from output tables).</li>
-    <li>Reorganise manual slightly - match windows now get their own
-        appendix subsection.</li>
+    <li>Match Window documentation extended and somewhat reorganised
+        (they now have their own appendix subsection).</li>
     <li>Add <label>Tuning Parameters</label> and <label>Full Profiling</label>
         options to match windows.</li>
     </ul>
