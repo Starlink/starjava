@@ -809,9 +809,8 @@
 
   <!-- blockquote -->
   <xsl:attribute-set name="blockquote">
-    <xsl:attribute name="start-indent">inherit + 4em </xsl:attribute>
-    <xsl:attribute name="end-indent">inherit + 4em</xsl:attribute>
-    <xsl:attribute name="text-indent">1em</xsl:attribute>
+    <xsl:attribute name="margin-left">2em</xsl:attribute>
+    <xsl:attribute name="margin-right">1em</xsl:attribute>
     <xsl:attribute name="space-before">0.6em</xsl:attribute>
     <xsl:attribute name="space-after">0.6em</xsl:attribute>
     <xsl:attribute name="margin-top">1em</xsl:attribute>
