@@ -46,7 +46,7 @@ public abstract class MapperTask extends ConsumerTask {
     protected abstract InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException;
 
-    protected TableProducer createProducer( Environment env )
+    public TableProducer createProducer( Environment env )
             throws TaskException {
         final InputTableSpec[] inSpecs = getInputSpecs( env );
         final TableMapping mapping =

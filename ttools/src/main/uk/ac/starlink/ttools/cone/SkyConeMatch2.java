@@ -217,7 +217,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         getParameterList().addAll( Arrays.asList( coner.getParameters() ) );
     }
 
-    protected TableProducer createProducer( Environment env )
+    public TableProducer createProducer( Environment env )
             throws TaskException {
 
         /* Interrogate environment for parameter values. */

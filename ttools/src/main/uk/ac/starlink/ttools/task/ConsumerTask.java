@@ -90,7 +90,7 @@ public abstract class ConsumerTask implements Task {
      * @param   env  execution environment
      * @return  table producer
      */
-    protected abstract TableProducer createProducer( Environment env )
+    public abstract TableProducer createProducer( Environment env )
             throws TaskException;
 
     public Executable createExecutable( Environment env ) throws TaskException {

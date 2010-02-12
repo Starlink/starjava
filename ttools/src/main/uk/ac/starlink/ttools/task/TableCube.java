@@ -44,7 +44,7 @@ public class TableCube extends SingleMapperTask {
         getParameterList().addAll( 0, paramList );
     }
 
-    protected TableProducer createProducer( Environment env )
+    public TableProducer createProducer( Environment env )
             throws TaskException {
         return super.createInputProducer( env );
     }

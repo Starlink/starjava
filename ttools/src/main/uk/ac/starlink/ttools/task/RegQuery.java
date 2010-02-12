@@ -84,7 +84,7 @@ public class RegQuery extends ConsumerTask {
         getParameterList().addAll( 0, paramList );
     }
 
-    protected TableProducer createProducer( Environment env )
+    public TableProducer createProducer( Environment env )
             throws TaskException {
                 String queryText = queryParam_.stringValue( env );
         if ( ALL_RECORDS.toUpperCase()

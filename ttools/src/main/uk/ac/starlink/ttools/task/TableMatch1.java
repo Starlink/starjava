@@ -54,7 +54,7 @@ public class TableMatch1 extends SingleMapperTask {
         getParameterList().addAll( 0, paramList );
     }
 
-    protected TableProducer createProducer( Environment env )
+    public TableProducer createProducer( Environment env )
             throws TaskException {
 
         /* Get the matcher and tuple expressions. */
