@@ -4,12 +4,14 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -42,7 +44,9 @@ public class JyStilts {
 
     /** Java classes which are used by python source code. */
     private static final Class[] IMPORT_CLASSES = new Class[] {
+        java.lang.reflect.Array.class,
         java.util.ArrayList.class,
+        uk.ac.starlink.table.StarTable.class,
         uk.ac.starlink.table.StarTableFactory.class,
         uk.ac.starlink.table.StarTableOutput.class,
         uk.ac.starlink.table.WrapperStarTable.class,
@@ -123,6 +127,49 @@ public class JyStilts {
             "    def __iter__(self):",
             "        return row_iterator(self.getRowSequence())",
             "",
+            "class random_star_table(iterable_star_table):",
+            "    def __init__(self, base):",
+            "        iterable_star_table.__init__(self, base)",
+            "    def __len__(self):",
+            "        return int(self.getRowCount())",
+            "    def __getitem__(self, key):",
+            "        return self.getRow(key)",
+            "",
+            "def jy_star_table(table):",
+            "    if table.isRandom():",
+            "        return random_star_table(table)",
+            "    else:",
+            "        return iterable_star_table(table)",
+            "",
+            "def map_env_value(pval):",
+            "    if pval is None:",
+            "        return None",
+            "    elif isinstance(pval, " + getImportName( StarTable.class )
+                                       + "):",
+            "        return pval",
+            "    elif is_container(pval, " + getImportName( StarTable.class )
+                                              + "):",
+            "        return to_array(pval, " + getImportName( StarTable.class )
+                                             + ")",
+            "    else:",
+            "        return str(pval)",
+            "",
+            "def is_container(value, type):",
+            "    valdir = dir(value)",
+            "    if '__iter__' in valdir and '__len__' in valdir:",
+            "        for item in value:",
+            "            if not isinstance(item, type):",
+            "                return False",
+            "        return True",
+            "    else:",
+            "        return False",
+            "",
+            "def to_array(value, type):",
+            "    array = " + getImportName( Array.class )
+                           + ".newInstance(type, len(value))",
+            "    for i in xrange(len(value)):",
+            "        array[i] = value[i]",
+            "    return array",
         };
     }
 
@@ -138,7 +185,7 @@ public class JyStilts {
             "    ''' Reads a table from a file or URL.'''",
             "    table = " + getImportName( StarTableFactory.class ) + "()"
                      + ".makeStarTable(location, fmt)",
-            "    return iterable_star_table(table)",
+            "    return jy_star_table(table)",
         };
     }
 
@@ -170,7 +217,7 @@ public class JyStilts {
                  + "and returns the result.'''",
             "    step = " + getImportName( StepFactory.class )
                           + ".getInstance().createStep(cmd)",
-            "    return iterable_star_table(step.wrap(table))",
+            "    return jy_star_table(step.wrap(table))",
         };
     }
 
@@ -202,7 +249,7 @@ public class JyStilts {
             "    sargs = [str(a) for a in args]",
             "    argList = " + getImportName( ArrayList.class ) + "(sargs)",
             "    step = pfilt.createStep(argList.iterator())",
-            "    return iterable_star_table(step.wrap(table))",
+            "    return jy_star_table(step.wrap(table))",
         };
     }
 
@@ -227,17 +274,11 @@ public class JyStilts {
                           + ".createObject(\"" + taskNickName + "\")",
             "    env = " + getImportName( MapEnvironment.class ) + "()",
             "    for kw in kwargs.iteritems():",
-            "        pname = kw[0]",
-            "        pval = kw[1]",
-            "        if isinstance(pval, uk.ac.starlink.table.StarTable):",
-            "            pass",
-            "        else:",
-            "            pval = str(pval)",
-            "        env.setValue( pname, pval )",
+            "        env.setValue(kw[0], map_env_value(kw[1]))",
         } ) );
         if ( task instanceof ConsumerTask ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
-            lineList.add( "    return iterable_star_table(table)" );
+            lineList.add( "    return jy_star_table(table)" );
         }
         else {
             lineList.add( "    task.createExecutable(env).execute()" );
