@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -17,6 +18,9 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.task.DoubleParameter;
+import uk.ac.starlink.task.IntegerParameter;
+import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
@@ -42,6 +46,8 @@ public class JyStilts {
     private final Formatter formatter_;
     private final Map clazzMap_;
     private final String[] imports_;
+    private final Map paramAliasMap_;
+    private static final String paramAliasDictName_ = "_param_alias_dict";
 
     /** Java classes which are used by python source code. */
     private static final Class[] IMPORT_CLASSES = new Class[] {
@@ -74,6 +80,11 @@ public class JyStilts {
             imports_[ ic ] = "import " + importName;
             clazzMap_.put( clazz, importName );
         }
+
+        /* Some parameter names need to be aliased because they are python
+         * reserved words. */
+        paramAliasMap_ = new HashMap();
+        paramAliasMap_.put( "in", "in_" );
     }
 
     /**
@@ -125,7 +136,9 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defUtils() {
-        return new String[] {
+        List lineList = new ArrayList( Arrays.asList( new String[] {
+
+            /* Row iterator class used for providing iterability in tables. */
             "class _row_iterator:",
             "    def __init__(self, rowseq):",
             "        self.rowseq = rowseq",
@@ -135,6 +148,8 @@ public class JyStilts {
             "        else:",
             "            raise StopIteration",
             "",
+
+            /* WrapperStarTable implementation which is iterable in python. */
             "class _iterable_star_table("
                    + getImportName( WrapperStarTable.class )
                    + "):",
@@ -144,6 +159,8 @@ public class JyStilts {
             "    def __iter__(self):",
             "        return _row_iterator(self.getRowSequence())",
             "",
+
+            /* WrapperStarTable implementation which is a python container. */
             "class _random_star_table(_iterable_star_table):",
             "    def __init__(self, base):",
             "        _iterable_star_table.__init__(self, base)",
@@ -152,15 +169,24 @@ public class JyStilts {
             "    def __getitem__(self, key):",
             "        return self.getRow(key)",
             "",
+
+            /* Returns a StarTable with suitable python decoration. */
             "def _jy_star_table(table):",
             "    if table.isRandom():",
             "        return _random_star_table(table)",
             "    else:",
             "        return _iterable_star_table(table)",
             "",
+
+            /* Takes a python value and returns a value suitable for passing
+             * to a java Stilts execution environment. */
             "def _map_env_value(pval):",
             "    if pval is None:",
             "        return None",
+            "    elif pval is True:",
+            "        return 'true'",
+            "    elef pval is False:",
+            "        return 'false'",
             "    elif isinstance(pval, " + getImportName( StarTable.class )
                                        + "):",
             "        return pval",
@@ -171,6 +197,9 @@ public class JyStilts {
             "    else:",
             "        return str(pval)",
             "",
+
+            /* Utility method to determine if a python object can be treated
+             * as a container. */
             "def _is_container(value, type):",
             "    valdir = dir(value)",
             "    if '__iter__' in valdir and '__len__' in valdir:",
@@ -181,6 +210,8 @@ public class JyStilts {
             "    else:",
             "        return False",
             "",
+ 
+            /* Turns a container into a typed java array. */
             "def _to_array(value, type):",
             "    array = " + getImportName( Array.class )
                            + ".newInstance(type, len(value))",
@@ -188,7 +219,21 @@ public class JyStilts {
             "        array[i] = value[i]",
             "    return array",
             "",
-        };
+        } ) );
+
+        /* Creates and populates a dictionary mapping parameter names to
+         * their aliases where appropriate. */
+        lineList.add( paramAliasDictName_ + " = {}" );
+        for ( Iterator it = paramAliasMap_.entrySet().iterator();
+              it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            lineList.add( paramAliasDictName_ + "['" + entry.getKey() + "']='"
+                                                     + entry.getValue() + "'" );
+        }
+        lineList.add( "" );
+
+        /* Return source line list array. */
+        return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -300,23 +345,114 @@ public class JyStilts {
         Task task =
             (Task) stilts_.getTaskFactory().createObject( taskNickName );
         List lineList = new ArrayList();
-        lineList.add( "def " + fname + "(**kwargs):" );
+
+        /* Get a list of mandatory and optional parameters which we will
+         * declare as part of the python function definition. 
+         * Currently, we refrain from declaring most of the optional
+         * arguments, preferring to use just a catch-all **kwargs.
+         * This is because a few of the parameters declared by a Stilts
+         * task are dummies of one kind or another, so declaring them
+         * is problematic and/or confusing. 
+         * The ones we do declare are the positional arguments.
+         * This tends to be just a few non-problematic an mandatory ones. */
+        Parameter[] params = task.getParameters();
+        List mandArgList = new ArrayList();
+        List optArgList = new ArrayList();
+        int iPos = 0;
+        for ( int ip = 0; ip < params.length; ip++ ) {
+            Parameter param = params[ ip ];
+            String name = param.getName();
+            if ( paramAliasMap_.containsKey( name ) ) {
+                name = (String) paramAliasMap_.get( name );
+            }
+            boolean byPos = false;
+            int pos = param.getPosition();
+            if ( pos > 0 ) {
+                iPos++;
+                assert pos == iPos;
+                byPos = true;
+            }
+            if ( byPos ) {
+                boolean nullable = param.isNullPermitted();
+                String dflt = param.getDefault();
+                if ( nullable || dflt != null ) {
+                    String sdflt;
+                    if ( dflt == null ) {
+                        sdflt = "None";
+                    }
+                    else if ( param instanceof IntegerParameter ||
+                              param instanceof DoubleParameter ) {
+                        sdflt = dflt;
+                    }
+                    else {
+                        sdflt = "'" + dflt + "'";
+                    }
+                    optArgList.add( new Arg( param, name + "=" + sdflt ) );
+                }
+                else {
+                    mandArgList.add( new Arg( param, name ) );
+                }
+            }
+        }
+
+        /* Begin the function definition. */
+        List argList = new ArrayList();
+        argList.addAll( mandArgList );
+        argList.addAll( optArgList );
+        StringBuffer sbuf = new StringBuffer()
+            .append( "def " )
+            .append( fname )
+            .append( "(" );
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            Arg arg = (Arg) it.next();
+            sbuf.append( arg.formalArg_ )
+                .append( ", " );
+        }
+        sbuf.append( "**kwargs" )
+            .append( "):" );
+        lineList.add( sbuf.toString() );
+
+        /* Write the body of the function. */
         lineList.add( "    '''" + task.getPurpose() + ".'''" );
         lineList.add( "    task = " + getImportName( Stilts.class ) + "()"
                                     + ".getTaskFactory()"
                                     + ".createObject('" + taskNickName + "')" );
         lineList.add( "    env = " + getImportName( MapEnvironment.class )
                                    + "()" );
+
+        /* Populate the stilts execution environment from the mandatory
+         * and optional arguments of the python function. 
+         * Watch out for aliased parameters. */
+        for ( Iterator it = mandArgList.iterator(); it.hasNext(); ) {
+            Arg arg = (Arg) it.next();
+            Parameter param = arg.param_;
+            String name = param.getName();
+            String alias = paramAliasMap_.containsKey( name )
+                         ? (String) paramAliasMap_.get( name )
+                         : name;
+            lineList.add( "    env.setValue('" + name + "', "
+                                          + "_map_env_value(" + alias + "))" );
+        }
         lineList.add( "    for kw in kwargs.iteritems():" );
-        lineList.add( "        env.setValue(kw[0], _map_env_value(kw[1]))" );
+        lineList.add( "        key = kw[0]" );
+        lineList.add( "        value = kw[1]" );
+        lineList.add( "        if key in " + paramAliasDictName_ + ":" );
+        lineList.add( "            key = " + paramAliasDictName_ + "[key]" );
+        lineList.add( "        env.setValue(key, _map_env_value(value))" );
+
+        /* For a consumer task, return the created table as a result. */
         if ( task instanceof ConsumerTask ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
             lineList.add( "    return _jy_star_table(table)" );
         }
+
+        /* Otherwise, return the string result. */
         else {
             lineList.add( "    task.createExecutable(env).execute()" );
             lineList.add( "    return env.getOutputText()" );
         }
+
+        /* Return the source code lines. */
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
@@ -423,6 +559,20 @@ public class JyStilts {
             throws IOException, LoadException, SAXException {
         new JyStilts( new Stilts() )
            .writeModule( new OutputStreamWriter( System.out ) );
+    }
+
+    /**
+     * Convenience class which aggregates a parameter and its string 
+     * representation in a python function definition formal parameter
+     * list.
+     */
+    private static class Arg {
+        final Parameter param_;
+        final String formalArg_;
+        Arg( Parameter param, String formalArg ) {
+            param_ = param;
+            formalArg_ = formalArg;
+        }
     }
 
     /**
