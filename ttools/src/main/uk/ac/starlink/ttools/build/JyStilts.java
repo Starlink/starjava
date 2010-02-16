@@ -405,7 +405,13 @@ public class JyStilts {
                                     + ".createObject('" + modeNickName + "')" );
         lineList.add( "    consumer = mode.createConsumer(env)" );
         lineList.add( "    consumer.consume(table)" );
-        lineList.add( "    return env.getOutputText()" );
+
+        /* Returns a suitable result. */
+        lineList.add( "    txt = env.getOutputText()" );
+        lineList.add( "    if len(txt) == 0:" );
+        lineList.add( "        return None" );
+        lineList.add( "    else:" );
+        lineList.add( "        return txt" );
 
         /* Return the source code lines. */
         return (String[]) lineList.toArray( new String[ 0 ] );
@@ -542,10 +548,14 @@ public class JyStilts {
             lineList.add( "    return _jy_star_table(table)" );
         }
 
-        /* Otherwise, return the string result. */
+        /* Otherwise, return the string result, if there is one. */
         else {
             lineList.add( "    task.createExecutable(env).execute()" );
-            lineList.add( "    return env.getOutputText()" );
+            lineList.add( "    txt = env.getOutputText()" );
+            lineList.add( "    if len(txt) == 0:" );
+            lineList.add( "        return None" );
+            lineList.add( "    else:" );
+            lineList.add( "        return txt" );
         }
 
         /* Return the source code lines. */
