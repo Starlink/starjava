@@ -423,6 +423,7 @@ public class JyStilts {
             throws LoadException {
         Task task =
             (Task) stilts_.getTaskFactory().createObject( taskNickName );
+        boolean isConsumer = task instanceof ConsumerTask;
         List lineList = new ArrayList();
 
         /* Get a list of mandatory and optional parameters which we will
@@ -481,17 +482,43 @@ public class JyStilts {
             .append( "):" );
         lineList.add( sbuf.toString() );
 
-        /* Write the body of the function. */
+        /* Write the doc string. */
         lineList.add( "    '''" + task.getPurpose() + ".'''" );
-        lineList.add( "    task = " + getImportName( Stilts.class ) + "()"
-                                    + ".getTaskFactory()"
-                                    + ".createObject('" + taskNickName + "')" );
+
+        /* Create the task object. */
+        if ( isConsumer ) {
+
+            /* If the task is a ConsumerTask, use an instance of a subclass
+             * of the relevant Task class (the relevant classes all happen
+             * to have suitable no-arg constructors).  This is a hack to
+             * permit access to the createProducer method, which has 
+             * protected access in the ConsumerTask interface (at least
+             * in some stilts versions). */
+            Class taskClazz = task.getClass();
+            String taskClazzName = taskClazz.getName();
+            String taskSubName = "_" + fname + "_task";
+            lineList.add( "    import " + taskClazzName );
+            lineList.add( "    class " + taskSubName
+                                       + "(" + taskClazzName + "):" );
+            lineList.add( "        def __init__(self):" );
+            lineList.add( "            " + taskClazzName + ".__init__(self)" );
+            lineList.add( "    task = " + taskSubName + "()" );
+        }
+        else {
+
+            /* Do it the simple, and more respectable way, if the hack
+             * is not required. */
+            lineList.add( "    task = "
+                        + getImportName( Stilts.class ) + "()"
+                        + ".getTaskFactory()"
+                        + ".createObject('" + taskNickName + "')" );
+        }
+
+        /* Create the stilts execution environment and populate it from
+         * the mandatory and optional arguments of the python function. 
+         * Watch out for aliased parameters. */
         lineList.add( "    env = " + getImportName( MapEnvironment.class )
                                    + "()" );
-
-        /* Populate the stilts execution environment from the mandatory
-         * and optional arguments of the python function. 
-         * Watch out for aliased parameters. */
         for ( Iterator it = mandArgList.iterator(); it.hasNext(); ) {
             Arg arg = (Arg) it.next();
             Parameter param = arg.param_;
@@ -510,7 +537,7 @@ public class JyStilts {
         lineList.add( "        env.setValue(key, _map_env_value(value))" );
 
         /* For a consumer task, return the created table as a result. */
-        if ( task instanceof ConsumerTask ) {
+        if ( isConsumer ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
             lineList.add( "    return _jy_star_table(table)" );
         }
