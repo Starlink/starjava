@@ -228,8 +228,9 @@ public class JyStilts {
         for ( Iterator it = paramAliasMap_.entrySet().iterator();
               it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
-            lineList.add( paramAliasDictName_ + "['" + entry.getKey() + "']='"
-                                                     + entry.getValue() + "'" );
+            lineList.add( paramAliasDictName_
+                        + "['" + entry.getValue() + "']='"
+                               + entry.getKey() + "'" );   // sic
         }
         lineList.add( "" );
 
@@ -278,7 +279,9 @@ public class JyStilts {
         return new String[] {
             "def " + fname + "(table, cmd):",
             "    '''Applies a filter operation to a table "
-                 + "and returns the result.'''",
+                 + "and returns the result.",
+            "    In most cases, it's better to use one of the cmd_* functions.",
+            "    '''",
             "    step = " + getImportName( StepFactory.class )
                           + ".getInstance().createStep(cmd)",
             "    return _jy_star_table(step.wrap(table))",
@@ -429,8 +432,10 @@ public class JyStilts {
          * This is because a few of the parameters declared by a Stilts
          * task are dummies of one kind or another, so declaring them
          * is problematic and/or confusing. 
-         * The ones we do declare are the positional arguments.
-         * This tends to be just a few non-problematic an mandatory ones. */
+         * The ones we do declare are the positional arguments, which
+         * tends to be just a few non-problematic an mandatory ones,
+         * as well as any which have had their names aliased, so that
+         * this is clear from the documentation. */
         Parameter[] params = task.getParameters();
         List mandArgList = new ArrayList();
         List optArgList = new ArrayList();
@@ -438,9 +443,9 @@ public class JyStilts {
         for ( int ip = 0; ip < params.length; ip++ ) {
             Parameter param = params[ ip ];
             String name = param.getName();
-            if ( paramAliasMap_.containsKey( name ) ) {
-                name = (String) paramAliasMap_.get( name );
-            }
+            String pname = paramAliasMap_.containsKey( name )
+                         ? (String) paramAliasMap_.get( name )
+                         : name;
             boolean byPos = false;
             int pos = param.getPosition();
             if ( pos > 0 ) {
@@ -448,13 +453,13 @@ public class JyStilts {
                 assert pos == iPos;
                 byPos = true;
             }
-            if ( byPos ) {
+            if ( byPos || paramAliasMap_.containsKey( name ) ) {
                 String sdflt = getDefaultString( param );
                 if ( sdflt == null ) {
-                    mandArgList.add( new Arg( param, name ) );
+                    mandArgList.add( new Arg( param, pname ) );
                 }
                 else {
-                    optArgList.add( new Arg( param, name + "=" + sdflt ) );
+                    optArgList.add( new Arg( param, pname + "=" + sdflt ) );
                 }
             }
         }
@@ -491,11 +496,11 @@ public class JyStilts {
             Arg arg = (Arg) it.next();
             Parameter param = arg.param_;
             String name = param.getName();
-            String alias = paramAliasMap_.containsKey( name )
+            String pname = paramAliasMap_.containsKey( name )
                          ? (String) paramAliasMap_.get( name )
                          : name;
             lineList.add( "    env.setValue('" + name + "', "
-                                          + "_map_env_value(" + alias + "))" );
+                                          + "_map_env_value(" + pname + "))" );
         }
         lineList.add( "    for kw in kwargs.iteritems():" );
         lineList.add( "        key = kw[0]" );
