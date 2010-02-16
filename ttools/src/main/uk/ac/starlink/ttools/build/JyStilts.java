@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
+import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.util.LoadException;
@@ -185,7 +186,7 @@ public class JyStilts {
             "        return None",
             "    elif pval is True:",
             "        return 'true'",
-            "    elef pval is False:",
+            "    elif pval is False:",
             "        return 'false'",
             "    elif isinstance(pval, " + getImportName( StarTable.class )
                                        + "):",
@@ -245,7 +246,7 @@ public class JyStilts {
     private String[] defRead( String fname ) {
         return new String[] {
             "def " + fname + "(location, fmt=None):",
-            "    ''' Reads a table from a file or URL.'''",
+            "    '''Reads a table from a file or URL.'''",
             "    table = " + getImportName( StarTableFactory.class ) + "()"
                      + ".makeStarTable(location, fmt)",
             "    return _jy_star_table(table)",
@@ -333,6 +334,81 @@ public class JyStilts {
     }
 
     /**
+     * Generates python source defining an output mode function.
+     *
+     * @param  fname  name of function
+     * @param  modeNickName  name under which the mode is known in the
+     *         mode ObjectFactory
+     * @return  python source code lines
+     */
+    private String[] defMode( String fname, String modeNickName )
+            throws LoadException, SAXException {
+        ProcessingMode mode =
+            (ProcessingMode) stilts_.getModeFactory()
+                                    .createObject( modeNickName );
+
+        /* Assemble mandatory and optional parameters. */
+        Parameter[] params = mode.getAssociatedParameters();
+        List lineList = new ArrayList();
+        List mandArgList = new ArrayList();
+        List optArgList = new ArrayList();
+        for ( int ip = 0; ip < params.length; ip++ ) {
+            Parameter param = params[ ip ];
+            String name = param.getName();
+            String sdflt = getDefaultString( param );
+            if ( sdflt == null ) {
+                mandArgList.add( new Arg( param, name ) );
+            }
+            else {
+                optArgList.add( new Arg( param, name + "=" + sdflt ) );
+            }
+        }
+
+        /* Begin function definition. */
+        List argList = new ArrayList();
+        argList.addAll( mandArgList );
+        argList.addAll( optArgList );
+        StringBuffer sbuf = new StringBuffer()
+            .append( "def " )
+            .append( fname )
+            .append( "(table" );
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            Arg arg = (Arg) it.next();
+            sbuf.append( ", " );
+            sbuf.append( arg.formalArg_ );
+        }
+        sbuf.append( "):" );
+
+        /* Add doc string. */
+        lineList.add( sbuf.toString() );
+        lineList.add( "    '''\\" );
+        lineList.addAll( Arrays.asList( formatXml( mode.getDescription() ) ) );
+        lineList.add( "'''" );
+
+        /* Create and populate execution environment. */
+        lineList.add( "    env = " + getImportName( MapEnvironment.class )
+                                   + "()" );
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            Arg arg = (Arg) it.next();
+            Parameter param = arg.param_;
+            String name = param.getName();
+            lineList.add( "    env.setValue('" + name + "', "
+                                          + "_map_env_value(" + name + "))" );
+        }
+
+        /* Create and invoke a suitable TableConsumer. */
+        lineList.add( "    mode = " + getImportName( Stilts.class ) + "()"
+                                    + ".getModeFactory()"
+                                    + ".createObject('" + modeNickName + "')" );
+        lineList.add( "    consumer = mode.createConsumer(env)" );
+        lineList.add( "    consumer.consume(table)" );
+        lineList.add( "    return env.getOutputText()" );
+
+        /* Return the source code lines. */
+        return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
      * Generates python source defining a function for invoking a STILTS task.
      *
      * @param  fname  name of function
@@ -373,24 +449,12 @@ public class JyStilts {
                 byPos = true;
             }
             if ( byPos ) {
-                boolean nullable = param.isNullPermitted();
-                String dflt = param.getDefault();
-                if ( nullable || dflt != null ) {
-                    String sdflt;
-                    if ( dflt == null ) {
-                        sdflt = "None";
-                    }
-                    else if ( param instanceof IntegerParameter ||
-                              param instanceof DoubleParameter ) {
-                        sdflt = dflt;
-                    }
-                    else {
-                        sdflt = "'" + dflt + "'";
-                    }
-                    optArgList.add( new Arg( param, name + "=" + sdflt ) );
+                String sdflt = getDefaultString( param );
+                if ( sdflt == null ) {
+                    mandArgList.add( new Arg( param, name ) );
                 }
                 else {
-                    mandArgList.add( new Arg( param, name ) );
+                    optArgList.add( new Arg( param, name + "=" + sdflt ) );
                 }
             }
         }
@@ -454,6 +518,35 @@ public class JyStilts {
 
         /* Return the source code lines. */
         return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Returns the python-optional-argument-type default value string for
+     * a parameter.  May be null in the case that the argument must be
+     * supplied.
+     *
+     * @param  param  STILTS parameter
+     * @param  default value, suitable for insertion into python source
+     */
+    private String getDefaultString( Parameter param ) {
+        String dflt = param.getDefault();
+        boolean isDfltNull = dflt == null || dflt.trim().length() == 0;
+        boolean nullable = param.isNullPermitted();
+        if ( nullable || ! isDfltNull ) {
+            if ( isDfltNull ) {
+                return "None";
+            }
+            else if ( param instanceof IntegerParameter ||
+                      param instanceof DoubleParameter ) {
+                return dflt;
+            }
+            else {
+                return "'" + dflt + "'";
+            }
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -543,9 +636,20 @@ public class JyStilts {
         String[] filterNames = filterFactory.getNickNames();
         for ( int i = 0; i < filterNames.length; i++ ) {
             String name = filterNames[ i ];
-            String[] filterLines = defCmd( "tcmd_" + name, name );
+            String[] filterLines = defCmd( "cmd_" + name, name );
             if ( filterLines != null ) {
                 writeLines( filterLines, writer );
+            }
+        }
+
+        /* Write mode wrappers. */
+        ObjectFactory modeFactory = stilts_.getModeFactory();
+        String[] modeNames = modeFactory.getNickNames();
+        for ( int i = 0; i < modeNames.length; i++ ) {
+            String name = modeNames[ i ];
+            String[] modeLines = defMode( "mode_" + name, name );
+            if ( modeLines != null ) {
+                writeLines( modeLines, writer );
             }
         }
     }
