@@ -701,6 +701,9 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Construct and return a non-random table which gets its data
          * from the BinnedData object. */
+        double[] xrange = state.getRanges()[ 0 ];
+        final double xlo = xrange[ 0 ];
+        final double xhi = xrange[ 1 ];
         AbstractStarTable binsTable = new AbstractStarTable() {
             public int getColumnCount() {
                 return infos.length;
@@ -713,12 +716,37 @@ public class HistogramWindow extends GraphicsWindow {
             }
             public RowSequence getRowSequence() {
                 final Iterator binIt = binData.getBinIterator( true );
-                Iterator rowIt = new Iterator() {
-                    public boolean hasNext() {
-                        return binIt.hasNext();
+                return new RowSequence() {
+                    private Object[] currentRow_;
+
+                    public boolean next() {
+                        while ( binIt.hasNext() ) {
+                            BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                            if ( bin.getLowBound() >= xlo &&
+                                 bin.getHighBound() <= xhi ) {
+                                currentRow_ = getRow( bin );
+                                return true;
+                            }
+                        }
+                        currentRow_ = null;
+                        return false;
                     }
-                    public Object next() {
-                        BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
+                    public Object[] getRow() {
+                        return currentRow_;
+                    }
+                    public Object getCell( int icol ) {
+                        return currentRow_[ icol ];
+                    }
+                    public void close() {
+                    }
+
+                    /**
+                     * Turns a bin into a row of the exported table.
+                     *
+                     * @param  bin
+                     * @return  table row
+                     */
+                    private Object[] getRow( BinnedData.Bin bin ) {
                         Object[] row = new Object[ ipre + nset ];
                         int icol = 0;
                         row[ icol++ ] = new Double( bin.getLowBound() );
@@ -732,11 +760,8 @@ public class HistogramWindow extends GraphicsWindow {
                         }
                         return row;
                     }
-                    public void remove() {
-                        binIt.remove();
-                    }
+
                 };
-                return new IteratorRowSequence( rowIt );
             }
         };
         binsTable.setName( "Histogram" );

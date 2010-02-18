@@ -13511,6 +13511,8 @@ introduced since the last version:
     <li>Add <label>Tuning Parameters</label> and <label>Full Profiling</label>
         options to match windows.</li>
     <li>Fix minor scrolling bug in table and column windows.</li>
+    <li>Fix histogram save/export bug: the exported table now has the same 
+        X bounds as the currently displayed histogram.</li>
     </ul>
     </p></dd>
 
