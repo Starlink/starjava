@@ -1,9 +1,13 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Dimension;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -153,4 +157,31 @@ public class TableRowHeader extends JTable {
         return irow + 1;
     }
 
+    /**
+     * Installs this row header on a scroll pane.
+     *
+     * @param  scroller  scroll pane for which this component will be the
+     *         row header
+     */
+    public void installOnScroller( final JScrollPane scroller ) {
+
+        /* Do the standard installation. */
+        scroller.setRowHeaderView( this );
+
+        /* Do additional work to ensure that when the row header scrolls,
+         * the main table will scroll as well.  This really ought to be
+         * taken care of automatically (the opposite job is), but it is
+         * not - see the java bug database bug ID #4242632. */
+        final JViewport rhView = scroller.getRowHeader();
+        rhView.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                int iExtent = rhView.getExtentSize().height;
+                int iMax = rhView.getViewSize().height;
+                int iPos = rhView.getViewPosition().y;
+                int iValue = Math.max( 0, Math.min( iPos, iMax - iExtent ) );
+                scroller.getVerticalScrollBar()
+                        .setValues( iValue, iExtent, 0, iMax );
+            }
+        } );
+    }
 }

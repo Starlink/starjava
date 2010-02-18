@@ -105,7 +105,7 @@ public class TableViewerWindow extends AuxWindow
                 return ((int) viewModel.getBaseRow( irow )) + 1;
             }
         };
-        scrollpane.setRowHeaderView( rowHead );
+        rowHead.installOnScroller( scrollpane );
 
         /* Make sure the viewer window is updated when the TableModel
          * or the TableColumnModel changes changes (for instance

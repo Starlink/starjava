@@ -324,12 +324,12 @@ public class ColumnInfoWindow extends AuxWindow {
         getMainArea().add( scroller );
 
         /* Set up a row header. */
-        JTable rowHead = new TableRowHeader( jtab ) {
+        TableRowHeader rowHead = new TableRowHeader( jtab ) {
             public int rowNumber( int irow ) {
                 return irow;
             }
         };
-        scroller.setRowHeaderView( rowHead );
+        rowHead.installOnScroller( scroller );
 
         /* Ensure that subsequent changes to the main column model are 
          * reflected in this window.  This listener implemenatation is 

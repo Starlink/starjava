@@ -13510,6 +13510,7 @@ introduced since the last version:
         (they now have their own appendix subsection).</li>
     <li>Add <label>Tuning Parameters</label> and <label>Full Profiling</label>
         options to match windows.</li>
+    <li>Fix minor scrolling bug in table and column windows.</li>
     </ul>
     </p></dd>
 
