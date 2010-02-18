@@ -20,6 +20,7 @@ import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.IntegerParameter;
+import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
@@ -61,6 +62,7 @@ public class JyStilts {
         uk.ac.starlink.table.StarTableOutput.class,
         uk.ac.starlink.table.WrapperStarTable.class,
         uk.ac.starlink.table.WrapperRowSequence.class,
+        uk.ac.starlink.task.InvokeUtils.class,
         uk.ac.starlink.ttools.Stilts.class,
         uk.ac.starlink.ttools.filter.StepFactory.class,
         uk.ac.starlink.ttools.task.MapEnvironment.class,
@@ -161,6 +163,9 @@ public class JyStilts {
                        + ".__init__(self, base)",
             "    def __iter__(self):",
             "        return _row_iterator(self.getRowSequence())",
+            "    def __str__(self):",
+            "        return str(self.getName())"
+                          + " + '(?x' + str(self.getColumnCount()) + ')'",
             "",
 
             /* WrapperStarTable implementation which is a python container. */
@@ -171,6 +176,10 @@ public class JyStilts {
             "        return int(self.getRowCount())",
             "    def __getitem__(self, key):",
             "        return self.getRow(key)",
+            "    def __str__(self):",
+            "        return str(self.getName())"
+                          + " + '(' + str(self.getRowCount()) + 'x'"
+                          + " + str(self.getColumnCount()) + ')'",
             "",
 
             /* Execution environment implementation. */
@@ -193,7 +202,17 @@ public class JyStilts {
             "",
 
             /* Returns a StarTable with suitable python decoration. */
-            "def _import_star_table(table):",
+            "def import_star_table(table):",
+            "    '''Imports a StarTable instance for use with JyStilts.",
+            "",
+            "    This factory function takes an instance of the Java class",
+            "    " + StarTable.class.getName(),
+            "    and returns an instance of a wrapper subclass which has some",
+            "    decorations useful in a python environment.",
+            "    This includes stilts cmd_* and mode_* methods, as well as",
+            "    python-friendly standard methods to make it behave as an",
+            "    iterable, and where possible a container, of data rows.",
+            "    '''",
             "    if table.isRandom():",
             "        return _random_star_table(table)",
             "    else:",
@@ -240,6 +259,10 @@ public class JyStilts {
             "    for i in xrange(len(value)):",
             "        array[i] = value[i]",
             "    return array",
+            "",
+
+            /* Set up verbosity. */
+            getImportName( InvokeUtils.class ) + ".configureLogging(0, False)",
             "",
         } ) );
 
@@ -326,7 +349,7 @@ public class JyStilts {
             "    table = " + getImportName( StarTableFactory.class )
                            + "(random)"
                            + ".makeStarTable(location, fmt)",
-            "    return _import_star_table(table)",
+            "    return import_star_table(table)",
         };
     }
 
@@ -362,7 +385,7 @@ public class JyStilts {
             "    '''",
             "    step = " + getImportName( StepFactory.class )
                           + ".getInstance().createStep(cmd)",
-            "    return _import_star_table(step.wrap(table))",
+            "    return import_star_table(step.wrap(table))",
         };
     }
 
@@ -410,7 +433,7 @@ public class JyStilts {
         lineList.add( "    argList = " + getImportName( ArrayList.class )
                                        + "(sargs)" );
         lineList.add( "    step = pfilt.createStep(argList.iterator())" );
-        lineList.add( "    return _import_star_table(step.wrap(table))" );
+        lineList.add( "    return import_star_table(step.wrap(table))" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
@@ -631,7 +654,7 @@ public class JyStilts {
         /* For a consumer task, create a result table and return it. */
         if ( isConsumer ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
-            lineList.add( "    return _import_star_table(table)" );
+            lineList.add( "    return import_star_table(table)" );
         }
 
         /* Otherwise execute the task in the usual way. */
