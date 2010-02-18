@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.ttools.task.Calc;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.util.LoadException;
@@ -52,6 +53,7 @@ public class JyStilts {
 
     /** Java classes which are used by python source code. */
     private static final Class[] IMPORT_CLASSES = new Class[] {
+        java.lang.System.class,
         java.lang.reflect.Array.class,
         java.util.ArrayList.class,
         uk.ac.starlink.table.StarTable.class,
@@ -171,8 +173,27 @@ public class JyStilts {
             "        return self.getRow(key)",
             "",
 
+            /* Execution environment implementation. */
+            "class _jy_environment(" + getImportName( MapEnvironment.class )
+                                     + "):",
+            "    def __init__(self, grab_output=False):",
+            "        " + getImportName( MapEnvironment.class )
+                       + ".__init__(self)",
+            "        superobj = super(_jy_environment, self)",
+            "        if grab_output:",
+            "            self._out = " + getImportName( MapEnvironment.class )
+                                       + ".getOutputStream(self)",
+            "        else:",
+            "            self._out = " + getImportName( System.class ) + ".out",
+            "        self._err = " + getImportName( System.class ) + ".err",
+            "    def getOutputStream(self):",
+            "        return self._out",
+            "    def getErrorStream(self):",
+            "        return self._err",
+            "",
+
             /* Returns a StarTable with suitable python decoration. */
-            "def _create_star_table(table):",
+            "def _import_star_table(table):",
             "    if table.isRandom():",
             "        return _random_star_table(table)",
             "    else:",
@@ -305,7 +326,7 @@ public class JyStilts {
             "    table = " + getImportName( StarTableFactory.class )
                            + "(random)"
                            + ".makeStarTable(location, fmt)",
-            "    return _create_star_table(table)",
+            "    return _import_star_table(table)",
         };
     }
 
@@ -341,7 +362,7 @@ public class JyStilts {
             "    '''",
             "    step = " + getImportName( StepFactory.class )
                           + ".getInstance().createStep(cmd)",
-            "    return _create_star_table(step.wrap(table))",
+            "    return _import_star_table(step.wrap(table))",
         };
     }
 
@@ -389,7 +410,7 @@ public class JyStilts {
         lineList.add( "    argList = " + getImportName( ArrayList.class )
                                        + "(sargs)" );
         lineList.add( "    step = pfilt.createStep(argList.iterator())" );
-        lineList.add( "    return _create_star_table(step.wrap(table))" );
+        lineList.add( "    return _import_star_table(step.wrap(table))" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
@@ -446,8 +467,7 @@ public class JyStilts {
         lineList.add( "'''" );
 
         /* Create and populate execution environment. */
-        lineList.add( "    env = " + getImportName( MapEnvironment.class )
-                                   + "()" );
+        lineList.add( "    env = _jy_environment()" );
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             Arg arg = (Arg) it.next();
             Parameter param = arg.param_;
@@ -462,13 +482,6 @@ public class JyStilts {
                                     + ".createObject('" + modeNickName + "')" );
         lineList.add( "    consumer = mode.createConsumer(env)" );
         lineList.add( "    consumer.consume(table)" );
-
-        /* Returns a suitable result. */
-        lineList.add( "    txt = env.getOutputText()" );
-        lineList.add( "    if len(txt) == 0:" );
-        lineList.add( "        return None" );
-        lineList.add( "    else:" );
-        lineList.add( "        return txt" );
 
         /* Return the source code lines. */
         return (String[]) lineList.toArray( new String[ 0 ] );
@@ -487,6 +500,7 @@ public class JyStilts {
         Task task =
             (Task) stilts_.getTaskFactory().createObject( taskNickName );
         boolean isConsumer = task instanceof ConsumerTask;
+        boolean returnOutput = task instanceof Calc;
         List lineList = new ArrayList();
 
         /* Get a list of mandatory and optional parameters which we will
@@ -546,7 +560,17 @@ public class JyStilts {
         lineList.add( sbuf.toString() );
 
         /* Write the doc string. */
-        lineList.add( "    '''" + task.getPurpose() + ".'''" );
+        lineList.add( "    '''\\" );
+        lineList.add( task.getPurpose() + "." );
+        if ( isConsumer ) {
+            lineList.add( "" );
+            lineList.add( "The return value is the resulting table" );
+        }
+        else if ( returnOutput ) {
+            lineList.add( "" );
+            lineList.add( "The return value is the output string" );
+        }
+        lineList.add( "'''" );
 
         /* Create the task object. */
         if ( isConsumer ) {
@@ -577,11 +601,16 @@ public class JyStilts {
                         + ".createObject('" + taskNickName + "')" );
         }
 
-        /* Create the stilts execution environment and populate it from
-         * the mandatory and optional arguments of the python function. 
-         * Watch out for aliased parameters. */
-        lineList.add( "    env = " + getImportName( MapEnvironment.class )
-                                   + "()" );
+        /* Create the stilts execution environment. */
+        if ( returnOutput ) {
+            lineList.add( "    env = _jy_environment(grab_output=True)" );
+        }
+        else {
+            lineList.add( "    env = _jy_environment()" );
+        }
+
+        /* Populate the environment from the mandatory and optional arguments
+         * of the python function.  Watch out for aliased parameters. */
         for ( Iterator it = mandArgList.iterator(); it.hasNext(); ) {
             Arg arg = (Arg) it.next();
             Parameter param = arg.param_;
@@ -599,20 +628,23 @@ public class JyStilts {
         lineList.add( "            key = " + paramAliasDictName_ + "[key]" );
         lineList.add( "        env.setValue(key, _map_env_value(value))" );
 
-        /* For a consumer task, return the created table as a result. */
+        /* For a consumer task, create a result table and return it. */
         if ( isConsumer ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
-            lineList.add( "    return _create_star_table(table)" );
+            lineList.add( "    return _import_star_table(table)" );
         }
 
-        /* Otherwise, return the string result, if there is one. */
+        /* Otherwise execute the task in the usual way. */
         else {
             lineList.add( "    task.createExecutable(env).execute()" );
-            lineList.add( "    txt = env.getOutputText()" );
-            lineList.add( "    if len(txt) == 0:" );
-            lineList.add( "        return None" );
-            lineList.add( "    else:" );
-            lineList.add( "        return txt" );
+
+            /* If we're returning the output text, retrieve it from the
+             * environment, tidy it up, and return it.  Otherwise, the
+             * return is None. */
+            if ( returnOutput ) {
+                lineList.add( "    txt = env.getOutputText()" );
+                lineList.add( "    return str(txt.strip())" );
+            }
         }
 
         /* Return the source code lines. */
