@@ -11,6 +11,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
 
@@ -157,8 +158,8 @@ public class MapEnvironment implements TableEnvironment {
             param.setValueFromString( this, null );
         }
         else if ( value == null ) {
-            throw new IllegalArgumentException(
-                "No value supplied for param " + param );
+            throw new ParameterValueException( param,
+                "No value supplied for non-nullable parameter" );
         }
         else if ( param instanceof InputTableParameter &&
                   value instanceof StarTable ) {
@@ -208,9 +209,8 @@ public class MapEnvironment implements TableEnvironment {
             param.setValueFromString( this, (String) value );
         }
         else {
-            throw new IllegalArgumentException( 
-                "Can't fit value of type " + value.getClass() +
-                " into parameter " + param );
+            throw new ParameterValueException( param,
+                "Unexpected type " + value.getClass() );
         }
     }
 
