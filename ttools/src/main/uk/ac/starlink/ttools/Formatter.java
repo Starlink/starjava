@@ -113,6 +113,26 @@ public class Formatter {
                     result.decLevel();
                     result.decLevel();
                 }
+                else if ( tag.equals( "dl" ) ) {
+                    appendChildren( result, el );
+                    result.newLine();
+                }
+                else if ( tag.equals( "dt" ) ) {
+                    result.incLevel();
+                    result.newLine();
+                    appendChildren( result, el );
+                    result.decLevel();
+                }
+                else if ( tag.equals( "dd" ) ) {
+                    result.incLevel();
+                    result.incLevel();
+                    result.newLine();
+                    appendChildren( result, el );
+                    result.newLine();
+                    result.newLine();
+                    result.decLevel();
+                    result.decLevel();
+                }
                 else if ( tag.equals( "ref" ) ) {
                     if ( el.getFirstChild() != null ) {
                         appendChildren( result, el );
