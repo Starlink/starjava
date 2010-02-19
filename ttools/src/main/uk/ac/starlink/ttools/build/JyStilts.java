@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -487,6 +486,7 @@ public class JyStilts {
         lineList.add( sbuf.toString() );
         lineList.add( "    '''\\" );
         lineList.addAll( Arrays.asList( formatXml( mode.getDescription() ) ) );
+        lineList.addAll( Arrays.asList( getParamDocs( params ) ) );
         lineList.add( "'''" );
 
         /* Create and populate execution environment. */
@@ -519,7 +519,7 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defTask( String fname, String taskNickName )
-            throws LoadException {
+            throws LoadException, SAXException {
         Task task =
             (Task) stilts_.getTaskFactory().createObject( taskNickName );
         boolean isConsumer = task instanceof ConsumerTask;
@@ -587,12 +587,13 @@ public class JyStilts {
         lineList.add( task.getPurpose() + "." );
         if ( isConsumer ) {
             lineList.add( "" );
-            lineList.add( "The return value is the resulting table" );
+            lineList.add( "The return value is the resulting table." );
         }
         else if ( returnOutput ) {
             lineList.add( "" );
-            lineList.add( "The return value is the output string" );
+            lineList.add( "The return value is the output string." );
         }
+        lineList.addAll( Arrays.asList( getParamDocs( params ) ) );
         lineList.add( "'''" );
 
         /* Create the task object. */
@@ -717,12 +718,40 @@ public class JyStilts {
         int csub = 8;
         String text = formatter_.formatXML( xml, csub );
         List lineList = new ArrayList();
-        for ( StringTokenizer toker = new StringTokenizer( text, "\n" );
-              toker.hasMoreTokens(); ) {
-            String line = toker.nextToken();
-            assert "        ".equals( line.substring( 0, csub ) );
-            lineList.add( line.substring( csub ) );
+        for ( Iterator lineIt = lineIterator( text ); lineIt.hasNext(); ) {
+            String line = (String) lineIt.next();
+            if ( line.trim().length() == 0 ) {
+                lineList.add( "" );
+            }
+            else {
+                assert "        ".equals( line.substring( 0, csub ) );
+                lineList.add( line.substring( csub ) );
+            }
         }
+        return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Returns documentation for an array of parameters suitable for
+     * insertion into a python literal doc string.
+     *
+     * @param  params  parameters to document
+     * @return  lines of doc text
+     */
+    private String[] getParamDocs( Parameter[] params ) throws SAXException {
+        if ( params.length == 0 ) {
+            return new String[ 0 ];
+        }
+        List lineList = new ArrayList();
+        lineList.add( "" );
+        lineList.add( "Parameters:" );
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<dl>" );
+        for ( int i = 0; i < params.length; i++ ) {
+            sbuf.append( UsageWriter.xmlItem( params[ i ] ) );
+        }
+        sbuf.append( "</dl>" );
+        lineList.addAll( Arrays.asList( formatXml( sbuf.toString() ) ) );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
@@ -735,9 +764,8 @@ public class JyStilts {
      */
     private String[] prefixLines( String prefix, String text ) {
         List lineList = new ArrayList();
-        for ( StringTokenizer toker = new StringTokenizer( text, "\n" );
-              toker.hasMoreTokens(); ) {
-            lineList.add( prefix + toker.nextToken() );
+        for ( Iterator lineIt = lineIterator( text ); lineIt.hasNext(); ) {
+            lineList.add( prefix + (String) lineIt.next() );
         }
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
@@ -841,6 +869,35 @@ public class JyStilts {
             param_ = param;
             formalArg_ = formalArg;
         }
+    }
+
+    /**
+     * Returns an iterator over newline-separated lines in a string.
+     * Unlike using StringTokenizer, empty lines will be included in
+     * the output.
+     *
+     * @param  text  input text
+     * @return   iterator over lines
+     */
+    private static Iterator lineIterator( final String text ) {
+        return new Iterator() {
+            private int pos_;
+            public boolean hasNext() {
+                return pos_ < text.length();
+            }
+            public Object next() {
+                int nextPos = text.indexOf( '\n', pos_ );
+                if ( nextPos < 0 ) {
+                    nextPos = text.length();
+                }
+                String line = text.substring( pos_, nextPos );
+                pos_ = nextPos + 1;
+                return line;
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /**
