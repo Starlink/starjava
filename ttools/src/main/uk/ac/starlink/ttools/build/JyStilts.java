@@ -75,15 +75,19 @@ public class JyStilts {
     public JyStilts( Stilts stilts ) {
         stilts_ = stilts;
         formatter_ = new Formatter();
+
+        /* Prepare python imports. */
         clazzMap_ = new HashMap();
         Class[] clazzes = IMPORT_CLASSES;
-        imports_ = new String[ clazzes.length ];
+        List importList = new ArrayList();
+        importList.add( "import jarray.array" );
         for ( int ic = 0; ic < clazzes.length; ic++ ) {
             Class clazz = clazzes[ ic ];
             String importName = clazz.getName();
-            imports_[ ic ] = "import " + importName;
+            importList.add( "import " + importName );
             clazzMap_.put( clazz, importName );
         }
+        imports_ = (String[]) importList.toArray( new String[ 0 ] );
 
         /* Some parameter names need to be aliased because they are python
          * reserved words. */
@@ -232,8 +236,8 @@ public class JyStilts {
             "        return pval",
             "    elif _is_container(pval, " + getImportName( StarTable.class )
                                               + "):",
-            "        return _to_array(pval, " + getImportName( StarTable.class )
-                                              + ")",
+            "        return jarray.array(pval, "
+                                      +  getImportName( StarTable.class ) + ")",
             "    else:",
             "        return str(pval)",
             "",
@@ -251,15 +255,6 @@ public class JyStilts {
             "        return False",
             "",
  
-            /* Turns a container into a typed java array. */
-            "def _to_array(value, type):",
-            "    array = " + getImportName( Array.class )
-                           + ".newInstance(type, len(value))",
-            "    for i in xrange(len(value)):",
-            "        array[i] = value[i]",
-            "    return array",
-            "",
-
             /* Stilts class instance. */
             "_stilts = " + getImportName( Stilts.class ) + "()",
             "",
