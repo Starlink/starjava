@@ -271,8 +271,8 @@ public class JyStilts {
               it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
             lineList.add( paramAliasDictName_
-                        + "['" + entry.getValue() + "']='"
-                               + entry.getKey() + "'" );   // sic
+                        + "['" + entry.getKey() + "']='"
+                               + entry.getValue() + "'" );
         }
         lineList.add( "" );
 
@@ -333,8 +333,8 @@ public class JyStilts {
                                                          modeLines ) ) );
         }
 
-        /* Add special write method.  This is just an alias for mode_out. */
-        String[] writeLines = defMode( "write", "out" );
+        /* Add special write method. */
+        String[] writeLines = defWrite( "write" );
         lineList.addAll( Arrays.asList( prefixLines( "    ", writeLines ) ) );
 
         /* Return the source code lines. */
@@ -445,7 +445,12 @@ public class JyStilts {
                            + ".getInstance()"
                            + ".getFilterFactory()"
                            + ".createObject(\"" + filterNickName + "\")" );
-        lineList.add( "    sargs = [str(a) for a in args]" );
+        if ( hasUsage ) {
+            lineList.add( "    sargs = [str(a) for a in args]" );
+        }
+        else {
+            lineList.add( "    sargs = []" );
+        }
         lineList.add( "    argList = " + getImportName( ArrayList.class )
                                        + "(sargs)" );
         lineList.add( "    step = pfilt.createStep(argList.iterator())" );
@@ -475,12 +480,16 @@ public class JyStilts {
         for ( int ip = 0; ip < params.length; ip++ ) {
             Parameter param = params[ ip ];
             String name = param.getName();
+            if ( paramAliasMap_.containsKey( name ) ) {
+                param.setName( (String) paramAliasMap_.get( name ) );
+            }
+            String pname = param.getName();
             String sdflt = getDefaultString( param );
             if ( sdflt == null ) {
-                mandArgList.add( new Arg( param, name ) );
+                mandArgList.add( new Arg( param, pname ) );
             }
             else {
-                optArgList.add( new Arg( param, name + "=" + sdflt ) );
+                optArgList.add( new Arg( param, pname + "=" + sdflt ) );
             }
         }
 
@@ -561,9 +570,10 @@ public class JyStilts {
         for ( int ip = 0; ip < params.length; ip++ ) {
             Parameter param = params[ ip ];
             String name = param.getName();
-            String pname = paramAliasMap_.containsKey( name )
-                         ? (String) paramAliasMap_.get( name )
-                         : name;
+            if ( paramAliasMap_.containsKey( name ) ) {
+                param.setName( (String) paramAliasMap_.get( name ) );
+            }
+            String pname = param.getName();
             boolean byPos = false;
             int pos = param.getPosition();
             if ( pos > 0 ) {
@@ -641,6 +651,13 @@ public class JyStilts {
                                     + ".createObject('" + taskNickName + "')" );
         }
 
+        /* Rename parameters as required. */
+        lineList.add( "    for param in task.getParameters():" );
+        lineList.add( "        pname = param.getName()" );
+        lineList.add( "        if pname in " + paramAliasDictName_ + ":" );
+        lineList.add( "            param.setName(" + paramAliasDictName_
+                                                   + "[pname])" );
+
         /* Create the stilts execution environment. */
         if ( returnOutput ) {
             lineList.add( "    env = _jy_environment(grab_output=True)" );
@@ -650,22 +667,17 @@ public class JyStilts {
         }
 
         /* Populate the environment from the mandatory and optional arguments
-         * of the python function.  Watch out for aliased parameters. */
+         * of the python function.  */
         for ( Iterator it = mandArgList.iterator(); it.hasNext(); ) {
             Arg arg = (Arg) it.next();
             Parameter param = arg.param_;
             String name = param.getName();
-            String pname = paramAliasMap_.containsKey( name )
-                         ? (String) paramAliasMap_.get( name )
-                         : name;
             lineList.add( "    env.setValue('" + name + "', "
-                                          + "_map_env_value(" + pname + "))" );
+                                          + "_map_env_value(" + name + "))" );
         }
         lineList.add( "    for kw in kwargs.iteritems():" );
         lineList.add( "        key = kw[0]" );
         lineList.add( "        value = kw[1]" );
-        lineList.add( "        if key in " + paramAliasDictName_ + ":" );
-        lineList.add( "            key = " + paramAliasDictName_ + "[key]" );
         lineList.add( "        env.setValue(key, _map_env_value(value))" );
 
         /* For a consumer task, create a result table and return it. */
