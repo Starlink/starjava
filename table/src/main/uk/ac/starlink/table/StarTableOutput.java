@@ -4,6 +4,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -326,9 +327,16 @@ public class StarTableOutput {
      */
     public OutputStream getOutputStream( String location ) throws IOException {
 
-        /* Single minus sign indicates standard output. */
+        /* Single minus sign indicates standard output.
+         * Wrap it so that a close has no effect, since it is not generally
+         * healthy to close stdout. */
         if ( location.equals( "-" ) ) {
-            return System.out;
+            final OutputStream out = System.out;
+            return new FilterOutputStream( out ) {
+                public void close() throws IOException {
+                    out.flush();
+                }
+            };
         }
 
         /* Try to interpret it as a URL. */
