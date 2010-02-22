@@ -11803,6 +11803,7 @@ Some of the notable contributers are these:
 <li>Mike Read (ROE)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
+<li>Simon Murphy (ANU)</li>
 </ul>
 </p>
 
@@ -13513,6 +13514,8 @@ introduced since the last version:
     <li>Fix minor scrolling bug in table and column windows.</li>
     <li>Fix histogram save/export bug: the exported table now has the same 
         X bounds as the currently displayed histogram.</li>
+    <li>MacOS icons improved: thanks to Simon Murphy (ANU)
+        for this contribution.</li>
     </ul>
     </p></dd>
 
