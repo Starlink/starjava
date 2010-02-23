@@ -27,9 +27,15 @@ import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.ttools.task.AbstractInputTableParameter;
 import uk.ac.starlink.ttools.task.Calc;
 import uk.ac.starlink.ttools.task.ConsumerTask;
+import uk.ac.starlink.ttools.task.FilterParameter;
+import uk.ac.starlink.ttools.task.InputFormatParameter;
 import uk.ac.starlink.ttools.task.MapEnvironment;
+import uk.ac.starlink.ttools.task.OutputFormatParameter;
+import uk.ac.starlink.ttools.task.OutputTableParameter;
+import uk.ac.starlink.ttools.task.OutputModeParameter;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
 
@@ -159,8 +165,12 @@ public class JyStilts {
 
             /* WrapperStarTable implementation which is a python container. */
             "class RandomJyStarTable(JyStarTable):",
-            "    def __init__(self, base):",
-            "        JyStarTable.__init__(self, base)",
+            "    '''Extends the JyStarTable wrapper class for random access.",
+            "",
+            "    Instances of this class can be subscripted.",
+            "    '''",
+            "    def __init__(self, base_table):",
+            "        JyStarTable.__init__(self, base_table)",
             "    def __len__(self):",
             "        return int(self.getRowCount())",
             "    def __getitem__(self, key):",
@@ -306,10 +316,28 @@ public class JyStilts {
                                + getImportName( WrapperStarTable.class )
                                + "):" );
 
+        /* Doc string. */
+        lineList.add( "    '''StarTable wrapper class for use within Jython." );
+        lineList.add( "" );
+        lineList.add( "Decorates a " + StarTable.class.getName() );
+        lineList.add( "java object with methods for use within jython." );
+        lineList.add( "These include special bound functions to make it an" );
+        lineList.add( "iterable object (with items which are table rows)," );
+        lineList.add( "arithmetic + and * overloads for concatenation," );
+        lineList.add( "a write method for table viewing or output," );
+        lineList.add( "and methods representing STILTS filter functionality," );
+        lineList.add( "namely cmd_* methods for filters and mode_* methods" );
+        lineList.add( "for output modes." );
+        lineList.add( "" );
+        lineList.add( "As a general rule, any StarTable object which is" );
+        lineList.add( "intented for use by JyStilts program code should be" );
+        lineList.add( "wrapped in an instance of this class." );
+        lineList.add( "    '''" );
+
         /* Constructor. */
-        lineList.add( "    def __init__(self, base):" );
+        lineList.add( "    def __init__(self, base_table):" );
         lineList.add( "        " + getImportName( WrapperStarTable.class )
-                                 + ".__init__(self, base)" );
+                                 + ".__init__(self, base_table)" );
 
         /* Iterability. */
         lineList.add( "    def __iter__(self):" );
@@ -317,8 +345,8 @@ public class JyStilts {
 
         /* String conversion. */
         lineList.add( "    def __str__(self):" );
-        lineList.add( "        return '%s (?x%d) % "
-                               + "(self.getName(), self.getColumnCount())'" );
+        lineList.add( "        return '%s (?x%d)' % "
+                               + "(self.getName(), self.getColumnCount())" );
 
         /* Overload add/multiply arithmetic operators with concatenation
          * semantics. */
@@ -569,6 +597,28 @@ public class JyStilts {
         boolean returnOutput = task instanceof Calc;
         List lineList = new ArrayList();
 
+        /* Get a list of the task parameters omitting those which we
+         * don't want for jython purposes. */
+        List paramList = new ArrayList( Arrays.asList( task.getParameters() ) );
+        List shunnedList = new ArrayList();
+        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+            Parameter param = (Parameter) it.next();
+            if ( param instanceof AbstractInputTableParameter ) {
+                shunnedList.add( ((AbstractInputTableParameter) param)
+                                .getStreamParameter() );
+            }
+            if ( param instanceof FilterParameter ||
+                 param instanceof InputFormatParameter ||
+                 param instanceof OutputFormatParameter ||
+                 param instanceof OutputTableParameter ||
+                 param instanceof OutputModeParameter ) {
+                it.remove();
+            }
+        }
+        paramList.removeAll( shunnedList );
+        Parameter[] params =
+            (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+
         /* Get a list of mandatory and optional parameters which we will
          * declare as part of the python function definition. 
          * Currently, we refrain from declaring most of the optional
@@ -580,7 +630,6 @@ public class JyStilts {
          * tends to be just a few non-problematic an mandatory ones,
          * as well as any which have had their names aliased, so that
          * this is clear from the documentation. */
-        Parameter[] params = task.getParameters();
         List mandArgList = new ArrayList();
         List optArgList = new ArrayList();
         int iPos = 0;
