@@ -186,22 +186,38 @@ public class JyStilts {
             "",
 
             /* Execution environment implementation. */
-            "class _jy_environment(" + getImportName( MapEnvironment.class )
-                                     + "):",
+            "class _JyEnvironment(" + getImportName( MapEnvironment.class )
+                                    + "):",
             "    def __init__(self, grab_output=False):",
             "        " + getImportName( MapEnvironment.class )
                        + ".__init__(self)",
-            "        superobj = super(_jy_environment, self)",
+            "        superobj = super(_JyEnvironment, self)",
             "        if grab_output:",
             "            self._out = " + getImportName( MapEnvironment.class )
                                        + ".getOutputStream(self)",
             "        else:",
             "            self._out = " + getImportName( System.class ) + ".out",
             "        self._err = " + getImportName( System.class ) + ".err",
+            "        self._used = set()",
             "    def getOutputStream(self):",
             "        return self._out",
             "    def getErrorStream(self):",
             "        return self._err",
+            "    def acquireValue(self, param):",
+            "        " + getImportName( MapEnvironment.class )
+                       + ".acquireValue(self, param)",
+            "        self._used.add(param.getName())",
+            "    def getUnusedArgs(self):",
+            "        return set(self.getNames()).difference(self._used)",
+            "",
+
+            /* Utility to raise an error if some args in the environment
+             * were supplied but unused. */
+            "def _check_unused_args(env):",
+            "    names = env.getUnusedArgs()",
+            "    if (names):",
+            "        raise SyntaxError('Unused STILTS parameters %s' % "
+                               + "str(tuple([str(n) for n in names])))",
             "",
 
             /* Returns a StarTable with suitable python decoration. */
@@ -561,7 +577,7 @@ public class JyStilts {
         lineList.add( "'''" );
 
         /* Create and populate execution environment. */
-        lineList.add( "    env = _jy_environment()" );
+        lineList.add( "    env = _JyEnvironment()" );
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             Arg arg = (Arg) it.next();
             Parameter param = arg.param_;
@@ -575,6 +591,7 @@ public class JyStilts {
                               + ".getModeFactory()"
                               + ".createObject('" + modeNickName + "')" );
         lineList.add( "    consumer = mode.createConsumer(env)" );
+        lineList.add( "    _check_unused_args(env)" );
         lineList.add( "    consumer.consume(table)" );
 
         /* Return the source code lines. */
@@ -726,10 +743,10 @@ public class JyStilts {
 
         /* Create the stilts execution environment. */
         if ( returnOutput ) {
-            lineList.add( "    env = _jy_environment(grab_output=True)" );
+            lineList.add( "    env = _JyEnvironment(grab_output=True)" );
         }
         else {
-            lineList.add( "    env = _jy_environment()" );
+            lineList.add( "    env = _JyEnvironment()" );
         }
 
         /* Populate the environment from the mandatory and optional arguments
@@ -749,12 +766,15 @@ public class JyStilts {
         /* For a consumer task, create a result table and return it. */
         if ( isConsumer ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
+            lineList.add( "    _check_unused_args(env)" );
             lineList.add( "    return import_star_table(table)" );
         }
 
         /* Otherwise execute the task in the usual way. */
         else {
-            lineList.add( "    task.createExecutable(env).execute()" );
+            lineList.add( "    exe = task.createExecutable(env)" );
+            lineList.add( "    _check_unused_args(env)" );
+            lineList.add( "    exe.execute()" );
 
             /* If we're returning the output text, retrieve it from the
              * environment, tidy it up, and return it.  Otherwise, the
