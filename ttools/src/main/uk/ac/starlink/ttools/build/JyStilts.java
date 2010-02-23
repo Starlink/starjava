@@ -337,6 +337,14 @@ public class JyStilts {
                                                          modeLines ) ) );
         }
 
+        /* Add concatenation as overloaded addition. */
+        lineList.add( "    def __add__(self, other):" );
+        lineList.add( "        return tcat([self, other])" );
+        lineList.add( "    def __mul__(self, count):" );
+        lineList.add( "        return tcat([self] * count)" );
+        lineList.add( "    def __rmul__(self, count):" );
+        lineList.add( "        return tcat([self] * count)" );
+
         /* Add special write method. */
         String[] writeLines = defWrite( "write" );
         lineList.addAll( Arrays.asList( prefixLines( "    ", writeLines ) ) );
