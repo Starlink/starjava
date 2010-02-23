@@ -157,24 +157,10 @@ public class JyStilts {
             "            raise StopIteration",
             "",
 
-            /* WrapperStarTable implementation which is iterable in python. */
-            "class _iterable_star_table("
-                   + getImportName( WrapperStarTable.class )
-                   + ", jy_star_table):",
-            "    def __init__(self, base):",
-            "        " + getImportName( WrapperStarTable.class )
-                       + ".__init__(self, base)",
-            "    def __iter__(self):",
-            "        return _row_iterator(self.getRowSequence())",
-            "    def __str__(self):",
-            "        return str(self.getName())"
-                          + " + '(?x' + str(self.getColumnCount()) + ')'",
-            "",
-
             /* WrapperStarTable implementation which is a python container. */
-            "class _random_star_table(_iterable_star_table):",
+            "class RandomJyStarTable(JyStarTable):",
             "    def __init__(self, base):",
-            "        _iterable_star_table.__init__(self, base)",
+            "        JyStarTable.__init__(self, base)",
             "    def __len__(self):",
             "        return int(self.getRowCount())",
             "    def __getitem__(self, key):",
@@ -218,12 +204,14 @@ public class JyStilts {
             "    decorations useful in a python environment.",
             "    This includes stilts cmd_* and mode_* methods, as well as",
             "    python-friendly standard methods to make it behave as an",
-            "    iterable, and where possible a container, of data rows.",
+            "    iterable, and where possible a container, of data rows,",
+            "    and overloaded addition and multiplication operators",
+            "    with the semantics of concatenation.",
             "    '''",
             "    if table.isRandom():",
-            "        return _random_star_table(table)",
+            "        return RandomJyStarTable(table)",
             "    else:",
-            "        return _iterable_star_table(table)",
+            "        return JyStarTable(table)",
             "",
 
             /* Takes a python value and returns a value suitable for passing
@@ -314,7 +302,36 @@ public class JyStilts {
     private String[] defTableClass( String cname )
             throws LoadException, SAXException {
         List lineList = new ArrayList();
-        lineList.add( "class " + cname + "(object):" );
+        lineList.add( "class " + cname + "("
+                               + getImportName( WrapperStarTable.class )
+                               + "):" );
+
+        /* Constructor. */
+        lineList.add( "    def __init__(self, base):" );
+        lineList.add( "        " + getImportName( WrapperStarTable.class )
+                                 + ".__init__(self, base)" );
+
+        /* Iterability. */
+        lineList.add( "    def __iter__(self):" );
+        lineList.add( "        return _row_iterator(self.getRowSequence())" );
+
+        /* String conversion. */
+        lineList.add( "    def __str__(self):" );
+        lineList.add( "        return '%s (?x%d) % "
+                               + "(self.getName(), self.getColumnCount())'" );
+
+        /* Overload add/multiply arithmetic operators with concatenation
+         * semantics. */
+        lineList.add( "    def __add__(self, other):" );
+        lineList.add( "        return tcat([self, other])" );
+        lineList.add( "    def __mul__(self, count):" );
+        lineList.add( "        return tcat([self] * count)" );
+        lineList.add( "    def __rmul__(self, count):" );
+        lineList.add( "        return tcat([self] * count)" );
+
+        /* Add special write method. */
+        String[] writeLines = defWrite( "write" );
+        lineList.addAll( Arrays.asList( prefixLines( "    ", writeLines ) ) );
 
         /* Add filters as methods. */
         ObjectFactory filterFactory =
@@ -336,18 +353,6 @@ public class JyStilts {
             lineList.addAll( Arrays.asList( prefixLines( "    ",
                                                          modeLines ) ) );
         }
-
-        /* Add concatenation as overloaded addition. */
-        lineList.add( "    def __add__(self, other):" );
-        lineList.add( "        return tcat([self, other])" );
-        lineList.add( "    def __mul__(self, count):" );
-        lineList.add( "        return tcat([self] * count)" );
-        lineList.add( "    def __rmul__(self, count):" );
-        lineList.add( "        return tcat([self] * count)" );
-
-        /* Add special write method. */
-        String[] writeLines = defWrite( "write" );
-        lineList.addAll( Arrays.asList( prefixLines( "    ", writeLines ) ) );
 
         /* Return the source code lines. */
         return (String[]) lineList.toArray( new String[ 0 ] );
@@ -851,7 +856,7 @@ public class JyStilts {
             throws IOException, LoadException, SAXException {
         writeLines( header(), writer );
         writeLines( imports(), writer );
-        writeLines( defTableClass( "jy_star_table" ), writer );
+        writeLines( defTableClass( "JyStarTable" ), writer );
         writeLines( defUtils(), writer );
         writeLines( defVersionCheck(), writer );
         writeLines( defRead( "tread" ), writer );
