@@ -56,8 +56,9 @@ public class Calc implements Task {
             "its only purpose is to allow use of constant expressions",
             "(table parameters) associated with the table.",
             "These can be referenced using identifiers of the form",
-            "<code>" + StarTableJELRowReader.PARAM_PREFIX + "*</code> or",
-            "<code>" + StarTableJELRowReader.UCD_PREFIX + "*</code> -",
+            "<code>" + StarTableJELRowReader.PARAM_PREFIX + "*</code>,",
+            "<code>" + StarTableJELRowReader.UCD_PREFIX + "*</code> or",
+            "<code>" + StarTableJELRowReader.UTYPE_PREFIX + "*</code> -",
             "see <ref id='jel-paramref'/> for more detail.",
             "</p>",
         } );
