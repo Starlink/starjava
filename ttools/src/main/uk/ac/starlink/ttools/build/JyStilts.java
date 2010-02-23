@@ -32,6 +32,8 @@ import uk.ac.starlink.ttools.task.Calc;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputFormatParameter;
+import uk.ac.starlink.ttools.task.InputTableParameter;
+import uk.ac.starlink.ttools.task.InputTablesParameter;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
@@ -623,6 +625,12 @@ public class JyStilts {
             if ( param instanceof AbstractInputTableParameter ) {
                 shunnedList.add( ((AbstractInputTableParameter) param)
                                 .getStreamParameter() );
+            }
+            if ( param instanceof InputTableParameter ) {
+                param.setDescription( "<p>Input table.</p>" );
+            }
+            else if ( param instanceof InputTablesParameter ) {
+                param.setDescription( "<p>Array of input tables.</p>" );
             }
             if ( param instanceof FilterParameter ||
                  param instanceof InputFormatParameter ||
