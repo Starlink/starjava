@@ -178,7 +178,11 @@ public class JyStilts {
             "    def __len__(self):",
             "        return int(self.getRowCount())",
             "    def __getitem__(self, key):",
-            "        return self.getRow(key)",
+            "        if isinstance(key, slice):",
+            "            indices = key.indices(len(self))",
+            "            return [self.getRow(i) for i in range(*indices)]",
+            "        else:",
+            "            return self.getRow(key)",
             "    def __str__(self):",
             "        return str(self.getName())"
                           + " + '(' + str(self.getRowCount()) + 'x'"
