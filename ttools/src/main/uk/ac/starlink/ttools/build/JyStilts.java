@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.build;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -64,6 +66,7 @@ public class JyStilts {
         java.lang.System.class,
         java.lang.reflect.Array.class,
         java.util.ArrayList.class,
+        uk.ac.starlink.table.ColumnInfo.class,
         uk.ac.starlink.table.StarTable.class,
         uk.ac.starlink.table.StarTableFactory.class,
         uk.ac.starlink.table.StarTableOutput.class,
@@ -185,6 +188,15 @@ public class JyStilts {
             "        return str(self.getName())"
                           + " + '(' + str(self.getRowCount()) + 'x'"
                           + " + str(self.getColumnCount()) + ')'",
+            "",
+
+            /* Wrapper ColumnInfo implementation with some pythonic knobs on. */
+            "class _JyColumnInfo(" + getImportName( ColumnInfo.class ) + "):",
+            "    def __init__(self, base):",
+            "        " + getImportName( ColumnInfo.class )
+                       + ".__init__(self, base)",
+            "    def __str__(self):",
+            "        return self.getName()",
             "",
 
             /* Execution environment implementation. */
@@ -356,6 +368,7 @@ public class JyStilts {
         lineList.add( "    def __init__(self, base_table):" );
         lineList.add( "        " + getImportName( WrapperStarTable.class )
                                  + ".__init__(self, base_table)" );
+        lineList.add( "        self._columns = None" );
 
         /* Iterability. */
         lineList.add( "    def __iter__(self):" );
@@ -374,6 +387,18 @@ public class JyStilts {
         lineList.add( "        return tcat([self] * count)" );
         lineList.add( "    def __rmul__(self, count):" );
         lineList.add( "        return tcat([self] * count)" );
+
+        /* Add column tuple access method. */
+        lineList.add( "    def columns(self):" );
+        lineList.add( "        '''Returns a tuple of ColumnInfo objects"
+                               + " describing the columns of this table.'''" );
+        lineList.add( "        if self._columns is None:" );
+        lineList.add( "            col_list = []" );
+        lineList.add( "            for i in xrange(self.getColumnCount()):" );
+        lineList.add( "                col_list.append(_JyColumnInfo("
+                                                 + "self.getColumnInfo(i)))" );
+        lineList.add( "            self._columns = tuple(col_list)" );
+        lineList.add( "        return self._columns" );
 
         /* Add special write method. */
         String[] writeLines = defWrite( "write" );
@@ -977,7 +1002,8 @@ public class JyStilts {
     public static void main( String[] args )
             throws IOException, LoadException, SAXException {
         new JyStilts( new Stilts() )
-           .writeModule( new OutputStreamWriter( System.out ) );
+           .writeModule( new OutputStreamWriter(
+                             new BufferedOutputStream( System.out ) ) );
     }
 
     /**
