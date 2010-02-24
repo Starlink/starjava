@@ -159,11 +159,12 @@ public class JyStilts {
 
             /* Row iterator class used for providing iterability in tables. */
             "class _row_iterator(object):",
-            "    def __init__(self, rowseq):",
+            "    def __init__(self, rowseq, table):",
             "        self.rowseq = rowseq",
+            "        self.table = table",
             "    def next(self):",
             "        if self.rowseq.next():",
-            "            return self.rowseq.getRow()",
+            "            return self.table._create_row(self.rowseq.getRow())",
             "        else:",
             "            raise StopIteration",
             "",
@@ -181,11 +182,13 @@ public class JyStilts {
             "    def __getitem__(self, key):",
             "        if isinstance(key, slice):",
             "            indices = key.indices(len(self))",
-            "            return [self.getRow(i) for i in range(*indices)]",
+            "            return [self._create_row(self.getRow(i)) "
+                              + "for i in range(*indices)]",
             "        elif key < 0:",
-            "            return self.getRow(self.getRowCount() + key)",
+            "            irow = self.getRowCount() + key",
+            "            return self._create_row(self.getRow(irow))",
             "        else:",
-            "            return self.getRow(key)",
+            "            return self._create_row(self.getRow(key))",
             "    def __str__(self):",
             "        return str(self.getName())"
                           + " + '(' + str(self.getRowCount()) + 'x'"
@@ -199,6 +202,18 @@ public class JyStilts {
                        + ".__init__(self, base)",
             "    def __str__(self):",
             "        return self.getName()",
+            "",
+
+            /* Wrapper row class. */
+            "class _JyRow(tuple):",
+            "    def __init__(self, array):",
+            "        tuple.__init__(self, array)",
+            "    def __getitem__(self, key):",
+            "        try:",
+            "            return tuple.__getitem__(self, key)",
+            "        except TypeError:", 
+            "            icol = self.table._column_index(key)",
+            "            return tuple.__getitem__(self, icol)",
             "",
 
             /* Execution environment implementation. */
@@ -370,11 +385,11 @@ public class JyStilts {
         lineList.add( "    def __init__(self, base_table):" );
         lineList.add( "        " + getImportName( WrapperStarTable.class )
                                  + ".__init__(self, base_table)" );
-        lineList.add( "        self._columns = None" );
 
         /* Iterability. */
         lineList.add( "    def __iter__(self):" );
-        lineList.add( "        return _row_iterator(self.getRowSequence())" );
+        lineList.add( "        return _row_iterator(self.getRowSequence(), "
+                                                 + "self)" );
 
         /* String conversion. */
         lineList.add( "    def __str__(self):" );
@@ -394,13 +409,39 @@ public class JyStilts {
         lineList.add( "    def columns(self):" );
         lineList.add( "        '''Returns a tuple of ColumnInfo objects"
                                + " describing the columns of this table.'''" );
-        lineList.add( "        if self._columns is None:" );
+        lineList.add( "        try:" );
+        lineList.add( "            return self._columns" );
+        lineList.add( "        except AttributeError:" );
         lineList.add( "            col_list = []" );
         lineList.add( "            for i in xrange(self.getColumnCount()):" );
         lineList.add( "                col_list.append(_JyColumnInfo("
                                                  + "self.getColumnInfo(i)))" );
         lineList.add( "            self._columns = tuple(col_list)" );
-        lineList.add( "        return self._columns" );
+        lineList.add( "            return self.columns()" );
+
+        /* Add row wrapper. */
+        lineList.add( "    def _create_row(self, array):" );
+        lineList.add( "        row = _JyRow(array)" );
+        lineList.add( "        row.table = self" );
+        lineList.add( "        return row" );
+        lineList.add( "    def _column_index(self, key):" );
+        lineList.add( "        try:" );
+        lineList.add( "            colmap = self._colmap" );
+        lineList.add( "        except AttributeError:" );
+        lineList.add( "            colmap = {}" );
+        lineList.add( "            icol = 0" );
+        lineList.add( "            for col in reversed(self.columns()):" );
+        lineList.add( "                colmap[col] = icol" );
+        lineList.add( "                colmap[col.getName()] = icol" );
+        lineList.add( "                icol += 1" );
+        lineList.add( "            self._colmap = colmap" );
+        lineList.add( "            return self._column_index(key)" );
+        lineList.add( "        else:" );
+        lineList.add( "            try:" );
+        lineList.add( "                return colmap[key]" );
+        lineList.add( "            except KeyError:" );
+        lineList.add( "                raise TypeError('No such column %s' "
+                                                    + "% key)" );
 
         /* Add special write method. */
         String[] writeLines = defWrite( "write", true );
