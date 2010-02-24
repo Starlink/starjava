@@ -182,6 +182,8 @@ public class JyStilts {
             "        if isinstance(key, slice):",
             "            indices = key.indices(len(self))",
             "            return [self.getRow(i) for i in range(*indices)]",
+            "        elif key < 0:",
+            "            return self.getRow(self.getRowCount() + key)",
             "        else:",
             "            return self.getRow(key)",
             "    def __str__(self):",
@@ -401,7 +403,7 @@ public class JyStilts {
         lineList.add( "        return self._columns" );
 
         /* Add special write method. */
-        String[] writeLines = defWrite( "write" );
+        String[] writeLines = defWrite( "write", true );
         lineList.addAll( Arrays.asList( prefixLines( "    ", writeLines ) ) );
 
         /* Add filters as methods. */
@@ -436,42 +438,63 @@ public class JyStilts {
      * @return  python source code lines
      */
     private String[] defRead( String fname ) {
-        return new String[] {
-            "def " + fname + "(location, fmt='(auto)', random=False):",
-            "    '''Reads a table from a file or URL.",
-            "",
-            "    If the table is FITS or VOTable format, only the location",
-            "    needs to be supplied.  Otherwise, the fmt argument must",
-            "    give the file format.",
-            "    The random argument determines whether random access is",
-            "    required for the table.  Setting it true may improve",
-            "    efficiency, but perhaps at the cost of memory usage and",
-            "    load time for large tables.",
-            "",
-            "    The result of the function is a JyStilts table object.",
-            "    '''",
-            "    table = " + getImportName( StarTableFactory.class )
-                           + "(random)"
-                           + ".makeStarTable(location, fmt)",
-            "    return import_star_table(table)",
-        };
+        List lineList = new ArrayList();
+        lineList.add( "def " + fname
+                             + "(location, fmt='(auto)', random=False):" );
+        lineList.add( "    '''Reads a table from a file or URL." );
+        lineList.add( "" );
+        lineList.add( "    The random argument determines whether random "
+                        + "access is required" );
+        lineList.add( "    for the table." );
+        lineList.add( "    Setting it true may improve efficiency, " 
+                        + "but perhaps at the cost" );
+        lineList.add( "    of memory usage and load time for large tables." );
+        lineList.add( "" );
+        lineList.add( "    The fmt argument must be supplied if "
+                        + "the table format cannot" );
+        lineList.add( "    be auto-detected." );
+        lineList.add( "" );
+        String fmtInfo = new InputFormatParameter( "location" )
+                        .getExtraUsage( new MapEnvironment() );
+        lineList.addAll( Arrays.asList( prefixLines( " ", fmtInfo ) ) );
+        lineList.add( "" );
+        lineList.add( "    The result of the function is a "
+                        + "JyStilts table object." );
+        lineList.add(  "    '''" );
+        lineList.add( "    table = " + getImportName( StarTableFactory.class )
+                                     + "(random)"
+                                     + ".makeStarTable(location, fmt)" );
+        lineList.add( "    return import_star_table(table)" );
+        return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
     /**
      * Generates python source defining the table write function.
      *
      * @param  fname  name of function
+     * @param  isBound  true for a bound method, false for a standalone function
      * @return  python source code lines
      */
-    private String[] defWrite( String fname ) {
-        return new String[] {
-            "def " + fname + "(table, location=None, fmt=None):",
-            "    '''Writes a table to a file.'''",
-            "    if location is None:",
-            "        location = '-'",
-            "    " + getImportName( StarTableOutput.class ) + "()"
-                   + ".writeStarTable(table, location, fmt)",
-        };
+    private String[] defWrite( String fname, boolean isBound ) {
+        String tArgName = isBound ? "self" : "table";
+        List lineList = new ArrayList();
+        lineList.add( "def " + fname + "(" + tArgName
+                                     + ", location=None, fmt='(auto)'):" );
+        lineList.add( "    '''Writes table to a file." );
+        lineList.add( "" );
+        lineList.add( "    The location parameter usually gives a filename;" );
+        lineList.add( "    if it is not supplied, standard output is used." );
+        lineList.add( "" );
+        lineList.add( "    The fmt parameter specifies output format." );
+        String fmtInfo = new OutputFormatParameter( "out" )
+                        .getExtraUsage( new MapEnvironment() );
+        lineList.addAll( Arrays.asList( prefixLines( " ", fmtInfo ) ) );
+        lineList.add( "    '''" );
+        lineList.add( "    if location is None:" );
+        lineList.add( "        location = '-'" );
+        lineList.add( "    " + getImportName( StarTableOutput.class ) + "()"
+                      + ".writeStarTable(" + tArgName + ", location, fmt)" );
+        return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -970,7 +993,7 @@ public class JyStilts {
         writeLines( defUtils(), writer );
         writeLines( defVersionCheck(), writer );
         writeLines( defRead( "tread" ), writer );
-        writeLines( defWrite( "twrite" ), writer );
+        writeLines( defWrite( "twrite", false ), writer );
         writeLines( defFilter( "tfilter" ), writer );
 
         /* Write task wrappers. */
