@@ -13,6 +13,8 @@
 
   <!-- Define external URLs. -->
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
+  <!ENTITY URL.STIL_JAVADOCS
+           "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
 
   <!ENTITY flag-verbose '
      <dt><code>-v[erbose]</code></dt>
@@ -994,12 +996,13 @@ from a shell script, with intermediate results stored in files.
 </p>
 
 <p>However, it is also possible to invoke STILTS commands from within
-the Jython environment.
-Jython is a pure-java implementation of the Python language.
-Using it is almost exactly the same as using the C-based Python,
+the <webref url="http://www.jython.org/">Jython</webref> environment.
+Jython is a pure-java implementation of the widely-used
+<webref url="http://www.python.org/">Python</webref> scripting language.
+Using it is almost exactly the same as using the more usual C-based Python,
 except that it is not possible to use extensions which use C code.
 This means that if you are familiar with Python programming,
-it's very easy to string STILTS commands together in Jython.
+it is very easy to string STILTS commands together in Jython.
 </p>
 
 <p>This approach has several advantages over the conventional command-line
@@ -1017,11 +1020,10 @@ usage:
     once when entering jython, not once for every STILTS command</li>
 </ul>
 Note however that you will <em>not</em> be able to introduce JyStilts
-commands into your larger existing Python programs if they rely on
+commands into your larger existing Python programs if those rely on
 C-based extensions, such as NumPy and SciPy, since JyStilts will only
 run in JPython, while C-based extensions will only run in CPython.
 </p>
-
 
 <p>Usage from jython has syntax which is similar to command-line STILTS,
 but with a few changes.
@@ -1029,20 +1031,20 @@ The following functions are defined by JyStilts:
 <ul>
 <li>Table I/O functions <code>tread</code> and <code>twrite</code>
     </li>
-<li>One function for each STILTS <ref id="cmdUsage">command</ref> 
+<li>A function for each STILTS <ref id="cmdUsage">task</ref> 
     (e.g. <code>tmatch2</code>, <code>tcat</code>, <code>plot2d</code>)
     </li>
-<li>One function for each STILTS <ref id="filterSteps">filter</ref>
+<li>A table method for each STILTS <ref id="filterSteps">filter</ref>
     (e.g. <code>cmd_head</code>, <code>cmd_select</code>,
           <code>cmd_addcol</code>),
     available as unbound functions or table object methods
     </li>
-<li>One function for each STILTS <ref id="outModes">output mode</ref>
+<li>A table method for each STILTS <ref id="outModes">output mode</ref>
     (e.g. <code>mode_out</code>, <code>mode_meta</code>,
           <code>mode_samp</code>),
     available as unbound functions or table object methods
     </li>
-<li>A number of methods which make table objects integrate nicely into
+<li>A number of table methods which make table objects integrate nicely into
     the python environment</li>
 </ul>
 Reasonably detailed documentation for these is provided in the 
@@ -1060,69 +1062,63 @@ A typical sequence will involve:
 <li>Reading one or more tables from file using
     the <code>tread</code> function</li>
 <li>Perhaps filtering the input table(s) using one or more of the 
-    <code>cmd_*</code> filter functions</li>
+    <code>cmd_*</code> filter methods</li>
 <li>Performing core processing such as crossmatching</li>
 <li>Perhaps filtering the result using one or more of the
-    <code>cmd_*</code> filter functions</li>
+    <code>cmd_*</code> filter methods</li>
 <li>If running interactively, perhaps examining the intermediate results
     using one of the <code>mode_*</code> output modes</li>
-<li>Writing the final result to a file using
-    the <code>twrite</code> function or table <code>write</code> method</li>
+<li>Writing the final result to a file using the <code>write</code> method</li>
 </ol>
 </p>
 
 <p>Here is an example command line invocation for crossmatching two tables:
 <verbatim>
-stilts tskymatch2 in1=survey.fits \
-                  icmd1='addskycoords fk4 fk5 RA1950 DEC1950 RA2000 DEC2000' \
-                  in2=mycat.csv ifmt2=csv \
-                  icmd2='select VMAG>18' \
-                  ra1=ALPHA dec1=DELTA ra2=RA2000 dec2=DEC2000 \
-                  error=10 join=2not1 \
-                  out=matched.fits
+   stilts tskymatch2 in1=survey.fits \
+                     icmd1='addskycoords fk4 fk5 RA1950 DEC1950 RA2000 DEC2000' \
+                     in2=mycat.csv ifmt2=csv \
+                     icmd2='select VMAG>18' \
+                     ra1=ALPHA dec1=DELTA ra2=RA2000 dec2=DEC2000 \
+                     error=10 join=2not1 \
+                     out=matched.fits
 </verbatim>
-and here is what it looks like in JyStilts:
+and here is what it might look like in JyStilts:
 <verbatim><![CDATA[
->>> from stilts import *
->>> t1 = tread('survey.fits')
->>> t1 = cmd_addskycoords(t1, 'fk4', 'fk5',
-...                           'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
->>> t2 = tread('mycat.csv', 'csv')
->>> tm = skymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA',
-...                error=10, join='2not1')
->>> twrite(tm, 'matched.fits')
+   >>> import stilts
+   >>> t1 = stilts.tread('survey.fits')
+   >>> t1 = t1.cmd_addskycoords(t1, 'fk4', 'fk5', 'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
+   >>> t2 = tread('mycat.csv', 'csv')
+   >>> t2 = t2.cmd_select('VMAG>18')
+   >>> tm = skymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA', error=10, join='2not1')
+   >>> tm.write('matched.fits')
 ]]></verbatim>
-Alternatively you can do the same thing using the "bound function"
-(object method) flavour of the same functions, like this:
-<verbatim><![CDATA[
->>> t1 = tread('survey.fits') \
-...     .cmd_addskycoords(t1, 'fk4', 'fk5',
-...                       'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
->>> t2 = tread('mycat.csv', 'csv')
->>> tm = skymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA',
-...                error=10, join='2not1')
->>> tm.write('matched.fits')
-]]></verbatim>
-It's just a matter of personal taste which form you use.
-However, it can be easier to string many filtering commands together
-using the second form.
 </p>
 
 <p>When running interactively, it can be convenient to examine the intermediate
 results before processing or writing as well, for instance:
 <verbatim><![CDATA[
->>> tm.mode_count()
-columns: 19   rows: 2102
->>> tm.cmd_keepcols('ID ALPHA DELTA').cmd_head(4).write()
-+--------+---------------+-----------+
-| ID     | ALPHA         | DELTA     |
-+--------+---------------+-----------+
-| 262    | 149.82439     | -0.11249  |
-| 263    | 150.14438     | -0.11785  |
-| 265    | 149.92944     | -0.11667  |
-| 273    | 149.93185     | -0.12566  |
-+--------+-----------------+---------+
+   >>> tm.mode_count()
+   columns: 19   rows: 2102
+   >>> tm.cmd_keepcols('ID ALPHA DELTA').cmd_head(4).write()
+   +--------+---------------+-----------+
+   | ID     | ALPHA         | DELTA     |
+   +--------+---------------+-----------+
+   | 262    | 149.82439     | -0.11249  |
+   | 263    | 150.14438     | -0.11785  |
+   | 265    | 149.92944     | -0.11667  |
+   | 273    | 149.93185     | -0.12566  |
+   +--------+-----------------+---------+
 ]]></verbatim>
+</p>
+
+<p>To use JyStilts, you just need to start jython with the 
+<code>stilts.jar</code> file on your classpath.
+ will need the <code>stilts.py</code> file to
+be on your python import path (in a directory identified by your
+PYTHONPATH environment variable or <code>sys.path</code> list),
+and the <code>stilts.jar</code> jar file to be on your java classpath,
+and you will need to do "<code>import stilts</code>" or some similar
+import command from Jython.
 </p>
 
 <p>Some more detail about the JyStilts usage is given in the following
@@ -1138,7 +1134,7 @@ subsections.
 which can be interrogated directly, or used in other JyStilts commands.
 </p>
 
-<p>As for command-line STILTS, the file format to use for input/output
+<p>As with command-line STILTS, the file format to use for input/output
 (the optional <code>fmt</code> parameter for both commands)
 is necessary in general, but can be omitted if the format can be guessed;
 in the case of input if the file is VOTable or FITS, and in the case of
@@ -1147,11 +1143,11 @@ output if the file name has a suitable extension.
 
 <p>You can read a table in like this:
 <verbatim><![CDATA[
->>> t1 = tread('cat.fits')
+   >>> t1 = tread('cat.fits')
 ]]></verbatim>
 or, for a file in a non-auto-detectable format (neither FITS nor VOTable):
 <verbatim><![CDATA[
->>> t2 = tread('data.csv', fmt='csv', random=True)
+   >>> t2 = tread('data.csv', fmt='csv', random=True)
 ]]></verbatim>
 the "<code>random=True</code>" in this example 
 is an optional parameter which ensures that
@@ -1164,16 +1160,16 @@ be accessed in sequence.
 <p>You can write a table (presumably the result of one or a sequence of
 JyStilts commands) to a file like this:
 <verbatim><![CDATA[
->>> twrite(t1, 'out.fits')
+   >>> twrite(t1, 'out.fits')
 ]]></verbatim>
 or, to force a particular table output format, this
 <verbatim><![CDATA[
->>> twrite(t1, 'out.csv', format='csv')
+   >>> twrite(t1, 'out.csv', format='csv')
 ]]></verbatim>
 If you omit the <code>location</code> argument the table will be written
 to standard output.  This allows you to examine its content, for instance:
 <verbatim><![CDATA[
->>> twrite(t1)
+   >>> twrite(t1)
 ]]></verbatim>
 </p>
 
@@ -1184,84 +1180,143 @@ to standard output.  This allows you to examine its content, for instance:
 <subsect id="jytable">
 <subhead><title>Table objects</title></subhead>
 
-<p>The tables read by the <code>tread</code> function are in Python terms
-<em>iterable</em> and in some cases (if random access) and to some extent, 
-<em>sequences</em>.
-In both cases, the items are rows, and each row is an array of the
-cell values.
-The "<code>+</code>" and "<code>*</code>" operators can be used with
-sematics of concatenation, so that "<code>t1+t2</code>" will result in 
-a table which has all the rows of table t1 followed by all the rows of t2,
-and "<code>t1*3</code>" results in a table three times the length of
-t1, with all the rows repeated three times.  Note that the tables to
-be concatenated must have compatible column types in this case.
+<p>The tables read by the <code>tread</code> function and produced
+by operating on them within JyStilts have a number of methods
+(bound functions) defined on them.
+These are explained below.
 </p>
 
-<p>Tables are also instances of the 
-<webref url="http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/StarTable.html"
-        >StarTable</webref>
+<p>First, a number of special methods are defined which allow a table to
+behave in python like a sequence of rows:
+<dl>
+<dt><code>__iter__</code></dt>
+<dd><p>This special method means that the table can be treated as an
+    <em>iterable</em>, so that for instance
+    "<code>for row in table:</code>" will iterate over all rows.
+    </p></dd>
+<dt><code>__len__</code> <em>(random-access tables only)</em></dt>
+<dd><p>This special method means that you can use the expression
+    "<code>len(table)</code>" to count the number of rows.
+    This method is not available for tables with sequential access only.
+    </p></dd>
+<dt><code>__getitem__</code> <em>(random-access tables only)</em></dt>
+<dd><p>Returns a row at a given index in the table.
+    This special method means that you can use indexing expressions like
+    "<code>table[3]</code>" or <code>table[0:10]</code> to obtain the
+    row or rows corresponding to a given row index or slice.
+    This method is not available for tables with sequential access only.
+    </p></dd>
+<dt><code>__add__</code>, <code>__mul__</code>, <code>__rmul__</code></dt>
+<dd><p>These special methods allow the addition and multiplication 
+    operators "<code>+</code>" and and "<code>*</code>" to be used with
+    the sense of concatenation.
+    Thus "<code>table1+table2</code>" will produce a new table with the
+    rows of <code>table1</code> followed by the rows of <code>table2</code>.
+    Note this will only work if both tables have compatible columns.
+    Similarly "<code>table*3</code>" would produce a table like
+    <code>table</code> but with all its rows repeated three times.
+    </p></dd>
+</dl>
+In all of these cases, each row object that is accessed is a tuple
+of the column values for that row of the table.
+The tuple items (table cells) may be accessed using a key which is
+a numeric index or slice in the usual way,
+or with a key which is a column name, or one of the ColumnInfo objects
+returned by <code>columns()</code>.
+</p>
+
+<p>Second, a few additional utility methods are defined:
+<dl>
+<dt><code>columns()</code></dt>
+<dd><p>Returns a tuple of the column descriptors for the table.
+    Each item in the tuple is an instance of the
+    <webref url="&URL.STIL_JAVADOCS;ColumnInfo.html">ColumnInfo</webref> class;
+    useful methods include <code>getName()</code>,
+    <code>getUnitString()</code>, <code>getUCD()</code>.
+    <code>str(column)</code> will return its name.
+    </p></dd>
+<dt><code>parameters()</code></dt>
+<dd><p>Returns a name to value mapping of the table parameters
+    (per-table metadata).
+    This does not include all the available information about those
+    parameters, for instance unit and UCD information is not included.
+    For more detailed information, use the <code>StarTable</code> methods.
+    Note that as currently implemented, changing the values in the
+    returned mapping will not change the actual table parameter values.
+    </p></dd>
+<dt><code>write(location=None, fmt=None)</code></dt>
+<dd><p>Outputs the table.
+    The optional <code>location</code> argument gives a filename,
+    and the optional <code>fmt</code> argument gives a format, one of
+    the options listed in <ref id="inFormats"/>.
+    If <code>location</code> is not supplied, output is to standard output,
+    so in an interactive session it will be printed to the terminal.
+    If <code>fmt</code> is not supplied, an attempt will be made to guess
+    a suitable format based on the location.
+    </p></dd>
+</dl>
+</p>
+
+<p>Third, a set of <code>cmd_*</code> methods corresponding to the
+STILTS filters are available;
+these are described in <ref id="jyfilter"/>.
+</p>
+
+<p>Fourth, a set of <code>mode_*</code> methods corresponding to the
+STILTS output modes are available;
+these are described in <ref id="jymode"/>.
+</p>
+
+<p>Finally, tables are also instances of the 
+<webref url="&URL.STIL_JAVADOCS;StarTable.html">StarTable</webref>
 interface defined by
 <webref url="http://www.starlink.ac.uk/stil/">STIL</webref>,
 which is the table I/O layer underlying STILTS.
 The full documentation can be found in the user manual and javadocs
-on the STIL page, but the following are some useful tips:
-<ul>
-<li>to get the number or rows, use <code>t.getRowCount()</code>
-    (for random access tables only)</li>
-<li>to get the number of columns, use <code>t.getColumnCount()</code></li>
-<li>to get the name (may or may not be filename),
-    use <code>t.getName()</code></li>
-<li>to get a cell value (for random access tables only),
-    use <code>t.getCell(irow,icol)</code> or <code>t[irow][icol]</code></li>
-<li>to get a column name, use <code>t.getColumnInfo(icol).getName()</code></li>
-</ul>
-and these examples show them in action:
-<verbatim><![CDATA[
->>> import stilts
->>> xsc = stilts.tread('/data/table/2mass_xsc.xml')   # read table
->>> print xsc.getName()                               # print name
-2MASS-extended-source
->>> print(xsc.getColumnCount())                       # count columns
-28
->>> print(xsc.getRowCount())                          # count rows
-1646844
->>> for ic in xrange(6):                              # examine column names
-...     print str(ic) + ": " + xsc.getColumnInfo(ic).getName()
-... 
-0: designation
-1: ra
-2: dec
-3: j_m_k20fe
-4: h_m_k20fe
-5: k_m_k20fe
->>> print(xsc[0][0:2])                # examine some data in first row
-array(java.lang.Object, [u'11591855+2945538', 179.827316, 29.764957])
->>> for row in xsc:                   # select rows using python commands
-...     if row[4] - row[3] > 3.0:
-...         print row[0]
-... 
-11165243+2925509
-20491597+5119089
-04330238+0858101
-01182715-1013248
-11244075+5218078
->>>                                   # do the same thing using stilts (faster)
->>> xsc.cmd_select('h_m_k20fe - j_m_k20fe > 3.0').cmd_keepcols('designation').write()
-+------------------+
-| designation      |
-+------------------+
-| 11165243+2925509 |
-| 20491597+5119089 |
-| 04330238+0858101 |
-| 01182715-1013248 |
-| 11244075+5218078 |
-+------------------+
-]]></verbatim>
+on the STIL page, and all the java methods can be used from JyStilts,
+but in most cases there are more pythonic equivalents provided,
+as listed above.
 </p>
 
-<p>Table object methods also include the
-<ref id="jyfilter">filter</ref> and <ref id="jymode">output mode</ref>
-methods described below.
+<p>Here are some examples of these methods in use:
+<verbatim><![CDATA[
+   >>> import stilts
+   >>> xsc = stilts.tread('/data/table/2mass_xsc.xml')  # read table
+   >>> xsc.mode_count()                                 # count rows and cols
+   columns: 6   rows: 1646844
+   >>> print xsc.columns()                              # full info on columns
+   (id(String), ra(Double)/degrees, dec(Double)/degrees, jmag(Double)/mag, hmag(Double)/mag, kmag(Double)/mag)
+   >>> print [str(col) for col in xsc.columns()]        # column names only
+   ['id', 'ra', 'dec', 'jmag', 'hmag', 'kmag']
+   >>> print xsc[1000000]                               # examine millionth row
+   (u'19433000+4003190', 295.875, 40.055286, 14.449, 13.906, 13.374)
+   >>> print xsc[1000000][0]                            # cell by index
+   19433000+4003190
+   >>> print xsc[1000000]['ra'], xsc[1000000]['dec']    # cells by col name
+   295.875 40.055286
+   >>> for row in xsc:                  # select rows using python commands
+   ...     if row[4] - row[3] > 3.0:
+   ...         print row[0]
+   ... 
+   11165243+2925509
+   20491597+5119089
+   04330238+0858101
+   01182715-1013248
+   11244075+5218078
+   >>>                                  # same thing using stilts (much faster)
+   >>> (xsc.cmd_select('hmag - jmag > 3.0')
+   ...     .cmd_keepcols('id')
+   ...     .write())
+   +------------------+
+   | id               |
+   +------------------+
+   | 11165243+2925509 |
+   | 20491597+5119089 |
+   | 04330238+0858101 |
+   | 01182715-1013248 |
+   | 11244075+5218078 |
+   +------------------+
+]]></verbatim>
 </p>
 
 </subsect>
@@ -1275,11 +1330,11 @@ which start with the "<code>cmd_</code>" prefix.
 So to select only the last ten rows of a table <code>foo</code>,
 you could do either
 <verbatim><![CDATA[
->>> foo10 = foo.cmd_tail(10)
+   >>> foo10 = foo.cmd_tail(10)
 ]]></verbatim>
 or
 <verbatim><![CDATA[
->>> foo10 = cmd_tail(foo, 10)
+   >>> foo10 = cmd_tail(foo, 10)
 ]]></verbatim>
 </p>
 
@@ -1315,10 +1370,10 @@ bound or unbound functions.
 <p>Here is an example of concatenating two similar tables together
 and writing the result:
 <verbatim><![CDATA[
->>> t1 = tread('data1.csv', fmt='csv')
->>> t2 = tread('data2.csv', fmt='csv')
->>> t12 = tcat([t1,t2], seqcol='seq')
->>> t12.write('t12.csv', fmt='csv')
+   >>> t1 = tread('data1.csv', fmt='csv')
+   >>> t2 = tread('data2.csv', fmt='csv')
+   >>> t12 = tcat([t1,t2], seqcol='seq')
+   >>> t12.write('t12.csv', fmt='csv')
 ]]></verbatim>
 </p>
 
@@ -1342,12 +1397,12 @@ These are accessed with commands of the form "<code>mode_*</code>",
 which in some cases do, and in others do not, have named optional arguments.
 They are straightforward to use:
 <verbatim><![CDATA[
->>> mode_stats(table)
+   >>> mode_stats(table)
 ]]></verbatim>
 calculates statistics and writes them in a tabular form to the output,
 and
 <verbatim><![CDATA[
->>> mode_samp(table, client='topcat')
+   >>> mode_samp(table, client='topcat')
 ]]></verbatim>
 attempts to send the table via the SAMP communications protocol to
 a running instance of TOPCAT.
