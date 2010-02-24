@@ -419,6 +419,31 @@ public class JyStilts {
         lineList.add( "            self._columns = tuple(col_list)" );
         lineList.add( "            return self.columns()" );
 
+        /* Add parameter dictionary access method. */
+        lineList.add( "    def parameters(self):" );
+        lineList.add( "        '''Returns a mapping of table parameter names "
+                            + "to values." );
+        lineList.add( "" );
+        lineList.add( "        This does not provide all the "
+                            + "information about the parameters," );
+        lineList.add( "        for instance units and UCDs are not included." );
+        lineList.add( "        For more detail, use the relevant StarTable "
+                            + "methods." );
+        lineList.add( "        Currently, this is not a live list, "
+                            + "in the sense that changing" );
+        lineList.add( "        the returned dictionary will not affect "
+                            + "the table parameter values." );
+        lineList.add( "        '''" );
+        lineList.add( "        try:" );
+        lineList.add( "            return self._parameters" );
+        lineList.add( "        except AttributeError:" );
+        lineList.add( "            params = {}" );
+        lineList.add( "            for p in self.getParameters():" );
+        lineList.add( "                params[p.getInfo().getName()]"
+                                             + " = p.getValue()" );
+        lineList.add( "            self._parameters = params" );
+        lineList.add( "            return self.parameters()" );
+
         /* Add row wrapper. */
         lineList.add( "    def _create_row(self, array):" );
         lineList.add( "        row = _JyRow(array)" );
@@ -430,9 +455,12 @@ public class JyStilts {
         lineList.add( "        except AttributeError:" );
         lineList.add( "            colmap = {}" );
         lineList.add( "            icol = 0" );
-        lineList.add( "            for col in reversed(self.columns()):" );
-        lineList.add( "                colmap[col] = icol" );
-        lineList.add( "                colmap[col.getName()] = icol" );
+        lineList.add( "            for col in self.columns():" );
+        lineList.add( "                if not col in colmap:" );
+        lineList.add( "                    colmap[col] = icol" );
+        lineList.add( "                colname = col.getName()" );
+        lineList.add( "                if not colname in colmap:" );
+        lineList.add( "                    colmap[colname] = icol" );
         lineList.add( "                icol += 1" );
         lineList.add( "            self._colmap = colmap" );
         lineList.add( "            return self._column_index(key)" );
