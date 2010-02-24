@@ -410,7 +410,7 @@ public class JyStilts {
         String[] filterNames = filterFactory.getNickNames();
         for ( int i = 0; i < filterNames.length; i++ ) {
             String name = filterNames[ i ];
-            String[] filterLines = defCmd( "cmd_" + name, name );
+            String[] filterLines = defCmd( "cmd_" + name, name, true );
             lineList.addAll( Arrays.asList( prefixLines( "    ",
                                                          filterLines ) ) );
         }
@@ -420,7 +420,7 @@ public class JyStilts {
         String[] modeNames = modeFactory.getNickNames();
         for ( int i = 0; i < modeNames.length; i++ ) {
             String name = modeNames[ i ];
-            String[] modeLines = defMode( "mode_" + name, name );
+            String[] modeLines = defMode( "mode_" + name, name, true );
             lineList.addAll( Arrays.asList( prefixLines( "    ",
                                                          modeLines ) ) );
         }
@@ -499,9 +499,11 @@ public class JyStilts {
      * @param  fname  name of function
      * @param  filterNickName  name under which the filter is known in the
      *         filter ObjectFactory
+     * @param  isBound  true for a bound method, false for a standalone function
      * @return  python source code lines
      */
-    private String[] defCmd( String fname, String filterNickName )
+    private String[] defCmd( String fname, String filterNickName,
+                             boolean isBound )
             throws LoadException, SAXException {
         ProcessingFilter filter =
             (ProcessingFilter) StepFactory.getInstance()
@@ -509,12 +511,13 @@ public class JyStilts {
                                           .createObject( filterNickName );
         String usage = filter.getUsage();
         boolean hasUsage = usage != null && usage.trim().length() > 0;
+        String tArgName = isBound ? "self" : "table";
         List lineList = new ArrayList();
         if ( hasUsage ) {
-            lineList.add( "def " + fname + "(table, *args):" );
+            lineList.add( "def " + fname + "(" + tArgName + ", *args):" );
         }
         else {
-            lineList.add( "def " + fname + "(table):" );
+            lineList.add( "def " + fname + "(" + tArgName + "):" );
         }
         lineList.add( "    '''\\" );
         lineList.addAll( Arrays.asList( formatXml( filter
@@ -542,7 +545,8 @@ public class JyStilts {
         lineList.add( "    argList = " + getImportName( ArrayList.class )
                                        + "(sargs)" );
         lineList.add( "    step = pfilt.createStep(argList.iterator())" );
-        lineList.add( "    return import_star_table(step.wrap(table))" );
+        lineList.add( "    return import_star_table(step.wrap(" + tArgName
+                                                                + "))" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
@@ -552,9 +556,11 @@ public class JyStilts {
      * @param  fname  name of function
      * @param  modeNickName  name under which the mode is known in the
      *         mode ObjectFactory
+     * @param  isBound  true for a bound method, false for a standalone function
      * @return  python source code lines
      */
-    private String[] defMode( String fname, String modeNickName )
+    private String[] defMode( String fname, String modeNickName,
+                              boolean isBound )
             throws LoadException, SAXException {
         ProcessingMode mode =
             (ProcessingMode) stilts_.getModeFactory()
@@ -582,13 +588,15 @@ public class JyStilts {
         }
 
         /* Begin function definition. */
+        String tArgName = isBound ? "self" : "table";
         List argList = new ArrayList();
         argList.addAll( mandArgList );
         argList.addAll( optArgList );
         StringBuffer sbuf = new StringBuffer()
             .append( "def " )
             .append( fname )
-            .append( "(table" );
+            .append( "(" )
+            .append( tArgName );
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             Arg arg = (Arg) it.next();
             sbuf.append( ", " );
@@ -619,7 +627,7 @@ public class JyStilts {
                               + ".createObject('" + modeNickName + "')" );
         lineList.add( "    consumer = mode.createConsumer(env)" );
         lineList.add( "    _check_unused_args(env)" );
-        lineList.add( "    consumer.consume(table)" );
+        lineList.add( "    consumer.consume(" + tArgName + ")" );
 
         /* Return the source code lines. */
         return (String[]) lineList.toArray( new String[ 0 ] );
@@ -980,7 +988,7 @@ public class JyStilts {
         String[] filterNames = filterFactory.getNickNames();
         for ( int i = 0; i < filterNames.length; i++ ) {
             String name = filterNames[ i ];
-            String[] filterLines = defCmd( "cmd_" + name, name );
+            String[] filterLines = defCmd( "cmd_" + name, name, false );
             writeLines( filterLines, writer );
         }
 
@@ -989,7 +997,7 @@ public class JyStilts {
         String[] modeNames = modeFactory.getNickNames();
         for ( int i = 0; i < modeNames.length; i++ ) {
             String name = modeNames[ i ];
-            String[] modeLines = defMode( "mode_" + name, name );
+            String[] modeLines = defMode( "mode_" + name, name, false );
             writeLines( modeLines, writer );
         }
     }
