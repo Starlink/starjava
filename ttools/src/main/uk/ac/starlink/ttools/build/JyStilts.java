@@ -193,14 +193,13 @@ public class JyStilts {
             "    def __init__(self, grab_output=False):",
             "        " + getImportName( MapEnvironment.class )
                        + ".__init__(self)",
-            "        superobj = super(_JyEnvironment, self)",
             "        if grab_output:",
             "            self._out = " + getImportName( MapEnvironment.class )
                                        + ".getOutputStream(self)",
             "        else:",
             "            self._out = " + getImportName( System.class ) + ".out",
             "        self._err = " + getImportName( System.class ) + ".err",
-            "        self._used = set()",
+            "        self._used = {}",
             "    def getOutputStream(self):",
             "        return self._out",
             "    def getErrorStream(self):",
@@ -208,9 +207,10 @@ public class JyStilts {
             "    def acquireValue(self, param):",
             "        " + getImportName( MapEnvironment.class )
                        + ".acquireValue(self, param)",
-            "        self._used.add(param.getName())",
+            "        self._used[param.getName()] = True",
             "    def getUnusedArgs(self):",
-            "        return set(self.getNames()).difference(self._used)",
+            "        return filter(lambda n: n not in self._used,"
+                               + " self.getNames())",
             "",
 
             /* Utility to raise an error if some args in the environment
