@@ -52,6 +52,13 @@ public class TestCase extends junit.framework.TestCase {
     static private javax.xml.parsers.DocumentBuilder docParser;
 
     /**
+     * No-arg constructor.
+     */
+    public TestCase() {
+        super();
+    }
+
+    /**
      * Constructs a test case with the given name.
      *
      * @param  name  test case name
