@@ -498,10 +498,11 @@ public class TablePipeTest extends TableTestCase {
     }
 
     public void testTuningOptions() throws Exception {
-        assertSameData( inTable_, apply( "random" ) );
-        assertSameData( inTable_, apply( "sequential" ) );
-        assertSameData( inTable_, apply( "random; sequential" ) );
-        assertSameData( inTable_, apply( "random; sequential; cache;random" ) );
+        assertSameData( inTable_, apply( "randomview" ) );
+        assertSameData( inTable_, apply( "seqview" ) );
+        assertSameData( inTable_, apply( "randomview; seqview" ) );
+        assertSameData( inTable_, apply( "randomview; seqview; "
+                                       + "cache; randomview" ) );
            // etc.
     }
 

@@ -14,16 +14,18 @@ import uk.ac.starlink.table.WrapperStarTable;
  * @author   Mark Taylor (Starlink)
  * @since    8 Mar 2005
  */
-public class SequentialFilter extends BasicFilter implements ProcessingStep {
+public class SequentialViewFilter extends BasicFilter
+                                  implements ProcessingStep {
 
-    public SequentialFilter() {
-        super( "sequential", null );
+    public SequentialViewFilter() {
+        super( "seqview", null );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
             "<p>Ensures that steps downstream see the table",
             "as sequential access.",
+            "Any attempts at random access will fail.",
             "Only useful for debugging.",
             "</p>",
         };

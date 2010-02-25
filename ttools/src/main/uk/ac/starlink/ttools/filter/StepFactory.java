@@ -47,12 +47,12 @@ public class StepFactory {
         filterFactory_.register( "keepcols", pkg + "KeepColumnFilter" );
         filterFactory_.register( "meta", pkg + "MetadataFilter" );
         filterFactory_.register( "progress", pkg + "ProgressFilter" );
-        filterFactory_.register( "random", pkg + "RandomFilter" );
+        filterFactory_.register( "randomview", pkg + "RandomViewFilter" );
         filterFactory_.register( "replacecol", pkg + "ReplaceColumnFilter" );
         filterFactory_.register( "replaceval", pkg + "ReplaceValueFilter" );
         filterFactory_.register( "rowrange", pkg + "RangeFilter" );
         filterFactory_.register( "select", pkg + "SelectFilter" );
-        filterFactory_.register( "sequential", pkg + "SequentialFilter" );
+        filterFactory_.register( "seqview", pkg + "SequentialViewFilter" );
         filterFactory_.register( "setparam", pkg + "SetParameterFilter" );
         filterFactory_.register( "sort", pkg + "SortFilter" );
         filterFactory_.register( "sorthead", pkg + "SortHeadFilter" );

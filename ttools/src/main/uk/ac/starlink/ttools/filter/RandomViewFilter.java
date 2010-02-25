@@ -16,15 +16,17 @@ import uk.ac.starlink.table.WrapperStarTable;
  * @author   Mark Taylor (Starlink)
  * @since    7 Mar 2005
  */
-public class RandomFilter extends BasicFilter implements ProcessingStep {
+public class RandomViewFilter extends BasicFilter implements ProcessingStep {
 
-    public RandomFilter() {
-        super( "random", null );
+    public RandomViewFilter() {
+        super( "randomview", null );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
-            "<p>Ensures that steps downstream see the table as random access.",
+            "<p>Ensures that steps downstream only use random access methods",
+            "for table access.",
+            "If the table is sequential only, this will result in an error.",
             "Only useful for debugging.",
             "</p>",
         };

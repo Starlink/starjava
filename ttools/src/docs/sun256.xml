@@ -6945,6 +6945,11 @@ but my thanks are especially due to the following:
         Experimentation with these can lead to significant performance
         improvements for given matches.</li>
     <li>JyStilts!</li>
+    <li>The <code>random</code> and <code>sequential</code> filters have
+        been renamed <code>randomview</code> and <code>seqview</code>
+        respectively.  This provides a better idea of what they do.
+        Since they are only useful for debugging, it is unlikely that this
+        will break anyone's existing code.</li>
     </ul>
     </p>
     </dd>
