@@ -135,6 +135,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.javadocs" value="${build.dir}/javadocs"/>
   <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.etc" value="${build.dir}/etc"/>
   <property name="build.java" value="${build.dir}/java"/>
@@ -442,19 +443,6 @@
       <arg value="-writegifs"/>
     </java>
 
-    <!-- Construct HTML documentation for the JEL-accessible classes.
-     !   This is built using Javadoc, and is available from the MethodWindow
-     !   method browser. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
-             docletpathref="classpath"
-             failonerror="true"
-             public="true"
-             destdir="${build.classes}"
-             sourcepath="${java.dir}"
-             packagenames="uk.ac.starlink.topcat.func"
-             classpathref="classpath"
-             source="${source.version}"/>
-
     <!-- Version string. -->
     <echo file="${build.classes}/uk/ac/starlink/topcat/version-string"
           message="${version}"/>
@@ -467,6 +455,34 @@
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+
+    <!-- Call target to do time-consuming build of additional components;
+     !   first check that they are not already in place. -->
+    <condition property="extras.built">
+      <uptodate targetfile="${build.javadocs}/uk/ac/starlink/topcat/func">
+        <srcfiles dir="${java.dir}/uk/ac/starlink/topcat/func"/>
+      </uptodate>
+    </condition>
+    <antcall target="build-extras"/>
+
+  </target>
+
+  <!-- Sub-target to perform time-consuming build of additional components
+   !   in build phase; unless attribute allows it to be skipped. -->
+  <target name="build-extras" unless="extras.built">
+
+    <!-- Construct HTML documentation for the JEL-accessible classes.
+     !   This is built using Javadoc, and is available from the MethodWindow
+     !   method browser. -->
+    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
+             docletpathref="classpath"
+             failonerror="true"
+             public="true"
+             destdir="${build.javadocs}"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.topcat.func"
+             classpathref="classpath"
+             source="${source.version}"/>
   </target>
 
   <!--
@@ -620,8 +636,9 @@
           description="-> creates the package jar file(s)">
 
     <mkdir dir="${dist.lib.pkg}"/>
-    <jar destfile="${dist.lib.pkg}/${name}.jar"
-         basedir="${build.classes}">
+    <jar destfile="${dist.lib.pkg}/${name}.jar">
+      <fileset dir="${build.classes}"/>
+      <fileset dir="${build.javadocs}"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class"
