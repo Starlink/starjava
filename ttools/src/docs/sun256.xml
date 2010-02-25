@@ -1248,6 +1248,14 @@ or with a key which is a column name, or one of the ColumnInfo objects
 returned by <code>columns()</code>.
 </p>
 
+<p>Sometimes, the result of a table operation will be a table which
+does not have random access.  For such tables you can iterate over
+the rows, but not get their row values by indexing.  In order to
+take a table which may not have random access and make it capable
+of random access, use the <ref id="random"><code>random</code></ref>
+filter: "<code>table=table.cmd_random()</code>".
+</p>
+
 <p>To a large extent it is possible to duplicate the functions of the
 various STILTS commands by writing your own python code based on these
 python-friendly table access methods.
