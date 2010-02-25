@@ -401,7 +401,7 @@
    !  copied into place here. 
    !-->
   <target name="build"
-          depends="prepare, check_packages, build_demo"
+          depends="prepare, check_packages"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -459,9 +459,14 @@
     <!-- Call target to do time-consuming build of additional components;
      !   first check that they are not already in place. -->
     <condition property="extras.built">
-      <uptodate targetfile="${build.javadocs}/uk/ac/starlink/topcat/func">
-        <srcfiles dir="${java.dir}/uk/ac/starlink/topcat/func"/>
-      </uptodate>
+      <and>
+        <uptodate targetfile="${build.javadocs}/uk/ac/starlink/topcat/func">
+          <srcfiles dir="${java.dir}/uk/ac/starlink/topcat/func/"/>
+        </uptodate>
+        <uptodate targetfile="${build.etc}/demo">
+          <srcfiles dir="${src.etc}/demo"/>
+        </uptodate>
+      </and>
     </condition>
     <antcall target="build-extras"/>
 
@@ -483,6 +488,8 @@
              packagenames="uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
+
+     <antcall target="build_demo"/>
   </target>
 
   <!--
