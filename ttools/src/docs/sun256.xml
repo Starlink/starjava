@@ -1248,6 +1248,15 @@ or with a key which is a column name, or one of the ColumnInfo objects
 returned by <code>columns()</code>.
 </p>
 
+<p>To a large extent it is possible to duplicate the functions of the
+various STILTS commands by writing your own python code based on these
+python-friendly table access methods.
+Note however that such python-based processing is likely to be
+<em>much</em> slower than the STILTS equivalents.
+If performance is important to you, you should try in most cases
+to use the various <code>cmd_*</code> commands etc for table processing.
+</p>
+
 <p>Second, a few additional utility methods are defined:
 <dl>
 <dt><code>columns()</code></dt>
