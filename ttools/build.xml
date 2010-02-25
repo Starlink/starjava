@@ -135,6 +135,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.javadocs" value="${build.dir}/javadocs"/>
   <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.etc" value="${build.dir}/etc"/>
@@ -438,18 +439,6 @@
       <include name="**/*.java"/>
     </javac>
 
-    <!-- Construct HTML documentation for JEL-accessible classes. -->
-    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
-             docletpathref="classpath"
-             failonerror="true"
-             public="true"
-             additionalparam="-headings"
-             destdir="${build.classes}"
-             sourcepath="${java.dir}"
-             packagenames="uk.ac.starlink.ttools.func"
-             classpathref="classpath"
-             source="${source.version}"/>
-
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
@@ -460,17 +449,6 @@
     <echo file="${build.classes}/uk/ac/starlink/ttools/stilts.version"
           message="${version}"/>
 
-    <!-- Write and compile JyStilts module source code. -->
-    <property name="py.modname" value="stilts"/>
-    <mkdir dir="${build.etc}"/>
-    <echo message="Generating ${py.modname}.py"/>
-    <java classname="uk.ac.starlink.ttools.build.JyStilts"
-          output="${build.etc}/${py.modname}.py"
-          failonerror="yes"
-          logerror="yes">
-      <classpath refid="classpath"/>
-    </java>
-
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
@@ -480,6 +458,48 @@
        <fileset dir="${src.jars.dir}"/>
     </copy>
 
+    <!-- Call target to do time-consuming build of additional components;
+     !   first check that they are not already in place. -->
+    <condition property="extras.built">
+      <and>
+        <uptodate targetfile="${build.javadocs}/uk/ac/starlink/ttools/func">
+          <srcfiles dir="${java.dir}/uk/ac/starlink/ttools/func"/>
+        </uptodate>
+        <uptodate targetfile="${build.etc}/stilts.py">
+          <srcfiles dir="${java.dir}"/>
+        </uptodate>
+      </and>
+    </condition>
+    <antcall target="build-extras"/>
+
+  </target>
+
+  <!-- Sub-target to perform time-consuming build of additional components
+   !   in build phase; unless attribute allows it to be skipped. -->
+  <target name="build-extras" unless="extras.built">
+
+    <!-- Construct HTML documentation for JEL-accessible classes. -->
+    <mkdir dir="${build.javadocs}"/>
+    <javadoc doclet="uk.ac.starlink.ttools.build.HtmlDoclet"
+             docletpathref="classpath"
+             failonerror="true"
+             public="true"
+             additionalparam="-headings"
+             destdir="${build.javadocs}"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.ttools.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
+    <!-- Write and compile JyStilts module source code. -->
+    <mkdir dir="${build.etc}"/>
+    <echo message="Generating stilts.py"/>
+    <java classname="uk.ac.starlink.ttools.build.JyStilts"
+          output="${build.etc}/stilts.py"
+          failonerror="yes"
+          logerror="yes">
+      <classpath refid="classpath"/>
+    </java>
   </target>
 
   <target name="build-standalone" depends="install">
@@ -544,6 +564,7 @@
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar">
       <fileset dir="${build.classes}"/>
+      <fileset dir="${build.javadocs}"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
