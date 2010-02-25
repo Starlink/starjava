@@ -6950,6 +6950,8 @@ but my thanks are especially due to the following:
         respectively.  This provides a better idea of what they do.
         Since they are only useful for debugging, it is unlikely that this
         will break anyone's existing code.</li>
+    <li>New filter <code>random</code> introduced which converts tables
+        to random-access if necessary.</li>
     </ul>
     </p>
     </dd>

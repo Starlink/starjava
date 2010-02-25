@@ -47,6 +47,7 @@ public class StepFactory {
         filterFactory_.register( "keepcols", pkg + "KeepColumnFilter" );
         filterFactory_.register( "meta", pkg + "MetadataFilter" );
         filterFactory_.register( "progress", pkg + "ProgressFilter" );
+        filterFactory_.register( "random", pkg + "RandomFilter" );
         filterFactory_.register( "randomview", pkg + "RandomViewFilter" );
         filterFactory_.register( "replacecol", pkg + "ReplaceColumnFilter" );
         filterFactory_.register( "replaceval", pkg + "ReplaceValueFilter" );

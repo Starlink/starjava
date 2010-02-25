@@ -506,6 +506,19 @@ public class TablePipeTest extends TableTestCase {
            // etc.
     }
 
+    public void testRandom() throws Exception {
+        try {
+            apply( "seqview; randomview; every 1" );
+            fail();
+        }
+        catch ( IOException e ) {
+        }
+        assertSameData( inTable_,
+                        apply( "seqview; random; randomview; every 1" ) );
+        assertSameData( inTable_,
+                        apply( "seqview; cache; randomview; every 1" ) );
+    }
+
     public void testReplaceCol() throws Exception {
         assertSameData( inTable_, apply( "replacecol a a" ) );
         StarTable fixed = apply( "replacecol c b-a" );

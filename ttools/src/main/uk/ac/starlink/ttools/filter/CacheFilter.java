@@ -33,6 +33,12 @@ public class CacheFilter extends BasicFilter implements ProcessingStep {
             "then adding this step near the start of the filters",
             "might help.",
             "</p>",
+            "<p>The result of this filter is guaranteed to be random-access.",
+            "</p>",
+            "<p>See also the <ref id='random'><code>random</code></ref>",
+            "filter, which caches only when the input table is not",
+            "random-access.",
+            "</p>",
         };
     }
 
