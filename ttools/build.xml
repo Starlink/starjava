@@ -137,6 +137,7 @@
   <property name="build.classes" value="${build.dir}/classes"/>
   <property name="build.docs" value="${build.dir}/docs"/>
   <property name="build.java" value="${build.dir}/java"/>
+  <property name="build.etc" value="${build.dir}/etc"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
@@ -459,6 +460,17 @@
     <echo file="${build.classes}/uk/ac/starlink/ttools/stilts.version"
           message="${version}"/>
 
+    <!-- Write and compile JyStilts module source code. -->
+    <property name="py.modname" value="stilts"/>
+    <mkdir dir="${build.etc}"/>
+    <echo message="Generating ${py.modname}.py"/>
+    <java classname="uk.ac.starlink.ttools.build.JyStilts"
+          output="${build.etc}/${py.modname}.py"
+          failonerror="yes"
+          logerror="yes">
+      <classpath refid="classpath"/>
+    </java>
+
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
@@ -504,6 +516,7 @@
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.build.dir}/src/etc/LICENCE.txt"/>
       <arg value="-file"/><arg value="${star.docs.pkg}/README.cea"/>
+      <arg value="-file"/><arg value="${star.etc.pkg}/stilts.py"/>
       <arg value="${star.lib.pkg}/stilts-app.jar"/>
       <arg value="${dist.lib.pkg}/stilts-version.zip"/>
     </java>
@@ -529,8 +542,8 @@
 
     <!-- Create the library jar file, ttools.jar. -->
     <mkdir dir="${dist.lib.pkg}"/>
-    <jar destfile="${dist.lib.pkg}/${name}.jar"
-         basedir="${build.classes}">
+    <jar destfile="${dist.lib.pkg}/${name}.jar">
+      <fileset dir="${build.classes}"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
@@ -541,7 +554,7 @@
      !   application.  As well as a Main-Class, this wants a reference
      !   to the TOPCAT jar file, so that tpipe's topcat output mode can
      !   start up TOPCAT when required.  If you try to put topcat.jar
-     !   in the Class-Path entry of the tools.jar file, it causes part
+     !   in the Class-Path entry of the ttools.jar file, it causes part
      !   of the build (or at least the test) to blow up with recursive
      !   classpath trouble, so this jar file contains nothing but a
      !   manifest. -->
@@ -663,6 +676,11 @@
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${build.docs}"
                includes="${user.doc}/* *.pdf README.*"/>
+    </copy>
+
+    <!-- Copy extra files. -->
+    <copy todir="${dist.etc.pkg}">
+      <fileset dir="${build.etc}"/>
     </copy>
 
     <!-- Set permissions on contents of distribution directories -->
@@ -893,6 +911,15 @@
       </fileset>
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.lib.pkg}
+</echo>
+
+    <loggedcopy todir="${star.etc}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.etc}"/>
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.etc.pkg}
 </echo>
 
     <loggedcopy todir="${star.docs}"

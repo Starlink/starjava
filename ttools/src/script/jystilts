@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     jystilts
+
+#  Purpose:
+#     Invokes jython with stilts classses on unix.
+
+#  Description:
+#     This shell script starts up Jython with STILTS classes from a
+#     starjava installation.  It is not intended for use in invoking
+#     JyStilts in other contexts (e.g. using the standalone stilts.jar
+#     file).
+
+#  Authors:
+#     MBT: Mark Taylor
+#-
+
+bindir="`dirname $0`"
+starjava=$bindir/..
+stilts_jar=$starjava/lib/ttools/stilts-app.jar
+jython_jar=$starjava/lib/ttools/jython.jar
+pylib_dir=$starjava/etc/ttools
+pypath_def="-Dpython.path=$pylib_dir"
+
+if which jython >/dev/null 2>&1
+then
+   export CLASSPATH=$stilts_jar
+   jython $pypath_def "$@"
+else
+   export CLASSPATH=${stilts_jar}:${jython_jar}
+   java $pypath_def org.python.util.jython "$@"
+fi
