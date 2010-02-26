@@ -322,6 +322,7 @@
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
     <pathelement location="${tests.etc.dir}"/>
+    <pathelement location="${build.etc}"/>
     <fileset dir="src/testlib" includes="*.jar"/>
     <path refid="classpath"/>
   </path>
