@@ -10610,6 +10610,13 @@ local table and a remote one.
 <ref id="DalMultiPanel">Multiple Positional Search Panel</ref> below.
 </p>
 
+<p>The search panel includes a <label>Verbosity</label> selector as well 
+as the normal features: this allows you to choose options for how many columns
+will appear in the output table, from 1 (minimum) to 3 (maximum).
+Some services will take notice of this parameter and return narrower
+or wider tables respectively, and others will ignore it.
+</p>
+
 </subsubsect>
 
 <subsubsect id="SiaMultiWindow">
@@ -13516,6 +13523,8 @@ introduced since the last version:
         X bounds as the currently displayed histogram.</li>
     <li>MacOS icons improved: thanks to Simon Murphy (ANU)
         for this contribution.</li>
+    <li>Added Verbosity selector in multi-cone window.</li>
+    <li>Crossmatch performance and scalability enhancements.</li>
     </ul>
     </p></dd>
 
