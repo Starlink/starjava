@@ -1023,13 +1023,16 @@ Note however that you will <em>not</em> be able to introduce JyStilts
 commands into your larger existing Python programs if those rely on
 C-based extensions, such as NumPy and SciPy, since JyStilts will only
 run in JPython, while C-based extensions will only run in CPython.
+(See however 
+<webref url="http://jnumerical.sourceforge.net/index.html"
+        >JNumeric</webref> for some of the Numpy functionality from Jython.)
 </p>
 
 <p>Usage from jython has syntax which is similar to command-line STILTS,
 but with a few changes.
 The following functions are defined by JyStilts:
 <ul>
-<li>A function <code>tread</code>, which reads a table from an external
+<li>A function <code>tread</code>, which reads a table from a
     file or URL and turns it into a table object in jython
     </li>
 <li>A table method <code>write</code> which takes a table object and
@@ -1137,52 +1140,64 @@ subsections.
 <subhead><title>Table I/O</title></subhead>
 
 <p>The <code>tread</code> function reads tables from an external location
-(file or URL) into JyStilts.  Its return value is a 
-<ref id="jytable">table object</ref>,
+into JyStilts.  Its arguments are as follows:
+<verbatim>
+   tread(location, fmt='(auto)', random=False)
+</verbatim>
+and its return value is a <ref id="jytable">table object</ref>,
 which can be interrogated directly, or used in other JyStilts commands.
-</p>
-
-<p>As with command-line STILTS, the file format to use for input/output
-(the optional <code>fmt</code> parameter for read and write commands)
-is necessary in general, but can be omitted if the format can be guessed;
-in the case of input if the file is VOTable or FITS, and in the case of
-output if the file name has a suitable extension.
-</p>
-
-<p>You can read a table in like this:
-<verbatim><![CDATA[
-   >>> import stilts
-   >>> t1 = stilts.tread('cat.fits')
-]]></verbatim>
-or, for a file in a non-auto-detectable format (neither FITS nor VOTable):
-<verbatim><![CDATA[
-   >>> t2 = stilts.tread('data.csv', fmt='csv', random=True)
-]]></verbatim>
-the "<code>random=True</code>" in this example 
-is an optional parameter which ensures that
-the data from the table is avalable using random access.
-For some table formats, including comma-separated-values,
-the default way of reading them in means that their rows can only 
-be accessed in sequence.
+Usually, the location argument should be a string which gives the
+filename or URL at which a table can be found.
+You can alternatively use a readable python file (or file-like) object for 
+the location, but be aware that this may be less efficient on memory.
+As with command-line STILTS, the <code>fmt</code> argument
+is one of the options in <ref id="inFormats"/>, but may be
+left as the default if the format auto-detectable,
+which currently means if the file is in VOTable or FITS format.
+The <code>random</code> argument can be used to ensure that the returned file
+has random (i.e. not sequential-only) access;
+for some table formats the default way of reading them in means that
+their rows can only be accessed in sequence.
 Depending on what processing you are doing, that may or may not be
 satisfactory.
 </p>
 
-<p>You can write a table (presumably the result of one or a sequence of
-JyStilts commands) to a file like this:
+<p>Examples of reading a table are:
+<verbatim><![CDATA[
+   >>> import stilts
+   >>> t1 = stilts.tread('cat.fits')
+   >>> t2 = stilts.tread(open('cat.fits', 'rb'))           # less efficient
+   >>> t3 = stilts.tread('data.csv', fmt='ascii', random=True)
+]]></verbatim>
+</p>
+
+
+<p>The most straightforward way to write a table
+(presumably the result of one or a sequence of JyStilts commands) 
+is using the <code>write</code> table method:
+<verbatim>
+   write(self, location=None, fmt='(auto)')
+</verbatim>
+The <code>location</code> gives either a string which is a filename,
+or a writable python file (or file-like) object.
+Again, use of a filename is preferred as it may(?) be more efficient.
+If no location is supplied, the table will be written to standard output
+(useful for inspection, but a bad idea for binary formats or very large tables).
+The <code>fmt</code> argument is one of the output formats in 
+<ref id="outFormats"/>, but may be left as the default if the
+format can be guessed from the filename.
+</p>
+
+<p>Examples of writing a table are:
 <verbatim><![CDATA[
    >>> table.write('out.fits')
+   >>> table.write(open('out.fits', 'wb'))       #  less efficient?
+   >>> table.write('catalogue.dat', fmt='csv')
+   >>> table.write()                             #  display to stdout
 ]]></verbatim>
-or, to force a particular table output format, this
-<verbatim><![CDATA[
-   >>> table.write('out.csv', fmt='csv')
-]]></verbatim>
-If you omit the <code>location</code> argument the table will be written
-to standard output.  This allows you to examine its content, for instance:
-<verbatim><![CDATA[
-   >>> table.write()
-]]></verbatim>
-Often it's convenient to combine this kind of examination with filtering
+</p>
+
+<p>Often it's convenient to combine examining the table with filtering
 steps, for instance:
 <verbatim><![CDATA[
    >>> table.every(100).write()
@@ -1286,7 +1301,8 @@ to use the various <code>cmd_*</code> commands etc for table processing.
     </p></dd>
 <dt><code>write(location=None, fmt=None)</code></dt>
 <dd><p>Outputs the table.
-    The optional <code>location</code> argument gives a filename,
+    The optional <code>location</code> argument gives a filename
+    or writable file object,
     and the optional <code>fmt</code> argument gives a format, one of
     the options listed in <ref id="inFormats"/>.
     If <code>location</code> is not supplied, output is to standard output,
@@ -1349,7 +1365,7 @@ as described above.
    04330238+0858101
    01182715-1013248
    11244075+5218078
-   >>>                                  # same thing using stilts (much faster)
+   >>>                                  # same thing using stilts (50x faster)
    >>> (xsc.cmd_select('hmag - jmag > 3.0')
    ...     .cmd_keepcols('id')
    ...     .write())
@@ -1400,7 +1416,7 @@ just as in command-line STILTS.
 <p>The filter commands are also available as unbound functions.
 This means that 
 <verbatim>
-   stilts.cmd_head(table,10)
+   stilts.cmd_head(table, 10)
 </verbatim>
 and
 <verbatim>

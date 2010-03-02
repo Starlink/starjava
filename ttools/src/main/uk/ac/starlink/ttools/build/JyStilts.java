@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.build;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -40,6 +41,7 @@ import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
 import uk.ac.starlink.ttools.task.OutputModeParameter;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
 
@@ -63,6 +65,8 @@ public class JyStilts {
 
     /** Java classes which are used by python source code. */
     private static final Class[] IMPORT_CLASSES = new Class[] {
+        java.io.ByteArrayInputStream.class,
+        java.io.OutputStream.class,
         java.lang.System.class,
         java.lang.reflect.Array.class,
         java.util.ArrayList.class,
@@ -76,6 +80,7 @@ public class JyStilts {
         uk.ac.starlink.ttools.Stilts.class,
         uk.ac.starlink.ttools.filter.StepFactory.class,
         uk.ac.starlink.ttools.task.MapEnvironment.class,
+        uk.ac.starlink.util.DataSource.class,
     };
 
     /**
@@ -263,6 +268,47 @@ public class JyStilts {
             "        raise SyntaxError('Unused STILTS parameters %s' % "
                                + "str(tuple([str(n) for n in names])))",
             "",
+
+            /* OutputStream based on a python file. */
+            "class _JyOutputStream(" + getImportName( OutputStream.class )
+                                     + "):",
+            "    def __init__(self, file):",
+            "        self._file = file",
+            "    def write(self, *args):",
+            "        narg = len(args)",
+            "        if narg is 1:",
+            "            arg0 = args[0]",
+            "            if type(arg0) is type(1):",
+            "                pyarg = chr(arg0)",
+            "            else:",
+            "                pyarg = arg0",
+            "        elif narg is 3:",
+            "            buf, off, leng = args",
+            "            pyarg = buf[off:off + leng].tostring()",
+            "        else:",
+            "            raise SyntaxError('%d args?' % narg)",
+            "        self._file.write(pyarg)",
+            "    def close(self):",
+            "        self._file.close()",
+            "    def flush(self):",
+            "        self._file.flush()",
+            "",
+
+            /* DataSource based on a python file. 
+             * This is not very efficient (it slurps up the whole file into
+             * memory at construction time), but it's difficult to do it
+             * correctly, at least without a lot of mucking about with
+             * threads. */
+            "class _JyDataSource(" + getImportName( DataSource.class )
+                                    + "):",
+            "    def __init__(self, file):",
+            "        buf = file.read(-1)",
+            "        self._buffer = jarray.array(buf, 'b')",
+            "        if hasattr(file, 'name'):",
+            "            self.setName(file.name)",
+            "    def getRawInputStream(self):",
+            "        return " + getImportName( ByteArrayInputStream.class )
+                              + "(self._buffer)",
 
             /* Returns a StarTable with suitable python decoration. */
             "def import_star_table(table):",
@@ -514,7 +560,8 @@ public class JyStilts {
         List lineList = new ArrayList();
         lineList.add( "def " + fname
                              + "(location, fmt='(auto)', random=False):" );
-        lineList.add( "    '''Reads a table from a file or URL." );
+        lineList.add( "    '''Reads a table from a filename, URL or "
+                        + "python file object." );
         lineList.add( "" );
         lineList.add( "    The random argument determines whether random "
                         + "access is required" );
@@ -527,16 +574,25 @@ public class JyStilts {
                         + "the table format cannot" );
         lineList.add( "    be auto-detected." );
         lineList.add( "" );
+        lineList.add( "    In general supplying a filename is preferred; "
+                        + "the current implementation" );
+        lineList.add( "    may be much more expensive on memory "
+                        + "if a python file object is used." ); 
+        lineList.add( "" );
         String fmtInfo = new InputFormatParameter( "location" )
                         .getExtraUsage( new MapEnvironment() );
         lineList.addAll( Arrays.asList( prefixLines( " ", fmtInfo ) ) );
         lineList.add( "" );
         lineList.add( "    The result of the function is a "
                         + "JyStilts table object." );
-        lineList.add(  "    '''" );
-        lineList.add( "    table = " + getImportName( StarTableFactory.class )
-                                     + "(random)"
-                                     + ".makeStarTable(location, fmt)" );
+        lineList.add( "    '''" );
+        lineList.add( "    fact = " + getImportName( StarTableFactory.class )
+                                    + "(random)" );
+        lineList.add( "    if hasattr(location, 'read'):" );
+        lineList.add( "        datsrc = _JyDataSource(location)" );
+        lineList.add( "        table = fact.makeStarTable(datsrc, fmt)" );
+        lineList.add( "    else:" );
+        lineList.add( "        table = fact.makeStarTable(location, fmt)" );
         lineList.add( "    return import_star_table(table)" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
@@ -555,7 +611,8 @@ public class JyStilts {
                                      + ", location=None, fmt='(auto)'):" );
         lineList.add( "    '''Writes table to a file." );
         lineList.add( "" );
-        lineList.add( "    The location parameter usually gives a filename;" );
+        lineList.add( "    The location parameter may give a filename or a" );
+        lineList.add( "    python file object open for writing." );
         lineList.add( "    if it is not supplied, standard output is used." );
         lineList.add( "" );
         lineList.add( "    The fmt parameter specifies output format." );
@@ -563,10 +620,20 @@ public class JyStilts {
                         .getExtraUsage( new MapEnvironment() );
         lineList.addAll( Arrays.asList( prefixLines( " ", fmtInfo ) ) );
         lineList.add( "    '''" );
-        lineList.add( "    if location is None:" );
-        lineList.add( "        location = '-'" );
-        lineList.add( "    " + getImportName( StarTableOutput.class ) + "()"
-                      + ".writeStarTable(" + tArgName + ", location, fmt)" );
+        lineList.add( "    sto = " + getImportName( StarTableOutput.class )
+                                   + "()" );
+        lineList.add( "    if hasattr(location, 'write') and "
+                           + "hasattr(location, 'flush'):" );
+        lineList.add( "        ostrm = _JyOutputStream(location)" );
+        lineList.add( "        name = getattr(location, 'name', None)" );
+        lineList.add( "        handler = sto.getHandler(fmt, name)" );
+        lineList.add( "        sto.writeStarTable(" + tArgName
+                                                    + ", ostrm, handler)" );
+        lineList.add( "    else:" );
+        lineList.add( "        if location is None:" );
+        lineList.add( "            location = '-'" );
+        lineList.add( "        sto.writeStarTable(" + tArgName
+                                                    + ", location, fmt)" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 

@@ -1,6 +1,8 @@
 import stilts
 import java
 import uk
+import StringIO
+import cStringIO
 
 messier = stilts.tread(testdir + "/messier.xml")
 
@@ -10,6 +12,7 @@ class TableTest(unittest.TestCase):
         self.testObj()
         self.testFilters()
         self.testTasks()
+        self.testIO()
 
     def testObj(self):
         cols = messier.columns()
@@ -46,8 +49,8 @@ class TableTest(unittest.TestCase):
         self.assertEquals(messier[-1], tail1[0])
 
 
-        self.assertEqualData(3*messier, messier+messier+messier)
-        self.assertEqualData(3*messier, messier*3)
+        self.assertEqualTable(3*messier, messier+messier+messier)
+        self.assertEqualTable(3*messier, messier*3)
 
         self.assertEquals('M23', messier[22][0])
         self.assertEquals('M23', messier[22]['Name'])
@@ -77,10 +80,10 @@ class TableTest(unittest.TestCase):
                                                .cmd_setparam("number", "29"),
                                           expression='2 + param$number')))
 
-        self.assertEqualData(2*messier, stilts.tcat([messier, messier]))
-        self.assertEqualData(2*messier,
-                             stilts.tcatn(nin=2, in1=messier, in2=messier,
-                                          countrows=True))
+        self.assertEqualTable(2*messier, stilts.tcat([messier, messier]))
+        self.assertEqualTable(2*messier,
+                              stilts.tcatn(nin=2, in1=messier, in2=messier,
+                                           countrows=True))
 
         m2 = stilts.tjoin(nin=2, in1=messier, in2=messier,
                           fixcols='all', suffix1='_A', suffix2='_B')
@@ -100,6 +103,21 @@ class TableTest(unittest.TestCase):
         self.assertRaises(uk.ac.starlink.task.UsageException,
                           stilts.tmatchn)
 
+    def testIO(self):
+        for fmt in ['csv', 'fits', 'ascii', 'votable']:
+            self.ioRoundTrip(messier, fmt)
+
+    def ioRoundTrip(self, table, fmt):
+        ofile = _UnclosedStringIO()
+        table.write(ofile, fmt=fmt)
+        ifile = cStringIO.StringIO(ofile.getvalue())
+        table2 = stilts.tread(ifile, fmt=fmt)
+        self.assertEqualTable(table, table2)
+
+    def assertEqualTable(self, t1, t2):
+        self.assertEquals([str(col) for col in t1.columns()],
+                          [str(col) for col in t2.columns()])
+        self.assertEqualData(t1, t2)
 
     def assertEqualData(self, t1, t2):
         try:
@@ -108,5 +126,11 @@ class TableTest(unittest.TestCase):
             pass
         for ir, rows in enumerate(map(None, t1, t2)):
             self.assertEquals(rows[0], rows[1], "row %d" % ir)
+
+class _UnclosedStringIO(StringIO.StringIO):
+    def __init__(self):
+        StringIO.StringIO.__init__(self)
+    def close(self):
+        pass
 
 TableTest().runTest()
