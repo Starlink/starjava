@@ -87,6 +87,15 @@ class TableTest(unittest.TestCase):
         self.assertEquals(len(m2.columns()), 2*len(messier.columns()))
         self.assertEqualData(m2.cmd_keepcols('*_A'), messier)
 
+        self.assertEquals(['ID', 'lcol'],
+                          [str(c) for c in
+                               stilts.tcat(in_=[messier.cmd_keepcols(2)]*2,
+                                           loccol='lcol').columns()])
+        self.assertEquals(['ID'],
+                          [str(c) for c in
+                               stilts.tcat(in_=[messier.cmd_keepcols(2)]*2,
+                                           loccol=None).columns()])
+
         self.assertRaises(SyntaxError, stilts.calc, '1+2', spurious='99')
         self.assertRaises(uk.ac.starlink.task.UsageException,
                           stilts.tmatchn)
