@@ -119,6 +119,8 @@ public class JyStilts {
             "for full information about the various commands.",
             "'''",
             "",
+            "__author__ = 'Mark Taylor'",
+            "",
         };
     }
 
@@ -302,13 +304,12 @@ public class JyStilts {
             /* Utility method to determine if a python object can be treated
              * as a container. */
             "def _is_container(value, type):",
-            "    valdir = dir(value)",
-            "    if '__iter__' in valdir and '__len__' in valdir:",
+            "    try:",
             "        for item in value:",
             "            if not isinstance(item, type):",
             "                return False",
             "        return True",
-            "    else:",
+            "    except TypeError:",
             "        return False",
             "",
  
