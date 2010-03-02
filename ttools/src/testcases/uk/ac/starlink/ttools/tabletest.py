@@ -1,10 +1,17 @@
 import stilts
 import java
+import uk
 
 messier = stilts.tread(testdir + "/messier.xml")
 
 class TableTest(unittest.TestCase):
+
     def runTest(self):
+        self.testObj()
+        self.testFilters()
+        self.testTasks()
+
+    def testObj(self):
         cols = messier.columns()
         self.assertEquals('Name', str(cols[0]))
         self.assertEquals('ImageURL', cols[-1].getName())
@@ -23,18 +30,14 @@ class TableTest(unittest.TestCase):
 
         self.assert_(messier.isRandom())
         self.assertEquals(110, len(messier))
-        ir = 0
-        for row in messier:
+        for (ir, row) in enumerate(messier):
             self.assertEquals(row, messier[ir])
-            ic = 0
-            for cell in row:
+            for (ic, cell) in enumerate(row):
                 self.assertEquals(cell, messier[ir][ic])
-                ic += 1
             self.assertEquals('M', row[0][0])
             self.assertEquals('M', row['Name'][0])
             self.assertEquals('.jpg', row[-1][-4:])
             self.assertEquals('.jpg', row['ImageURL'][-4:])
-            ir += 1
         head1 = messier.cmd_head(1)
         tail1 = messier.cmd_tail(1)
         self.assertEquals(1, len(head1))
@@ -42,7 +45,6 @@ class TableTest(unittest.TestCase):
         self.assertEquals(messier[0], head1[0])
         self.assertEquals(messier[-1], tail1[0])
 
-        self.assertEquals(99, int(stilts.calc('100-1')))
 
         self.assertEqualData(3*messier, messier+messier+messier)
         self.assertEqualData(3*messier, messier*3)
@@ -54,36 +56,48 @@ class TableTest(unittest.TestCase):
         self.assertEquals('.jpg', messier[5]['ImageURL'][-4:])
         self.assertEquals('.jpg', messier[5][-1][-4:])
 
+    def testFilters(self):
         ands = (messier.cmd_select('equals("And",CON)')
                        .cmd_sort('-down', 'ID')
                        .cmd_keepcols('NAME'))
         self.assertEquals(['M110','M32','M31'],
                           [str(row[0]) for row in ands])
 
+        self.assertEquals('M101', messier[100]['Name'])
+        self.assertEquals('M101',
+                          messier.cmd_addcol('Name', '999')[100]['Name'])
+        self.assertEquals(999,
+                          messier.cmd_addcol('-before', '1', 'Name', 999)
+                                  [100]['Name'])
+
+    def testTasks(self):
+        self.assertEquals(99, int(stilts.calc('100-1')))
+        self.assertEquals(31,
+                          int(stilts.calc(table=messier
+                                               .cmd_setparam("number", "29"),
+                                          expression='2 + param$number')))
+
+        self.assertEqualData(2*messier, stilts.tcat([messier, messier]))
+        self.assertEqualData(2*messier,
+                             stilts.tcatn(nin=2, in1=messier, in2=messier,
+                                          countrows=True))
+
+        m2 = stilts.tjoin(nin=2, in1=messier, in2=messier,
+                          fixcols='all', suffix1='_A', suffix2='_B')
+        self.assertEquals(len(m2.columns()), 2*len(messier.columns()))
+        self.assertEqualData(m2.cmd_keepcols('*_A'), messier)
+
+        self.assertRaises(SyntaxError, stilts.calc, '1+2', spurious='99')
+        self.assertRaises(uk.ac.starlink.task.UsageException,
+                          stilts.tmatchn)
+
+
     def assertEqualData(self, t1, t2):
         try:
             self.assertEquals(len(t1), len(t2))
-        except TypeError:
+        except AttributeError:
             pass
-        it1 = t1.__iter__()
-        it2 = t2.__iter__()
-        ir = 0;
-        while (True):
-            end1 = False
-            try:
-                row1 = it1.next()
-            except StopIteration:
-                end1 = True
-            end2 = False
-            try:
-                row2 = it2.next()
-            except StopIteration:
-                end2 = True
-            self.assertEquals(end1, end2)
-            if (end1):
-                break;
-            self.assertEquals(row1, row2, "row %d" % ir)
-            ir += 1
-
+        for ir, rows in enumerate(map(None, t1, t2)):
+            self.assertEquals(rows[0], rows[1], "row %d" % ir)
 
 TableTest().runTest()
