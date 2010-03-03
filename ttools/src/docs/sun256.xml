@@ -1116,16 +1116,42 @@ results before processing or writing as well, for instance:
 ]]></verbatim>
 </p>
 
-<p>To use JyStilts, you just need to start jython with the 
-<code>stilts.jar</code> file on your classpath,
-and you will need to do "<code>import stilts</code>" or some similar
-import command from Jython.
-An invocation like this is one way to start it up:
+<p>More detail about how to run JyStilts and its usage 
+is given in the following subsections.
+</p>
+
+<subsect id="jyrun">
+<subhead><title>Running JyStilts</title></subhead>
+
+<p>Setting up a Jython installation that runs JyStilts is quite easy.
+</p>
+
+<p>First, make sure that Jython is installed;
+it is available from <webref url="http://www.jython.org/"/>,
+and comes as a self-installing jar file.
+JyStilts has been tested, and appears to work, on versions
+2.2.1, 2.5.0 and 2.5.1; it's recommended to use the latest version
+if you don't have some reason to use one of the others.
+</p>
+
+<p>To use JyStilts, all you need to do is to
+start jython with the <code>stilts.jar</code> file on your classpath,
+for instance like this:
+<verbatim>
+    jython -J-classpath /some/where/stilts.jar
+</verbatim>
+or (C-shell):
 <verbatim>
     setenv CLASSPATH /some/where/stilts.jar
     jython
 </verbatim>
-Optionally, you can extract the <code>stilts.py</code> module 
+</p>
+
+<p>Finally, you will need to import the stilts module using a line
+like "<code>import stilts</code>" from Jython in the usual Python way.
+</p>
+
+<p>Optionally, you can extract the <code>stilts.py</code> module 
 from the stilts.jar file 
 (using a command like "<code>unzip stilts.jar stilts.py</code>")
 and put it in a directory on your jython 
@@ -1134,9 +1160,7 @@ this may cause jython to compile it to bytecode (<code>stilts$py.class</code>)
 and thus improve startup time.
 </p>
 
-<p>Some more detail about the JyStilts usage is given in the following
-subsections.
-</p>
+</subsect>
 
 <subsect>
 <subhead><title>Table I/O</title></subhead>
@@ -1172,7 +1196,6 @@ satisfactory.
    >>> t3 = stilts.tread('data.csv', fmt='ascii', random=True)
 ]]></verbatim>
 </p>
-
 
 <p>The most straightforward way to write a table
 (presumably the result of one or a sequence of JyStilts commands) 
@@ -1222,7 +1245,7 @@ for the ten rows in which VMAG is non-null with the lowest BMAG values.
 
 <p>The tables read by the <code>tread</code> function and produced
 by operating on them within JyStilts have a number of methods
-(bound functions) defined on them.
+defined on them.
 These are explained below.
 </p>
 
@@ -1389,7 +1412,7 @@ as described above.
 <subhead><title>Table filter commands (<code>cmd_*</code>)</title></subhead>
 
 <p>The STILTS table filters documented in <ref id="filterSteps"/> 
-are available in JyStilts as table methods (bound functions)
+are available in JyStilts as table methods
 which start with the "<code>cmd_</code>" prefix.
 The return value when calling the method on a table object is 
 another table object.
@@ -1415,7 +1438,7 @@ it must appear as a single argument in the filter invocation,
 just as in command-line STILTS.
 </p>
 
-<p>The filter commands are also available as unbound functions.
+<p>The filter commands are also available as module functions.
 This means that 
 <verbatim>
    stilts.cmd_head(table, 10)
@@ -1433,7 +1456,7 @@ have exactly the same meaning.  It's a matter of taste which you prefer.
 <subhead><title>Table output modes (<code>mode_*</code>)</title></subhead>
 
 <p>The STILTS table output modes documented in <ref id="outModes"/>
-are available in JyStilts as table methods (bound functions)
+are available in JyStilts as table methods
 which start with the "<code>mode_</code>" prefix.
 These methods have no return value, but cause something to happen,
 in some cases output to be written to standard output.
@@ -1454,7 +1477,7 @@ protocol to a running instance of TOPCAT:
 ]]></verbatim>
 </p>
 
-<p>The output modes are also available as unbound functions.
+<p>The output modes are also available as module functions.
 This means that
 <verbatim><![CDATA[
    stilts.mode_samp(table, client='topcat')
@@ -1483,13 +1506,13 @@ filter (<code>cmd</code>/<code>icmd</code>/<code>ocmd</code>)
 and output mode (<code>omode</code>) parameters are not used however;
 instead perform filtering directly on the table inputs and outputs
 using the python <code>cmd_*</code> and <code>mode_*</code>
-bound or unbound functions.
+table methods or functions.
 </p>
 
 <p>Here is an example of concatenating two similar tables together
 and writing the result:
 <verbatim><![CDATA[
-   >>> from stilts import *
+   >>> from stilts import tread, tcat
    >>> t1 = tread('data1.csv', fmt='csv')
    >>> t2 = tread('data2.csv', fmt='csv')
    >>> t12 = tcat([t1,t2], seqcol='seq')
