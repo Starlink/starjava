@@ -8,12 +8,6 @@ messier = stilts.tread(testdir + "/messier.xml")
 
 class TableTest(unittest.TestCase):
 
-    def runTest(self):
-        self.testObj()
-        self.testFilters()
-        self.testTasks()
-        self.testIO()
-
     def testObj(self):
         cols = messier.columns()
         self.assertEquals('Name', str(cols[0]))
@@ -126,6 +120,12 @@ class TableTest(unittest.TestCase):
             pass
         for ir, rows in enumerate(map(None, t1, t2)):
             self.assertEquals(rows[0], rows[1], "row %d" % ir)
+
+    def runTest(self):
+        tests = [value for key, value in vars(TableTest).iteritems()
+                       if key.startswith('test') and callable(value)]
+        for test in tests:
+            test(self)
 
 class _UnclosedStringIO(StringIO.StringIO):
     def __init__(self):
