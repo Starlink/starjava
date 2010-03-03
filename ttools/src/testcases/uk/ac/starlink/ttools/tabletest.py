@@ -1,6 +1,8 @@
 import stilts
 import java
 import uk
+import sys
+import re
 import StringIO
 import cStringIO
 
@@ -101,6 +103,22 @@ class TableTest(unittest.TestCase):
         for fmt in ['csv', 'fits', 'ascii', 'votable']:
             self.ioRoundTrip(messier, fmt)
 
+    def testModes(self):
+        count = captureJavaOutput(messier.mode_count)
+        ncol, nrow = map(int, re.compile(r': *(\w+)').findall(count))
+        self.assertEquals(ncol, len(messier.columns()))
+        self.assertEquals(nrow, len(messier))
+
+        meta = captureJavaOutput(messier.mode_meta)
+        lastmeta = meta.split('\n')[-2]
+        index, name, clazz = re.compile(r'\w+').findall(lastmeta)[0:3]
+        self.assertEquals(len(messier.columns()), int(index))
+        self.assertEquals(messier.columns()[-1].getName(), name)
+
+        discard = captureJavaOutput(messier.mode_discard)
+        self.assert_(not discard)
+
+
     def ioRoundTrip(self, table, fmt):
         ofile = _UnclosedStringIO()
         table.write(ofile, fmt=fmt)
@@ -126,6 +144,22 @@ class TableTest(unittest.TestCase):
                        if key.startswith('test') and callable(value)]
         for test in tests:
             test(self)
+
+def capturePythonOutput(callable, *args, **kwargs):
+    sio = cStringIO.StringIO()
+    sys.stdout = sio
+    callable(*args, **kwargs)
+    sys.stdout = sys.__stdout__
+    return sio.getvalue()
+
+def captureJavaOutput(callable, *args, **kwargs):
+    buf = java.io.ByteArrayOutputStream()
+    oldout = java.lang.System.out
+    java.lang.System.setOut(java.io.PrintStream(buf))
+    callable(*args, **kwargs)
+    java.lang.System.setOut(oldout)
+    return buf.toByteArray().tostring()
+    
 
 class _UnclosedStringIO(StringIO.StringIO):
     def __init__(self):
