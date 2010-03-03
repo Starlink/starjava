@@ -136,6 +136,7 @@ public class JyStilts {
             "for tutorial and full usage information.",
             "'''",
             "",
+            "from __future__ import generators",
             "__author__ = 'Mark Taylor'",
             "",
         };
@@ -176,18 +177,6 @@ public class JyStilts {
     private String[] defUtils() {
         List lineList = new ArrayList( Arrays.asList( new String[] {
 
-            /* Row iterator class used for providing iterability in tables. */
-            "class _row_iterator(object):",
-            "    def __init__(self, rowseq, table):",
-            "        self.rowseq = rowseq",
-            "        self.table = table",
-            "    def next(self):",
-            "        if self.rowseq.next():",
-            "            return self.table._create_row(self.rowseq.getRow())",
-            "        else:",
-            "            raise StopIteration",
-            "",
-
             /* WrapperStarTable implementation which is a python container. */
             "class RandomJyStarTable(JyStarTable):",
             "    '''Extends the JyStarTable wrapper class for random access.",
@@ -200,17 +189,8 @@ public class JyStilts {
             "        return int(self.getRowCount())",
             "    def __getitem__(self, key):",
             "        if type(key) is type(slice(0)):",
-            "            start = key.start",
-            "            stop = key.stop",
-            "            step = key.step",
-            "            if start < 0 or stop < 0:",
-            "                nrow = self.getRowCount()",
-            "                if start < 0:",
-            "                    start += nrow",
-            "                if stop < 0:",
-            "                    stop += nrow",
-            "            return [self._create_row(self.getRow(i)) "
-                              + "for i in range(start, stop, step)]",
+            "            return [self._create_row(self.getRow(irow))",
+            "                    for irow in _slice_range(key, len(self))]",
             "        elif key < 0:",
             "            irow = self.getRowCount() + key",
             "            return self._create_row(self.getRow(irow))",
@@ -220,6 +200,33 @@ public class JyStilts {
             "        return str(self.getName())"
                           + " + '(' + str(self.getRowCount()) + 'x'"
                           + " + str(self.getColumnCount()) + ')'",
+            "    def coldata(self, key):",
+            "        '''Returns a sequence of all the values"
+                          + " in a given column.'''",
+            "        icol = self._column_index(key)",
+            "        return _Coldata(self, icol)",
+            "",
+
+            "class _Coldata(object):",
+            "    def __init__(self, table, icol):",
+            "        self.table = table",
+            "        self.icol = icol",
+            "        self.nrow = len(table)",
+            "    def __iter__(self):",
+            "        rowseq = self.table.getRowSequence()",
+            "        while rowseq.next():",
+            "            yield rowseq.getCell(self.icol)",
+            "    def __len__(self):",
+            "        return self.nrow",
+            "    def __getitem__(self, key):",
+            "        if type(key) is type(slice(0)):",
+            "            return [self.table.getCell(irow, self.icol)",
+            "                    for irow in _slice_range(key, self.nrow)]",
+            "        elif key < 0:",
+            "            irow = self.nrow + key",
+            "            return self.table.getCell(irow, self.icol)",
+            "        else:",
+            "            return self.table.getCell(key, self.icol)",
             "",
 
             /* Wrapper ColumnInfo implementation with some pythonic knobs on. */
@@ -236,11 +243,8 @@ public class JyStilts {
             "    def __init__(self, array):",
             "        tuple.__init__(self, array)",
             "    def __getitem__(self, key):",
-            "        if type(key) is type(1):",
-            "            return tuple.__getitem__(self, key)",
-            "        else:",
-            "            icol = self.table._column_index(key)",
-            "            return tuple.__getitem__(self, icol)",
+            "        icol = self.table._column_index(key)",
+            "        return tuple.__getitem__(self, icol)",
             "",
 
             /* Execution environment implementation. */
@@ -276,6 +280,25 @@ public class JyStilts {
             "    if (names):",
             "        raise SyntaxError('Unused STILTS parameters %s' % "
                                + "str(tuple([str(n) for n in names])))",
+            "",
+
+            /* Converts a slice into a range. */
+            "def _slice_range(slice, leng):",
+            "    start = slice.start",
+            "    stop = slice.stop",
+            "    step = slice.step",
+            "    if start is None:",
+            "        start = 0",
+            "    elif start < 0:",
+            "        start += leng",
+            "    if stop is None:",
+            "        stop = leng",
+            "    elif stop < 0:",
+            "        stop += leng",
+            "    if step is None:",
+            "        return xrange(start, stop)",
+            "    else:",
+            "        return xrange(start, stop, step)",
             "",
 
             /* OutputStream based on a python file. */
@@ -455,8 +478,9 @@ public class JyStilts {
 
         /* Iterability. */
         lineList.add( "    def __iter__(self):" );
-        lineList.add( "        return _row_iterator(self.getRowSequence(), "
-                                                 + "self)" );
+        lineList.add( "        rowseq = self.getRowSequence()" );
+        lineList.add( "        while rowseq.next():" );
+        lineList.add( "            yield self._create_row(rowseq.getRow())" );
 
         /* String conversion. */
         lineList.add( "    def __str__(self):" );
@@ -488,18 +512,17 @@ public class JyStilts {
 
         /* Add parameter dictionary access method. */
         lineList.add( "    def parameters(self):" );
-        lineList.add( "        '''Returns a mapping of table parameter names "
-                            + "to values." );
+        lineList.add( "        '''" );
+        lineList.add( "Returns a mapping of table parameter names to values." );
         lineList.add( "" );
-        lineList.add( "        This does not provide all the "
-                            + "information about the parameters," );
-        lineList.add( "        for instance units and UCDs are not included." );
-        lineList.add( "        For more detail, use the relevant StarTable "
-                            + "methods." );
-        lineList.add( "        Currently, this is not a live list, "
-                            + "in the sense that changing" );
-        lineList.add( "        the returned dictionary will not affect "
-                            + "the table parameter values." );
+        lineList.add( "This does not provide all the information "
+                    + "about the parameters," );
+        lineList.add( "for instance units and UCDs are not included." );
+        lineList.add( "For more detail, use the relevant StarTable methods." );
+        lineList.add( "Currently, this is not a live list, "
+                    + "in the sense that changing" );
+        lineList.add( "the returned dictionary will not affect "
+                    + "the table parameter values." );
         lineList.add( "        '''" );
         lineList.add( "        if hasattr(self, '_parameters'):" );
         lineList.add( "            return self._parameters" );
@@ -511,12 +534,28 @@ public class JyStilts {
         lineList.add( "            self._parameters = params" );
         lineList.add( "            return self.parameters()" );
 
-        /* Add row wrapper. */
+        /* Add column data extraction method. */
+        lineList.add( "    def coldata(self, key):" );
+        lineList.add( "        '''Returns a sequence of all the values "
+                               + "in a given column.'''" );
+        lineList.add( "        icol = self._column_index(key)" );
+        lineList.add( "        rowseq = self.getRowSequence()" );
+        lineList.add( "        while rowseq.next():" );
+        lineList.add( "            yield rowseq.getCell(icol)" );
+
+        /* Row wrapper. */
         lineList.add( "    def _create_row(self, array):" );
         lineList.add( "        row = _JyRow(array)" );
         lineList.add( "        row.table = self" );
         lineList.add( "        return row" );
+
+        /* Column subscripting. */
         lineList.add( "    def _column_index(self, key):" );
+        lineList.add( "        if type(key) is type(1):" );
+        lineList.add( "            if key >= 0:" );
+        lineList.add( "                return key" );
+        lineList.add( "            else:" );
+        lineList.add( "                return key + self.getColumnCount()" );
         lineList.add( "        if hasattr(self, '_colmap'):" );
         lineList.add( "            return self._colmap[key]" );
         lineList.add( "        else:" );

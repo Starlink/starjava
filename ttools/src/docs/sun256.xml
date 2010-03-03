@@ -1305,7 +1305,7 @@ If performance is important to you, you should try in most cases
 to use the various <code>cmd_*</code> commands etc for table processing.
 </p>
 
-<p>Second, a few additional utility methods are defined:
+<p>Second, some additional utility methods are defined:
 <dl>
 <dt><code>columns()</code></dt>
 <dd><p>Returns a tuple of the column descriptors for the table.
@@ -1314,6 +1314,17 @@ to use the various <code>cmd_*</code> commands etc for table processing.
     useful methods include <code>getName()</code>,
     <code>getUnitString()</code>, <code>getUCD()</code>.
     <code>str(column)</code> will return its name.
+    </p></dd>
+<dt><code>coldata(key)</code></dt>
+<dd><p>Returns a sequence of the values for the given column.
+    The sequence will have the same number of elements as the number of rows
+    in the table.  The <code>key</code> argument may be either an integer
+    column index (if negative, counts backwards from the end),
+    or the column name or info object.
+    The returned value will always be iterable (has <code>__iter__</code>),
+    but will only be indexable 
+    (has <code>__len__</code> and <code>__getitem__</code>) if the table
+    is random access.
     </p></dd>
 <dt><code>parameters()</code></dt>
 <dd><p>Returns a name to value mapping of the table parameters
@@ -1369,11 +1380,12 @@ as described above.
    (id(String), ra(Double)/degrees, dec(Double)/degrees, jmag(Double)/mag, hmag(Double)/mag, kmag(Double)/mag)
    >>> print [str(col) for col in xsc.columns()]        # column names only
    ['id', 'ra', 'dec', 'jmag', 'hmag', 'kmag']
-   >>> print xsc[1000000]                               # examine millionth row
+   >>> row = xsc[1000000]                               # examine millionth row
+   >>> print row
    (u'19433000+4003190', 295.875, 40.055286, 14.449, 13.906, 13.374)
-   >>> print xsc[1000000][0]                            # cell by index
+   >>> print row[0]                                     # cell by index
    19433000+4003190
-   >>> print xsc[1000000]['ra'], xsc[1000000]['dec']    # cells by col name
+   >>> print row['ra'], row['dec']                      # cells by col name
    295.875 40.055286
    >>> print len(xsc)                                   # count rows
    1646844
@@ -1404,6 +1416,20 @@ as described above.
    | 11244075+5218078 |
    +------------------+
 ]]></verbatim>
+</p>
+
+<p>The following are all ways to obtain the value of a given cell
+in the table from the previous example.
+<verbatim>
+    xsc.getCell(99, 0)
+    xsc[99][0]
+    xsc[99]['id']
+    xsc.coldata(0)[99]
+    xsc.coldata('id')[99]
+</verbatim>
+Some of these methods may be more efficient than others.
+Note that none of these methods will work if the table has sequential-only
+access.
 </p>
 
 </subsect>
