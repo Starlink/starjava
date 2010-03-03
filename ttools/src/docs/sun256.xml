@@ -1126,7 +1126,9 @@ An invocation like this is one way to start it up:
     jython
 </verbatim>
 Optionally, you can extract the <code>stilts.py</code> module 
-from the stilts.jar file and put it in a directory on your jython 
+from the stilts.jar file 
+(using a command like "<code>unzip stilts.jar stilts.py</code>")
+and put it in a directory on your jython 
 <code>sys.path</code> (e.g. <code>jythondir/Lib</code>);
 this may cause jython to compile it to bytecode (<code>stilts$py.class</code>)
 and thus improve startup time.
