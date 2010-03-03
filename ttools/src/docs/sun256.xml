@@ -1544,7 +1544,7 @@ This section explains what kind of tables the tools can read and write,
 and how you tell them where to find the tables to operate on.
 </p>
 
-<p>In most cases input and output table specificcations are given
+<p>In most cases input and output table specifications are given
 by parameters with the following names (or similar ones):
 <dl>
 <dt><code>in</code></dt>
