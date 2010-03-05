@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.ProcessingFilter;
 import uk.ac.starlink.ttools.filter.StepFactory;
+import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.AbstractInputTableParameter;
 import uk.ac.starlink.ttools.task.Calc;
@@ -101,17 +102,35 @@ public class JyStilts {
             Class clazz = clazzes[ ic ];
             String clazzName = clazz.getName();
             String importName = clazzName;
-            importName = importName.replaceFirst( ".*\\.", "" );
+            importName = importName.replaceFirst( ".*\\.", "_" );
+            if ( clazzMap_.containsValue( importName ) ) {
+                throw new RuntimeException( "import name clash: "
+                                          + importName );
+            }
+            clazzMap_.put( clazz, importName );
             String line = "import " + clazzName;
             if ( ! importName.equals( clazzName ) ) {
                 line += " as " + importName;
             }
             importList.add( line );
-            if ( clazzMap_.containsValue( importName ) ) {
-                throw new RuntimeException( "import name clash" );
-            }
-            clazzMap_.put( clazz, importName );
         }
+
+        /* Imports providing calculation static functions for use by users. */
+        Class[] calcClazzes =
+            (Class[]) JELUtils.getStaticClasses().toArray( new Class[ 0 ] );
+        for ( int ic = 0; ic < calcClazzes.length; ic++ ) {
+            Class clazz = calcClazzes[ ic ];
+            String clazzName = clazz.getName();
+            String importName = clazzName;
+            importName = importName.replaceFirst( ".*\\.", "" );
+            if ( clazzMap_.containsValue( importName ) ) {
+                throw new RuntimeException( "import name clash: "
+                                          + importName );
+            }
+            String line = "import " + clazzName + " as " + importName;
+            importList.add( line );
+        }
+
         imports_ = (String[]) importList.toArray( new String[ 0 ] );
 
         /* Some parameter names need to be aliased because they are python

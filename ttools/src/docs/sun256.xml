@@ -1557,6 +1557,29 @@ instead).
 
 </subsect>
 
+<subsect id="jyfuncs">
+<subhead><title>Calculation Functions</title></subhead>
+
+<p>The various functions from the expression language 
+listed in <ref id="staticMethods"/> are available directly from JyStilts.
+Each of the subsections in that section is a class in the <code>stilts</code>
+module namespace, with unbound functions representing the functions.
+</p>
+
+<p>This means you can use them like this:
+<verbatim><![CDATA[
+    >>> import stilts
+    >>> print stilts.Times.mjdToIso(54292)
+    2007-07-11T00:00:00
+]]></verbatim>
+or like this:
+<verbatim><![CDATA[
+    >>> from stilts import Coords
+    >>> dist = Coords.skyDistanceDegrees(ra1, dec1, ra2, dec2)
+]]></verbatim>
+</p>
+
+</subsect>
 
 </sect>
 

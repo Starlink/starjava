@@ -133,6 +133,10 @@ class TableTest(unittest.TestCase):
         discard = captureJavaOutput(messier.mode_discard)
         self.assert_(not discard)
 
+    def testFuncs(self):
+        self.assertEquals(42, stilts.Conversions.fromHex('2a'))
+        self.assertEquals('2a', stilts.Conversions.toHex(42))
+        self.assertEquals(51910, stilts.Times.isoToMjd('2001-01-01'))
 
     def ioRoundTrip(self, table, fmt):
         ofile = _UnclosedStringIO()
