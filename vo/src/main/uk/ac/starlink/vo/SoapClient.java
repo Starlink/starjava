@@ -117,7 +117,7 @@ public class SoapClient {
         hconn.setDoInput( true );
         OutputStream out = new BufferedOutputStream( hconn.getOutputStream() );
         if ( echoStream_ != null ) {
-            out = new EchoOutputStream( out, System.out );
+            out = new EchoOutputStream( out, echoStream_ );
         }
         out.write( request );
         out.flush();
@@ -130,7 +130,7 @@ public class SoapClient {
             ResponseHandler handler = new ResponseHandler( bodyHandler );
             InputStream in = new BufferedInputStream( hconn.getInputStream() );
             if ( echoStream_ != null ) {
-                in = new EchoInputStream( in, System.out );
+                in = new EchoInputStream( in, echoStream_ );
             }
             try {
                 createSaxParser().parse( in, handler );
@@ -146,7 +146,7 @@ public class SoapClient {
             FaultHandler handler = new FaultHandler();
             InputStream err = hconn.getErrorStream();
             if ( echoStream_ != null ) {
-                err = new EchoInputStream( err, System.out );
+                err = new EchoInputStream( err, echoStream_ );
             }
             try {
                 createSaxParser().parse( err, handler );
