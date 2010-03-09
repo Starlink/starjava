@@ -80,7 +80,7 @@ public class MultiConeTest extends TableTestCase {
         int ncol = result.getColumnCount();
 
         assertEquals( 462L, result.getRowCount() );
-        assertEquals( 17, ncol );
+        assertEquals( 19, ncol );
 
         assertEquals( "name", result.getColumnInfo( 0 ).getName() );
         assertEquals( "id", result.getColumnInfo( 1 ).getName() );
