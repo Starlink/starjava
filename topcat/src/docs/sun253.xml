@@ -4686,8 +4686,9 @@ Here is what the individual items mean:
 
 <p>The memory monitor is a small widget at the bottom left of the 
 Control Window which gives an indication of TOPCAT's memory usage.
-The number indicates the maximum heap size that Java will use
-(e.g. "64 M" for 64 megabytes), and the two darker colours filled in
+The numbers indicate the currently used and maximum heap size that 
+Java will use (e.g. "64 M" for 64 megabytes), 
+and the two darker colours filled in
 from the left indicate the current total and used proportions of this.
 It's not necessary to understand in detail what these mean, but if
 the darkest (used) colour comes to fill up the whole area, the 
@@ -11801,6 +11802,7 @@ Some of the notable contributers are these:
 <li>Guillaume Mella (JMMC)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
+<li>Simon Murphy (ANU)</li>
 <li>Francois Ochsenbein (CDS)</li>
 <li>Clive Page (Leicester)</li>
 <li>Roy Platon (RAL)</li>
@@ -11810,7 +11812,6 @@ Some of the notable contributers are these:
 <li>Mike Read (ROE)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
-<li>Simon Murphy (ANU)</li>
 </ul>
 </p>
 

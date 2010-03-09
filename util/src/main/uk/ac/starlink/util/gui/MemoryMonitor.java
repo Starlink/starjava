@@ -208,17 +208,29 @@ public class MemoryMonitor extends JComponent {
 
     /**
      * Returns the text which is painted onto this component.
-     * It's some indication of available memory, but can be overridden.
+     * It's some indication of used and available memory, but can be overridden.
      *
      * @return   text
      */
     public String getText() {
-        long mem = runtime_.maxMemory();
-        if ( mem == Long.MAX_VALUE ) {
-            mem = runtime_.totalMemory();
+        long freeMem = runtime_.freeMemory();
+        long maxMem = runtime_.maxMemory();
+        long totalMem = runtime_.totalMemory();
+        long totmem = maxMem == Long.MAX_VALUE ? totalMem : maxMem;
+        long usemem = totalMem - freeMem;
+        int totMegas = (int) Math.round( (double) totmem / 1024 / 1024 );
+        int useMegas = (int) Math.round( (double) usemem / 1024 / 1024 );
+        String totStr = Integer.toString( totMegas );
+        String useStr = Integer.toString( useMegas );
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < totStr.length() - useStr.length(); i++ ) {
+            sbuf.append( ' ' );
         }
-        int megas = (int) Math.round( (double) mem / 1024 / 1024 );
-        return megas + " M";
+        sbuf.append( useStr );
+        sbuf.append( " / " );
+        sbuf.append( totStr );
+        sbuf.append( " M" );
+        return sbuf.toString();
     }
 
     /**
