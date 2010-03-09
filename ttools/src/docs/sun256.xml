@@ -371,6 +371,12 @@ follows:
     successful completion.
     </p></dd>
 
+<dt><code>-memgui</code></dt>
+<dd><p>Displays a graphical window while the command is running which
+    summarises used and available heap memory.
+    May be useful for profiling or understanding resource constraints.
+    </p></dd>
+
 <dt><code>-checkversion &lt;vers&gt;</code></dt>
 <dd><p>Requires that the version is exactly as given by the string
     <code>&lt;vers&gt;</code>.  If it is not, STILTS will exit with
@@ -7052,6 +7058,7 @@ but my thanks are especially due to the following:
         will break anyone's existing code.</li>
     <li>New filter <code>random</code> introduced which converts tables
         to random-access if necessary.</li>
+    <li>New flag <code>-memgui</code> to monitor memory usage during runs.</li>
     </ul>
     </p>
     </dd>
