@@ -1142,7 +1142,7 @@ public class RowMatcher {
         /* Construct a new hash mapping each RowRef in the given set of
          * links to a list of all the links it appears in. */
         ObjectBinner refBinner = Binners.createModifiableObjectBinner();
-        indicator.startStage( "Maping rows to links" );
+        indicator.startStage( "Mapping rows to links" );
         double nlink1 = links.size();
         int ilink1 = 0;
         for ( Iterator linkIt = links.iterator(); linkIt.hasNext(); ) {
