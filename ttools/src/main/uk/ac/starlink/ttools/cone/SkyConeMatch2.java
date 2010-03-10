@@ -111,16 +111,30 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         paramList.add( srParam_ );
 
         modeParam_ = new ChoiceParameter( "find", new String[] {
-            "best", "all",
+            "best", "all", "each",
         } );
         modeParam_.setDefault( "all" );
         modeParam_.setPrompt( "Type of match to perform" );
         modeParam_.setDescription( new String[] {
             "<p>Determines which matches are retained.",
-            "If <code>best</code> is selected, then only the query table row",
-            "which best matches the row from the input table will be output.",
-            "If <code>all</code> is selected, then any rows in the query table",
-            "which match the input table are output.",
+            "<ul>",
+            "<li><code>best</code>:",
+                "Only the matching query table row closest to",
+                "the input table row will be output.",
+                "Input table rows with no matches will be omitted.",
+                "</li>",
+            "<li><code>all</code>:",
+                "All query table rows which match",
+                "the input table row will be output.",
+                "Input table rows with no matches will be omitted.",
+                "</li>",
+            "<li><code>each</code>:",
+                "There will be one output table row for each input table row.",
+                "If matches are found, the closest one from the query table",
+                "will be output, and in the case of no matches,",
+                "the query table columns will be blank.",
+                "</li>",
+            "</ul>",
             "</p>",
         } );
         paramList.add( modeParam_ );
@@ -237,12 +251,19 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         }
         String distanceCol = distcolParam_.stringValue( env );
         boolean bestOnly;
+        boolean includeBlanks;
         String mode = modeParam_.stringValue( env );
         if ( mode.toLowerCase().equals( "best" ) ) {
             bestOnly = true;
+            includeBlanks = false;
         }
         else if ( mode.toLowerCase().equals( "all" ) ) {
             bestOnly = false;
+            includeBlanks = false;
+        }
+        else if ( mode.toLowerCase().equals( "each" ) ) {
+            bestOnly = true;
+            includeBlanks = true;
         }
         else {
             throw new UsageException( "Unknown value of " +
@@ -260,9 +281,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         /* Return a table producer using these values. */
         ConeMatcher coneMatcher =
-            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly, distFilter,
-                             parallelism, copyColIdList, distanceCol,
-                             inFixAct, coneFixAct );
+            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly,
+                             includeBlanks, distFilter, parallelism,
+                             copyColIdList, distanceCol, inFixAct, coneFixAct );
         coneMatcher.setStreamOutput( ostream );
         return coneMatcher;
     }

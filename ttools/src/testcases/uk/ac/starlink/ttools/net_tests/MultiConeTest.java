@@ -118,6 +118,32 @@ public class MultiConeTest extends TableTestCase {
         assertEquals( "sirius", result.getCell( result.getRowCount() - 1, 0 ) );
     }
 
+    public void testFindModes() throws Exception {
+        MapEnvironment env = new MapEnvironment()
+            .setResourceBase( MultiConeTest.class )
+            .setValue( "serviceurl", "http://archive.stsci.edu/hst/search.php" )
+            .setValue( "in", "messier.xml" )
+            .setValue( "ra", "RA" )
+            .setValue( "dec", "DEC" )
+            .setValue( "sr", "0.04" )
+            .setValue( "copycols", "" )
+            .setValue( "emptyok", "false" )
+            .setValue( "icmd", "rowrange 2 10" );
+        StarTable bestResult =
+            multicone( new MapEnvironment( env ).setValue( "find", "best" ),
+                       new int[] { 9, } );
+        StarTable allResult =
+            multicone( new MapEnvironment( env ).setValue( "find", "all" ),
+                       new int[] { 9, } );
+        StarTable eachResult =
+            multicone( new MapEnvironment( env ).setValue( "find", "each" ),
+                       new int[] { 9, } );
+        assertEquals( 2, bestResult.getRowCount() );
+        assertEquals( 94, allResult.getRowCount() );
+        assertEquals( 9, eachResult.getRowCount() );
+
+    }
+
     public void testSia() throws Exception {
         int nq = 10;
         MapEnvironment env = new MapEnvironment()

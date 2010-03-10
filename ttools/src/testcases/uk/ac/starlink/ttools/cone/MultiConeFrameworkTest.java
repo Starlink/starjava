@@ -60,24 +60,77 @@ public class MultiConeFrameworkTest extends TableTestCase {
         ConeMatcher bestMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
-                true, parallelism, "*", scoreCol,
+                false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
+
         assertEquals( messier.getRowCount(), bestResult.getRowCount() );
         assertEquals( messier.getColumnCount() + 3 + ( addScore ? 1 : 0 ),
                       bestResult.getColumnCount() );
+
+        ConeMatcher eachMatcher = new ConeMatcher(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                true, true, parallelism, "*", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        StarTable eachResult = Tables.randomTable( eachMatcher.getTable() );
+
+        assertSameData( bestResult, eachResult );
+        assertEquals( messier.getRowCount(), eachResult.getRowCount() );
 
         ConeMatcher allMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
-                false, true, parallelism, "RA DEC", scoreCol,
+                false, false, true, parallelism, "RA DEC", scoreCol,
                 JoinFixAction.makeRenameDuplicatesAction( "_A" ),
                 JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
+
         assertEquals( messier.getRowCount() * nIn, allResult.getRowCount() );
         assertEquals( 2 + 3 + ( addScore ? 1 : 0 ),
                       allResult.getColumnCount() );
+
+
+        if ( parallelism == 1 ) { // else order of requests is non-deterministic
+            ConeSearcher searcher2 = new GappyConeSearcher( searcher, false ) {
+                protected boolean isGap( int irow ) {
+                    return irow % 2 == 0;
+                }
+            };
+
+            ConeMatcher bestMatcher2 = new ConeMatcher(
+                    searcher2, inProd,
+                    new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                    false, true, parallelism, "*", scoreCol,
+                    JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+            StarTable bestResult2 =
+                Tables.randomTable( bestMatcher2.getTable() );
+            assertEquals( messier.getRowCount() / 2,
+                          bestResult2.getRowCount() );
+
+            ConeMatcher eachMatcher2 = new ConeMatcher(
+                    searcher2, inProd,
+                    new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                    true, true, parallelism, "*", scoreCol,
+                    JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+            StarTable eachResult2 =
+                Tables.randomTable( eachMatcher2.getTable() );
+            assertEquals( messier.getRowCount(), eachResult2.getRowCount() );
+
+            ConeMatcher allMatcher2 = new ConeMatcher(
+                    searcher2, inProd,
+                    new JELQuerySequenceFactory( "ucd$POS_EQ_RA_",
+                                                 "ucd$POS_EQ_DEC",
+                                                 "0.1 + 0.2" ),
+                    false, false, true, parallelism, "RA DEC", scoreCol,
+                    JoinFixAction.makeRenameDuplicatesAction( "_A" ),
+                    JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
+            StarTable allResult2 = Tables.randomTable( allMatcher2.getTable() );
+            assertEquals( messier.getRowCount() * nIn / 2,
+                          allResult2.getRowCount() );
+        }
+
         if ( addScore ) {
             int iscore = allResult.getColumnCount() - 1;
             assertEquals( scoreCol,
@@ -112,7 +165,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
         ConeMatcher matcher3 = new ConeMatcher(
-                searcher, inProd, qsFact3, true, true, parallelism, "",
+                searcher, inProd, qsFact3, true, false, true, parallelism, "",
                 scoreCol, JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );
         assertEquals( 3 + ( addScore ? 1 : 0 ), result3.getColumnCount() );

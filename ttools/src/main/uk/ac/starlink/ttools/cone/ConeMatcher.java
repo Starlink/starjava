@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
@@ -41,6 +42,7 @@ public class ConeMatcher implements TableProducer {
     private final QuerySequenceFactory qsFact_;
     private final int parallelism_;
     private final boolean bestOnly_;
+    private final boolean includeBlanks_;
     private final boolean distFilter_;
     private final String copyColIdList_;
     private final JoinFixAction inFixAct_;
@@ -73,7 +75,7 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly ) {
-        this( coneSearcher, inProd, qsFact, bestOnly, true,
+        this( coneSearcher, inProd, qsFact, bestOnly, true, false,
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
@@ -88,6 +90,8 @@ public class ConeMatcher implements TableProducer {
      * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
+     * @param   includeBlanks  true iff a row is to be output for input rows
+     *                         for which the cone search has no matches
      * @param   distFilter true to perform post-query filtering on results
      *                     based on the distance between the query position
      *                     and the result row position
@@ -104,6 +108,7 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly,
+                        boolean includeBlanks,
                         boolean distFilter, int parallelism,
                         String copyColIdList, String distanceCol,
                         JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
@@ -111,6 +116,7 @@ public class ConeMatcher implements TableProducer {
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
+        includeBlanks_ = includeBlanks;
         distFilter_ = distFilter;
         parallelism_ = parallelism;
         copyColIdList_ = copyColIdList;
@@ -176,7 +182,8 @@ public class ConeMatcher implements TableProducer {
                          .getColumnIndices( copyColIdList_ );
         RowPipe rowPipe = new OnceRowPipe();
         Thread coneWorker =
-            new ConeWorker( rowPipe, inTable, resultSeq, iCopyCols, 
+            new ConeWorker( rowPipe, inTable, resultSeq, iCopyCols,
+                            includeBlanks_,
                             ( distanceCol_ != null &&
                               distanceCol_.trim().length() > 0 ) ? 1 : 0,
                             inFixAct_, coneFixAct_, JoinFixAction.NO_ACTION );
@@ -426,6 +433,7 @@ public class ConeMatcher implements TableProducer {
         private final StarTable inTable_;
         private final ConeResultRowSequence resultSeq_;
         private final int[] iCopyCols_;
+        private final boolean includeBlanks_;
         private final int extraCols_;
         private final JoinFixAction inFixAct_;
         private final JoinFixAction coneFixAct_;
@@ -440,6 +448,8 @@ public class ConeMatcher implements TableProducer {
          *                     the start of the data
          * @param   iCopyCols  indices of columns from the input table to
          *                     be copied to the output table
+         * @param   includeBlanks true iff a row is to be output for input rows
+         *                        with an empty cone search
          * @param   extraCols  number of columns at the end of the column list
          *                     which correspond to neither the input nor the
          *                     searched tables
@@ -451,6 +461,7 @@ public class ConeMatcher implements TableProducer {
          */
         ConeWorker( RowPipe rowPipe, StarTable inTable,
                     ConeResultRowSequence resultSeq, int[] iCopyCols,
+                    boolean includeBlanks,
                     int extraCols, JoinFixAction inFixAct,
                     JoinFixAction coneFixAct, JoinFixAction extrasFixAct ) {
             super( "Cone searcher" );
@@ -458,6 +469,7 @@ public class ConeMatcher implements TableProducer {
             inTable_ = inTable;
             resultSeq_ = resultSeq;
             iCopyCols_ = iCopyCols;
+            includeBlanks_ = includeBlanks;
             extraCols_ = extraCols;
             inFixAct_ = inFixAct;
             coneFixAct_ = coneFixAct;
@@ -498,7 +510,9 @@ public class ConeMatcher implements TableProducer {
          * and writes the result down a pipe.
          */
         private void multiCone() throws IOException {
-            int ncol = -1;
+            int ncIn = iCopyCols_.length;
+            int ncCone = -1;
+            List inQueue = null;
 
             /* Loop over rows of the input table. */
             for ( int irow = 0; resultSeq_.next(); irow++ ) {
@@ -511,14 +525,28 @@ public class ConeMatcher implements TableProducer {
                      * metadata (most importantly column descriptions) from it 
                      * and use that to initialise the output row pipe. */
                     int nc = result.getColumnCount();
-                    if ( ncol < 0 ) {
-                        ncol = nc;
+                    if ( ncCone < 0 ) {
+                        ncCone = nc;
                         rowPipe_.acceptMetadata( getMetadata( result ) );
+
+                        /* If there are queued rows waiting to find out
+                         * what the result metadata looks like, output
+                         * them now. */
+                        if ( inQueue != null ) {
+                            for ( Iterator it = inQueue.iterator();
+                                  it.hasNext(); ) {
+                                Object[] inRow = (Object[]) it.next();
+                                Object[] outRow = new Object[ ncIn + ncCone ];
+                                System.arraycopy( inRow, 0, outRow, 0, ncIn );
+                                rowPipe_.acceptRow( outRow );
+                            }
+                            inQueue = null;
+                        }
                     }
-                    else if ( nc != ncol ) {
+                    else if ( nc != ncCone ) {
                         String msg = "Inconsistent column counts "
                                    + "from different cone search invocations"
-                                   + " (" + nc + " != " + ncol + ")";
+                                   + " (" + nc + " != " + ncCone + ")";
                         throw new IOException( msg );
                     }
 
@@ -533,13 +561,8 @@ public class ConeMatcher implements TableProducer {
                             nr++;
 
                             /* Append the actual rows. */
-                            int ncIn = iCopyCols_.length;
-                            int ncCone = result.getColumnCount();
                             Object[] row = new Object[ ncIn + ncCone ];
-                            for ( int ic = 0; ic < ncIn; ic++ ) {
-                                row[ ic ] =
-                                    resultSeq_.getCell( iCopyCols_[ ic ] );
-                            }
+                            copyInCells( row );
                             for ( int ic = 0; ic < ncCone; ic++ ) {
                                 row[ ncIn + ic ] = rSeq.getCell( ic );
                             }
@@ -550,11 +573,49 @@ public class ConeMatcher implements TableProducer {
                         rSeq.close();
                     }
 
+                    /* In case of no result rows, write an output row with
+                     * blank result columns only if we have been asked
+                     * to do so. */
+                    if ( nr == 0 && includeBlanks_ ) {
+                        Object[] row = new Object[ ncIn + ncCone ];
+                        copyInCells( row );
+                        rowPipe_.acceptRow( row );
+                    }
+
                     /* Log number of rows successfully appended. */
                     logger_.info( "Row " + irow + ": got " + nr
                                 + ( ( nr == 1 ) ? " match" : " matches" ) );
                 }
+
+                /* Null result.  Services shouldn't do this, but if they
+                 * do, assume it means no results found. */
                 else {
+
+                    /* If we've been asked to write rows for empty results,
+                     * we have to do some work. */
+                    if ( includeBlanks_ ) {
+
+                        /* If we don't know what the output table columns are
+                         * yet, just store the input data for later. */
+                        if ( ncCone < 0 ) {
+                            Object[] inRow = new Object[ ncIn ];
+                            copyInCells( inRow );
+                            if ( inQueue == null ) {
+                                inQueue = new ArrayList();
+                            }
+                            inQueue.add( inRow );
+                        }
+
+                        /* If we do know the output table columns, write
+                         * this row plus empty cells. */
+                        else {
+                            Object[] row = new Object[ ncIn + ncCone ];
+                            copyInCells( row );
+                            rowPipe_.acceptRow( row );
+                        }
+                    }
+
+                    /* Log match failure. */
                     logger_.info( "Row " + irow + ": got no matches" );
                 }
             }
@@ -564,7 +625,7 @@ public class ConeMatcher implements TableProducer {
              * in the case that no matches were found AND the ConeSearcher
              * implementation returns nulls instead of empty tables for
              * empty searches. */
-            if ( ncol < 0 ) {
+            if ( ncCone < 0 ) {
                 String msg = "No results were found and no table metadata "
                            + "could be gathered.  Sorry.";
                 logger_.warning( msg );
@@ -575,6 +636,21 @@ public class ConeMatcher implements TableProducer {
                 result0.getParameters()
                        .add( new DescribedValue( msgInfo, msg ) );
                 rowPipe_.acceptMetadata( new EmptyStarTable() );
+            }
+        }
+
+        /**
+         * Copies the input table cells from this worker's result sequence 
+         * which will be required for output to a given object array.
+         *
+         * @param  row   destination array, must have at least
+         *               iCopyCols_.length elements
+         */
+        private void copyInCells( Object[] row )
+                throws IOException {
+            int ncIn = iCopyCols_.length;
+            for ( int ic = 0; ic < ncIn; ic++ ) {
+                row[ ic ] = resultSeq_.getCell( iCopyCols_[ ic ] );
             }
         }
 

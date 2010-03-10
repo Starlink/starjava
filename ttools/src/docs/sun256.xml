@@ -7059,6 +7059,10 @@ but my thanks are especially due to the following:
     <li>New filter <code>random</code> introduced which converts tables
         to random-access if necessary.</li>
     <li>New flag <code>-memgui</code> to monitor memory usage during runs.</li>
+    <li>New option "<code>find=each</code>" for
+        <code>coneskymatch</code> and <code>sqlskymatch</code> commands.
+        This allows you to get an output table with exactly one row for
+        each row of the input table.</li>
     </ul>
     </p>
     </dd>
