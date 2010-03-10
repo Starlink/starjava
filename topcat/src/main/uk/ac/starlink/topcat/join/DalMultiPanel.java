@@ -11,7 +11,6 @@ import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import javax.swing.Action;
@@ -28,12 +27,10 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
-import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -489,12 +486,12 @@ public class DalMultiPanel extends JPanel {
      */
     private MulticoneMode[] getMulticoneModes() {
         return new MulticoneMode[] {
-            new MatchOnlyMode( "New joined table with best matches", true,
-                               service_ ),
-            new MatchOnlyMode( "New joined table with all matches", false,
-                               service_ ),
-            new AllBestMode( "New joined table, one row per input row",
-                             service_ ),
+            new CreateTableMode( "New joined table with best matches",
+                                 true, false, service_ ),
+            new CreateTableMode( "New joined table with all matches",
+                                 false, false, service_ ),
+            new CreateTableMode( "New joined table, one row per intput row",
+                                 true, true, service_ ),
             new AddSubsetMode( "Add subset for matched rows", service_ ),
         };
     }
@@ -995,12 +992,11 @@ public class DalMultiPanel extends JPanel {
 
     /**
      * MulticoneMode implementation which generates a new table consisting
-     * of only rows which consitute matches between the input table and
-     * the cone search service.  Any input table rows which did not have
-     * matches are omitted.
+     * of a match between the input table and remote service.
      */
-    private static class MatchOnlyMode extends MulticoneMode {
+    private static class CreateTableMode extends MulticoneMode {
         private final boolean best_;
+        private final boolean includeBlanks_;
         private final DalMultiService service_;
 
         /**
@@ -1011,10 +1007,14 @@ public class DalMultiPanel extends JPanel {
          *               is included in the output (max 1 output row per
          *               input row); if false all matches are included in
          *               output
+         * @param  includeBlanks  if true, rows with no matches are included
+         *                        int the output
          */
-        MatchOnlyMode( String name, boolean best, DalMultiService service ) {
+        CreateTableMode( String name, boolean best, boolean includeBlanks,
+                         DalMultiService service ) {
             super( name );
             best_ = best;
+            includeBlanks_ = includeBlanks;
             service_ = service;
         }
 
@@ -1024,8 +1024,8 @@ public class DalMultiPanel extends JPanel {
                                               int parallelism ) {
             return
                 new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
-                                 best_, true, parallelism, "*", DIST_NAME,
-                                 JoinFixAction.NO_ACTION,
+                                 best_, includeBlanks_, true, parallelism, "*",
+                                 DIST_NAME, JoinFixAction.NO_ACTION,
                                  JoinFixAction
                                 .makeRenameDuplicatesAction( "_" +
                                                              service_
@@ -1069,7 +1069,7 @@ public class DalMultiPanel extends JPanel {
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher,
                                     toProducer( prependIndex( inTable ) ),
-                                    qsFact, true, true, parallelism,
+                                    qsFact, true, false, true, parallelism,
                                     INDEX_INFO.getName(), null,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction.NO_ACTION );
@@ -1170,92 +1170,6 @@ public class DalMultiPanel extends JPanel {
                         assert false;
                         return item.toString();
                     }
-                }
-            };
-        }
-    }
-
-    /**
-     * Multicone mode which creates a new table, consisting of one row
-     * for each input table row, including the best match (if any) from the
-     * cone search result.
-     */
-    private static class AllBestMode extends MulticoneMode {
-        private final DalMultiService service_;
-
-        /**
-         * Constructor.
-         *
-         * @param  name  mode name
-         */
-        AllBestMode( String name, DalMultiService service ) {
-            super( name );
-            service_ = service;
-        }
-
-        public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
-                                              StarTable inTable,
-                                              QuerySequenceFactory qsFact,
-                                              int parallelism ) {
-            return new ConeMatcher( coneSearcher,
-                                    toProducer( prependIndex( inTable ) ),
-                                    qsFact, true, true, parallelism,
-                                    INDEX_INFO.getName(), DIST_NAME,
-                                    JoinFixAction.NO_ACTION,
-                                    JoinFixAction.NO_ACTION );
-        }
-
-        public ResultHandler createResultHandler( JComponent parent,
-                                                  StoragePolicy policy,
-                                                  final TopcatModel inTcModel,
-                                                  final StarTable inTable ) {
-            final int nRowIn = Tables.checkedLongToInt( inTable.getRowCount() );
-            return new RandomResultHandler( parent, policy, service_ ) {
-                public void processRandomResult( StarTable outTable )
-                        throws IOException {
-
-                    /* Prepare a table which has the rows of the multicone
-                     * result table, but aligned to the row indices of the
-                     * input table.  This requires use of the index column
-                     * we inserted in the createConeMatcher method. */
-                    long[] rowMap = new long[ nRowIn ];
-                    Arrays.fill( rowMap, -1L );
-                    int nRowCone =
-                        Tables.checkedLongToInt( outTable.getRowCount() );
-                    for ( int iRowCone = 0; iRowCone < nRowCone; iRowCone++ ) {
-                        long iRowIn = ((Number) outTable.getCell( iRowCone, 0 ))
-                                     .longValue();
-                        if ( iRowIn < Integer.MAX_VALUE ) {
-                            rowMap[ (int) iRowIn ] = iRowCone;
-                        }
-                    }
-                    outTable = new RowPermutedStarTable( outTable, rowMap );
-
-                    /* Strip that table of its first column which was the
-                     * index column we added earlier on, its work has been
-                     * done and it's not wanted for the output. */
-                    int[] colMap = new int[ outTable.getColumnCount() - 1 ];
-                    for ( int icol = 0; icol < colMap.length; icol++ ) {
-                        colMap[ icol ] = icol + 1;
-                    }
-                    outTable =
-                        new ColumnPermutedStarTable( outTable, colMap, true );
-
-                    /* Combine the result table with the input table to
-                     * generate the requested output. */
-                    String label = service_.getLabel();
-                    JoinFixAction[] fixacts = new JoinFixAction[] {
-                        JoinFixAction.NO_ACTION,
-                        JoinFixAction.makeRenameDuplicatesAction( "_" + label ),
-                    };
-                    outTable = new JoinStarTable( new StarTable[] { inTable,
-                                                                    outTable },
-                                                  fixacts );
-
-                    /* Finally schedule the constructed table for addition
-                     * to the global table list. */
-                    addTable( label + "s(" + inTcModel.getID() + ")",
-                              outTable );
                 }
             };
         }
