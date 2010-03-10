@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -18,6 +19,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -375,6 +377,106 @@ public class MatchStarTables {
         JoinFixAction[] subFixes = (JoinFixAction[])
                                    fixActList.toArray( new JoinFixAction[ 0 ] );
         JoinStarTable joined = new JoinStarTable( subTables, subFixes );
+        joined.setName( "Joined" );
+        return joined;
+    }
+
+    /**
+     * Constructs a non-random table made out of a set of possibly non-random
+     * constituent tables joined together according to a LinkSet.
+     * Any input tables which do not have random access must have row
+     * ordering consistent with (that is, monotonically increasing for)
+     * the ordering of the links in the LinkSet.
+     * In practice, this is only likely to be the case if all the input tables
+     * are random access except for (at most) one, and the links are
+     * ordered with reference to that one.
+     * If this requirement is not met, sequential access to the resulting
+     * table is likely to fail at some point.
+     *
+     * @param  tables  array of constituent tables
+     * @param  rowLinks  link set defining the match
+     * @param  fixActs  actions to take for deduplicating column names
+     *                  (array of the same size as <code>tables</code>)
+     * @param  matchScoreInfo  may suply information about the meaning of
+     *                         the match scores, if present
+     */
+    public static StarTable makeSequentialJoinTable( StarTable[] tables,
+                                                     final LinkSet rowLinks,
+                                                     JoinFixAction[] fixActs,
+                                                     ValueInfo matchScoreInfo ){
+
+        /* Prepare subtables, one for each input table but based on the
+         * given row links (these control row ordering). */
+        List subTableList = new ArrayList();
+        List fixActList = new ArrayList();
+        for ( int iTable = 0; iTable < tables.length; iTable++ ) {
+            StarTable table = tables[ iTable ];
+            subTableList.add( new RowLinkTable( table, iTable ) {
+                public Iterator getLinkIterator() {
+                    return rowLinks.iterator();
+                }
+            } );
+            fixActList.add( fixActs[ iTable ] );
+        }
+
+        /* Add a subtable for additional information (score column)
+         * if required. */
+        if ( matchScoreInfo != null ) {
+            final ColumnInfo matchInfo = new ColumnInfo( matchScoreInfo );
+            StarTable matchTable = new AbstractStarTable() {
+                public ColumnInfo getColumnInfo( int icol ) {
+                    return icol == 0 ? matchInfo : null;
+                }
+                public int getColumnCount() {
+                    return 1;
+                }
+                public long getRowCount() {
+                    return -1L;
+                }
+                public RowSequence getRowSequence() {
+                    final Iterator linkIt = rowLinks.iterator();
+                    return new RowSequence() {
+                        RowLink link_;
+                        public boolean next() {
+                            if ( linkIt.hasNext() ) {
+                                link_ = (RowLink) linkIt.next();
+                                return true;
+                            }
+                            else {
+                                link_ = null;
+                                return false;
+                            }
+                        }
+                        public Object getCell( int icol ) {
+                            return getScore();
+                        }
+                        public Object[] getRow() {
+                            return new Object[] { getScore() };
+                        }
+                        public void close() {
+                        }
+                        private Double getScore() {
+                            if ( link_ instanceof RowLink2 ) {
+                                double score = ((RowLink2) link_).getScore();
+                                if ( ! Double.isNaN( score ) ) {
+                                    return new Double( score );
+                                }
+                            }
+                            return null;
+                        }
+                    };
+                }
+            };
+            subTableList.add( matchTable );
+            fixActList.add( JoinFixAction.NO_ACTION );
+        }
+
+        /* Amalgamate tables and return. */
+        RowLinkTable[] subTables =
+            (RowLinkTable[]) subTableList.toArray( new RowLinkTable[ 0 ] );
+        JoinFixAction[] subFixes =
+            (JoinFixAction[]) fixActList.toArray( new JoinFixAction[ 0 ] );
+        StarTable joined = new JoinStarTable( subTables, subFixes );
         joined.setName( "Joined" );
         return joined;
     }
