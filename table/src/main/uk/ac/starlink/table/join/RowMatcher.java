@@ -1138,12 +1138,15 @@ public class RowMatcher {
      */
     private LinkSet agglomerateLinks( LinkSet links ) 
             throws InterruptedException {
-        indicator.logMessage( "Agglomerating links" );
 
         /* Construct a new hash mapping each RowRef in the given set of
          * links to a list of all the links it appears in. */
         ObjectBinner refBinner = Binners.createModifiableObjectBinner();
+        indicator.startStage( "Maping rows to links" );
+        double nlink1 = links.size();
+        int ilink1 = 0;
         for ( Iterator linkIt = links.iterator(); linkIt.hasNext(); ) {
+            indicator.setLevel( ++ilink1 / nlink1 );
             RowLink link = (RowLink) linkIt.next();
             int nref = link.size();
             for ( int i = 0; i < nref; i++ ) {
@@ -1151,6 +1154,7 @@ public class RowMatcher {
                 refBinner.addItem( ref, link );
             }
         }
+        indicator.endStage();
 
         /* Prepare a new set to contain the agglomerated links.
          * We will populate this with disjoint links at the same time
@@ -1162,7 +1166,11 @@ public class RowMatcher {
         /* Check for any isolated links, that is ones none of whose members
          * appear in any other links.  These can be handled more efficiently
          * than ones with more complicated relationships. */
+        indicator.startStage( "Identifying isolated links" );
+        double nlink2 = links.size();
+        int ilink2 = 0;
         for ( Iterator it = links.iterator(); it.hasNext(); ) {
+            indicator.setLevel( ++ilink2 / nlink2 );
             RowLink link = (RowLink) it.next();
             int nref = link.size();
             boolean isolated = true;
@@ -1184,6 +1192,7 @@ public class RowMatcher {
                 }
             }
         }
+        indicator.endStage();
 
         /* Take a key from the map we have just constructed, and walk its
          * links recursively to see which nodes we can reach from it.
