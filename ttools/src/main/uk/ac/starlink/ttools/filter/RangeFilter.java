@@ -21,65 +21,76 @@ public class RangeFilter extends BasicFilter {
      * Constructor.
      */
     public RangeFilter() {
-        super( "rowrange", "<first> <last>" );
+        super( "rowrange", "<first> <last>|+<count>" );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
             "<p>Includes only rows in a given range.",
-            "The row indices given are inclusive, and the first row is",
-            "numbered 1, so \"<code>rowrange 1 100</code>\"",
-            "means to include only the first hundred rows.",
+            "The range can either be supplied as",
+            "\"<code>&lt;first&gt; &lt;last&gt;</code>\",",
+            "where row indices are inclusive, or",
+            "\"<code>&lt;first&gt; +&lt;count&gt;</code>\".",
+            "In either case, the first row is numbered 1.",
+            "</p>",
+            "<p>Thus, to get the first hundred rows, use either",
+            "\"<code>rowrange 1 100</code>\" or",
+            "\"<code>rowrange 1 +100</code>\"",
+            "and to get the second hundred, either",
+            "\"<code>rowrange 101 200</code>\" or",
+            "\"<code>rowrange 101 +100</code>\"",
             "</p>",
         };
     }
 
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
-        long ifirst = getRowIndex( argIt, "<first>" );
-        long ilast = getRowIndex( argIt, "<last>" );
-        if ( ifirst > ilast ) {
-            throw new ArgException( ifirst + " > " + ilast ); 
-        }
-        else {
-            final long ifrom = ifirst - 1;
-            final long ito = ilast;
-            return new ProcessingStep() {
-                public StarTable wrap( StarTable base ) {
-                    return new RangeTable( base, ifrom, ito );
-                }
-            };
-        }
-    }
 
-    /**
-     * Extracts a table row index from an argument iterator.
-     *
-     * @param  argIt  filter argument iterator
-     * @param  argUsage  usage string fragment for argument
-     *         (used for error messages)
-     * @return  1-based row index value
-     */
-    private static long getRowIndex( Iterator argIt, String argUsage )
-            throws ArgException {
+        /* Get first index. */
+        long ifirst;
         if ( argIt.hasNext() ) {
-            String indexStr = (String) argIt.next();
+            String iStr = (String) argIt.next();
             argIt.remove();
-            long index;
-            try {
-                index = Long.parseLong( indexStr );
+            if ( iStr.matches( "[0-9]+" ) ) {
+                ifirst = Long.parseLong( iStr );
             }
-            catch ( NumberFormatException e ) {
-                throw new ArgException( "Row index " + indexStr
-                                      + " not numeric" );
+            else {
+                throw new ArgException( "Row index " + iStr + " not numeric" );
             }
-            if ( index <= 0 ) {
-                throw new ArgException( "Row index " + index + " <= 0" );
-            }
-            return index;
         }
         else {
-            throw new ArgException( "Arg " + argUsage + " not given" );
+            throw new ArgException( "Arg <first> not given" );
         }
+
+        /* Get last index. */
+        long ilast;
+        if ( argIt.hasNext() ) {
+            String iStr = (String) argIt.next();
+            argIt.remove();
+            if ( iStr.matches( "\\+[0-9]+" ) ) {
+                ilast = ifirst + Long.parseLong( iStr.substring( 1 ) ) - 1;
+            }
+            else if ( iStr.matches( "[0-9]+" ) ) {
+                ilast = Long.parseLong( iStr );
+                if ( ifirst > ilast ) {
+                    throw new ArgException( ifirst + " > " + ilast );
+                }
+            }
+            else {
+                throw new ArgException( "Row index " + iStr + " not numeric" );
+            }
+        }
+        else {
+            throw new ArgException( "Arg <last>|+<count> not given" );
+        }
+
+        /* Return row selected table as appropriate. */
+        final long ifrom = ifirst - 1;
+        final long ito = ilast;
+        return new ProcessingStep() {
+            public StarTable wrap( StarTable base ) {
+                return new RangeTable( base, ifrom, ito );
+            }
+        };
     }
 
     /**

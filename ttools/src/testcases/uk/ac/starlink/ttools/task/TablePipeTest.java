@@ -547,6 +547,7 @@ public class TablePipeTest extends TableTestCase {
         assertSameData( inTable_, apply( "rowrange 1 999" ) );
         assertArrayEquals( new Object[] { "Beauchamp", "Taylor", },
                            getColData( apply( "rowrange 2 3" ), 3 ) );
+        assertSameData( apply( "rowrange 2 4" ), apply( "rowrange 2 +3" ) );
     }
 
     public void testSelect() throws Exception {
