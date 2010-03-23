@@ -9708,7 +9708,10 @@ more than one row in the other table.  There are two choices:
 <dl>
 <dt>Best Match Only</dt>
 <dd><p>Only the best match is chosen, and the other correct but inferior
-    matches are ignored.  The best match is usually the "closest" - it
+    matches are ignored.
+    In this case the data from a row of either input table will appear
+    in at most one row of the output table.
+    The best match is usually the "closest" - it
     is the one with the lowest match score, where the definition of this
     score is determined by the match criteria you have selected.
     </p></dd>
