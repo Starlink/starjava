@@ -50,11 +50,12 @@ public class RangeFilter extends BasicFilter {
         if ( argIt.hasNext() ) {
             String iStr = (String) argIt.next();
             argIt.remove();
-            if ( iStr.matches( "[0-9]+" ) ) {
+            if ( iStr.matches( "[1-9][0-9]*" ) ) {
                 ifirst = Long.parseLong( iStr );
             }
             else {
-                throw new ArgException( "Row index " + iStr + " not numeric" );
+                throw new ArgException( "Row index " + iStr
+                                      + " must be integer >0" );
             }
         }
         else {
