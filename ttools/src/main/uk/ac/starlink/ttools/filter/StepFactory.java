@@ -188,19 +188,20 @@ public class StepFactory {
      */
     private String getFilterUsages() {
         StringBuffer sbuf = new StringBuffer()
-            .append( "Available commands:\n" );
+            .append( "Available filters:\n" );
         String[] fnames = filterFactory_.getNickNames();
         for ( int i = 0; i < fnames.length; i++ ) {
             try {
                 String fname = fnames[ i ];
                 ProcessingFilter filter = (ProcessingFilter)
                                           filterFactory_.createObject( fname );
+                String fintro = "   " + fname;
+                sbuf.append( fintro );
                 String fusage = filter.getUsage();
-                sbuf.append( "   " )
-                    .append( fname );
                 if ( fusage != null ) {
+                    String pad = fintro.replaceAll( ".", " " ) + " ";
                     sbuf.append( ' ' )
-                        .append( fusage );
+                        .append( fusage.trim().replaceAll( "\n", "\n" + pad ) );
                 }
                 sbuf.append( '\n' );
             }
