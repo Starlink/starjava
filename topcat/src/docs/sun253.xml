@@ -13485,9 +13485,7 @@ introduced since the last version:
     <li>Add <ref id="MemoryMonitor">memory monitor</ref> 
         indicator in control window.</li>
     <li>Considerable performance and scalability improvements to the
-        crossmatching commands
-        (<code>tmatch1</code>, <code>tmatch2</code>, <code>tmatchn</code> and
-         <code>tskymatch2</code>).
+        crossmatching algorithms.
         For several common regimes, using default settings,
         memory use has been decreased by a
         factor of about 5, and CPU time reduced by a factor of about 3.</li>
