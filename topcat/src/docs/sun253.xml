@@ -115,7 +115,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>21 December 2009</docdate>
+<docdate>24 March 2010</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -13479,18 +13479,60 @@ introduced since the last version:
     </ul>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.5-2 (24 March 2010)</dt>
 <dd><p>
     <ul>
-    <li>Memory management adjusted further - default (Adaptive) storage policy
-        now uses direct allocation (=<code>malloc()</code>) 
-        to avoid running out of java heap space.</li>
     <li>Add <ref id="MemoryMonitor">memory monitor</ref> 
         indicator in control window.</li>
+    <li>Considerable performance and scalability improvements to the
+        crossmatching commands
+        (<code>tmatch1</code>, <code>tmatch2</code>, <code>tmatchn</code> and
+         <code>tskymatch2</code>).
+        For several common regimes, using default settings,
+        memory use has been decreased by a
+        factor of about 5, and CPU time reduced by a factor of about 3.</li>
+    <li>Add <ref id="matchTuning">optional tuning controls</ref>
+        (<label>Tuning Parameters</label> and <label>Full Profiling</label>)
+        to the crossmatching windows.
+        Experimentation with these can lead to significant performance
+        improvements for given matches.</li>
+    <li>Fixed a crossmatch bug; it was giving a possibility of
+        suboptimal "Best Match Only"
+        match assignments when pair matching in crowded fields.
+        Crossmatch results thus may differ between earlier versions
+        and this one.  Both are reasonable, but the newer behaviour is
+        more correct.  In non-crowded fields, there should be no change.</li>
+    <li>Add new functions to
+        <ref id="Arrays">Arrays</ref>:
+        <code>array</code> functions for constructing arrays,
+        and new aggregating functions <code>median</code> and
+        <code>quantile</code>.</li>
+    <li>Added <label>Verbosity</label> selector in multi-cone window.</li>
+    <li>Improved logging of registry searches.</li>
+    <li>Adjusted the way that data types are read from JDBC databases.
+        Date, Time and Timestamp type columns will now be converted to Strings
+        which means they can be written to most output formats
+        (previously they were omitted from output tables).</li>
+    <li>Match Window documentation extended and somewhat reorganised
+        (they now have their own
+        <ref id="match-windows">appendix subsection</ref>).</li>
+    <li>MacOS icons improved: thanks to Simon Murphy (ANU)
+        for this contribution.</li>
+    <li>Memory management adjusted further - default (Adaptive) storage policy
+        now uses direct allocation (=<code>malloc()</code>) 
+        for intermediate-sized buffers
+        to avoid running out of java heap space.</li>
     <li>Further performance improvement for VOTable documents with
         very many TABLEs.</li>
+    <li>Fix bug in code for handling very large mapped FITS files.
+        This was causing fatal read errors in some cases.</li>
     <li>Fix issue when sending some SAMP messages
         (unhelpful reuse of message tags).</li>
+    <li>Fixed minor error when a directory in the file browser got deleted
+        while visible.</li>
+    <li>Fix minor scrolling bug in table and column windows.</li>
+    <li>Fix histogram save/export bug: the exported table now has the same 
+        X bounds as the currently displayed histogram.</li>
     <li>Withdraw embedded SPLAT application.
         SPLAT could previously be used in some circumstances for in-JVM
         display of spectra, but this facility didn't work well and was
@@ -13501,34 +13543,6 @@ introduced since the last version:
         v2.1.  External control is better handled using SAMP (or PLASTIC).
         If anybody misses this functionality, get in touch and I will
         consider a similar but less SOAPy alternative.</li>
-    <li>Add new functions to
-        <ref id="Arrays">Arrays</ref>:
-        <code>array</code> functions for constructing arrays,
-        and new aggregating functions <code>median</code> and
-        <code>quantile</code>.</li>
-    <li>Fix bug in code for handling very large mapped FITS files.
-        This was causing fatal read errors in some cases.</li>
-    <li>Fixed a small crossmatch bug; it was giving a small possibility of
-        suboptimal "best" match assignments when pair matching in crowded
-        fields.</li>
-    <li>Fixed minor error when a directory in the file browser got deleted
-        while visible.</li>
-    <li>Improved logging of registry searches.</li>
-    <li>Adjusted the way that data types are read from JDBC databases.
-        Date, Time and Timestamp columns will now be converted to Strings
-        which means they can be written to most output formats
-        (previously they were omitted from output tables).</li>
-    <li>Match Window documentation extended and somewhat reorganised
-        (they now have their own appendix subsection).</li>
-    <li>Add <label>Tuning Parameters</label> and <label>Full Profiling</label>
-        options to match windows.</li>
-    <li>Fix minor scrolling bug in table and column windows.</li>
-    <li>Fix histogram save/export bug: the exported table now has the same 
-        X bounds as the currently displayed histogram.</li>
-    <li>MacOS icons improved: thanks to Simon Murphy (ANU)
-        for this contribution.</li>
-    <li>Added Verbosity selector in multi-cone window.</li>
-    <li>Crossmatch performance and scalability enhancements.</li>
     </ul>
     </p></dd>
 
