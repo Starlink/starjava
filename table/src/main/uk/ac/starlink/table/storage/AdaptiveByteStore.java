@@ -24,6 +24,8 @@ import uk.ac.starlink.table.ByteStore;
  * for byte arrays in memory apart from rather small ones.
  * On most OSes this corresponds to using <code>malloc()</code>,
  * thus avoiding heavy use of JVM heap memory.
+ * Note very large arrays are still stored on disk, not directly
+ * allocated.
  *
  * @author   Mark Taylor
  * @since    5 Nov 2009
