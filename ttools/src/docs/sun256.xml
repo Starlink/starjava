@@ -2516,6 +2516,19 @@ anisotropic metric can be done by extending this syntax in the obvious way.
 
 </subsubsect>
 
+<subsubsect>
+<subhead><title>Custom Matchers</title></subhead>
+
+<p>For advanced users, it is possible to supply the name of a class
+on the classpath which implements the 
+<code>uk.ac.starlink.table.join.MatchEngine</code> interface
+and which has a no-arg constructor.
+This allows java programmers to write their own matchers using any
+match criteria and binning algorithms they choose.
+</p>
+
+</subsubsect>
+
 <subsubsect id="CombinedMatchEngine">
 <subhead><title>Matcher Combinations</title></subhead>
 
@@ -2552,6 +2565,7 @@ constraints.
 </p>
 
 </subsubsect>
+
 </subsect>
 
 <subsect id="matchGroup">
@@ -7063,6 +7077,9 @@ but my thanks are especially due to the following:
         <code>coneskymatch</code> and <code>sqlskymatch</code> commands.
         This allows you to get an output table with exactly one row for
         each row of the input table.</li>
+    <li>Matching commands <code>matcher</code> parameters can now accept
+        classnames of <code>MatchEngine</code> implementation classes as
+        an option.</li>
     </ul>
     </p>
     </dd>

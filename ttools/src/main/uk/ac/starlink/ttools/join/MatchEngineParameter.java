@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.ttools.task.ExtraParameter;
 import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.ttools.task.WordsParameter;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Parameter for acquiring a {@link uk.ac.starlink.table.join.MatchEngine}.
@@ -338,8 +339,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
 
         /* Get the unconfigured engine corresponding to this parameter's
          * string value. */
-        String name = stringVal.toLowerCase();
-        MatchEngine engine = createEngine( name );
+        MatchEngine engine = createEngine( stringVal );
 
         /* Configure score column parameter accordingly. */
         ValueInfo scoreInfo = engine.getMatchScoreInfo();
@@ -425,39 +425,45 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * @return  new match engine
      */
     public MatchEngine createEngine( String name ) throws UsageException {
-        String[] names = name.trim().toLowerCase().split( "\\+" );
+        String[] names = name.trim().split( "\\+" );
         MatchEngine[] components = new MatchEngine[ names.length ];
         for ( int i = 0; i < names.length; i++ ) {
             MatchEngine component;
             String cName = names[ i ];
-            if ( "sky".equals( cName ) ||
-                 "healpix".equals( cName ) ) {
+            if ( "sky".equalsIgnoreCase( cName ) ||
+                 "healpix".equalsIgnoreCase( cName ) ) {
                 component = new HEALPixMatchEngine( Coords.ARC_SECOND, false );
             }
-            else if ( "skyerr".equals( cName ) ) {
+            else if ( "skyerr".equalsIgnoreCase( cName ) ) {
                 component = new HEALPixMatchEngine( Coords.ARC_SECOND, true );
             }
-            else if ( "sky3d".equals( cName ) ) {
+            else if ( "sky3d".equalsIgnoreCase( cName ) ) {
                 component = new SphericalPolarMatchEngine( 0. );
             }
-            else if ( "exact".equals( cName ) ) {
+            else if ( "exact".equalsIgnoreCase( cName ) ) {
                 component = new EqualsMatchEngine();
             }
-            else if ( cName.matches( "[0-9]d" ) ) {
+            else if ( cName.matches( "[0-9][dD]" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
                 component =
                     new IsotropicCartesianMatchEngine( ndim, 0.0, false );
             }
-            else if ( cName.matches( "[0-9]d_anisotropic" ) ) {
+            else if ( cName.toLowerCase().matches( "[0-9]d_anisotropic" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
                 component =
                     new AnisotropicCartesianMatchEngine( new double[ ndim ] );
             }
-            else if ( cName.matches( "htm" ) ) {
+            else if ( cName.equalsIgnoreCase( "htm" ) ) {
                 component = new HTMMatchEngine( Coords.ARC_SECOND, false );
             }
             else {
-                throw new UsageException( "Unknown matcher element: " + cName );
+                component =
+                    (MatchEngine) Loader.getClassInstance( cName,
+                                                           MatchEngine.class );
+                if ( component == null ) {
+                    throw new UsageException( "Unknown matcher element: "
+                                            + cName );
+                }
             }
             components[ i ] = new HumanMatchEngine( component );
         }

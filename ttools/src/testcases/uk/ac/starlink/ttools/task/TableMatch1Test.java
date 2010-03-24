@@ -7,6 +7,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.join.HTMMatchEngine;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.func.Coords;
@@ -127,14 +128,14 @@ public class TableMatch1Test extends TableTestCase {
         StarTable skyResult = skyEnv.getOutputTable( "omode" );
 
         MapEnvironment sky3dEnv = new MapEnvironment( env ) 
-            .setValue( "matcher", "sky3d" )
+            .setValue( "matcher", "sKy3d" )
             .setValue( "values", "RA DEC 1" )
             .setValue( "params", Double.toString( err * Coords.ARC_SECOND ) );
         new TableMatch1().createExecutable( sky3dEnv ).execute();
         StarTable sky3dResult = sky3dEnv.getOutputTable( "omode" );
 
         MapEnvironment htmEnv = new MapEnvironment( env )
-            .setValue( "matcher", "htm" )
+            .setValue( "matcher", TestSkyMatchEngine.class.getName() )
             .setValue( "values", "ucd$POS_EQ_RA DEC*1" )
             .setValue( "params", Double.toString( err ) );
         new TableMatch1().createExecutable( htmEnv ).execute();
@@ -149,4 +150,11 @@ public class TableMatch1Test extends TableTestCase {
         Tables.checkTable( result );
         return result;
     }
+
+    public static class TestSkyMatchEngine extends HTMMatchEngine {
+        public TestSkyMatchEngine() {
+            super( 0.1, false );
+        }
+    }
+
 }
