@@ -97,7 +97,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>21 December 2009</docdate>
+<docdate>24 March 2010</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -7019,52 +7019,55 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.1-2 (24 March 2010)</dt>
 <dd><p>
     <ul>
-    <li>Memory management adjusted further - default (Adaptive) storage policy 
-        now uses direct allocation (=<code>malloc()</code>) 
-        to avoid running out of java heap space.</li>
-    <li>Further performance improvement for VOTable documents with
-        very many TABLEs.</li>
-    <li>STILTS no longer attempts to communicate with TOPCAT using SOAP.
-        TOPCAT's SOAP interface has been deprecated since v2.1 (2006),
-        so this isn't likely to cause trouble, and it permits removal of
-        SOAP (Axis) classes from the application jar file, saving several
-        megabytes and reducing potential version clash problems.</li>
-    <li>Add new functions to 
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>:
-        <code>array</code> functions for constructing arrays,
-        and new aggregating functions <code>median</code> and
-        <code>quantile</code>.</li>
-    <li>Classes now distributed as a zip of jars (<code>stilts_jars.zip</code>)
-        as an alternative to monolithic jar file (<code>stilts.jar</code>).
-        This may be more appropriate for those using STILTS classes in a
-        framework that contains other third party class libraries.</li>
-    <li>Fix bug in code for handling very large mapped FITS files.
-        This was causing fatal read errors in some cases.</li>
-    <li>Syntax of the matching commands' <code>progress</code> parameter
-        has changed; it now has an additional option which will write
-        limited profiling information as well as logging as the match
-        progresses.</li>
-    <li>Fixed a small crossmatch bug; it was giving a small possibility of
-        suboptimal "best" match assignments when pair matching in crowded
-        fields.</li>
-    <li>Add new filter <ref id="rowrange"><code>rowrange</code></ref>.</li>
-    <li>Document previously undocumented <code>legend</code> parameter to
-        plotting commands.</li>
-    <li>Add <code>ylabel</code> parameter to <code>plothist</code> command.</li>
-    <li>Adjusted the way that data types are read from JDBC databases.
-        Date, Time and Timestamp columns will now be converted to Strings
-        which means they can be written to most output formats
-        (previously they were omitted from output tables).</li>
-    <li>Add tuning parameters to crossmatch commands
+    <li><ref id="jystilts">JyStilts</ref> introduced.
+        This is a jython (i.e. Python, though not CPython)
+        interface to the STILTS commands.
+        It is believed to be fully working, but somewhat experimental -
+        feedback is encouraged.</li>
+    <li>Considerable performance and scalability improvements to the
+        crossmatching commands
+        (<code>tmatch1</code>, <code>tmatch2</code>, <code>tmatchn</code> and
+         <code>tskymatch2</code>).
+        For several common regimes, using default settings, 
+        memory use has been decreased by a
+        factor of about 5, and CPU time reduced by a factor of about 3.</li>
+    <li>Add optional tuning parameters to crossmatch commands
         (parameter <code>tuning</code> for 
         <code>tmatch1</code>, <code>tmatch2</code> and <code>tmatchn</code>,
         and parameter <code>healpixk</code> for <code>tskymatch2</code>).
         Experimentation with these can lead to significant performance
         improvements for given matches.</li>
-    <li>JyStilts!</li>
+    <li>Fixed a crossmatch bug; it was giving a possibility of
+        suboptimal "<code>find=best</code>"
+        match assignments when pair matching in crowded fields.
+        Crossmatch results thus may differ between earlier versions
+        and this one.  Both are reasonable, but the newer behaviour is 
+        more correct.  In non-crowded fields, there should be no change.</li>
+    <li>Further performance improvement for VOTable documents with
+        very many TABLEs.</li>
+    <li>Memory management adjusted further - default (Adaptive) storage policy 
+        now uses direct allocation (=<code>malloc()</code>) 
+        for intermediate-sized buffers
+        to avoid running out of java heap space.</li>
+    <li>New option "<code>find=each</code>" for
+        <code>coneskymatch</code> and <code>sqlskymatch</code> commands.
+        This allows you to get an output table with exactly one row for
+        each row of the input table.</li>
+    <li>New flag <code>-memgui</code> to monitor memory usage during runs.</li>
+    <li>Add new filter <ref id="rowrange"><code>rowrange</code></ref>.</li>
+    <li>Add new functions to 
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>:
+        <code>array</code> functions for constructing arrays,
+        and new aggregating functions <code>median</code> and
+        <code>quantile</code>.</li>
+    <li>Syntax of the crossmatching commands' <code>progress</code> parameter
+        has changed; it now has an additional option which will write
+        limited profiling information as well as logging as the match
+        progresses.</li>
+    <li>Add <code>ylabel</code> parameter to <code>plothist</code> command.</li>
     <li>The <code>random</code> and <code>sequential</code> filters have
         been renamed <code>randomview</code> and <code>seqview</code>
         respectively.  This provides a better idea of what they do.
@@ -7072,14 +7075,27 @@ but my thanks are especially due to the following:
         will break anyone's existing code.</li>
     <li>New filter <code>random</code> introduced which converts tables
         to random-access if necessary.</li>
-    <li>New flag <code>-memgui</code> to monitor memory usage during runs.</li>
-    <li>New option "<code>find=each</code>" for
-        <code>coneskymatch</code> and <code>sqlskymatch</code> commands.
-        This allows you to get an output table with exactly one row for
-        each row of the input table.</li>
+    <li>Document previously undocumented <code>legend</code> parameter to
+        plotting commands.</li>
     <li>Matching commands <code>matcher</code> parameters can now accept
         classnames of <code>MatchEngine</code> implementation classes as
         an option.</li>
+    <li>Classes are now distributed as a zip of jars 
+        (<code>stilts_jars.zip</code>) as an alternative to
+        the monolithic jar file (<code>stilts.jar</code>).
+        This may be more appropriate for those using STILTS classes in a
+        framework that contains other third party class libraries.</li>
+    <li>Adjusted the way that data types are read from JDBC databases.
+        Date, Time and Timestamp typed columns will now be converted to Strings
+        which means they can be written to most output formats
+        (previously they were omitted from output tables).</li>
+    <li>STILTS no longer attempts to communicate with TOPCAT using SOAP.
+        TOPCAT's SOAP interface has been deprecated since v2.1 (2006),
+        so this isn't likely to cause trouble, and it permits removal of
+        SOAP (Axis) classes from the application jar file, saving several
+        megabytes and reducing potential version clash problems.</li>
+    <li>Fix bug in code for handling very large mapped FITS files.
+        This was causing fatal read errors in some cases.</li>
     </ul>
     </p>
     </dd>
