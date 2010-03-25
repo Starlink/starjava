@@ -6151,16 +6151,18 @@ are welcomed.
 
 <p>The initial development of STILTS was done under the UK's 
 <webref url="http://en.wikipedia.org/wiki/Starlink_Project"
-        >Starlink project</webref> (1980-2005, R.I.P.),
-without which it would not have been written.
-From July 2005 until June 2006, it was supported
-by grant PP/D002486/1 from the UK's 
-Particle Physics and Astronomy Research Council.  
-Maintenance and development has been funded from July 2006 until
-December 2007 by the
-European <webref url="http://www.eurovotech.org/">VOTech project</webref>
-within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
-and directly from AstroGrid funding beyond that.
+        >Starlink project</webref> (1980-2005, R.I.P.).
+Since then it has been supported by
+grant PP/D002486/1 from the
+UK's Particle Physics and Astronomy Research Council,
+the <webref url="http://eurovotech.org/">VOTech</webref> project (from EU FP6),
+the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
+    (from PPARC/STFC),
+the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
+            >AIDA</webref> project (from EU FP7),
+and
+grant ST/H008470/1 from the UK's Science and Technology Facilities Council.
+All of this support is gratefully acknowledged.
 </p>
 
 <p>Apart from the excellent Java 2 Standard Edition itself,

@@ -247,8 +247,12 @@ read in its HTML form than on paper.
 It was initially developed within the now-terminated
 <webref url="http://www.starlink.ac.uk/">Starlink</webref> project,
 and has subsequently been supported by PPARC grant PP/D002486/1,
-<webref url="http://eurovotech.org/">VOTech</webref> and
-<webref url="http://www.astrogrid.org/">AstroGrid</webref>.
+<webref url="http://eurovotech.org/">VOTech</webref>,
+<webref url="http://www.astrogrid.org/">AstroGrid</webref>,
+<webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
+        >AIDA</webref>,
+and
+STFC grant ST/H008470/1.
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
@@ -11716,16 +11720,18 @@ for the latest news and releases.
 <p>TOPCAT was initially (2003-2005) developed under the UK 
 <webref url="http://en.wikipedia.org/wiki/Starlink_Project"
         >Starlink</webref> project
-(1980-2005, R.I.P.).  From July 2005 until June 2006, it was supported
-by grant PP/D002486/1 from the UK's 
-Particle Physics and Astronomy Research Council.
-Maintenance and development has been funded from July 2006 until 
-December 2007 by the
-European <webref url="http://eurovotech.org/">VOTech project</webref> 
-within the UK's <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
-and directly from AstroGrid funding following that until June 2009,
-and from Euro-VO AIDA funding from then until November 2009.
-From December 2009 it is funded by an STFC grant.
+(1980-2005, R.I.P.).
+Since then it has been supported by 
+grant PP/D002486/1 from the 
+UK's Particle Physics and Astronomy Research Council,
+the <webref url="http://eurovotech.org/">VOTech</webref> project (from EU FP6),
+the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
+    (from PPARC/STFC),
+the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
+            >AIDA</webref> project (from EU FP7),
+and
+grant ST/H008470/1 from the UK's Science and Technology Facilities Council.
+All of this support is gratefully acknowledged.
 </p>
 
 <p>Inspiration for many of TOPCAT's features has been taken from the
