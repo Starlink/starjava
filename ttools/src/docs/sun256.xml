@@ -7102,6 +7102,15 @@ but my thanks are especially due to the following:
     </p>
     </dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Upgraded PixTools HEALPix library to 2010/02/09 version.
+        This fixes a bug that could theoretically cause deficient crossmatch
+        results, though I haven't managed to produce such errors.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
