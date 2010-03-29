@@ -121,26 +121,6 @@ public class TopcatJELRowReader extends RandomJELRowReader {
     }
 
     /**
-     * Returns a constant which is evaluated at runtime.
-     * This is more appropriate than the inherited (evaluate at call time)
-     * behaviour, since within TOPCAT the constant's value may change as a
-     * result of user intervention during the lifetime of the returned object.
-     */
-    protected Constant createDescribedValueConstant( final
-                                                     DescribedValue dval ) {
-        final Class clazz = dval.getInfo().getContentClass();
-        return new Constant() {
-            public Class getContentClass() {
-                return clazz;
-            }
-            public Object getValue() {
-                Object val = dval.getValue();
-                return Tables.isBlank( val ) ? null : val;
-            }
-        };
-    }
-
-    /**
      * Returns the index into the subsets list which corresponds to a given
      * subset name.  The current formats are
      * <ul>
@@ -178,5 +158,25 @@ public class TopcatJELRowReader extends RandomJELRowReader {
 
         /* It's not a subset. */
         return (short) -1;
+    }
+
+    /**
+     * Returns a constant which is evaluated at runtime.
+     * This is more appropriate than the inherited (evaluate at call time)
+     * behaviour, since within TOPCAT the constant's value may change as a
+     * result of user intervention during the lifetime of the returned object.
+     */
+    protected Constant createDescribedValueConstant( final
+                                                     DescribedValue dval ) {
+        final Class clazz = dval.getInfo().getContentClass();
+        return new Constant() {
+            public Class getContentClass() {
+                return clazz;
+            }
+            public Object getValue() {
+                Object val = dval.getValue();
+                return Tables.isBlank( val ) ? null : val;
+            }
+        };
     }
 }
