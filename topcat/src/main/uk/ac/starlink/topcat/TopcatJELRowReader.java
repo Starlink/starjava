@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat;
 
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.ttools.jel.Constant;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
@@ -115,6 +118,26 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      */
     public boolean getBooleanProperty( short isub ) {
         return subsets_[ (int) isub ].isIncluded( getCurrentRow() );
+    }
+
+    /**
+     * Returns a constant which is evaluated at runtime.
+     * This is more appropriate than the inherited (evaluate at call time)
+     * behaviour, since within TOPCAT the constant's value may change as a
+     * result of user intervention during the lifetime of the returned object.
+     */
+    protected Constant createDescribedValueConstant( final
+                                                     DescribedValue dval ) {
+        final Class clazz = dval.getInfo().getContentClass();
+        return new Constant() {
+            public Class getContentClass() {
+                return clazz;
+            }
+            public Object getValue() {
+                Object val = dval.getValue();
+                return Tables.isBlank( val ) ? null : val;
+            }
+        };
     }
 
     /**

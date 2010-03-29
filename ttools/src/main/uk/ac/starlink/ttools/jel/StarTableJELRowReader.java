@@ -192,7 +192,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 DescribedValue dval = (DescribedValue) it.next();
                 String ucd = dval.getInfo().getUCD();
                 if ( ucd != null && ucdRegex.matcher( ucd ).matches() ) {
-                    return new DescribedValueConstant( dval );
+                    return createDescribedValueConstant( dval );
                 }
             }
             return null;
@@ -206,7 +206,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 DescribedValue dval = (DescribedValue) it.next();
                 String utype = Tables.getUtype( dval.getInfo() );
                 if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
-                    return new DescribedValueConstant( dval );
+                    return createDescribedValueConstant( dval );
                 }
             }
             return null;
@@ -218,7 +218,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
                 DescribedValue dval = (DescribedValue) it.next();
                 if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
-                    return new DescribedValueConstant( dval );
+                    return createDescribedValueConstant( dval );
                 }
             }
             return null;
@@ -263,6 +263,28 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         else {
             return super.getSpecialByName( name );
         }
+    }
+
+    /**
+     * Returns a Constant object based on a DescribedValue.
+     * The supplied implementation evaluates the constant's class and value
+     * once when this method is called.
+     *
+     * @param   dval  described value object
+     * @return   constant which evaluates to dval's value
+     */
+    protected Constant createDescribedValueConstant( DescribedValue dval ) {
+        final Class clazz = dval.getInfo().getContentClass();
+        Object val = dval.getValue();
+        final Object value = Tables.isBlank( val ) ? null : val;
+        return new Constant() {
+            public Class getContentClass() {
+                return clazz;
+            }
+            public Object getValue() {
+                return value;
+            }
+        };
     }
 
     protected boolean getBooleanColumnValue( int icol ) {
@@ -339,35 +361,8 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * @param  utype  utype specification
      * @return  regular expression pattern which matches actual Utypes
      */
-     public static Pattern getUtypeRegex( String utype ) {
-         String regex = utype.replaceAll( "_", "\\\\W" );
-         return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
-     }
-
-    /**
-     * Constant implementation based on a DescribedValue.
-     */
-    private static class DescribedValueConstant implements Constant {
-        private final DescribedValue dval_;
-        private final Class clazz_;
-
-        /**
-         * Constructor.
-         *
-         * @param  dval  described value
-         */
-        DescribedValueConstant( DescribedValue dval ) {
-            dval_ = dval;
-            clazz_ = dval.getInfo().getContentClass();
-        }
-
-        public Class getContentClass() {
-            return clazz_;
-        }
-
-        public Object getValue() {
-            Object val = dval_.getValue();
-            return Tables.isBlank( val ) ? null : val;
-        }
+    public static Pattern getUtypeRegex( String utype ) {
+        String regex = utype.replaceAll( "_", "\\\\W" );
+        return Pattern.compile( regex, Pattern.CASE_INSENSITIVE );
     }
 }
