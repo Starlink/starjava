@@ -21,14 +21,17 @@ public class TopcatEvent {
     /** Code indicating that the model's parameter list has changed. */
     public static final int PARAMETERS = 3;
 
+    /** Code indicating that one of the model's parameter values has changed. */
+    public static final int PARAMETER_VALUE = 4;
+
     /** Code indicating change in current RowSubset. */
-    public static final int CURRENT_SUBSET = 4;
+    public static final int CURRENT_SUBSET = 5;
 
     /**
      * Code indicating that a row has been highlighted.
      * The datum is a <code>Long</code> giving the highlighted row.
      */
-    public static final int ROW = 5;
+    public static final int ROW = 6;
 
     /**
      * Code indicating that a column has been highlighted or selected in

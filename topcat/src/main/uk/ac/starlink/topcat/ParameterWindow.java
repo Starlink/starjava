@@ -83,7 +83,7 @@ public class ParameterWindow extends AuxWindow
      * @param  tcModel  model representing the table concerned
      * @param  parent   parent component used for window positioning
      */
-    public ParameterWindow( TopcatModel tcModel, Component parent ) {
+    public ParameterWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Table Parameters", parent );
         this.tcModel = tcModel;
         this.dataModel = tcModel.getDataModel();
@@ -213,6 +213,8 @@ public class ParameterWindow extends AuxWindow
                     else {
                         param.setValueFromString( value.toString() );
                     }
+                    tcModel.fireModelChanged( TopcatEvent.PARAMETER_VALUE,
+                                              param );
                 }
                 catch ( RuntimeException e ) {
                     Object msg = "Invalid value \"" + value + "\"";
