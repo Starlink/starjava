@@ -43,9 +43,9 @@ public class CheckBoxStack extends JPanel
                                       ListDataListener,
                                       Scrollable {
 
-    private ListSelectionModel selModel;
-    private ListModel listModel;
-    private List entries;
+    private ListSelectionModel selModel_;
+    private ListModel listModel_;
+    private List entries_;
     private final Annotator annotator_;
 
     /**
@@ -93,9 +93,9 @@ public class CheckBoxStack extends JPanel
         final JCheckBox cbox = new JCheckBox( item.toString() );
 
         /* Set its selection status in accordance with the selection model. */
-        final int pos = entries.size();
-        if ( selModel != null ) {
-            cbox.setSelected( selModel.isSelectedIndex( pos ) );
+        final int pos = entries_.size();
+        if ( selModel_ != null ) {
+            cbox.setSelected( selModel_.isSelectedIndex( pos ) );
         }
 
         /* Make sure that changes in the selection status of the new 
@@ -103,16 +103,16 @@ public class CheckBoxStack extends JPanel
         cbox.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 if ( cbox.isSelected() ) {
-                    selModel.addSelectionInterval( pos, pos );
+                    selModel_.addSelectionInterval( pos, pos );
                 }
                 else {
-                    selModel.removeSelectionInterval( pos, pos );
+                    selModel_.removeSelectionInterval( pos, pos );
                 }
             }
         } );
 
         /* Keep a record of the checkbox. */
-        entries.add( cbox );
+        entries_.add( cbox );
 
         /* Add it to the panel. */
         addLine( cbox, annotator_ == null
@@ -129,7 +129,7 @@ public class CheckBoxStack extends JPanel
     private void addLine( Component c1, Component c2 ) {
         GridBagLayout layer = (GridBagLayout) getLayout();
         GridBagConstraints cons = new GridBagConstraints();
-        cons.gridy = entries.size();
+        cons.gridy = entries_.size();
         cons.gridx = 0;
         cons.weightx = 1.0;
         cons.weighty = 1.0;
@@ -149,50 +149,50 @@ public class CheckBoxStack extends JPanel
      */
     private void redoAllItems() {
         removeAll();
-        entries = new ArrayList();
-        for ( int i = 0; i < listModel.getSize(); i++ ) {
-            addItem( listModel.getElementAt( i ) );
+        entries_ = new ArrayList();
+        for ( int i = 0; i < listModel_.getSize(); i++ ) {
+            addItem( listModel_.getElementAt( i ) );
         }
     }
 
     public ListSelectionModel getSelectionModel() {
-        return selModel;
+        return selModel_;
     }
 
     public void setSelectionModel( ListSelectionModel selModel ) {
-        if ( this.selModel != null ) {
-            this.selModel.removeListSelectionListener( this );
+        if ( selModel_ != null ) {
+            selModel_.removeListSelectionListener( this );
         }
-        this.selModel = selModel;
-        selModel.addListSelectionListener( this );
+        selModel_ = selModel;
+        selModel_.addListSelectionListener( this );
     }
 
     public ListModel getListModel() {
-        return listModel;
+        return listModel_;
     }
 
     public void setListModel( ListModel listModel ) {
-        if ( this.listModel != null ) {
-            this.listModel.removeListDataListener( this );
+        if ( listModel_ != null ) {
+            listModel_.removeListDataListener( this );
         }
-        this.listModel = listModel;
+        listModel_ = listModel;
         redoAllItems();
-        listModel.addListDataListener( this );
+        listModel_.addListDataListener( this );
     }
 
     public void valueChanged( ListSelectionEvent evt ) {
         for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
-            ((JCheckBox) entries.get( i ))
-           .setSelected( selModel.isSelectedIndex( i ) );
+            ((JCheckBox) entries_.get( i ))
+           .setSelected( selModel_.isSelectedIndex( i ) );
         }
     }
 
     public void intervalAdded( ListDataEvent evt ) {
         int index0 = evt.getIndex0();
         int index1 = evt.getIndex1();
-        if ( index0 == entries.size() ) {
+        if ( index0 == entries_.size() ) {
             for ( int i = index0; i <= index1; i++ ) {
-                addItem( listModel.getElementAt( i ) );
+                addItem( listModel_.getElementAt( i ) );
             }
         }
         else {
@@ -247,8 +247,8 @@ public class CheckBoxStack extends JPanel
     }
 
     private int getLineHeight() {
-        return entries.size() > 0 ? ((Component) entries.get( 0 )).getHeight()
-                                  : 0;
+        return entries_.size() > 0 ? ((Component) entries_.get( 0 )).getHeight()
+                                   : 0;
     }
 
     /**
