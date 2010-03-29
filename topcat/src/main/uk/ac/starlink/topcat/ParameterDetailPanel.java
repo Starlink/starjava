@@ -483,9 +483,13 @@ public class ParameterDetailPanel extends JPanel {
         private void updateValue() {
             String text = tcomp_.getText();
             if ( text != null ) {
-                Object val = info_.unformatString( text );
-                if ( ! val.equals( model_.getValueAt( irow_, iValueCol_ ) ) ) {
-                    model_.setValueAt( val, irow_, iValueCol_ );
+                Object val1 = info_.unformatString( text );
+                Object val2 = model_.getValueAt( irow_, iValueCol_ );
+                boolean changed = val1 == null
+                                ? val2 != null
+                                : ! val1.equals( val2 );
+                if ( changed ) {
+                    model_.setValueAt( val1, irow_, iValueCol_ );
                 }
             }
         }
