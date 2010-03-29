@@ -13556,6 +13556,9 @@ introduced since the last version:
     <li>Upgraded PixTools HEALPix library to 2010/02/09 version.
         This fixes a bug that could theoretically cause deficient crossmatch
         results, though I haven't managed to produce such errors.</li>
+    <li>Table parameter values in algebraic expressions now evaluate to
+        their current value, rather than the value when the expression 
+        was entered.</li>
     </ul>
     </p></dd>
 

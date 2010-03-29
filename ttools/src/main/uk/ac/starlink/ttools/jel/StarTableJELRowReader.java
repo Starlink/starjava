@@ -348,8 +348,8 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * Constant implementation based on a DescribedValue.
      */
     private static class DescribedValueConstant implements Constant {
+        private final DescribedValue dval_;
         private final Class clazz_;
-        private final Object value_;
 
         /**
          * Constructor.
@@ -357,9 +357,8 @@ public abstract class StarTableJELRowReader extends JELRowReader {
          * @param  dval  described value
          */
         DescribedValueConstant( DescribedValue dval ) {
+            dval_ = dval;
             clazz_ = dval.getInfo().getContentClass();
-            Object val = dval.getValue();
-            value_ = Tables.isBlank( val ) ? null : val;
         }
 
         public Class getContentClass() {
@@ -367,7 +366,8 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         }
 
         public Object getValue() {
-            return value_;
+            Object val = dval_.getValue();
+            return Tables.isBlank( val ) ? null : val;
         }
     }
 }
