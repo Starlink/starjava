@@ -88,10 +88,10 @@ public class PointSelector extends JPanel {
         styles_ = styles;
 
         /* Set up a map of labels for the subsets controlled by this selector.
-         * Its keys are Integers (giving the subset index) and its values
-         * are SubsetFluff objects giving relevant information about the
-         * labelling of styles.  A default label is used for subsets with
-         * no entry. */
+         * Its keys represent subsets (as supplied by indexToKey)
+         * and its values are SubsetFluff objects giving relevant
+         * information about the labelling of styles.
+         * A default label is used for subsets with no entry. */
         subsetFluffs_ = new HashMap();
 
         /* Set up some listeners. */
@@ -454,7 +454,7 @@ public class PointSelector extends JPanel {
      * @return   subset style
      */
     public Style getStyle( int isub ) {
-        return styles_.getStyle( isub );
+        return styles_.getStyle( indexToId( isub ) );
     }
 
     /**
@@ -468,8 +468,8 @@ public class PointSelector extends JPanel {
      */
     private void resetStyle( int isub, Style style, String label,
                              boolean hidden ) {
-        styles_.setStyle( isub, style );
-        subsetFluffs_.put( new Integer( isub ),
+        styles_.setStyle( indexToId( isub ), style );
+        subsetFluffs_.put( indexToKey( isub ),
                            new SubsetFluff( label, hidden ) );
         annotator_.setStyleIcon( isub, style );
         actionForwarder_
@@ -686,6 +686,49 @@ public class PointSelector extends JPanel {
     }
 
     /**
+     * Translates from subset index (which may change for a given subset)
+     * to subset ID, which is fixed for a given subset.
+     *
+     * @param  isub  current index of subset
+     * @return  subset id
+     */
+    private int indexToId( int isub ) {
+        return tcModel_ == null
+             ? -1
+             : tcModel_.getSubsets().indexToId( isub );
+    }
+
+    /**
+     * Generates an object which can serve as a unique, unchanging 
+     * key for a subset.
+     *
+     * @param  isub  current index of subset
+     * @return   unique object representing subset
+     */
+    private Object indexToKey( int isub ) {
+        return tcModel_ == null
+             ? null
+             : new Integer( tcModel_.getSubsets().indexToId( isub ) );
+    }
+
+    /**
+     * Determines the current index in the subsets list of the subset
+     * with a given key.
+     *
+     * @param  key  subset key obtained from {@link #indexToKey}
+     * @return  current index of subset
+     */
+    private int keyToIndex( Object key ) {
+        if ( key == null || tcModel_ == null ) {
+            return -1;
+        }
+        else {
+            int id = ((Integer) key).intValue();
+            return tcModel_.getSubsets().idToIndex( id );
+        }
+    }
+
+    /**
      * Returns the label which is to be used in a plot for annotating one
      * of the subsets controlled by this selector.
      *
@@ -694,7 +737,7 @@ public class PointSelector extends JPanel {
      */
     private String getSubsetLabel( int isub ) {
         SubsetFluff fluff =
-            (SubsetFluff) subsetFluffs_.get( new Integer( isub ) );
+            (SubsetFluff) subsetFluffs_.get( indexToKey( isub ) );
         String label = fluff == null ? null : fluff.label_;
         if ( label == null ) {
             label = ((RowSubset) getTable().getSubsets().get( isub )).getName();
@@ -728,7 +771,7 @@ public class PointSelector extends JPanel {
      */
     private boolean getSubsetHidden( int isub ) {
         SubsetFluff fluff =
-            (SubsetFluff) subsetFluffs_.get( new Integer( isub ) );
+            (SubsetFluff) subsetFluffs_.get( indexToKey( isub ) );
         return fluff != null && fluff.hidden_;
     }
 
@@ -835,14 +878,14 @@ public class PointSelector extends JPanel {
          * @param  index  index into the list of the subset
          * @return  action relating to entry <code>index</code>
          */
-        private Action getAction( final int index ) {
-            Integer key = new Integer( index );
+        private Action getAction( int index ) {
+            final Object key = indexToKey( index );
             if ( ! actions_.containsKey( key ) ) {
                 Action act = new BasicAction( null, blankIcon_,
                                               "Edit style for subset " +
                                               list_.get( index ) ) {
                     public void actionPerformed( ActionEvent evt ) {
-                        editStyle( index );
+                        editStyle( keyToIndex( key ) );
                     }
                 };
                 actions_.put( key, act );
@@ -897,7 +940,7 @@ public class PointSelector extends JPanel {
          * @return  true iff the item has ever had a style
          */
         private boolean hasStyle( int index ) {
-            Integer key = new Integer( index );
+            Object key = indexToKey( index );
             return actions_.containsKey( key )
                 && ((Action) actions_.get( key )).getValue( Action.SMALL_ICON )
                    != blankIcon_;
@@ -909,7 +952,7 @@ public class PointSelector extends JPanel {
          * @param  index  index to clear
          */
         private void clearStyle( int index ) {
-            Integer key = new Integer( index );
+            Object key = indexToKey( index );
             if ( actions_.containsKey( key ) ) {
                 ((Action) actions_.get( key )).putValue( Action.SMALL_ICON,
                                                          blankIcon_ );
