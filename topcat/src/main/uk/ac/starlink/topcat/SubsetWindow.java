@@ -308,6 +308,23 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             public Object getValue( int irow ) {
                 return getSubsetName( irow );
             }
+            public boolean isEditable( int irow ) {
+                return true;
+            }
+            public void setValue( int irow, Object value ) {
+                if ( value instanceof String &&
+                     ((String) value).trim().length() > 0 ) {
+                    RowSubset rset = getSubset( irow );
+                    rset.setName( ((String) value).trim() );
+                    subsets.set( irow, rset );
+                }
+                else {
+                    JOptionPane.showMessageDialog( SubsetWindow.this,
+                                                   "No name supplied",
+                                                   "Bad Subset Name",
+                                                   JOptionPane.ERROR_MESSAGE );
+                }
+            }
         };
 
         /* Size column. */

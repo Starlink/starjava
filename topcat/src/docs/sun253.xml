@@ -5584,6 +5584,7 @@ are as follows:
 <dt>Name</dt>
 <dd><p>A name used to identify the subset.  It is ideally, but not necessarily,
     unique.
+    It can be edited (double-click on the cell) to change the name.
     </p></dd>
 
 <dt>Size</dt>
@@ -13567,7 +13568,7 @@ introduced since the last version:
     <li>Table parameter values in algebraic expressions now evaluate to
         their current value, rather than the value when the expression 
         was entered.</li>
-    <li>Finally - you can delete row subsets!</li>
+    <li>Finally - you can delete and rename row subsets!</li>
     </ul>
     </p></dd>
 
