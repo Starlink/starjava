@@ -39,7 +39,7 @@ public class TopcatEvent {
      * The datum is the relevant 
      * {@link uk.ac.starlink.table.gui.StarTableColumn}.
      */
-    public static final int COLUMN = 6;
+    public static final int COLUMN = 7;
 
     /**
      * Code indicating that a given RowSubset should be made visible.
@@ -47,7 +47,7 @@ public class TopcatEvent {
      * in order.
      * The datum is the relevant {@link RowSubset}.
      */
-    public static final int SHOW_SUBSET = 7;
+    public static final int SHOW_SUBSET = 8;
 
     /**
      * Constructor.
