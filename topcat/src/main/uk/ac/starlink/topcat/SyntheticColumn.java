@@ -7,14 +7,13 @@ import gnu.jel.Library;
 import gnu.jel.Parser;
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DefaultValueInfo;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * A column which produces read-only values based on an algebraic
@@ -32,10 +31,8 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class SyntheticColumn extends ColumnData {
 
-    private StarTable stable_;
-    private List subsets_;
     private CompiledExpression compEx_;
-    private TopcatJELRowReader rowReader_;
+    private RandomJELRowReader rowReader_;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -45,23 +42,18 @@ public class SyntheticColumn extends ColumnData {
      * applied to a table.
      *
      * @param  vinfo  template for the new column
-     * @param  stable the StarTable which supplies the other columns 
-     *         which can appear in the expression
-     * @param  subsets  a List of {@link RowSubset} objects which may be
-     *         referenced by name or number in the expression
      * @param  expression  algebraic expression for the value of this
      *         column
      * @param  resultType  a Class for the result, presumably one of the
      *         primitive wrapper types or String.class.  If <tt>null</tt>
      *         a suitable class is chosen automatically.
+     * @param  rowReader  context for JEL expression evaluation
      */
-    public SyntheticColumn( ValueInfo vinfo, StarTable stable, List subsets,
-                            String expression, Class resultType )
+    public SyntheticColumn( ValueInfo vinfo, String expression,
+                            Class resultType, RandomJELRowReader rowReader )
             throws CompilationException {
         super( vinfo );
-        stable_ = stable;
-        subsets_ = subsets;
-        setExpression( expression, resultType );
+        setExpression( expression, resultType, rowReader );
     }
 
     /**
@@ -75,21 +67,16 @@ public class SyntheticColumn extends ColumnData {
      * @param  resultType  a Class for the result, presumably one of the
      *         primitive wrapper types or String.class.  If <tt>null</tt>
      *         a suitable class is chosen automatically.
+     * @param  rowReader  context for JEL expression evaluation
      */
-    public void setExpression( String expression, Class resultType ) 
+    public void setExpression( String expression, Class resultType,
+                               RandomJELRowReader rowReader ) 
             throws CompilationException {
 
-        /* Get an up-to-date RowReader (an old one may not be aware of recent
-         * changes to the StarTable or subset list). */
-        RowSubset[] subsetArray = subsets_ == null
-                                ? new RowSubset[ 0 ]
-                                : (RowSubset[]) 
-                                  subsets_.toArray( new RowSubset[ 0 ] );
-        rowReader_ = new TopcatJELRowReader( stable_, subsetArray );
-
         /* Compile the expression. */
-        Library lib = TopcatJELUtils.getLibrary( rowReader_, false );
+        Library lib = TopcatJELUtils.getLibrary( rowReader, false );
         compEx_ = Evaluator.compile( expression, lib, resultType );
+        rowReader_ = rowReader;
 
         /* Work out the type of the compiled expression. */
         Class actualType =

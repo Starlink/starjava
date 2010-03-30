@@ -12,7 +12,6 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
-import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -43,7 +42,7 @@ public class CheckBoxStack extends JPanel
                                       ListDataListener,
                                       Scrollable {
 
-    private ListSelectionModel selModel_;
+    private DefaultListSelectionModel selModel_;
     private ListModel listModel_;
     private List entries_;
     private final Annotator annotator_;
@@ -159,7 +158,7 @@ public class CheckBoxStack extends JPanel
         return selModel_;
     }
 
-    public void setSelectionModel( ListSelectionModel selModel ) {
+    public void setSelectionModel( DefaultListSelectionModel selModel ) {
         if ( selModel_ != null ) {
             selModel_.removeListSelectionListener( this );
         }
@@ -182,8 +181,10 @@ public class CheckBoxStack extends JPanel
 
     public void valueChanged( ListSelectionEvent evt ) {
         for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
-            ((JCheckBox) entries_.get( i ))
-           .setSelected( selModel_.isSelectedIndex( i ) );
+            if ( i < entries_.size() ) {
+                ((JCheckBox) entries_.get( i ))
+               .setSelected( selModel_.isSelectedIndex( i ) );
+            }
         }
     }
 
@@ -197,6 +198,10 @@ public class CheckBoxStack extends JPanel
         }
         else {
             redoAllItems();
+            int start = Math.min( index0, index1 );
+            int len = Math.abs( index1 - index0 ) + 1;
+            selModel_.insertIndexInterval( start, len, false );
+            selModel_.removeSelectionInterval( index0, index1 );
         }
         revalidate();
         repaint();
@@ -204,6 +209,7 @@ public class CheckBoxStack extends JPanel
 
     public void intervalRemoved( ListDataEvent evt ) {
         redoAllItems();
+        selModel_.removeIndexInterval( evt.getIndex0(), evt.getIndex1() );
         revalidate();
         repaint();
     }

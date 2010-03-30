@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
@@ -23,29 +24,22 @@ import javax.swing.event.ListDataListener;
  * {@link javax.swing.ListModel} (which <tt>ListModel</tt> really
  * ought to do itself), and also provides methods to create 
  * some useful models like <tt>JComboBoxModel</tt> based on the same data.
- * <p>
- * The <tt>List</tt> implementation is not fully mutable, though you can 
- * add an item to the end.
- * <p>
- * The implementation of this class is a bit hairy at the moment, and
- * there may be bugs.  I'm not sure whether I'm going to use it long
- * term or not yet; if so it will need shoring up somewhat.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class OptionsListModel extends AbstractList implements ListModel {
 
-    private final List options;
-    private final BasicListModel bmodel;
-
+    private final List entryList_;
+    private final BasicListModel bmodel_;
+    private int nextId_;
     
     public OptionsListModel() {
-        options = new ArrayList();
-        bmodel = new BasicListModel();
+        entryList_ = new ArrayList();
+        bmodel_ = new BasicListModel();
     }
 
     public Object get( int index ) {
-        return options.get( index );
+        return ((Entry) entryList_.get( index )).obj_;
     }
 
     public Object getElementAt( int index ) {
@@ -53,7 +47,7 @@ public class OptionsListModel extends AbstractList implements ListModel {
     }
 
     public int size() {
-        return options.size();
+        return entryList_.size();
     }
 
     public int getSize() {
@@ -61,16 +55,55 @@ public class OptionsListModel extends AbstractList implements ListModel {
     }
 
     public boolean add( Object obj ) {
-        int index = options.size();
-        boolean ret = options.add( obj );
+        int index = entryList_.size();
+        boolean ret = entryList_.add( new Entry( nextId_++, obj ) );
         fireIntervalAdded( index, index );
         return ret;
     }
 
     public Object set( int irow, Object obj ) {
-        Object oldval = options.set( irow, obj );
-        bmodel.fireContentsChanged( bmodel, irow, irow );
+        Entry entry = (Entry) entryList_.get( irow );
+        Object oldval = entry.obj_;
+        entry.obj_ = obj;
+        bmodel_.fireContentsChanged( bmodel_, irow, irow );
         return oldval;
+    }
+
+    public Object remove( int irow ) {
+        Entry entry = (Entry) entryList_.remove( irow );
+        bmodel_.fireIntervalRemoved( bmodel_, irow, irow );
+        return entry.obj_;
+    }
+
+    /**
+     * Returns the unique ID value for the option currently at a given index
+     * in this list.  The ID value for a given option is a small integer
+     * which does not change.  ID values are not re-used within a given
+     * instance of this class.
+     *
+     * @param  index  current index for option
+     * @return  identifier for option
+     */
+    public int indexToId( int index ) {
+        return ((Entry) entryList_.get( index )).id_;
+    }
+
+    /**
+     * Returns the index at which an option with the given ID currently resides.
+     * If no option with the given ID is present, -1 is returned.
+     *
+     * @param   id  unique identifier
+     * @return  index of option with <code>id</code>, or -1
+     * @see   {@link #indexToId}
+     */
+    public int idToIndex( int id ) {
+        int index = 0;
+        for ( Iterator it = entryList_.iterator(); it.hasNext(); index++ ) {
+            if ( ((Entry) it.next()).id_ == id ) {
+                return index;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -81,17 +114,17 @@ public class OptionsListModel extends AbstractList implements ListModel {
     public ComboBoxModel makeComboBoxModel() {
         class ListComboBoxModel extends BasicListModel 
                                 implements ComboBoxModel, ListDataListener {
-            private Object selected;
+            private Object selected_;
             public void setSelectedItem( Object item ) {
-                if ( ( selected != null && ! selected.equals( item ) ) ||
-                     ( selected == null && item != null ) ) {
-                    selected = item;
+                if ( ( selected_ != null && ! selected_.equals( item ) ) ||
+                     ( selected_ == null && item != null ) ) {
+                    selected_ = item;
                     // ?? this is what the Sun DefaultComboBoxModel does
                     fireContentsChanged( this, -1, -1 );
                 }
             }
             public Object getSelectedItem() {
-                return selected;
+                return selected_;
             }
             public void contentsChanged( ListDataEvent evt ) {
                 fireContentsChanged( this, evt.getIndex0(), evt.getIndex1() );
@@ -172,7 +205,7 @@ public class OptionsListModel extends AbstractList implements ListModel {
             }
             public void contentsChanged( ListDataEvent evt ) {
                 removeAll();
-                for ( int i = 0; i < options.size(); i++ ) {
+                for ( int i = 0; i < entryList_.size(); i++ ) {
                     add( makeJMenuItem( menuAction, i ) );
                 }
             }
@@ -181,14 +214,14 @@ public class OptionsListModel extends AbstractList implements ListModel {
         menu.setText( menuName );
         menu.contentsChanged( new ListDataEvent( this, 
                                                  ListDataEvent.CONTENTS_CHANGED,
-                                                 0, options.size() - 1 ) );
+                                                 0, entryList_.size() - 1 ) );
         addListDataListener( menu );
         return menu;
     }
 
     private JMenuItem makeJMenuItem( final Action menuAction, 
                                      final int index ) {
-        final String text = options.get( index ).toString();
+        final String text = ((Entry) entryList_.get( index )).obj_.toString();
         Action act = new AbstractAction( text ) {
             public void actionPerformed( ActionEvent evt ) {
                 ActionEvent evt1 = new ActionEvent( this, index, text );
@@ -205,7 +238,8 @@ public class OptionsListModel extends AbstractList implements ListModel {
                 int nel = evt.getIndex1() - start + 1;
                 if ( start == getItemCount() ) {
                     for ( int i = start; i < start + nel; i++ ) {
-                        addMenuItem( options.get( i ).toString() );
+                        addMenuItem( ((Entry) entryList_.get( i ))
+                                    .obj_.toString() );
                     }
                 }
                 else {
@@ -218,9 +252,9 @@ public class OptionsListModel extends AbstractList implements ListModel {
             }
             public void contentsChanged( ListDataEvent evt ) {
                 removeAll();
-                int nel = options.size();
+                int nel = entryList_.size();
                 for ( int i = 0; i < nel; i++ ) {
-                    addMenuItem( options.get( i ).toString() );
+                    addMenuItem( ((Entry) entryList_.get( i )).toString() );
                 }
             }
         }
@@ -228,33 +262,33 @@ public class OptionsListModel extends AbstractList implements ListModel {
         menu.setText( menuName );
         menu.contentsChanged( new ListDataEvent( this, 
                                                  ListDataEvent.CONTENTS_CHANGED,
-                                                 0, options.size() - 1 ) );
+                                                 0, entryList_.size() - 1 ) );
         addListDataListener( menu );
         return menu;
     }
 
     /*
-     * Methods and classes below here are just concerned with providing
-     * the functionality in AbstractListModel by delegation.
+     * Provide the functionality in AbstractListModel by delegation.
      */
-
     public void addListDataListener( ListDataListener l ) {
-        bmodel.addListDataListener( l );
+        bmodel_.addListDataListener( l );
     }
     public void removeListDataListener( ListDataListener l ) {
-        bmodel.removeListDataListener( l );
+        bmodel_.removeListDataListener( l );
     }
-
     public void fireContentsChanged( int i0, int i1 ) {
-        bmodel.fireContentsChanged( bmodel, i0, i1 );
+        bmodel_.fireContentsChanged( bmodel_, i0, i1 );
     }
     public void fireIntervalAdded( int i0, int i1 ) {
-        bmodel.fireIntervalAdded( bmodel, i0, i1 );
+        bmodel_.fireIntervalAdded( bmodel_, i0, i1 );
     }
     public void fireIntervalRemoved( int i0, int i1 ) {
-        bmodel.fireIntervalRemoved( bmodel, i0, i1 );
+        bmodel_.fireIntervalRemoved( bmodel_, i0, i1 );
     }
 
+    /**
+     * ListModel adapter.
+     */
     private class BasicListModel extends AbstractListModel {
         public Object getElementAt( int index ) {
             return get( index );
@@ -272,5 +306,23 @@ public class OptionsListModel extends AbstractList implements ListModel {
             super.fireIntervalRemoved( source, i0, i1 );
         }
     }
-       
+
+    /**
+     * Struct type class which associates an object and a unique identifier.
+     */
+    private static class Entry {
+        final int id_;
+        Object obj_;
+
+        /**
+         * Constructor.
+         *
+         * @param  unique identifier
+         * @param  option object
+         */
+        Entry( int id, Object obj ) {
+            id_ = id;
+            obj_ = obj;
+        }
+    }
 }

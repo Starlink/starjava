@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 public class TopcatJELRowReader extends RandomJELRowReader {
 
     private final RowSubset[] subsets_;
+    private final int[] subsetIds_;
 
     /** Prefix identifying a unique subset identifier. */
     public static final char SUBSET_ID_CHAR = '_';
@@ -38,15 +39,23 @@ public class TopcatJELRowReader extends RandomJELRowReader {
      * @param   table  table object
      * @param   subsets  array of {@link RowSubset} objects which 
      *          this reader will recognise (may be null)
+     * @param   subsetIds  array of integer identifiers by which the
+     *          <code>subsets</code> array will be identified;
+     *          must be the same length as <code>subsets</code>
      * @throws  IllegalArgumentException  if <tt>table.isRandom()</tt>
      *          returns false
      */
-    public TopcatJELRowReader( StarTable table, RowSubset[] subsets ) {
+    public TopcatJELRowReader( StarTable table,
+                               RowSubset[] subsets, int[] subsetIds ) {
         super( table );
         if ( ! table.isRandom() ) {
             throw new IllegalArgumentException( "Table is not random-access" );
         }
         subsets_ = subsets == null ? new RowSubset[ 0 ] : subsets;
+        subsetIds_ = subsetIds == null ? new int[ 0 ] : subsetIds;
+        if ( subsets_.length != subsetIds_.length ) {
+            throw new IllegalArgumentException( "arg length mismatch" );
+        }
     }
 
     /**
@@ -78,7 +87,7 @@ public class TopcatJELRowReader extends RandomJELRowReader {
     }
 
     /**
-     * Overrides superclass implmentation to recognise subsets as well as
+     * Overrides superclass implementation to recognise subsets as well as
      * the other special objects.  The additional return type is:
      * <ul>
      * <li>a <tt>Short</tt> (the subset index) if the column specification
@@ -139,9 +148,17 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         /* Try the '_' + number format. */
         if ( name.charAt( 0 ) == SUBSET_ID_CHAR ) {
             try {
-                int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
-                if ( isub >= 0 && isub < subsets_.length ) {
-                    return (short) isub;
+                int subsetId = Integer.parseInt( name.substring( 1 ) ) - 1;
+                for ( int isub = 0; isub < subsetIds_.length; isub++ ) {
+                    if ( subsetId == subsetIds_[ isub ] ) {
+                        if ( isub >= Short.MIN_VALUE &&
+                             isub <= Short.MAX_VALUE ) {
+                            return (short) isub;
+                        }
+                        else {
+                            /* 2^15 subsets have been defined?  Unlikely. */
+                        }
+                    }
                 }
             }
             catch ( NumberFormatException e ) {
@@ -150,9 +167,15 @@ public class TopcatJELRowReader extends RandomJELRowReader {
         }
 
         /* Try the subset name. */
-        for ( int i = 0; i < subsets_.length; i++ ) {
-            if ( subsets_[ i ].getName().equalsIgnoreCase( name ) ) {
-                return (short) i;
+        for ( int isub = 0; isub < subsets_.length; isub++ ) {
+            if ( subsets_[ isub ].getName().equalsIgnoreCase( name ) ) {
+                if ( isub >= Short.MIN_VALUE &&
+                     isub <= Short.MAX_VALUE ) {
+                    return (short) isub;
+                }
+                else {
+                    /* 2^15 subsets have been defined?  Unlikely. */
+                }
             }
         }
 

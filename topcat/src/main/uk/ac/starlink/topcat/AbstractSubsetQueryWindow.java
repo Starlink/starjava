@@ -112,9 +112,9 @@ public abstract class AbstractSubsetQueryWindow extends QueryWindow {
         /* Construct a new RowSubset with the given name and add it to the
          * model. */
         try {
-            tcModel_.addSubset( new SyntheticRowSubset( tcModel_.getDataModel(),
-                                                        tcModel_.getSubsets(),
-                                                        name, expr ) );
+            tcModel_.addSubset(
+                new SyntheticRowSubset( name, expr,
+                                        tcModel_.createJELRowReader() ) );
             return true;
         }
         catch ( CompilationException e ) {

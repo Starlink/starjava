@@ -480,8 +480,8 @@ public class ColumnDataComboBoxModel
          */
         SyntheticColumnData( TopcatModel tcModel, String expr )
                 throws CompilationException {
-            super( new DefaultValueInfo( expr ), tcModel.getDataModel(),
-                   tcModel.getSubsets(), expr, null );
+            super( new DefaultValueInfo( expr ), expr, null,
+                   tcModel.createJELRowReader() );
             tcModel_ = tcModel;
             expr_ = expr;
         }

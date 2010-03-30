@@ -47,6 +47,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final MetaColumnTableModel subsetsTableModel;
     private final ToggleButtonModel autoCountModel;
     private final Action addAct;
+    private final Action removeAct;
     private final Action tocolAct;
     private final Action countAct;
     private final Action invertAct;
@@ -129,6 +130,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                    "algebraic expression" );
         addAct.setEnabled( TopcatUtils.canJel() );
 
+        /* Action for removing a subset. */
+        removeAct = new SubsetAction( "Discard subset", ResourceIcon.DELETE,
+                                      "Permanently delete a subset" );
+
         /* Action for turning a subset into a column. */
         tocolAct = new SubsetAction( "To column", ResourceIcon.TO_COLUMN,
                                      "Create new boolean column from " +
@@ -186,7 +191,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         ListSelectionListener selList = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 int nsel = jtab.getSelectedRowCount();
+                boolean hasSelection = nsel > 0;
                 boolean hasUniqueSelection = nsel == 1;
+                removeAct.setEnabled( hasSelection && ! 
+                                      jtab.isRowSelected( 0 ) );
                 tocolAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
                 if ( subsetTransmitter != null ) {
@@ -238,6 +246,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().add( sampleAct );
         getToolBar().add( headAct );
         getToolBar().add( tailAct );
+        getToolBar().add( removeAct );
         getToolBar().addSeparator();
         getToolBar().add( invertAct );
         getToolBar().add( tocolAct );
@@ -254,6 +263,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         subsetsMenu.add( sampleAct );
         subsetsMenu.add( headAct );
         subsetsMenu.add( tailAct );
+        subsetsMenu.add( removeAct );
         subsetsMenu.add( invertAct );
         subsetsMenu.add( tocolAct );
         subsetsMenu.add( countAct );
@@ -341,14 +351,11 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 return getSubset( irow ) instanceof SyntheticRowSubset;
             }
             public void setValue( int irow, Object value ) {
-                RowSubset rset = getSubset( irow );
+                SyntheticRowSubset rset =
+                   (SyntheticRowSubset) getSubset( irow );
                 try {
-                    RowSubset newSet = 
-                        new SyntheticRowSubset( dataModel, subsets,
-                                                rset.getName(), 
-                                                value.toString() );
-                    subsets.set( irow, newSet );
-                    tcModel.getViewModel().fireTableDataChanged();
+                    rset.setExpression( value.toString(),
+                                        tcModel.createJELRowReader() );
                 }
                 catch ( CompilationException e ) {
                     String[] msg = new String[] {
@@ -359,7 +366,11 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                     JOptionPane.showMessageDialog( SubsetWindow.this, msg,
                                                    "Expression Syntax Error",
                                                    JOptionPane.ERROR_MESSAGE );
+                    return;
                 }
+                subsetCounts.remove( rset );
+                subsets.set( irow, rset );
+                tcModel.getViewModel().fireTableDataChanged();
             }
         };
 
@@ -421,7 +432,8 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * @return  subset ID string
      */
     private String getSubsetID( int irow ) {
-        return TopcatJELRowReader.SUBSET_ID_CHAR + Integer.toString( irow + 1 );
+        return TopcatJELRowReader.SUBSET_ID_CHAR
+             + Integer.toString( subsets.indexToId( irow ) + 1 );
     }
 
     /**
@@ -507,6 +519,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             if ( this == addAct ) {
                 new SyntheticSubsetQueryWindow( tcModel, parent )
                .setVisible( true );
+            }
+
+            else if ( this == removeAct ) {
+                int[] irows = jtab.getSelectedRows();
+                for ( int i = 0; i < irows.length; i++ ) {
+                    subsets.remove( irows[ i ] );
+                }
             }
 
             else if ( this == tocolAct ) {

@@ -619,7 +619,7 @@ public class PointSelector extends JPanel {
 
         /* Install a new subset selector component. */
         OptionsListModel subsets = tcModel.getSubsets();
-        ListSelectionModel selModel = new DefaultListSelectionModel();
+        DefaultListSelectionModel selModel = new DefaultListSelectionModel();
         annotator_ = new StyleAnnotator( subsets, selModel );
         CheckBoxStack subStack = new CheckBoxStack( subsets, annotator_ );
         subStack.setSelectionModel( selModel );

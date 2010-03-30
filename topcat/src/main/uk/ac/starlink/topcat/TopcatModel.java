@@ -45,6 +45,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.topcat.interop.RowActivity;
@@ -785,6 +786,9 @@ public class TopcatModel {
         String baseExpr = baseInfo.getAuxDatum( TopcatUtils.COLID_INFO )
                                   .getValue().toString();
         ColumnInfo elInfo = new ColumnInfo( baseInfo );
+        RandomJELRowReader rowReader =
+            new TopcatJELRowReader( dataModel_,
+                                    new RowSubset[ 0 ], new int[ 0 ] );
         elInfo.setShape( null );
         int ipos = 0;
         for ( Iterator it = new ShapeIterator( baseInfo.getShape() );
@@ -802,8 +806,7 @@ public class TopcatModel {
             String colExpr = baseExpr + '[' + ipos + ']';
             try {
                 SyntheticColumn elcol =
-                    new SyntheticColumn( colInfo, dataModel_, null,
-                                         colExpr, null );
+                    new SyntheticColumn( colInfo, colExpr, null, rowReader );
                 appendColumn( elcol, ++insertPos );
             }
             catch ( CompilationException e ) {
@@ -888,6 +891,26 @@ public class TopcatModel {
 
         /* Return. */
         return selector;
+    }
+
+    /**
+     * Returns a JEL expression evaluation context appropriate for the
+     * current state of this table.
+     * It may not be updated by future updates to this model,
+     * so it should only be used for preparation of evaluation of expressions
+     * at call time, not saved for use in compiling expressions acquired later.
+     *
+     * @return  row reader
+     */
+    public RandomJELRowReader createJELRowReader() {
+        int nset = subsets_.size();
+        RowSubset[] subsetArray = new RowSubset[ nset ];
+        int[] subsetIds = new int[ nset ];
+        for ( int isub = 0; isub < nset; isub++ ) {
+            subsetArray[ isub ] = (RowSubset) subsets_.get( isub );
+            subsetIds[ isub ] = subsets_.indexToId( isub );
+        }
+        return new TopcatJELRowReader( dataModel_, subsetArray, subsetIds );
     }
 
     /**

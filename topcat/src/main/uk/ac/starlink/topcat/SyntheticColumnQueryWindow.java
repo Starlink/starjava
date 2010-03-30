@@ -24,7 +24,6 @@ import uk.ac.starlink.table.gui.UCDSelector;
 public class SyntheticColumnQueryWindow extends QueryWindow {
 
     private final TopcatModel tcModel;
-    private final PlasticStarTable dataModel;
     private final OptionsListModel subsets;
     private final TableColumnModel columnModel;
     private JTextField nameField;
@@ -50,7 +49,6 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         super( "Define Synthetic Column", parent );
         this.tcModel = tcModel;
         this.columnModel = tcModel.getColumnModel();
-        this.dataModel = tcModel.getDataModel();
         this.subsets = tcModel.getSubsets();
         LabelledComponentStack stack = getStack();
 
@@ -250,7 +248,8 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
             info.setUnitString( unit );
         }
         try {
-            return new SyntheticColumn( info, dataModel, subsets, expr, null );
+            return new SyntheticColumn( info, expr, null,
+                                        tcModel.createJELRowReader() );
         }
         catch ( CompilationException e ) {
             String[] msg = new String[] {

@@ -5,6 +5,7 @@ import gnu.jel.CompilationException;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.Parser;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * Activator which evaluates a given JEL expression per row on activation.
@@ -16,7 +17,7 @@ public class JELActivator implements Activator {
 
     private final TopcatModel tcModel_;
     private final String expression_;
-    private final TopcatJELRowReader rowReader_;
+    private final RandomJELRowReader rowReader_;
     private final CompiledExpression compEx_;
     private final Class resultType;
 
@@ -33,10 +34,7 @@ public class JELActivator implements Activator {
         expression_ = expression;
 
         /* Get a RowReader. */
-        RowSubset[] subsetArray = (RowSubset[]) tcModel_.getSubsets()
-                                               .toArray( new RowSubset[ 0 ] );
-        rowReader_ = new TopcatJELRowReader( tcModel_.getDataModel(),
-                                             subsetArray );
+        rowReader_ = tcModel_.createJELRowReader();
 
         /* Compile the expression. */
         Library lib = TopcatJELUtils.getLibrary( rowReader_, true );

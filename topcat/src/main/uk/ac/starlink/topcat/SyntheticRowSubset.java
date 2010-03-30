@@ -6,7 +6,7 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.util.List;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 
 /**
  * A <tt>RowSubset</tt> which uses an algebraic expression based on the
@@ -21,12 +21,10 @@ import uk.ac.starlink.table.StarTable;
  */
 public class SyntheticRowSubset implements RowSubset {
 
-    private StarTable stable;
-    private List subsets;
-    private String name;
-    private String expression;
-    private TopcatJELRowReader rowReader;
-    private CompiledExpression compEx;
+    private String name_;
+    private String expression_;
+    private RandomJELRowReader rowReader_;
+    private CompiledExpression compEx_;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -34,50 +32,48 @@ public class SyntheticRowSubset implements RowSubset {
      * Constructs a new synthetic subset given a table and an algebraic
      * expression.
      *
-     * @param  stable the StarTable which supplies column values which can
-     *         appear in the expression
-     * @param  subsets  a List of other <tt>RowSubset</tt> objects which
-     *         may be referenced by name or number in the expression
      * @param  name  the name to use for the new RowSubset
      * @param  expression   the algebraic expression
+     * @param  rowReader   context for JEL expression evaluation
      */
-    public SyntheticRowSubset( StarTable stable, List subsets, String name, 
-                               String expression ) 
+    public SyntheticRowSubset( String name, String expression,
+                               RandomJELRowReader rowReader ) 
             throws CompilationException {
-        this.stable = stable;
-        this.subsets = subsets;
-        this.name = name;
-        setExpression( expression );
+        name_ = name;
+        setExpression( expression, rowReader );
     }
 
-    public void setExpression( String expression ) throws CompilationException {
-
-        /* Get an up-to-date RowReader (an old one may not be aware of recent
-         * changes to the StarTable or subset list). */
-        RowSubset[] subsetArray = subsets == null
-                                ? new RowSubset[ 0 ]
-                                : (RowSubset[]) 
-                                  subsets.toArray( new RowSubset[ 0 ] );
-        rowReader = new TopcatJELRowReader( stable, subsetArray );
-
-        /* Compile the expression. */
+    /**
+     * Sets the expression to use for this subset.
+     *
+     * @param  expression  JEL expression
+     * @param  rowReader   context for JEL expression evaluation
+     */
+    public void setExpression( String expression, RandomJELRowReader rowReader )
+            throws CompilationException {
         Library lib = TopcatJELUtils.getLibrary( rowReader, false );
-        compEx = Evaluator.compile( expression, lib, boolean.class );
-        this.expression = expression;
+        compEx_ = Evaluator.compile( expression, lib, boolean.class );
+        expression_ = expression;
+        rowReader_ = rowReader;
+    }
+
+    /**
+     * Returns the text of the expression used by this subset.
+     *
+     * @return  expression
+     */
+    public String getExpression() {
+        return expression_;
     }
 
     public String getName() {
-        return name;
-    }
-
-    public String getExpression() {
-        return expression;
+        return name_;
     }
 
     public boolean isIncluded( long lrow ) {
         try {
-            Boolean result = (Boolean) 
-                             rowReader.evaluateAtRow( compEx, lrow );
+            Boolean result =
+                (Boolean) rowReader_.evaluateAtRow( compEx_, lrow );
             return result == null ? false : result.booleanValue();
         }
         catch ( RuntimeException e ) {

@@ -199,7 +199,8 @@ public class ColumnInfoWindow extends AuxWindow {
             public void setValue( int irow, Object value ) {
                 try { 
                     getSyntheticColumn( irow )
-                   .setExpression( (String) value, null );
+                   .setExpression( (String) value, null,
+                                   tcModel.createJELRowReader() );
                     super.setValue( irow, value );
 
                     /* Message the table that its data may have changed.

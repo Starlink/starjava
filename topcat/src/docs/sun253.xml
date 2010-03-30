@@ -5644,6 +5644,14 @@ can be edited by double-clicking on them in the normal way.
     consisting of the last <m>N</m> rows of the table.
     </p></dd>
 
+<dt>&IMG.DELETE; Remove Subset</dt>
+<dd><p>Deletes one of the subsets in the list.
+    Once deleted, a subset cannot be recovered.
+    Note that attempts to use its name or _ID in algebraic expressions
+    which you add or modify in the future will fail, though its use in 
+    existing expressions will continue to work.
+    </p></dd>
+
 <dt>&IMG.INVERT; Invert Subset</dt>
 <dd><p>Creates a new subset which is the complement of the selected one.
     The new one will include all the rows which are excluded by the
@@ -13559,6 +13567,7 @@ introduced since the last version:
     <li>Table parameter values in algebraic expressions now evaluate to
         their current value, rather than the value when the expression 
         was entered.</li>
+    <li>Finally - you can delete row subsets!</li>
     </ul>
     </p></dd>
 
