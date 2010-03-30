@@ -19,9 +19,8 @@ import uk.ac.starlink.ttools.jel.RandomJELRowReader;
  * @author   Mark Taylor (Starlink)
  * @see      <a href="http://galaxy.fzu.cz/JEL/">JEL</a>
  */
-public class SyntheticRowSubset implements RowSubset {
+public class SyntheticRowSubset extends RowSubset {
 
-    private String name_;
     private String expression_;
     private RandomJELRowReader rowReader_;
     private CompiledExpression compEx_;
@@ -39,7 +38,7 @@ public class SyntheticRowSubset implements RowSubset {
     public SyntheticRowSubset( String name, String expression,
                                RandomJELRowReader rowReader ) 
             throws CompilationException {
-        name_ = name;
+        super( name );
         setExpression( expression, rowReader );
     }
 
@@ -66,10 +65,6 @@ public class SyntheticRowSubset implements RowSubset {
         return expression_;
     }
 
-    public String getName() {
-        return name_;
-    }
-
     public boolean isIncluded( long lrow ) {
         try {
             Boolean result =
@@ -85,9 +80,4 @@ public class SyntheticRowSubset implements RowSubset {
             return false;
         }
     }
-
-    public String toString() {
-        return getName();
-    }
-
 }

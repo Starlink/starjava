@@ -601,12 +601,11 @@ public class PointSelection implements PlotData {
      * It also applies a mask, so that any queries outside its original
      * region of applicability are returned false.
      */
-    private static class OffsetRowSubset implements RowSubset {
+    private static class OffsetRowSubset extends RowSubset {
 
         private final RowSubset base_;
         private final long lolim_;
         private final long hilim_;
-        private String name_;
 
         /**
          * Constructs a new OffsetRowSubset.
@@ -617,14 +616,10 @@ public class PointSelection implements PlotData {
          * @param  name  subset name
          */
         OffsetRowSubset( RowSubset base, long offset, long nrow, String name ) {
+            super( name );
             base_ = base;
             lolim_ = offset;
             hilim_ = offset + nrow - 1;
-            name_ = name;
-        }
-
-        public String getName() {
-            return name_;
         }
 
         public boolean isIncluded( long lrow ) {
@@ -637,7 +632,7 @@ public class PointSelection implements PlotData {
             if ( o instanceof OffsetRowSubset ) {
                 OffsetRowSubset other = (OffsetRowSubset) o;
                 return this.base_.equals( other.base_ )
-                    && this.name_.equals( other.name_ )
+                    && this.getName().equals( other.getName() )
                     && this.lolim_ == other.lolim_
                     && this.hilim_ == other.hilim_;
             }
@@ -649,7 +644,7 @@ public class PointSelection implements PlotData {
         public int hashCode() {
             int code = 555;
             code = 23 * code + base_.hashCode();
-            code = 23 * code + name_.hashCode();
+            code = 23 * code + getName().hashCode();
             code = 23 * code + (int) lolim_;
             code = 23 * code + (int) hilim_;
             return code;

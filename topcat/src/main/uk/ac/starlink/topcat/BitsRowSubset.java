@@ -8,11 +8,10 @@ import java.util.BitSet;
  *
  * @author    Mark Taylor (Starlink)
  */
-public class BitsRowSubset implements RowSubset {
+public class BitsRowSubset extends RowSubset {
 
      private BitSet bits;
      private boolean invert;
-     private String name;
 
      /**
       * Constructs a new row subset with a given BitSet, name and sense.
@@ -24,7 +23,7 @@ public class BitsRowSubset implements RowSubset {
       * @param   invert  whether to invert the bits from the BitSet
       */
      public BitsRowSubset( String name, BitSet bits, boolean invert ) {
-         this.name = name;
+         super( name );
          this.bits = bits;
          this.invert = invert;
      }
@@ -61,16 +60,7 @@ public class BitsRowSubset implements RowSubset {
          return invert;
      }
 
-     public String getName() {
-         return name;
-     }
-
      public boolean isIncluded( long lrow ) {
          return bits.get( (int) lrow ) ^ invert;
      }
-
-     public String toString() {
-         return name;
-     }
-
 }

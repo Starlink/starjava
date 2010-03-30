@@ -5,44 +5,54 @@ package uk.ac.starlink.topcat;
  * 
  * @author   Mark Taylor (Starlink)
  */
-public interface RowSubset {
+public abstract class RowSubset {
+
+    private String name_;
 
     /**
      * A subset containing all rows (<tt>isIncluded</tt> always true).
      */
-    RowSubset ALL = new RowSubset() {
-        public String getName() {
-            return "All";
-        }
+    public static RowSubset ALL = new RowSubset( "All" ) {
         public boolean isIncluded( long lrow ) {
             return true;
-        }
-        public String toString() {
-            return getName();
         }
     };
 
     /**
      * A subset containing no rows (<tt>isIncluded</tt> always false).
      */
-    RowSubset NONE = new RowSubset() {
-        public String getName() {
-            return "None";
-        }
+    public static RowSubset NONE = new RowSubset( "None" ) {
         public boolean isIncluded( long lrow ) {
             return false;
-        }
-        public String toString() {
-            return getName();
         }
     };
 
     /**
-     * The name of this subset.
+     * Constructor.
+     *
+     * @param   name  subset name
+     */
+    public RowSubset( String name ) {
+        name_ = name;
+    }
+
+    /**
+     * Returns the name of this subset.
      *
      * @return name
      */
-    String getName();
+    public String getName() {
+        return name_;
+    }
+
+    /**
+     * Sets the name of this subset.
+     *
+     * @param  name  new name
+     */
+    public void setName( String name ) {
+        name_ = name;
+    }
 
     /**
      * Indicates whether a given row is in the subset or not.
@@ -50,5 +60,12 @@ public interface RowSubset {
      * @param  lrow  the index of the row in question
      * @return  <tt>true</tt> iff row <tt>lrow</tt> is to be included
      */
-    boolean isIncluded( long lrow );
+    public abstract boolean isIncluded( long lrow );
+
+    /**
+     * Returns this subset's name.
+     */
+    public String toString() {
+        return getName();
+    }
 }
