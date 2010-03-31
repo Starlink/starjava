@@ -372,8 +372,17 @@ public class TstTableWriter extends StreamStarTableWriter {
                     return new Long( irow + 1 );
                 }
             };
+
+            /* The index column must report a determinate row count, since
+             * it's a random table.  If it's not know, use a maximum value;
+             * the joined table will use the smallest row count of all its
+             * constituent tables. */
+            long ixCount = out.getRowCount();
+            if ( ixCount < 0 ) {
+                ixCount = Long.MAX_VALUE;
+            }
             ColumnStarTable indexTable = 
-                ColumnStarTable.makeTableWithRows( out.getRowCount() );
+                ColumnStarTable.makeTableWithRows( ixCount );
             indexTable.addColumn( indexCol );
             idIndex = out.getColumnCount();
             AbstractStarTable joined = 

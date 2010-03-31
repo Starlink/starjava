@@ -7108,6 +7108,7 @@ but my thanks are especially due to the following:
     <li>Upgraded PixTools HEALPix library to 2010/02/09 version.
         This fixes a bug that could theoretically cause deficient crossmatch
         results, though I haven't managed to produce such errors.</li>
+    <li>Fixed bug in TST table output.</li>
     </ul>
     </p></dd>
 
