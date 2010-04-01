@@ -13569,6 +13569,7 @@ introduced since the last version:
         their current value, rather than the value when the expression 
         was entered.</li>
     <li>Finally - you can delete and rename row subsets!</li>
+    <li>Update SDSS image cutout downloads to DR7 (was DR4).</li>
     </ul>
     </p></dd>
 

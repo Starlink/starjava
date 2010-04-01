@@ -21,7 +21,7 @@ public class Sdss {
 
     /** Base URL for SkyServer JPEG retrieval service. */
     public static final String SDSS_BASE_URL =
-        "http://casjobs.sdss.org/ImgCutoutDR4/getjpeg.aspx";
+        "http://casjobs.sdss.org/ImgCutoutDR7/getjpeg.aspx";
 
     /**
      * Private constructor prevents instantiation.
