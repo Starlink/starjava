@@ -490,7 +490,7 @@ public class DalMultiPanel extends JPanel {
                                  true, false, service_ ),
             new CreateTableMode( "New joined table with all matches",
                                  false, false, service_ ),
-            new CreateTableMode( "New joined table, one row per intput row",
+            new CreateTableMode( "New joined table, one row per input row",
                                  true, true, service_ ),
             new AddSubsetMode( "Add subset for matched rows", service_ ),
         };
