@@ -45,7 +45,8 @@ public class PlasticStarTable extends ColumnStarTable {
         /* Set up ColumnData objects for each of the columns in the
          * given StarTable. */
         for ( int icol = 0; icol < baseTable.getColumnCount(); icol++ ) {
-            ColumnInfo colinfo = baseTable.getColumnInfo( icol );
+            ColumnInfo colinfo =
+                new ColumnInfo( baseTable.getColumnInfo( icol ) );
             final int ficol = icol;
             ColumnData coldat = new ColumnData( colinfo ) {
                 public Object readValue( long lrow ) throws IOException {
