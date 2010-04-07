@@ -94,7 +94,7 @@ public class OptionsListModel extends AbstractList implements ListModel {
      *
      * @param   id  unique identifier
      * @return  index of option with <code>id</code>, or -1
-     * @see   {@link #indexToId}
+     * @see   #indexToId
      */
     public int idToIndex( int id ) {
         int index = 0;
