@@ -611,7 +611,7 @@ public class TopcatPlasticListener extends HubManager {
             if ( lastHigh == null || lastHigh.longValue() != lrow ) {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        tcModel.highlightRow( lrow );
+                        tcModel.highlightRow( lrow, false );
                     }
                 } );
             }

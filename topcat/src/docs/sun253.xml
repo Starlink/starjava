@@ -13577,6 +13577,12 @@ introduced since the last version:
         It should also prevent a related bug that allowed the
         column headings the table browser to get out of step with those
         in the columns window and elsewhere.</li>
+    <li>Receipt of a SAMP <code>table.highlight.row</code> message will no
+        longer cause a similar message to be sent back (and similarly for the
+        PLASTIC <code>ivo://votech.org/votable/highlightObject</code> message).
+        The previous behaviour was an unwanted implementation side effect
+        which could sometimes cause problems in interaction with other
+        tools.</li>
     </ul>
     </p></dd>
 

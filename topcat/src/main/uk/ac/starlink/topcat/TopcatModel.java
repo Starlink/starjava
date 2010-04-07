@@ -575,11 +575,26 @@ public class TopcatModel {
     }
 
     /**
-     * Highlights a row in appropriate view windows.
+     * Performs all actions required to highlight a row,
+     * including notifying external applications via SAMP/PLASTIC
+     * if this model is currently so configured.
+     *
+     * @param  lrow  row index
+     */
+    public void highlightRow( long lrow ) {
+        highlightRow( lrow, true );
+    }
+
+    /**
+     * Performs actions required to highlight a row,
+     * optionally including notifying external applications via SAMP/PLASTIC.
      *
      * @param  lrow  index of the row to activate
+     * @param  sendOut  if true, will notify external applications via
+     *         SAMP/PLASTIC when this model is so configured;
+     *         if false, no such external notifications will be sent
      */
-    public void highlightRow( final long lrow ) {
+    public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
             fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
             if ( activator_ != null ) {
@@ -588,7 +603,8 @@ public class TopcatModel {
                     System.out.println( msg );
                 }
             }
-            if ( rowSendModel_.isSelected() &&
+            if ( sendOut && 
+                 rowSendModel_.isSelected() &&
                  controlWindow_.getCommunicator() != null &&
                  controlWindow_.getCommunicator().isConnected() ) {
                 try {
