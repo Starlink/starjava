@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -41,6 +44,24 @@ public class PlasticStarTable extends ColumnStarTable {
             throw new IllegalArgumentException(
                 "Random table has negative number of rows " + nrow );
         }
+
+        /* Clone table metadata so that changes to this table don't affect
+         * derived tables. */
+        List paramList = new ArrayList();
+        for ( Iterator it = baseTable.getParameters().iterator();
+              it.hasNext(); ) {
+            Object item = it.next();
+            if ( item instanceof DescribedValue ) {
+                DescribedValue dval = (DescribedValue) item;
+                Object value = dval.getValue();
+                ValueInfo info = dval.getInfo();
+                if ( info instanceof DefaultValueInfo ) {
+                    info = new DefaultValueInfo( info );
+                }
+                paramList.add( new DescribedValue( info, value ) );
+            }
+        }
+        setParameters( paramList );
 
         /* Set up ColumnData objects for each of the columns in the
          * given StarTable. */

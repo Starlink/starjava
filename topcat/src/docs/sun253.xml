@@ -13571,9 +13571,10 @@ introduced since the last version:
         was entered.</li>
     <li>Finally - you can delete and rename row subsets!</li>
     <li>Update SDSS image cutout downloads to DR7 (was DR4).</li>
-    <li>Tables in TOPCAT now have private copies of column header metadata.
-        This means that changing a column name in one table will not affect
-        other tables.  It should also prevent a related bug that allowed the
+    <li>Tables in TOPCAT now have private copies of column and table metadata.
+        This means that changing a column name or parameter in one table
+        will not affect other tables.
+        It should also prevent a related bug that allowed the
         column headings the table browser to get out of step with those
         in the columns window and elsewhere.</li>
     </ul>
