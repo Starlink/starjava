@@ -11763,8 +11763,8 @@ functionality:
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
-<li><webref url="http://trac.us-vo.org/project/nvo/wiki/ADQLlib"
-            >ADQLlib</webref>
+<li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
+            >IVOARegistry</webref>
     (NVO) for ADQL/X-&gt;S translations in registry searches</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
