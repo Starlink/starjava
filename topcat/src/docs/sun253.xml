@@ -13583,6 +13583,8 @@ introduced since the last version:
         The previous behaviour was an unwanted implementation side effect
         which could sometimes cause problems in interaction with other
         tools.</li>
+    <li>Fixed bug in FITS-plus metadata output
+        (table parameters were getting lost).</li>
     </ul>
     </p></dd>
 

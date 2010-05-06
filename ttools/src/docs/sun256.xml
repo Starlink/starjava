@@ -7109,6 +7109,8 @@ but my thanks are especially due to the following:
         This fixes a bug that could theoretically cause deficient crossmatch
         results, though I haven't managed to produce such errors.</li>
     <li>Fixed bug in TST table output.</li>
+    <li>Fixed bug in FITS-plus metadata output
+        (table parameters were getting lost).</li>
     </ul>
     </p></dd>
 

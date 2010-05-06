@@ -239,10 +239,11 @@ public class VOStarTable extends AbstractStarTable {
 
             /* DESCRIPTION child. */
             String description = votable.getDescription();
-            if ( description != null ) {
+            if ( description != null && description.trim().length() > 0 ) {
                 DefaultValueInfo descInfo = 
                     new DefaultValueInfo( "Description", String.class );
-                params.add( new DescribedValue( descInfo, description ) );
+                params.add( new DescribedValue( descInfo,
+                                                description.trim() ) );
             }
 
             /* UCD attribute. */

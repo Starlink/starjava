@@ -113,8 +113,6 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
 
         /* Output table element containing the metadata with the help of
          * the VOTable serializer. */
-        voser.writeDescription( writer );
-        voser.writeParams( writer );
         writer.write( "<TABLE" );
         String tname = table.getName();
         if ( tname != null && tname.trim().length() > 0 ) {
@@ -127,13 +125,15 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         }
         writer.write( ">" );
         writer.newLine();
+        voser.writeDescription( writer );
+        voser.writeParams( writer );
         voser.writeFields( writer );
         writer.write( "<!-- Dummy VOTable - no DATA element -->" );
         writer.newLine();
         writer.write( "</TABLE>" );
         writer.newLine();
 
-        /* Output traling tags and flush. */
+        /* Output trailing tags and flush. */
         writer.write( "</RESOURCE>" );
         writer.newLine();
         writer.write( "</VOTABLE>" );
