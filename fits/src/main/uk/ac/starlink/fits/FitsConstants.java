@@ -191,6 +191,7 @@ public class FitsConstants {
                 }
                 else {
                     logger.info( "Won't try mapping in blocks on 32-bit JVM" );
+                    logger.warning( "Might be faster on a 64-bit OS/JVM" );
                 }
             }
         }

@@ -11,6 +11,7 @@ import java.nio.BufferOverflowException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import nom.tam.util.RandomAccess;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Provides mapped access to a data buffer using a single mapped byte buffer,
@@ -194,8 +195,31 @@ public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
                 "Invalid mode string \"" + mode +
                 "\" - must be \"r\" or \"rw\"" );
         }
-        MappedByteBuffer buf = channel.map( mapmode, start, size );
-        channel.close();  // has no effect on the validity of the mapping
+        MappedByteBuffer buf;
+        try {
+            buf = channel.map( mapmode, start, size );
+        }
+
+        /* I wouldn't expect out of memory to be an issue here, since I 
+         * I think it's address space not heap memory which is the 
+         * significant resource, but you do see OOMEs inside IOEs 
+         * for large files on 32-bit machines (note, the width of the
+         * JVM is not the issue). */
+        catch ( IOException e ) {
+            if ( e.getCause() instanceof OutOfMemoryError ) {
+                String msg = "Out of memory when mapping file " + filename;
+                if ( ! Loader.is64Bit() ) {
+                    msg += " (64-bit OS might help?)";
+                }
+                throw new FileTooLongException( msg, e );
+            }
+            else {
+                throw e;
+            }
+        }
+        finally {
+            channel.close();  // has no effect on the validity of the mapping
+        }
         return buf;
     }
 
@@ -229,6 +253,10 @@ public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
     public static class FileTooLongException extends IOException {
         FileTooLongException( String msg ) {
             super( msg );
+        }
+        FileTooLongException( String msg, Throwable e ) {
+            super( msg );
+            initCause( e );
         }
     }
 }

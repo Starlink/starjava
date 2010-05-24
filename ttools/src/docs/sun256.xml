@@ -7111,6 +7111,8 @@ but my thanks are especially due to the following:
     <li>Fixed bug in TST table output.</li>
     <li>Fixed bug in FITS-plus metadata output
         (table parameters were getting lost).</li>
+    <li>Better behaviour (warn + failover) when attempting to read large
+        files on 32-bit OS or JVM.</li>
     </ul>
     </p></dd>
 
