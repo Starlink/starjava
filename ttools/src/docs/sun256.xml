@@ -7113,6 +7113,8 @@ but my thanks are especially due to the following:
         (table parameters were getting lost).</li>
     <li>Better behaviour (warn + failover) when attempting to read large
         files on 32-bit OS or JVM.</li>
+    <li>Corrected literature references in Fluxes conversion class
+        documentation (thanks to Mattia Vaccari).</li>
     </ul>
     </p></dd>
 

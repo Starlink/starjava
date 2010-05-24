@@ -13,14 +13,18 @@ package uk.ac.starlink.ttools.func;
  * scales are also provided:
  * <ul>
  * <li>Constants <code>JOHNSON_AB_*</code>, for Johnson &lt;-&gt; AB magnitude
- *     conversions
- *     (<a href="http://www.astro.utoronto.ca/~patton/astro/mags.html"
- *              >http://www.astro.utoronto.ca/~patton/astro/mags.html</a>,
- *      citing Frei and Gunn 1995).</li>
+ *     conversions, from
+ *     Frei and Gunn, Astronomical Journal <em>108</em>, 1476 (1994),
+ *     Table 2
+ *     (<a href="http://adsabs.harvard.edu/abs/1994AJ....108.1476F"
+ *                                            >1994AJ....108.1476F</a>).
+ *     </li>
  * <li>Constants <code>VEGA_AB_*</code>, for Vega &lt;-&gt; AB magnitude
- *     conversions
- *     (Blanton et al., Astronomical Journal <em>127</em>, 2562-2578 (2005),
- *     eqs.(5)).
+ *     conversions, from
+ *     Blanton et al., Astronomical Journal <em>129</em>, 2562 (2005),
+ *     Eqs. (5)
+ *     (<a href="http://adsabs.harvard.edu/abs/2005AJ....129.2562B"
+ *                                            >2005AJ....129.2562B</a>).
  *     </li>
  * </ul>
  *
