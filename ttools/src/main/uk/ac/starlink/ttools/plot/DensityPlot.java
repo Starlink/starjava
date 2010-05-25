@@ -94,26 +94,12 @@ public class DensityPlot extends SurfacePlot {
                                        AffineTransformOp
                                       .TYPE_NEAREST_NEIGHBOR );
             g2.setClip( plotZone );
-            try {
-                g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
-            }
 
-            /* Even small images can apparently use up a lot of memory 
-             * if the pixel size multiplier is large on MacOS X 10.4.9.
-             * Don't know any particular reason this should be the case,
-             * but something to do with OSX AWT implementation probably.
-             * Same thing when using iText (PDF output) for J2SE 1.4.
-             * Try to indicate where the trouble might lie by writing a
-             * message on the plot surface. */
-            catch ( OutOfMemoryError e ) {
-                String msg = "Out of memory";
-                if ( psize > 4 ) {
-                    msg += " (known but not well-understood problem)";
-                    msg += " - try smaller pixels or more up-to-date Java";
-                }
-                g2.drawString( msg, 100, 100 );
-                logger_.warning( msg );
-            }
+            /* There was a problem with OutOfMemoryErrors for large pixel
+             * sizes here.  I'm reasonably sure I've fixed it, but if it
+             * rears its head again, see earlier versions of this code
+             * (May 2010). */
+            g2.drawImage( im, scaleOp, plotZone.x, plotZone.y );
             loCuts = loCuts_;
             hiCuts = hiCuts_;
             styles = styles_;
@@ -223,7 +209,7 @@ public class DensityPlot extends SurfacePlot {
 
             /* Create an image contaning the pixels we've prepared. */
             BufferedImage image =
-                new BufferedImage( xsize, ysize, BufferedImage.TYPE_INT_ARGB );
+                new BufferedImage( xpix, ypix, BufferedImage.TYPE_INT_ARGB );
             image.setRGB( 0, 0, xpix, ypix, rgb, 0, xpix );
             image_ = image;
 

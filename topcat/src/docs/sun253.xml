@@ -13589,6 +13589,9 @@ introduced since the last version:
         files on 32-bit OS or JVM.</li>
     <li>Corrected literature references in Fluxes conversion class 
         documentation (thanks to Mattia Vaccari).</li>
+    <li>Fix memory usage issues (unnecessarily large output graphics files,
+        possible out of memory errors) for density plots
+        with large pixel sizes.</li>
     </ul>
     </p></dd>
 
