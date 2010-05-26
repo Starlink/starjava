@@ -8738,8 +8738,10 @@ VizieR into TOPCAT.
 </p>
 
 <p>Note that VizieR's idea of a catalogue is more complex than a single
-table; this means that querying one of VizieR's catalogues may result
-in more than one table being loaded into TOPCAT.
+table; this means that in some cases querying one of VizieR's catalogues 
+may result in more than one table being loaded into TOPCAT
+(the <label>Search Sub-Tables</label> checkbox described below 
+can help to control this).
 </p>
 
 <p>The dialogue consists of four parts: the 
@@ -8854,6 +8856,10 @@ The options for catalogue selection are as follows:
     defined by the Row Selection panel, will be listed below the
     category selection panel.
     Select one of these by clicking on it.
+    The <label>Search Sub-Tables</label> checkbox controls whether the
+    list displays only top-level VizieR catalogues 
+    (each of which may contain multiple tables) 
+    or entries for each table within each catalogue as well.
     </p></dd>
 <dt>By Keyword</dt>
 <dd><p>A <label>Keywords</label> text field is shown; you may enter
@@ -8865,6 +8871,10 @@ The options for catalogue selection are as follows:
     defined by the Row Selection panel, will be listed below the 
     Keywords field.
     Select one of these by clicking on it.
+    The <label>Search Sub-Tables</label> checkbox controls whether the
+    list displays only top-level VizieR catalogues 
+    (each of which may contain multiple tables) 
+    or entries for each table within each catalogue as well.
     </p></dd>
 <dt>Surveys</dt>
 <dd><p>A (fairly short) list of large surveys held by VizieR is presented
@@ -8892,6 +8902,10 @@ of the catalogues in question will be listed in the table for selection:
 <dd><p>Short description of contents</p></dd>
 <dt>KRows</dt>
 <dd><p>Approximate number of thousands of rows</p></dd>
+<dt>Rows</dt>
+<dd><p>Approximate number of rows</p></dd>
+<dt>Tables</dt>
+<dd><p>Number of sub-tables contained within the VizieR catalogue</p></dd>
 <dt>Popularity</dt>
 <dd><p>A measure of the number of queries on the catalogue served by
     VizieR</p></dd>
@@ -13592,6 +13606,8 @@ introduced since the last version:
     <li>Fix memory usage issues (unnecessarily large output graphics files,
         possible out of memory errors) for density plots
         with large pixel sizes.</li>
+    <li>VizieR load dialogue can now optionally display sub-tables within
+        catalogues (new "Search Sub-Tables" checkbox).</li>
     <li>VizieR load dialogue now omits obsolete catalogues from list.</li>
     </ul>
     </p></dd>

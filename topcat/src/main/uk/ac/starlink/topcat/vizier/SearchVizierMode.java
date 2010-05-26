@@ -33,6 +33,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ArrayTableSorter;
@@ -50,11 +51,13 @@ public abstract class SearchVizierMode implements VizierMode {
     private final String name_;
     private final VizierTableLoadDialog tld_; 
     private final boolean useSplit_;
-    private final ArrayTableModel tModel_;
     private final JTable table_;
     private final JScrollPane tScroller_;
     private final Action startSearchAction_;
     private final Action cancelSearchAction_;
+    private final ToggleButtonModel includeSubModel_;
+    private ArrayTableModel tModel_;
+    private ArrayTableSorter sorter_;
     private VizierInfo vizinfo_;
     private Component panel_;
     private Component searchComponent_;
@@ -77,22 +80,19 @@ public abstract class SearchVizierMode implements VizierMode {
         tld_ = tld;
         useSplit_ = useSplit;
         tModel_ = new ArrayTableModel();
-        tModel_.setColumns( createCatalogColumns() );
+        tModel_.setColumns( createCatalogColumns( false ) );
         table_ = new JTable( tModel_ );
         table_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         tScroller_ =
             new JScrollPane( table_,
                              JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
-        ArrayTableSorter sorter = new ArrayTableSorter( tModel_ );
-        sorter.install( table_.getTableHeader() );
-        sorter.setSorting( 0, false );
 
         startSearchAction_ = new AbstractAction( "Search Catalogues" ) {
             public void actionPerformed( ActionEvent evt ) {
                 SearchWorker worker =
                     new SearchWorker( tld_.getTarget(), tld_.getRadius(),
-                                      getSearchArgs() );
+                                      getSearchArgs(), includeSubTables() );
                 setSearchWorker( worker );
                 worker.start();
             }
@@ -102,6 +102,12 @@ public abstract class SearchVizierMode implements VizierMode {
                 setSearchWorker( null );
             }
         };
+        includeSubModel_ =
+            new ToggleButtonModel( "Search Sub-Tables", null,
+                                   "If selected, sub-tables as well as " +
+                                   "top-level resources are queried " +
+                                   "and listed" );
+        includeSubModel_.setSelected( true );
         tld_.addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 updateActions();
@@ -174,6 +180,16 @@ public abstract class SearchVizierMode implements VizierMode {
     }
 
     /**
+     * Indicates whether the search should report sub-tables or just top-level
+     * resources.
+     *
+     * @return   false for just top-level resources, true for sub-tables as well
+     */
+    public boolean includeSubTables() {
+        return includeSubModel_.isSelected();
+    }
+
+    /**
      * Declares that a given SearchWorker object is now working on behalf
      * of this component to search for suitable catalogues.
      *
@@ -197,6 +213,7 @@ public abstract class SearchVizierMode implements VizierMode {
      */
     private void updateActions() {
         boolean canSearch = searchWorker_ == null && tld_.hasTarget();
+        includeSubModel_.setEnabled( canSearch );
         startSearchAction_.setEnabled( canSearch );
         if ( searchComponent_ != null ) {
             searchComponent_.setEnabled( canSearch );
@@ -215,11 +232,11 @@ public abstract class SearchVizierMode implements VizierMode {
         JComponent searchPanel = new JPanel( new BorderLayout() );
         searchPanel.add( searchComponent, BorderLayout.CENTER );
         JComponent buttonLine = Box.createHorizontalBox();
+        buttonLine.add( includeSubModel_.createCheckBox() );
         buttonLine.add( Box.createHorizontalGlue() );
         buttonLine.add( new JButton( startSearchAction_ ) );
         buttonLine.add( Box.createHorizontalStrut( 10 ) );
         buttonLine.add( new JButton( cancelSearchAction_ ) );
-        buttonLine.add( Box.createHorizontalGlue() );
         buttonLine.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         searchPanel.add( buttonLine, BorderLayout.SOUTH );
 
@@ -277,12 +294,18 @@ public abstract class SearchVizierMode implements VizierMode {
      *                     a vizier query URL
      */
     private void parseCatalogQuery( String target, String radius,
-                                    String queryArgs,
+                                    String queryArgs, boolean includeSubTables,
                                     DefaultHandler catHandler )
             throws IOException, ParserConfigurationException, SAXException {
         StringBuffer ubuf = new StringBuffer()
             .append( getVizierInfo().getBaseUrl().toString() )
-            .append( "?-meta" );
+            .append( "?" );
+        if ( includeSubTables ) {
+            ubuf.append( "-meta=t" );
+        }
+        else {
+            ubuf.append( "-meta" );
+        }
         if ( target != null && target.trim().length() > 0 ) {
             ubuf.append( VizierTableLoadDialog.encodeArg( "-c", target ) );
         }
@@ -311,41 +334,57 @@ public abstract class SearchVizierMode implements VizierMode {
     /**
      * Returns the columns for display of VizierCatalog objects.
      *
+     * @param  includeSubTables  true if sub-tables will be represented in
+     *           the table as well as catalogues
      * @return   column list
      */
-    private static ArrayTableColumn[] createCatalogColumns() {
-        return new ArrayTableColumn[] {
-            new ArrayTableColumn( "Name", String.class ) {
+    private static ArrayTableColumn[]
+            createCatalogColumns( boolean includeSubTables ) {
+        List colList = new ArrayList();
+        colList.add( new ArrayTableColumn( "Name", String.class ) {
+            public Object getValue( Object item ) {
+                return ((VizierCatalog) item).getName();
+            }
+        } );
+        if ( includeSubTables ) {
+            colList.add( new ArrayTableColumn( "Tables", Integer.class ) {
                 public Object getValue( Object item ) {
-                    return ((VizierCatalog) item).getName();
+                    return ((VizierCatalog) item).getTableCount();
                 }
-            },
-            new ArrayTableColumn( "Popularity", Integer.class ) {
+            } );
+            colList.add( new ArrayTableColumn( "Rows", Long.class ) {
                 public Object getValue( Object item ) {
-                    return ((VizierCatalog) item).getCpopu();
+                    return ((VizierCatalog) item).getRowCount();
                 }
-            },
-            new ArrayTableColumn( "Density", Integer.class ) {
-                public Object getValue( Object item ) {
-                    return ((VizierCatalog) item).getDensity();
-                }
-            },
-            new ArrayTableColumn( "Description", String.class ) {
-                public Object getValue( Object item ) {
-                    return ((VizierCatalog) item).getDescription();
-                }
-            },
-            new ArrayTableColumn( "Wavelengths", String.class ) {
-                public Object getValue( Object item ) {
-                    return concat( ((VizierCatalog) item).getLambdas() );
-                }
-            },
-            new ArrayTableColumn( "Astronomy", String.class ) {
-                public Object getValue( Object item ) {
-                    return concat( ((VizierCatalog) item).getAstros() );
-                }
-            },
-        };
+            } );
+        }
+        colList.add( new ArrayTableColumn( "Popularity", Integer.class ) {
+            public Object getValue( Object item ) {
+                return ((VizierCatalog) item).getCpopu();
+            }
+        } );
+        colList.add( new ArrayTableColumn( "Density", Integer.class ) {
+            public Object getValue( Object item ) {
+                return ((VizierCatalog) item).getDensity();
+            }
+        } );
+        colList.add( new ArrayTableColumn( "Description", String.class ) {
+            public Object getValue( Object item ) {
+                return ((VizierCatalog) item).getDescription();
+            }
+        } );
+        colList.add( new ArrayTableColumn( "Wavelengths", String.class ) {
+            public Object getValue( Object item ) {
+                return concat( ((VizierCatalog) item).getLambdas() );
+            }
+        } );
+        colList.add( new ArrayTableColumn( "Astronomy", String.class ) {
+            public Object getValue( Object item ) {
+                return concat( ((VizierCatalog) item).getAstros() );
+            }
+        } );
+        return (ArrayTableColumn[])
+               colList.toArray( new ArrayTableColumn[ 0 ] );
     }
 
     /**
@@ -376,6 +415,7 @@ public abstract class SearchVizierMode implements VizierMode {
         private final String queryArgs_;
         private final JProgressBar progBar_;
         private final JComponent progPanel_;
+        private final boolean includeSubTables_;
         private volatile boolean cancelled_;
 
         /**
@@ -386,11 +426,15 @@ public abstract class SearchVizierMode implements VizierMode {
          * @param   radius  radius string in degrees,
          *                  may be empty
          * @param   queryArgs  other query arguments as a URL fragment string
+         * @param   includeSubTables  true to include sub tables as separate
+         *             entries, false for only resource entries
          */
-        SearchWorker( String target, String radius, String queryArgs ) {
+        SearchWorker( String target, String radius, String queryArgs,
+                      boolean includeSubTables ) {
             target_ = target;
             radius_ = radius;
             queryArgs_ = queryArgs;
+            includeSubTables_ = includeSubTables;
             progBar_ = new JProgressBar();
             progBar_.setIndeterminate( true );
             progBar_.setStringPainted( true );
@@ -403,7 +447,17 @@ public abstract class SearchVizierMode implements VizierMode {
                 public void run() {
                     if ( isActive() ) {
                         setSearchWorker( null );
+                        if ( sorter_ != null ) {
+                            sorter_.uninstall( table_.getTableHeader() );
+                        }
+                        tModel_ = new ArrayTableModel();
+                        tModel_
+                       .setColumns( createCatalogColumns( includeSubTables_ ) );
                         tModel_.setItems( qcats );
+                        sorter_ = new ArrayTableSorter( tModel_ );
+                        sorter_.install( table_.getTableHeader() );
+                        sorter_.setSorting( 0, false );
+                        table_.setModel( tModel_ );
                         tScroller_.getVerticalScrollBar().setValue( 0 );
                         StarJTable.configureColumnWidths( table_, 600, 1000 );
                     }
@@ -465,7 +519,8 @@ public abstract class SearchVizierMode implements VizierMode {
                     progBar_.setString( "Found " + catList.size() );
                 }
             };
-            parseCatalogQuery( target_, radius_, queryArgs_, catHandler );
+            parseCatalogQuery( target_, radius_, queryArgs_, includeSubTables_,
+                               catHandler );
             return (VizierCatalog[]) catList.toArray( new VizierCatalog[ 0 ] );
         }
 

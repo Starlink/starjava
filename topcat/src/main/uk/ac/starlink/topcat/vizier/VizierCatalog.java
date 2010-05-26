@@ -14,6 +14,8 @@ public class VizierCatalog implements Queryable {
     private final String[] astros_;
     private final Integer cpopu_;
     private final Float ipopu_;
+    private Integer nTable_;
+    private Long nRow_;
 
     /**
      * Constructor.
@@ -99,6 +101,45 @@ public class VizierCatalog implements Queryable {
      */
     public Float getIpopu() {
         return ipopu_;
+    }
+
+    /**
+     * Sets the number of tables reported for this catalog.
+     * Only makes much sense for a top-level entry.
+     *
+     * @param   nTable  number of subordinate tables
+     */
+    public void setTableCount( int nTable ) {
+        nTable_ = new Integer( nTable );
+    }
+
+    /**
+     * Returns the number of tables reported for this catalog.
+     *
+     * @return  number of subordinate tables
+     */
+    public Integer getTableCount() {
+        return nTable_;
+    }
+
+    /**
+     * Sets the number of rows reported for this table.
+     * Only makes much sense for a single table.
+     *
+     * @param  nRow  row count
+     */
+    public void setRowCount( Long nRow ) {
+        nRow_ = nRow;
+    }
+
+   
+    /**
+     * Returns the number of rows reported for this table.
+     *
+     * @return  row count
+     */
+    public Long getRowCount() {
+        return nRow_;
     }
 
     public String getQuerySource() {

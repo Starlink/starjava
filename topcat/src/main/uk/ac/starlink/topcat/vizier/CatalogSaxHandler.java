@@ -11,6 +11,8 @@ import org.xml.sax.helpers.DefaultHandler;
  * SAX content handler which can make sense of a VizieR query for catalogues.
  * The stream expected is of the kind you get if you make a query like
  * <code>.../viz-bin/?votable&-meta</code> to vizier (as at Nov 2009).
+ * May 2010: <code>.../viz-bin?votable&-meta=t</code> gives information
+ * about sub-tables too.
  *
  * @author   Mark Taylor
  * @since    4 nov 2009
@@ -19,6 +21,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
 
     private final StringBuffer txtbuf_;
     private Entry entry_;
+    private SubTable subTable_;
 
     /**
      * Constructor.
@@ -53,6 +56,18 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
                 entry_.addInfo( name, value );
             }
         }
+        else if ( "TABLE".equals( tagName ) && entry_ != null ) {
+            subTable_ = new SubTable();
+            subTable_.name_ = atts.getValue( "name" );
+            String nr = atts.getValue( "nrows" );
+            if ( nr != null ) {
+                try {
+                    subTable_.nrows_ = new Long( Long.parseLong( nr ) );
+                }
+                catch ( NumberFormatException e ) {
+                }
+            }
+        }
     }
 
     public void endElement( String uri, String localName, String qName )
@@ -61,13 +76,26 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         if ( "RESOURCE".equals( tagName ) ) {
             String status = entry_.getStringValue( "status" );
             if ( ! "obsolete".equals( status ) ) {
-                gotCatalog( createCatalog( entry_ ) );
+                VizierCatalog[] cats = createCatalogs( entry_ );
+                for ( int ic = 0; ic < cats.length; ic++ ) {
+                    gotCatalog( cats[ ic ] );
+                }
             }
             entry_ = null;
         }
+        else if ( "TABLE".equals( tagName ) ) {
+            entry_.tableList_.add( subTable_ );
+            subTable_ = null;
+        }
         else if ( "DESCRIPTION".equals( tagName ) ) {
-            if ( entry_ != null && txtbuf_.length() > 0 ) {
-                entry_.description_ = txtbuf_.toString();
+            if ( txtbuf_.length() > 0 ) {
+                String desc = txtbuf_.toString().trim();
+                if ( subTable_ != null ) {
+                    subTable_.description_ = desc;
+                }
+                else if ( entry_ != null ) {
+                    entry_.description_ = desc;
+                }
             }
         }
         txtbuf_.setLength( 0 );
@@ -87,18 +115,52 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
     }
 
     /**
-     * Turns an Entry object into a VizierCatalog object.
+     * Turns an Entry object into one or more VizierCatalog objects.
      *
      * @param  entry  entry
-     * @return  catalog
+     * @return  catalog array
      */
-    private static VizierCatalog createCatalog( Entry entry ) {
-        return new VizierCatalog( entry.name_, entry.description_,
-                                  entry.getIntValue( "-density" ),
-                                  entry.getStringsValue( "-kw.Wavelength" ),
-                                  entry.getStringsValue( "kw.Astronomy" ),
-                                  entry.getIntValue( "cpopu" ),
-                                  entry.getFloatValue( "ipopu" ) );
+    private static VizierCatalog[] createCatalogs( Entry entry ) {
+        String name = entry.name_;
+        String desc = entry.description_;
+        Integer density = entry.getIntValue( "-density" );
+        String[] waves = entry.getStringsValue( "-kw.Wavelength" );
+        String[] asts = entry.getStringsValue( "kw.Astronomy" );
+        Integer cpopu = entry.getIntValue( "cpopu" );
+        Float ipopu = entry.getFloatValue( "ipopu" );
+        SubTable[] subTables =
+            (SubTable[]) entry.tableList_.toArray( new SubTable[ 0 ] );
+        List catList = new ArrayList();
+        int nsub = subTables.length;
+        if ( nsub == 0 ) {
+            catList.add( new VizierCatalog( name, desc, density,
+                                            waves, asts, cpopu, ipopu ) );
+        }
+        else if ( nsub == 1 ) {
+            VizierCatalog cat =
+                new VizierCatalog( name, desc, density,
+                                   waves, asts, cpopu, ipopu );
+            cat.setTableCount( 1 );
+            cat.setRowCount( subTables[ 0 ].nrows_ );
+            catList.add( cat );
+        }
+        else {
+            VizierCatalog rcat = 
+                new VizierCatalog( name, desc + " (" + nsub + " tables)",
+                                   density, waves, asts, cpopu, ipopu );
+            rcat.setTableCount( nsub );
+            catList.add( rcat );
+            for ( int is = 0; is < nsub; is++ ) {
+                SubTable sub = subTables[ is ];
+                VizierCatalog scat =
+                    new VizierCatalog( sub.name_,
+                                       desc + " (" + sub.description_ + ")",
+                                       density, waves, asts, cpopu, ipopu );
+                scat.setRowCount( sub.nrows_ );
+                catList.add( scat );
+            }
+        }
+        return (VizierCatalog[]) catList.toArray( new VizierCatalog[ 0 ] );
     }
 
     /**
@@ -109,6 +171,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         private String name_;
         private String description_;
         private final List infoList_ = new ArrayList();
+        private final List tableList_ = new ArrayList();
 
         /**
          * Adds a name/value pair.  Note that it may be called multiple times
@@ -199,6 +262,16 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
             }
             return (String[]) sList.toArray( new String[ 0 ] );
         }
+    }
+
+    /**
+     * Encapsulates what is known about a sub table of a catalogue entry
+     * (corresponding to a RESOURCE/TABLE element).
+     */
+    private static class SubTable {
+        private String name_;
+        private String description_;
+        private Long nrows_;
     }
 }
 
