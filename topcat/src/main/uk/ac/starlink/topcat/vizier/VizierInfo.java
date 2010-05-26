@@ -237,6 +237,12 @@ public class VizierInfo {
             Object[] row = rseq.getRow();
             String name = icName >= 0 ? (String) row[ icName ] : null;
             String title = icTitle >= 0 ? (String) row[ icTitle ] : null;
+            if ( name != null ) {
+                name = name.trim();
+            }
+            if ( title != null ) {
+                title = title.trim();
+            }
             Integer krows = icKrows >= 0 && row[ icKrows ] != null 
                           ? new Integer( ((Number) row[ icKrows ]).intValue() )
                           : null;
