@@ -107,7 +107,6 @@ public abstract class SearchVizierMode implements VizierMode {
                                    "If selected, sub-tables as well as " +
                                    "top-level resources are queried " +
                                    "and listed" );
-        includeSubModel_.setSelected( true );
         tld_.addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 updateActions();
