@@ -59,7 +59,10 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
             throws SAXException {
         String tagName = getTagName( uri, localName, qName );
         if ( "RESOURCE".equals( tagName ) ) {
-            gotCatalog( createCatalog( entry_ ) );
+            String status = entry_.getStringValue( "status" );
+            if ( ! "obsolete".equals( status ) ) {
+                gotCatalog( createCatalog( entry_ ) );
+            }
             entry_ = null;
         }
         else if ( "DESCRIPTION".equals( tagName ) ) {
@@ -163,7 +166,24 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         }
 
         /**
-         * Returns the list value of an infor with a given name,
+         * Returns the single value of a in info with a given name,
+         * in string form.
+         *
+         * @param  name  info name
+         * @return  info value
+         */
+        public String getStringValue( String name ) {
+            for ( Iterator it = infoList_.iterator(); it.hasNext(); ) {
+                String[] info = (String[]) it.next();
+                if ( name.equals( info[ 0 ] ) ) {
+                    return info[ 1 ];
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Returns the list value of an info with a given name,
          * as an array of strings.
          *
          * @param  name  info name
