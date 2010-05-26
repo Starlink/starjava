@@ -90,17 +90,28 @@ public class ArrayTableModel extends AbstractTableModel {
         ArrayTableColumn col = columns_[ icol ];
         if ( Comparable.class.isAssignableFrom( col.getContentClass() ) ) {
             Comparator comparator = new ColumnComparator( col, descending );
-            boolean needsSort = false;
-            for ( int i = 1; i < items_.length && ! needsSort; i++ ) {
-                int comparison =
-                    comparator.compare( items_[ i - 1 ], items_[ i ] );
-                needsSort = needsSort || comparison > 0;
-            }
-            if ( needsSort ) {
-                Arrays.sort( items_, new ColumnComparator( col, descending ) );
+            if ( needsSort( items_, comparator ) ) {
+                Arrays.sort( items_, comparator );
+                assert ! needsSort( items_, comparator );
                 fireTableDataChanged();
             }
         }
+    }
+
+    /**
+     * Determines whether the array of items is currently sorted or not.
+     *
+     * @param  items  item array
+     * @param  cmp   comparator
+     * @return   true iff items is not in sorted order
+     */
+    private static boolean needsSort( Object[] items, Comparator cmp ) {
+        for ( int i = 1; i < items.length; i++ ) {
+            if ( cmp.compare( items[ i - 1 ], items[ i ] ) > 0 ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public int getColumnCount() {
