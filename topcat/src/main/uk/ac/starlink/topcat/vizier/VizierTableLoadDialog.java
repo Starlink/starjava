@@ -201,6 +201,11 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         } );
 
         /* Keep action enabledness up to date. */
+        tabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                updateActions();
+            }
+        } );
         addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 updateActions();
