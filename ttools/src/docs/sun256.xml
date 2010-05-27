@@ -12,7 +12,7 @@
   <!ENTITY jel.func.docs SYSTEM "jel-javadocs.xml">
 
   <!-- Define external URLs. -->
-  <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
+  <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
   <!ENTITY URL.STIL_JAVADOCS
            "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
 
@@ -7115,6 +7115,7 @@ but my thanks are especially due to the following:
         files on 32-bit OS or JVM.</li>
     <li>Corrected literature references in Fluxes conversion class
         documentation (thanks to Mattia Vaccari).</li>
+    <li>Now only runs on J2SE 1.5 and greater.</li>
     </ul>
     </p></dd>
 
