@@ -24,8 +24,8 @@ public class IvoURLConnection extends URLConnection {
      * Constructor.
      *
      * @param   aconn  live connection to an ACR server
-     * @param   ivo:-type URL as used by ACR MySpace communication locating
-     *          the resource
+     * @param   url  ivo:-type URL as used by ACR MySpace communication
+     *          locating the resource
      */
     public IvoURLConnection( AcrConnection aconn, URL url ) {
         super( url );
