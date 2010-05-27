@@ -90,7 +90,7 @@ public class InvokeUtils {
      * output stream.
      *
      * @param   error  exception
-     * @return   out  destination stream
+     * @param   out  destination stream
      */
     public static void summariseError( Throwable error, PrintStream out ) {
         String msg = error.getMessage();
