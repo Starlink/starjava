@@ -405,7 +405,7 @@ public class RVPanel extends JPanel implements ActionListener {
                     JOptionPane errPane =
                         new JOptionPane( e, JOptionPane.ERROR_MESSAGE );
                     JDialog dialog = errPane.createDialog ( button, "Error" );
-                    dialog.show();
+                    dialog.setVisible( true );
                 }
             } else if ( arg.equals( HELP ) ) {
                 trace( "Help");
@@ -415,7 +415,7 @@ public class RVPanel extends JPanel implements ActionListener {
                          JOptionPane.INFORMATION_MESSAGE );
                 JDialog dialog = helpPane.createDialog (
                    button, "Help" );
-                dialog.show();
+                dialog.setVisible( true );
             } else if ( arg.equals( EXIT ) ) {
                 trace( task + " killed");
                 if ( ! applet ) System.exit(0);

@@ -55,7 +55,7 @@ class RVFrame extends JFrame {
         Container contentPane = getContentPane();
         contentPane.add( a );
         a.init();
-        show();
+        setVisible( true );
         a.start();       
     }
 }
