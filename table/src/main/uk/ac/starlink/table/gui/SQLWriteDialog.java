@@ -46,7 +46,7 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
         JDialog dialog = createDialog( parent, "Write New SQL Table" );
         final boolean[] done = new boolean[ 1 ];
         while ( ! done[ 0 ] ) {
-            dialog.show();
+            dialog.setVisible( true );
             if ( getValue() instanceof Integer &&
                  ((Integer) getValue()).intValue() == OK_OPTION ) {
                 SaveWorker worker = new SaveWorker( parent, table, getRef() ) {

@@ -169,7 +169,7 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
         setFormatModel( formatModel );
 
         /* Pop up the modal dialogue. */
-        dia.show();
+        dia.setVisible( true );
         setBusy( false );
 
         /* Clear members used only when the dialogue is active. */

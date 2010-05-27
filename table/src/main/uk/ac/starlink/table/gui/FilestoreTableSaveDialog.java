@@ -88,7 +88,7 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
         chooser_.refreshList();
         chooser_.setEnabled( true );
         popup_ = popup;
-        popup_.show();
+        popup_.setVisible( true );
         boolean success = popup_ == popup;
         popup_ = null;
         return success;

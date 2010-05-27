@@ -287,7 +287,7 @@ public abstract class TableSaveChooser extends JPanel {
         dialog_.getContentPane().add( progBar_, BorderLayout.SOUTH );
         setEnabled( true );
         dialog_.pack();
-        dialog_.show();
+        dialog_.setVisible( true );
         dialog_ = null;
         setProgressBar( null );
     }
