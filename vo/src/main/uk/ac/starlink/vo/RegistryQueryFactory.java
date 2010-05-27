@@ -39,7 +39,7 @@ public interface RegistryQueryFactory {
     /**
      * Removes a listener previously added by {@link #addEntryListener}.
      *
-     * @return  listener  listener
+     * @param  listener  listener
      */
     void removeEntryListener( ActionListener listener );
 }
