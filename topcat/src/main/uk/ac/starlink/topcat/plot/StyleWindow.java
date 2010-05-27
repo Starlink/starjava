@@ -79,12 +79,12 @@ public class StyleWindow extends JDialog {
         pack();
     }
 
-    public void show() {    
-        if ( ! seen_ ) {
+    public void setVisible( boolean vis ) {    
+        if ( vis && ! seen_ ) {
             positionNear( parent_ );
             seen_ = true;
         }
-        super.show();
+        super.setVisible( vis );
     }
 
     /**

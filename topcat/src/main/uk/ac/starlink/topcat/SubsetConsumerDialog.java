@@ -149,7 +149,7 @@ public class SubsetConsumerDialog extends JPanel {
         op.setOptions( new String[] { "Cancel", } );
         dialog_ = op.createDialog( parent, "New Subset" );
         consumer_ = null;
-        dialog_.show();
+        dialog_.setVisible( true );
         return consumer_;
     }
 

@@ -85,7 +85,7 @@ public abstract class WindowAction extends BasicAction {
                 boolean windowCreated = ! hasWindow();
                 Window win = getWindow( getEventWindow( currentEvent ) );
                 boolean wasVisible = ( ! windowCreated ) && win.isShowing();
-                win.show();
+                win.setVisible( true );
                 if ( ! wasVisible ) {
                     firePropertyChange( VISIBLE, Boolean.FALSE, Boolean.TRUE );
                 }

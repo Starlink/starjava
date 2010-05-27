@@ -682,7 +682,7 @@ public class PointSelector extends JPanel {
         editor.setState( getStyle( index ), getSubsetLabel( index ),
                          getSubsetHidden( index ) );
         editor.setSetId( new SetId( this, index ) );
-        styler.show();
+        styler.setVisible( true );
     }
 
     /**
