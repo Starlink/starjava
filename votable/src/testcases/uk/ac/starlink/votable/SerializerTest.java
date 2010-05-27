@@ -20,6 +20,7 @@ import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -375,10 +376,11 @@ public class SerializerTest extends TestCase {
             "</VOTABLE>";
 
         try {
-            assertTrue( VOTableSchema.getSchema( "1.1" ).newVerifier()
-                       .verify( new InputSource( 
-                                    new ByteArrayInputStream( 
-                                        doc.getBytes() ) ) ) );
+            VOTableSchema.getSchema( "1.1" ).newValidator()
+                         .validate( new SAXSource(
+                                        new InputSource(
+                                            new ByteArrayInputStream( 
+                                                doc.getBytes() ) ) ) );
         }
         catch ( Exception e ) {
             throw (IOException) new IOException( e.getMessage() )

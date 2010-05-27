@@ -1,13 +1,13 @@
 package uk.ac.starlink.votable;
 
-import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.validation.Validator;
 import junit.framework.TestCase;
 import org.xml.sax.InputSource;
-import org.iso_relax.verifier.Verifier;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -44,14 +44,15 @@ public class TableWriterTest extends TestCase {
 
     public static void checkTable( StarTable table ) throws Exception {
         StarTableWriter[] writers = VOTableWriter.getStarTableWriters();
-        Verifier verifier = VOTableSchema.getSchema( "1.1" ).newVerifier();
+        Validator validator = VOTableSchema.getSchema( "1.1" ).newValidator();
         for ( int i = 0; i < writers.length; i++ ) {
             VOTableWriter vowriter = (VOTableWriter) writers[ i ];
             ByteArrayOutputStream ostrm = new ByteArrayOutputStream();
             vowriter.writeStarTable( table, ostrm );
-            verifier.verify( new InputSource(
-                                 new ByteArrayInputStream(
-                                     ostrm.toByteArray() ) ) );
+            validator.validate( new SAXSource(
+                                    new InputSource(
+                                        new ByteArrayInputStream(
+                                            ostrm.toByteArray() ) ) ) );
         }
     }
 }
