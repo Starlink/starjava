@@ -215,10 +215,6 @@
     <!-- VOTABLE -->
     <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
-    <!-- Xerces (default J2SE1.4 JAXP parser Crimson has bugs) -->
-    <pathelement location="${star.jar.dir}/xercesImpl.jar"/>
-    <pathelement location="${star.jar.dir}/xml-apis.jar"/>
-
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -498,6 +494,7 @@
     <java classname="uk.ac.starlink.ttools.build.JyStilts"
           output="${build.etc}/stilts.py"
           failonerror="yes"
+          fork="true"
           logerror="yes">
       <classpath refid="classpath"/>
     </java>
@@ -1250,10 +1247,6 @@
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
           fork="yes">
-
-      <!-- Make sure this classpath includes Xerces somewhere - if Crimson,
-       !   which is the J2SE1.4.2 JAXP default parser, is used, it can 
-       !   fail with "java.lang.InternalError: fillbuf". -->
       <classpath>
         <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
       </classpath>
