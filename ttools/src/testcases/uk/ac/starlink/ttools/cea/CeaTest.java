@@ -1,12 +1,18 @@
 package uk.ac.starlink.ttools.cea;
 
-import com.thaiopensource.validate.ValidationDriver;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
+import javax.xml.XMLConstants;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
+import org.xml.sax.InputSource;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.LoadException;
@@ -77,12 +83,16 @@ public class CeaTest extends TestCase {
             writer.writeDocument();
             out.close();
 
-            String schema = writer.getSchemaLocation();
+            String schemaLoc = writer.getSchemaLocation();
+            URL schemaUrl = new URL( schemaLoc );
             if ( Boolean.getBoolean( "tests.withnet" ) ) {
-                ValidationDriver validor = new ValidationDriver();
-                validor.loadSchema( validor.uriOrFileInputSource( schema ) );
-                assertTrue( validor.validate( validor
-                                             .fileInputSource( tmpFile ) ) );
+                Schema schema = SchemaFactory
+                               .newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI )
+                               .newSchema( schemaUrl );
+                schema.newValidator()
+                      .validate( new SAXSource(
+                                     new InputSource(
+                                         new FileInputStream( tmpFile ) ) ) );
             }
             else {
                 System.out.println( "Skipping network-dependent tests " 
