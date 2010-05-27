@@ -472,7 +472,7 @@ public class Loader {
                 .append( System.getProperty( "java.vm.version", "?" ) )
                 .append( ".\n" )
                 .append( "The recommended JRE is Sun's J2SE " )
-                .append( "version 1.4 or greater.\n" )
+                .append( "version 1.5 or greater.\n" )
                 .toString();
              throw new ClassNotFoundException( msg, e );
         }
