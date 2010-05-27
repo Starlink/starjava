@@ -67,7 +67,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
@@ -570,7 +570,7 @@ XXX delete
                    bundleid="${package.name}"
                    icon="${src.lib}/MacOS/Treeview.icns"
                    infostring="${Name} ${copyright.string}"
-                   jvmversion="1.4+"
+                   jvmversion="1.5+"
                    version="${version}"
                    jar="${dist.lib.pkg}/treeview-full.jar">
 
@@ -729,7 +729,7 @@ XXX delete
        </security>
 
        <resources>
-         <j2se version="1.4+"/>
+         <j2se version="1.5+"/>
 
          <!-- The application main jar file -->
          <jar href="${name}/${name}.jar"/>
