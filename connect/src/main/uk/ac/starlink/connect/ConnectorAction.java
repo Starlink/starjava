@@ -173,7 +173,7 @@ public class ConnectorAction extends AbstractAction {
             final JDialog dialog = createDialog( parent );
 
             if ( ! noAuth_ ) {
-                dialog.show();
+                dialog.setVisible( true );
             }
             else {   
 
@@ -184,7 +184,7 @@ public class ConnectorAction extends AbstractAction {
                  * Is there a less weird way of doing this?? */
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() { 
-                        dialog.show();
+                        dialog.setVisible( true );
                     }
                 } );
                 SwingUtilities.invokeLater( new Runnable() {
