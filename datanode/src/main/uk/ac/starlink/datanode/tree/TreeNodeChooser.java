@@ -417,7 +417,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         currentDialog.setTitle( title == null ? "Hierarchical browser"
                                               : title );
         chosenNode = null;
-        currentDialog.show();
+        currentDialog.setVisible( true );
         return chosenNode;
     }
 

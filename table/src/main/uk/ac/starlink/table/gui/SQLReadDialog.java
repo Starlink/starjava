@@ -56,7 +56,7 @@ public class SQLReadDialog implements TableLoadDialog {
                                            .getAuthenticator() );
         JDialog dialog = sqlDialog.createDialog( parent, "Open JDBC table" );
         while ( true ) {
-            dialog.show();
+            dialog.setVisible( true );
             if ( sqlDialog.getValue() instanceof Integer &&
                  ((Integer) sqlDialog.getValue()).intValue()
                    == JOptionPane.OK_OPTION ) {

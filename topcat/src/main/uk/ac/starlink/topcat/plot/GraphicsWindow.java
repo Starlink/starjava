@@ -1994,7 +1994,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 replot();
             }
             else if ( this == axisEditAction_ ) {
-                axisWindow_.show();
+                axisWindow_.setVisible( true );
             }
             else if ( this == rescaleAction_ ) {
                 rescale();

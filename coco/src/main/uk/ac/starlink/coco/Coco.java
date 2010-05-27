@@ -56,7 +56,7 @@ class CocoFrame extends JFrame {
         Container contentPane = getContentPane();
         contentPane.add( c );
         c.init();
-        show();
+        setVisible( true );
         c.start();
        
     }

@@ -74,7 +74,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!-- Web proxy configuration, you will usually override these in
@@ -804,8 +804,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.4+"/>
-         <j2se version="1.4+"/>
+         <j2se version="1.5+"/>
          <jar href="splat/splat.jar" main="true"/>
          <extension name="SPLAT-PARTS" href="splat-parts.jnlp"/>
          <extension name="JSKY-PARTS" href="jsky-parts.jnlp"/>
@@ -829,7 +828,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.4+"/>
+         <j2se version="1.5+"/>
          <fileset dir="${dist.lib}" includes="splat/*.jar splat/*.zip"/>
          <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="ASTGUI" href="astgui.jnlp"/>

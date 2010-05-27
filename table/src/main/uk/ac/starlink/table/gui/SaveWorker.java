@@ -155,7 +155,7 @@ public abstract class SaveWorker {
      */
     private void saveStarted() {
         if ( progPopup_ != null ) {
-            progPopup_.show();
+            progPopup_.setVisible( true );
         }
     }
 

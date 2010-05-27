@@ -312,7 +312,7 @@ public class TableLoadChooser extends JPanel {
          * a successful table load has completed or (b) the dialog is
          * disposed with a cancel or close action of some kind. */
         setEnabled( true );
-        dialog.show();
+        dialog.setVisible( true );
         return result[ 0 ];
     }
 

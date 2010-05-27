@@ -68,7 +68,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
@@ -692,7 +692,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.4+"/>
+         <j2se version="1.5+"/>
          <jar href="${name}/${name}.jar"/>
          <extension name="TOPCAT-PARTS" href="${name}-parts.jnlp"/>
        </resources>
@@ -714,7 +714,7 @@
           <all_permissions/>
        </security>
        <resources>
-         <j2se version="1.4+"/>
+         <j2se version="1.5+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
          <extension name="TTOOLS" href="ttools.jnlp"/>
          <extension name="DATANODE" href="datanode.jnlp"/>
@@ -758,7 +758,7 @@
                 stubfile="${src.dir}/lib/MacOS/TopcatStub"
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
                 infostring="${Name} ${copyright.string}"
-                jvmversion="1.4+"
+                jvmversion="1.5+"
                 version="${version}"
                 jar="${dist.lib.pkg}/topcat-full.jar">
 

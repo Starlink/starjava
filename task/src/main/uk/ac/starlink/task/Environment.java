@@ -25,7 +25,6 @@ public interface Environment {
      * or may give up and re-throw the exception.
      *
      * @param   par  the Parameter whose value is to be obtained and set
-     * @return  a String representing the value of the parameter
      */
     void acquireValue( Parameter par ) throws TaskException;
 
