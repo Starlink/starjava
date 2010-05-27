@@ -27,19 +27,19 @@ public class DelegatingEntity extends DelegatingNode implements Entity {
         return base_.getSystemId();
     }
 
-//DOM3     //
-//DOM3     // Level 3 implementation.
-//DOM3     //
-//DOM3 
-//DOM3     public String getInputEncoding() {
-//DOM3         return base_.getInputEncoding();
-//DOM3     }
-//DOM3 
-//DOM3     public String getXmlEncoding() {
-//DOM3         return base_.getXmlEncoding();
-//DOM3     }
-//DOM3 
-//DOM3     public String getXmlVersion() {
-//DOM3         return base_.getXmlVersion();
-//DOM3     }
+    //
+    // Level 3 implementation.
+    //
+
+    public String getInputEncoding() {
+        return base_.getInputEncoding();
+    }
+
+    public String getXmlEncoding() {
+        return base_.getXmlEncoding();
+    }
+
+    public String getXmlVersion() {
+        return base_.getXmlVersion();
+    }
 }

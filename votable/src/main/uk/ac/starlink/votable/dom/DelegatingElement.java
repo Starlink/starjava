@@ -3,7 +3,7 @@ package uk.ac.starlink.votable.dom;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-//DOM3 import org.w3c.dom.TypeInfo;
+import org.w3c.dom.TypeInfo;
 
 public class DelegatingElement extends DelegatingNode implements Element {
 
@@ -96,24 +96,24 @@ public class DelegatingElement extends DelegatingNode implements Element {
         return base_.hasAttributeNS( namespaceURI, localName );
     }
 
-//DOM3     //
-//DOM3     // Level 3 implementation.
-//DOM3     //
-//DOM3 
-//DOM3     public TypeInfo getSchemaTypeInfo() {
-//DOM3         return base_.getSchemaTypeInfo();
-//DOM3     }
-//DOM3 
-//DOM3     public void setIdAttribute( String name, boolean isId ) {
-//DOM3         base_.setIdAttribute( name, isId );
-//DOM3     }
-//DOM3 
-//DOM3     public void setIdAttributeNS( String namespaceURI,
-//DOM3                                   String localName, boolean isId ) {
-//DOM3         base_.setIdAttributeNS( namespaceURI, localName, isId );
-//DOM3     }
-//DOM3 
-//DOM3     public void setIdAttributeNode( Attr idAttr, boolean isId ) {
-//DOM3         base_.setIdAttributeNode( idAttr, isId );
-//DOM3     }
+    //
+    // Level 3 implementation.
+    //
+
+    public TypeInfo getSchemaTypeInfo() {
+        return base_.getSchemaTypeInfo();
+    }
+
+    public void setIdAttribute( String name, boolean isId ) {
+        base_.setIdAttribute( name, isId );
+    }
+
+    public void setIdAttributeNS( String namespaceURI,
+                                  String localName, boolean isId ) {
+        base_.setIdAttributeNS( namespaceURI, localName, isId );
+    }
+
+    public void setIdAttributeNode( Attr idAttr, boolean isId ) {
+        base_.setIdAttributeNode( idAttr, isId );
+    }
 }

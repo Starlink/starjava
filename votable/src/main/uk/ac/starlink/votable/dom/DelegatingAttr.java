@@ -3,7 +3,7 @@ package uk.ac.starlink.votable.dom;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-//DOM3 import org.w3c.dom.TypeInfo;
+import org.w3c.dom.TypeInfo;
 
 public class DelegatingAttr extends DelegatingNode implements Attr {
 
@@ -67,16 +67,16 @@ public class DelegatingAttr extends DelegatingNode implements Attr {
         return (Element) doc_.getDelegator( base_.getOwnerElement() );
     }
 
-//DOM3     //
-//DOM3     // Level 3 implementation.
-//DOM3     //
-//DOM3 
-//DOM3     public TypeInfo getSchemaTypeInfo() {
-//DOM3         return base_.getSchemaTypeInfo();
-//DOM3     }
-//DOM3 
-//DOM3     public boolean isId() {
-//DOM3         return isId_ == null ? base_.isId()
-//DOM3                              : isId_.booleanValue();
-//DOM3     }
+    //
+    // Level 3 implementation.
+    //
+
+    public TypeInfo getSchemaTypeInfo() {
+        return base_.getSchemaTypeInfo();
+    }
+
+    public boolean isId() {
+        return isId_ == null ? base_.isId()
+                             : isId_.booleanValue();
+    }
 }

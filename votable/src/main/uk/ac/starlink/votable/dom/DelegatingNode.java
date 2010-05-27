@@ -204,71 +204,71 @@ public class DelegatingNode implements Node {
         return base_.hasAttributes();
     }
 
-//DOM3     //
-//DOM3     // DOM Level 3 implementation.
-//DOM3     //
-//DOM3 
-//DOM3     public String getBaseURI() {
-//DOM3         return base_.getBaseURI();
-//DOM3     }
-//DOM3 
-//DOM3     public short compareDocumentPosition( Node other ) {
-//DOM3         if ( other instanceof DelegatingNode ) {
-//DOM3             return base_
-//DOM3                   .compareDocumentPosition( DelegatingNode
-//DOM3                                            .getBaseNode( other,
-//DOM3                                                          null ) );
-//DOM3         }
-//DOM3         else {
-//DOM3             throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
-//DOM3                                     "Wrong type of node" );
-//DOM3         }
-//DOM3     }
-//DOM3 
-//DOM3     public String getTextContent() {
-//DOM3         return base_.getTextContent();
-//DOM3     }
-//DOM3 
-//DOM3     public void setTextContent( String textContent ) {
-//DOM3         base_.setTextContent( textContent );
-//DOM3     }
-//DOM3 
-//DOM3     public String lookupPrefix( String namespaceURI ) {
-//DOM3         return base_.lookupPrefix( namespaceURI );
-//DOM3     }
-//DOM3 
-//DOM3     public boolean isDefaultNamespace( String namespaceURI ) {
-//DOM3         return base_.isDefaultNamespace( namespaceURI );
-//DOM3     }
-//DOM3 
-//DOM3     public String lookupNamespaceURI( String prefix ) {
-//DOM3         return base_.lookupNamespaceURI( prefix );
-//DOM3     }
-//DOM3 
-//DOM3     public boolean isSameNode( Node other ) {
-//DOM3         if ( other instanceof DelegatingNode ) {
-//DOM3             return base_.isSameNode( DelegatingNode
-//DOM3                                     .getBaseNode( other, doc_ ) );
-//DOM3         }
-//DOM3         else {
-//DOM3             return false;
-//DOM3         }
-//DOM3     }
-//DOM3 
-//DOM3     public boolean isEqualNode( Node other ) {
-//DOM3         return base_.isEqualNode( other );
-//DOM3     }
-//DOM3 
-//DOM3     public Object getFeature( String feature, String version ) {
-//DOM3         return base_.getFeature( feature, version );
-//DOM3     }
-//DOM3 
-//DOM3     public Object setUserData( String key, Object data, 
-//DOM3                                org.w3c.dom.UserDataHandler handler ) {
-//DOM3         return base_.setUserData( key, data, handler );
-//DOM3     }
-//DOM3 
-//DOM3     public Object getUserData( String key ) {
-//DOM3         return base_.getUserData( key );
-//DOM3     }
+    //
+    // DOM Level 3 implementation.
+    //
+
+    public String getBaseURI() {
+        return base_.getBaseURI();
+    }
+
+    public short compareDocumentPosition( Node other ) {
+        if ( other instanceof DelegatingNode ) {
+            return base_
+                  .compareDocumentPosition( DelegatingNode
+                                           .getBaseNode( other,
+                                                         null ) );
+        }
+        else {
+            throw new DOMException( DOMException.NOT_SUPPORTED_ERR,
+                                    "Wrong type of node" );
+        }
+    }
+
+    public String getTextContent() {
+        return base_.getTextContent();
+    }
+
+    public void setTextContent( String textContent ) {
+        base_.setTextContent( textContent );
+    }
+
+    public String lookupPrefix( String namespaceURI ) {
+        return base_.lookupPrefix( namespaceURI );
+    }
+
+    public boolean isDefaultNamespace( String namespaceURI ) {
+        return base_.isDefaultNamespace( namespaceURI );
+    }
+
+    public String lookupNamespaceURI( String prefix ) {
+        return base_.lookupNamespaceURI( prefix );
+    }
+
+    public boolean isSameNode( Node other ) {
+        if ( other instanceof DelegatingNode ) {
+            return base_.isSameNode( DelegatingNode
+                                    .getBaseNode( other, doc_ ) );
+        }
+        else {
+            return false;
+        }
+    }
+
+    public boolean isEqualNode( Node other ) {
+        return base_.isEqualNode( other );
+    }
+
+    public Object getFeature( String feature, String version ) {
+        return base_.getFeature( feature, version );
+    }
+
+    public Object setUserData( String key, Object data, 
+                               org.w3c.dom.UserDataHandler handler ) {
+        return base_.setUserData( key, data, handler );
+    }
+
+    public Object getUserData( String key ) {
+        return base_.getUserData( key );
+    }
 }
