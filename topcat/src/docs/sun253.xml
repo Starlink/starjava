@@ -13609,6 +13609,7 @@ introduced since the last version:
     <li>VizieR load dialogue can now optionally display sub-tables within
         catalogues (new "Search Sub-Tables" checkbox).</li>
     <li>VizieR load dialogue now omits obsolete catalogues from list.</li>
+    <li>Now only works on J2SE 1.5 and above.</li>
     </ul>
     </p></dd>
 
