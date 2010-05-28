@@ -13610,6 +13610,7 @@ introduced since the last version:
         catalogues (new "Search Sub-Tables" checkbox).</li>
     <li>VizieR load dialogue now omits obsolete catalogues from list.</li>
     <li>Now only works on J2SE 1.5 and above.</li>
+    <li>Efficiency warning now issued for large compressed FITS files.</li>
     </ul>
     </p></dd>
 

@@ -7116,6 +7116,7 @@ but my thanks are especially due to the following:
     <li>Corrected literature references in Fluxes conversion class
         documentation (thanks to Mattia Vaccari).</li>
     <li>Now only runs on J2SE 1.5 and greater.</li>
+    <li>Efficiency warning now issued for large compressed FITS files.</li>
     </ul>
     </p></dd>
 
