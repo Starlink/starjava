@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import nom.tam.util.BufferedDataOutputStream;
@@ -30,6 +32,7 @@ public class ColumnReaderTest extends TestCase {
 
     public ColumnReaderTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     /**
