@@ -97,7 +97,7 @@ public class RegistryQueryPanel extends JPanel {
                 ((MutableComboBoxModel) qModel).addElement( query );
             }
         }
-        return new RegistryQuery( new RegistryClient( regURL ), query );
+        return new RegistryQuery( regURL.toString(), query );
     }
 
     public void setEnabled( boolean enabled ) {

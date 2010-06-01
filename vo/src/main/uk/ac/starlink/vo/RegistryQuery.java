@@ -8,6 +8,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import uk.ac.starlink.registry.BasicCapability;
+import uk.ac.starlink.registry.BasicRegistryClient;
+import uk.ac.starlink.registry.BasicResource;
+import uk.ac.starlink.registry.RegistryRequestFactory;
+import uk.ac.starlink.registry.RegistryQueryException;
+import uk.ac.starlink.registry.SoapClient;
+import uk.ac.starlink.registry.SoapRequest;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
@@ -20,9 +27,8 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class RegistryQuery {
 
-    private final RegistryClient regClient_;
+    private final BasicRegistryClient regClient_;
     private final String text_;
-    private URL endpoint_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -74,37 +80,41 @@ public class RegistryQuery {
     };
 
     /**
-     * Constructs a new query object from a registry client and a query.
-     *
-     * @param  regClient  registry client
-     * @param  text   ADQL WHERE clause for the registry query
-     */
-    public RegistryQuery( RegistryClient regClient, String text ) {
-        regClient_ = regClient;
-        text_ = text;
-    }
-
-    /**
      * Constructs a new query object from a registry URL and a query.
      *
      * @param  endpoint   registry endpoint URL 
      * @param  text   ADQL WHERE clause for the registry query
      */
     public RegistryQuery( String endpoint, String text ) {
-        this( new RegistryClient( toUrl( endpoint ) ), text );
+        text_ = text;
+        regClient_ =
+            new BasicRegistryClient( new SoapClient( toUrl( endpoint ) ) );
     }
 
     /**
      * Executes the query described by this object and returns an 
      * Iterator over {@link RegResource} objects.
      * Note that the iterator's <code>next</code> method may throw the
-     * unchecked exception {@link RegistryQueryException} with a cause
+     * unchecked exception 
+     * {@link uk.ac.starlink.registry.RegistryQueryException} with a cause
      * indicating the underlying error in case of a registry access problem.
      *
      * @return  iterator over {@link RegResource}s
      */
     public Iterator getQueryIterator() throws IOException {
-        return regClient_.getAdqlSearchIterator( text_ );
+        final Iterator<BasicResource> bIt =
+            regClient_.getResourceIterator( getSoapRequest() );
+        return new Iterator<RegResource>() {
+            public boolean hasNext() {
+                return bIt.hasNext();
+            }
+            public RegResource next() {
+                return new BasicRegResource( bIt.next() );
+            }
+            public void remove() {
+                bIt.remove();
+            }
+        };
     }
 
     /**
@@ -114,7 +124,13 @@ public class RegistryQuery {
      * @return   resource list
      */
     public RegResource[] getQueryResources() throws IOException {
-        return regClient_.getAdqlSearchResources( text_ );
+        List<BasicResource> bList =
+            regClient_.getResourceList( getSoapRequest() );
+        RegResource[] resources = new RegResource[ bList.size() ];
+        for ( int i = 0; i < bList.size(); i++ ) {
+            resources[ i ] = new BasicRegResource( bList.get( i ) );
+        }
+        return resources;
     }
 
     /**
@@ -136,15 +152,6 @@ public class RegistryQuery {
     }
 
     /**
-     * Returns the search client used to make queries.
-     *
-     * @return  search client
-     */
-    public RegistryClient getRegistryClient() {
-        return regClient_;
-    }
-
-    /**
      * Returns a set of DescribedValue objects which characterise this query.
      * These would be suitable for use in the parameter list of a 
      * {@link uk.ac.starlink.table.StarTable} resulting from the execution
@@ -155,6 +162,15 @@ public class RegistryQuery {
             new DescribedValue( REGISTRY_INFO, getRegistry() ),
             new DescribedValue( TEXT_INFO, getText() ),
         };
+    }
+
+    /**
+     * Gets the SoapRequest corresponding to this query.
+     *
+     * @return  soap request object
+     */
+    private SoapRequest getSoapRequest() throws IOException {
+        return RegistryRequestFactory.adqlsSearch( text_ );
     }
 
     /**
@@ -205,5 +221,95 @@ public class RegistryQuery {
 
     public String toString() {
         return text_;
+    }
+
+    /**
+     * Adapter from BasicResource to RegResource.
+     */
+    private static class BasicRegResource implements RegResource {
+        private final String title_;
+        private final String shortName_;
+        private final String identifier_;
+        private final String publisher_;
+        private final String contact_;
+        private final String referenceUrl_;
+        private final RegCapabilityInterface[] caps_;
+
+        /**
+         * Constructor.
+         */
+        BasicRegResource( BasicResource bres ) {
+            title_ = bres.getTitle();
+            shortName_ = bres.getShortName();
+            identifier_ = bres.getIdentifier();
+            publisher_ = bres.getPublisher();
+            contact_ = bres.getContact();
+            referenceUrl_ = bres.getReferenceUrl();
+            BasicCapability[] bcaps = bres.getCapabilities();
+            caps_ = new BasicRegCapability[ bcaps.length ];
+            for ( int ic = 0; ic < bcaps.length; ic++ ) {
+                caps_[ ic ] = new BasicRegCapability( bcaps[ ic ] );
+            }
+        }
+
+        public String getTitle() {
+            return title_;
+        }
+        public String getShortName() {
+            return shortName_;
+        }
+        public String getIdentifier() {
+            return identifier_;
+        }
+        public String getPublisher() {
+            return publisher_;
+        }
+        public String getContact() {
+            return contact_;
+        }
+        public String getReferenceUrl() {
+            return referenceUrl_;
+        }
+        public RegCapabilityInterface[] getCapabilities() {
+            return caps_;
+        }
+    }
+
+    /**
+     * Adapter from BasicCapability to RegCapabilityInterface.
+     */
+    private static class BasicRegCapability implements RegCapabilityInterface {
+        private final String accessUrl_;
+        private final String standardId_;
+        private final String xsiType_;
+        private final String description_;
+        private final String version_;
+
+        /**
+         * Constructor.
+         */
+        BasicRegCapability( BasicCapability bcap ) {
+            accessUrl_ = bcap.getAccessUrl();
+            standardId_ = bcap.getStandardId();
+            xsiType_ = bcap.getXsiType();
+            description_ = bcap.getDescription();
+            version_ = bcap.getVersion();
+        }
+
+        public String getAccessUrl() {
+            return accessUrl_;
+        }
+        public String getStandardId() {
+            return standardId_;
+        }
+        public String getXsiType() {
+            return xsiType_;
+        }
+        public String getDescription() {
+            return description_;
+        }
+        public String getVersion() {
+            return version_;
+        }
     }
 }

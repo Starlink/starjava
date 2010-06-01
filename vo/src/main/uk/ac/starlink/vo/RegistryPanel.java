@@ -28,6 +28,7 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import uk.ac.starlink.registry.RegistryQueryException;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
