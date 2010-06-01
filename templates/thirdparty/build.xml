@@ -223,7 +223,7 @@
       </security>
 
       <resources>
-        <j2se version="1.4+"/>
+        <j2se version="1.5+"/>
         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
       </resources>
 
