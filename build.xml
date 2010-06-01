@@ -201,6 +201,9 @@
     <echo message="Executing RAYREG target: ${what}"/>
     <ant dir="./rayreg" target="${what}"/>
 
+    <echo message="Executing REGISTRY target: ${what}"/>
+    <ant dir="./registry" target="${what}"/>
+
     <echo message="Executing VO target: ${what}"/>
     <ant dir="./vo" target="${what}"/>
 
@@ -456,6 +459,10 @@
       </packageset>
 
       <packageset dir="ttools/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="registry/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
