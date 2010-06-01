@@ -397,8 +397,8 @@ public class AssessWSDL {
     }
 
     static class NSCntxt implements NamespaceContext {
-        HashMap p2u = new HashMap(5);
-        HashMap u2p = new HashMap(5);
+        HashMap<String, String> p2u = new HashMap<String, String>(5);
+        HashMap<String, Set<String> > u2p = new HashMap<String, Set<String> >(5);
         NSCntxt() {
             addMapping(XMLConstants.XML_NS_PREFIX, XMLConstants.XML_NS_URI);
             addMapping(XMLConstants.XMLNS_ATTRIBUTE, 
@@ -407,9 +407,9 @@ public class AssessWSDL {
         }
         public void addMapping(String prefix, String ns) {
             p2u.put(prefix, ns);
-            Set prefixes = (Set) u2p.get(ns);
+            Set<String> prefixes = u2p.get(ns);
             if (prefixes == null) {
-                prefixes = new HashSet(1);
+                prefixes = new HashSet<String>(1);
                 u2p.put(ns, prefixes);
             }
             prefixes.add(prefix);
@@ -418,18 +418,18 @@ public class AssessWSDL {
             if (prefix == null) 
                 throw new IllegalArgumentException("null prefix");
 
-            String out = (String) p2u.get(prefix);
+            String out = p2u.get(prefix);
             if (out == null) return XMLConstants.NULL_NS_URI;
             return out;
         }
         public String getPrefix(String uri) {
-            Set out = (Set) u2p.get(uri);
+            Set<String> out = u2p.get(uri);
             if (out == null || out.size() == 0) return null;
-            return (String) out.iterator().next();
+            return out.iterator().next();
         }
         public Iterator getPrefixes(String ns) { 
-            Set out = (Set) u2p.get(ns);
-            if (out == null) out = new HashSet(1);
+            Set out = u2p.get(ns);
+            if (out == null) out = new HashSet<String>(1);
             return out.iterator();
         }
     }
