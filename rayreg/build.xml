@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   REGISTRY build file
+ !   RAYREG build file
  !
- !   This file describes how to build and install REGISTRY from
- !   source and binary releases. REGISTRY is a class library
+ !   This file describes how to build and install RAYREG from
+ !   source and binary releases. RAYREG is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for REGISTRY" default="build" basedir=".">
+<project name="Build file for RAYREG" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,8 +77,8 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="REGISTRY"/>
-  <property name="name" value="registry"/>
+  <property name="Name" value="RAYREG"/>
+  <property name="name" value="rayreg"/>
   <property name="version" value="1.0"/>
 
   <!-- The Java package name -->
@@ -477,11 +477,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>REGISTRY - Registry access classes by Ray Plante</title>
+         <title>RAYREG - Registry access classes by Ray Plante</title>
          <vendor>NVO</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"REGISTRY - Webstart edition"</description>
+         <description>"RAYREG - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
