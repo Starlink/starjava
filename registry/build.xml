@@ -67,7 +67,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.5.0/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
@@ -88,7 +88,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.4"/>
+  <property name="source.version" value="1.5"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -172,7 +172,7 @@
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/"/>
 
   <!--
    !   =========
@@ -222,9 +222,11 @@
    !   should be entered into the main jar file manifest.
    !-->
   <path id="package.jars">
+ <!--
      <fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
      </fileset>
+ -->
   </path>
 
   <!-- Create the local build system CLASSPATH.
@@ -400,33 +402,34 @@
            source="${source.version}"
            optimize="${optimize}">
 
+      <compilerarg value="-Xlint:unchecked"/>
       <classpath refid="classpath"/>
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+ <!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/{package.support.files}"/>
         <include name="**/{more.package.support.files}"/>
       </fileset>
     </copy>
+ -->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
+ <!--
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+ -->
 
   </target>
 
@@ -492,7 +495,7 @@
        </security>
 
        <resources>
-         <j2se version="1.4+"/>
+         <j2se version="1.5+"/>
 
          <!-- Define the main library jar file -->
          <jar href="${name}/${name}.jar"/>
@@ -536,24 +539,30 @@
     <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
+ <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+ -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+ <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+  -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+ <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+ -->
 
   </target>
 
@@ -1006,7 +1015,7 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <include name="**/*Test*"/>
         </fileset>
       </batchtest>
 
