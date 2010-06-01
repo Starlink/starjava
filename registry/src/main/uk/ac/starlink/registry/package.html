@@ -1,0 +1,92 @@
+<body>
+
+<p>This package provides a set of classes which can be used to make lightweight
+queries of an 
+<a href="http://www.ivoa.net/Documents/RegistryInterface/20091104/"
+   >RI 1.0</a>-compliant IVOA registry.
+They are lightweight in two senses:
+</p>
+<ol>
+<li>Few external libraries are required (see <b>Dependencies</b>
+    section below)</li>
+<li>A very small memory footprint is required for processing, since 
+    returned resources are streamed and only those parts required are
+    retained</li>
+</ol>
+<p>The way it works is basically:
+</p>
+<ol>
+<li>Assemble a SOAP request, as XML</li>
+<li>Send it to the SOAP endpoint of the registry</li>
+<li>Stream the SOAP response through a SAX parser.
+  <ul>
+  <li>In case of SOAP error, throw an exception based on the response</li>
+  <li>In case of success, stream the response body to a user-supplied
+      SAX parser, which can create objects representing registry resources</li>
+  </ul>
+</li>
+<li>Take the user-generated resource objects and make them available to
+    calling code.</li>
+</ol>
+
+<h2>Example</h2>
+
+<p>For an example of usage, see the source code of the 
+{@link uk.ac.starlink.registry.RegClientTest}
+class, which allows you to make <b>Search</b> or <b>KeywordSearch</b> queries
+from the command line (using the main method with the "<code>-help</code>"
+flag will provide usage information).
+The output is a rudimentary summary of resources and their associated 
+capabilities matching the submitted query.
+The code uses {@link uk.ac.starlink.registry.BasicRegistryClient}, 
+which is a simple implementation of the more flexible 
+{@link uk.ac.starlink.registry.AbstractRegistryClient} class,
+and represents registry resources by instances of the
+{@link uk.ac.starlink.registry.BasicResource} and
+{@link uk.ac.starlink.registry.BasicCapability} classes.
+These classes provide more per-resource metadata than is printed by the
+example program, but still a very limited amount.
+</p>
+
+<h2>Customisation</h2>
+
+<p>If you wish to acquire more information about the returned resources
+than is available from 
+{@link uk.ac.starlink.registry.BasicResource} and
+{@link uk.ac.starlink.registry.BasicCapability}, you will need
+to write your own SOAP response body SAX handler, and make it available by
+writing a concrete subclass of the 
+{@link uk.ac.starlink.registry.AbstractRegistryClient} class.
+You can write the SAX ContentHandler any way you like, but you can use the
+{@link uk.ac.starlink.registry.BasicRegistryClient}
+implementation as a template if you like.
+</p>
+
+<h2>Dependencies</h2>
+
+<p>The classes in this package do not require Axis or any other SOAP client.
+Its only dependency is on part of Ray Plante's
+<a href="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
+   >IVOARegistry</a> library,
+specifically the part which can convert ADQL/S to ADQL/X for use within
+a registry <b>Search</b> request.  This is done within the
+{@link uk.ac.starlink.registry.RegistryRequestFactory#adqlsSearch
+                               RegistryRequestFactory.adqlsSearch} method.
+If that method not required 
+(for instance you are using the <b>KeywordSearch</b> operation instead,
+or you can construct your own ADQL/X), then no external libraries,
+beyond the J2SE5 itself, are required.
+</p>
+
+<h2>Status</h2>
+
+<p>This is not an all-singing or all-dancing registry client.
+The focus is on something which does a limited job fast and in a small
+memory footprint.  Use of it will probably require customisation.
+Anyone is free to use this code in any way they please.
+I'm happy to provide assistance or advice if I can.
+</p>
+
+<author>Mark Taylor</author>
+
+</body>
