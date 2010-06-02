@@ -90,7 +90,8 @@ public class RegClientTest {
         }
         BasicRegistryClient rclient = new BasicRegistryClient( sclient );
 
-        /* Make the registry query. */
+        /* Construct the SOAP request corresponding to the query that
+         * we want to make. */
         SoapRequest req;
         if ( adqls != null ) {
             req = RegistryRequestFactory.adqlsSearch( adqls );
@@ -102,6 +103,8 @@ public class RegClientTest {
         else {
             throw new AssertionError( "No search term" );
         }
+
+        /* Make the request in such a way that the results are streamed. */
         Iterator<BasicResource> it = rclient.getResourceIterator( req );
 
         /* Print results. */
