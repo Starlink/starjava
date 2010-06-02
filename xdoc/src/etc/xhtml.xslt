@@ -51,13 +51,7 @@
 
   <xsl:param name="BASEDIR" select="'.'"/>
   <xsl:param name="VERSION" select="'??'"/>
-  <xsl:param name="DATE">
-    <xsl:if test="function-available('DateFormat:getDateInstance')">
-      <xsl:variable name="today" select="Date:new()"/>
-      <xsl:variable name="format" select="DateFormat:getDateInstance()"/>
-      <xsl:value-of select="DateFormat:format($format,$today)"/>
-    </xsl:if>
-  </xsl:param>
+  <xsl:param name="DATE" select="(today)"/>
 
   <xsl:output method="html"
               doctype-public="-//W3C//DTD HTML 3.2//EN"/>
@@ -124,7 +118,16 @@
   </xsl:template>
 
   <xsl:template match="date">
-    <xsl:value-of select="$DATE"/>
+    <xsl:choose>
+      <xsl:when test="$DATE">
+        <xsl:value-of select="$DATE"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:variable name="format" select="DateFormat:getDateInstance()"/>
+        <xsl:variable name="today" select="Date:new()"/>
+        <xsl:value-of select="java:format($format,$today)"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
 </xsl:stylesheet>
