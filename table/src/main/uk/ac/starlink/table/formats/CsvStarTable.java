@@ -101,15 +101,10 @@ public class CsvStarTable extends StreamStarTable {
          * Try to parse it as a data row.  If this fails, then interpret
          * it as a row of headings. */
         if ( row0.length == ncol ) {
-            boolean isDataRow;
-            try {
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    decoders[ icol ].decode( row0[ icol ] );
-                }
-                isDataRow = true;
-            }
-            catch ( Exception e ) {
-                isDataRow = false;
+            boolean isDataRow = true;
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                isDataRow = isDataRow
+                         && decoders[ icol ].isValid( row0[ icol ] );
             }
 
             /* If it's data note that we have one more row than we thought. */

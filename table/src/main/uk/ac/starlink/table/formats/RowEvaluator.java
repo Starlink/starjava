@@ -29,7 +29,7 @@ public class RowEvaluator {
     private long nrow_;
     private int ncol_ = -1;
 
-    private static final Pattern ISO8601_REGEX = Pattern.compile(
+    static final Pattern ISO8601_REGEX = Pattern.compile(
         "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
         "(?:[" + 'T' + " ]([0-9]{1,2})" +
             "(?::([0-9]{1,2})" +
@@ -43,6 +43,158 @@ public class RowEvaluator {
     private static final Pattern DMS_REGEX = Pattern.compile(
         "[-+][ 0-9]?[0-9][:d ][ 0-6][0-9][:m ][0-6][0-9](\\.[0-9]*)?"
     );
+
+    /** Decoder for booleans. */
+    private static Decoder BOOLEAN_DECODER = new Decoder( Boolean.class ) {
+        public Object decode( String value ) {
+            char v1 = value.trim().charAt( 0 );
+            return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
+                                              : Boolean.FALSE;
+        }
+        public boolean isValid( String value ) {
+            return value.equalsIgnoreCase( "false" )
+                || value.equalsIgnoreCase( "true" )
+                || value.equalsIgnoreCase( "f" )
+                || value.equalsIgnoreCase( "t" );
+        }
+    };
+
+    /* We are careful to check for "-0" type cells in the integer type
+     * decoders - it is essential that they are coded as floating types
+     * (which can represent negative zero) rather than integer types
+     * (which can't), since a negative zero is most likely the
+     * hours/degrees part of a sexegesimal angle, in which the
+     * difference is very important
+     * (see uk.ac.starlink.topcat.func.Angles.dmsToRadians). */
+
+    /** Decoder for shorts. */
+    private static Decoder SHORT_DECODER = new Decoder( Short.class ) {
+        public Object decode( String value ) {
+            return new Short( Short.parseShort( value.trim() ) );
+        }
+        public boolean isValid( String value ) {
+            try {
+                return Short.parseShort( value ) != 0
+                    || value.charAt( 0 ) != '-';
+            }
+            catch ( NumberFormatException e ) {
+                return false;
+            }
+        }
+    };
+
+    /** Decoder for integers. */
+    private static Decoder INTEGER_DECODER = new Decoder( Integer.class ) {
+        public Object decode( String value ) {
+            return new Integer( Integer.parseInt( value.trim() ) );
+        }
+        public boolean isValid( String value ) {
+            try {
+                return Integer.parseInt( value ) != 0
+                    || value.charAt( 0 ) != '-';
+            }
+            catch ( NumberFormatException e ) {
+                return false;
+            }
+        }
+    };
+
+    /** Decoder for longs. */
+    private static Decoder LONG_DECODER = new Decoder( Long.class ) {
+        public Object decode( String value ) {
+            return new Long( Long.parseLong( value.trim() ) );
+        }
+        public boolean isValid( String value ) {
+            try {
+                return Long.parseLong( value ) != 0L
+                    || value.charAt( 0 ) != '-';
+            }
+            catch ( NumberFormatException e ) {
+                return false;
+            }
+        }
+    };
+
+    /** Decoder for floats. */
+    private static Decoder FLOAT_DECODER = new Decoder( Float.class ) {
+        public Object decode( String value ) {
+            return new Float( Float.parseFloat( value.trim() ) );
+        }
+        public boolean isValid( String value ) {
+            try {
+                ParsedFloat pf = parseFloating( value );
+                if ( pf.sigFig > 6 ||
+                     ( Float.isInfinite( (float) pf.dValue ) &&
+                       ! Double.isInfinite( pf.dValue ) ) ) {
+                    return false;
+                }
+                return true;
+            }
+            catch ( NumberFormatException e ) {
+                return false;
+            }
+        }
+    };
+
+    /** Decoder for doubles. */
+    private static Decoder DOUBLE_DECODER = new Decoder( Double.class ) {
+        public Object decode( String value ) {
+            return new Double( Double.parseDouble( value.trim() ) );
+        }
+        public boolean isValid( String value ) {
+            try {
+                parseFloating( value );
+                return true;
+            }
+            catch ( NumberFormatException e ) {
+                return false;
+            }
+        }
+    };
+
+    /** Decoder for ISO-8601 dates. */
+    private static Decoder DATE_DECODER = new StringDecoder() {
+        public ColumnInfo createColumnInfo( String name ) {
+            ColumnInfo info = super.createColumnInfo( name );
+            info.setUnitString( "iso-8601" );
+            info.setUCD( "TIME" );
+            return info;
+        }
+        public boolean isValid( String value ) {
+            return ISO8601_REGEX.matcher( value ).matches();
+        }
+    };
+
+    /** Decoder for HMS sexagesimal strings. */
+    private static Decoder HMS_DECODER = new StringDecoder() {
+        public ColumnInfo createColumnInfo( String name ) {
+            ColumnInfo info = super.createColumnInfo( name );
+            info.setUnitString( "hms" );
+            return info;
+        }
+        public boolean isValid( String value ) {
+            return HMS_REGEX.matcher( value ).matches();
+        }
+    };
+
+    /** Decoder for DMS sexagesimal strings. */
+    private static Decoder DMS_DECODER = new StringDecoder() {
+        public ColumnInfo createColumnInfo( String name ) {
+            ColumnInfo info = super.createColumnInfo( name );
+            info.setUnitString( "dms" );
+            return info;
+        }
+        public boolean isValid( String value ) {
+            return DMS_REGEX.matcher( value ).matches();
+        }
+    };
+
+    /** Decoder for any old string. */
+    private static Decoder STRING_DECODER = new StringDecoder() {
+        public boolean isValid( String value ) {
+            return true;
+        }
+    };
 
     /**
      * Constructs a new RowEvaluator which will work out the number of
@@ -109,100 +261,71 @@ public class RowEvaluator {
                 stringLength_[ icol ] = leng0;
             }
             if ( ! done && maybeBoolean_[ icol ] ) {
-                if ( cell.equalsIgnoreCase( "false" ) ||
-                     cell.equalsIgnoreCase( "true" ) ||
-                     cell.equalsIgnoreCase( "f" ) ||
-                     cell.equalsIgnoreCase( "t" ) ) {
+                if ( BOOLEAN_DECODER.isValid( cell ) ) {
                     done = true;
                 }
                 else {
                     maybeBoolean_[ icol ] = false;
                 }
             }
-
-            /* We are careful to check for "-0" type cells here - it is
-             * essential that they are coded as floating types (which
-             * can represent negative zero) rather than integer types
-             * (which can't), since a negative zero is most likely the
-             * hours/degrees part of a sexegesimal angle, in which the
-             * difference is very important
-             * (see uk.ac.starlink.topcat.func.Angles.dmsToRadians). */
-            boolean isMinus = ( ! done ) ? cell.charAt( 0 ) == '-' : false;
-
             if ( ! done && maybeShort_[ icol ] ) {
-                try {
-                    short val = Short.parseShort( cell );
-                    if ( val == (short) 0 && isMinus ) {
-                        throw new NumberFormatException();
-                    }
+                if ( SHORT_DECODER.isValid( cell ) ) {
                     done = true;
                 }
-                catch ( NumberFormatException e ) {
+                else {
                     maybeShort_[ icol ] = false;
                 }
             }
             if ( ! done && maybeInteger_[ icol ] ) {
-                try {
-                    int val = Integer.parseInt( cell );
-                    if ( val == 0 && isMinus ) {
-                        throw new NumberFormatException();
-                    }
+                if ( INTEGER_DECODER.isValid( cell ) ) {
                     done = true;
                 }
-                catch ( NumberFormatException e ) {
+                else {
                     maybeInteger_[ icol ] = false;
                 }
             }
             if ( ! done && maybeLong_[ icol ] ) {
-                try {
-                    long val = Long.parseLong( cell );
-                    if ( val == 0 && isMinus ) {
-                        throw new NumberFormatException();
-                    }
+                if ( LONG_DECODER.isValid( cell ) ) {
                     done = true;
                 }
-                catch ( NumberFormatException e ) {
+                else {
                     maybeLong_[ icol ] = false;
                 }
             }
-            if ( ! done && ( maybeFloat_[ icol ] ||
-                             maybeDouble_[ icol ] ) ) {
-                try {
-                    ParsedFloat pf = parseFloating( cell );
-                    if ( maybeFloat_[ icol ] ) {
-                        if ( pf.sigFig > 6 ) {
-                            maybeFloat_[ icol ] = false;
-                        }
-                        else if ( ! Double.isInfinite( pf.dValue ) &&
-                                  Float.isInfinite( (float) pf.dValue ) ) {
-                            maybeFloat_[ icol ] = false;
-                        }
-                    }
+            if ( ! done && maybeFloat_[ icol ] ) {
+                if ( FLOAT_DECODER.isValid( cell ) ) {
                     done = true;
                 }
-                catch ( NumberFormatException e ) {
+                else {
                     maybeFloat_[ icol ] = false;
+                }
+            }
+            if ( ! done && maybeDouble_[ icol ] ) {
+                if ( DOUBLE_DECODER.isValid( cell ) ) {
+                    done = true;
+                }
+                else {
                     maybeDouble_[ icol ] = false;
                 }
             }
-            if ( ! done && ( maybeDate_[ icol ] ) ) {
-                if ( ISO8601_REGEX.matcher( cell ).matches() ) {
+            if ( ! done && maybeDate_[ icol ] ) {
+                if ( DATE_DECODER.isValid( cell ) ) {
                     done = true;
                 }
                 else {
                     maybeDate_[ icol ] = false;
                 }
             }
-            if ( ! done && ( maybeHms_[ icol ] ) ) {
-                if ( HMS_REGEX.matcher( cell ).matches() ) {
+            if ( ! done && maybeHms_[ icol ] ) {
+                if ( HMS_DECODER.isValid( cell ) ) {
                     done = true;
                 }
                 else {
                     maybeHms_[ icol ] = false;
                 }
             }
-            if ( ! done && ( maybeDms_[ icol ] ) ) {
-                if ( DMS_REGEX.matcher( cell ).matches() ) {
+            if ( ! done && maybeDms_[ icol ] ) {
+                if ( DMS_DECODER.isValid( cell ) ) {
                     done = true;
                 }
                 else {
@@ -222,82 +345,44 @@ public class RowEvaluator {
         ColumnInfo[] colInfos = new ColumnInfo[ ncol_ ];
         Decoder[] decoders = new Decoder[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
-            Class clazz;
-            Decoder decoder;
-            ColumnInfo colinfo;
+            final Decoder decoder;
             String name = "col" + ( icol + 1 );
             if ( maybeBoolean_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Boolean.class, null );
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        char v1 = value.trim().charAt( 0 );
-                        return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
-                                                          : Boolean.FALSE;
-                    }
-                };
+                decoder = BOOLEAN_DECODER;
             }
             else if ( maybeShort_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Short.class, null );
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        return new Short( Short.parseShort( value.trim() ) );
-                    }
-                };
+                decoder = SHORT_DECODER;
             }
             else if ( maybeInteger_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Integer.class, null );
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        return new Integer( Integer.parseInt( value.trim() ) );
-                    }
-                };
+                decoder = INTEGER_DECODER;
             }
             else if ( maybeLong_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Long.class, null );
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        return new Long( Long.parseLong( value.trim() ) );
-                    }
-                };
+                decoder = LONG_DECODER;
             }
             else if ( maybeFloat_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Float.class, null );
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        return new Float( Float.parseFloat( value.trim() ) );
-                    }
-                };
+                decoder = FLOAT_DECODER;
             }
             else if ( maybeDouble_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Double.class, null );
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        return new Double( Double.parseDouble( value.trim() ) );
-                    }
-                };
+                decoder = DOUBLE_DECODER;
+            }
+            else if ( maybeDate_[ icol ] ) {
+                decoder = DATE_DECODER;
+            }
+            else if ( maybeHms_[ icol ] ) {
+                decoder = HMS_DECODER;
+            }
+            else if ( maybeDms_[ icol ] ) {
+                decoder = DMS_DECODER;
             }
             else {
-                colinfo = new ColumnInfo( name, String.class, null );
-                colinfo.setElementSize( stringLength_[ icol ] );
-                clazz = String.class;
-                decoder = new Decoder() {
-                    public Object decode( String value ) {
-                        return value;
-                    }
-                };
-                if ( maybeDate_[ icol ] ) {
-                    colinfo.setUnitString( "iso-8601" );
-                    colinfo.setUCD( "TIME" );
-                }
-                else if ( maybeHms_[ icol ] ) {
-                    colinfo.setUnitString( "hms" );
-                }
-                else if ( maybeDms_[ icol ] ) {
-                    colinfo.setUnitString( "dms" );
-                }
+                decoder = STRING_DECODER;
             }
-            colInfos[ icol ] = colinfo;
             decoders[ icol ] = decoder;
+            ColumnInfo info = decoder.createColumnInfo( name );
+            if ( decoder instanceof StringDecoder ) {
+                info.setElementSize( stringLength_[ icol ] );
+            }
+            colInfos[ icol ] = info;
         }
         return new Metadata( colInfos, decoders, nrow_ );
     }
@@ -403,7 +488,62 @@ public class RowEvaluator {
      * object.
      */
     public static abstract class Decoder {
+        private final Class clazz_;
+
+        /**
+         * Constructor.
+         *
+         * @param   clazz  class of object to be returned by decode method
+         */
+        public Decoder( Class clazz ) {
+            clazz_ = clazz;
+        }
+
+        /**
+         * Returns a new ColumnInfo suitable for the decoded values.
+         *
+         * @param  name  column name
+         * @return  new metadata object
+         */
+        public ColumnInfo createColumnInfo( String name ) {
+            return new ColumnInfo( name, clazz_, null );
+        }
+
+        /**
+         * Decodes a value.
+         * Will complete without exception if {@link #isValid} returns true
+         * for the presented <code>value</code>; otherwise may throw an
+         * unchecked exception.
+         *
+         * @param  value  string to decode
+         * @return   typed object corresponding to <code>value</code>
+         */
         public abstract Object decode( String value );
+
+        /**
+         * Indicates whether this decoder is capable of decoding a 
+         * given string.
+         *
+         * @param  value  string to decode
+         * @return  true iff this decoder can make sense of the string
+         */
+        public abstract boolean isValid( String value );
+    }
+
+    /**
+     * Partial Decoder implementation for strings..
+     */
+    private static abstract class StringDecoder extends Decoder {
+        StringDecoder() {
+            super( String.class );
+        }
+
+        /**
+         * Returns the value unchanged.
+         */
+        public Object decode( String value ) {
+            return value;
+        }
     }
 
     /**

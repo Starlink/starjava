@@ -13611,6 +13611,8 @@ introduced since the last version:
     <li>VizieR load dialogue now omits obsolete catalogues from list.</li>
     <li>Now only works on J2SE 1.5 and above.</li>
     <li>Efficiency warning now issued for large compressed FITS files.</li>
+    <li>Fixed bug in CSV file parsing that could ignore header row in
+        absence of non-numeric columns.</li>
     </ul>
     </p></dd>
 
