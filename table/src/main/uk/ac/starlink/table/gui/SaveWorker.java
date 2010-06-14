@@ -100,7 +100,7 @@ public abstract class SaveWorker {
      * <p>The default implementation does nothing, but subclasses may 
      * override it to react in some way to the save's completion.
      *
-     * @return   success  save status
+     * @param   success  save status
      */
     protected abstract void done( boolean success );
 
