@@ -8740,7 +8740,7 @@ VizieR into TOPCAT.
 <p>Note that VizieR's idea of a catalogue is more complex than a single
 table; this means that in some cases querying one of VizieR's catalogues 
 may result in more than one table being loaded into TOPCAT
-(the <label>Search Sub-Tables</label> checkbox described below 
+(the <label>Sub-Table Details</label> checkbox described below 
 can help to control this).
 </p>
 
@@ -8856,7 +8856,7 @@ The options for catalogue selection are as follows:
     defined by the Row Selection panel, will be listed below the
     category selection panel.
     Select one of these by clicking on it.
-    The <label>Search Sub-Tables</label> checkbox controls whether the
+    The <label>Sub-Table Details</label> checkbox controls whether the
     list displays only top-level VizieR catalogues 
     (each of which may contain multiple tables) 
     or entries for each table within each catalogue as well.
@@ -8873,7 +8873,7 @@ The options for catalogue selection are as follows:
     defined by the Row Selection panel, will be listed below the 
     Keywords field.
     Select one of these by clicking on it.
-    The <label>Search Sub-Tables</label> checkbox controls whether the
+    The <label>Sub-Table Details</label> checkbox controls whether the
     list displays only top-level VizieR catalogues 
     (each of which may contain multiple tables) 
     or entries for each table within each catalogue as well.
@@ -13611,7 +13611,7 @@ introduced since the last version:
         possible out of memory errors) for density plots
         with large pixel sizes.</li>
     <li>VizieR load dialogue can now optionally display sub-tables within
-        catalogues (new "Search Sub-Tables" checkbox).</li>
+        catalogues (new "Sub-Table Details" checkbox).</li>
     <li>VizieR load dialogue now has option to include/exclude obsolete
         catalogues (new "Include Obsolete Tables" checkbox).</li>
     <li>Now only works on J2SE 1.5 and above.</li>

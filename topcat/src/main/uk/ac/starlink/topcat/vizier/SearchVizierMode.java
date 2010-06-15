@@ -105,7 +105,7 @@ public abstract class SearchVizierMode implements VizierMode {
             }
         };
         includeSubModel_ =
-            new ToggleButtonModel( "Search Sub-Tables", null,
+            new ToggleButtonModel( "Sub-Table Details", null,
                                    "If selected, sub-tables as well as " +
                                    "top-level resources are queried " +
                                    "and listed" );
