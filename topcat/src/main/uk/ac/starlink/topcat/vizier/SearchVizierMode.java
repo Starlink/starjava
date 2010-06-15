@@ -56,6 +56,7 @@ public abstract class SearchVizierMode implements VizierMode {
     private final Action startSearchAction_;
     private final Action cancelSearchAction_;
     private final ToggleButtonModel includeSubModel_;
+    private final ToggleButtonModel includeObsModel_;
     private ArrayTableModel tModel_;
     private ArrayTableSorter sorter_;
     private VizierInfo vizinfo_;
@@ -92,7 +93,8 @@ public abstract class SearchVizierMode implements VizierMode {
             public void actionPerformed( ActionEvent evt ) {
                 SearchWorker worker =
                     new SearchWorker( tld_.getTarget(), tld_.getRadius(),
-                                      getSearchArgs(), includeSubTables() );
+                                      getSearchArgs(), includeSubTables(),
+                                      includeObsoletes() );
                 setSearchWorker( worker );
                 worker.start();
             }
@@ -107,6 +109,11 @@ public abstract class SearchVizierMode implements VizierMode {
                                    "If selected, sub-tables as well as " +
                                    "top-level resources are queried " +
                                    "and listed" );
+        includeObsModel_ =
+            new ToggleButtonModel( "Include Obsolete Tables", null,
+                                   "If selected, all will be shown; " +
+                                   "otherwise, older versions of existing " +
+                                   "VizieR tables will be omitted" );
         tld_.addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 updateActions();
@@ -189,6 +196,17 @@ public abstract class SearchVizierMode implements VizierMode {
     }
 
     /**
+     * Indicates whether the search should report obsolete tables or just
+     * the newest version of each.
+     *
+     * @return  false for just current versions, true for obsolete versions
+     *          as well
+     */
+    public boolean includeObsoletes() {
+        return includeObsModel_.isSelected();
+    }
+
+    /**
      * Declares that a given SearchWorker object is now working on behalf
      * of this component to search for suitable catalogues.
      *
@@ -213,6 +231,7 @@ public abstract class SearchVizierMode implements VizierMode {
     private void updateActions() {
         boolean canSearch = searchWorker_ == null && tld_.hasTarget();
         includeSubModel_.setEnabled( canSearch );
+        includeObsModel_.setEnabled( canSearch );
         startSearchAction_.setEnabled( canSearch );
         if ( searchComponent_ != null ) {
             searchComponent_.setEnabled( canSearch );
@@ -230,14 +249,20 @@ public abstract class SearchVizierMode implements VizierMode {
         /* Set up the container with the start/stop search buttons. */
         JComponent searchPanel = new JPanel( new BorderLayout() );
         searchPanel.add( searchComponent, BorderLayout.CENTER );
+        JComponent optionLine = Box.createHorizontalBox();
+        optionLine.add( includeSubModel_.createCheckBox() );
+        optionLine.add( includeObsModel_.createCheckBox() );
+        optionLine.add( Box.createHorizontalGlue() );
         JComponent buttonLine = Box.createHorizontalBox();
-        buttonLine.add( includeSubModel_.createCheckBox() );
         buttonLine.add( Box.createHorizontalGlue() );
         buttonLine.add( new JButton( startSearchAction_ ) );
         buttonLine.add( Box.createHorizontalStrut( 10 ) );
         buttonLine.add( new JButton( cancelSearchAction_ ) );
-        buttonLine.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        searchPanel.add( buttonLine, BorderLayout.SOUTH );
+        JComponent controlBox = Box.createVerticalBox();
+        controlBox.add( optionLine );
+        controlBox.add( buttonLine );
+        controlBox.setBorder( BorderFactory.createEmptyBorder( 0, 5, 5, 5 ) );
+        searchPanel.add( controlBox, BorderLayout.SOUTH );
 
         /* Place the mode-specific search component appropriately. */
         if ( useSplit_ ) {
@@ -415,6 +440,7 @@ public abstract class SearchVizierMode implements VizierMode {
         private final JProgressBar progBar_;
         private final JComponent progPanel_;
         private final boolean includeSubTables_;
+        private final boolean includeObsoletes_;
         private volatile boolean cancelled_;
 
         /**
@@ -427,13 +453,15 @@ public abstract class SearchVizierMode implements VizierMode {
          * @param   queryArgs  other query arguments as a URL fragment string
          * @param   includeSubTables  true to include sub tables as separate
          *             entries, false for only resource entries
+         * @param   includeObsoletes  true to include tables marked obsolete
          */
         SearchWorker( String target, String radius, String queryArgs,
-                      boolean includeSubTables ) {
+                      boolean includeSubTables, boolean includeObsoletes ) {
             target_ = target;
             radius_ = radius;
             queryArgs_ = queryArgs;
             includeSubTables_ = includeSubTables;
+            includeObsoletes_ = includeObsoletes;
             progBar_ = new JProgressBar();
             progBar_.setIndeterminate( true );
             progBar_.setStringPainted( true );
@@ -508,7 +536,8 @@ public abstract class SearchVizierMode implements VizierMode {
                 throws IOException, ParserConfigurationException, SAXException {
             final List catList = new ArrayList();
             progBar_.setString( "Found 0" );
-            CatalogSaxHandler catHandler = new CatalogSaxHandler() {
+            CatalogSaxHandler catHandler =
+                    new CatalogSaxHandler( includeObsoletes_ ) {
                 public void gotCatalog( VizierCatalog cat )
                         throws SAXException {
                     if ( cancelled_ ) {

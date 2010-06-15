@@ -8860,6 +8860,8 @@ The options for catalogue selection are as follows:
     list displays only top-level VizieR catalogues 
     (each of which may contain multiple tables) 
     or entries for each table within each catalogue as well.
+    The <label>Include Obsolete Tables</label> checkbox controls whether
+    just the most current, or all versions of each catalogue are shown.
     </p></dd>
 <dt>By Keyword</dt>
 <dd><p>A <label>Keywords</label> text field is shown; you may enter
@@ -8875,6 +8877,8 @@ The options for catalogue selection are as follows:
     list displays only top-level VizieR catalogues 
     (each of which may contain multiple tables) 
     or entries for each table within each catalogue as well.
+    The <label>Include Obsolete Tables</label> checkbox controls whether
+    just the most current, or all versions of each catalogue are shown.
     </p></dd>
 <dt>Surveys</dt>
 <dd><p>A (fairly short) list of large surveys held by VizieR is presented
@@ -13608,7 +13612,8 @@ introduced since the last version:
         with large pixel sizes.</li>
     <li>VizieR load dialogue can now optionally display sub-tables within
         catalogues (new "Search Sub-Tables" checkbox).</li>
-    <li>VizieR load dialogue now omits obsolete catalogues from list.</li>
+    <li>VizieR load dialogue now has option to include/exclude obsolete
+        catalogues (new "Include Obsolete Tables" checkbox).</li>
     <li>Now only works on J2SE 1.5 and above.</li>
     <li>Efficiency warning now issued for large compressed FITS files.</li>
     <li>Fixed bug in CSV file parsing that could ignore header row in

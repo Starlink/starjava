@@ -20,13 +20,18 @@ import org.xml.sax.helpers.DefaultHandler;
 public abstract class CatalogSaxHandler extends DefaultHandler {
 
     private final StringBuffer txtbuf_;
+    private final boolean includeObsolete_;
     private Entry entry_;
     private SubTable subTable_;
 
     /**
      * Constructor.
+     *
+     * @param  includeObsolete  true to include all results, false to omit
+     *         older versions of the same catalog
      */
-    public CatalogSaxHandler() {
+    public CatalogSaxHandler( boolean includeObsolete ) {
+        includeObsolete_ = includeObsolete;
         txtbuf_ = new StringBuffer();
     }
 
@@ -75,7 +80,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         String tagName = getTagName( uri, localName, qName );
         if ( "RESOURCE".equals( tagName ) ) {
             String status = entry_.getStringValue( "status" );
-            if ( ! "obsolete".equals( status ) ) {
+            if ( includeObsolete_ || ! "obsolete".equals( status ) ) {
                 VizierCatalog[] cats = createCatalogs( entry_ );
                 for ( int ic = 0; ic < cats.length; ic++ ) {
                     gotCatalog( cats[ ic ] );
@@ -274,4 +279,3 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         private Long nrows_;
     }
 }
-
