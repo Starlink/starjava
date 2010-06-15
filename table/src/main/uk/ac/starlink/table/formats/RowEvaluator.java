@@ -218,6 +218,9 @@ public class RowEvaluator {
      */
     private void init( int ncol ) {
         ncol_ = ncol; 
+
+        /* This data could be set up more compactly, indexing via type-specific
+         * decoders rather than having a named array for each possible type. */
         maybeBoolean_ = makeFlagArray( true );
         maybeShort_ = makeFlagArray( true );
         maybeInteger_ = makeFlagArray( true );
