@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.vizier;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -21,6 +22,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
 
     private final StringBuffer txtbuf_;
     private final boolean includeObsolete_;
+    private final Stack elStack_;
     private Entry entry_;
     private SubTable subTable_;
 
@@ -32,6 +34,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
      */
     public CatalogSaxHandler( boolean includeObsolete ) {
         includeObsolete_ = includeObsolete;
+        elStack_ = new Stack();
         txtbuf_ = new StringBuffer();
     }
 
@@ -73,11 +76,14 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
                 }
             }
         }
+        elStack_.push( tagName );
     }
 
     public void endElement( String uri, String localName, String qName )
             throws SAXException {
         String tagName = getTagName( uri, localName, qName );
+        assert tagName.equals( elStack_.peek() );
+        elStack_.pop();
         if ( "RESOURCE".equals( tagName ) ) {
             String status = entry_.getStringValue( "status" );
             if ( includeObsolete_ || ! "obsolete".equals( status ) ) {
@@ -95,10 +101,10 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         else if ( "DESCRIPTION".equals( tagName ) ) {
             if ( txtbuf_.length() > 0 ) {
                 String desc = txtbuf_.toString().trim();
-                if ( subTable_ != null ) {
+                if ( "TABLE".equals( elStack_.peek() ) ) {
                     subTable_.description_ = desc;
                 }
-                else if ( entry_ != null ) {
+                else if ( "RESOURCE".equals( elStack_.peek() ) ) {
                     entry_.description_ = desc;
                 }
             }
@@ -130,7 +136,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         String desc = entry.description_;
         Integer density = entry.getIntValue( "-density" );
         String[] waves = entry.getStringsValue( "-kw.Wavelength" );
-        String[] asts = entry.getStringsValue( "kw.Astronomy" );
+        String[] asts = entry.getStringsValue( "-kw.Astronomy" );
         Integer cpopu = entry.getIntValue( "cpopu" );
         Float ipopu = entry.getFloatValue( "ipopu" );
         SubTable[] subTables =
