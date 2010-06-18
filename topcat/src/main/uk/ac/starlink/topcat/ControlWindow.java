@@ -473,8 +473,10 @@ public class ControlWindow extends AuxWindow
         int fileMenuPos = 0;
         fileMenu.insert( readAct_, fileMenuPos++ );
         fileMenu.insert( writeAct_, fileMenuPos++ );
-        fileMenu.insert( dupAct_, fileMenuPos++ );
-        fileMenu.insert( removeAct_, fileMenuPos++ );
+        fileMenu.insert( dupAct_, fileMenuPos++ )
+                      .setMnemonic( KeyEvent.VK_P );
+        fileMenu.insert( removeAct_, fileMenuPos++ )
+                      .setMnemonic( KeyEvent.VK_D );
         if ( tableTransmitter != null ) {
             fileMenu.insertSeparator( fileMenuPos++ );
             fileMenu.insert( tableTransmitter.getBroadcastAction(),
