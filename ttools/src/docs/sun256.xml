@@ -7119,6 +7119,8 @@ but my thanks are especially due to the following:
     <li>Efficiency warning now issued for large compressed FITS files.</li>
     <li>Fixed bug in CSV file parsing that could ignore header row in
         absence of non-numeric columns.</li>
+    <li>Recognise unofficial column type "<code>long</code>" in IPAC format
+        tables.</li>
     </ul>
     </p></dd>
 
