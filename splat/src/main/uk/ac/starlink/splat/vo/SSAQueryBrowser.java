@@ -785,11 +785,20 @@ public class SSAQueryBrowser
                 dec = null;
             }
             else {
-                JOptionPane.showMessageDialog( this, "You have not supplied " +
-                                               "a search centre or object " +
-                                               "name", "No RA or Dec",
-                                               JOptionPane.ERROR_MESSAGE );
-                return;
+                int n = JOptionPane.showConfirmDialog( this,
+                                              "You have not supplied " +
+                                              "a search centre or object " +
+                                              "name, do you want to proceed?",
+                                              "No RA or Dec",
+                                              JOptionPane.YES_NO_OPTION );
+                if ( n == JOptionPane.NO_OPTION ) {
+                    return;
+                }
+
+                //  To be clear.
+                ra = null;
+                dec = null;
+                objectName = null;
             }
         }
 
