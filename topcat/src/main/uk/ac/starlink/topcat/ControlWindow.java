@@ -78,7 +78,7 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumnModel;
-import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -1193,7 +1193,7 @@ public class ControlWindow extends AuxWindow
         }
         else {
             assert interopType_ == null;
-            if ( SampUtils.getLockFile().exists() ) {
+            if ( DefaultClientProfile.getProfile().isHubRunning() ) {
                 logger_.info( "SAMP hub running - run in SAMP mode" );
                 try {
                     return new SampCommunicator( control );
