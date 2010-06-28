@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
-import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.DefaultClientProfile;
 
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.splat.ast.ASTJ;
@@ -439,7 +439,7 @@ public class SplatBrowserMain
         else {
 
             //  If SAMP hub is running, run in SAMP mode.
-            if ( SampUtils.getLockFile().exists() ) {
+            if ( DefaultClientProfile.getProfile().isHubRunning() ) {
                 logger.info( "SAMP hub running - run in SAMP mode" );
                 try {
                     return new SampCommunicator();
