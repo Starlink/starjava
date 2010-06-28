@@ -18,6 +18,7 @@ public class ModelTest extends TestCase {
 
     static {
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
     }
 
     public void setUp() {
