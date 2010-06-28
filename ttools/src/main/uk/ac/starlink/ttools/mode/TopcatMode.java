@@ -13,12 +13,13 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.ResourceHandler;
 import org.astrogrid.samp.hub.BasicHubService;
+import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.PlasticUtils;
@@ -213,14 +214,15 @@ public class TopcatMode implements ProcessingMode {
         /* Start a hub. */
         XmlRpcKit xmlrpc = XmlRpcKit.getInstance();
         HubRunner runner =
-            new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
-                           new BasicHubService( new Random() ),
-                           SampUtils.getLockFile() );
-        runner.start();
+            HubRunner.runHub( HubMode.NO_GUI, XmlRpcKit.getInstance() );
 
         /* Register with it. */
         HubConnection connection =
-            new StandardClientProfile( xmlrpc ).register();
+            DefaultClientProfile.getProfile().register();
+        if ( connection == null ) {
+            throw new IOException( "Failed to register"
+                                 + " with specially started hub?" );
+        }
         Metadata meta = SampMode.getStiltsMetadata();
         meta.setIconUrl( Stilts.class.getResource( "images/stilts_icon.gif" )
                                      .toString() );

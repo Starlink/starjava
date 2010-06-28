@@ -19,12 +19,12 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.ResourceHandler;
 import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.URLMapperHandler;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
@@ -191,13 +191,8 @@ public class SampMode implements ProcessingMode {
             out_ = out;
             nameMap_ = new HashMap();
 
-            /* Bail out early if no hub is running. */
-            if ( ! SampUtils.getLockFile().exists() ) {
-                throw new IOException( "No SAMP hub is running" );
-            }
-
             /* Register with hub. */
-            connection_ = StandardClientProfile.getInstance().register();
+            connection_ = DefaultClientProfile.getProfile().register();
             if ( connection_ == null ) {
                 throw new IOException( "No SAMP hub running" );
             }
