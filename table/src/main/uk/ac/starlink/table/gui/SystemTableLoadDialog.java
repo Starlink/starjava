@@ -85,9 +85,7 @@ public class SystemTableLoadDialog implements TableLoadDialog {
             /* Record values selected. */
             String filename = fd.getFile();
             String dirname = fd.getDirectory();
-            if ( filename != null ) {
-                filename_ = filename;
-            }
+            filename_ = filename;
             if ( dirname != null ) {
                 dirname_ = dirname;
             }
