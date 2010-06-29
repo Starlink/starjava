@@ -113,6 +113,9 @@ public abstract class SaveWorker {
             worker_.interrupt();
             worker_ = null;
         }
+        if ( progPopup_ != null ) {
+            progPopup_.dispose();
+        }
     }
 
     /**

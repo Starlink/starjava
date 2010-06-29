@@ -13650,6 +13650,7 @@ introduced since the last version:
     <li>Recognise unofficial column type "<code>long</code>" in IPAC format 
         tables.</li>
     <li>Add System Browser option to Load Window.</li>
+    <li>Fix some minor bugs with Cancel operation during table save.</li>
     </ul>
     </p></dd>
 
