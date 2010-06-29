@@ -1,5 +1,11 @@
 1 Starlink SPLAT news.
 
+   3.9-6
+   =====
+
+   Make position and target optional in VO queries. Not all SSAP
+   servers are fixated on positions and objects.
+
    3.9-5
    =====
 
