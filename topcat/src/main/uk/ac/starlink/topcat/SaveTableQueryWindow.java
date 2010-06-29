@@ -44,6 +44,10 @@ public class SaveTableQueryWindow extends QueryWindow {
             chooser_.setProgressBar( placeProgressBar() );
         }
         getAuxControlPanel().add( chooser_ );
+
+        /* Help button.  This is not exactly the right help for this
+         * window, but it's quite close. */
+        addHelp( "SaveQueryWindow" );
     }
 
     /**

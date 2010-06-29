@@ -13651,6 +13651,8 @@ introduced since the last version:
         tables.</li>
     <li>Add System Browser option to Load Window.</li>
     <li>Fix some minor bugs with Cancel operation during table save.</li>
+    <li>Reinstate help buttons from Save Window toolbar 
+        (erroneously removed since version 2.0).</li>
     </ul>
     </p></dd>
 
