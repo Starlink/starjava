@@ -138,6 +138,8 @@ public abstract class TableSaveChooser extends JPanel {
             };
             saverAction.putValue( Action.SHORT_DESCRIPTION,
                                   tsd.getDescription() );
+            saverAction.putValue( Action.SMALL_ICON,
+                                  tsd.getIcon() );
             JButton butt = new JButton( saverAction );
             saverAction.setEnabled( tsd.isAvailable() );
             if ( saverAction.isEnabled() ) {  

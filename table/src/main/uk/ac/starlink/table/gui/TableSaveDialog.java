@@ -2,6 +2,7 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 
@@ -29,6 +30,13 @@ interface TableSaveDialog {
      * @return description
      */
     String getDescription();
+
+    /**
+     * Returns an icon for use in identifying this dialogue.
+     *
+     * @return  icon
+     */
+    Icon getIcon();
 
     /**
      * Indicates whether there is a reasonable chance of this dialogue

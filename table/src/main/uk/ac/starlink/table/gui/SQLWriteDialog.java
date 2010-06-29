@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import uk.ac.starlink.table.StarTable;
@@ -20,6 +22,7 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
 
     private JDialog dialog_; 
     private JComboBox modeSelector_;
+    private static Icon icon_;
 
     /**
      * Constructs a new SQLWriteDialog.
@@ -37,6 +40,13 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
 
     public String getDescription() {
         return "Write table as a new table in an SQL relational database";
+    }
+
+    public Icon getIcon() {
+        if ( icon_ == null ) {
+            icon_ = new ImageIcon( getClass().getResource( "sqlread.gif" ) );
+        }
+        return icon_;
     }
 
     public boolean showSaveDialog( Component parent, StarTableOutput sto,

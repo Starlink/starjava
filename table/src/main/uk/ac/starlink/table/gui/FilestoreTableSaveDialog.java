@@ -11,6 +11,8 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -40,6 +42,7 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
 
     private final FilestoreChooser chooser_;
     private FilestorePopup popup_;
+    private static Icon icon_;
 
     /**
      * Constructor. 
@@ -61,6 +64,13 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
 
     public String getDescription() {
         return "Save table to local or remote filespace";
+    }
+
+    public Icon getIcon() {
+        if ( icon_ == null ) {
+            icon_ = new ImageIcon( getClass().getResource( "filestore.gif" ) );
+        }
+        return icon_;
     }
 
     public boolean isAvailable() {

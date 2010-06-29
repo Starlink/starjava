@@ -6,6 +6,7 @@ import java.awt.FileDialog;
 import java.awt.Frame;
 import java.io.File;
 import java.io.IOException;
+import javax.swing.Icon;
 import javax.swing.ComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -35,6 +36,10 @@ public class SystemTableSaveDialog implements TableSaveDialog {
     public String getDescription() {
         return "Save table to location chosen using "
              + "system default file browser";
+    }
+
+    public Icon getIcon() {
+        return SystemTableLoadDialog.getSystemBrowserIcon();
     }
 
     public boolean isAvailable() {
