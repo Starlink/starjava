@@ -72,22 +72,13 @@ import uk.ac.starlink.util.Loader;
  * no-arg constructor.
  *
  * <p>By default, if the required classes are present, only the 
- * {@link FileChooserLoader} handler is installed.
+ * {@link FilestoreTableLoadDialog} and {@link SystemTableLoadDialog}
+ * handlers are installed.
  * As well as ones you might implement yourself, a number of other 
  * useful {@link TableLoadDialog} implementations are available in
- * the Starlink java set, including: 
- * <ul>
- * <li> {@link SQLReadDialog} (Load tables from an SQL server using JDBC)
- * <li> {@link uk.ac.starlink.datanode.tree.TreeTableLoadDialog}
- *      (Treeview-like hierarchical display of nodes)
- * <li> {@link uk.ac.starlink.vo.ConeSearchDialog}
- *      (Obtain a source catalogue using a cone search query)
- * <li> {@link uk.ac.starlink.vo.SiapTableLoadDialog}
- *      (Obtain a list of SIAP services)
- * <li> {@link uk.ac.starlink.vo.RegistryTableLoadDialog}
- *      (Get the result of a registry query as a table of resources)
- * </ul>
- * these can be installed if desired as explained above.
+ * the Starlink java set; see the "Known Implementing Classes" section
+ * of the TableLoadDialog javadocs.
+ * These can be installed if desired as explained above.
  *
  * <p>If you want to make more customised use of this component than is
  * offered by <tt>showTableDialog</tt> it is possible, but these javadocs
@@ -120,6 +111,7 @@ public class TableLoadChooser extends JPanel {
      */
     public static String[] STANDARD_DIALOG_CLASSES = new String[] {
         FilestoreTableLoadDialog.class.getName(),
+        SystemTableLoadDialog.class.getName(),
     };
 
     /**
