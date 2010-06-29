@@ -273,7 +273,7 @@ class FilestoreTableSaveDialog implements TableSaveDialog {
      * @param  loc  location of the file to overwrite
      * @return  <tt>true</tt> if the user agrees it's OK to overwrite
      */
-    private static boolean confirmOverwrite( Component parent, String loc ) {
+    public static boolean confirmOverwrite( Component parent, String loc ) {
         String[] msg = new String[] {
             "Overwrite existing file \"" + loc + "\"?",
         };
