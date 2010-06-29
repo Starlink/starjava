@@ -40,6 +40,7 @@ import javax.swing.plaf.metal.MetalCheckBoxIcon;
 import uk.ac.starlink.table.gui.FileChooserLoader;
 import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
+import uk.ac.starlink.table.gui.SystemTableLoadDialog;
 import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
@@ -543,6 +544,8 @@ public class ResourceIcon implements Icon {
                      new FilestoreTableLoadDialog().getIcon() );
         nameMap.put( "FILECHOOSER_DIALOG",
                      FileChooserLoader.getFileChooserIcon() );
+        nameMap.put( "SYSTEM_DIALOG",
+                     new SystemTableLoadDialog().getIcon() );
         nameMap.put( "SQL_DIALOG",
                      new SQLReadDialog().getIcon() );
         nameMap.put( "CONE_DIALOG",

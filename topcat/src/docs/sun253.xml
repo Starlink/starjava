@@ -8375,9 +8375,10 @@ explicitly (again, see <ref id="inFormats"/> for details).
 
 <p>There are many other ways of loading tables however,
 described in the following subsections.
-The <label>Filestore Browser</label> button is always visible below
-the location field.  Depending on startup options, there may be
-other buttons here.  There are also a number of toolbar buttons
+The <label>Filestore Browser</label> and <label>System Browser</label>
+buttons are always visible below the location field.
+Depending on startup options, there may be other buttons here.
+There are also a number of toolbar buttons
 which display various load dialogues; the <label>DataSources</label>
 contains all of these along with some lesser-used ones.
 The following subsections describe most of the available options,
@@ -8388,6 +8389,8 @@ though others may be available in your installation.
 <ul>
 <li>&IMG.FILESTORE_DIALOG;
     <ref id="FilestoreTableLoadDialog">Filestore Browser</ref></li>
+<li>&IMG.SYSTEM_DIALOG;
+    <ref id="SystemTableLoadDialog">System Browser</ref></li>
 <li>&IMG.TREE_DIALOG;
     <ref id="TreeTableLoadDialog">Hierarchy Browser</ref></li>
 <li>&IMG.SQL_DIALOG;
@@ -8415,7 +8418,7 @@ though others may be available in your installation.
 
 <p>By clicking the <label>Filestore Browser</label> button 
 or toolbar button (&IMG.FILESTORE_DIALOG;) in the
-Load Window,
+<ref id="LoadQueryWindow">Load Window</ref>,
 you can obtain a file browser which will
 display the files in a given directory.
 The way this window works is almost certainly familiar to you 
@@ -8486,6 +8489,27 @@ instead.
 
 </subsubsect>
 
+<subsubsect id="SystemTableLoadDialog">
+<subhead><title>System Browser</title></subhead>
+
+<p>By clicking the <label>System Browser</label> button or toolbar button
+(&IMG.SYSTEM_DIALOG;) in the 
+<ref id="LoadQueryWindow">Load Window</ref>,
+you can use your Operating System's native file browser.
+What this looks like is entirely dependent on your OS;
+it may or may not contain system-specific features like shortcuts to
+commonly-used directories.
+</p>
+
+<p>Since TOPCAT has no control over the way this dialogue looks,
+it cannot contain the <label>Table Format</label> selector, and 
+certain other things such as load cancel may not work as well as
+for the other dialogue types.  To select the table format, you
+will need to use the selector in the main <label>Load Window</label>.
+</p>
+
+</subsubsect>
+
 <subsubsect id="TreeTableLoadDialog">
 <subhead><title>Hierarchy Browser</title></subhead>
 
@@ -8496,7 +8520,8 @@ instead.
 
 <p>By selecting the <label>Hierarchy Browser</label> button
 (&IMG.TREE_DIALOG;) 
-from the Load Window's toolbar or <label>DataSources</label> menu,
+from the <ref id="LoadQueryWindow">Load Window</ref>'s toolbar
+or <label>DataSources</label> menu,
 you can obtain a browser which presents a table-aware
 hierarchical view of the file system.
 (Note that a freestanding version of this panel with additional
@@ -8643,7 +8668,8 @@ Changing the root of the tree will interrupt the search.
 <p>If you want to 
 <ref id="inSql" plaintextref="yes">read a table from an SQL database</ref>,
 you can use a specialised dialogue to specify the SQL query by selecting
-<label>SQL Query</label> button from the Load Window's 
+<label>SQL Query</label> button from the
+<ref id="LoadQueryWindow">Load Window</ref>'s 
 toolbar (&IMG.SQL_DIALOG;) or <label>DataSources</label> menu.
 </p>
 
@@ -8724,8 +8750,8 @@ these steps, this dialogue may be inaccessible.
 
 <p>The VizieR query dialogue can be opened using the
 <label>VizieR Catalogue Service</label> button (&IMG.VIZIER;)
-in the Load Window's toolbar or the Control Window's 
-<label>VO</label> menu.
+in the <ref id="LoadQueryWindow">Load Window</ref>'s toolbar 
+or the <ref id="ControlWindow">Control Window</ref>'s <label>VO</label> menu.
 It allows you to make queries directly to the 
 <webref url="http://vizier.u-strasbg.fr/">VizieR</webref> 
 service operated by 
@@ -8954,7 +8980,8 @@ The original description of the VizieR service was published in
 <figureimage src="&FIG.GavoTableLoadDialog;"/>
 </figure>
 
-<p>This dialogue, selected from the Load Window's toolbar
+<p>This dialogue, selected from the 
+<ref id="LoadQueryWindow">Load Window</ref>'s toolbar
 button (&IMG.GAVO;) or <label>DataSources</label> menu,
 permits direct queries to the services provided by
 <webref url="http://www.g-vo.org/">GAVO</webref>,
@@ -9033,7 +9060,8 @@ the program to start up with a few demonstration tables already loaded in.
 </p>
 
 <p>You can also load examples in from the <label>Examples</label> menu 
-in the Load Window however.  This contains the following options:
+in the <ref id="LoadQueryWindow">Load Window</ref> however.
+This contains the following options:
 <dl>
 
 <dt>Load Example Table</dt>
@@ -11821,6 +11849,7 @@ Some of the notable contributers are these:
 <li>Malcolm Currie (Starlink, RAL)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
 <li>Luke Davies (Bristol)</li>
+<li>Christoph Deil (MPI Heidelberg)</li>
 <li>Sebastien Derriere (CDS)</li>
 <li>Peter Draper (Starlink, Durham)</li>
 <li>Pierre Fernique (CDS)</li>
@@ -13620,6 +13649,7 @@ introduced since the last version:
         absence of non-numeric columns.</li>
     <li>Recognise unofficial column type "<code>long</code>" in IPAC format 
         tables.</li>
+    <li>Add System Browser option to Load Window.</li>
     </ul>
     </p></dd>
 
