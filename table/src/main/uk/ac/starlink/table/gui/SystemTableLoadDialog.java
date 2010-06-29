@@ -16,12 +16,11 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
-
 /**
- * Table load dialogue based on the native system loader.
+ * Table load dialogue based on the native system file dialogue.
  * This is a wrapper around {@link java.awt.FileDialog}, which is in turn
- * a very thin wrapper around whatever the native platform uses for its
- * default load dialogue.  Looks ugly as sin on my fvwm-based Linux desktop,
+ * a thin wrapper around whatever the native platform uses for its
+ * default file browser.  Looks ugly on my fvwm-based Linux desktop,
  * but for Mac and MS users it may be much preferable to the java-coded
  * alternatives.
  *
