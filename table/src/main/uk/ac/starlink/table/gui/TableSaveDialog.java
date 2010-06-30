@@ -13,7 +13,7 @@ import uk.ac.starlink.table.StarTableOutput;
  * @author   Mark Taylor (Starlink)
  * @since    25 Feb 2005
  */
-interface TableSaveDialog {
+public interface TableSaveDialog {
 
     /**
      * Returns this dialogue's name 
