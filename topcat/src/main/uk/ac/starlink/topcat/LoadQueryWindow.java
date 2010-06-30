@@ -186,27 +186,37 @@ public abstract class LoadQueryWindow extends QueryWindow {
 
         protected boolean tableLoaded( StarTable table ) {
             assert table != null;
-            if ( tableConsumer_ == this && table.getRowCount() > 0 ) {
+            if ( tableConsumer_ == this ) {
+                if ( table.getRowCount() > 0 ) {
 
-                /* Since at least one table has been successfully loaded,
-                 * dispose the loader window.  This is a bit fiddly; 
-                 * dispose it in such a way that the current consumer is
-                 * not cancelled, since it may receive more tables
-                 * if it's a multi-table load.
-                 * Reinstate the canceler for next time it's made visible. */
-                final LoadQueryWindow window = LoadQueryWindow.this;
-                window.removeWindowListener( closeCanceler_ );
-                window.addWindowListener( new WindowAdapter() {
-                    public void windowClosed( WindowEvent evt ) {
-                        window.removeWindowListener( this );
-                        window.addWindowListener( closeCanceler_ );
-                    }
-                } );
-                LoadQueryWindow.this.dispose();
+                    /* Since at least one table has been successfully loaded,
+                     * dispose the loader window.  This is a bit fiddly; 
+                     * dispose it in such a way that the current consumer is
+                     * not cancelled, since it may receive more tables
+                     * if it's a multi-table load.
+                     * Reinstate the canceler for next time it's made
+                     * visible. */
+                    final LoadQueryWindow window = LoadQueryWindow.this;
+                    window.removeWindowListener( closeCanceler_ );
+                    window.addWindowListener( new WindowAdapter() {
+                        public void windowClosed( WindowEvent evt ) {
+                            window.removeWindowListener( this );
+                            window.addWindowListener( closeCanceler_ );
+                        }
+                    } );
+                    LoadQueryWindow.this.dispose();
 
-                /* Pass the table to the method that actually wants it. */
-                performLoading( table, getLoadingId() );
-                return true;
+                    /* Pass the table to the method that actually wants it. */
+                    performLoading( table, getLoadingId() );
+                    return true;
+                }
+                else {
+                    JOptionPane.showMessageDialog( LoadQueryWindow.this,
+                                                   "Table contained no rows",
+                                                   "Empty Table",
+                                                   JOptionPane.ERROR_MESSAGE );
+                    return false;
+                }
             }
             else {
                 return false;

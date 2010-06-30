@@ -13683,6 +13683,8 @@ introduced since the last version:
     <li>Fix some minor bugs with Cancel operation during table save.</li>
     <li>Reinstate help buttons from Save Window toolbar 
         (erroneously removed since version 2.0).</li>
+    <li>Make sure that failed load of table with no rows reports as such
+        rather than failing silently.</li>
     </ul>
     </p></dd>
 
