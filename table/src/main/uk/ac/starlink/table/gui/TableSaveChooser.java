@@ -51,24 +51,32 @@ public abstract class TableSaveChooser extends JPanel {
     private final JComboBox formatSelector_;
     private final JComponent[] activeComponents_;
     private final FilestoreChooser filestoreChooser_;
+    private final List activeActionList_;
+    private final Action[] tsdActions_;
     private StarTableOutput sto_;
     private JDialog dialog_;
     private JProgressBar progBar_;
     private SaveWorker worker_;
 
     /**
-     * Constructs a saver with a default StarTableOutput.
+     * Constructs a saver with a default StarTableOutput and save dialogues.
      */
     public TableSaveChooser() {
-        this( new StarTableOutput() );
+        this( new StarTableOutput(),
+              new TableSaveDialog[] {
+                  new FilestoreTableSaveDialog(),
+                  new SystemTableSaveDialog(),
+              } );
     }
 
     /**
-     * Constructs a saver with a given StarTableOutput.
+     * Constructs a saver with a given StarTableOutput and save dialogues.
      *
      * @param  sto  output marshaller
+     * @param  saveDialogs  array of save dialogues to use
      */
-    public TableSaveChooser( StarTableOutput sto ) {
+    public TableSaveChooser( StarTableOutput sto,
+                             TableSaveDialog[] saveDialogs ) {
         super( new BorderLayout() );
         Border emptyBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
         Box actionBox = Box.createVerticalBox();
@@ -77,6 +85,7 @@ public abstract class TableSaveChooser extends JPanel {
 
         /* Prepare a list of components which can be enabled/disabled. */
         List activeList = new ArrayList();
+        activeActionList_ = new ArrayList();
 
         /* Construct and place format selector. */
         JComponent formatBox = Box.createHorizontalBox();
@@ -99,6 +108,7 @@ public abstract class TableSaveChooser extends JPanel {
                 submitLocation( locField.getText() );
             }
         };
+        activeActionList_.add( locAction );
         JComponent locBox = Box.createHorizontalBox();
         locField.addActionListener( locAction );
         locBox.add( new JLabel( "Location: " ) );
@@ -109,45 +119,33 @@ public abstract class TableSaveChooser extends JPanel {
         locBox.setMaximumSize( locSize );
         locBox.setAlignmentX( LEFT_ALIGNMENT );
         locBox.add( Box.createHorizontalStrut( 5 ) );
-        JButton locButton = new JButton( locAction );
-        locBox.add( locButton );
-        activeList.add( locButton );
+        locBox.add( new JButton( locAction ) );
         actionBox.add( Box.createVerticalStrut( 5 ) );
         actionBox.add( locBox );
 
-        /* Define actions for invoking sub-dialogues. */
-        FilestoreTableSaveDialog filestoreDialog = 
-            new FilestoreTableSaveDialog();
-        filestoreChooser_ = filestoreDialog.getChooser();
-        TableSaveDialog[] saverDialogs = new TableSaveDialog[] {
-              filestoreDialog,
-              new SQLWriteDialog(),
-        };
-        List buttList = new ArrayList();
-        for ( int i = 0; i < saverDialogs.length; i++ ) {
-            final TableSaveDialog tsd = saverDialogs[ i ];
-            Action saverAction = new AbstractAction( tsd.getName() ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    if ( tsd.showSaveDialog( TableSaveChooser.this,
-                                             getTableOutput(),
-                                             formatSelector_.getModel(),
-                                             getTable() ) ) {
-                        done();
-                    }
-                }
-            };
-            saverAction.putValue( Action.SHORT_DESCRIPTION,
-                                  tsd.getDescription() );
-            saverAction.putValue( Action.SMALL_ICON,
-                                  tsd.getIcon() );
-            JButton butt = new JButton( saverAction );
-            saverAction.setEnabled( tsd.isAvailable() );
-            if ( saverAction.isEnabled() ) {  
-                activeList.add( butt );
+        /* Get a filestore chooser.  If one of the dialogues we are using
+         * is suitable, use that, otherwise just use a dummy one. */
+        FilestoreTableSaveDialog fsd = null;
+        for ( int i = 0; fsd == null && i < saveDialogs.length; i++ ) {
+            if ( saveDialogs[ i ] instanceof FilestoreTableSaveDialog ) {
+                fsd = (FilestoreTableSaveDialog) saveDialogs[ i ];
             }
-            buttList.add( butt );
+        }
+        if ( fsd == null ) {
+            fsd = new FilestoreTableSaveDialog();
+        }
+        filestoreChooser_ = fsd.getChooser();
+
+        /* Prepare buttons for each dialogue type. */
+        List buttList = new ArrayList();
+        List tsdActionList = new ArrayList();
+        for ( int i = 0; i < saveDialogs.length; i++ ) {
+            Action tsdAction = createSaveDialogAction( saveDialogs[ i ] );
+            tsdActionList.add( tsdAction );
+            buttList.add( new JButton( tsdAction ) );
         }
         JButton[] buttons = (JButton[]) buttList.toArray( new JButton[ 0 ] );
+        tsdActions_ = (Action[]) tsdActionList.toArray( new Action[ 0 ] );
         int nopt = buttons.length;
 
         /* Position buttons. */
@@ -252,6 +250,17 @@ public abstract class TableSaveChooser extends JPanel {
     }
 
     /**
+     * Returns actions which correspond to the save dialogues this
+     * saver is using.  Each action is the result of an earlier call
+     * to {@link #createSaveDialogAction}.
+     *
+     * @return   array of actions which will trigger a particular save dialogue
+     */
+    public Action[] getSaveDialogActions() {
+        return tsdActions_;
+    }
+
+    /**
      * Called when the table has been written.
      */
     public void done() {
@@ -298,6 +307,9 @@ public abstract class TableSaveChooser extends JPanel {
         if ( isEnabled != isEnabled() ) {
             for ( int i = 0; i < activeComponents_.length; i++ ) {
                 activeComponents_[ i ].setEnabled( isEnabled );
+            }
+            for ( Iterator it = activeActionList_.iterator(); it.hasNext(); ) {
+                ((Action) it.next()).setEnabled( isEnabled );
             }
         }
         super.setEnabled( isEnabled );
@@ -373,6 +385,34 @@ public abstract class TableSaveChooser extends JPanel {
         /* Position. */
         dialog.setLocationRelativeTo( parent );
         return dialog;
+    }
+
+    /**
+     * Returns an action which will result in the given save dialogue being
+     * posted to allow the user to save this chooser's current table.
+     * This method is invoked in the constructor, hence is declared final.
+     *
+     * @param  tsd  save dialogue
+     * @return  action to post <code>tsd</code>
+     */
+    public final Action createSaveDialogAction( final TableSaveDialog tsd ) {
+        final TableSaveChooser chooser = this;
+        Action tsdAction = new AbstractAction( tsd.getName() ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( tsd.showSaveDialog( chooser, chooser.getTableOutput(),
+                                         chooser.formatSelector_.getModel(),
+                                         chooser.getTable() ) ) {
+                    chooser.done();
+                }
+            }
+        };
+        tsdAction.putValue( Action.SHORT_DESCRIPTION, tsd.getDescription() );
+        tsdAction.putValue( Action.SMALL_ICON, tsd.getIcon() );
+        tsdAction.setEnabled( tsd.isAvailable() );
+        if ( tsdAction.isEnabled() ) {
+            activeActionList_.add( tsdAction );
+        }
+        return tsdAction;
     }
 
     /**
