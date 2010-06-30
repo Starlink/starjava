@@ -124,7 +124,8 @@ public class SSAQuery
             setPosition( hms.getVal() * 15.0, dms.getVal() );
         }
         else {
-            //  Null values, must be using targetName.
+            //  Null values, may be using targetName. Set some out of bounds
+            //  values to raise an error if these are used.
             setPosition( -1.0, -91.0 );
         }
     }
@@ -269,7 +270,7 @@ public class SSAQuery
         if ( queryRA >= 0.0 ) {
             buffer.append( "&POS=" + queryRA + "," + queryDec );
         }
-        else {
+        else if ( targetName != null ) {
             buffer.append( "&TARGETNAME=" + targetName );
         }
         if ( queryFormat != null ) {

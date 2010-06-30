@@ -388,7 +388,7 @@ public class SampCommunicator
         public void run()
         {
             SpectrumIO.getInstance()
-                      .load( browser, false, new SpectrumIO.Props[] { props } );
+                      .load( browser, true, new SpectrumIO.Props[] { props } );
         }
     }
 
