@@ -1,8 +1,12 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import javax.swing.Action;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.gui.FilestoreTableSaveDialog;
+import uk.ac.starlink.table.gui.SystemTableSaveDialog;
+import uk.ac.starlink.table.gui.TableSaveDialog;
 import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.table.TableSource;
 
@@ -31,7 +35,11 @@ public class SaveTableQueryWindow extends QueryWindow {
                                  final TableSource tsrc, StarTableOutput sto,
                                  boolean progress ) {
         super( title, parent );
-        chooser_ = new TableSaveChooser( sto ) {
+        chooser_ = new TableSaveChooser( sto,
+                                         new TableSaveDialog[] {
+                                             new FilestoreTableSaveDialog(),
+                                             new SystemTableSaveDialog(),
+                                         } ) {
             public StarTable getTable() {
                 return tsrc.getStarTable();
             }
@@ -44,6 +52,13 @@ public class SaveTableQueryWindow extends QueryWindow {
             chooser_.setProgressBar( placeProgressBar() );
         }
         getAuxControlPanel().add( chooser_ );
+
+        /* Toolbar buttons. */
+        Action[] saverActs = chooser_.getSaveDialogActions();
+        for ( int ia = 0; ia < saverActs.length; ia++ ) {
+            getToolBar().add( saverActs[ ia ] );
+        }
+        getToolBar().addSeparator();
 
         /* Help button.  This is not exactly the right help for this
          * window, but it's quite close. */

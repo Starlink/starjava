@@ -8495,7 +8495,8 @@ instead.
 <p>By clicking the <label>System Browser</label> button or toolbar button
 (&IMG.SYSTEM_DIALOG;) in the 
 <ref id="LoadQueryWindow">Load Window</ref>,
-you can use your Operating System's native file browser.
+you can use your Operating System's native file browser to choose
+a file to load from.
 What this looks like is entirely dependent on your OS;
 it may or may not contain system-specific features like shortcuts to
 commonly-used directories.
@@ -9137,10 +9138,16 @@ which are described in the following sections:
     <ref id="saveString" plaintextref="yes">Output Location field</ref>
     as a filename or a URL as described in section 
     <ref id="tableLocation"/></li>
-<li>Use the <label>Filestore Browser</label> button to get a
+<li>Use the <label>Filestore Browser</label> button or toolbar button
+    (&IMG.FILESTORE_DIALOG;) to get a
     <ref id="FilestoreTableSaveDialog" plaintextref="yes">browser</ref>
     that shows you local and remote files</li>
-<li>Use the <label>SQL table</label> button to get the 
+<li>Use the <label>System Browser</label> button or toolbar button
+    (&IMG.SYSTEM_DIALOG;) to get a
+    <ref id="SystemTableSaveDialog" plaintextref="yes">native browser</ref>
+    that uses your OS's standard file saving interface</li>
+<li>Use the <label>SQL table</label> toolbar button
+    (&IMG.SQL_DIALOG;) to get the 
     <ref id="SQLWriteDialog" plaintextref="yes">SQL Output Dialogue</ref></li>
 </ul>
 In some cases, saving the table to the same name as it was loaded from
@@ -9152,9 +9159,10 @@ TOPCAT will attempt to warn you if it thinks you are doing something
 which could lead to trouble; ignore this at your own risk.
 </p>
 
-<p>There is no option
-to compress files on output (though you can of course compress them
-yourself once they have been written).
+<p>There is no option to compress files on output.
+You can of course compress them yourself once they have been written,
+but note that this is not usually a good idea for FITS files,
+since it makes them much slower to read (for TOPCAT at least).
 </p>
 
 <p>If the table is large, a progress bar indicating how near the
@@ -9221,6 +9229,28 @@ this will save the table under that name into the directory which is displayed.
 You can (re)set the format in which the file will be written using
 the <label>Output Format</label> selector box on the right
 (see <ref id="outFormats"/> for discussion of output formats).
+</p>
+
+</subsubsect>
+
+<subsubsect id="SystemTableSaveDialog">
+<subhead><title>System Browser</title></subhead>
+
+<p>By clicking the <label>System Browser</label> button or toolbar button
+(&IMG.SYSTEM_DIALOG;) in the
+<ref id="SaveQueryWindow">Save Window</ref>,
+you can use your Operating System's native file browser to decide where
+to save a file.
+What this looks like is entirely dependent on your OS;
+it may or may not contain system-specific features like shortcuts to
+commonly-used directories.
+</p>
+
+<p>Since TOPCAT has no control over the way this dialogue looks,
+it cannot contain the <label>Output Format</label> selector,
+and certain other things such as save cancel may not work as well as
+for the other dialogue types.  To select the output table format, you
+will need to use the selector in the <label>Save Window</label>.
 </p>
 
 </subsubsect>
@@ -13649,7 +13679,7 @@ introduced since the last version:
         absence of non-numeric columns.</li>
     <li>Recognise unofficial column type "<code>long</code>" in IPAC format 
         tables.</li>
-    <li>Add System Browser option to Load Window.</li>
+    <li>Add System Browser option to Load and Save Windows.</li>
     <li>Fix some minor bugs with Cancel operation during table save.</li>
     <li>Reinstate help buttons from Save Window toolbar 
         (erroneously removed since version 2.0).</li>

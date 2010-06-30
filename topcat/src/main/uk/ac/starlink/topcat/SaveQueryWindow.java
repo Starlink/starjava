@@ -1,6 +1,11 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -9,8 +14,12 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.gui.FilestoreTableSaveDialog;
+import uk.ac.starlink.table.gui.SQLWriteDialog;
+import uk.ac.starlink.table.gui.SystemTableSaveDialog;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableSaveChooser;
+import uk.ac.starlink.table.gui.TableSaveDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 public class SaveQueryWindow extends QueryWindow {
@@ -25,7 +34,11 @@ public class SaveQueryWindow extends QueryWindow {
         final JProgressBar progBar = placeProgressBar();
 
         /* Construct and configure the main table chooser widget. */
-        chooser_ = new TableSaveChooser( sto ) {
+        chooser_ = new TableSaveChooser( sto,
+                                         new TableSaveDialog[] {
+                                             new FilestoreTableSaveDialog(),
+                                             new SystemTableSaveDialog(),
+                                         } ) {
             public StarTable getTable() {
                 return tcModel.getApparentStarTable();
             }
@@ -69,6 +82,16 @@ public class SaveQueryWindow extends QueryWindow {
         chooserLine.add( Box.createHorizontalGlue() );
         mainBox.add( chooserLine );
 
+        /* Toolbar buttons. */
+        List saveActList = new ArrayList();
+        saveActList.addAll( Arrays.asList( chooser_.getSaveDialogActions() ) );
+        saveActList.add( chooser_
+                        .createSaveDialogAction( new SQLWriteDialog() ) );
+        for ( Iterator it = saveActList.iterator(); it.hasNext(); ) {
+            getToolBar().add( (Action) it.next() );
+        }
+        getToolBar().addSeparator();
+
         /* Help button. */
         addHelp( "SaveQueryWindow" );
     }
@@ -76,5 +99,4 @@ public class SaveQueryWindow extends QueryWindow {
     public boolean perform() {
         return false;
     }
-
 }
