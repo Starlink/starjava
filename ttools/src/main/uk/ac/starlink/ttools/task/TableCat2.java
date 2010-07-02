@@ -6,9 +6,9 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    27 Sep 2005
  */
-public class TableCat2 extends FixedMapperTask {
+public class TableCat2 extends MapperTask {
     public TableCat2() {
         super( "Concatenates 2 tables", new ChoiceMode(), true,
-               new CatMapper( false ), 2, true );
+               new CatMapper( false ), new FixedTablesInput( 2, true ) );
     }
 }

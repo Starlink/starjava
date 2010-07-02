@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
@@ -19,6 +20,7 @@ import uk.ac.starlink.ttools.mode.ProcessingMode;
 public abstract class MapperTask extends ConsumerTask {
 
     private final TableMapper mapper_;
+    private final TablesInput tablesInput_;
 
     /**
      * Constructor.
@@ -28,27 +30,23 @@ public abstract class MapperTask extends ConsumerTask {
      *          the processed table
      * @param   useOutFilter allow specification of filters for output table
      * @param   mapper   object which defines mapping transformation
+     * @param   tablesInput  object which can acquire multiple input tables
+     *          from the environment
      */
     public MapperTask( String purpose, ProcessingMode outMode,
-                       boolean useOutFilter, TableMapper mapper ) {
+                       boolean useOutFilter, TableMapper mapper,
+                       TablesInput tablesInput ) {
         super( purpose, outMode, useOutFilter );
         mapper_ = mapper;
-        getParameterList().addAll( Arrays.asList( mapper.getParameters() ) );
+        tablesInput_ = tablesInput;
+        List paramList = getParameterList();
+        paramList.addAll( 0, Arrays.asList( tablesInput.getParameters() ) ); 
+        paramList.addAll( Arrays.asList( mapper.getParameters() ) );
     }
-
-    /**
-     * Returns an array of InputTableSpec objects describing the input tables
-     * used by this task.
-     *
-     * @param    env  execution environment
-     * @return   input table specifiers
-     */
-    protected abstract InputTableSpec[] getInputSpecs( Environment env )
-            throws TaskException;
 
     public TableProducer createProducer( Environment env )
             throws TaskException {
-        final InputTableSpec[] inSpecs = getInputSpecs( env );
+        final InputTableSpec[] inSpecs = tablesInput_.getInputSpecs( env );
         final TableMapping mapping =
             mapper_.createMapping( env, inSpecs.length );
         return new TableProducer() {
@@ -65,5 +63,14 @@ public abstract class MapperTask extends ConsumerTask {
      */
     public TableMapper getMapper() {
         return mapper_;
+    }
+
+    /**
+     * Returns the object used for acquiring input tables from the environment.
+     *
+     * @return  tables input
+     */
+    public TablesInput getTablesInput() {
+        return tablesInput_;
     }
 }

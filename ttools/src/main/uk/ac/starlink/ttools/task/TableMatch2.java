@@ -8,10 +8,10 @@ import uk.ac.starlink.ttools.join.Match2Mapper;
  * @author   Mark Taylor
  * @since    2 Sep 2005
  */
-public class TableMatch2 extends FixedMapperTask {
+public class TableMatch2 extends MapperTask {
     public TableMatch2() {
         super( "Crossmatches 2 tables using flexible criteria",
-               new ChoiceMode(), true,
-               new Match2Mapper(), 2, true );
+               new ChoiceMode(), true, new Match2Mapper(),
+               new FixedTablesInput( 2, true ) );
     }
 }

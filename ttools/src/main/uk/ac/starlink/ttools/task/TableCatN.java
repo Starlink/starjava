@@ -6,9 +6,9 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    5 Oct 2006
  */
-public class TableCatN extends VariableMapperTask {
+public class TableCatN extends MapperTask {
     public TableCatN() {
         super( "Concatenates multiple tables", new ChoiceMode(), true,
-               new CatMapper( false ), true );
+               new CatMapper( false ), new VariableTablesInput( true ) );
     }
 }

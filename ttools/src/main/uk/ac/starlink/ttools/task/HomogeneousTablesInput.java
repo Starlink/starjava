@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
@@ -10,40 +9,33 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
-import uk.ac.starlink.ttools.mode.ProcessingMode;
 
 /**
- * MapperTask which has a variable number of input tables,
+ * TablesInput which has a variable number of input tables,
  * treating them all the same as each other.
- * A single, possibly repeated, parameter is used to specify any 
- * number of input tables, and a single (not repeated) filter 
+ * A single, possibly repeated, parameter is used to specify any
+ * number of input tables, and a single (not repeated) filter
  * parameter is used to specify a processing pipeline which operates
  * identically on all the inputs.
  *
  * @author   Mark Taylor
- * @since    14 Sep 2006
+ * @since    1 Jul 2010
  */
-public class HomogeneousMapperTask extends MapperTask {
+public class HomogeneousTablesInput implements TablesInput {
 
-    public InputTablesParameter inTablesParam_;
-    public FilterParameter inFilterParam_;
-    private static final Logger logger_ =
+    private final InputTablesParameter inTablesParam_;
+    private final FilterParameter inFilterParam_;
+    private final Parameter[] params_;
+    private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
      *
-     * @param   purpose  one-line description of the purpose of the task
-     * @param   outMode  output mode
-     * @param   useOutFilter  whether a postprocessing filter is permitted
-     * @param   mapper   table mapper
      * @param   useInFilter  whether preprocessing filters are permitted
      */
-    public HomogeneousMapperTask( String purpose, ProcessingMode outMode,
-                                  boolean useOutFilter, TableMapper mapper,
-                                  boolean useInFilter) {
-        super( purpose, outMode, useOutFilter, mapper );
-        List paramList = new ArrayList();
+    public HomogeneousTablesInput( boolean useInFilter ) {
+        List<Parameter> paramList = new ArrayList();
 
         /* Input tables parameter. */
         inTablesParam_ = new InputTablesParameter( "in" );
@@ -69,9 +61,11 @@ public class HomogeneousMapperTask extends MapperTask {
         else {
             inFilterParam_ = null;
         }
+        params_ = paramList.toArray( new Parameter[ 0 ] );
+    }
 
-        /* Store full parameter list. */
-        getParameterList().addAll( 0, paramList );
+    public Parameter[] getParameters() {
+        return params_;
     }
 
     public InputTableSpec[] getInputSpecs( final Environment env )
@@ -89,7 +83,7 @@ public class HomogeneousMapperTask extends MapperTask {
             specs[ i ] = new InputTableSpec( locs[ i ], steps ) {
                 public StarTable getInputTable() throws TaskException {
                     try {
-                        logger_.config( "Input table " + ( index + 1 ) 
+                        logger_.config( "Input table " + ( index + 1 )
                                       + "/" + nIn );
                         return tprod.getTable();
                     }

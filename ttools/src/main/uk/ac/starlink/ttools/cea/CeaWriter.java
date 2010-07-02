@@ -12,7 +12,8 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.ttools.task.VariableMapperTask;
+import uk.ac.starlink.ttools.task.MapperTask;
+import uk.ac.starlink.ttools.task.VariableTablesInput;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
 import uk.ac.starlink.util.XmlWriter;
@@ -368,9 +369,12 @@ public abstract class CeaWriter extends XmlWriter {
             String name = taskNames[ i ];
             Task task = (Task) taskFactory.createObject( name );
 
-            /* VariableMapperTasks won't work because they construct their
-             * argument lists on the fly from other variables. */
-            if ( ! ( task instanceof VariableMapperTask ) ) {
+            /* MapperTasks with VariableTablesInput won't work because
+             * they construct their argument lists on the fly from other
+             * variables. */
+            if ( ! ( task instanceof MapperTask &&
+                     ((MapperTask) task).getTablesInput()
+                                        instanceof VariableTablesInput ) ) {
                 appMap.put( name, new CeaTask( task, name ) );
             }
         }

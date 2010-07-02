@@ -6,9 +6,9 @@ package uk.ac.starlink.ttools.task;
  * @author   Mark Taylor
  * @since    15 Sep 2006
  */
-public class TableCat extends HomogeneousMapperTask {
+public class TableCat extends MapperTask {
     public TableCat() {
         super( "Concatenates multiple similar tables", new ChoiceMode(), true,
-               new CatMapper( true ), true );
+               new CatMapper( true ), new HomogeneousTablesInput( true ) );
     }
 }

@@ -1,42 +1,33 @@
 package uk.ac.starlink.ttools.task;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.task.Environment;
-import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.task.Parameter;
 
 /**
- * MapperTask which has a fixed number of input tables.
+ * TablesInput which has a fixed number of input tables.
  * Each input table gets its own numbered table parameter and (if requested)
  * filter parameter - in1, in2, in3, ... and icmd1, icmd2, icmd3, ...
- * 
+ *
  * @author   Mark Taylor
- * @since    14 Sep 2006
+ * @since    1 Jul 2010
  */
-public class FixedMapperTask extends MapperTask {
+public class FixedTablesInput implements TablesInput {
 
     private final InputTableParameter[] inTableParams_;
     private final FilterParameter[] inFilterParams_;
+    private final Parameter[] params_;
 
     /**
      * Constructor.
      *
-     * @param   purpose  one-line description of the purpose of the task
-     * @param   outMode  processing mode which determines the destination of
-     *          the processed table
-     * @param   useOutFilter allow specification of filters for output table
-     * @param   mapper   object which defines mapping transformation
      * @param   nIn      number of input tables
      * @param   useInFilters  whether to use input filter parameters
      */
-    public FixedMapperTask( String purpose, ProcessingMode outMode,
-                            boolean useOutFilter, TableMapper mapper,
-                            int nIn, boolean useInFilters ) {
-        super( purpose, outMode, useOutFilter, mapper );
-        List paramList = new ArrayList();
+    public FixedTablesInput( int nIn, boolean useInFilters ) {
+        List<Parameter> paramList = new ArrayList<Parameter>();
 
         /* Input table parameters. */
         inTableParams_ = new InputTableParameter[ nIn ];
@@ -79,11 +70,14 @@ public class FixedMapperTask extends MapperTask {
             }
         }
 
-        /* Store full parameter list. */
-        getParameterList().addAll( 0, paramList );
+        params_ = paramList.toArray( new Parameter[ 0 ] );
     }
 
-    protected InputTableSpec[] getInputSpecs( Environment env )
+    public Parameter[] getParameters() {
+        return params_;
+    }
+
+    public InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException {
         int nIn = inTableParams_.length;
         InputTableSpec[] specs = new InputTableSpec[ nIn ];

@@ -8,46 +8,39 @@ import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.filter.ProcessingStep;
-import uk.ac.starlink.ttools.mode.ProcessingMode;
 
 /**
- * MapperTask which allows a variable number of input tables, fixed at
+ * TablesInput which allows a variable number of input tables, fixed at
  * runtime using an integer parameter.  Each input table has its own
  * input format and filter parameters and so on.
  *
- * <p>This task constructs its list of parameters on the fly within its
- * {@link #createExecutable} method.  The {@link #getParameters} method 
- * returns a list which is suitable for documentation purposes only.
+ * <p>This object constructs its list of parameters on the fly when the
+ * environment is available (within {@link #getInputSpecs}).
+ * The {@link #getParameters} method returns a list which is suitable
+ * for documentation purposes only.
  * Execution environments which need the <code>getParameters</code>
  * call to return the actual list of parameters to be used may not
  * therefore be able to work with instances of this class.
- *
+ * 
  * @author   Mark Taylor
- * @since    5 Oct 2006
+ * @since    1 Jul 2010
  */
-public class VariableMapperTask extends MapperTask {
+public class VariableTablesInput implements TablesInput {
 
     private final IntegerParameter ninParam_;
-    private boolean useInFilters_;
+    private final boolean useInFilters_;
+    private final Parameter[] params_;
 
     /**
      * Constructor.
      *
-     * @param   purpose  one-line description of the purpose of the task
-     * @param   outMode  processing mode which determines the destination of
-     *          the processed table
-     * @param   useOutFilter allow specification of filters for output table
-     * @param   mapper   object which defines mapping transformation
      * @param   useInFilters  whether to use input filter parameters
      */
-    public VariableMapperTask( String purpose, ProcessingMode outMode,
-                               boolean useOutFilter, TableMapper mapper,
-                               boolean useInFilters ) {
-        super( purpose, outMode, useOutFilter, mapper );
+    public VariableTablesInput( boolean useInFilters ) {
         useInFilters_ = useInFilters;
-        List paramList = new ArrayList();
+        List<Parameter> paramList = new ArrayList<Parameter>();
 
-        /* Prepare list of nominal per-table input parameters.  Note that 
+        /* Prepare list of nominal per-table input parameters.  Note that
          * these parameters are not used for actually getting values, they
          * serve only a documentation purpose - the parameters used for
          * getting values is constructed in getInputSpecs() when the
@@ -67,8 +60,7 @@ public class VariableMapperTask extends MapperTask {
         }
 
         /* Document the nin parameter. */
-        Parameter[] inParams =
-            (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
+        Parameter[] inParams = paramList.toArray( new Parameter[ 0 ] );
         StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < inParams.length; i++ ) {
             String pName = inParams[ i ].getName();
@@ -94,11 +86,14 @@ public class VariableMapperTask extends MapperTask {
         } );
         paramList.add( 0, ninParam_ );
 
-        /* Update task parameter list. */
-        getParameterList().addAll( 0, paramList );
+        params_ = paramList.toArray( new Parameter[ 0 ] );
     }
 
-    protected InputTableSpec[] getInputSpecs( Environment env )
+    public Parameter[] getParameters() {
+        return params_;
+    }
+
+    public InputTableSpec[] getInputSpecs( Environment env )
             throws TaskException {
         int nin = ninParam_.intValue( env );
         InputTableSpec[] inSpecs = new InputTableSpec[ nin ];
