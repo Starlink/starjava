@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -297,6 +298,35 @@ public class Tables {
             || ( value instanceof String && ((String) value).length() == 0 )
             || ( value.getClass().isArray() && Array.getLength( value ) == 0 )
             || false;
+    }
+
+    /**
+     * Convenience method to consruct a TableSequence for a single table.
+     *
+     * @param   table  table
+     * @return  table sequence with just one element
+     */
+    public static TableSequence singleTableSequence( StarTable table ) {
+        return arrayTableSequence( new StarTable[] { table } );
+    }
+
+    /**
+     * Convenience method to construct a TableSequence for a supplied array
+     * of tables.
+     *
+     * @param   tables  table array
+     * @return  table sequence containing input tables
+     */
+    public static TableSequence arrayTableSequence( StarTable[] tables ) {
+        final Iterator it = Arrays.asList( tables ).iterator();
+        return new TableSequence() {
+            public boolean hasNextTable() {
+                return it.hasNext();
+            }
+            public StarTable nextTable() {
+                return (StarTable) it.next();
+            }
+        };
     }
 
     /**
