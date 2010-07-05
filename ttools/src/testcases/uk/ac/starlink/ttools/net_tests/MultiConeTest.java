@@ -10,11 +10,15 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.RowListStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.MultiCone;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.vo.ResolverInfo;
+import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
  * Unit tests for MultiCone (coneskymatch) task.  
@@ -62,11 +66,17 @@ public class MultiConeTest extends TableTestCase {
     }
 
     public void testCone2() throws Exception {
+        DataSource v7src = new URLDataSource( TableTestCase.class
+                                             .getResource( "vizier.xml" ) );
+        v7src.setPosition( "7" );
+        StarTable v7 =
+            new VOTableBuilder()
+           .makeStarTable( v7src, true, StoragePolicy.PREFER_MEMORY );
         MapEnvironment env = new MapEnvironment()
             .setResourceBase( MultiConeTest.class )
             .setValue( "serviceurl",
                        "http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=NOMAD")
-            .setValue( "in", "vizier.xml#7" )
+            .setValue( "in", v7 )
             .setValue( "icmd",
                        "addskycoords -inunit sex fk4 fk5 RAB1950 DEB1950 " +
                        "RAJ2000 DEJ2000" )
