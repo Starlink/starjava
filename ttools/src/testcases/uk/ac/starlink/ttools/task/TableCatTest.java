@@ -1,5 +1,9 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -20,6 +24,9 @@ public class TableCatTest extends TableTestCase {
 
     public TableCatTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.table.storage" )
+              .setLevel( Level.WARNING );
         t1_.setName( "table_1" );
         t2_.setName( "table_2" );
     }
@@ -144,5 +151,52 @@ public class TableCatTest extends TableTestCase {
         String n2 = "2";
         assertArrayEquals( new Object[] { n1, n1, n2, n2, n2, },
                            getColData( out2, 4 ) );
+    }
+
+    public void testMulti() throws Exception {
+        URL vurl = TableTestCase.class.getResource( "vizier.xml" );
+        String colfilter =
+            "keepcols 'recno ucd$pos_eq_ra_main ucd$pos_eq_dec_main'";
+
+        MapEnvironment env1 = new MapEnvironment()
+           .setValue( "in", vurl.toString() )
+           .setValue( "ifmt", "votable" )
+           .setValue( "icmd", colfilter )
+           .setValue( "multi", "false" );
+        new TableCat().createExecutable( env1 ).execute();
+        StarTable out1 = env1.getOutputTable( "omode" );
+        assertEquals( 1, out1.getRowCount() );
+
+        MapEnvironment envX = new MapEnvironment()
+           .setValue( "in", vurl.toString() )
+           .setValue( "ifmt", "votable" )
+           .setValue( "multi", "true" );
+        try {
+            new TableCat().createExecutable( envX ).execute();
+            fail();
+        }
+        catch ( IOException e ) { // could be TaskException ?
+            // columns incompatible
+        }
+
+        MapEnvironment envN = new MapEnvironment()
+           .setValue( "in", vurl.toString() )
+           .setValue( "ifmt", "votable" )
+           .setValue( "icmd", colfilter )
+           .setValue( "multi", "true" );
+        new TableCat().createExecutable( envN ).execute();
+        StarTable outN = envN.getOutputTable( "omode" );
+        assertEquals( 159, outN.getRowCount() );
+        assertEquals( 3, outN.getColumnCount() );
+
+        MapEnvironment envN1 = new MapEnvironment()
+           .setValue( "in", vurl.toString() )
+           .setValue( "ifmt", "votable" )
+           .setValue( "icmd", colfilter )
+           .setValue( "ocmd", "head " + Long.toString( out1.getRowCount() ) )
+           .setValue( "multi", "true" );
+        new TableCat().createExecutable( envN1 ).execute();
+        StarTable outN1 = envN1.getOutputTable( "omode" );
+        assertSameData( out1, outN1 );
     }
 }

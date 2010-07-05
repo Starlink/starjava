@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -32,6 +33,8 @@ public abstract class AbstractInputTableParameter extends Parameter {
 
     private InputFormatParameter formatParam_;
     private BooleanParameter streamParam_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
     
     /**
      * Constructor. 
@@ -119,6 +122,53 @@ public abstract class AbstractInputTableParameter extends Parameter {
             }
             else {
                 return tfact.makeStarTable( loc, fmt );
+            }
+        }
+        catch ( EOFException e ) {
+            throw new ExecutionException( "Premature end of file", e );
+        }
+        catch ( IOException e ) {
+            String msg = e.getMessage();
+            if ( msg == null || msg.trim().length() == 0 ) {
+                msg = e.toString();
+            }
+            throw new ExecutionException( msg, e );
+        }
+    }
+
+    /**
+     * Constructs an array of tables from a location string given the current
+     * state of this parameter and its associated parameter values.
+     * The returned number of tables may only be plural if the table
+     * format is capable of supplying multiple tables.
+     *
+     * @param   env  execution environment
+     * @param   loc  table location string
+     * @return   tables at loc
+     */
+    protected StarTable[] makeTables( Environment env, String loc )
+            throws TaskException {
+        String fmt = formatParam_.stringValue( env );
+        boolean stream = streamParam_.booleanValue( env );
+        StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
+        String streamWarning =
+            "Can't currently stream multiple tables" +
+            " (would need MultiTableBuilder.streamTables method)";
+        try {
+            if ( loc.equals( "-" ) ) {
+                logger_.warning( streamWarning );
+                InputStream in =
+                    new BufferedInputStream( DataSource.getInputStream( loc ) );
+                return new StarTable[] {
+                    getStreamedTable( tfact, in, fmt, null )
+                };
+            }
+            else {
+                if ( streamParam_.booleanValue( env ) ) {
+                    logger_.warning( streamWarning );
+                }
+                return tfact
+                      .makeStarTables( DataSource.makeDataSource( loc ), fmt );
             }
         }
         catch ( EOFException e ) {

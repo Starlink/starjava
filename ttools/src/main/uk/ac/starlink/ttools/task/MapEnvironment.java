@@ -183,9 +183,13 @@ public class MapEnvironment implements TableEnvironment {
             TableProducer[] tablePs = new TableProducer[ nTable ];
             for ( int i = 0; i < nTable; i++ ) {
                 final StarTable table = tables[ i ];
+                final String name = "table_" + ( i + 1 );
                 tablePs[ i ] = new TableProducer() {
                     public StarTable getTable() {
                         return table;
+                    }
+                    public String toString() {
+                        return name;
                     }
                 };
             }

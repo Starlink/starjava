@@ -43,6 +43,7 @@ public class HomogeneousTablesInput implements TablesInput {
         inTablesParam_.setPrompt( "Location of input table(s)" );
         paramList.add( inTablesParam_ );
         paramList.add( inTablesParam_.getFormatParameter() );
+        paramList.add( inTablesParam_.getMultiParameter() );
         paramList.add( inTablesParam_.getStreamParameter() );
 
         /* Input filter parameter. */
@@ -73,14 +74,13 @@ public class HomogeneousTablesInput implements TablesInput {
         ProcessingStep[] steps = inFilterParam_ == null
                                ? null
                                : inFilterParam_.stepsValue( env );
-        String[] locs = inTablesParam_.stringsValue( env );
         TableProducer[] tprods = inTablesParam_.tablesValue( env );
         final int nIn = tprods.length;
         InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {
             final int index = i;
             final TableProducer tprod = tprods[ i ];
-            specs[ i ] = new InputTableSpec( locs[ i ], steps ) {
+            specs[ i ] = new InputTableSpec( tprod.toString(), steps ) {
                 public StarTable getInputTable() throws TaskException {
                     try {
                         logger_.config( "Input table " + ( index + 1 )
