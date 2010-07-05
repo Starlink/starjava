@@ -14,6 +14,7 @@ import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
@@ -35,12 +36,12 @@ import uk.ac.starlink.util.IOUtils;
  * quite inflexible about what it recognises as this format - 
  * see {@link #isMagic}) and tries to interpret the data array as a 
  * 1-d array of bytes representing the XML of a VOTable document.
- * This VOTable document should have one TABLE element with no DATA
- * content - the table data is got from the first extension HDU,
- * which must be a BINTABLE extension matching the metadata described
- * by the VOTable.
+ * This VOTable document should have one or more TABLE elements with no DATA
+ * content - the table data is got from the extension extension HDUs,
+ * one per table, and they must be BINTABLE extensions matching the
+ * metadata described by the VOTable.
  *
- * <p>The point of all this is so that you can store a VOTable in
+ * <p>The point of all this is so that you can store VOTables in
  * the efficient FITS format (it can be mapped if it's on local disk,
  * which makes table creation practically instantaneous, even for
  * random access) without sacrificing any of the metadata that you
@@ -62,12 +63,6 @@ public class FitsPlusTableBuilder implements TableBuilder {
                                     StoragePolicy storagePolicy )
             throws IOException {
 
-        /* If the data source has a position, then we're being directed
-         * to a particular HDU - not for us. */
-        if ( datsrc.getPosition() != null ) {
-            throw new TableFormatException( "Can't locate numbered HDU" );
-        }
-
         /* See if this looks like a fits-plus table. */
         if ( ! isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( 
@@ -77,8 +72,18 @@ public class FitsPlusTableBuilder implements TableBuilder {
         /* Get an input stream. */
         ArrayDataInput strm = FitsConstants.getInputStreamStart( datsrc );
         try {
+
+            /* Read the metadata from the primary HDU. */
             long[] pos = new long[ 1 ]; 
-            TableElement tabel = readMetadata( strm, pos );
+            TableElement[] tabels = readMetadata( strm, pos );
+
+            /* Get the metadata for the table we are interested in. */
+            int iTable = getTableIndex( datsrc.getPosition(), tabels.length );
+            TableElement tabel = tabels[ iTable ];
+
+            /* Skip HDUs if required.  They should all be BINTABLE HDUs
+             * corresponding to tables earlier than the one we need. */
+            pos[ 0 ] += FitsConstants.skipHDUs( strm, iTable );
 
             /* Now get the StarTable from the next HDU. */
             StarTable starTable =
@@ -160,16 +165,19 @@ public class FitsPlusTableBuilder implements TableBuilder {
     public void streamStarTable( InputStream in, final TableSink sink,
                                  String pos )
             throws IOException {
-
-        /* If we're being directed to a numbered HDU, it's not for us. */
-        if ( pos != null && pos.trim().length() > 0 ) {
-            throw new TableFormatException( "Can't locate numbered HDU" );
-        }
-
-        /* Read the metadata from the primary HDU. */
         ArrayDataInput strm = new BufferedDataInputStream( in );
         try {
-            TableElement tabel = readMetadata( strm, new long[ 1 ] );
+
+            /* Read the metadata from the primary HDU. */
+            TableElement[] tabels = readMetadata( strm, new long[ 1 ] );
+
+            /* Get the metadata for the table we are interested in. */
+            int iTable = getTableIndex( pos, tabels.length );
+            TableElement tabel = tabels[ iTable ];
+
+            /* Skip HDUs if required.  They should all be BINTABLE HDUs
+             * corresponding to tables earlier than the one we need. */
+            FitsConstants.skipHDUs( strm, iTable );
 
             /* Prepare a modified sink which behaves like the one we were
              * given but will pass on the VOTable metadata rather than that 
@@ -204,22 +212,22 @@ public class FitsPlusTableBuilder implements TableBuilder {
 
     /**
      * Reads the primary HDU of a FITS stream, checking it is of the 
-     * correct FITS-plus format, and returns the VOTable TABLE element
-     * which is encoded in it.  On successful exit, the stream will 
+     * correct FITS-plus format, and returns the VOTable TABLE elements
+     * which are encoded in it.  On successful exit, the stream will 
      * be positioned at the start of the first non-primary HDU 
      * (which should contain a BINTABLE).
      *
      * @param   strm  stream holding the data (positioned at the start)
      * @param   pos   1-element array for returning the number of bytes read
      *                into the stream
-     * @return  TABLE element in the primary HDU
+     * @return  array of TABLE elements in the primary HDU
      */
-    private TableElement readMetadata( ArrayDataInput strm, long[] pos )
+    private static TableElement[] readMetadata( ArrayDataInput strm,
+                                                long[] pos )
             throws IOException {
 
         /* Read the first FITS block from the stream into a buffer. 
          * This should contain the entire header of the primary HDU. */
-       
         byte[] headBuf = new byte[ 2880 ];
         strm.readFully( headBuf );
 
@@ -257,32 +265,73 @@ public class FitsPlusTableBuilder implements TableBuilder {
             DOMSource domsrc =
                 vofact.transformToDOM( 
                     new StreamSource( new ByteArrayInputStream( vobuf ) ),
-                                      false );
+                    false );
 
-            /* Obtain the TABLE element, which ought to be empty. */
+            /* Obtain the TABLE elements, which ought to be empty. */
             VODocument doc = (VODocument) domsrc.getNode();
             VOElement topel = (VOElement) doc.getDocumentElement();
-            VOElement resel = topel.getChildByName( "RESOURCE" );
-            if ( resel == null ) {
-                throw new TableFormatException( 
-                    "Embedded VOTable document has no RESOURCE element" );
+            NodeList tlist = topel.getElementsByVOTagName( "TABLE" );
+            int nTable = tlist.getLength();
+            TableElement[] tabels = new TableElement[ nTable ];
+            for ( int i = 0; i < nTable; i++ ) {
+                tabels[ i ] = (TableElement) tlist.item( i );
+                if ( tabels[ i ].getChildByName( "DATA" ) != null ) {
+                    throw new TableFormatException(
+                        "TABLE #" + ( i + i ) + " in embedded VOTable document "
+                      + "has unexpected DATA element" );
+                }
             }
-            TableElement tabel = (TableElement) resel.getChildByName( "TABLE" );
-            if ( tabel == null ) {
-                throw new TableFormatException(
-                    "Embedded VOTable document has no TABLE element" );
-            }
-            if ( tabel.getChildByName( "DATA" ) != null ) {
-                throw new TableFormatException(
-                    "Embedded VOTable document has unexpected DATA element" );
-            }
-            return tabel;
+            return tabels;
         }
         catch ( FitsException e ) {
             throw new TableFormatException( e.getMessage(), e );
         }
         catch ( SAXException e ) {
             throw new TableFormatException( e.getMessage(), e );
+        }
+    }
+
+    /**
+     * Returns the index of the table requested by a data source position
+     * string.  The first table is represented by position string "1".
+     * The returned value is the 0-based index of the table,
+     * which corresponds to the 1-based HDU number (the primary HDU is
+     * excluded).  If the supplied position string does not correspond
+     * to a known table, a TableFormatException is thrown.
+     *
+     * @param   pos  position string (first is "1")
+     * @param   nTable  number of tables in the whole file
+     */
+    private static int getTableIndex( String pos, int nTable )
+            throws TableFormatException {
+        if ( nTable <= 0 ) {
+            throw new TableFormatException( "No tables present "
+                                          + "in FITS-plus container" );
+        }
+        if ( pos == null || pos.trim().length() == 0 ) {
+            return 0;
+        }
+        else {
+            try {
+                int index = Integer.parseInt( pos.trim() );
+                if ( index >= 1 && index <= nTable ) {
+                    return index - 1;
+                }
+                else if ( index == 0 ) {
+                    throw new TableFormatException( "No table with position "
+                                                  + pos + "; first table is "
+                                                  + "#1" );
+                }
+                else {
+                    throw new TableFormatException( "No table with position "
+                                                  + pos + "; there are " + 
+                                                  + nTable );
+                }
+            }
+            catch ( NumberFormatException e ) {
+                throw new TableFormatException( "Can't interpret position "
+                                              + pos + " (not a number)", e );
+            }
         }
     }
 
