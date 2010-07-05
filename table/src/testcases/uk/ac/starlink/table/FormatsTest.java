@@ -20,8 +20,12 @@ import uk.ac.starlink.fits.ColFitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.VariableFitsTableWriter;
+import uk.ac.starlink.table.storage.AdaptiveByteStore;
+import uk.ac.starlink.table.storage.ByteStoreRowStore;
+import uk.ac.starlink.table.storage.FileByteStore;
 import uk.ac.starlink.table.storage.DiskRowStore;
 import uk.ac.starlink.table.storage.ListRowStore;
+import uk.ac.starlink.table.storage.MemoryByteStore;
 import uk.ac.starlink.table.storage.SidewaysRowStore;
 import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.AsciiTableWriter;
@@ -145,6 +149,12 @@ public class FormatsTest extends TableCase {
         exerciseRowStore( new ListRowStore() );
         exerciseRowStore( new DiskRowStore() );
         exerciseRowStore( new SidewaysRowStore() );
+        exerciseRowStore( new ByteStoreRowStore( new MemoryByteStore() ) );
+        exerciseRowStore( new ByteStoreRowStore( new FileByteStore() ) );
+        exerciseRowStore( new ByteStoreRowStore(
+                              new AdaptiveByteStore( 10 ) ) );
+        exerciseRowStore( new ByteStoreRowStore(
+                              new AdaptiveByteStore( 1024*1024*1024 ) ) );
     }
 
     private void exerciseRowStore( RowStore store ) throws IOException {
