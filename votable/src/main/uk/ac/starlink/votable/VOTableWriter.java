@@ -14,10 +14,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.Base64OutputStream;
 import uk.ac.starlink.util.IOUtils;
 
@@ -31,7 +34,7 @@ import uk.ac.starlink.util.IOUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class VOTableWriter implements StarTableWriter {
+public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
 
     private DataFormat dataFormat = DataFormat.TABLEDATA;
     private boolean inline = true;
@@ -74,10 +77,6 @@ public class VOTableWriter implements StarTableWriter {
 
     /**
      * Writes a StarTable to a given location.
-     * <p>
-     * Currently, an entire XML VOTable document is written,
-     * and the TABLEDATA format (all table cells written inline
-     * as separate XML elements) is used.
      *
      * @param   startab  the table to write
      * @param   location  the filename to which to write the table
@@ -86,6 +85,20 @@ public class VOTableWriter implements StarTableWriter {
     public void writeStarTable( StarTable startab, String location,
                                 StarTableOutput sto )
             throws IOException { 
+        writeStarTables( Tables.singleTableSequence( startab ), location, sto );
+    }
+
+    /**
+     * Writes a sequence of tables to a given location.
+     * They are written as separate TABLE elements in the same VOTable document.
+     *
+     * @param  tableSeq  table sequence
+     * @param   location  the filename to which to write the table
+     * @param   sto   object used for location resolution
+     */
+    public void writeStarTables( TableSequence tableSeq, String location,
+                                 StarTableOutput sto )
+            throws IOException {
 
         /* Get the stream to write to. */
         OutputStream out = null; 
@@ -98,7 +111,7 @@ public class VOTableWriter implements StarTableWriter {
                 throw new TableFormatException( "Can't write non-inline format"
                                               + " to a stream" );
             }
-            writeStarTable( startab, out, file );
+            writeStarTables( tableSeq, out, file );
         }
         finally {
             if ( out != null ) {
@@ -109,7 +122,7 @@ public class VOTableWriter implements StarTableWriter {
 
     /**
      * Writes a StarTable to a given stream; must be inline.
-     * Same as <code>writeStarTable(startab,out,null)</code>
+     * Same as <code>writeStarTable(startab,out,(File)null)</code>.
      *
      * @param   startab  the table to write
      * @param   out  the stream down which to write the table
@@ -117,6 +130,18 @@ public class VOTableWriter implements StarTableWriter {
     public void writeStarTable( StarTable startab, OutputStream out ) 
             throws IOException {
         writeStarTable( startab, out, null );
+    }
+
+    /**
+     * Writes a sequence of tables to a given stream; must be inline.
+     * Same as <code>writeStarTables(tableSeq,out,null)</code>.
+     *
+     * @param   tableSeq  tables to write
+     * @param   out  destination stream
+     */
+    public void writeStarTables( TableSequence tableSeq, OutputStream out )
+            throws IOException {
+        writeStarTables( tableSeq, out, null );
     }
 
     /**
@@ -129,6 +154,21 @@ public class VOTableWriter implements StarTableWriter {
      *          related files which need to be written.  May be <tt>null</tt>.
      */
     public void writeStarTable( StarTable startab, OutputStream out, File file )
+            throws IOException {
+        writeStarTables( Tables.singleTableSequence( startab ), out, file );
+    }
+
+    /**
+     * Writes a sequence of tables to a given stream.
+     *
+     * @param  tableSeq  table sequence to write
+     * @param  out  destination stream
+     * @param   file  the filename to which <tt>out</tt> refers; this is used
+     *          if necessary to come up with a suitable filename for
+     *          related files which need to be written.  May be <tt>null</tt>.
+     */
+    public void writeStarTables( TableSequence tableSeq, OutputStream out,
+                                 File file )
             throws IOException {
 
         /* For most of the output we write to a Writer; it is obtained
@@ -157,97 +197,108 @@ public class VOTableWriter implements StarTableWriter {
         }
         BufferedWriter writer = new BufferedWriter( osw );
 
-        /* Get the format to provide a configuration object which describes
-         * exactly how the data from each cell is going to get written. */
-        VOSerializer serializer = 
-            VOSerializer.makeSerializer( dataFormat, startab );
-
         /* Output preamble. */
-        writePreTableXML( serializer, writer );
-        serializer.writePreDataXML( writer );
+        writePreTableXML( writer );
 
-        /* Now write the DATA element. */
-        /* First Treat the case where we write data inline. */
-        if ( inline || file == null ) {
-            if ( ! inline ) {
-                assert file == null;
-                logger.warning( "Writing VOTable inline - can't do href "
-                              + "when no filename is supplied" );
-            }
+        /* Loop over all tables for output. */
+        while ( tableSeq.hasNextTable() ) {
+            StarTable startab = tableSeq.nextTable();
 
-            /* For elements which stream data to a Base64 encoding we
-             * write the element by hand using some package-private methods.
-             * This is just an efficiency measure - it means the 
-             * writing is done directly to the base OutputStream rather 
-             * than wrapping a new OutputStream round the Writer which 
-             * is wrapped round the base OutputStream.
-             * But we could omit this stanza altogether and let the 
-             * work get done by serializer.writeInlineDataElement.
-             * I don't know whether the efficiency hit is significant or not. */
-            if ( serializer instanceof VOSerializer.StreamableVOSerializer ) {
-                VOSerializer.StreamableVOSerializer streamer =
-                    (VOSerializer.StreamableVOSerializer) serializer;
-                String tagname;
-                if ( dataFormat == DataFormat.FITS ) {
-                    tagname = "FITS";
+            /* Get the format to provide a configuration object which describes
+             * exactly how the data from each cell is going to get written. */
+            VOSerializer serializer = 
+                VOSerializer.makeSerializer( dataFormat, startab );
+
+            /* Begin TABLE element including FIELDs etc. */
+            serializer.writePreDataXML( writer );
+
+            /* Now write the DATA element. */
+            /* First Treat the case where we write data inline. */
+            if ( inline || file == null ) {
+                if ( ! inline ) {
+                    assert file == null;
+                    logger.warning( "Writing VOTable inline - can't do href "
+                                  + "when no filename is supplied" );
                 }
-                else if ( dataFormat == DataFormat.BINARY ) {
-                    tagname = "BINARY";
+
+                /* For elements which stream data to a Base64 encoding we
+                 * write the element by hand using some package-private methods.
+                 * This is just an efficiency measure - it means the 
+                 * writing is done directly to the base OutputStream rather 
+                 * than wrapping a new OutputStream round the Writer which 
+                 * is wrapped round the base OutputStream.
+                 * But we could omit this stanza altogether and let the 
+                 * work get done by serializer.writeInlineDataElement.
+                 * I don't know whether the efficiency hit is significant
+                 * or not. */
+                if ( serializer instanceof
+                     VOSerializer.StreamableVOSerializer ) {
+                    VOSerializer.StreamableVOSerializer streamer =
+                        (VOSerializer.StreamableVOSerializer) serializer;
+                    String tagname;
+                    if ( dataFormat == DataFormat.FITS ) {
+                        tagname = "FITS";
+                    }
+                    else if ( dataFormat == DataFormat.BINARY ) {
+                        tagname = "BINARY";
+                    }
+                    else {
+                        throw new AssertionError( "Unknown format " 
+                                                + dataFormat.toString() );
+                    }
+                    writer.write( "<DATA>" );
+                    writer.newLine();
+                    writer.write( '<' + tagname + '>' );
+                    writer.newLine();
+                    writer.write( "<STREAM encoding='base64'>" );
+                    writer.newLine();
+                    writer.flush();
+                    Base64OutputStream b64strm = 
+                        new Base64OutputStream( new BufferedOutputStream( out ),
+                                                16 );
+                    DataOutputStream dataout = new DataOutputStream( b64strm );
+                    streamer.streamData( dataout );
+                    dataout.flush();
+                    b64strm.endBase64();
+                    b64strm.flush();
+                    writer.write( "</STREAM>" );
+                    writer.newLine();
+                    writer.write( "</" + tagname + ">" );
+                    writer.newLine();
+                    writer.write( "</DATA>" );
+                    writer.newLine();
                 }
+
+                /* Non-optimized/non-STREAM case. */
                 else {
-                    throw new AssertionError( "Unknown format " 
-                                            + dataFormat.toString() );
+                    serializer.writeInlineDataElement( writer );
                 }
-                writer.write( "<DATA>" );
-                writer.newLine();
-                writer.write( '<' + tagname + '>' );
-                writer.newLine();
-                writer.write( "<STREAM encoding='base64'>" );
-                writer.newLine();
-                writer.flush();
-                Base64OutputStream b64strm = 
-                    new Base64OutputStream( new BufferedOutputStream( out ),
-                                            16 );
-                DataOutputStream dataout = new DataOutputStream( b64strm );
-                streamer.streamData( dataout );
-                dataout.flush();
-                b64strm.endBase64();
-                b64strm.flush();
-                writer.write( "</STREAM>" );
-                writer.newLine();
-                writer.write( "</" + tagname + ">" );
-                writer.newLine();
-                writer.write( "</DATA>" );
-                writer.newLine();
             }
 
-            /* Non-optimized/non-STREAM case. */
+            /* Treat the case where the data is streamed to an external file. */
             else {
-                serializer.writeInlineDataElement( writer );
+                assert file != null;
+                String basename = file.getName();
+                int dotpos = basename.lastIndexOf( '.' );
+                basename = dotpos > 0 ? basename.substring( 0, dotpos )
+                                      : basename;
+                String extension = dataFormat == DataFormat.FITS
+                                 ? ".fits"
+                                 : ".bin";
+                String dataname = basename + "-data" + extension;
+                File datafile = new File( file.getParentFile(), dataname );
+                DataOutputStream dataout =
+                    new DataOutputStream( 
+                        new BufferedOutputStream( 
+                            new FileOutputStream( datafile ) ) );
+                serializer.writeHrefDataElement( writer, dataname, dataout );
+                dataout.close();
             }
-        }
 
-        /* Treat the case where the data is streamed to an external file. */
-        else {
-            assert file != null;
-            String basename = file.getName();
-            int dotpos = basename.lastIndexOf( '.' );
-            basename = dotpos > 0 ? basename.substring( 0, dotpos )
-                                  : basename;
-            String extension = dataFormat == DataFormat.FITS ? ".fits" : ".bin";
-            String dataname = basename + "-data" + extension;
-            File datafile = new File( file.getParentFile(), dataname );
-            DataOutputStream dataout =
-                new DataOutputStream( 
-                    new BufferedOutputStream( 
-                        new FileOutputStream( datafile ) ) );
-            serializer.writeHrefDataElement( writer, dataname, dataout );
-            dataout.close();
+            /* Write postamble. */
+            serializer.writePostDataXML( writer );
         }
-
-        /* Write postamble. */
-        serializer.writePostDataXML( writer );
-        writePostTableXML( serializer, writer );
+        writePostTableXML( writer );
 
         /* Tidy up. */
         writer.flush();
@@ -261,11 +312,24 @@ public class VOTableWriter implements StarTableWriter {
      */
     public void writeInlineStarTable( StarTable startab, BufferedWriter writer )
             throws IOException {
-        VOSerializer serializer =
-            VOSerializer.makeSerializer( dataFormat, startab );
-        writePreTableXML( serializer, writer );
-        serializer.writeInlineTableElement( writer );
-        writePostTableXML( serializer, writer );
+        writeInlineStarTables( new StarTable[] { startab }, writer );
+    }
+
+    /**
+     * Writes multiple tables directly to a stream.
+     *
+     * @param  startabs  tables
+     * @param  writer    destination stream
+     */
+    public void writeInlineStarTables( StarTable[] startabs,
+                                       BufferedWriter writer )
+            throws IOException {
+        writePreTableXML( writer );
+        for ( int i = 0; i < startabs.length; i++ ) {
+            VOSerializer.makeSerializer( dataFormat, startabs[ i ] )
+                        .writeInlineTableElement( writer );
+        }
+        writePostTableXML( writer );
         writer.flush();
     }
 
@@ -274,12 +338,10 @@ public class VOTableWriter implements StarTableWriter {
      * This method can be overridden to alter the behaviour of the
      * writer if required.
      *
-     * @param  serializer   object which knows how to serialize the table
      * @param  writer       destination stream
      * @see    #writePostTableXML
      */
-    protected void writePreTableXML( VOSerializer serializer, 
-                                     BufferedWriter writer )
+    protected void writePreTableXML( BufferedWriter writer )
             throws IOException {
 
         /* Output XML declaration if required. */
@@ -298,7 +360,7 @@ public class VOTableWriter implements StarTableWriter {
         writer.write( "<VOTABLE" );
         if ( votableVersion != null &&
              votableVersion.matches( "1.[1-9]" ) ) {
-            writer.write( serializer.formatAttribute( "version",
+            writer.write( VOSerializer.formatAttribute( "version",
                                                       votableVersion ) );
             if ( doctypeDeclaration == null ||
                  doctypeDeclaration.length() == 0 ) {
@@ -306,17 +368,17 @@ public class VOTableWriter implements StarTableWriter {
                                         + votableVersion;
                 String votableSchemaLocation = votableNamespace;
                 writer.newLine();
-                writer.write( serializer.formatAttribute(
+                writer.write( VOSerializer.formatAttribute(
                                   "xmlns:xsi",
                                   "http://www.w3.org/2001/"
                                   + "XMLSchema-instance" ) );
                 writer.newLine();
-                writer.write( serializer.formatAttribute(
+                writer.write( VOSerializer.formatAttribute(
                                   "xsi:schemaLocation",
                                   votableNamespace + " " +
                                   votableSchemaLocation ) );
                 writer.newLine();
-                writer.write( serializer.formatAttribute(
+                writer.write( VOSerializer.formatAttribute(
                                   "xmlns",
                                   votableNamespace ) );
             }
@@ -330,7 +392,7 @@ public class VOTableWriter implements StarTableWriter {
         writer.write( " !  VOTable written by STIL version "
                     + IOUtils.getResourceContents( StarTable.class,
                                                    "stil.version" )
-                    + " (" + serializer.formatText( getClass().getName() )
+                    + " (" + VOSerializer.formatText( getClass().getName() )
                     + ")" );
         writer.newLine();
         writer.write( " !  at " + AbstractFitsTableWriter.getCurrentDate() );
@@ -348,12 +410,10 @@ public class VOTableWriter implements StarTableWriter {
      * output table document.  This method can be overridden to alter
      * the behaviour of this writer if required.
      *
-     * @param  serializer   object which knows how to serialize the table
      * @param  writer       destination stream
      * @see    #writePreTableXML
      */
-    protected void writePostTableXML( VOSerializer serializer, 
-                                      BufferedWriter writer )
+    protected void writePostTableXML( BufferedWriter writer )
             throws IOException {
 
         /* Close the open elements. */
