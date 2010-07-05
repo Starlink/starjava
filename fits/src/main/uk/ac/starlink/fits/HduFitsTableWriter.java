@@ -27,11 +27,8 @@ public class HduFitsTableWriter extends AbstractFitsTableWriter {
     /**
      * Does nothing.
      */
-    public void writePrimaryHDU( StarTable startab, FitsTableSerializer fitser,
-                                 DataOutput out )
-            throws IOException {
+    public void writePrimaryHDU( DataOutput out ) {
         // no action
-        FitsConstants.writeEmptyPrimary( out );
     }
 
     /**

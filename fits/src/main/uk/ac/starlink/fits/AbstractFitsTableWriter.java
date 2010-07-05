@@ -14,8 +14,11 @@ import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StreamStarTableWriter;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.IOUtils;
 
 /**
@@ -24,7 +27,8 @@ import uk.ac.starlink.util.IOUtils;
  * @author   Mark Taylor
  * @since    27 Jun 2006
  */
-public abstract class AbstractFitsTableWriter extends StreamStarTableWriter {
+public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
+                                              implements MultiStarTableWriter {
 
     private String formatName_;
     private static final Logger logger_ =
@@ -61,30 +65,47 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter {
         return "application/fits";
     }
 
+    /**
+     * Writes a single table.
+     * Invokes {@link #writeStarTables}.
+     */
     public void writeStarTable( StarTable table, OutputStream out )
             throws IOException {
+        writeStarTables( Tables.singleTableSequence( table ), out );
+    }
+
+    /**
+     * Writes tables.  Calls {@link #writePrimaryHDU(java.io.DataOutput)}
+     * to write the primary HDU.
+     * Subclasses which want to put something related to the input tables
+     * into the primary HDU will need to override this method
+     * (writeStarTables).
+     */
+    public void writeStarTables( TableSequence tableSeq, OutputStream out )
+            throws IOException {
         DataOutputStream ostrm = new DataOutputStream( out );
-        FitsTableSerializer serializer = createSerializer( table );
-        writePrimaryHDU( table, serializer, ostrm );
-        writeTableHDU( table, serializer, ostrm );
+        writePrimaryHDU( ostrm );
+        while ( tableSeq.hasNextTable() ) {
+            StarTable table = tableSeq.nextTable();
+            writeTableHDU( table, createSerializer( table ), ostrm );
+        }
         ostrm.flush();
     }
 
     /**
-     * Writes the primary HDU.  This cannot contain the table since 
-     * BINTABLE HDUs can only be extensions.
+     * Writes the primary HDU.  This cannot contain a table since BINTABLE
+     * HDUs can only be extensions.
+     * The AbstractFitsTableWriter implementation writes a minimal, data-less
+     * HDU.
      *
-     * @param   table   the table which will be written into the next HDU
-     * @param  fitser  fits serializer initialised from <code>table</code>
-     * @param   out   destination stream
+     * @param  out  destination stream
      */
-    public abstract void writePrimaryHDU( StarTable table,
-                                          FitsTableSerializer fitser,
-                                          DataOutput out )
-            throws IOException;
+    public void writePrimaryHDU( DataOutput out ) throws IOException {
+        FitsConstants.writeEmptyPrimary( out );
+    }
 
     /**
-     * Writes the data HDU.
+     * Writes a data HDU.
      *
      * @param   table  the table to be written into the HDU
      * @param   fitser  fits serializer initalised from <code>table</code>
@@ -114,7 +135,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter {
             throws IOException;
 
     /**
-     * Adds some standard metadata header cards to a FITS header.
+     * Adds some standard metadata header cards to a FITS table header.
      * This includes date stamp, STIL version, etc.
      *
      * @param   hdr  header to modify

@@ -1,6 +1,5 @@
 package uk.ac.starlink.fits;
 
-import java.io.DataOutput;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 
@@ -28,12 +27,6 @@ public class ColFitsTableWriter extends AbstractFitsTableWriter {
 
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".colfits" );
-    }
-
-    public void writePrimaryHDU( StarTable table, FitsTableSerializer fitser,
-                                 DataOutput out )
-            throws IOException {
-        FitsConstants.writeEmptyPrimary( out );
     }
 
     protected FitsTableSerializer createSerializer( StarTable table )

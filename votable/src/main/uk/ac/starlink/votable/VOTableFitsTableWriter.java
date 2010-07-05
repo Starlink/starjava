@@ -3,9 +3,13 @@ package uk.ac.starlink.votable;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
@@ -16,6 +20,7 @@ import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSequence;
 
 /**
  * TableWriter which writes table data into the first extension of a FITS file,
@@ -46,14 +51,57 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         super( formatName );
     }
 
-    public void writePrimaryHDU( StarTable table, FitsTableSerializer fitser,
-                                 DataOutput strm )
+    public void writeStarTables( TableSequence tableSeq, OutputStream out )
+            throws IOException {
+
+        /* Get all the input tables and serializers up front.
+         * This does have negative implications for scalability
+         * (can't stream one table at a time), but it's necessary
+         * to write the header. */
+        List tableList = new ArrayList();
+        while ( tableSeq.hasNextTable() ) {
+            tableList.add( tableSeq.nextTable() );
+        }
+        StarTable[] tables =
+            (StarTable[]) tableList.toArray( new StarTable[ 0 ] );
+        int ntable = tables.length;
+        FitsTableSerializer[] fitsers = new FitsTableSerializer[ ntable ];
+        for ( int i = 0; i < ntable; i++ ) {
+            fitsers[ i ] = createSerializer( tables[ i ] );
+        }
+
+        /* Prepare destination stream. */
+        DataOutputStream dout = new DataOutputStream( out );
+        out = null;
+
+        /* Write the primary HDU. */
+        writePrimaryHDU( tables, fitsers, dout );
+
+        /* Write the data. */
+        for ( int i = 0; i < ntable; i++ ) {
+            writeTableHDU( tables[ i ], fitsers[ i ], dout );
+        }
+
+        /* Tidy up. */
+        dout.flush();
+    }
+
+    /**
+     * Writes the primary HDU for a number of tables.
+     *
+     * @param  tables  array of tables to write
+     * @param  fitsers array of serializers corresponding to <code>tables</code>
+     * @param  strm    destination stream
+     */
+    private void writePrimaryHDU( StarTable[] tables,
+                                  FitsTableSerializer[] fitsers,
+                                  DataOutput strm )
             throws IOException {
 
         /* Try to write the metadata as VOTable text in the primary HDU. */
         Exception thrown = null;
         try {
-            writeVOTablePrimary( table, fitser, strm );
+            writeVOTablePrimary( tables, fitsers, strm );
             return;
         }
         catch ( IOException e ) {
@@ -75,18 +123,22 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      * Writes a primary that consists of a byte array holding a 
      * UTF8-encoded VOTable which holds the table metadata.
      *
-     * @param  table  table to write
-     * @param  fitser   FITS serializer
+     * @param  tables  tables to write
+     * @param  fitsers   FITS serializers
      * @param  out   destination stream
      */
-    private void writeVOTablePrimary( StarTable table,
-                                      FitsTableSerializer fitser,
+    private void writeVOTablePrimary( StarTable[] tables,
+                                      FitsTableSerializer[] fitsers,
                                       DataOutput out )
             throws IOException, FitsException {
 
         /* Get a serializer that knows how to write VOTable metadata for
          * this table. */
-        VOSerializer voser = VOSerializer.makeFitsSerializer( table, fitser );
+        int ntable = tables.length;
+        if ( fitsers.length != ntable ) {
+            throw new IllegalArgumentException( "table/serializer count "
+                                              + "mismatch" );
+        }
 
         /* Get a buffer to hold the VOTable character data. */
         StringWriter textWriter = new StringWriter();
@@ -102,36 +154,42 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         writer.write( "<!--" );
         writer.newLine();
         writer.write( " !  VOTable written by " +
-                      voser.formatText( this.getClass().getName() ) );
+                      VOSerializer.formatText( this.getClass().getName() ) );
         writer.newLine();
-        writer.write( " !  Describes BINTABLE extension in following HDU" );
+        writer.write( " !  Describes BINTABLE extensions in following HDUs" );
         writer.newLine();
         writer.write( " !-->" );
         writer.newLine();
         writer.write( "<RESOURCE>" );
         writer.newLine();
 
-        /* Output table element containing the metadata with the help of
+        /* Output table elements containing the metadata with the help of
          * the VOTable serializer. */
-        writer.write( "<TABLE" );
-        String tname = table.getName();
-        if ( tname != null && tname.trim().length() > 0 ) {
-            writer.write( voser.formatAttribute( "name", tname.trim() ) );
+        for ( int i = 0; i < ntable; i++ ) {
+            StarTable table = tables[ i ];
+            FitsTableSerializer fitser = fitsers[ i ];
+            VOSerializer voser =
+                VOSerializer.makeFitsSerializer( tables[ i ], fitsers[ i ] );
+            writer.write( "<TABLE" );
+            String tname = table.getName();
+            if ( tname != null && tname.trim().length() > 0 ) {
+                writer.write( voser.formatAttribute( "name", tname.trim() ) );
+            }
+            long nrow = fitser.getRowCount();
+            if ( nrow > 0 ) {
+                writer.write( voser.formatAttribute( "nrows",
+                                                     Long.toString( nrow ) ) );
+            }
+            writer.write( ">" );
+            writer.newLine();
+            voser.writeDescription( writer );
+            voser.writeParams( writer );
+            voser.writeFields( writer );
+            writer.write( "<!-- Dummy VOTable - no DATA element -->" );
+            writer.newLine();
+            writer.write( "</TABLE>" );
+            writer.newLine();
         }
-        long nrow = fitser.getRowCount();
-        if ( nrow > 0 ) {
-            writer.write( voser.formatAttribute( "nrows",
-                                                 Long.toString( nrow ) ) );
-        }
-        writer.write( ">" );
-        writer.newLine();
-        voser.writeDescription( writer );
-        voser.writeParams( writer );
-        voser.writeFields( writer );
-        writer.write( "<!-- Dummy VOTable - no DATA element -->" );
-        writer.newLine();
-        writer.write( "</TABLE>" );
-        writer.newLine();
 
         /* Output trailing tags and flush. */
         writer.write( "</RESOURCE>" );
@@ -152,19 +210,24 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
         hdr.addValue( "NAXIS1", nbyte, "Number of characters" );
         customisePrimaryHeader( hdr );
         hdr.addValue( "EXTEND", true, "There are standard extensions" );
+        String plural = ntable == 1 ? "" : "s";
         String[] comments = new String[] {
             " ",
             "The data in this primary HDU consists of bytes which",
             "comprise a VOTABLE document.",
-            "The VOTable describes the metadata of the table contained",
-            "in the following BINTABLE extension.",
-            "The BINTABLE extension can be used on its own as a perfectly",
+            "The VOTable describes the metadata of the table" + plural
+                 + " contained",
+            "in the following BINTABLE extension" + plural + ".",
+            "Such a BINTABLE extension can be used on its own as a perfectly",
             "good table, but the information from this HDU may provide some",
             "useful additional metadata.",
+            ( ntable == 1 ? "There is one following BINTABLE."
+                          : "There are " + ntable + " following BINTABLEs." ),
         };
         for ( int i = 0; i < comments.length; i++ ) {
             hdr.insertComment( comments[ i ] );
         }
+        hdr.addValue( "NTABLE", ntable, "Number of following BINTABLE HDUs" );
         hdr.insertCommentStyle( "END", "" );
         assert primaryHeaderOK( hdr );
         FitsConstants.writeHeader( out, hdr );

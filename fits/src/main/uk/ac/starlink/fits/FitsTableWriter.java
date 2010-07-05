@@ -1,6 +1,5 @@
 package uk.ac.starlink.fits;
 
-import java.io.DataOutput;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 
@@ -65,12 +64,6 @@ public class FitsTableWriter extends AbstractFitsTableWriter {
             }
         }
         return false;
-    }
-
-    public void writePrimaryHDU( StarTable startab, FitsTableSerializer fitser,
-                                 DataOutput out )
-            throws IOException {
-        FitsConstants.writeEmptyPrimary( out );
     }
 
     protected FitsTableSerializer createSerializer( StarTable table )

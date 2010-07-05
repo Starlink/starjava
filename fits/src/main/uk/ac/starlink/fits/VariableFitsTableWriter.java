@@ -1,6 +1,5 @@
 package uk.ac.starlink.fits;
 
-import java.io.DataOutput;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -85,12 +84,6 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
      */
     public boolean looksLikeFile( String location ) {
         return false;
-    }
-
-    public void writePrimaryHDU( StarTable startab, FitsTableSerializer fitser,
-                                 DataOutput out )
-            throws IOException {
-        FitsConstants.writeEmptyPrimary( out );
     }
 
     protected FitsTableSerializer createSerializer( StarTable table )
