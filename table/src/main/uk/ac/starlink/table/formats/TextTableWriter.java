@@ -2,16 +2,8 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.MultiStarTableWriter;
-import uk.ac.starlink.table.RowSequence;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -24,9 +16,6 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class TextTableWriter extends AbstractTextTableWriter
                              implements MultiStarTableWriter {
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.table.formats" );
 
     public TextTableWriter() {
         super( true );
