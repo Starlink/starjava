@@ -2098,7 +2098,7 @@ existing columns in a table.
     as underscores, semicolons and dots; for the purpose of this syntax
     these should all be represented as underscores ("<code>_</code>").
     So to identify a column which has the UCD "<code>phot.mag;em.opt.R</code>",
-    you should use the identifier "<code>ucd$phot_mag_em_opt_r</code>".
+    you should use the identifier "<code>&ucd.prefix;phot_mag_em_opt_r</code>".
     Matching is not case-sensitive.  Futhermore, a trailing underscore
     acts as a wildcard, so that the above column could also be referenced
     using the identifier "<code>&ucd.prefix;phot_mag_</code>".  If multiple 
@@ -3102,7 +3102,7 @@ You can do this in three ways:
     you should use the identifier "<code>&ucd.prefix;phot_mag_em_opt_r</code>".
     Matching is not case-sensitive.  Futhermore, a trailing underscore
     acts as a wildcard, so that the above column could also be referenced
-    using the identifier "<code>ucd$phot_mag_</code>".  If multiple
+    using the identifier "<code>&ucd.prefix;phot_mag_</code>".  If multiple
     columns have UCDs which match the given identifer, the first one
     will be used.
     </p>
@@ -3820,7 +3820,7 @@ stilts calc 'isoToMjd("2005-12-25T00:00:00")'
     </p></dd>
 
 <dt><verbatim>
-stilts calc 'param$author' table=catalogue.xml
+stilts calc '&param.prefix;author' table=catalogue.xml
 </verbatim></dt>
 <dd><p>In this case the expression is evaluated in the context of the
     supplied table, which means that the table's parameters can be
@@ -4678,10 +4678,10 @@ stilts tcat ifmt=ascii in="t1.txt t2.txt t3.txt" out=table.txt
     </p></dd>
 
 <dt><verbatim>
-stilts tcat ifmt=ascii in=&indirection.char;inlist out=table.txt
+stilts tcat ifmt=ascii in=&indirection.char;inlist.lis out=table.txt
 </verbatim></dt>
 <dd><p>This will have the same effect as the previous two examples if a
-    file name "inlist" in the current directory contains three lines,
+    file name "inlist.lis" in the current directory contains three lines,
     "t1.txt", "t2.txt" and "t3.txt".
     </p></dd>
 
@@ -4733,6 +4733,19 @@ stilts tcat in='rA.csv rB.csv rC.csv' ifmt=csv \
     Only the columns RA, DEC and FLUX are output; any other columns 
     are discarded.  The input tables don't need to have identical forms
     to each other, but each must have at least an RA, DEC and FLUX column.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in=vizier.xml multi=true
+            icmd='keepcols "&ucd.prefix;RECORD &ucd.prefix;POS_EQ_RA_MAIN &ucd.prefix;POS_EQ_DEC_MAIN"'
+            uloccol=TID out=all.csv
+</verbatim></dt>
+<dd><p>This processes a VOTable file which may have multiple TABLEs in it,
+    but for which each of the tables is known to have columns with the
+    UCDs RECORD, POS_EQ_RA_MAIN and POS_EQ_DEC_MAIN (this is typical of
+    VOTables retrieved from CDS's VizieR service).
+    It retains only those columns from each table and writes the result
+    as a single concatenated table to a CSV file.
     </p></dd>
 
 </dl>
@@ -5409,6 +5422,53 @@ For more individual control, use the
 
 <p>Here are some examples of using <code>tmulti</code>:
 <dl>
+
+<dt><verbatim>
+stilts tmulti ifmt=ascii in=t1.txt in=t2.txt in=t3.txt
+              ofmt=fits out=tables.fits
+</verbatim></dt>
+<dd><p>Takes the three named ASCII format tables and writes them into a
+    multi-extension FITS file, as three separate BINTABLE HDUs.
+    These tables do not need to be of the same shape or otherwise similar.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmulti ifmt=ascii in="t1.txt t2.txt t3.txt"
+              ofmt=fits out=tables.fits
+</verbatim></dt>
+<dd><p>Does exactly the same as the previous example.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmulti ifmt=ascii in=&indirection.char;inlist.lis
+              ofmt=fits out=tables.fits
+</verbatim></dt>
+<dd><p>This will have the same effect as the previous two examples if a
+    file name "inlist.lis" in the current directory contains three lines,
+    "t1.txt", "t2.txt" and "t3.txt".
+    </p></dd>
+
+<dt><verbatim>
+stilts tmulti in=extract.fits multi=true out=extract.vot
+</verbatim></dt>
+<dd><p>This takes the table extensions from a multi-extension FITS file
+    and writes them out as a multi-TABLE VOTable document.
+    The <code>multi=true</code> setting is required, since this means
+    that all the tables from the input file are used as input;
+    if it was set false, only the first table HDU from the input file
+    would be used.
+    </p></dd>
+
+<dt><verbatim>
+stilts tmulti in=extract.fits multi=true out=extract.vot
+              icmd='badval -999 *MAG'
+</verbatim></dt>
+<dd><p>Does the same as the previous example, but additionally replaces
+    with a blank value occurrences of the value "-999" in columns
+    whose name ends with "MAG" in any of the input tables before
+    copying them.
+    </p></dd>
+
 </dl>
 </p>
 </subsubsect>
