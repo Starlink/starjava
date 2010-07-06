@@ -5,9 +5,10 @@ import java.io.OutputStream;
 
 /**
  * Interface for table output handlers that can write multiple tables to
- * the same stream.  It should be possible in principle (and preferably
+ * the same stream.  It should be possible in principle (and ideally
  * in practice using a corresponding input handler) to recover these as
  * an array of distinct tables by reading the result later.
+ * It is not in general expected that the tables have similar characteristics.
  *
  * @author   Mark Taylor
  * @since    1 Jul 2010
