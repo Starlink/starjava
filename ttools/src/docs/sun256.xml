@@ -55,6 +55,8 @@
   <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tmatchn-summary SYSTEM 'tmatchn-summary.xml'>
+  <!ENTITY tmulti-summary SYSTEM 'tmulti-summary.xml'>
+  <!ENTITY tmultin-summary SYSTEM 'tmultin-summary.xml'>
   <!ENTITY tpipe-summary SYSTEM 'tpipe-summary.xml'>
   <!ENTITY tskymatch2-summary SYSTEM 'tskymatch2-summary.xml'>
   <!ENTITY votcopy-summary SYSTEM 'votcopy-summary.xml'>
@@ -172,6 +174,8 @@ same ground as the STIL and TOPCAT user documents
 <dd><p>
     <ref id="tcopy"><code>tcopy</code></ref>,
     <ref id="tpipe"><code>tpipe</code></ref>,
+    <ref id="tmulti"><code>tmulti</code></ref>,
+    <ref id="tmultin"><code>tmultin</code></ref>,
     <ref id="tcat"><code>tcat</code></ref>,
     <ref id="tcatn"><code>tcatn</code></ref>,
     <ref id="tjoin"><code>tjoin</code></ref> and
@@ -435,6 +439,8 @@ the available tasks are:
 <li><code>tmatch1</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tmatchn</code></li>
+<li><code>tmulti</code></li>
+<li><code>tmultin</code></li>
 <li><code>tpipe</code></li>
 <li><code>tskymatch2</code></li>
 <li><code>votcopy</code></li>
@@ -1695,6 +1701,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
 <p>The generic table commands in STILTS 
 (currently <ref id="tpipe"><code>tpipe</code></ref>,
            <ref id="tcopy"><code>tcopy</code></ref>,
+           <ref id="tmulti"><code>tmulti</code></ref>,
+           <ref id="tmultin"><code>tmultin</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>,
            <ref id="tcatn"><code>tcatn</code></ref>,
            <ref id="tcube"><code>tcube</code></ref>,
@@ -1734,6 +1742,10 @@ future, and it is possible to install new ones at runtime - see
 the <docxref doc="sun252">STIL documentation</docxref> for details.
 </p>
 
+<p>Some formats can be used to hold multiple tables in a single file,
+and others can only hold a single table per file.
+</p>
+
 <subsubsect id="inFormats">
 <subhead><title>Input Formats</title></subhead>
 
@@ -1745,7 +1757,8 @@ The following list gives the values usually allowed for this
 
 <dt><code>fits</code></dt>
 <dd><p>FITS format - FITS binary or ASCII tables can be read.
-    By default the first table HDU in the file will used, but this can
+    For commands which take a single input table, by default the 
+    first table HDU in the file will used, but this can
     be altered by supplying the HDU index after a '#' sign, 
     so "table.fits#3" means the third HDU extension.
     </p></dd>
@@ -1755,7 +1768,7 @@ The following list gives the values usually allowed for this
     a BINTABLE extension which contains a single row, each cell of the
     row containing a whole column of the table it represents.
     This has different performance characteristics from normal FITS tables;
-    in particular it may be considerably efficient for very large, and
+    in particular it may be considerably more efficient for very large, and
     especially very wide tables where not all of the columns are required
     at any one time.
     Only available for uncompressed files on disk.
@@ -1764,9 +1777,9 @@ The following list gives the values usually allowed for this
 <dt><code>votable</code></dt>
 <dd><p>VOTable format - any legal version 1.0, 1.1 or 1.2 format 
     VOTable documents, and many illegal ones, can be read.
-    By default the first <code>TABLE</code> element is used,
-    but this can be altered
-    by supplying the 0-based index after a '<code>#</code>' sign, 
+    For commands which take a single input table, by default the first
+    <code>TABLE</code> element in the document is used, but this can be
+    altered by supplying the 0-based index after a '<code>#</code>' sign, 
     so "table.xml#4" means the fifth <code>TABLE</code> element in the document.
     </p></dd>
 
@@ -1827,12 +1840,13 @@ Matching is case-insensitive.
 
 <dt><code>fits-plus</code></dt>
 <dd><p>FITS file; primary HDU contains a VOTable representation
-    of the metadata, first extension contains a FITS binary table
-    (behaves the same as <code>fits-basic</code> for most purposes)</p></dd>
+    of the metadata, subsequent extensions contain one or more 
+    FITS binary tables (behaves the same as <code>fits-basic</code>
+    for most purposes)</p></dd>
 
 <dt><code>fits-basic</code></dt>
-<dd><p>FITS file; primary HDU is data-less, first extension
-    contains a FITS binary table</p></dd>
+<dd><p>FITS file; primary HDU is data-less, subsequent extensions
+    contain a FITS binary table</p></dd>
 
 <dt><code>colfits-plus</code></dt>
 <dd><p>FITS file containing a BINTABLE with a single row; each cell of
@@ -1918,7 +1932,7 @@ by looking at the extension of the output filename you have specified.
 <subhead><title>Table Pipelines</title></subhead>
 
 <p>Several of the tasks available in STILTS take one or more input tables,
-do something or other with them, and produce an output table.
+do something or other with them, and produce one or more output tables.
 This is a pretty obvious way to go about things, and in the most
 straightforward case that's exactly what happens: you name one
 or more input tables,
@@ -3637,6 +3651,12 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tpipe" plaintextref="yes"><code>tpipe</code></ref>:
         &tpipe-purpose;
         </li>
+    <li><ref id="tmulti" plaintextref="yes"><code>tmulti</code></ref>:
+        &tmulti-purpose;
+        </li>
+    <li><ref id="tmultin" plaintextref="yes"><code>tmultin</code></ref>:
+        &tmultin-purpose;
+        </li>
     <li><ref id="tcat" plaintextref="yes"><code>tcat</code></ref>:
         &tcat-purpose;
         </li>
@@ -4629,9 +4649,10 @@ an unlimited number of tables together to produce an output table of
 unlimited length, without large memory requirements.
 </p>
 
-<p>If you have heterogeneous tables, in different formats of
+<p>If you have heterogeneous tables, in different formats or
 requiring different preprocessing steps from each other before
-they can be concatenated, use <code><ref id="tcatn">tcatn</ref></code>.
+they can be concatenated, use <code><ref id="tcatn">tcatn</ref></code>
+instead.
 </p>
 
 &tcat-summary;
@@ -4666,16 +4687,38 @@ stilts tcat ifmt=ascii in=&indirection.char;inlist out=table.txt
 
 <dt><verbatim>
 stilts tcat in=r368776.fits#1 in=r368776#2 in=r368776.fits#3 in=r368776.fits#4
-            out=r368776_all.fits icmd=progress seqcol=ID
+            out=r368776_all.fits
 </verbatim></dt>
 <dd><p>Concatenates the contents of four tables (the first four extension HDUs)
     from a multi-extension FITS file to produce a single FITS table.
-    Progress through each of the input files is reported to the console.
-    An additional column "ID" will be appended to the output which 
-    contains 1 for all the rows from the first input table, 2 for the 
-    rows from the second one and so on.
     Many Unix shells (csh, bash) will allow you to list the input files
     using the following shorthand: "<code>in=r368776.fits#{1,2,3,4}</code>".
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in=r368776.fits multi=true out=r368776_all.fits
+</verbatim></dt>
+<dd><p>Concatenates all the tables in the named file together.
+    Setting <code>multi=true</code> means that instead of picking the first
+    table from each named <code>in</code> table, all tables will be selected.
+    So, if the input FITS file in this example has just four table HDUs,
+    then this example does exactly the same as the previous one,
+    but with less typing.
+    The same thing works with multi-TABLE VOTable documents, but most other
+    file formats (CSV etc) do not have the facility for storing multiple
+    tables in a single file.
+    </p></dd>
+
+<dt><verbatim>
+stilts tcat in=r368776.fits multi=true out=r368776_all.fits
+            icmd=progress seqcol=ID
+</verbatim></dt>
+<dd><p>Does the same as the previous example with a couple of additions.
+    Firstly, progress through each of the input files will be reported
+    to the console.
+    Secondly, an additional column "ID" will be appended to the output which 
+    contains 1 for all the rows from the first input table, 2 for the 
+    rows from the second one and so on.
     </p></dd>
 
 <dt><verbatim>
@@ -5343,6 +5386,62 @@ stilts tmatchn multimode=group nin=3 matcher=skyerr params=8 \
 
 </subsect>
 
+<subsect id="tmulti" tocleaf="yes">
+<subhead><title><code>tmulti</code>: &tmulti-purpose;</title></subhead>
+
+<p><code>tmulti</code> takes multiple input tables and writes them as
+separate tables to a single output container file.
+The container file must be of some format which can contain more than
+one table, for instance a FITS file (which can contain multiple extensions)
+or a VOTable document (which can contain multiple TABLE elements).
+Filtering may be performed on the tables prior to writing them.
+It is not necessary that all the tables are similar 
+(e.g. that they all have the same type and number of columns),
+but the same processing commands will be applied to all of them.
+For more individual control, use the 
+<ref id="tmultin"><code>tmultin</code></ref> task.
+</p>
+
+&tmulti-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tmulti</code>:
+<dl>
+</dl>
+</p>
+</subsubsect>
+
+</subsect>
+
+<subsect id="tmultin" tocleaf="yes">
+<subhead><title><code>tmultin</code>: &tmultin-purpose;</title></subhead>
+
+<p><code>tmultin</code> takes multiple input tables and writes them
+to a single output container file.  
+The container file must be of some format which can contain more than
+one table, for instance a FITS file (which can contain multiple extensions)
+or a VOTable document (which can contain multiple TABLE elements).
+Individual filtering may be performed on the tables prior to writing them,
+and their formats may be specified individually.
+If you want to apply the same pre-processing to all the input tables,
+you may find the 
+<ref id="tmulti"><code>tmulti</code></ref> command more convenient.
+</p>
+
+&tmultin-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of using <code>tmultin</code>:
+<dl>
+</dl>
+</p>
+</subsubsect>
+
+</subsect>
 
 <subsect id="tpipe" tocleaf="yes">
 <subhead><title><code>tpipe</code>: &tpipe-purpose;</title></subhead>
@@ -7121,6 +7220,11 @@ but my thanks are especially due to the following:
         absence of non-numeric columns.</li>
     <li>Recognise unofficial column type "<code>long</code>" in IPAC format
         tables.</li>
+    <li>New multi-table output tasks introduced,
+        <code>tmulti</code> and <code>tmultin</code>.</li>
+    <li>New <code>multi</code> parameter introduced for <code>tcat</code>
+        and <code>tmulti</code> tasks to pick up all tables in a container
+        file (e.g. Multi-Extension FITS or multi-TABLE VOTable).</li>
     </ul>
     </p></dd>
 
