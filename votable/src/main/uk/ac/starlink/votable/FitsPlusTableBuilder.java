@@ -12,6 +12,7 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
+import nom.tam.util.RandomAccess;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -20,6 +21,7 @@ import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -51,7 +53,7 @@ import uk.ac.starlink.util.IOUtils;
  * @since    27 Aug 2004
  * @see      FitsPlusTableWriter
  */
-public class FitsPlusTableBuilder implements TableBuilder {
+public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -93,72 +95,97 @@ public class FitsPlusTableBuilder implements TableBuilder {
                 throw new TableFormatException( "No BINTABLE HDU found" );
             }
 
-            /* Check that the FIELD elements look consistent with the
-             * FITS data.  If not, the FITS file has probably been 
-             * messed about with somehow, and attempting to interpret this
-             * file as FITS-plus is probably a bad idea. */
-            /* The implementation of this test is a bit desperate. 
-             * It is doing some of the same work as the consistency 
-             * adjustment below, but trying to be more stringent.  
-             * It tries to avoid the issue noted below concerning strings 
-             * and characters - but I don't remember the details of what 
-             * that was :-(.  This part was written later. */
-            FieldElement[] fields = tabel.getFields();
-            if ( fields.length != starTable.getColumnCount() ) {
-                throw new TableFormatException( "FITS/VOTable metadata mismatch"
-                                              + " - column counts differ" );
-            }
-            for ( int ic = 0; ic < fields.length; ic++ ) {
-                Class fclazz = starTable.getColumnInfo( ic ).getContentClass();
-                Class vclazz = fields[ ic ].getDecoder().getContentClass();
-                if ( fclazz.equals( vclazz )
-                     || ( ( fclazz.equals( String.class ) ||
-                            fclazz.equals( Character.class ) ||
-                            fclazz.equals( char[].class ) )
-                       && ( vclazz.equals( String.class ) ||
-                            vclazz.equals( Character.class ) ||
-                            vclazz.equals( char[].class ) ) ) ) {
-                    // ok
-                }
-                else {
-                    throw new TableFormatException( "FITS/VOTable metadata "
-                                                  + "mismatch"
-                                                  + " - column types differ" );
-                }
-            }
-
-            /* Turn it into a TabularData element associated it with its
-             * TABLE DOM element as if the DOM builder had found the table
-             * data in a DATA element within the TABLE element. */
-            tabel.setData( new TableBodies.StarTableTabularData( starTable ) );
-
-            /* Now create and return a StarTable based on the TABLE element; 
-             * its metadata comes from the VOTable, but its data comes from 
-             * the FITS table we've just read. */
-            VOStarTable startab = new VOStarTable( tabel );
-
-            /* Ensure column type consistency.  There can occasionally by 
-             * some nasty issues with Character/String types. */
-            int ncol = starTable.getColumnCount();
-            assert ncol == startab.getColumnCount();
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                ColumnInfo fInfo = starTable.getColumnInfo( icol );
-                ColumnInfo vInfo = startab.getColumnInfo( icol );
-                if ( ! vInfo.getContentClass()
-                            .isAssignableFrom( fInfo.getContentClass() ) ) {
-                    vInfo.setContentClass( fInfo.getContentClass() );
-                }
-            }
-
-            /* Return the table with FITS data and VOTable metadata. */
-            return startab;
+            /* Return a StarTable with data from the BINTABLE but metadata
+             * from the VOTable header. */
+            return createFitsPlusTable( tabel, starTable );
         }
         catch ( FitsException e ) {
             throw new TableFormatException( e.getMessage(), e );
         }
-        catch ( NullPointerException e ) {
+        catch ( NullPointerException e ) {  // don't like this
             throw new TableFormatException( "Table not quite in " +
                                             "fits-plus format", e );
+        }
+    }
+
+    public StarTable[] makeStarTables( DataSource datsrc,
+                                       StoragePolicy storagePolicy)
+            throws IOException {
+
+        /* If there is a position, use makeStarTable.  Otherwise, we want
+         * all the tables. */
+        String srcpos = datsrc.getPosition();
+        if ( srcpos != null && srcpos.trim().length() > 0 ) {
+            return new StarTable[] { makeStarTable( datsrc, false,
+                                                    storagePolicy ) };
+        }
+
+        /* See if this looks like a fits-plus table. */
+        if ( ! isMagic( datsrc.getIntro() ) ) {
+            throw new TableFormatException(
+                "Doesn't look like a FITS-plus file" );
+        }
+
+        /* Get an input stream. */
+        ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc );
+        try {
+
+            /* Read the metadata from the primary HDU. */
+            long[] posptr = new long[ 1 ]; 
+            TableElement[] tabEls = readMetadata( in, posptr );
+            long pos = posptr[ 0 ];
+            int nTable = tabEls.length;
+            StarTable[] outTables = new StarTable[ nTable ];
+
+            /* Read each table HDU in turn. */
+            for ( int itab = 0; itab < nTable; itab++ ) {
+
+                /* Make sure we have a usable stream positioned at the start
+                 * of the right HDU. */
+                if ( in == null ) {
+                    in = FitsConstants.getInputStreamStart( datsrc );
+                    if ( pos > 0 ) {
+                        if ( in instanceof RandomAccess ) {
+                            ((RandomAccess) in).seek( pos );
+                        }
+                        else {
+                            IOUtils.skipBytes( in, pos );
+                        }
+                    }
+                }
+
+                /* Read the HDU header. */
+                Header hdr = new Header();
+                int headsize = FitsConstants.readHeader( hdr, in );
+                long datasize = FitsConstants.getDataSize( hdr );
+                long datpos = pos + headsize;
+                if ( ! "BINTABLE".equals( hdr.getStringValue( "XTENSION" ) ) ) {
+                    throw new TableFormatException( "Non-BINTABLE at ext #"
+                                                  + itab + " - not FITS-plus" );
+                }
+
+                /* Read the BINTABLE. */
+                final StarTable dataTable;
+                if ( in instanceof RandomAccess ) {
+                    dataTable = BintableStarTable
+                               .makeRandomStarTable( hdr, (RandomAccess) in );
+                    in = null;
+                }
+                else {
+                    dataTable = BintableStarTable
+                               .makeSequentialStarTable( hdr, datsrc, datpos );
+                }
+
+                /* Combine the data from the BINTABLE with the header from
+                 * the VOTable to create an output table. */
+                outTables[ itab ] =
+                    createFitsPlusTable( tabEls[ itab ], dataTable );
+                pos += headsize + datasize;
+            }
+            return outTables;
+        }
+        catch ( FitsException e ) {
+            throw new TableFormatException( e.getMessage(), e );
         }
     }
 
@@ -333,6 +360,78 @@ public class FitsPlusTableBuilder implements TableBuilder {
                                               + pos + " (not a number)", e );
             }
         }
+    }
+
+    /**
+     * Combines the metadata from a VOTable TABLE element and the data
+     * from a corresponding FITS BINTABLE HDU to construct a StarTable.
+     * If the two don't seem to match sufficiently, an error may be thrown.
+     *
+     * @param  tabEl   metadata-bearing TABLE element
+     * @param  dataTable  data-bearing StarTable
+     * @return  combined table
+     */
+    private static StarTable createFitsPlusTable( TableElement tabEl,
+                                                  StarTable dataTable )
+            throws IOException {
+
+        /* Check that the FIELD elements look consistent with the
+         * FITS data.  If not, the FITS file has probably been 
+         * messed about with somehow, and attempting to interpret this
+         * file as FITS-plus is probably a bad idea. */
+        /* The implementation of this test is a bit desperate. 
+         * It is doing some of the same work as the consistency 
+         * adjustment below, but trying to be more stringent.  
+         * It tries to avoid the issue noted below concerning strings 
+         * and characters - but I don't remember the details of what 
+         * that was :-(.  This part was written later. */
+        FieldElement[] fields = tabEl.getFields();
+        if ( fields.length != dataTable.getColumnCount() ) {
+            throw new TableFormatException( "FITS/VOTable metadata mismatch"
+                                          + " - column counts differ" );
+        }
+        for ( int ic = 0; ic < fields.length; ic++ ) {
+            Class fclazz = dataTable.getColumnInfo( ic ).getContentClass();
+            Class vclazz = fields[ ic ].getDecoder().getContentClass();
+            if ( fclazz.equals( vclazz )
+                 || ( ( fclazz.equals( String.class ) ||
+                        fclazz.equals( Character.class ) ||
+                        fclazz.equals( char[].class ) )
+                   && ( vclazz.equals( String.class ) ||
+                        vclazz.equals( Character.class ) ||
+                        vclazz.equals( char[].class ) ) ) ) {
+                // ok
+            }
+            else {
+                throw new TableFormatException( "FITS/VOTable metadata "
+                                              + "mismatch"
+                                              + " - column types differ" );
+            }
+        }
+
+        /* Turn it into a TabularData element associated it with its
+         * TABLE DOM element as if the DOM builder had found the table
+         * data in a DATA element within the TABLE element. */
+        tabEl.setData( new TableBodies.StarTableTabularData( dataTable ) );
+
+        /* Now create and return a StarTable based on the TABLE element; 
+         * its metadata comes from the VOTable, but its data comes from 
+         * the FITS table we've just read. */
+        VOStarTable outTable = new VOStarTable( tabEl );
+
+        /* Ensure column type consistency.  There can occasionally by 
+         * some nasty issues with Character/String types. */
+        int ncol = dataTable.getColumnCount();
+        assert ncol == outTable.getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo fInfo = dataTable.getColumnInfo( icol );
+            ColumnInfo vInfo = outTable.getColumnInfo( icol );
+            if ( ! vInfo.getContentClass()
+                        .isAssignableFrom( fInfo.getContentClass() ) ) {
+                vInfo.setContentClass( fInfo.getContentClass() );
+            }
+        }
+        return outTable;
     }
 
     /**
