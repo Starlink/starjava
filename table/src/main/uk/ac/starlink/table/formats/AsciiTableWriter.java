@@ -14,10 +14,10 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor (Starlink)
  * @since    29 Mar 2004
  */
-public class AsciiTableWriter extends TextTableWriter {
+public class AsciiTableWriter extends AbstractTextTableWriter {
 
     public AsciiTableWriter() {
-        setWriteParameters( false );
+        super( false );
     }
 
     protected String formatValue( Object val, ValueInfo vinfo, int width ) {
@@ -42,7 +42,6 @@ public class AsciiTableWriter extends TextTableWriter {
                        ival != ((Number) nval0).intValue() ) ) {
                     fval = val.toString();
                 }
-                    
             }
             catch ( RuntimeException e ) {
                 fval = val.toString();
@@ -110,6 +109,13 @@ public class AsciiTableWriter extends TextTableWriter {
      */
     public String getFormatName() {
         return "ascii";
+    }
+
+    /**
+     * Returns true for if the location ends with "<code>.txt</code>".
+     */
+    public boolean looksLikeFile( String location ) {
+        return location.endsWith( ".txt" );
     }
 
     public int getMaxWidth() {
