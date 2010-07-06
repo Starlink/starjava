@@ -3,10 +3,12 @@ package uk.ac.starlink.table.formats;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StreamStarTableWriter;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -14,14 +16,16 @@ import uk.ac.starlink.table.Tables;
  * Depending on the value of the <code>standalone</code> attribute, 
  * the output may either be a complete HTML document or just a 
  * &lt;TABLE&gt; element suitable for inserting into an existing document.
- * The output HTML is intended to conform to HTML 3.2.
+ * The output HTML is intended to conform to HTML 3.2 or 4.01,
+ * depending on options.
  *
  * @author   Mark Taylor (Starlink)
  * @see      <a href="http://www.w3.org/TR/REC-html32#table">HTML 3.2</a>
  * @see      <a href="http://www.w3.org/TR/html401/struct/tables.html"
  *              >HTML 4.01</a>
  */
-public class HTMLTableWriter extends StreamStarTableWriter {
+public class HTMLTableWriter extends StreamStarTableWriter
+                             implements MultiStarTableWriter {
 
     private boolean standalone_;
     private boolean useRowGroups_;
@@ -74,7 +78,33 @@ public class HTMLTableWriter extends StreamStarTableWriter {
                location.endsWith( ".htm" );
     }
 
-    public void writeStarTable( StarTable table, OutputStream ostrm )
+    public void writeStarTable( StarTable table, OutputStream out )
+            throws IOException {
+        if ( standalone_ ) {
+            printHeader( out, table );
+        }
+        writeTableElement( table, out );
+        if ( standalone_ ) {
+            printFooter( out );
+        }
+    }
+
+    public void writeStarTables( TableSequence tableSeq, OutputStream out )
+            throws IOException {
+        if ( standalone_ ) {
+            printHeader( out, null );
+        }
+        while ( tableSeq.hasNextTable() ) {
+            printLine( out, "<P>" );
+            writeTableElement( tableSeq.nextTable(), out );
+            printLine( out, "</P>" );
+        }
+        if ( standalone_ ) {
+            printFooter( out );
+        }
+    }
+
+    private void writeTableElement( StarTable table, OutputStream ostrm )
             throws IOException {
 
         /* Get an iterator over the table data. */
@@ -82,9 +112,6 @@ public class HTMLTableWriter extends StreamStarTableWriter {
 
         /* Output table header. */
         try {
-            if ( standalone_ ) {
-                printHeader( ostrm, table );
-            }
             printLine( ostrm, "<TABLE BORDER='1'>" );
             String tname = table.getName();
             if ( tname != null ) {
@@ -158,9 +185,6 @@ public class HTMLTableWriter extends StreamStarTableWriter {
 
             /* Finish up. */
             printLine( ostrm, "</TABLE>" );
-            if ( standalone_ ) {
-                printFooter( ostrm );
-            }
         }
         finally {
             rseq.close();
@@ -231,7 +255,8 @@ public class HTMLTableWriter extends StreamStarTableWriter {
      * modify the form of output documents.
      *
      * @param  ostrm  output stream
-     * @param  table  table for which header is required
+     * @param  table  table for which header is required; may be null
+     *         for multi-table output
      */
     protected void printHeader( OutputStream ostrm, StarTable table ) 
             throws IOException {
@@ -241,9 +266,10 @@ public class HTMLTableWriter extends StreamStarTableWriter {
         String declaration = "<!DOCTYPE HTML PUBLIC \"" + publicId + "\">";
         printLine( ostrm, declaration );
         printLine( ostrm, "<HTML>" );
-        String tname = table.getName();
-        if ( tname != null ) {
-            printLine( ostrm, "<HEAD><TITLE>Table " + 
+        String tname = table == null ? null
+                                     : table.getName();
+        if ( tname != null && tname.trim().length() > 0 ) {
+            printLine( ostrm, "<HEAD><TITLE>Table " +
                               escape( tname ) +
                               "</TITLE></HEAD>" );
         }
