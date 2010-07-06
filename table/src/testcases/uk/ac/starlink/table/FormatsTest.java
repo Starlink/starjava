@@ -1,7 +1,10 @@
 package uk.ac.starlink.table;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -423,7 +426,7 @@ public class FormatsTest extends TableCase {
     }
 
     public void exerciseReadWrite( StarTableWriter writer,
-                                   TableBuilder reader, String method )
+                                   TableBuilder reader, String equalMethod )
             throws IOException {
         File loc = getTempFile( "trw." + writer.getFormatName().toLowerCase() );
         StarTable t1 = table;
@@ -449,26 +452,71 @@ public class FormatsTest extends TableCase {
                     reader.makeStarTable( datsrc, true,
                                           StoragePolicy.PREFER_MEMORY );;
                 checkStarTable( t2 );
-                if ( "fits".equals( method ) ) {
-                    assertFitsTableEquals( t1, t2, false, isSeq );
-                }
-                else if ( "fitsv".equals( method ) ) {
-                    assertFitsTableEquals( t1, t2, true, isSeq );
-                }
-                else if ( "votable".equals( method ) ) {
-                    assertVOTableEquals( t1, t2, false );
-                }
-                else if ( "text".equals( method ) ) {
-                    assertTextTableEquals( t1, t2 );
-                }
-                else if ( "exact".equals( method ) ) {
-                    assertTableEquals( t1, t2 );
-                }
-                else if ( "none".equals( method ) ) {
-                }
-                else {
-                    fail();
-                }
+                assertTableEqualsMethod( t1, t2, equalMethod, isSeq );
+            }
+        }
+    }
+
+    private void assertTableEqualsMethod( StarTable t1, StarTable t2,
+                                          String equalMethod, boolean isSeq )
+            throws IOException {
+        if ( "fits".equals( equalMethod ) ) {
+            assertFitsTableEquals( t1, t2, false, isSeq );
+        }
+        else if ( "fitsv".equals( equalMethod ) ) {
+            assertFitsTableEquals( t1, t2, true, isSeq );
+        }
+        else if ( "votable".equals( equalMethod ) ) {
+            assertVOTableEquals( t1, t2, false );
+        }
+        else if ( "text".equals( equalMethod ) ) {
+            assertTextTableEquals( t1, t2 );
+        }
+        else if ( "exact".equals( equalMethod ) ) {
+            assertTableEquals( t1, t2 );
+        }
+        else if ( "none".equals( equalMethod ) ) {
+        }
+        else {
+            fail();
+        }
+    }
+
+    public void testMultiReadWrite() throws IOException {
+        exerciseMultiReadWrite( new FitsTableWriter(),
+                                new FitsTableBuilder(), "fits" );
+        exerciseMultiReadWrite( new VOTableWriter(),
+                                new VOTableBuilder(), "votable" );
+        exerciseMultiReadWrite( new FitsPlusTableWriter(),
+                                new FitsPlusTableBuilder(), "fits" );
+    }
+
+    public void exerciseMultiReadWrite( MultiStarTableWriter writer,
+                                        MultiTableBuilder reader,
+                                        String equalMethod )
+            throws IOException {
+        File loc = getTempFile( "mtrw."
+                              + writer.getFormatName().toLowerCase() );
+        StarTable t1 = table;
+        AutoStarTable t2 = new AutoStarTable( 10 );
+        t2.setName( "Other" );
+        t2.addColumn( new ColumnInfo( "ci", Integer.class, null ) );
+        t2.addColumn( new ColumnInfo( "cs", String.class, null ) );
+        StarTable[] touts = new StarTable[] { t1, t2, t2, };
+
+        OutputStream out =
+            new BufferedOutputStream( new FileOutputStream( loc ) );
+        writer.writeStarTables( Tables.arrayTableSequence( touts ), out );
+        out.close();
+
+        StarTable[] tins =
+            reader.makeStarTables( new FileDataSource( loc ),
+                                   StoragePolicy.PREFER_MEMORY );
+        assertEquals( touts.length, tins.length );
+        for ( int jseq = 0; jseq < 2; jseq++ ) {
+            for ( int i = 0; i < touts.length; i++ ) {
+                assertTableEqualsMethod( touts[ i ], tins[ i ], equalMethod,
+                                         jseq == 0 );
             }
         }
     }
