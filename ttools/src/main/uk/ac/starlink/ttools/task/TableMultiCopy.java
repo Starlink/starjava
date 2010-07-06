@@ -26,6 +26,8 @@ public class TableMultiCopy extends MultiOutputTask {
     public TableMultiCopy( String purpose, TablesInput tablesInput ) {
         super( purpose );
         tablesInput_ = tablesInput;
+        getParameterList().addAll( 0, Arrays.asList( tablesInput
+                                                    .getParameters() ) );
     }
 
     protected TableSequence createTableSequence( Environment env )
