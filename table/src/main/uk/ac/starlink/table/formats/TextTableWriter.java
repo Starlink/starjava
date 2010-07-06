@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StreamStarTableWriter;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -20,7 +22,8 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class TextTableWriter extends StreamStarTableWriter {
+public class TextTableWriter extends StreamStarTableWriter
+                             implements MultiStarTableWriter {
 
     private boolean writeParams = true;
 
@@ -60,6 +63,16 @@ public class TextTableWriter extends StreamStarTableWriter {
         }
         finally {
             rseq.close();
+        }
+    }
+
+    public void writeStarTables( TableSequence tableSeq, OutputStream out )
+            throws IOException {
+        while ( tableSeq.hasNextTable() ) {
+            writeStarTable( tableSeq.nextTable(), out );
+            if ( tableSeq.hasNextTable() ) {
+                out.write( '\n' );
+            }
         }
     }
 
