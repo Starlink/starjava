@@ -5497,6 +5497,30 @@ you may find the
 
 <p>Here are some examples of using <code>tmultin</code>:
 <dl>
+
+<dt><verbatim>
+stilts tmultin nin=3 in1=t1.xml ifmt1=votable
+                     in2=t2.fit ifmt2=fits
+                     in3=t3.txt ifmt3=ascii
+                     out=tables.fits
+</verbatim></dt>
+<dd><p>Takes three input tables in different formats, and
+writes them out as a single multi-extension FITS file.
+</p></dd>
+
+<dt><verbatim>
+stilts tmultin nin=3 in1=data.fits icmd1='every 10;   head 100'
+                     in2=data.fits icmd2='every 100;  head 100'
+                     in3=data.fits icmd3='every 1000; head 100'
+                     out=samples.xml ofmt=votable
+</verbatim></dt>
+<dd><p>Writes three hundred-row tables as separate TABLE elements in
+a single output VOTable document.
+Each of the output tables is a sample from the same input table,
+but sampled differently; the first is every tenth row, the second
+every hundredth, and the third every thousandth.
+</p></dd>
+
 </dl>
 </p>
 </subsubsect>
