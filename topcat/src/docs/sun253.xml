@@ -21,6 +21,10 @@
   <!ENTITY param.prefix 'param$'>
 
   <!-- Define illustrations -->
+  <!-- Note screenshots have mostly been taken using J2SE1.4, which uses
+   !   a different visual theme from the 1.5 default.
+   !   Use -Dswing.metalTheme=steel when taking screenshots for visual
+   !   consistency. -->
   <!ENTITY figs '../figures/'>
   <!ENTITY FIG.ControlWindow '&figs;ControlWindow.gif'>
   <!ENTITY FIG.ColumnInfoWindow '&figs;ColumnInfoWindow.gif'>
