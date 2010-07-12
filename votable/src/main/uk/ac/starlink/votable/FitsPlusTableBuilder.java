@@ -169,11 +169,11 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                 if ( in instanceof RandomAccess ) {
                     dataTable = BintableStarTable
                                .makeRandomStarTable( hdr, (RandomAccess) in );
-                    in = null;
                 }
                 else {
                     dataTable = BintableStarTable
                                .makeSequentialStarTable( hdr, datsrc, datpos );
+                    in = null;
                 }
 
                 /* Combine the data from the BINTABLE with the header from
