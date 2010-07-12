@@ -44,14 +44,25 @@ public class MultiTest extends TestCase {
         }
         out.close();
 
+        FitsTableBuilder builder = new FitsTableBuilder();
         StarTable[] inTables =
-            new FitsTableBuilder()
+            builder
            .makeStarTables( ioer.createDataSource(),
                             StoragePolicy.PREFER_MEMORY );
         assertEquals( outTables.length, nt );
         for ( int i = nt - 1; i >= 0; i-- ) {
             assertTableEquals( outTables[ i ], inTables[ i ] );
         }
+
+        for ( int i = 0; i < nt; i++ ) {
+            DataSource datsrc = ioer.createDataSource();
+            datsrc.setPosition( Integer.toString( i + 1 ) );
+            assertTableEquals(
+                outTables[ i ],
+                builder.makeStarTable( datsrc, false,
+                                       StoragePolicy.PREFER_MEMORY ) );
+        }
+
     }
 
     private void assertTableEquals( StarTable t1, StarTable t2 )
