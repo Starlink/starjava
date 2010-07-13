@@ -118,6 +118,10 @@ class TableTest(unittest.TestCase):
         for fmt in ['csv', 'fits', 'ascii', 'votable']:
             self.ioRoundTrip(messier, fmt)
 
+    def testMultiIO(self):
+        for fmt in ['votable', 'fits-basic', 'fits-plus']:
+            self.ioMultiRoundTrip([messier, messier.cmd_every(3)], fmt)
+
     def testModes(self):
         count = captureJavaOutput(messier.mode_count)
         ncol, nrow = map(int, re.compile(r': *(\w+)').findall(count))
@@ -144,6 +148,14 @@ class TableTest(unittest.TestCase):
         ifile = cStringIO.StringIO(ofile.getvalue())
         table2 = stilts.tread(ifile, fmt=fmt)
         self.assertEqualTable(table, table2)
+
+    def ioMultiRoundTrip(self, tables, fmt):
+        ofile = _UnclosedStringIO()
+        stilts.twrites(tables, ofile, fmt=fmt)
+        ifile = cStringIO.StringIO(ofile.getvalue())
+        tables2 = stilts.treads(ifile)
+        for otable, itable in zip(tables, tables2):
+            self.assertEqualTable(otable, itable)
 
     def assertEqualTable(self, t1, t2):
         self.assertEquals([str(col) for col in t1.columns()],

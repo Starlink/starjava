@@ -1252,6 +1252,31 @@ would write only the BMAG and VMAG columns
 for the ten rows in which VMAG is non-null with the lowest BMAG values.
 </p>
 
+<p>You can also read and write multiple tables, if you use a table
+format for which that is appropriate.
+This generally means FITS (which can store tables in multiple extensions)
+or VOTable (which can store multiple TABLE elements in one document).
+This is done using the <code>treads</code> and <code>twrites</code> functions.
+The functions look like this:
+<verbatim><![CDATA[
+   treads(location, fmt='(auto)', random=False)
+   twrites(tables, location=None, fmt='(auto)')
+]]></verbatim>
+These are similar to the <code>tread</code> and <code>twrite</code> functions,
+except that <code>treads</code> returns a list of tables rather than
+a single table, and <code>twrites</code>'s <code>tables</code> argument is
+an iterable over tables rather than a single table.
+Here is an example of reading multiple tables from a multi-extension FITS
+file, counting the rows in each, and then writing them out to a multi-TABLE
+VOTable file:
+<verbatim><![CDATA[
+   import stilts
+   tables = stilts.treads('multi.fits')
+   print([t.getRowCount() for t in tables])
+   stilts.twrites(tables, 'multi.vot', fmt='votable')
+]]></verbatim>
+</p>
+
 </subsect>
 
 <subsect id="jytable">
@@ -7309,6 +7334,8 @@ but my thanks are especially due to the following:
     <li>New <code>multi</code> parameter introduced for <code>tcat</code>
         and <code>tmulti</code> tasks to pick up all tables in a container
         file (e.g. Multi-Extension FITS or multi-TABLE VOTable).</li>
+    <li>New JyStilts functions <code>treads</code> and <code>twrites</code>
+        for multi-table I/O.</li>
     </ul>
     </p></dd>
 

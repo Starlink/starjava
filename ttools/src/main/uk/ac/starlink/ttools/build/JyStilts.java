@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.Map;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.DoubleParameter;
@@ -39,6 +41,7 @@ import uk.ac.starlink.ttools.task.InputFormatParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.InputTablesParameter;
 import uk.ac.starlink.ttools.task.MapEnvironment;
+import uk.ac.starlink.ttools.task.MultiOutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputFormatParameter;
 import uk.ac.starlink.ttools.task.OutputTableParameter;
 import uk.ac.starlink.ttools.task.OutputModeParameter;
@@ -68,13 +71,16 @@ public class JyStilts {
     private static final Class[] IMPORT_CLASSES = new Class[] {
         java.io.ByteArrayInputStream.class,
         java.io.OutputStream.class,
+        java.lang.Class.class,
         java.lang.System.class,
         java.lang.reflect.Array.class,
         java.util.ArrayList.class,
         uk.ac.starlink.table.ColumnInfo.class,
+        uk.ac.starlink.table.MultiStarTableWriter.class,
         uk.ac.starlink.table.StarTable.class,
         uk.ac.starlink.table.StarTableFactory.class,
         uk.ac.starlink.table.StarTableOutput.class,
+        uk.ac.starlink.table.TableSequence.class,
         uk.ac.starlink.table.WrapperStarTable.class,
         uk.ac.starlink.table.WrapperRowSequence.class,
         uk.ac.starlink.task.InvokeUtils.class,
@@ -301,6 +307,17 @@ public class JyStilts {
                                + "str(tuple([str(n) for n in names])))",
             "",
 
+            /* Utility to raise an error if a handler can't write multiple
+             * tables. */
+            "def _check_multi_handler(handler):",
+            "    if not " + getImportName( Class.class )
+                          + ".forName('" + MultiStarTableWriter.class.getName()
+                                         + "')"
+                          + ".isInstance(handler):",
+            "        raise TypeError('Handler %s cannot write multiple tables' "
+                                    + "% handler.getFormatName())",
+            "",
+
             /* Converts a slice into a range. */
             "def _slice_range(slice, leng):",
             "    start = slice.start",
@@ -343,6 +360,25 @@ public class JyStilts {
             "        self._file.close()",
             "    def flush(self):",
             "        self._file.flush()",
+            "",
+
+            /* TableSequence based on a python iterable. */
+            "class _JyTableSequence("
+                   + getImportName( TableSequence.class ) + "):",
+            "    def __init__(self, seq):",
+            "        self._iter = iter(seq)",
+            "        self._advance()",
+            "    def _advance(self):",
+            "        try:",
+            "            self._nxt = self._iter.next()",
+            "        except StopIteration:",
+            "            self._nxt = None",
+            "    def hasNextTable(self):",
+            "        return self._nxt is not None",
+            "    def nextTable(self):",
+            "        nxt = self._nxt",
+            "        self._advance()",
+            "        return nxt",
             "",
 
             /* DataSource based on a python file. 
@@ -665,6 +701,57 @@ public class JyStilts {
     }
 
     /**
+     * Generates python source defining the multi-table read function.
+     *
+     * @param  fname  name of function
+     * @return  python source code lines
+     */
+    private String[] defReads( String fname ) {
+        List lineList = new ArrayList();
+        lineList.add( "def " + fname
+                             + "(location, fmt='(auto)', random=False):" );
+        lineList.add( "    '''Reads multiple tables from a filename, URL or "
+                        + "python file object." );
+        lineList.add( "" );
+        lineList.add( "    It only makes sense to use this function rather "
+                        + "than tread() if the" );
+        lineList.add( "    format is, or may be, one which can contain "
+                        + "multiple tables." );
+        lineList.add( "    Generally this means VOTable or FITS or one of "
+                        + "their variants." );
+        lineList.add( "" );
+        lineList.add( "    The random argument determines whether random "
+                        + "access is required" );
+        lineList.add( "    for the table." );
+        lineList.add( "    Setting it true may improve efficiency, " 
+                        + "but perhaps at the cost" );
+        lineList.add( "    of memory usage and load time for large tables." );
+        lineList.add( "" );
+        lineList.add( "    The fmt argument must be supplied if "
+                        + "the table format cannot" );
+        lineList.add( "    be auto-detected." );
+        lineList.add( "" );
+        lineList.add( "    In general supplying a filename is preferred; "
+                        + "the current implementation" );
+        lineList.add( "    may be much more expensive on memory "
+                        + "if a python file object is used." ); 
+        lineList.add( "" );
+        lineList.add( "    The result of the function is a list of JyStilts "
+                        + "table objects." );
+        lineList.add( "    '''" );
+        lineList.add( "    fact = " + getImportName( StarTableFactory.class )
+                                    + "(random)" );
+        lineList.add( "    if hasattr(location, 'read'):" );
+        lineList.add( "        datsrc = _JyDataSource(location)" );
+        lineList.add( "    else:" );
+        lineList.add( "        datsrc = " + getImportName( DataSource.class )
+                                          + ".makeDataSource(location)" );
+        lineList.add( "    tables = fact.makeStarTables(datsrc, fmt)" );
+        lineList.add( "    return map(import_star_table, tables)" );
+        return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
      * Generates python source defining the table write function.
      *
      * @param  fname  name of function
@@ -701,6 +788,55 @@ public class JyStilts {
         lineList.add( "            location = '-'" );
         lineList.add( "        sto.writeStarTable(" + tArgName
                                                     + ", location, fmt)" );
+        return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Generates python source defining the multi-table write function.
+     *
+     * @param  fname  name of function
+     * @return  python source code lines
+     */
+    private String[] defWrites( String fname ) {
+        List lineList = new ArrayList();
+        lineList.add( "def " + fname
+                             + "(tables, location=None, fmt='(auto)'):" );
+        lineList.add( "    '''Writes a sequence of tables "
+                        + "to a single container file." );
+        lineList.add( "" );
+        lineList.add( "    The tables parameter gives an iterable over "
+                        + "JyStilts table objects" );
+        lineList.add( "    The location parameter may give a filename "
+                        + "or a python file object" );
+        lineList.add( "    open for writing.  If it is not supplied, "
+                        + " standard output is used." );
+        lineList.add( "" );
+        lineList.add( "    The fmt parameter specifies output format." );
+        lineList.add( "    Note that not all formats can write multiple "
+                        + "tables;" );
+        lineList.add( "    an error will result if an attempt is made "
+                        + "to write" );
+        lineList.add( "    multiple tables to a single-table only format." );
+        String fmtInfo = new MultiOutputFormatParameter( "out" )
+                        .getExtraUsage( new MapEnvironment() );
+        lineList.addAll( Arrays.asList( prefixLines( " ", fmtInfo ) ) );
+        lineList.add( "    '''" );
+        lineList.add( "    sto = " + getImportName( StarTableOutput.class )
+                                   + "()" );
+        lineList.add( "    tseq = _JyTableSequence(tables)" );
+        lineList.add( "    if hasattr(location, 'write') and "
+                           + "hasattr(location, 'flush'):" );
+        lineList.add( "        ostrm = _JyOutputStream(location)" );
+        lineList.add( "        name = getattr(location, 'name', None)" );
+        lineList.add( "        handler = sto.getHandler(fmt, name)" );
+        lineList.add( "        _check_multi_handler(handler)" );
+        lineList.add( "        handler.writeStarTables(tseq, ostrm)" );
+        lineList.add( "    else:" );
+        lineList.add( "        if location is None:" );
+        lineList.add( "            location = '-'" );
+        lineList.add( "        handler = sto.getHandler(fmt, location)" );
+        lineList.add( "        _check_multi_handler(handler)" );
+        lineList.add( "        handler.writeStarTables(tseq, location, sto)" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }
 
@@ -1200,7 +1336,9 @@ public class JyStilts {
         writeLines( defUtils(), writer );
         writeLines( defVersionCheck(), writer );
         writeLines( defRead( "tread" ), writer );
+        writeLines( defReads( "treads" ), writer );
         writeLines( defWrite( "twrite", false ), writer );
+        writeLines( defWrites( "twrites" ), writer );
         writeLines( defFilter( "tfilter" ), writer );
 
         /* Write task wrappers. */
