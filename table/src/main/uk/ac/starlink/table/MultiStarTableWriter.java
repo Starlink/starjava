@@ -27,4 +27,20 @@ public interface MultiStarTableWriter extends StarTableWriter {
      */
     void writeStarTables( TableSequence tableSeq, OutputStream out )
            throws IOException;
+
+    /**
+     * Writes an array of StarTable objects to a given location.
+     * Implementations are free to interpret the <tt>location</tt> argument
+     * in any way appropriate for them.  Typically however the location
+     * will simply be used to get an output stream (for instance interpreting
+     * it as a filename).  In this case the <tt>sto</tt> argument should
+     * normally be used to turn <tt>location</tt> into a stream.
+     *
+     * @param  tableSeq  sequence of tables to write
+     * @param  location  destination for tables
+     * @param  sto   StarTableOutput instance
+     */
+    void writeStarTables( TableSequence tableSeq, String location,
+                          StarTableOutput sto )
+           throws IOException;
 }

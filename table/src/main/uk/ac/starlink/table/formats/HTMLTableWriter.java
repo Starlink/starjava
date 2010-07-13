@@ -1,11 +1,13 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.TableSequence;
@@ -101,6 +103,19 @@ public class HTMLTableWriter extends StreamStarTableWriter
         }
         if ( standalone_ ) {
             printFooter( out );
+        }
+    }
+
+    public void writeStarTables( TableSequence tableSeq, String location,
+                                 StarTableOutput sto ) throws IOException {
+        OutputStream out = sto.getOutputStream( location );
+        try {
+            out = new BufferedOutputStream( out );
+            writeStarTables( tableSeq, out );
+            out.flush();
+        }
+        finally {
+            out.close();
         }
     }
 

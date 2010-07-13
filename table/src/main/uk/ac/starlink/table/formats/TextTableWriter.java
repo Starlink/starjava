@@ -1,9 +1,11 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiStarTableWriter;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -49,6 +51,19 @@ public class TextTableWriter extends AbstractTextTableWriter
             if ( tableSeq.hasNextTable() ) {
                 out.write( '\n' );
             }
+        }
+    }
+
+    public void writeStarTables( TableSequence tableSeq, String location,
+                                 StarTableOutput sto ) throws IOException {
+        OutputStream out = sto.getOutputStream( location );
+        try {
+            out = new BufferedOutputStream( out );
+            writeStarTables( tableSeq, out );
+            out.flush();
+        }
+        finally {
+            out.close();
         }
     }
 

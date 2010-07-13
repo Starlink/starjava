@@ -259,6 +259,73 @@ public class StarTableOutput {
     }
 
     /**
+     * Writes an array of StarTable objects to some external storage.
+     * The format in which they are written is determined by some
+     * combination of the given output location and a format indicator.
+     * Note that not all registered output handlers are capable of
+     * writing multiple tables; an exception will be thrown if an
+     * attempt is made to write multiple tables with a handler which
+     * does not implement {@link MultiStarTableWriter}.
+     *
+     * @param   tables  the tables to output
+     * @param   location  the location at which to write the tables;
+     *          this may be a filename or URL
+     * @param  format   a string which indicates in some way what format
+     *         should be used for output.  This may be the class name of
+     *         a <tt>MultiStarTableWriter</tt> object (which may or may not be
+     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a string which matches the format name of one of the registered
+     *         <tt>MultiStarTableWriter</tt>s (first match is used,
+     *         case-insensitive, starting substrings OK)
+     *         or <tt>null</tt> or {@link #AUTO_HANDLER}
+     *         to indicate that a handler should be
+     *         selected based on the value of <tt>location</tt>.
+     */
+    public void writeStarTables( StarTable[] tables, String location,
+                                 String format )
+            throws TableFormatException, IOException {
+        StarTableWriter handler = getHandler( format, location );
+        if ( handler instanceof MultiStarTableWriter ) {
+            ((MultiStarTableWriter) handler)
+                .writeStarTables( Tables.arrayTableSequence( tables ),
+                                  location, this );
+        }
+        else if ( tables.length == 1 ) {
+            handler.writeStarTable( tables[ 0 ], location, this );
+        }
+        else {
+            throw new TableFormatException( "Output handler "
+                                          + handler.getFormatName()
+                                          + " can't write multiple tables" );
+        }
+    }
+
+    /**
+     * Writes an array of StarTables to an output stream.
+     * This convenience method wraps the stream in a BufferedOutputStream
+     * for efficiency and uses the submitted <tt>handler</tt> to perform
+     * the write, closing the stream afterwards.
+     *
+     * @param  tables  tables to write
+     * @param  out   destination stream
+     * @param  handler  output handler
+     */
+    public void writeStarTables( StarTable[] tables, OutputStream out,
+                                 MultiStarTableWriter handler )
+            throws IOException {
+        try {
+            if ( ! ( out instanceof BufferedOutputStream ) ) {
+                out = new BufferedOutputStream( out );
+            }
+            handler.writeStarTables( Tables.arrayTableSequence( tables ), out );
+            out.flush();
+        }
+        finally {
+            out.close();
+        }
+    }
+
+    /**
      * Returns a sink which allows you to write data to an output table.
      * Note that this will only work if the <code>handler</code> can write
      * the table using a single pass of the data.  If it requires multiple

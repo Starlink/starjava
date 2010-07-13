@@ -1,5 +1,6 @@
 package uk.ac.starlink.fits;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
@@ -90,6 +92,23 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
             writeTableHDU( table, createSerializer( table ), ostrm );
         }
         ostrm.flush();
+    }
+
+    /**
+     * Invokes {@link writeStarTables(uk.ac.starlink.table.TableSequence,
+                                      java.io.OutputStream)}.
+     */
+    public void writeStarTables( TableSequence tableSeq, String location,
+                                 StarTableOutput sto ) throws IOException {
+        OutputStream out = sto.getOutputStream( location );
+        try {
+            out = new BufferedOutputStream( out );
+            writeStarTables( tableSeq, out );
+            out.flush();
+        }
+        finally {
+            out.close();
+        }
     }
 
     /**
