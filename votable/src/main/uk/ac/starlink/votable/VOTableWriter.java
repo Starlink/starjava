@@ -201,7 +201,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         writePreTableXML( writer );
 
         /* Loop over all tables for output. */
-        while ( tableSeq.hasNextTable() ) {
+        for ( int itable = 0; tableSeq.hasNextTable(); itable++ ) {
             StarTable startab = tableSeq.nextTable();
 
             /* Get the format to provide a configuration object which describes
@@ -285,8 +285,12 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
                 String extension = dataFormat == DataFormat.FITS
                                  ? ".fits"
                                  : ".bin";
-                String dataname = basename + "-data" + extension;
+                String dataname =
+                    basename + "-data"
+                             + ( itable > 0 ? Integer.toString( itable ) : "" )
+                             + extension;
                 File datafile = new File( file.getParentFile(), dataname );
+                logger.info( "Writing VOTable href data at " + datafile );
                 DataOutputStream dataout =
                     new DataOutputStream( 
                         new BufferedOutputStream( 
