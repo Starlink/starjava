@@ -95,8 +95,8 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     }
 
     /**
-     * Invokes {@link writeStarTables(uk.ac.starlink.table.TableSequence,
-                                      java.io.OutputStream)}.
+     * Invokes {@link #writeStarTables(uk.ac.starlink.table.TableSequence,
+                                       java.io.OutputStream)}.
      */
     public void writeStarTables( TableSequence tableSeq, String location,
                                  StarTableOutput sto ) throws IOException {
