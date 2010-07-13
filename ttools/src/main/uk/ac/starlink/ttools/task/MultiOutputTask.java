@@ -84,12 +84,12 @@ public abstract class MultiOutputTask implements Task {
     public Executable createExecutable( Environment env )
              throws TaskException {
          final TableSequence tseq = createTableSequence( env );
-         final Destination dest = outParam_.destinationValue( env );
+         final String loc = outParam_.stringValue( env );
          String ofmt = ofmtParam_.stringValue( env );
-         StarTableOutput sto = LineTableEnvironment.getTableOutput( env );
+         final StarTableOutput sto = LineTableEnvironment.getTableOutput( env );
          StarTableWriter writer;
          try {
-             writer = sto.getHandler( ofmt, outParam_.stringValue( env ) );
+             writer = sto.getHandler( ofmt, loc );
          }
          catch ( TableFormatException e ) {
              String msg = "Unknown output format";
@@ -102,10 +102,7 @@ public abstract class MultiOutputTask implements Task {
          final MultiStarTableWriter multiWriter = (MultiStarTableWriter) writer;
          return new Executable() {
              public void execute() throws IOException {
-                 OutputStream out =
-                     new BufferedOutputStream( dest.createStream() );
-                 multiWriter.writeStarTables( tseq, out );
-                 out.close();
+                 multiWriter.writeStarTables( tseq, loc, sto );
              }
          };
     }
