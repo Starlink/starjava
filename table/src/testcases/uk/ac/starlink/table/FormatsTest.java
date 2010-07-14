@@ -72,6 +72,7 @@ public class FormatsTest extends TableCase {
 
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING );
     }
 
     private StarTable table;
