@@ -32,6 +32,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 public class ProgressBarStarTable extends WrapperStarTable {
 
     private JProgressBar progBar_;
+    private String label_;
 
     public ProgressBarStarTable( StarTable baseTable ) {
         this( baseTable, new JProgressBar() );
@@ -40,7 +41,6 @@ public class ProgressBarStarTable extends WrapperStarTable {
     public ProgressBarStarTable( StarTable baseTable, JProgressBar progBar ) {
         super( baseTable );
         setProgressBar( progBar );
-        setZero();
     }
 
     public void setProgressBar( JProgressBar progBar ) {
@@ -51,9 +51,31 @@ public class ProgressBarStarTable extends WrapperStarTable {
         return progBar_;
     }
 
+    /**
+     * Sets a label which will be visible in the progress bar when a
+     * RowSequence acquired from this table is being iterated over.
+     *
+     * @param  label  label text
+     */
+    public void setActiveLabel( String label ) {
+        label_ = label;
+        progBar_.setStringPainted( label != null && label.trim().length() > 0 );
+    }
+
+    /**
+     * Returns the text of the label which is visible in the progress bar
+     * when a RowSequence acquired from this table is active.
+     *
+     * @return  label text
+     */
+    public String getActiveLabel() {
+        return label_;
+    }
+
     public RowSequence getRowSequence() throws IOException {
         long nrow = getRowCount();
         final long every = nrow > 0 ? nrow / 200L : 256; 
+        setZero( true );
         return new WrapperRowSequence( baseTable.getRowSequence() ) {
             long counter;
             int irow;
@@ -74,13 +96,19 @@ public class ProgressBarStarTable extends WrapperStarTable {
                 return super.next();
             }
             public void close() throws IOException {
-                setZero();
+                setZero( false );
                 super.close();
             }
         };
     }
 
-    private void setZero() {
+    /**
+     * Resets the progress bar to its minimum.
+     *
+     * @param  labelOn  if true, display the active label in the progress bar;
+     *                  if false, remove it
+     */
+    private void setZero( final boolean labelOn ) {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 progBar_.setMinimum( 0 );
@@ -91,6 +119,7 @@ public class ProgressBarStarTable extends WrapperStarTable {
                 if ( determinate ) {
                     progBar_.setMaximum( (int) nrow );
                 }
+                progBar_.setString( labelOn ? label_ : null );
             }
         } );
     }
