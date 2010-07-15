@@ -119,7 +119,7 @@ public class ProgressBarStarTable extends WrapperStarTable {
                 if ( determinate ) {
                     progBar_.setMaximum( (int) nrow );
                 }
-                progBar_.setString( labelOn ? label_ : null );
+                progBar_.setString( labelOn ? label_ : "" );
             }
         } );
     }
