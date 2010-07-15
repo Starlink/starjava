@@ -222,6 +222,16 @@ public abstract class TableSaveChooser extends JPanel {
     }
 
     /**
+     * Returns the selector which chooses table output formats.
+     * Its model contains strings; it may be replaced.
+     *
+     * @return  format selector
+     */
+    public JComboBox getFormatSelector() {
+        return formatSelector_;
+    }
+
+    /**
      * Obtains the tables to write.  This must be implemented by 
      * concrete subclasses.
      *
@@ -451,8 +461,8 @@ public abstract class TableSaveChooser extends JPanel {
      *                false if only a single table will be written
      * @return   format combo box model
      */
-    private static ComboBoxModel makeFormatBoxModel( StarTableOutput sto,
-                                                     boolean multi ) {
+    public static ComboBoxModel makeFormatBoxModel( StarTableOutput sto,
+                                                    boolean multi ) {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         model.addElement( StarTableOutput.AUTO_HANDLER );
         for ( Iterator it = sto.getHandlers().iterator(); it.hasNext(); ) {
