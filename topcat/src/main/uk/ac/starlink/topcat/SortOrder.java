@@ -6,8 +6,8 @@ import javax.swing.table.TableColumn;
  * Defines a sorting order for a table.
  * An instance of this class defines the algorithm by which a sort is done,
  * not rather than a given row sequence.
- * <p>`
- * Currently, the sort order is defined only by the column that the
+ *
+ * <p>Currently, the sort order is defined only by the column that the
  * table is sorted on, but this may get extended one day.
  * Note that the sense (up or down) of the sort is selected separately than by
  * this object.
