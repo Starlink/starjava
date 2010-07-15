@@ -68,6 +68,7 @@ public class SaveQueryWindow extends QueryWindow {
         /* Set up a tabbed pane to provide for different save options. */
         SavePanel[] savers = new SavePanel[] {
             new CurrentSavePanel( chooser_ ),
+            new MultiSavePanel( chooser_ ),
         };
         tabber_ = new JTabbedPane();
         for ( int is = 0; is < savers.length; is++ ) {
