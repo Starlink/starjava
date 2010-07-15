@@ -27,11 +27,14 @@ public class TopcatEvent {
     /** Code indicating change in current RowSubset. */
     public static final int CURRENT_SUBSET = 5;
 
+    /** Code indicating change in current sort sequence. */
+    public static final int CURRENT_ORDER = 6;
+
     /**
      * Code indicating that a row has been highlighted.
      * The datum is a <code>Long</code> giving the highlighted row.
      */
-    public static final int ROW = 6;
+    public static final int ROW = 7;
 
     /**
      * Code indicating that a column has been highlighted or selected in
@@ -39,7 +42,7 @@ public class TopcatEvent {
      * The datum is the relevant 
      * {@link uk.ac.starlink.table.gui.StarTableColumn}.
      */
-    public static final int COLUMN = 7;
+    public static final int COLUMN = 8;
 
     /**
      * Code indicating that a given RowSubset should be made visible.

@@ -991,6 +991,8 @@ public class TopcatModel {
 
     /**
      * Trigger a sort of the rows in the viewModel.
+     * This causes a {@link TopcatEvent#CURRENT_ORDER} event to be sent
+     * to listeners.
      *
      * @param  order  sort order
      * @param  ascending  sort sense (true for up, false for down)
@@ -1232,6 +1234,7 @@ public class TopcatModel {
                 /* Store the changed state. */
                 lastAscending_ = ascending;
                 fireStateChanged();
+                fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
             }
         }
         public boolean isSelected() {
@@ -1321,6 +1324,9 @@ public class TopcatModel {
             /* Make sure any component displaying this model is
              * updated (this call copied from Swing source). */
             fireContentsChanged( this, -1, -1 );
+
+            /* Inform TopcatListeners. */
+            fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
         }
     }
 
