@@ -89,12 +89,10 @@ public class TopcatModel {
     private long lastHighlight_ = -1L;
 
     private ActivationQueryWindow activationWindow_;
-    private SaveQueryWindow saveWindow_;
 
     private Action newsubsetAct_;
     private Action unsortAct_;
     private TopcatWindowAction activationAct_;
-    private TopcatWindowAction saveAct_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -256,8 +254,6 @@ public class TopcatModel {
         activationAct_ = new TopcatWindowAction( 
                            "Set Activation Action", null,
                            "Set what happens when a row/point is clicked on" );
-        saveAct_ = new TopcatWindowAction( "Save Table", ResourceIcon.SAVE,
-                                           "Write out the current table" );
 
         /* Set up the listeners. */
         listeners_ = new ArrayList();
@@ -646,16 +642,6 @@ public class TopcatModel {
      */
     public Action getActivationAction() {
         return activationAct_;
-    }
-
-    /**
-     * Gets an action which allows the user to save the table corresponding
-     * to this mode.  This will result in a dialogue box.
-     *
-     * @return  save action
-     */
-    public Action getSaveAction() {
-        return saveAct_;
     }
 
     /**
@@ -1176,9 +1162,6 @@ public class TopcatModel {
             if ( this == activationAct_ ) {
                 return activationWindow_ != null;
             }
-            else if ( this == saveAct_ ) {
-                return saveWindow_ != null;
-            }
             else {
                 throw new AssertionError();
             }
@@ -1193,17 +1176,6 @@ public class TopcatModel {
                     activationWindow_.setVisible( true );
                 }
                 return activationWindow_;
-            }
-            else if ( this == saveAct_ ) {
-                if ( ! hasWindow() ) {
-                    StarTableOutput sto = controlWindow_.getTableOutput();
-                    TableLoadChooser loadChooser = 
-                        controlWindow_.getLoadChooser();
-                    saveWindow_ = new SaveQueryWindow( tcModel, sto,
-                                                       loadChooser, parent );
-                    saveWindow_.setVisible( true );
-                }
-                return saveWindow_;
             }
             else {
                 throw new AssertionError();

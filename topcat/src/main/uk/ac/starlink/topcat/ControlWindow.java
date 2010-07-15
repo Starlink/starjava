@@ -159,6 +159,7 @@ public class ControlWindow extends AuxWindow
     private StarTableFactory tabfact_ = new StarTableFactory( true );
     private TableLoadChooser loadChooser_;
     private LoadQueryWindow loadWindow_;
+    private SaveQueryWindow saveWindow_;
     private ConcatWindow concatWindow_;
     private ConeMultiWindow multiconeWindow_;
     private SiaMultiWindow multisiaWindow_;
@@ -179,7 +180,7 @@ public class ControlWindow extends AuxWindow
     private final TopcatCommunicator communicator_;
 
     private final Action readAct_;
-    private final Action writeAct_;
+    private final Action saveAct_;
     private final Action dupAct_;
     private final Action mirageAct_;
     private final Action removeAct_;
@@ -295,6 +296,10 @@ public class ControlWindow extends AuxWindow
                                         "Forget about the current table" );
         readAct_ = new ControlAction( "Load Table", ResourceIcon.LOAD,
                                       "Open a new table" );
+        saveAct_ = new ControlAction( "Save Table(s)/Session",
+                                      ResourceIcon.SAVE,
+                                      "Saves one or more tables or "
+                                    + "the TOPCAT session" );
         concatAct_ = new ControlAction( "Concatenate Tables",
                                         ResourceIcon.CONCAT,
                                         "Join tables by concatenating them" );
@@ -313,6 +318,7 @@ public class ControlWindow extends AuxWindow
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
                                      "Display the log of events" );
         readAct_.setEnabled( canRead_ );
+        saveAct_.setEnabled( canWrite_ );
         logAct_.setEnabled( LogHandler.getInstance() != null );
 
         dupAct_ = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
@@ -360,14 +366,6 @@ public class ControlWindow extends AuxWindow
             new GraphicsWindowAction( "Density", ResourceIcon.DENSITY,
                                       "Density plot (2D histogram)",
                                       DensityWindow.class ),
-        };
-        writeAct_ = new ModelViewAction( "Save Table", ResourceIcon.SAVE,
-                                         "Write out the current table" ) {
-            public Window createWindow( TopcatModel tcModel ) {
-                return new SaveQueryWindow( tcModel, getTableOutput(),
-                                            getLoadChooser(),
-                                            ControlWindow.this );
-            }
         };
 
         matchActs_ = new Action[] {
@@ -437,7 +435,7 @@ public class ControlWindow extends AuxWindow
         JToolBar toolBar = getToolBar();
         toolBar.setFloatable( true );
         toolBar.add( readButton );
-        configureExportSource( toolBar.add( writeAct_ ) );
+        configureExportSource( toolBar.add( saveAct_ ) );
         if ( tableTransmitter != null ) {
             toolBar.add( tableTransmitter.getBroadcastAction() );
         }
@@ -472,7 +470,7 @@ public class ControlWindow extends AuxWindow
         JMenu fileMenu = getFileMenu();
         int fileMenuPos = 0;
         fileMenu.insert( readAct_, fileMenuPos++ );
-        fileMenu.insert( writeAct_, fileMenuPos++ );
+        fileMenu.insert( saveAct_, fileMenuPos++ );
         fileMenu.insert( dupAct_, fileMenuPos++ )
                       .setMnemonic( KeyEvent.VK_P );
         fileMenu.insert( removeAct_, fileMenuPos++ )
@@ -717,6 +715,15 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns the JList displaying tables available in the application.
+     *
+     * @return  list of {@link TopcatModel} objects
+     */
+    public JList getTablesList() {
+        return tablesList_;
+    }
+
+    /**
      * Returns a dialog used for loading new tables.
      *
      * @return  a table load window
@@ -731,6 +738,20 @@ public class ControlWindow extends AuxWindow
             };
         }
         return loadWindow_;
+    }
+
+    /**
+     * Returns a dialog used for saving tables.
+     *
+     * @return  a table save window
+     */
+    public SaveQueryWindow getSaver() {
+        if ( saveWindow_ == null ) {
+            saveWindow_ =
+                new SaveQueryWindow( getTableOutput(), getLoadChooser(),
+                                     ControlWindow.this );
+        }
+        return saveWindow_;
     }
 
     /**
@@ -937,7 +958,6 @@ public class ControlWindow extends AuxWindow
 
         /* Make sure that the actions which relate to a particular table model
          * are up to date. */
-        writeAct_.setEnabled( hasModel && canWrite_ );
         dupAct_.setEnabled( hasModel );
         if ( communicator_ != null ) {
             communicator_.getTableTransmitter().setEnabled( hasModel );
@@ -1238,6 +1258,9 @@ public class ControlWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == readAct_ ) {
                 getLoader().makeVisible();
+            }
+            else if ( this == saveAct_ ) {
+                getSaver().makeVisible();
             }
             else if ( this == removeAct_ ) {
                 TopcatModel tcModel = getCurrentModel();
