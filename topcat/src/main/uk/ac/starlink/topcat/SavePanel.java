@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.gui.TableSaveChooser;
 
 /**
@@ -15,16 +17,21 @@ public abstract class SavePanel extends JPanel {
 
     private final String title_;
     private final TableSaveChooser saveChooser_;
+    private final ComboBoxModel formatBoxModel_;
 
     /**
      * Constructor.
      *
      * @param   title   short component name for use in tabber
      * @param   saveChooser  controlling component
+     * @param   formatBoxModel  selector model for table output format;
+     *          the model contents are Strings
      */
-    protected SavePanel( String title, TableSaveChooser saveChooser ) {
+    protected SavePanel( String title, TableSaveChooser saveChooser,
+                         ComboBoxModel formatBoxModel ) {
         title_ = title;
         saveChooser_ = saveChooser;
+        formatBoxModel_ = formatBoxModel;
     }
 
     /**
@@ -43,6 +50,16 @@ public abstract class SavePanel extends JPanel {
      */
     public TableSaveChooser getSaveChooser() {
         return saveChooser_;
+    }
+
+    /**
+     * Returns a selector for table output formats.
+     * The contents of the model are Strings.
+     *
+     * @return   format selector model
+     */
+    public ComboBoxModel getFormatBoxModel() {
+        return formatBoxModel_;
     }
 
     /**

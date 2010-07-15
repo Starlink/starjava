@@ -12,6 +12,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.gui.FilestoreTableSaveDialog;
@@ -67,13 +69,22 @@ public class SaveQueryWindow extends QueryWindow {
 
         /* Set up a tabbed pane to provide for different save options. */
         SavePanel[] savers = new SavePanel[] {
-            new CurrentSavePanel( chooser_ ),
-            new MultiSavePanel( chooser_ ),
+            new CurrentSavePanel( chooser_, sto ),
+            new MultiSavePanel( chooser_, sto ),
         };
         tabber_ = new JTabbedPane();
         for ( int is = 0; is < savers.length; is++ ) {
             tabber_.addTab( savers[ is ].getTitle(), savers[ is ] );
         }
+        tabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                SavePanel saver = getSelectedSavePanel();
+                if ( saver != null ) {
+                    chooser_.getFormatSelector()
+                            .setModel( saver.getFormatBoxModel() );
+                }
+            }
+        } );
 
         /* Place components. */
         JComponent mainBox = new JPanel( new BorderLayout() );

@@ -9,6 +9,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.TableSaveChooser;
 
@@ -30,9 +31,12 @@ public class CurrentSavePanel extends SavePanel {
      * Constructor.
      *
      * @param  saveChooser  controlling chooser
+     * @param  sto   output marshaller
      */
-    public CurrentSavePanel( TableSaveChooser saveChooser ) {
-        super( "Current Table", saveChooser );
+    public CurrentSavePanel( TableSaveChooser saveChooser,
+                             StarTableOutput sto ) {
+        super( "Current Table", saveChooser,
+               TableSaveChooser.makeFormatBoxModel( sto, false ) );
         setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         final JList tablesList =
             ControlWindow.getInstance().getTablesList();

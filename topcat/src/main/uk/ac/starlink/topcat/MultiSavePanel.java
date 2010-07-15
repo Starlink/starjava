@@ -13,6 +13,7 @@ import javax.swing.event.ListDataListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.gui.TableSaveChooser;
 
 /**
@@ -38,9 +39,12 @@ public class MultiSavePanel extends SavePanel {
      * Constructor.
      *
      * @param  saveChooser  chooser
+     * @param  sto  output marshaller
      */
-    public MultiSavePanel( TableSaveChooser saveChooser ) {
-        super( "Multiple Tables", saveChooser );
+    public MultiSavePanel( TableSaveChooser saveChooser,
+                           StarTableOutput sto ) {
+        super( "Multiple Tables", saveChooser,
+               TableSaveChooser.makeFormatBoxModel( sto, true ) );
         allSet_ = new HashSet<TopcatModel>();
         saveSet_ = new HashSet<TopcatModel>();
         tableList_ = ControlWindow.getInstance().getTablesListModel();
