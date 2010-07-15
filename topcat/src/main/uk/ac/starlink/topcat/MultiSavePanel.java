@@ -120,7 +120,9 @@ public class MultiSavePanel extends SavePanel {
         metaList.add( new MetaColumn( "Subset", String.class,
                                       "Current Subset" ) {
             public Object getValue( int irow ) {
-                return getTable( irow ).getSelectedSubset().toString();
+                RowSubset subset = getTable( irow ).getSelectedSubset();
+                return RowSubset.ALL.equals( subset ) ? null
+                                                      : subset.toString();
             }
         } );
 
@@ -143,6 +145,7 @@ public class MultiSavePanel extends SavePanel {
         JTable jtable = new JTable( tModel_ );
         jtable.setRowSelectionAllowed( false );
         jtable.setColumnSelectionAllowed( false );
+        jtable.setCellSelectionEnabled( false );
         TableColumnModel colModel = jtable.getColumnModel();
         colModel.getColumn( icolFlag_ ).setPreferredWidth( 32 );
         colModel.getColumn( icolFlag_ ).setMaxWidth( 32 );

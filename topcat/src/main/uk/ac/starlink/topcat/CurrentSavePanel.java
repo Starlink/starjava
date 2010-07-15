@@ -112,7 +112,10 @@ public class CurrentSavePanel extends SavePanel {
             nameField_.setText( tcModel.toString() );
         }
         else if ( code == TopcatEvent.CURRENT_SUBSET ) {
-            subsetField_.setText( tcModel.getSelectedSubset().toString() );
+            RowSubset subset = tcModel.getSelectedSubset();
+            subsetField_.setText( RowSubset.ALL.equals( subset )
+                                      ? null
+                                      : subset.toString() );
         }
         else if ( code == TopcatEvent.CURRENT_ORDER ) {
             orderField_.setText( tcModel.getSelectedSort().toString() );
