@@ -30,17 +30,18 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import uk.ac.starlink.connect.FilestoreChooser;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 
 /**
- * Dialog which permits a user to save a {@link StarTable} in a place
- * and format of choice.  It should be able to provide suitable dialogs
+ * Dialog which permits a user to save one or more {@link StarTable}s in a
+ * place and format of choice.  It should be able to provide suitable dialogs
  * for all the supported table types; in particular it includes a filestore
  * browser and special JDBC connection dialog.
  *
- * <p>The usual way to use this is to implement {@link #getTable} to
+ * <p>The usual way to use this is to implement {@link #getTables} to
  * provide the table which will be saved, and then call 
  * {@link #showSaveDialog}.
  *
@@ -207,7 +208,7 @@ public abstract class TableSaveChooser extends JPanel {
      */
     public void setTableOutput( StarTableOutput sto ) {
         sto_ = sto;
-        formatSelector_.setModel( makeFormatBoxModel( sto ) );
+        formatSelector_.setModel( makeFormatBoxModel( sto, false ) );
     }
 
     /**
@@ -221,12 +222,12 @@ public abstract class TableSaveChooser extends JPanel {
     }
 
     /**
-     * Obtains the table to write.   This must be implemented by 
+     * Obtains the tables to write.  This must be implemented by 
      * concrete subclasses.
      *
      * @return   table to write
      */
-    public abstract StarTable getTable();
+    public abstract StarTable[] getTables();
 
     /**
      * Sets the progress bar that will be used by this chooser.
@@ -288,7 +289,7 @@ public abstract class TableSaveChooser extends JPanel {
 
     /**
      * Pops up a modal dialogue which interacts with the user to save
-     * the table returned by {@link #getTable}.
+     * the tables returned by {@link #getTables}.
      *
      * @param  parent   parent component
      */
@@ -401,7 +402,7 @@ public abstract class TableSaveChooser extends JPanel {
             public void actionPerformed( ActionEvent evt ) {
                 if ( tsd.showSaveDialog( chooser, chooser.getTableOutput(),
                                          chooser.formatSelector_.getModel(),
-                                         chooser.getTable() ) ) {
+                                         chooser.getTables() ) ) {
                     chooser.done();
                 }
             }
@@ -424,9 +425,10 @@ public abstract class TableSaveChooser extends JPanel {
     private void submitLocation( final String loc ) {
         final StarTableOutput sto = getTableOutput();
         final String format = getSelectedFormat();
-        worker_ = new SaveWorker( getProgressBar(), getTable(), loc ) {
-            protected void attemptSave( StarTable table ) throws IOException {
-                sto.writeStarTable( table, loc, format );
+        worker_ = new SaveWorker( getProgressBar(), getTables(), loc ) {
+            protected void attemptSave( StarTable[] tables )
+                    throws IOException {
+                sto.writeStarTables( tables, loc, format );
             }
             protected void done( boolean success ) {
                 if ( success ) {
@@ -444,14 +446,20 @@ public abstract class TableSaveChooser extends JPanel {
      * Constructs a ComboBoxModel containing an entry for each of the
      * known output formats.
      *
+     * @param  sto  output marshaller
+     * @param  multi  true if multiple tables might be used,
+     *                false if only a single table will be written
      * @return   format combo box model
      */
-    private static ComboBoxModel makeFormatBoxModel( StarTableOutput sto ) {
+    private static ComboBoxModel makeFormatBoxModel( StarTableOutput sto,
+                                                     boolean multi ) {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         model.addElement( StarTableOutput.AUTO_HANDLER );
         for ( Iterator it = sto.getHandlers().iterator(); it.hasNext(); ) {
             StarTableWriter handler = (StarTableWriter) it.next();
-            model.addElement( handler.getFormatName() );
+            if ( ! multi || handler instanceof MultiStarTableWriter ) {
+                model.addElement( handler.getFormatName() );
+            }
         }
         return model;
     }
@@ -474,8 +482,8 @@ public abstract class TableSaveChooser extends JPanel {
                     }
                 } );
         new TableSaveChooser() {
-            public StarTable getTable() {
-                return tab;
+            public StarTable[] getTables() {
+                return new StarTable[] { tab };
             }
          }.showSaveDialog( null );
          System.exit( 0 );

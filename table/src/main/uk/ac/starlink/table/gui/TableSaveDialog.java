@@ -48,19 +48,19 @@ public interface TableSaveDialog {
 
     /**
      * Pops up a modal dialogue which allows the user to save the given
-     * table.  The dialogue should allow the user to select an output
-     * destination and return only when he has done so or indicated
-     * that he does not wish to.  Having selected a destination the
-     * table should be saved to it.  If the save fails
-     * the user should be notified with a popup.
+     * tables to a single destination.  The dialogue should allow the
+     * user to select an output destination and return only when he
+     * has done so or indicated that he does not wish to.
+     * Having selected a destination the tables should be saved to it.
+     * If the save fails the user should be notified with a popup.
      *
      * @param   parent  parent component
      * @param   sto   object determining how tables are saved
      * @param   formatModel  combo box model containing names of table
      *          save formats which can be selected
-     * @param   table  the table to save
+     * @param   tables  the tables to save
      * @return   true iff the save completed successfully
      */
     boolean showSaveDialog( Component parent, StarTableOutput sto,
-                            ComboBoxModel formatModel, StarTable table );
+                            ComboBoxModel formatModel, StarTable[] tables );
 }

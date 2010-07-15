@@ -37,7 +37,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public abstract class SaveWorker {
 
     private final String location_;
-    private final ProgressBarStarTable progTable_;
+    private final ProgressBarStarTable[] progTables_;
     private final JProgressBar progBar_;
     private final JDialog progPopup_;
     private Thread worker_;
@@ -47,18 +47,21 @@ public abstract class SaveWorker {
      * progress display.
      *
      * @param  parent   parent component used for progress bar popup
-     * @param  table  table to be saved
+     * @param  tables  tables to be saved
      * @param  location  string identifying the save destination - used for
      *         display purposes only
      */
-    protected SaveWorker( Component parent, StarTable table, String location ) {
+    protected SaveWorker( Component parent, StarTable[] tables,
+                          String location ) {
         progBar_ = new JProgressBar();
-        progTable_ = new ProgressBarStarTable( table, progBar_ );
+        progTables_ = toProgTables( tables, progBar_ );
         location_ = location;
         progPopup_ = new JDialog( getFrame( parent ), "Saving...", true );
         progPopup_.setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
-        progPopup_.setContentPane( createProgressPanel( progBar_, 
-                                                        table.getName(),
+        String descrip = tables.length == 1
+                       ? "table " + tables[ 0 ].getName()
+                       : tables.length + " tables";
+        progPopup_.setContentPane( createProgressPanel( progBar_, descrip,
                                                         location ) );
         progPopup_.pack();
         progPopup_.setLocationRelativeTo( parent );
@@ -69,27 +72,28 @@ public abstract class SaveWorker {
      * progress display.
      *
      * @param  progBar  progress bar which will be updated to display progress
-     * @param  table    table to be saved
+     * @param  tables    tables to be saved
      * @param  location  string identifying the save destination - used for
      *                   display purposes only
      */
-    protected SaveWorker( JProgressBar progBar, StarTable table,
+    protected SaveWorker( JProgressBar progBar, StarTable[] tables,
                           String location ) {
         progBar_ = progBar;
-        progTable_ = new ProgressBarStarTable( table, progBar_ );
+        progTables_ = toProgTables( tables, progBar_ );
         location_ = location;
         progPopup_ = null;
     }
 
     /**
-     * This method should do the work of saving the given table.
+     * This method should do the work of saving the given tables.
      * It will not be called on the event dispatch thread, so may 
      * take some time to execute.
      *
-     * @param   table  table to save
+     * @param   tables  tables to save
      * @throws  IOException   if the table cannot be saved
      */
-    protected abstract void attemptSave( StarTable table ) throws IOException;
+    protected abstract void attemptSave( StarTable[] tables )
+            throws IOException;
 
     /**
      * Called from the event dispatch thread when the save has completed.
@@ -126,7 +130,7 @@ public abstract class SaveWorker {
             Throwable error;
             public void run() {
                 try {
-                    attemptSave( progTable_ );
+                    attemptSave( progTables_ );
                     error = null;
                 }
                 catch ( Throwable e ) {
@@ -179,7 +183,7 @@ public abstract class SaveWorker {
      */
     private void saveFailed( Throwable error ) {
         String[] msg = new String[] {
-            "Error saving " + progTable_.getName(),
+            "Error saving table" + ( progTables_.length == 1 ? "" : "s" ),
             "to " + location_,
         };
         ErrorDialog.showError( progPopup_, "Save Error", error, msg );
@@ -193,12 +197,12 @@ public abstract class SaveWorker {
      * suitable text.
      *
      * @param  progBar  progress bar to use
-     * @param  name     name of table being saved
-     * @param  dest     destination string for table to be saved
+     * @param  descrip  short description of tables being saved
+     * @param  dest     destination string for tables to be saved
      * @return   panel containing progress bar
      */
     private JComponent createProgressPanel( JProgressBar progBar,
-                                            String name, String dest ) {
+                                            String descrip, String dest ) {
         JComponent main = new JPanel( new BorderLayout() );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
 
@@ -217,7 +221,7 @@ public abstract class SaveWorker {
 
         JComponent midBox = Box.createVerticalBox();
         midBox.setBorder( gapBorder );
-        midBox.add( new JLabel( "Saving table " + name ) );
+        midBox.add( new JLabel( "Saving " + descrip ) );
         midBox.add( new JLabel( "to " + dest ) );
         midBox.add( Box.createVerticalStrut( 5 ) );
         midBox.add( progBar );
@@ -252,4 +256,23 @@ public abstract class SaveWorker {
         }
     }
 
+    /**
+     * Converts an array of undecorated tables to ProgressBarStarTables.
+     *
+     * @param  tables  input tables
+     * @param  progBar  progress bar whose progress table reading will affect
+     * @return  array of tables, one for each element of input array
+     */
+    private static ProgressBarStarTable[] toProgTables( StarTable[] tables,
+                                                        JProgressBar progBar ) {
+        int nTable = tables.length;
+        ProgressBarStarTable[] progTables = new ProgressBarStarTable[ nTable ];
+        for ( int i = 0; i < nTable; i++ ) {
+            progTables[ i ] = new ProgressBarStarTable( tables[ i ], progBar );
+            if ( nTable > 1 ) {
+                progTables[ i ].setActiveLabel( ( i + 1 ) + "/" + nTable );
+            }
+        }
+        return progTables;
+    }
 }

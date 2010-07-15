@@ -27,6 +27,7 @@ import uk.ac.starlink.connect.FileNode;
 import uk.ac.starlink.connect.FilestoreChooser;
 import uk.ac.starlink.connect.Leaf;
 import uk.ac.starlink.connect.Node;
+import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
@@ -63,7 +64,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
     }
 
     public String getDescription() {
-        return "Save table to local or remote filespace";
+        return "Save table(s) to local or remote filespace";
     }
 
     public Icon getIcon() {
@@ -79,7 +80,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
 
     public boolean showSaveDialog( Component parent, StarTableOutput sto,
                                    ComboBoxModel formatModel, 
-                                   StarTable table ) {
+                                   StarTable[] tables ) {
         if ( popup_ != null ) {
             throw new IllegalStateException( "Dialogue already visible" );
         }
@@ -91,7 +92,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
                                                                parent );
         }           
         FilestorePopup popup = 
-            new FilestorePopup( frame, sto, table, formatModel );
+            new FilestorePopup( frame, sto, tables, formatModel );
 
         popup.pack();
         popup.setLocationRelativeTo( parent );
@@ -122,7 +123,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
         SaveWorker worker_;
         final JProgressBar progBar_;
         final StarTableOutput sto_;
-        final StarTable table_;
+        final StarTable[] tables_;
         final ComboBoxModel formatModel_;
 
         /**
@@ -130,14 +131,14 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
          *
          * @param  frame   owner frame
          * @param  sto     StarTableOutput used for writing tables
-         * @param  table   the table to write
+         * @param  tables  the tables to write
          * @param  formatModel  comboboxmodel for selecting output format
          */
-        FilestorePopup( Frame frame, StarTableOutput sto, StarTable table,
+        FilestorePopup( Frame frame, StarTableOutput sto, StarTable[] tables,
                         ComboBoxModel formatModel ) {
             super( frame, "Save Table", true );
             sto_ = sto;
-            table_ = table;
+            tables_ = tables;
             formatModel_ = formatModel;
 
             setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
@@ -194,11 +195,11 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
                      !  confirmOverwrite( this, leaf.toString() ) ) {
                     return;
                 }
-                worker_ = new SaveWorker( progBar_, table_, leaf.toString() ) {
-                    protected void attemptSave( StarTable table )
+                worker_ = new SaveWorker( progBar_, tables_, leaf.toString() ) {
+                    protected void attemptSave( StarTable[] tables )
                             throws IOException {
                         FilestoreTableSaveDialog
-                       .attemptSave( table, sto_, leaf,
+                       .attemptSave( tables, sto_, leaf,
                                      (String) formatModel_.getSelectedItem() );
                     }
                     protected void done( boolean success ) {
@@ -218,12 +219,12 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
     /**
      * Does the work of saving a table.
      *
-     * @param   table   table to write
+     * @param   tables  tables to write
      * @param   sto     outputter
      * @param   leaf    destination leaf for output
      * @param   format  format of the output
      */
-    private static void attemptSave( StarTable table, StarTableOutput sto,
+    private static void attemptSave( StarTable[] tables, StarTableOutput sto,
                                      Leaf leaf, String format )
             throws IOException {
 
@@ -242,14 +243,24 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
 
         /* If we have a location, use that. */
         if ( loc != null ) {
-            sto.writeStarTable( table, loc, format );
+            sto.writeStarTables( tables, loc, format );
         }
 
         /* Otherwise acquire a stream from the leaf and just dump to that. */
         else {
             OutputStream stream = leaf.getOutputStream();
             StarTableWriter handler = sto.getHandler( format, leaf.getName() );
-            sto.writeStarTable( table, stream, handler );
+            if ( tables.length == 1 ) {
+                sto.writeStarTable( tables[ 0 ], stream, handler );
+            }
+            else if ( handler instanceof MultiStarTableWriter ) {
+                sto.writeStarTables( tables, stream,
+                                     (MultiStarTableWriter) handler );
+            }
+            else {
+                throw new IOException( "Can't write multiple tables to format "
+                                     + handler.getFormatName() );
+            }
         }
     }
 

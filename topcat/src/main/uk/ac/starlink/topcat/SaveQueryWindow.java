@@ -39,8 +39,8 @@ public class SaveQueryWindow extends QueryWindow {
                                              new FilestoreTableSaveDialog(),
                                              new SystemTableSaveDialog(),
                                          } ) {
-            public StarTable getTable() {
-                return tcModel.getApparentStarTable();
+            public StarTable[] getTables() {
+                return new StarTable[] { tcModel.getApparentStarTable() };
             }
             public void done() {
                 super.done();

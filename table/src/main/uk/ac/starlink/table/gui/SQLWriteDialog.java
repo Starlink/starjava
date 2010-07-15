@@ -9,6 +9,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.jdbc.JDBCFormatter;
@@ -51,7 +52,16 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
 
     public boolean showSaveDialog( Component parent, StarTableOutput sto,
                                    ComboBoxModel formatModel,
-                                   StarTable table ) {
+                                   StarTable[] tables ) {
+        if ( tables.length != 1 ) {
+            String[] msg = new String[] {
+                "It is only possible to write one table at a time to SQL;",
+                "you are trying to save " + tables.length + " tables.",
+            };
+            JOptionPane.showMessageDialog( parent, msg, "Save Error",
+                                           JOptionPane.ERROR_MESSAGE );
+            return false;
+        }
         useAuthenticator( sto.getJDBCHandler().getAuthenticator() );
         JDialog dialog = createDialog( parent, "Write New SQL Table" );
         final boolean[] done = new boolean[ 1 ];
@@ -59,9 +69,11 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
             dialog.setVisible( true );
             if ( getValue() instanceof Integer &&
                  ((Integer) getValue()).intValue() == OK_OPTION ) {
-                SaveWorker worker = new SaveWorker( parent, table, getRef() ) {
-                    public void attemptSave( StarTable table )
+                SaveWorker worker = new SaveWorker( parent, tables, getRef() ) {
+                    public void attemptSave( StarTable[] tables )
                             throws IOException {
+                        assert tables.length == 1;
+                        StarTable table = tables[ 0 ];
                         WriteMode mode =
                             (WriteMode) modeSelector_.getSelectedItem();
                         Connection conn = null;

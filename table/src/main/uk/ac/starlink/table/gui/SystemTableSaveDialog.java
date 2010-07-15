@@ -34,7 +34,7 @@ public class SystemTableSaveDialog implements TableSaveDialog {
     }
 
     public String getDescription() {
-        return "Save table to location chosen using "
+        return "Save table(s) to location chosen using "
              + "system default file browser";
     }
 
@@ -48,7 +48,7 @@ public class SystemTableSaveDialog implements TableSaveDialog {
 
     public boolean showSaveDialog( Component parent, final StarTableOutput sto,
                                    ComboBoxModel formatModel,
-                                   StarTable table ) {
+                                   StarTable[] tables ) {
 
         /* Construct a FileDialog instance. */
         Dialog dial = parent instanceof Dialog
@@ -60,8 +60,8 @@ public class SystemTableSaveDialog implements TableSaveDialog {
                     : (Frame) SwingUtilities.getAncestorOfClass( Frame.class,
                                                                  parent );
         FileDialog fd = dial != null
-                      ? new FileDialog( dial, "Load Table", FileDialog.SAVE )
-                      : new FileDialog( frame, "Load Table", FileDialog.SAVE );
+                      ? new FileDialog( dial, "Save Table", FileDialog.SAVE )
+                      : new FileDialog( frame, "Save Table", FileDialog.SAVE );
 
         /* Keep displaying the modal dialogue until a file destination
          * has been selected. */
@@ -117,9 +117,10 @@ public class SystemTableSaveDialog implements TableSaveDialog {
         /* Initiate a save in the file we have acquired. */
         final String location = ofile.toString();
         final String format = (String) formatModel.getSelectedItem();
-        new SaveWorker( parent, table, ofile.toString() ) {
-            protected void attemptSave( StarTable table ) throws IOException {
-                sto.writeStarTable( table, location, format );
+        new SaveWorker( parent, tables, ofile.toString() ) {
+            protected void attemptSave( StarTable[] tables )
+                    throws IOException {
+                sto.writeStarTables( tables, location, format );
             }
             protected void done( boolean success ) {
             }

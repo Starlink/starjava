@@ -40,8 +40,8 @@ public class SaveTableQueryWindow extends QueryWindow {
                                              new FilestoreTableSaveDialog(),
                                              new SystemTableSaveDialog(),
                                          } ) {
-            public StarTable getTable() {
-                return tsrc.getStarTable();
+            public StarTable[] getTables() {
+                return new StarTable[] { tsrc.getStarTable() };
             }
             public void done() {
                 super.done();
