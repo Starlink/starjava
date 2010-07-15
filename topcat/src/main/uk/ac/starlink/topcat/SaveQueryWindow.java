@@ -77,7 +77,6 @@ public class SaveQueryWindow extends QueryWindow {
 
         /* Place components. */
         JComponent mainBox = new JPanel( new BorderLayout() );
-        getAuxControlPanel().setLayout( new BorderLayout() );
         getAuxControlPanel().add( mainBox, BorderLayout.CENTER );
         mainBox.add( tabber_, BorderLayout.CENTER );
         JComponent chooserLine = Box.createHorizontalBox();

@@ -91,23 +91,26 @@ public abstract class QueryWindow extends AuxWindow {
 
         /* Set up an auxiliary control panel, for custom buttons required by 
          * subclasses. */
-        auxControls = new JPanel();
+        auxControls = new JPanel( new BorderLayout() );
 
         /* Set up a strut with a preferred size. */
         JComponent hstrut = new JPanel();
         hstrut.setPreferredSize( new Dimension( 400, 0 ) );
 
+
         /* Place the components into the window. */
-        Box iconBox = new Box( BoxLayout.Y_AXIS );
+        JComponent iconBox = new Box( BoxLayout.Y_AXIS );
         iconBox.add( new JLabel( UIManager
                                 .getIcon( "OptionPane.questionIcon" ) ) );
+        iconBox.add( Box.createVerticalGlue() );
         iconBox.setBorder( blankBorder );
+        JComponent contentBox = new JPanel( new BorderLayout() );
         stack.setBorder( blankBorder );
-        auxControls.setBorder( blankBorder );
+        contentBox.add( stack, BorderLayout.NORTH );
+        contentBox.add( hstrut, BorderLayout.SOUTH );
+        contentBox.add( auxControls, BorderLayout.CENTER );
         getMainArea().add( iconBox, BorderLayout.WEST );
-        getMainArea().add( stack, BorderLayout.CENTER );
-        getMainArea().add( auxControls, BorderLayout.SOUTH );
-        getMainArea().add( hstrut, BorderLayout.NORTH );
+        getMainArea().add( contentBox, BorderLayout.CENTER );
     }
 
     /**
