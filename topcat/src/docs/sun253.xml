@@ -13691,6 +13691,9 @@ introduced since the last version:
         rather than failing silently.</li>
     <li>Save window is changed - can now save either current or
         multiple tables.</li>
+    <li>Loading tables by typing their name directly in the Load Window
+        now loads multiple tables if present not just the first one,
+        in common with most of the other load dialogue types.</li>
     </ul>
     </p></dd>
 
