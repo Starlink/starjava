@@ -69,8 +69,8 @@ public class TreeTableLoadDialog implements TableLoadDialog {
             }
             else {
                 new LoadWorker( eater, id ) {
-                    public StarTable attemptLoad() throws IOException {
-                        return factory.randomTable( table );
+                    public StarTable[] attemptLoads() throws IOException {
+                        return new StarTable[] { factory.randomTable( table ) };
                     }
                 }.invoke();
                 return true;
