@@ -96,17 +96,20 @@ public class TopcatModel {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
-    private static int instanceCount = 0;
+    private static volatile int instanceCount = 0;
     private static StarTableColumn DUMMY_COLUMN;
     private static RowActivity rowActivity_;
 
     /**
-     * Constructs a new model from a given StarTable.
+     * Constructs a new model from a given table.
+     * The only row subset available is ALL.
      *
-     * @param   startab  the StarTable
+     * @param   startab  random-access table providing the data
+     * @param   location  location string
+     * @param   controlWindow  control window instance
      */
-    public TopcatModel( StarTable startab, String location, 
-                        ControlWindow controlWindow ) {
+    protected TopcatModel( StarTable startab, String location,
+                           ControlWindow controlWindow ) {
         controlWindow_ = controlWindow;
 
         /* Ensure that we have random access. */
@@ -191,18 +194,6 @@ public class TopcatModel {
         subsetCounts_ = new HashMap();
         subsetCounts_.put( RowSubset.NONE, new Long( 0 ) );
         subsetCounts_.put( RowSubset.ALL, new Long( startab.getRowCount() ) );
-
-        /* Add subsets for any boolean type columns. */
-        int ncol = dataModel_.getColumnCount();
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            final ColumnInfo cinfo = dataModel_.getColumnInfo( icol );
-            if ( cinfo.getContentClass() == Boolean.class ) {
-                final int jcol = icol;
-                RowSubset yes =
-                    new BooleanColumnRowSubset( dataModel_, icol);
-                subsets_.add( yes );
-            }
-        }
 
         /* Set up a dummy row activator. */
         activator_ = Activator.NOP;
@@ -1104,6 +1095,37 @@ public class TopcatModel {
      */
     private static boolean equalObject( Object o1, Object o2 ) {
         return o1 == null ? o2 == null : o1.equals( o2 );
+    }
+
+    /**
+     * Returns a new TopcatModel suitable for a table that has just been
+     * loaded in the usual way.  RowSubsets are generated for each boolean
+     * column.
+     *
+     * @param   table    random-access table providing the data
+     * @param   location  location string
+     * @param   controlWindow  control window instance
+     */
+    public static TopcatModel
+                  createDefaultTopcatModel( StarTable table, String location,
+                                            ControlWindow controlWindow ) {
+
+        /* Construct model. */
+        TopcatModel tcModel = new TopcatModel( table, location, controlWindow );
+
+        /* Add subsets for any boolean type columns. */
+        StarTable dataModel = tcModel.getDataModel();
+        int ncol = dataModel.getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            final ColumnInfo cinfo = dataModel.getColumnInfo( icol );
+            if ( cinfo.getContentClass() == Boolean.class ) {
+                tcModel.subsets_
+                       .add( new BooleanColumnRowSubset( dataModel, icol ) );
+            }
+        }
+
+        /* Return model. */
+        return tcModel;
     }
 
     /**
