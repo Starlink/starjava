@@ -27,6 +27,7 @@ import uk.ac.starlink.table.gui.LoadWorker;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 
 /**
@@ -82,8 +83,10 @@ public abstract class LoadQueryWindow extends QueryWindow {
                 final String loc = getClass().getClassLoader()
                                   .getResource( demoPath ).toString();
                 new LoadWorker( tableConsumer_, loc ) {
-                    public StarTable attemptLoad() throws IOException {
-                        return tableFactory_.makeStarTable( loc, null );
+                    public StarTable[] attemptLoads() throws IOException {
+                        return tableFactory_
+                              .makeStarTables( DataSource
+                                              .makeDataSource( loc ) );
                     }
                 }.invoke();
             }
