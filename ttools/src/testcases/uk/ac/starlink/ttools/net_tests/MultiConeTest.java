@@ -225,7 +225,7 @@ public class MultiConeTest extends TableTestCase {
         for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
             ColumnInfo colInfo = result.getColumnInfo( icol );
             ucdMap.put( colInfo.getUCD(), new Integer( icol ) );
-            utypeMap.put( Tables.getUtype( colInfo ), new Integer( icol ) );
+            utypeMap.put( colInfo.getUtype(), new Integer( icol ) );
         }
         assertTrue( ucdMap.containsKey( "pos.angDistance" ) );
         int isepCol = ((Integer) ucdMap.get( "pos.angDistance" )).intValue();

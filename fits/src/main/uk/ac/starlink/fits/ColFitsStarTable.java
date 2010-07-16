@@ -149,7 +149,7 @@ public class ColFitsStarTable extends ColumnStarTable {
             }
             String tutype = cards.getStringValue( "TUTYP" + jcol );
             if ( tutype != null ) {
-                Tables.setUtype( cinfo, tutype );
+                cinfo.setUtype( tutype );
             }
             infos[ icol ] = cinfo;
         }

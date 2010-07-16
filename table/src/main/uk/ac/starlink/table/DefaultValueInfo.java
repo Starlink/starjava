@@ -24,6 +24,7 @@ public class DefaultValueInfo implements ValueInfo {
     private String name;
     private String unitString = null;
     private String ucd = null;
+    private String utype = null;
     private String description = "";
     private Class contentClass = Object.class;
     private boolean isNullable = true;
@@ -92,6 +93,7 @@ public class DefaultValueInfo implements ValueInfo {
         this( base.getName() );
         setUnitString( base.getUnitString() );
         setUCD( base.getUCD() );
+        setUtype( base.getUtype() );
         setDescription( base.getDescription() );
         setContentClass( base.getContentClass() );
         setShape( base.getShape() );
@@ -139,6 +141,19 @@ public class DefaultValueInfo implements ValueInfo {
 
     public String getUCD() {
         return ucd;
+    }
+
+    /**
+     * Sets the Utype string applying to values described by this object.
+     *
+     * @param  utype  the Utype, or <code>null</code> if none is known
+     */
+    public void setUtype( String utype ) {
+        this.utype = utype;
+    }
+
+    public String getUtype() {
+        return utype;
     }
 
     /**

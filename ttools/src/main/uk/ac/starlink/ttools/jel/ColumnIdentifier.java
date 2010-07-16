@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.Tables;
 
 /**
  * Can identify columns of a table using string identifiers.
@@ -47,9 +46,9 @@ public class ColumnIdentifier {
             if ( ucd != null ) {
                 colUcds_[ icol ] = ucd.trim();
             }
-            String utype = Tables.getUtype( info );
+            String utype = info.getUtype();
             if ( utype != null ) {
-                colUtypes_[ icol ] = utype;
+                colUtypes_[ icol ] = utype.trim();
             }
         }
     }

@@ -1253,8 +1253,7 @@ public class SSAQueryBrowser
                 //  are in columns or are really parameters. Assume
                 //  these work like the old-style scheme and appear in
                 //  the columns.
-                utype = (String)
-                    colInfo.getAuxDatumValueByName( "utype", String.class );
+                utype = colInfo.getUtype();
                 if ( utype != null ) {
                     utype = utype.toLowerCase();
                     if ( utype.endsWith( "access.reference" ) ) {

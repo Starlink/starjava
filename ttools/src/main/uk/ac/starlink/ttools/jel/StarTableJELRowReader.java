@@ -157,7 +157,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
         if ( utypeSpec != null ) {
             Pattern utypeRegex = getUtypeRegex( utypeSpec );
             for ( int icol = 0; icol < ncol; icol++ ) {
-                String utype = Tables.getUtype( colInfos[ icol ] );
+                String utype = colInfos[ icol ].getUtype();
                 if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
                     return icol;
                 }
@@ -204,7 +204,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             Pattern utypeRegex = getUtypeRegex( utypeSpec );
             for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
                 DescribedValue dval = (DescribedValue) it.next();
-                String utype = Tables.getUtype( dval.getInfo() );
+                String utype = dval.getInfo().getUtype();
                 if ( utype != null && utypeRegex.matcher( utype ).matches() ) {
                     return createDescribedValueConstant( dval );
                 }

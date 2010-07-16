@@ -13,6 +13,7 @@ import javax.swing.table.TableCellRenderer;
 public class URLValueInfo implements ValueInfo {
 
     private String ucd_;
+    private String utype_;
     private String name_;
     private String description_;
 
@@ -41,6 +42,10 @@ public class URLValueInfo implements ValueInfo {
 
     public String getUCD() {
         return ucd_;
+    }
+
+    public String getUtype() {
+        return utype_;
     }
 
     public Class getContentClass() {

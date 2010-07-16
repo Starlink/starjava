@@ -89,6 +89,12 @@ abstract class Encoder {
             attMap.put( "ucd", ucd.trim() );
         }
 
+        /* Utype attribute. */
+        String utype = info.getUtype();
+        if ( utype != null && utype.trim().length() > 0 ) {
+            attMap.put( "utype", utype.trim() );
+        }
+
         /* Column auxiliary metadata items. */
         if ( info instanceof ColumnInfo ) {
             ColumnInfo cinfo = (ColumnInfo) info;
@@ -106,12 +112,6 @@ abstract class Encoder {
                                                           String.class );
             if ( ref != null && ref.trim().length() > 0 ) {
                 attMap.put( "ref", ref.trim() );
-            }
-
-            /* UType attribute. */
-            String utype = Tables.getUtype( cinfo );
-            if ( utype != null && utype.trim().length() > 0 ) {
-                attMap.put( "utype", utype.trim() );
             }
 
             /* XType attribute. */

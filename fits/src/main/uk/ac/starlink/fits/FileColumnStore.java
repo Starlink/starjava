@@ -210,7 +210,7 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         /* Utype. */
-        String utype = Tables.getUtype( info_ );
+        String utype = info_.getUtype();
         if ( utype != null && utype.trim().length() > 0
                            && utype.length() < 68 ) {
             try {

@@ -187,7 +187,7 @@ public class FitsStarTable extends RandomStarTable {
             /* Utype (non-standard). */
             String tutype = cards.getStringValue( "TUTYP" + jcol );
             if ( tutype != null ) {
-                Tables.setUtype( cinfo, tutype );
+                cinfo.setUtype( tutype );
             }
 
             /* Implementation specifics. */

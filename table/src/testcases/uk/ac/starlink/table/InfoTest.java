@@ -14,13 +14,11 @@ public class InfoTest extends TestCase {
         Tables.setUtype( colInfo, "meta.weird" );
         assertEquals( "meta.weird", Tables.getUtype( colInfo ) );
 
-        /* Currently utypes not supported for non-column ValueInfos.
-         * If they become supported like UCDs are, modify this test. */
-        ValueInfo info = new DefaultValueInfo( "ABV", Double.class,
-                                               "Strength" );
-        assertNull( Tables.getUtype( info ) );
-        Tables.setUtype( info, "meta.weird" );
-        assertNull( Tables.getUtype( info ) );
+        DefaultValueInfo info = new DefaultValueInfo( "ABV", Double.class,
+                                                      "Strength" );
+        assertNull( info.getUtype() );
+        info.setUtype( "meta.weird" );
+        assertEquals( "meta.weird", info.getUtype() );
     }
 
     public void testUCD() {

@@ -399,7 +399,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             /* Utype (non-standard). */
             String tutype = cards.getStringValue( "TUTYP" + jcol );
             if ( tutype != null ) {
-                Tables.setUtype( cinfo, tutype );
+                cinfo.setUtype( tutype );
             }
 
             /* Construct a data reader for this column. */

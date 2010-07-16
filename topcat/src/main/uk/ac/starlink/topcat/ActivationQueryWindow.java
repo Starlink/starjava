@@ -624,7 +624,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 TableColumn tcol = (TableColumn) colSelector_.getItemAt( i );
                 if ( tcol instanceof StarTableColumn ) {
                     ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
-                    String ut = Tables.getUtype( cinfo );
+                    String ut = cinfo.getUtype();
                     if ( ut != null ) {
                         if ( ut.endsWith( utype ) ) {
                             colSelector_.setSelectedIndex( i );
@@ -780,7 +780,7 @@ public class ActivationQueryWindow extends QueryWindow {
                     if ( value != null ) {
                         ColumnInfo info = table.getColumnInfo( icol );
                         String ucd = info.getUCD();
-                        String utype = Tables.getUtype( info );
+                        String utype = info.getUtype();
                         if ( ucd != null ) {
                             meta.put( ucd, value );
                         }

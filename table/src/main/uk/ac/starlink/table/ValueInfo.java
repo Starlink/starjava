@@ -49,6 +49,16 @@ public interface ValueInfo {
     String getUCD();
 
     /**
+     * Returns the Utype string applying to the values described by
+     * this object.  Utype is a string which references a data model.
+     * It is used pervasively within IVOA standards; probably an official
+     * IVOA definition of Utype syntax and semantics will arise one day.
+     *
+     * @return  the Utype, or <code>null</code> if none is known
+     */
+    String getUtype();
+
+    /**
      * Returns a description of the values described by this object.
      * It may contain a short or long textual description of the kind of
      * information represented by the value.

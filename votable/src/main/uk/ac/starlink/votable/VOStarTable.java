@@ -66,7 +66,10 @@ public class VOStarTable extends AbstractStarTable {
         "UCD", String.class, "Table UCD" );
 
     /** ValueInfo for VOTable <tt>utype</tt> attribute. */
-    public final static ValueInfo UTYPE_INFO = Tables.UTYPE_INFO;
+    public final static ValueInfo UTYPE_INFO =
+        new DefaultValueInfo( "utype", String.class,
+                              "Usage-specific type"
+                            + " (ties value to an external data model)" );
 
     /** ValueInfo for VOTable <tt>xtype</tt> attribute. */
     public final static ValueInfo XTYPE_INFO = new DefaultValueInfo(
@@ -93,7 +96,7 @@ public class VOStarTable extends AbstractStarTable {
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
 
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        ID_INFO, datatypeInfo, nullInfo, UTYPE_INFO, XTYPE_INFO,
+        ID_INFO, datatypeInfo, nullInfo, XTYPE_INFO,
         WIDTH_INFO, PRECISION_INFO, REF_INFO, TYPE_INFO,
     } );
 
@@ -202,11 +205,6 @@ public class VOStarTable extends AbstractStarTable {
                 if ( field.hasAttribute( "type" ) ) {
                     String type = field.getAttribute( "type" );
                     auxdata.add( new DescribedValue( TYPE_INFO, type ) );
-                }
-
-                if ( field.hasAttribute( "utype" ) ) {
-                    String utype = field.getAttribute( "utype" );
-                    Tables.setUtype( cinfo, utype );
                 }
 
                 if ( field.hasAttribute( "xtype" ) ) {
@@ -442,6 +440,7 @@ public class VOStarTable extends AbstractStarTable {
         info.setDescription( field.getDescription() );
         info.setUnitString( field.getUnit() );
         info.setUCD( field.getUcd() );
+        info.setUtype( field.getUtype() );
         info.setShape( ( shapel == null || shapel.length == 0 ) 
                             ? null
                             : Decoder.longsToInts( shapel ) );
