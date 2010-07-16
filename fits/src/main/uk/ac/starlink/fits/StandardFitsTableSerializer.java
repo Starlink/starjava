@@ -405,7 +405,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 }
 
                 /* Utype (non-standard). */
-                String utype = Tables.getUtype( colinfo );
+                String utype = colinfo.getUtype();
                 if ( utype != null && utype.trim().length() > 0
                                    && utype.trim().length() < 68 ) {
                     try {
