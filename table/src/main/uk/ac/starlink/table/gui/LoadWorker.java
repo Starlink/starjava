@@ -79,8 +79,11 @@ public abstract class LoadWorker {
                 Throwable error = null;
                 StarTable[] tables = null;
                 try {
-                    tables = attemptLoads();
-                    if ( tables.length == 0 ) {
+                    StarTable[] ts = attemptLoads();
+                    if ( ts.length > 0 ) {
+                        tables = ts;
+                    }
+                    else {
                         throw new IOException( "No tables present" );
                     }
                 }
