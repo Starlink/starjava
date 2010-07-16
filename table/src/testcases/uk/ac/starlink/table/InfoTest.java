@@ -10,9 +10,6 @@ public class InfoTest extends TestCase {
 
     public void testUtype() {
         ValueInfo colInfo = new ColumnInfo( "ABV", Double.class, "Strength" );
-        assertNull( Tables.getUtype( colInfo ) );
-        Tables.setUtype( colInfo, "meta.weird" );
-        assertEquals( "meta.weird", Tables.getUtype( colInfo ) );
 
         DefaultValueInfo info = new DefaultValueInfo( "ABV", Double.class,
                                                       "Strength" );
