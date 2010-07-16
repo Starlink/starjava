@@ -36,8 +36,8 @@ public interface TableLoadDialog {
      * thread within the implementation of this method looks like this:
      * <pre>
      *     new LoadWorker( tableConsumer, tableId ) {
-     *         protected StarTable attemptLoad() throws IOException {
-     *             return tableFactory.makeStarTable( ... );
+     *         protected StarTable attemptLoads() throws IOException {
+     *             return tableFactory.makeStarTables( ... );
      *         }
      *     }.invoke();
      * </pre>

@@ -63,8 +63,8 @@ public class SQLReadDialog implements TableLoadDialog {
                 String qtext = sqlDialog.getRef();
                 final String url = sqlDialog.getFullURL();
                 new LoadWorker( eater, qtext ) {
-                    public StarTable attemptLoad() throws IOException {
-                        return factory.makeStarTable( url );
+                    public StarTable[] attemptLoads() throws IOException {
+                        return new StarTable[] { factory.makeStarTable( url ) };
                     }
                 }.invoke();
                 return true;

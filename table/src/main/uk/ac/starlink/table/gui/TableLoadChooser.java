@@ -583,8 +583,10 @@ public class TableLoadChooser extends JPanel {
         final StarTableFactory factory = tableFactory_;
         final String format = getFormatName();
         new LoadWorker( getTableConsumer(), location ) {
-            public StarTable attemptLoad() throws IOException {
-                return factory.makeStarTable( location, format );
+            public StarTable[] attemptLoads() throws IOException {
+                return factory
+                      .makeStarTables( DataSource.makeDataSource( location ),
+                                       format );
             }
         }.invoke();
     }

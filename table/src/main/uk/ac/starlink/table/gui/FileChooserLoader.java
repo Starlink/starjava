@@ -86,8 +86,9 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
                     final String format = (String) 
                                           formatModel.getSelectedItem();
                     new LoadWorker( eater, file.toString() ) {
-                        protected StarTable attemptLoad() throws IOException {
-                            return factory.makeStarTable( datsrc, format );
+                        protected StarTable[] attemptLoads()
+                                throws IOException {
+                            return factory.makeStarTables( datsrc, format );
                         }
                     }.invoke();
                     return true;

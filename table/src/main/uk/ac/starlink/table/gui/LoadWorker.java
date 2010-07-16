@@ -7,22 +7,23 @@ import uk.ac.starlink.table.StarTable;
 /**
  * Handles asynchronous table loading.
  * In conjunction with a {@link TableConsumer}, this can be used to 
- * ensure that a table is loaded out of the event dispatch thread, 
+ * ensure that a table or tables are loaded out of the event dispatch thread, 
  * so that the GUI remains responsive during what might potentially 
  * be a slow load process.
  *
- * <p>To use it, implement the abstract {@link #attemptLoad} method
- * to load a table, and then call {@link #invoke} from the event
- * dispatch thread.  This will cause a table to be loaded asynchronously
+ * <p>To use it, implement the abstract {@link #attemptLoads} method
+ * to load tables, and then call {@link #invoke} from the event
+ * dispatch thread.  This will cause tables to be loaded asynchronously
  * and the <tt>TableConsumer</tt> to be notified accordingly.
  *
  * <p>It will often be convenient to extend and use this via an anonymous
  * class.  For example:
  * <pre>
  *     final String location = getFileName();
- *     new LoadWorker( tableEater, location ) {
- *         protected StarTable attemptLoad() throws IOException {
- *             return new StarTableFactory().makeStarTable( location );
+ *     new LoadWorker(tableEater, location) {
+ *         protected StarTable[] attemptLoads() throws IOException {
+ *             StarTable table = new StarTableFactory().makeStarTable(location);
+ *             return new StarTable[] {table};
  *         }
  *     }.invoke();
  * </pre>
@@ -38,7 +39,7 @@ public abstract class LoadWorker {
     private final String id_;
 
     /**
-     * Constructor for a loader which will attempt to feed a loaded table
+     * Constructor for a loader which will attempt to feed loaded tables
      * to a given consumer.
      *
      * @param  eater  table consumer which will be notified about the
@@ -55,15 +56,15 @@ public abstract class LoadWorker {
      * Performs a table load.  This method will be invoked from a thread
      * other than the event dispatch thread.
      * It is permitted to return null from this method, but throwing an
-     * exception is preferred if the requested table cannot be loaded.
+     * exception is preferred if the requested tables cannot be loaded.
      *
-     * @return  loaded table
+     * @return  loaded tables
      * @throws  IOException   if something goes wrong
      */
-    protected abstract StarTable attemptLoad() throws IOException;
+    protected abstract StarTable[] attemptLoads() throws IOException;
 
     /**
-     * Causes the {@link #attemptLoad} method to be called from a new
+     * Causes the {@link #attemptLoads} method to be called from a new
      * thread, and notifies the table consumer accordingly.
      * This method may only be invoked once for each instance of this class.
      * It should be invoked from the event dispatch thread (and will execute
@@ -76,9 +77,12 @@ public abstract class LoadWorker {
         thread_ = new Thread( "Table Loader (" + id_ + ")" ) {
             public void run() {
                 Throwable error = null;
-                StarTable table = null;
+                StarTable[] tables = null;
                 try {
-                    table = attemptLoad();
+                    tables = attemptLoads();
+                    if ( tables.length == 0 ) {
+                        throw new IOException( "No tables present" );
+                    }
                 }
                 catch ( Throwable e ) {
                     error = e;
@@ -86,13 +90,20 @@ public abstract class LoadWorker {
                 synchronized ( LoadWorker.this ) {
                     if ( ! finished_ ) {
                         final Throwable error1 = error;
-                        final StarTable table1 = table;
+                        final StarTable[] tables1 = tables;
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
                                 if ( ! finished_ ) {
                                     finished_ = true;
-                                    if ( table1 != null ) {
-                                        eater_.loadSucceeded( table1 );
+                                    if ( tables1 != null ) {
+                                        eater_.loadSucceeded( tables1[ 0 ] );
+                                        for ( int i = 1; i < tables1.length;
+                                              i++ ) {
+                                            eater_.loadStarted( id_ + "-"
+                                                              + ( i + 1 ) );
+                                            eater_
+                                           .loadSucceeded( tables1[ i ] );
+                                        }
                                     }
                                     else {
                                         eater_.loadFailed( error1 );

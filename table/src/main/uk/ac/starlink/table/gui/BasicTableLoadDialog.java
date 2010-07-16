@@ -81,14 +81,14 @@ public abstract class BasicTableLoadDialog extends AbstractTableLoadDialog {
         synchronized ( this ) {
             worker_ = new LoadWorker( new DialogConsumer( consumer, dialog ),
                                       supplier.getTableID() ) {
-                protected StarTable attemptLoad() throws IOException {
+                protected StarTable[] attemptLoads() throws IOException {
                     StarTable table = supplier.getTable( tfact, format );
                     synchronized ( BasicTableLoadDialog.this ) {
                         if ( (LoadWorker) this == worker_ ) {
                             worker_ = null;
                         }
                     }
-                    return table;
+                    return new StarTable[] { table };
                 }
             };
         }

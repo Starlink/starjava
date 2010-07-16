@@ -5,6 +5,7 @@ import java.awt.Toolkit;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.StringPaster;
 
 /**
@@ -48,8 +49,9 @@ public abstract class PasteLoader extends StringPaster {
         final String id = loc.trim();
         if ( id.length() < 240 ) {
             new LoadWorker( new PastedTableConsumer(), id ) {
-                public StarTable attemptLoad() throws IOException {
-                    return getTableFactory().makeStarTable( id );
+                public StarTable[] attemptLoads() throws IOException {
+                    return getTableFactory()
+                          .makeStarTables( DataSource.makeDataSource( id ) );
                 }
             }.invoke();
         }
