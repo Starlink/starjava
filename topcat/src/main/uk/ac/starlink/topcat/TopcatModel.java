@@ -1129,6 +1129,21 @@ public class TopcatModel {
     }
 
     /**
+     * Returns a new TopcatModel based on a table but without some of the
+     * additional decorations.
+     * In particular no column-based subsets are added.
+     *
+     * @param   table    random-access table providing the data
+     * @param   location  location string
+     * @param   controlWindow  control window instance
+     */
+    public static TopcatModel
+                  createRawTopcatModel( StarTable table, String location,
+                                        ControlWindow controlWindow ) {
+        return new TopcatModel( table, location, controlWindow );
+    }
+
+    /**
      * Creates and returns a new TopcatModel with no data.
      * This does not increment the count of existing models - it's intended
      * for things like initialising data models which must stop referring

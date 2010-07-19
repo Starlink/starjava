@@ -648,7 +648,8 @@ public class ControlWindow extends AuxWindow
      */
     public TopcatModel addTable( StarTable table, String location,
                                  boolean select ) {
-        TopcatModel tcModel = TopcatCodec.getInstance().decode( table );
+        TopcatModel tcModel =
+            TopcatCodec.getInstance().decode( table, location, this );
         if ( tcModel == null ) {
             tcModel = TopcatModel
                      .createDefaultTopcatModel( table, location, this );
