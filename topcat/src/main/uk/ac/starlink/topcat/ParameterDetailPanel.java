@@ -76,6 +76,7 @@ public class ParameterDetailPanel extends JPanel {
             ParameterWindow.UNITS_NAME,
             ParameterWindow.DESC_NAME,
             ParameterWindow.UCD_NAME,
+            ParameterWindow.UTYPE_NAME,
         };
         lineFields_ = new LineField[ fieldNames.length ];
         for ( int ifield = 0; ifield < lineFields_.length; ifield++ ) {

@@ -73,6 +73,7 @@ public class ParameterWindow extends AuxWindow
     public static final String DESC_NAME = "Description";
     public static final String UCD_NAME = "UCD";
     public static final String UCDDESC_NAME = "UCD Description";
+    public static final String UTYPE_NAME = "Utype";
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -332,6 +333,21 @@ public class ParameterWindow extends AuxWindow
                     }
                 }
                 return null;
+            }
+        } );
+
+        /* Add Utype column. */
+        metas.add( new MetaColumn( UTYPE_NAME, String.class ) {
+            public Object getValue( int irow ) {
+                return getParamInfo( irow ).getUtype();
+            }
+            public boolean isEditable( int irow ) {
+                return ! isPseudoParameter( irow ) &&
+                       getParamInfo( irow ) instanceof DefaultValueInfo;
+            }
+            public void setValue( int irow, Object value ) {
+                ((DefaultValueInfo) getParamInfo( irow ))
+               .setUtype( value == null ? null : value.toString() );
             }
         } );
 

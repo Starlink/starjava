@@ -25,6 +25,7 @@ public class ParameterQueryWindow extends QueryWindow {
     private final JTextField unitsField_;
     private final JTextField descField_;
     private final UCDSelector ucdSelector_;
+    private final JTextField utypeField_;
 
     /**
      * Constructs a new ParameterQueryWindow.
@@ -71,6 +72,10 @@ public class ParameterQueryWindow extends QueryWindow {
         ucdSelector_ = new UCDSelector();
         stack.addLine( "UCD", ucdSelector_ );
 
+        /* Utype field. */
+        utypeField_ = new JTextField();
+        stack.addLine( "Utype", utypeField_ );
+
         /* Add help information. */
         addHelp( "ParameterQueryWindow" );
     }
@@ -85,6 +90,7 @@ public class ParameterQueryWindow extends QueryWindow {
         String units = normalize( unitsField_.getText() );
         String desc = normalize( descField_.getText() );
         String ucd = ucdSelector_.getID();
+        String utype = normalize( utypeField_.getText() );
 
         if ( name == null ) {
             return false;
@@ -93,6 +99,7 @@ public class ParameterQueryWindow extends QueryWindow {
             DefaultValueInfo vinfo = new DefaultValueInfo( name, clazz, desc );
             vinfo.setUnitString( units );
             vinfo.setUCD( ucd );
+            vinfo.setUtype( utype );
             Object value;
             if ( valueString == null ) {
                 value = null;

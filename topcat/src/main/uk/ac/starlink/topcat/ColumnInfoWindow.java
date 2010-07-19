@@ -257,7 +257,7 @@ public class ColumnInfoWindow extends AuxWindow {
         } );
 
         /* Add UCD description. */
-        metas.add( new MetaColumn( "UCD description", String.class ) {
+        metas.add( new MetaColumn( "UCD Description", String.class ) {
             public Object getValue( int irow ) {
                 String ucdid = getColumnInfo( irow ).getUCD();
                 if ( ucdid != null ) {
@@ -267,6 +267,20 @@ public class ColumnInfoWindow extends AuxWindow {
                     }
                 }
                 return null;
+            }
+        } );
+
+        /* Add Utype. */
+        metas.add( new MetaColumn( "Utype", String.class ) {
+            public Object getValue( int irow ) {
+                return getColumnInfo( irow ).getUtype();
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                getColumnInfo( irow ).setUtype( (String) value );
+                metaTableModel.fireTableRowsUpdated( irow, irow );
             }
         } );
 
