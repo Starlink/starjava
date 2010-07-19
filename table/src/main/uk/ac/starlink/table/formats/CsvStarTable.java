@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.PushbackInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.TableFormatException;
@@ -87,19 +88,15 @@ public class CsvStarTable extends StreamStarTable {
             }
         }
 
-        /* Get and check the metadata. */
+        /* Get a first look at the metadata (may be adjusted later). */
         RowEvaluator.Metadata meta = evaluator.getMetadata();
         if ( meta.nrow_ == 0 ) {
             throw new TableFormatException( "No rows" );
         }
-        ColumnInfo[] colinfos = meta.colInfos_;
         RowEvaluator.Decoder[] decoders = meta.decoders_;
         int ncol = meta.ncol_;
-        long nrow = meta.nrow_;
 
-        /* Now return to the first row.
-         * Try to parse it as a data row.  If this fails, then interpret
-         * it as a row of headings. */
+        /* Now return to the first row.  See if it's a data row. */
         if ( row0.length == ncol ) {
             boolean isDataRow = true;
             for ( int icol = 0; icol < ncol; icol++ ) {
@@ -107,32 +104,36 @@ public class CsvStarTable extends StreamStarTable {
                          && decoders[ icol ].isValid( row0[ icol ] );
             }
 
-            /* If it's data note that we have one more row than we thought. */
+            /* If it is a data row, present it to the row evaluator like
+             * the other rows, and return the metadata thus constructed. */
             if ( isDataRow ) {
-                nrow++;
+                evaluator.submitRow( Arrays.asList( row0 ) );
+                return evaluator.getMetadata();
             }
 
-            /* If it's headings get column names from it. */
+            /* If it's a headings row, get column names from it, and
+             * construct and return a suitable metadata item. */
             else {
                 assert ! isDataRow;
                 hasHeading_ = true;
+                ColumnInfo[] colinfos = meta.colInfos_;
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     String h = row0[ icol ];
                     if ( h != null && h.trim().length() > 0 ) {
                         colinfos[ icol ].setName( h );
                     }
                 }
+                return new RowEvaluator.Metadata( colinfos, decoders,
+                                                  meta.nrow_ );
             }
         }
 
         /* If the first row has the wrong number of elements just ignore it 
-         * (some sort of comment?) */
+         * (some sort of comment?) and use the metadata we've got. */
         else {
             hasHeading_ = true;
+            return meta;
         }
-
-        /* Return the, possibly modified, metadata. */
-        return new RowEvaluator.Metadata( colinfos, decoders, nrow );
     }
 
     /**
