@@ -55,7 +55,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
     protected void init( DataSource datsrc )
             throws TableFormatException, IOException {
         if ( datsrc_ != null ) {
-            throw new IllegalStateException( "Alread initialised" );
+            throw new IllegalStateException( "Already initialised" );
         }
         datsrc_ = datsrc;
 
