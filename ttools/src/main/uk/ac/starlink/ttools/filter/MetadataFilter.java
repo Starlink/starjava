@@ -33,6 +33,7 @@ public class MetadataFilter extends BasicFilter {
     public static final ValueInfo NAME_INFO;
     public static final ValueInfo CLASS_INFO;
     public static final ValueInfo SHAPE_INFO;
+    public static final ValueInfo ELSIZE_INFO;
     public static final ValueInfo UNIT_INFO;
     public static final ValueInfo DESCRIPTION_INFO;
     public static final ValueInfo UCD_INFO;
@@ -48,6 +49,9 @@ public class MetadataFilter extends BasicFilter {
                                            "Data type of objects in column" ),
         SHAPE_INFO = new DefaultValueInfo( "Shape", int[].class,
                                            "Shape of array values" ),
+        ELSIZE_INFO = new DefaultValueInfo( "ElSize", Integer.class,
+                                            "Size of each element in column"
+                                          + " (mostly useful for strings)" ),
         UNIT_INFO = new DefaultValueInfo( "Units", String.class,
                                           "Unit string" ),
         DESCRIPTION_INFO = new DefaultValueInfo( "Description", String.class,
@@ -64,6 +68,7 @@ public class MetadataFilter extends BasicFilter {
         NAME_INFO,
         CLASS_INFO,
         SHAPE_INFO,
+        ELSIZE_INFO,
         UNIT_INFO,
         DESCRIPTION_INFO,
         UCD_INFO,
@@ -183,6 +188,11 @@ public class MetadataFilter extends BasicFilter {
             map.put( CLASS_INFO,
                      DefaultValueInfo.formatClass( info.getContentClass() ) );
             map.put( UNIT_INFO, info.getUnitString() );
+            map.put( SHAPE_INFO, info.getShape() );
+            int elsize = info.getElementSize();
+            if ( elsize >= 0 ) {
+                map.put( ELSIZE_INFO, info.getElementSize() );
+            }
             map.put( DESCRIPTION_INFO, info.getDescription() );
             String ucd = info.getUCD();
             map.put( UCD_INFO, ucd );

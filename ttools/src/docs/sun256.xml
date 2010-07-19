@@ -7336,6 +7336,8 @@ but my thanks are especially due to the following:
         file (e.g. Multi-Extension FITS or multi-TABLE VOTable).</li>
     <li>New JyStilts functions <code>treads</code> and <code>twrites</code>
         for multi-table I/O.</li>
+    <li>Shape and ElSize metadata items now correctly reported by 
+        <code>meta</code> filter.</li>
     </ul>
     </p></dd>
 
