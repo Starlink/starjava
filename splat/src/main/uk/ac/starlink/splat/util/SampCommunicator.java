@@ -35,6 +35,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.MessageHandler;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.MessageTrackerHubConnector;
+import org.astrogrid.samp.gui.SysTray;
 import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
@@ -68,12 +69,6 @@ public class SampCommunicator
 
     /** Action for displaying SAMP control window. */
     private Action windowAction;
-
-    /** Hub mode used for internal hub. */
-    public static final HubMode INTERNAL_HUB_MODE = HubMode.NO_GUI;
-
-    /** Hub mode used for external hub. */
-    public static final HubMode EXTERNAL_HUB_MODE = HubMode.MESSAGE_GUI;
 
     /** Number of seconds between autoconnect attempts. */
     public static int AUTOCONNECT_SECS = 5;
@@ -150,10 +145,13 @@ public class SampCommunicator
         throws IOException
     {
         if ( external ) {
-            HubRunner.runExternalHub( EXTERNAL_HUB_MODE );
+            HubRunner.runExternalHub( HubMode.MESSAGE_GUI );
         }
         else {
-            HubRunner.runHub( INTERNAL_HUB_MODE, XmlRpcKit.INTERNAL );
+            HubRunner.runHub( SysTray.getInstance().isSupported()
+                                  ? HubMode.CLIENT_GUI
+                                  : HubMode.NO_GUI,
+                              XmlRpcKit.INTERNAL );
         }
     }
 

@@ -13695,6 +13695,9 @@ introduced since the last version:
         now loads multiple tables if present not just the first one,
         in common with most of the other load dialogue types.</li>
     <li>Utype metadata items now visible in Parameter and Column windows.</li>
+    <li>Upgrade JSAMP to version 1.1.  Now takes account of SAMP_HUB 
+        environment variable (SAMP v1.2), and uses System Tray for hub icon
+        where possible (JRE&gt;=1.6; suitable display manager).</li>
     </ul>
     </p></dd>
 
