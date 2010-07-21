@@ -18,7 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.gui.GuiHubConnector;
-import org.astrogrid.samp.xmlrpc.HubMode;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 
