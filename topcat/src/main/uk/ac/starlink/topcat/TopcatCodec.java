@@ -44,7 +44,13 @@ public class TopcatCodec {
         createInfo( "label", String.class );
     private static final ValueInfo SEND_ROWS_INFO =
         createInfo( "broadcastRows", Boolean.class );
-    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.tocpat" );
+    private static final ValueInfo VERSION_INFO =
+        createInfo( "saveVersion", String.class );
+    private static final ValueInfo SORT_COLUMN_INFO =
+        createInfo( "sortColumn", Integer.class );
+    private static final ValueInfo SORT_SENSE_INFO =
+        createInfo( "sortSense", Boolean.class );
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Private constructor prevents public instantiation.
@@ -68,6 +74,8 @@ public class TopcatCodec {
 
         /* Mark as serialized TopcatModel. */
         paramList.add( new DescribedValue( IS_TCMODEL_INFO, Boolean.TRUE ) );
+        paramList.add( new DescribedValue( VERSION_INFO,
+                                           TopcatUtils.getVersion() ) );
 
         /* Record label. */
         paramList.add( new DescribedValue( LABEL_INFO, tcModel.getLabel() ) );
@@ -88,6 +96,18 @@ public class TopcatCodec {
         paramList.add( new DescribedValue( SEND_ROWS_INFO,
                                            tcModel.getRowSendModel()
                                                   .isSelected() ) );
+
+        /* Record sort order. */
+        SortOrder sortOrder = tcModel.getSelectedSort();
+        TableColumn sortCol = sortOrder == null ? null : sortOrder.getColumn();
+        if ( sortCol != null ) {
+            int icolSort = tcModel.getColumnList().indexOf( sortCol );
+            boolean sortSense = tcModel.getSortSenseModel().isSelected();
+            paramList.add( new DescribedValue( SORT_COLUMN_INFO,
+                                               new Integer( icolSort ) ) );
+            paramList.add( new DescribedValue( SORT_SENSE_INFO,
+                                               Boolean.valueOf( sortSense ) ) );
+        }
 
         /* Prepare the table object. */
         final StarTable outTable;
@@ -225,6 +245,17 @@ public class TopcatCodec {
         tcModel.getRowSendModel()
                .setSelected( Boolean.TRUE
                             .equals( tcMeta.getTcValue( SEND_ROWS_INFO ) ) );
+
+        /* Get sort order. */
+        Integer icolSort = (Integer) tcMeta.getTcValue( SORT_COLUMN_INFO );
+        if ( icolSort != null ) {
+            int icSort = icolSort.intValue();
+            boolean sortSense =
+                Boolean.TRUE.equals( tcMeta.getTcValue( SORT_SENSE_INFO ) );
+            TableColumn tcolSort = colList.getColumn( icSort );
+            tcModel.getSortSenseModel().setSelected( sortSense );
+            tcModel.sortBy( new SortOrder( tcolSort ), sortSense );
+        }
 
         /* Return result. */
         return tcModel;
