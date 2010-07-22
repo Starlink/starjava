@@ -9,13 +9,18 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Performs encoding and decoding for TopcatModels in order to 
@@ -70,7 +75,7 @@ public class TopcatCodec {
         final StarTable dataModel = tcModel.getDataModel();
         List paramList = dataModel.getParameters();
         long nrow = dataModel.getRowCount();
-        StarTable extraTable = ColumnStarTable.makeTableWithRows( nrow );
+        ColumnStarTable extraTable = ColumnStarTable.makeTableWithRows( nrow );
 
         /* Mark as serialized TopcatModel. */
         paramList.add( new DescribedValue( IS_TCMODEL_INFO, Boolean.TRUE ) );
@@ -167,44 +172,28 @@ public class TopcatCodec {
      * @param  controlWindow  control window
      * @return   topcat model, or null
      */
-    private TopcatModel doDecode( StarTable table, String location,
+    private TopcatModel doDecode( StarTable inTable, String location,
                                   ControlWindow controlWindow ) {
-        TopcatMeta tcMeta =
-            new TopcatMeta( (DescribedValue[])
-                            table.getParameters()
-                                 .toArray( new DescribedValue[ 0 ] ) );
+        CodecTable codec = new CodecTable( inTable );
 
         /* Determine if this is a TopcatModel encoded by this class. */
-        if ( ! Boolean.TRUE.equals( tcMeta.getTcValue( IS_TCMODEL_INFO ) ) ) {
+        if ( ! Boolean.TRUE.equals( codec.getCodecValue( IS_TCMODEL_INFO ) ) ) {
             return null;
         }
         TopcatModel tcModel =
-            TopcatModel.createRawTopcatModel( table, location, controlWindow );
+            TopcatModel.createRawTopcatModel( codec.getDataTable(), location,
+                                              controlWindow );
 
         /* Get label. */
-        tcModel.setLabel( (String) tcMeta.getTcValue( LABEL_INFO ) );
-
-        /* Adjust parameter set by taking out any which are there just for
-         * encoding/decoding purposes. */
-        List<DescribedValue> tcParams = new ArrayList<DescribedValue>();
-        for ( Iterator it = tcModel.getDataModel().getParameters().iterator();
-              it.hasNext(); ) {
-            DescribedValue param = (DescribedValue) it.next();
-            if ( tcMeta.isTcParam( param ) ) {
-                tcParams.add( param );
-            }
-        }
-        for ( DescribedValue param : tcParams ) {
-            tcModel.removeParameter( param );
-        }
+        tcModel.setLabel( (String) codec.getCodecValue( LABEL_INFO ) );
 
         /* Get columns.  This is a bit involved, since a TopcatModel has
          * both a TableColumnModel and a ColumnList which must be updated
          * in a consistent way, to reflect the column order and which
          * columns are currently visible. */
         /* First get a record of the order of columns and their visibility. */
-        int[] icols = (int[]) tcMeta.getTcValue( COLS_INDEX_INFO );
-        boolean[] activs = (boolean[]) tcMeta.getTcValue( COLS_VISIBLE_INFO );
+        int[] icols = (int[]) codec.getCodecValue( COLS_INDEX_INFO );
+        boolean[] activs = (boolean[]) codec.getCodecValue( COLS_VISIBLE_INFO );
         TableColumnModel colModel = tcModel.getColumnModel();
         ColumnList colList = tcModel.getColumnList();
         int ncol = colModel.getColumnCount();
@@ -244,14 +233,14 @@ public class TopcatCodec {
         /* Get whether to broadcast rows. */
         tcModel.getRowSendModel()
                .setSelected( Boolean.TRUE
-                            .equals( tcMeta.getTcValue( SEND_ROWS_INFO ) ) );
+                            .equals( codec.getCodecValue( SEND_ROWS_INFO ) ) );
 
         /* Get sort order. */
-        Integer icolSort = (Integer) tcMeta.getTcValue( SORT_COLUMN_INFO );
+        Integer icolSort = (Integer) codec.getCodecValue( SORT_COLUMN_INFO );
         if ( icolSort != null ) {
             int icSort = icolSort.intValue();
             boolean sortSense =
-                Boolean.TRUE.equals( tcMeta.getTcValue( SORT_SENSE_INFO ) );
+                Boolean.TRUE.equals( codec.getCodecValue( SORT_SENSE_INFO ) );
             TableColumn tcolSort = colList.getColumn( icSort );
             tcModel.getSortSenseModel().setSelected( sortSense );
             tcModel.sortBy( new SortOrder( tcolSort ), sortSense );
@@ -270,7 +259,9 @@ public class TopcatCodec {
      * @return   new metadata description object
      */
     private static ValueInfo createInfo( String name, Class clazz ) {
-        DefaultValueInfo info = new DefaultValueInfo( name, clazz );
+        DefaultValueInfo info = clazz == null
+                              ? new DefaultValueInfo( name )
+                              : new DefaultValueInfo( name, clazz );
         info.setUtype( TC_PREFIX + name );
         return info;
     }
@@ -285,51 +276,93 @@ public class TopcatCodec {
     }
 
     /**
-     * Utility class for reading codec-specific table parameters from
-     * a saved table.
+     * Utility class for separating codec-specific and original-data
+     * data and metadata items from a saved table.
      */
-    private static class TopcatMeta {
-        private final Map<String,DescribedValue> tcParamMap_;
+    private static class CodecTable {
+        private final Map<String,DescribedValue> codecParamMap_;
+        private final Map<String,Integer> codecIcolMap_;
+        private final StarTable dataTable_;
 
         /**
          * Constructor.
          *
-         * @param   params   array of all metadata items
+         * @param   inTable  saved table as read
          */
-        TopcatMeta( DescribedValue[] params ) {
-            tcParamMap_ = new HashMap();
-            for ( int i = 0; i < params.length; i++ ) {
-                DescribedValue param = params[ i ];
-                if ( isTcParam( param ) ) {
-                    String utype = param.getInfo().getUtype();
-                    assert utype != null;
-                    tcParamMap_.put( utype, param );
+        public CodecTable( StarTable inTable ) {
+
+            /* Sort out table parameters. */
+            codecParamMap_ = new HashMap<String,DescribedValue>();
+            List<DescribedValue> dataParamList =
+                new ArrayList<DescribedValue>();
+            for ( Iterator it = inTable.getParameters().iterator();
+                  it.hasNext(); ) {
+                DescribedValue param = (DescribedValue) it.next();
+                String utype = param.getInfo().getUtype();
+                if ( utype != null && utype.startsWith( TC_PREFIX ) ) {
+                    codecParamMap_.put( utype, param );
+                }
+                else {
+                    dataParamList.add( param );
                 }
             }
+
+            /* Sort out table columns. */
+            codecIcolMap_ = new HashMap<String,Integer>();
+            IntList dataIcolList = new IntList();
+            for ( int icol = 0; icol < inTable.getColumnCount(); icol++ ) {
+                ColumnInfo info = inTable.getColumnInfo( icol );
+                String utype = info.getUtype();
+                if ( utype != null && utype.startsWith( TC_PREFIX ) ) {
+                    codecIcolMap_.put( utype, icol );
+                }
+                else {
+                    dataIcolList.add( icol );
+                }
+            }
+	    int[] dataColMap = dataIcolList.toIntArray();
+
+            /* Construct a table containing only the data items. */
+            dataTable_ =
+                new ColumnPermutedStarTable( inTable, dataColMap, true );
+            dataTable_.getParameters().clear();
+            dataTable_.getParameters().addAll( dataParamList );
         }
 
         /**
-         * Indicates whether a given table parameter is (apparently) one
-         * previously inserted by this codec.
+         * Returns a copy of the input table shorn of any codec-specific
+         * data or metadata.
          *
-         * @param  dval  table parameter object
-         * @return   true iff codec-specific
+         * @return   data-only table
          */
-        static boolean isTcParam( DescribedValue dval ) {
-            String utype = dval.getInfo().getUtype();
-            return utype != null && utype.startsWith( TC_PREFIX );
+        public StarTable getDataTable() {
+            return dataTable_;
         }
 
         /**
-         * Returns a Topcat-specific metadata item from the known list.
+         * Returns a codec-specific parameter value from the input table.
          *
          * @param  info  metadata description
          * @return   value stored under the given info, or null if absent
          */
-        Object getTcValue( ValueInfo info ) {
+        public Object getCodecValue( ValueInfo info ) {
             String utype = info.getUtype();
-            DescribedValue dval = (DescribedValue) tcParamMap_.get( utype );
+            DescribedValue dval = codecParamMap_.get( utype );
             return dval == null ? null : dval.getValue();
+        }
+
+        /**
+         * Returns the column index of a codec-specific column from the
+         * input table.
+         *
+         * @param  info  metadata description
+         * @return   column index for the given info, or -1 if absent
+         */
+        public int getCodecColumnIndex( ValueInfo info ) {
+            String utype = info.getUtype();
+            return codecIcolMap_.containsKey( utype )
+                 ? codecIcolMap_.get( utype )
+                 : -1;
         }
     }
 }
