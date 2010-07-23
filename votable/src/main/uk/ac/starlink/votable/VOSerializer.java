@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -186,12 +188,49 @@ public abstract class VOSerializer {
     public void writeParams( BufferedWriter writer ) throws IOException {
         for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
             DescribedValue param = (DescribedValue) it.next();
-            ValueInfo pinfo = param.getInfo();
+            Object pvalue = param.getValue();
+
+            /* Adjust the info so that its dimension sizes are fixed,
+             * and matched to the sizes of the actual value.
+             * This might make it easier to write or read. */
+            DefaultValueInfo pinfo = new DefaultValueInfo( param.getInfo() );
+            if ( pinfo.isArray() ) {
+                int[] shape = pinfo.getShape();
+                if ( shape != null && shape.length > 0 &&
+                     shape[ shape.length - 1 ] < 0 && pvalue != null &&
+                     pvalue.getClass().isArray() ) {
+                    long block = 1;
+                    for ( int idim = 0; idim < shape.length - 1 && block >= 1;
+                          idim++ ) {
+                        block *= shape[ idim ];
+                    }
+                    int leng = Array.getLength( pvalue );
+                    if ( block <= Integer.MAX_VALUE && leng % block == 0 ) {
+                        shape[ shape.length - 1 ] = leng / (int) block;
+                        pinfo.setShape( shape );
+                    }
+                }
+            }
+            if ( String.class.equals( pinfo.getContentClass() ) &&
+                 pinfo.getElementSize() < 0 && pvalue instanceof String ) {
+                pinfo.setElementSize( ((String) pvalue).length() );
+            }
+            if ( String[].class.equals( pinfo.getContentClass() ) &&
+                 pinfo.getElementSize() < 0 && pvalue instanceof String[] ) {
+                int leng = 0;
+                String[] strs = (String[]) pvalue;
+                for ( int is = 0; is < strs.length; is++ ) {
+                    if ( strs[ is ] != null ) {
+                        leng = Math.max( leng, strs[ is ].length() );
+                    }
+                }
+                pinfo.setElementSize( leng );
+            }
 
             /* Try to write it as a typed PARAM element. */
             Encoder encoder = Encoder.getEncoder( pinfo );
             if ( encoder != null ) {
-                String valtext = encoder.encodeAsText( param.getValue() );
+                String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
 
                 writer.write( "<PARAM" );
@@ -211,22 +250,21 @@ public abstract class VOSerializer {
             }
 
             /* If it's a URL write it as a LINK. */
-            else if ( param.getValue() instanceof URL ) {
+            else if ( pvalue instanceof URL ) {
                 writer.write( "<LINK"
                     + formatAttribute( "title", pinfo.getName() )
-                    + formatAttribute( "href", param.getValue().toString() )
+                    + formatAttribute( "href", pvalue.toString() )
                     + "/>" );
                 writer.newLine();
             }
 
             /* If it's of a funny type, just try to write it as an INFO. */
             else {
-                Object value = param.getValue();
                 writer.write( "<INFO" );
                 writer.write( formatAttribute( "name", pinfo.getName() ) );
-                if ( value != null ) {
+                if ( pvalue != null ) {
                     writer.write( formatAttribute( "value", 
-                                                   value.toString() ) );
+                                                   pvalue.toString() ) );
                 }
                 writer.write( "/>" );
                 writer.newLine();
