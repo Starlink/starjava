@@ -168,6 +168,7 @@ public class TopcatCodec {
         }
         StarTable outTable =
             new JoinStarTable( joinList.toArray( new StarTable[ 0 ] ) );
+        outTable.setName( dataModel.getName() );
 
         /* Set its parameters; make sure this does not overwrite the
          * parameters of the original object. */
