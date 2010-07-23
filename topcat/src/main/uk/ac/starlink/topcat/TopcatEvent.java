@@ -50,7 +50,7 @@ public class TopcatEvent {
      * in order.
      * The datum is the relevant {@link RowSubset}.
      */
-    public static final int SHOW_SUBSET = 8;
+    public static final int SHOW_SUBSET = 9;
 
     /**
      * Constructor.
