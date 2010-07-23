@@ -14,10 +14,11 @@ import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.MetaCopyStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -39,29 +40,30 @@ import uk.ac.starlink.util.IntList;
 public class TopcatCodec {
 
     private static final TopcatCodec instance_ = new TopcatCodec();
-    private static final String TC_PREFIX = "topcat:";
+    private static final String CODEC_UTYPE_PREFIX = "topcat_session:";
+    private static final String CODEC_NAME_PREFIX = "TC_";
     private static final ValueInfo IS_TCMODEL_INFO =
-        createInfo( "isTopcatModel", Boolean.class );
+        createCodecInfo( "isTopcatModel", Boolean.class );
     private static final ValueInfo COLS_INDEX_INFO =
-        createInfo( "columnIndices", int[].class );
+        createCodecInfo( "columnIndices", int[].class );
     private static final ValueInfo COLS_VISIBLE_INFO =
-        createInfo( "columnVisibilities", boolean[].class );
+        createCodecInfo( "columnVisibilities", boolean[].class );
     private static final ValueInfo LABEL_INFO =
-        createInfo( "label", String.class );
+        createCodecInfo( "label", String.class );
     private static final ValueInfo SEND_ROWS_INFO =
-        createInfo( "broadcastRows", Boolean.class );
+        createCodecInfo( "broadcastRows", Boolean.class );
     private static final ValueInfo VERSION_INFO =
-        createInfo( "saveVersion", String.class );
+        createCodecInfo( "saveVersion", String.class );
     private static final ValueInfo SORT_COLUMN_INFO =
-        createInfo( "sortColumn", Integer.class );
+        createCodecInfo( "sortColumn", Integer.class );
     private static final ValueInfo SORT_SENSE_INFO =
-        createInfo( "sortSense", Boolean.class );
+        createCodecInfo( "sortSense", Boolean.class );
     private static final ValueInfo SUBSET_NAMES_INFO =
-        createInfo( "rowSubsetNames", String[].class );
+        createCodecInfo( "rowSubsetNames", String[].class );
     private static final ValueInfo SUBSET_FLAGS_INFO =
-        createInfo( "rowSubsetFlags", null );
+        createCodecInfo( "rowSubsetFlags", Object.class );
     private static final ValueInfo CURRENT_SUBSET_INFO =
-        createInfo( "currentSubset", Integer.class );
+        createCodecInfo( "currentSubset", Integer.class );
     static {
         ((DefaultValueInfo) SUBSET_FLAGS_INFO).setNullable( false );
     }
@@ -83,8 +85,7 @@ public class TopcatCodec {
 
         /* Prepare table data and metadata for use and adjustment. */
         final StarTable dataModel = tcModel.getDataModel();
-        List<DescribedValue> paramList =
-            new ArrayList<DescribedValue>( dataModel.getParameters() );
+        List<DescribedValue> paramList = new ArrayList<DescribedValue>();
         long nrow = dataModel.getRowCount();
         ColumnStarTable extraTable = ColumnStarTable.makeTableWithRows( nrow );
 
@@ -160,18 +161,34 @@ public class TopcatCodec {
                                                new Integer( iset ) ) );
         }
 
+        /* Copy parameters from the input table.
+         * Be paranoid about possible name clashes. */
+        for ( Iterator it = dataModel.getParameters().iterator();
+              it.hasNext(); ) {
+            Object item = it.next();
+            if ( item instanceof DescribedValue ) {
+                DescribedValue dval = (DescribedValue) item;
+                String name = dval.getInfo().getName();
+                String utype = dval.getInfo().getUtype();
+                if ( ! isCodecUtype( utype ) ) {
+                    paramList.add( dval );
+                }
+            }
+        }
+
         /* Prepare the output table object. */
         List<StarTable> joinList = new ArrayList<StarTable>();
         joinList.add( dataModel );
         if ( extraTable.getColumnCount() > 0 ) {
             joinList.add( extraTable );
         }
+        StarTable[] joins = joinList.toArray( new StarTable[ 0 ] );
         StarTable outTable =
-            new JoinStarTable( joinList.toArray( new StarTable[ 0 ] ) );
+            new MetaCopyStarTable(
+                new JoinStarTable( joinList.toArray( new StarTable[ 0 ] ) ) );
         outTable.setName( dataModel.getName() );
 
-        /* Set its parameters; make sure this does not overwrite the
-         * parameters of the original object. */
+        /* Set the parameters. */
         outTable.getParameters().clear();
         outTable.getParameters().addAll( paramList );
 
@@ -332,11 +349,10 @@ public class TopcatCodec {
      * @param   clazz  class of value which will be stored under this item
      * @return   new metadata description object
      */
-    private static ValueInfo createInfo( String name, Class clazz ) {
-        DefaultValueInfo info = clazz == null
-                              ? new DefaultValueInfo( name )
-                              : new DefaultValueInfo( name, clazz );
-        info.setUtype( TC_PREFIX + name );
+    private static ValueInfo createCodecInfo( String name, Class clazz ) {
+        DefaultValueInfo info =
+            new DefaultValueInfo( CODEC_NAME_PREFIX + name, clazz );
+        info.setUtype( CODEC_UTYPE_PREFIX + name );
         return info;
     }
 
@@ -473,10 +489,21 @@ public class TopcatCodec {
     }
 
     /**
+     * Indicates whether a given utype is a marker for metadata private
+     * to the serialization scheme used by this class.
+     *
+     * @param  utype  info utype
+     * @return  true iff utype is for private codec purposes
+     */
+    public boolean isCodecUtype( String utype ) {
+        return utype != null && utype.startsWith( CODEC_UTYPE_PREFIX );
+    }
+
+    /**
      * Utility class for separating codec-specific and original-data
      * data and metadata items from a saved table.
      */
-    private static class CodecTable {
+    private class CodecTable {
         private final Map<String,DescribedValue> codecParamMap_;
         private final Map<String,Integer> codecIcolMap_;
         private final StarTable dataTable_;
@@ -496,7 +523,7 @@ public class TopcatCodec {
                   it.hasNext(); ) {
                 DescribedValue param = (DescribedValue) it.next();
                 String utype = param.getInfo().getUtype();
-                if ( utype != null && utype.startsWith( TC_PREFIX ) ) {
+                if ( isCodecUtype( utype ) ) {
                     codecParamMap_.put( utype, param );
                 }
                 else {
@@ -510,7 +537,7 @@ public class TopcatCodec {
             for ( int icol = 0; icol < inTable.getColumnCount(); icol++ ) {
                 ColumnInfo info = inTable.getColumnInfo( icol );
                 String utype = info.getUtype();
-                if ( utype != null && utype.startsWith( TC_PREFIX ) ) {
+                if ( isCodecUtype( utype ) ) {
                     codecIcolMap_.put( utype, icol );
                 }
                 else {
@@ -521,7 +548,8 @@ public class TopcatCodec {
 
             /* Construct a table containing only the data items. */
             dataTable_ =
-                new ColumnPermutedStarTable( inTable, dataColMap, true );
+                new MetaCopyStarTable(
+                    new ColumnPermutedStarTable( inTable, dataColMap, true ) );
             dataTable_.getParameters().clear();
             dataTable_.getParameters().addAll( dataParamList );
         }
