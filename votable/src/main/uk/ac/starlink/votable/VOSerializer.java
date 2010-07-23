@@ -188,12 +188,12 @@ public abstract class VOSerializer {
     public void writeParams( BufferedWriter writer ) throws IOException {
         for ( Iterator it = paramList_.iterator(); it.hasNext(); ) {
             DescribedValue param = (DescribedValue) it.next();
+            DefaultValueInfo pinfo = new DefaultValueInfo( param.getInfo() );
             Object pvalue = param.getValue();
 
             /* Adjust the info so that its dimension sizes are fixed,
              * and matched to the sizes of the actual value.
              * This might make it easier to write or read. */
-            DefaultValueInfo pinfo = new DefaultValueInfo( param.getInfo() );
             if ( pinfo.isArray() ) {
                 int[] shape = pinfo.getShape();
                 if ( shape != null && shape.length > 0 &&
@@ -226,6 +226,9 @@ public abstract class VOSerializer {
                 }
                 pinfo.setElementSize( leng );
             }
+
+            /* Adjust the info so that its nullability is set from the data. */
+            pinfo.setNullable( Tables.isBlank( pvalue ) );
 
             /* Try to write it as a typed PARAM element. */
             Encoder encoder = Encoder.getEncoder( pinfo );
