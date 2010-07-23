@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.logging.Logger;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -55,6 +57,15 @@ public class TopcatCodec {
         createInfo( "sortColumn", Integer.class );
     private static final ValueInfo SORT_SENSE_INFO =
         createInfo( "sortSense", Boolean.class );
+    private static final ValueInfo SUBSET_NAMES_INFO =
+        createInfo( "rowSubsetNames", String[].class );
+    private static final ValueInfo SUBSET_FLAGS_INFO =
+        createInfo( "rowSubsetFlags", null );
+    private static final ValueInfo CURRENT_SUBSET_INFO =
+        createInfo( "currentSubset", Integer.class );
+    static {
+        ((DefaultValueInfo) SUBSET_FLAGS_INFO).setNullable( false );
+    }
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
@@ -107,11 +118,46 @@ public class TopcatCodec {
         TableColumn sortCol = sortOrder == null ? null : sortOrder.getColumn();
         if ( sortCol != null ) {
             int icolSort = tcModel.getColumnList().indexOf( sortCol );
-            boolean sortSense = tcModel.getSortSenseModel().isSelected();
-            paramList.add( new DescribedValue( SORT_COLUMN_INFO,
-                                               new Integer( icolSort ) ) );
-            paramList.add( new DescribedValue( SORT_SENSE_INFO,
-                                               Boolean.valueOf( sortSense ) ) );
+            if ( icolSort >= 0 ) {
+                boolean sense = tcModel.getSortSenseModel().isSelected();
+                paramList.add( new DescribedValue( SORT_COLUMN_INFO,
+                                                   new Integer( icolSort ) ) );
+                paramList.add( new DescribedValue( SORT_SENSE_INFO,
+                                                   Boolean.valueOf( sense ) ) );
+            }
+        }
+
+        /* Store row subset flags in a new column. */
+        List<RowSubset> subsetList =
+            new ArrayList<RowSubset>( tcModel.getSubsets() );
+        boolean hadAll = subsetList.remove( RowSubset.ALL );
+        assert hadAll;
+        RowSubset[] subsets = subsetList.toArray( new RowSubset[ 0 ] );
+        if ( subsets.length > 0 ) {
+            String[] subsetNames = new String[ subsets.length ];
+            for ( int is = 0; is < subsets.length; is++ ) {
+                subsetNames[ is ] = subsets[ is ].getName();
+            }
+            paramList.add( new DescribedValue( SUBSET_NAMES_INFO,
+                           subsetNames ) );
+            Object flagsArray = createFlagsArray( dataModel, subsets );
+            if ( flagsArray != null ) {
+                ColumnData flagsCol =
+                    ArrayColumn
+                   .makeColumn( SUBSET_FLAGS_INFO.getName(), flagsArray );
+                ColumnInfo info = new ColumnInfo( SUBSET_FLAGS_INFO );
+                info.setContentClass( flagsCol.getColumnInfo()
+                                              .getContentClass() );
+                flagsCol.setColumnInfo( info );
+                extraTable.addColumn( flagsCol );
+            }
+        }
+
+        /* Record current subset. */
+        int iset = subsetList.indexOf( tcModel.getSelectedSubset() );
+        if ( iset >= 0 ) {
+            paramList.add( new DescribedValue( CURRENT_SUBSET_INFO,
+                                               new Integer( iset ) ) );
         }
 
         /* Prepare the table object. */
@@ -235,6 +281,39 @@ public class TopcatCodec {
                .setSelected( Boolean.TRUE
                             .equals( codec.getCodecValue( SEND_ROWS_INFO ) ) );
 
+        /* Get current subset index. */
+        Integer indexCurrentSubset =
+            (Integer) codec.getCodecValue( CURRENT_SUBSET_INFO );
+        int iCurrentSubset = indexCurrentSubset != null
+                           ? indexCurrentSubset.intValue()
+                           : -1;
+
+        /* Get subsets. */
+        String[] subsetNames =
+            (String[]) codec.getCodecValue( SUBSET_NAMES_INFO );
+        if ( subsetNames != null && subsetNames.length > 0 ) {
+            RowSubset currentSubset = null;
+            int nset = subsetNames.length;
+            int icolSubsets = codec.getCodecColumnIndex( SUBSET_FLAGS_INFO );
+            List<RowSubset> setList = new ArrayList<RowSubset>();
+            for ( int is = 0; is < nset; is++ ) {
+                RowSubset rset = createRowSubset( subsetNames[ is ], inTable,
+                                                  icolSubsets, is );
+                if ( rset != null ) {
+                    setList.add( rset );
+                }
+                if ( is == iCurrentSubset ) {
+                    currentSubset = rset;
+                }
+            }
+            for ( RowSubset rset : setList ) {
+                tcModel.addSubset( rset );
+            }
+            if ( currentSubset != null ) {
+                tcModel.applySubset( currentSubset );
+            }
+        }
+
         /* Get sort order. */
         Integer icolSort = (Integer) codec.getCodecValue( SORT_COLUMN_INFO );
         if ( icolSort != null ) {
@@ -264,6 +343,129 @@ public class TopcatCodec {
                               : new DefaultValueInfo( name, clazz );
         info.setUtype( TC_PREFIX + name );
         return info;
+    }
+
+    /**
+     * Generates an array of some kind of data item (probably an integer
+     * type or possibly integer array) suitable for placing in a table
+     * column.  This array has the same number of elements as the table
+     * has rows, and encodes the content of the supplied subsets.
+     *
+     * @param  table  input table
+     * @param  subsets  subsets applying to table
+     * @return   nrow-element array
+     */
+    private Object createFlagsArray( StarTable table, RowSubset[] subsets ) {
+        int nrow = Tables.checkedLongToInt( table.getRowCount() );
+        int nset = subsets.length;
+        if ( nset < 16 ) {
+            short[] flags = new short[ nrow ];
+            for ( int irow = 0; irow < nrow; irow++ ) {
+                int flag = 0;
+                for ( int iset = nset - 1; iset >= 0; iset-- ) {
+                    flag <<= 1;
+                    if ( subsets[ iset ].isIncluded( irow ) ) {
+                        flag = flag | 1;
+                    }
+                }
+                flags[ irow ] = (short) flag;
+            }
+            return flags;
+        }
+        else if ( nset < 32 ) {
+            int[] flags = new int[ nrow ];
+            for ( int irow = 0; irow < nrow; irow++ ) {
+                int flag = 0;
+                for ( int iset = nset - 1; iset >= 0; iset-- ) {
+                    flag <<=  1;
+                    if ( subsets[ iset ].isIncluded( irow ) ) {
+                        flag = flag | 1;
+                    }
+                }
+                flags[ irow ] = flag;
+            }
+            return flags;
+        }
+        else if ( nset < 64 ) {
+            long[] flags = new long[ nrow ];
+            for ( int irow = 0; irow < nrow; irow++ ) {
+                long flag = 0L;
+                for ( int iset = nset - 1; iset >= 0; iset-- ) {
+                    flag <<= 1;
+                    if ( subsets[ iset ].isIncluded( irow ) ) {
+                        flag = flag | 1L;
+                    }
+                }
+                flags[ irow ] = flag;
+            }
+            return flags;
+        }
+        else {
+            logger_.warning( "More than 64 subsets??" ); 
+            return null;
+        }
+    }
+
+    /**
+     * Generates a RowSubset from a column like one generated by a call
+     * to {@link #createFlagsArray}.
+     *
+     * @param   name  subset name
+     * @param   table   input table
+     * @param   icol   index of column containing flag data
+     * @param   iflag   index of flag within column
+     * @return   iflag'th subset derived from column icol in table
+     */
+    private RowSubset createRowSubset( String name, final StarTable table,
+                                       final int icol, int iflag ) {
+        ColumnInfo info = table.getColumnInfo( icol );
+        Class clazz = info.getContentClass();
+        if ( clazz == Short.class ) {
+            final short mask = (short) ( 1 << iflag );
+            return new RowSubset( name ) {
+                public boolean isIncluded( long lrow ) {
+                    try {
+                        return ( ((Number) table.getCell( lrow, icol ))
+                                          .shortValue() & mask ) != 0;
+                    }
+                    catch ( IOException e ) {
+                        return false;
+                    }
+                }
+            };
+        }
+        else if ( clazz == Integer.class ) {
+            final int mask = 1 << iflag;
+            return new RowSubset( name ) {
+                public boolean isIncluded( long lrow ) {
+                    try {
+                        return ( ((Number) table.getCell( lrow, icol ))
+                                          .intValue() & mask ) != 0;
+                    }
+                    catch ( IOException e ) {
+                        return false;
+                    }
+                }
+            };
+        }
+        else if ( clazz == Long.class ) {
+            final long mask = 1L << iflag;
+            return new RowSubset( name ) {
+                public boolean isIncluded( long lrow ) {
+                    try {
+                        return ( ((Number) table.getCell( lrow, icol ))
+                                          .longValue() & mask ) != 0;
+                    }
+                    catch ( IOException e ) {
+                        return false;
+                    }
+                }
+            };
+        }
+        else {
+            logger_.warning( "Can't decode subsets column" );
+            return null;
+        }
     }
 
     /**
