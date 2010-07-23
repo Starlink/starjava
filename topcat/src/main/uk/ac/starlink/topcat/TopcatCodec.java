@@ -21,7 +21,6 @@ import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.IntList;
 
 /**
@@ -84,7 +83,8 @@ public class TopcatCodec {
 
         /* Prepare table data and metadata for use and adjustment. */
         final StarTable dataModel = tcModel.getDataModel();
-        List paramList = dataModel.getParameters();
+        List<DescribedValue> paramList =
+            new ArrayList<DescribedValue>( dataModel.getParameters() );
         long nrow = dataModel.getRowCount();
         ColumnStarTable extraTable = ColumnStarTable.makeTableWithRows( nrow );
 
@@ -160,20 +160,14 @@ public class TopcatCodec {
                                                new Integer( iset ) ) );
         }
 
-        /* Prepare the table object. */
-        final StarTable outTable;
+        /* Prepare the output table object. */
+        List<StarTable> joinList = new ArrayList<StarTable>();
+        joinList.add( dataModel );
         if ( extraTable.getColumnCount() > 0 ) {
-            outTable =
-                new JoinStarTable( new StarTable[] { dataModel, extraTable } );
+            joinList.add( extraTable );
         }
-        else {
-            outTable = new WrapperStarTable( dataModel ) {
-                List paramList_ = new ArrayList( dataModel.getParameters() );
-                public List getParameters() {
-                    return paramList_;
-                }
-            };
-        }
+        StarTable outTable =
+            new JoinStarTable( joinList.toArray( new StarTable[ 0 ] ) );
 
         /* Set its parameters; make sure this does not overwrite the
          * parameters of the original object. */
