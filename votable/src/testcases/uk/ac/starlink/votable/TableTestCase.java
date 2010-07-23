@@ -158,7 +158,23 @@ public class TableTestCase extends TestCase {
         assertEquals( v1.getUCD(), v2.getUCD() );
         assertEquals( v1.getUnitString(), v2.getUnitString() );
         assertEquals( v1.isArray(), v2.isArray() );
-        assertArrayEquals( v1.getShape(), v2.getShape() );
+        int[] shape1 = v1.getShape();
+        int[] shape2 = v2.getShape();
+        if ( shape1 == null && shape2 == null ) {
+            // ok
+        }
+        else {
+            int ndim = shape1.length;
+            assertEquals( ndim, shape2.length );
+            for ( int i = 0; i < ndim - 1; i++ ) {
+                assertEquals( shape1[ i ], shape2[ i ] );
+            }
+            if ( ndim > 0 ) {
+                int ld1 = shape1[ ndim - 1 ];
+                int ld2 = shape2[ ndim - 1 ];
+                assertTrue( ld1 == ld2 || ld1 < 0 || ld2 < 0 );
+            }
+        }
     }
 
     void assertValueInfoConsistent( ValueInfo v1, ValueInfo v2 ) {
