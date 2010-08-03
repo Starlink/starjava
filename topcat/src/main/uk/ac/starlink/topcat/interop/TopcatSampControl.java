@@ -179,12 +179,13 @@ public class TopcatSampControl {
                 break;
             }
         }
+        int[] rowMap = tr.getRowMap();
 
         /* Try to get a URL for it, if it does not represent a table with
          * permuted rows (if it did, messages about row indexes would
          * use the wrong values). */
         String url = null;
-        if ( tr.getRowMap() == null ) {
+        if ( rowMap == null ) {
             URL uurl = tcModel.getDataModel().getBaseTable().getURL();
             if ( uurl != null ) {
                 url = uurl.toString();
@@ -194,7 +195,6 @@ public class TopcatSampControl {
         /* Assemble a list of row indices in SAMP-friendly format which 
          * represents the subset we have been asked to represent,
          * but in terms of the row numbers of the publicly identified table. */
-        int[] rowMap = tr.getRowMap();
         List rowList = new ArrayList();
         if ( rowMap == null ) {
             int nrow = (int) tcModel.getDataModel().getRowCount();
@@ -253,10 +253,11 @@ public class TopcatSampControl {
                 break;
             }
         }
+        int[] rowMap = tr.getRowMap();
 
         /* Get a URL. */
         String url = null;
-        if ( tr.getRowMap() == null ) {
+        if ( rowMap == null ) {
             URL uurl = tcModel.getDataModel().getBaseTable().getURL();
             if ( uurl != null ) {
                 url = uurl.toString();
@@ -270,7 +271,6 @@ public class TopcatSampControl {
         }
 
         /* Get the (possibly transformed) row index. */
-        int[] rowMap = tr.getRowMap();
         long row;
         if ( rowMap == null ) {
             row = lrow;
@@ -364,7 +364,7 @@ public class TopcatSampControl {
      * @param   irow   index of row to highlight
      */
     private void highlightRow( TableWithRows tr, int irow ) {
-        final TopcatModel tcModel = tr.getTable();
+        final TopcatModel tcModel = tr.getLoadedTable();
         int[] rowMap = tr.getRowMap();
         long maxRow = rowMap == null ? tcModel.getDataModel().getRowCount()
                                      : rowMap.length;
@@ -400,7 +400,7 @@ public class TopcatSampControl {
      * @param   senderId  public identifier for sending client
      */
     private void selectRows( TableWithRows tr, int[] irows, String senderId ) {
-        final TopcatModel tcModel = tr.getTable();
+        final TopcatModel tcModel = tr.getLoadedTable();
         int[] rowMap = tr.getRowMap();
         BitSet mask = new BitSet();
         for ( int i = 0; i < irows.length; i++ ) {
@@ -626,7 +626,8 @@ public class TopcatSampControl {
      */
     private static class TableWithRows {
         private final Reference tcModelRef_;
-        private final int[] rowMap_;
+        private final String tcId_;
+        private int[] rowMap_;
 
         /**
          * Constructor.
@@ -636,21 +637,47 @@ public class TopcatSampControl {
          */
         TableWithRows( TopcatModel tcModel, int[] rowMap ) {
             assert tcModel != null;
+            tcId_ = tcModel.toString();
             tcModelRef_ = new WeakReference( tcModel );
             rowMap_ = rowMap;
         }
 
         /**
-         * Returns the TopcatModel for this object.
+         * Returns the TopcatModel for this object; may be null if the
+         * table is no longer loaded.
          *
-         * @return  table
+         * @return  table, or null
          */
         TopcatModel getTable() {
             TopcatModel tcModel = (TopcatModel) tcModelRef_.get();
+
+            /* If the table has become unloaded take the opportunity
+             * to clear out the row map array too, since it won't be needed.
+             * This could be done in a more systematic way (using a reference
+             * queue) but as currently implemented TopcatModel reference
+             * chains are not tightly coded enough to make it worth while
+             * (references left where they don't need to be, mostly Swing). */
+            if ( tcModel == null ) {
+                rowMap_ = null;
+            }
+            return tcModel;
+        }
+
+        /**
+         * Returns the loaded TopcatModel for this object.
+         * If the table is no longer loaded an exception will be thrown.
+         *
+         * @return   non-null table
+         */
+        TopcatModel getLoadedTable() {
+            TopcatModel tcModel = getTable();
             if ( tcModel != null ) {
                 return tcModel;
             }
-            else throw new RuntimeException( "Table no longer loaded" );
+            else {
+                throw new IllegalStateException( "Table " + tcId_
+                                               + " no longer loaded" );
+            }
         }
 
         /**

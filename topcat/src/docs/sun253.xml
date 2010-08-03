@@ -13698,6 +13698,8 @@ introduced since the last version:
     <li>Upgrade JSAMP to version 1.1.  Now takes account of SAMP_HUB 
         environment variable (SAMP v1.2), and uses System Tray for hub icon
         where possible (JRE&gt;=1.6; suitable display manager).</li>
+    <li>Fixed (I hope) "Table no longer loaded" error when sending tables
+        via SAMP.</li>
     </ul>
     </p></dd>
 
