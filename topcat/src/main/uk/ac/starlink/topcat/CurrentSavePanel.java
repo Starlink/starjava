@@ -25,6 +25,7 @@ public class CurrentSavePanel extends SavePanel {
     private final JLabel subsetField_;
     private final JLabel orderField_;
     private final TopcatListener tcListener_;
+    private TableSaveChooser saveChooser_;
     private TopcatModel tcModel_;
 
     /**
@@ -33,9 +34,8 @@ public class CurrentSavePanel extends SavePanel {
      * @param  saveChooser  controlling chooser
      * @param  sto   output marshaller
      */
-    public CurrentSavePanel( TableSaveChooser saveChooser,
-                             StarTableOutput sto ) {
-        super( "Current Table", saveChooser,
+    public CurrentSavePanel( StarTableOutput sto ) {
+        super( "Current Table",
                TableSaveChooser.makeFormatBoxModel( sto, false ) );
         setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         final JList tablesList =
@@ -78,6 +78,13 @@ public class CurrentSavePanel extends SavePanel {
         return new StarTable[] { tcModel_.getApparentStarTable() };
     }
 
+    public void setActiveChooser( TableSaveChooser chooser ) {
+        saveChooser_ = chooser;
+        if ( saveChooser_ != null ) {
+            saveChooser_.setEnabled( tcModel_ != null );
+        }
+    }
+
     /**
      * Sets the table which is displayed in this panel.
      *
@@ -88,7 +95,9 @@ public class CurrentSavePanel extends SavePanel {
             tcModel_.removeTopcatListener( tcListener_ );
         }
         tcModel_ = tcModel;
-        getSaveChooser().setEnabled( tcModel != null );
+        if ( saveChooser_ != null ) {
+            saveChooser_.setEnabled( tcModel != null );
+        }
         if ( tcModel == null ) {
             nameField_.setText( null );
             subsetField_.setText( null );

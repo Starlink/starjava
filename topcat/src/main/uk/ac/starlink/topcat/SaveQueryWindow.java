@@ -69,19 +69,24 @@ public class SaveQueryWindow extends QueryWindow {
 
         /* Set up a tabbed pane to provide for different save options. */
         SavePanel[] savers = new SavePanel[] {
-            new CurrentSavePanel( chooser_, sto ),
-            new MultiSavePanel( chooser_, sto ),
+            new CurrentSavePanel( sto ),
+            new MultiSavePanel( sto ),
         };
         tabber_ = new JTabbedPane();
         for ( int is = 0; is < savers.length; is++ ) {
             tabber_.addTab( savers[ is ].getTitle(), savers[ is ] );
         }
         tabber_.addChangeListener( new ChangeListener() {
+            SavePanel saver_;
             public void stateChanged( ChangeEvent evt ) {
-                SavePanel saver = getSelectedSavePanel();
-                if ( saver != null ) {
+                if ( saver_ != null ) {
+                    saver_.setActiveChooser( null );
+                }
+                saver_ = getSelectedSavePanel();
+                if ( saver_ != null ) {
+                    saver_.setActiveChooser( chooser_ );
                     chooser_.getFormatSelector()
-                            .setModel( saver.getFormatBoxModel() );
+                            .setModel( saver_.getFormatBoxModel() );
                 }
             }
         } );

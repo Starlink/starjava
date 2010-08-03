@@ -16,21 +16,17 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
 public abstract class SavePanel extends JPanel {
 
     private final String title_;
-    private final TableSaveChooser saveChooser_;
     private final ComboBoxModel formatBoxModel_;
 
     /**
      * Constructor.
      *
      * @param   title   short component name for use in tabber
-     * @param   saveChooser  controlling component
      * @param   formatBoxModel  selector model for table output format;
      *          the model contents are Strings
      */
-    protected SavePanel( String title, TableSaveChooser saveChooser,
-                         ComboBoxModel formatBoxModel ) {
+    protected SavePanel( String title, ComboBoxModel formatBoxModel ) {
         title_ = title;
-        saveChooser_ = saveChooser;
         formatBoxModel_ = formatBoxModel;
     }
 
@@ -44,13 +40,15 @@ public abstract class SavePanel extends JPanel {
     }
 
     /**
-     * Returns chooser controlling this panel.
+     * Configures the chooser currently controlling this panel.
+     * The supplied <code>chooser</code> will be null if this panel is
+     * not active.
+     * This panel should take the responsibility for setting the chooser's
+     * enabledness for as long as it is active.
      *
-     * @return  chooser
+     * @param   chooser  controlling save chooser, or null
      */
-    public TableSaveChooser getSaveChooser() {
-        return saveChooser_;
-    }
+    public abstract void setActiveChooser( TableSaveChooser chooser );
 
     /**
      * Returns a selector for table output formats.

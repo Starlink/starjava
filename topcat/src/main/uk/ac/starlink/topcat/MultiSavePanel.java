@@ -10,6 +10,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.StarTable;
@@ -28,11 +30,13 @@ public class MultiSavePanel extends SavePanel {
     private final Set<TopcatModel> saveSet_;
     private final AbstractTableModel tModel_;
     private final TopcatListener tcListener_;
+    private final TableModelListener tableListener_;
     private final int icolFlag_;
     private final int icolName_;
     private final int icolSubset_;
     private final int icolOrder_;
     private final boolean defaultSave_ = true;
+    private TableSaveChooser saveChooser_;
     private Set<TopcatModel> allSet_;
 
     /**
@@ -41,9 +45,8 @@ public class MultiSavePanel extends SavePanel {
      * @param  saveChooser  chooser
      * @param  sto  output marshaller
      */
-    public MultiSavePanel( TableSaveChooser saveChooser,
-                           StarTableOutput sto ) {
-        super( "Multiple Tables", saveChooser,
+    public MultiSavePanel( StarTableOutput sto ) {
+        super( "Multiple Tables",
                TableSaveChooser.makeFormatBoxModel( sto, true ) );
         allSet_ = new HashSet<TopcatModel>();
         saveSet_ = new HashSet<TopcatModel>();
@@ -86,6 +89,19 @@ public class MultiSavePanel extends SavePanel {
                 updateTopcatListeners();
             }
         } );
+
+        /* Listener to ensure that chooser enabledness is set right. */
+        tableListener_ = new TableModelListener() {
+            public void tableChanged( TableModelEvent evt ) {
+                if ( saveChooser_ != null ) {
+                    int icol = evt.getColumn();
+                    if ( icol == TableModelEvent.ALL_COLUMNS ||
+                         icol == icolFlag_ ) {
+                        saveChooser_.setEnabled( hasTables() );
+                    }
+                }
+            }
+        };
 
         /* Prepare model for JTable displaying available tables. */
         List<MetaColumn> metaList = new ArrayList<MetaColumn>();
@@ -173,6 +189,32 @@ public class MultiSavePanel extends SavePanel {
             }
         }
         return saveList.toArray( new StarTable[ 0 ] );
+    }
+
+    public void setActiveChooser( TableSaveChooser chooser ) {
+        saveChooser_ = chooser;
+        if ( saveChooser_ == null ) {
+            tModel_.removeTableModelListener( tableListener_ );
+        }
+        else {
+            tModel_.addTableModelListener( tableListener_ );
+            saveChooser_.setEnabled( hasTables() );
+        }
+    }
+
+    /**
+     * Indicates whether there is a non-zero number of tables to be saved.
+     *
+     * @return   true iff there are tables to be saved
+     */
+    private boolean hasTables() {
+        for ( int irow = 0; irow < tableList_.getSize(); irow++ ) {
+            if ( Boolean.TRUE.equals( tModel_
+                                     .getValueAt( irow, icolFlag_ ) ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
