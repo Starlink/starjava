@@ -1,18 +1,12 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import javax.swing.ListModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
@@ -26,67 +20,56 @@ import uk.ac.starlink.table.gui.TableSaveChooser;
  */
 public class MultiSavePanel extends SavePanel {
 
-    private final ListModel tableList_;
-    private final Set<TopcatModel> saveSet_;
-    private final AbstractTableModel tModel_;
-    private final TopcatListener tcListener_;
+    private final TopcatModelSelectionTable tSelector_;
     private final TableModelListener tableListener_;
-    private final int icolFlag_;
-    private final int icolName_;
     private final int icolSubset_;
     private final int icolOrder_;
-    private final boolean defaultSave_ = true;
     private TableSaveChooser saveChooser_;
-    private Set<TopcatModel> allSet_;
 
     /**
      * Constructor.
      *
-     * @param  saveChooser  chooser
      * @param  sto  output marshaller
      */
     public MultiSavePanel( StarTableOutput sto ) {
         super( "Multiple Tables",
                TableSaveChooser.makeFormatBoxModel( sto, true ) );
-        allSet_ = new HashSet<TopcatModel>();
-        saveSet_ = new HashSet<TopcatModel>();
-        tableList_ = ControlWindow.getInstance().getTablesListModel();
 
-        /* Listener to ensure that table characteristics are kept up to date. */
-        tcListener_ = new TopcatListener() {
-            public void modelChanged( TopcatEvent evt ) {
-                TopcatModel tcModel = evt.getModel();
-                int code = evt.getCode();
-                if ( code == TopcatEvent.LABEL ) {
-                    tModel_.fireTableCellUpdated( getRowIndex( tcModel ),
-                                                  icolName_ );
+        /* Create and customise table selector table. */
+        tSelector_ = new TopcatModelSelectionTable( "Save", true ) {
+            protected int[] getEventColumnIndices( int evtCode ) {
+                if ( evtCode == TopcatEvent.CURRENT_SUBSET ) {
+                    return new int[] { icolSubset_ };
                 }
-                else if ( code == TopcatEvent.CURRENT_SUBSET ) {
-                    tModel_.fireTableCellUpdated( getRowIndex( tcModel ),
-                                                  icolSubset_ );
+                else if ( evtCode == TopcatEvent.CURRENT_ORDER ) {
+                    return new int[] { icolOrder_ };
                 }
-                else if ( code == TopcatEvent.CURRENT_ORDER ) {
-                    tModel_.fireTableCellUpdated( getRowIndex( tcModel ),
-                                                  icolOrder_ );
+                else {
+                    return super.getEventColumnIndices( evtCode );
                 }
             }
         };
+        MetaColumnTableModel tModel = tSelector_.getTableModel();
+        List<MetaColumn> metaList = tModel.getColumnList();
 
-        /* Listener to ensure that table list is kept up to date. */
-        tableList_.addListDataListener( new ListDataListener() {
-            public void intervalAdded( ListDataEvent evt ) {
-                tModel_.fireTableRowsInserted( evt.getIndex0(),
-                                               evt.getIndex1() );
-                updateTopcatListeners();
+        /* Add column to display current subset. */
+        icolSubset_ = metaList.size();
+        metaList.add( new MetaColumn( "Subset", String.class,
+                                      "Current Subset" ) {
+            public Object getValue( int irow ) {
+                RowSubset subset =
+                    tSelector_.getTable( irow ).getSelectedSubset();
+                return RowSubset.ALL.equals( subset ) ? null
+                                                      : subset.toString();
             }
-            public void intervalRemoved( ListDataEvent evt ) {
-                tModel_.fireTableRowsDeleted( evt.getIndex0(),
-                                              evt.getIndex1() );
-                updateTopcatListeners();
-            }
-            public void contentsChanged( ListDataEvent evt ) {
-                tModel_.fireTableStructureChanged();
-                updateTopcatListeners();
+        } );
+
+        /* Add column to display current sort order. */
+        icolOrder_ = metaList.size();
+        metaList.add( new MetaColumn( "Sort", String.class,
+                                      "Current Sort Order" ) {
+            public Object getValue( int irow ) {
+                return tSelector_.getTable( irow ).getSelectedSort().toString();
             }
         } );
 
@@ -94,85 +77,23 @@ public class MultiSavePanel extends SavePanel {
         tableListener_ = new TableModelListener() {
             public void tableChanged( TableModelEvent evt ) {
                 if ( saveChooser_ != null ) {
-                    int icol = evt.getColumn();
-                    if ( icol == TableModelEvent.ALL_COLUMNS ||
-                         icol == icolFlag_ ) {
-                        saveChooser_.setEnabled( hasTables() );
-                    }
+                    saveChooser_.setEnabled( tSelector_.getSelectedTables()
+                                                       .length > 0 );
                 }
             }
         };
-
-        /* Prepare model for JTable displaying available tables. */
-        List<MetaColumn> metaList = new ArrayList<MetaColumn>();
-
-        icolFlag_ = metaList.size();
-        metaList.add( new MetaColumn( "Save", Boolean.class,
-                                      "Save this table?" ) {
-            public Object getValue( int irow ) {
-                return Boolean.valueOf( saveSet_.contains( getTable( irow ) ) );
-            }
-            public boolean isEditable( int irow ) {
-                return true;
-            }
-            public void setValue( int irow, Object value ) {
-                TopcatModel tcModel = getTable( irow );
-                if ( Boolean.TRUE.equals( value ) ) {
-                    saveSet_.add( tcModel );
-                }
-                else if ( Boolean.FALSE.equals( value ) ) {
-                    saveSet_.remove( tcModel );
-                }
-                else {
-                    assert false;
-                }
-            }
-        } );
-
-        icolName_ = metaList.size();
-        metaList.add( new MetaColumn( "Table", String.class, "Table ID" ) {
-            public Object getValue( int irow ) {
-                return getTable( irow ).toString();
-            }
-        } );
-
-        icolSubset_ = metaList.size();
-        metaList.add( new MetaColumn( "Subset", String.class,
-                                      "Current Subset" ) {
-            public Object getValue( int irow ) {
-                RowSubset subset = getTable( irow ).getSelectedSubset();
-                return RowSubset.ALL.equals( subset ) ? null
-                                                      : subset.toString();
-            }
-        } );
-
-        icolOrder_ = metaList.size();
-        metaList.add( new MetaColumn( "Order", String.class, "Sort Order" ) {
-            public Object getValue( int irow ) {
-                return getTable( irow ).getSelectedSort().toString();
-            }
-        } );
-
-        tModel_ = new MetaColumnTableModel( metaList ) {
-            public int getRowCount() {
-                return tableList_.getSize();
-            }
-        };
-        updateTopcatListeners();
 
         /* Place components. */
         setLayout( new BorderLayout() );
-        JTable jtable = new JTable( tModel_ );
+        JTable jtable = new JTable( tModel );
         jtable.setRowSelectionAllowed( false );
         jtable.setColumnSelectionAllowed( false );
         jtable.setCellSelectionEnabled( false );
         TableColumnModel colModel = jtable.getColumnModel();
-        colModel.getColumn( icolFlag_ ).setPreferredWidth( 32 );
-        colModel.getColumn( icolFlag_ ).setMaxWidth( 32 );
-        colModel.getColumn( icolFlag_ ).setMinWidth( 32 );
-        colModel.getColumn( icolSubset_ ).setPreferredWidth( 64 );
-        colModel.getColumn( icolName_ ).setPreferredWidth( 300 );
-        colModel.getColumn( icolOrder_ ).setPreferredWidth( 64 );
+        colModel.getColumn( 0 ).setPreferredWidth( 32 );
+        colModel.getColumn( 1 ).setPreferredWidth( 300 );
+        colModel.getColumn( icolSubset_ ).setPreferredWidth( 80 );
+        colModel.getColumn( icolOrder_ ).setPreferredWidth( 80 );
         JScrollPane scroller =
             new JScrollPane( jtable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
@@ -180,99 +101,24 @@ public class MultiSavePanel extends SavePanel {
     }
 
     public StarTable[] getTables() {
-        List<StarTable> saveList = new ArrayList<StarTable>();
-        for ( int irow = 0; irow < tableList_.getSize(); irow++ ) {
-            if ( Boolean.TRUE
-                .equals( tModel_.getValueAt( irow, icolFlag_ ) ) ) {
-                saveList.add( ((TopcatModel) tableList_.getElementAt( irow ))
-                             .getApparentStarTable() );
-            }
+        TopcatModel[] tcModels = tSelector_.getSelectedTables();
+        StarTable[] tables = new StarTable[ tcModels.length ];
+        for ( int i = 0; i < tcModels.length; i++ ) {
+            tables[ i ] = tcModels[ i ].getApparentStarTable();
         }
-        return saveList.toArray( new StarTable[ 0 ] );
+        return tables;
     }
 
     public void setActiveChooser( TableSaveChooser chooser ) {
+        TableModel tModel = tSelector_.getTableModel();
         saveChooser_ = chooser;
         if ( saveChooser_ == null ) {
-            tModel_.removeTableModelListener( tableListener_ );
+            tModel.removeTableModelListener( tableListener_ );
         }
         else {
-            tModel_.addTableModelListener( tableListener_ );
-            saveChooser_.setEnabled( hasTables() );
-        }
-    }
-
-    /**
-     * Indicates whether there is a non-zero number of tables to be saved.
-     *
-     * @return   true iff there are tables to be saved
-     */
-    private boolean hasTables() {
-        for ( int irow = 0; irow < tableList_.getSize(); irow++ ) {
-            if ( Boolean.TRUE.equals( tModel_
-                                     .getValueAt( irow, icolFlag_ ) ) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns the table at a given row in the displayed JTable.
-     *
-     * @param   irow  row index
-     * @return  table
-     */
-    private TopcatModel getTable( int irow ) {
-        return (TopcatModel) tableList_.getElementAt( irow );
-    }
-
-    /**
-     * Determines the row index for a given table.
-     *
-     * @param  tcModel  table to locate
-     * @return   row index
-     */
-    private int getRowIndex( TopcatModel tcModel ) {
-        for ( int i = 0; i < tableList_.getSize(); i++ ) {
-            if ( tableList_.getElementAt( i ) == tcModel ) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Makes sure that we're listening to all the right TopcatModels.
-     * This should be called whenever the content of the set of tables
-     * currently being displayed changes.
-     */
-    private void updateTopcatListeners() {
-
-        /* Find out which tables are currently displayed. */
-        Set<TopcatModel> allSet = new HashSet<TopcatModel>();
-        for ( int i = 0; i < tableList_.getSize(); i++ ) {
-            allSet.add( (TopcatModel) tableList_.getElementAt( i ) );
-        }
-
-        /* Compare this with the set we had from last time to find out which
-         * ones are new, and which ones are no longer required. */
-        Set<TopcatModel> added = new HashSet<TopcatModel>( allSet );
-        added.removeAll( allSet_ );
-        Set<TopcatModel> removed = new HashSet<TopcatModel>( allSet_ );
-        removed.removeAll( allSet );
-        allSet_ = allSet;
-
-        /* Remove and add listeners as required. */
-        for ( TopcatModel m : removed ) {
-            m.removeTopcatListener( tcListener_ );
-            saveSet_.remove( m );
-        }
-        for ( TopcatModel m : added ) {
-            m.addTopcatListener( tcListener_ );
-            if ( defaultSave_ ) {
-                saveSet_.add( m );
-            }
+            tModel.addTableModelListener( tableListener_ );
+            saveChooser_.setEnabled( tSelector_.getSelectedTables()
+                                               .length > 0 );
         }
     }
 }
