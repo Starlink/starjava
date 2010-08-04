@@ -9147,6 +9147,11 @@ since it makes them much slower to read (for TOPCAT at least).
 <subsubsect>
 <subhead><title>Content Panel</title></subhead>
 
+<p>The Content Panel is the upper part of the save window,
+and it is used to select what table or tables you want to save.
+The options are described in the following subsections.
+</p>
+
 <subsubsubsect>
 <subhead><title>Current Table</title></subhead>
 
@@ -9187,7 +9192,7 @@ tables with the checkbox selected will be saved.
 
 <p>As with the Current Table save, it is the
 <ref id="apparent">Apparent Table</ref> in each case which is saved,
-so that only unhidden columns and rows in the Current Subset will be
+so that only unhidden columns, and rows in the Current Subset will be
 included.
 On the right hand side of the table is information to remind you 
 which row subset and ordering will be saved.
@@ -9208,7 +9213,7 @@ information about your use of it, is saved, rather than just the
 The saved items include:
 <ul>
 <li>All rows, not just those in the current Row Subset</li>
-<li>All visible and invisible columns,
+<li>All visible and hidden columns,
     along with their order and visibility status</li>
 <li>All defined Row Subsets</li>
 <li>The current Sort Order</li>
@@ -9220,12 +9225,14 @@ The saved items include:
 
 <p>The list of loaded tables is shown, with a column of checkboxes
 on the left.  By default these are selected, but you can select or
-unselect them by clicking.  When the save is performed, only thos
+unselect them by clicking.  When the save is performed, only those
 tables with the checkbox selected will be saved.
 </p>
 
-<p>The tables are saved as a multi-table fits-plus (recommended) or VOTable
-file.  This is a normal multi-table file in that any FITS or VOTable 
+<p>The tables are saved as a multi-table 
+<ref id="outFits">fits-plus</ref> (recommended) or 
+<ref id="outVotable">VOTable</ref> file.
+This is a normal multi-table file in that any FITS or VOTable 
 reader can read the tables it contains, but it contains some specialised
 metadata encoding information of special significance to TOPCAT,
 marking it as a saved session.
@@ -9233,6 +9240,8 @@ The upshot is that if you save a file in this way and then load it back into
 TOPCAT, the tables it loads will appear in very much the same
 state as when you saved them, in terms of defined and current subsets,
 row order, visible and invisible columns, and so on.
+If you process it with some application other than TOPCAT, it will look
+quite like the table you saved, but with some additional data and metadata.
 </p>
 
 <p>Note however that the reloaded state is not identical to that before saving.
