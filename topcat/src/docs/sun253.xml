@@ -13700,6 +13700,8 @@ introduced since the last version:
         where possible (JRE&gt;=1.6; suitable display manager).</li>
     <li>Fixed (I hope) "Table no longer loaded" error when sending tables
         via SAMP.</li>
+    <li>Can now save multiple tables into a single file.</li>
+    <li>Can save session to a single file.</li>
     </ul>
     </p></dd>
 

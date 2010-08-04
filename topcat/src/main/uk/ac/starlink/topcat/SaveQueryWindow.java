@@ -71,6 +71,7 @@ public class SaveQueryWindow extends QueryWindow {
         SavePanel[] savers = new SavePanel[] {
             new CurrentSavePanel( sto ),
             new MultiSavePanel( sto ),
+            new SessionSavePanel(),
         };
         tabber_ = new JTabbedPane();
         for ( int is = 0; is < savers.length; is++ ) {
