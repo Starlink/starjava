@@ -13,7 +13,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
     /**
      * Constructs a new MetaColumnTableModel.
      *
-     * @param   metas  a list of {@link MetaColumn} objects
+     * @param   metaList  a list of {@link MetaColumn} objects
      */
     public MetaColumnTableModel( List<MetaColumn> metaList ) {
         metaList_ = metaList;

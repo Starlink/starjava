@@ -31,7 +31,6 @@ public class CurrentSavePanel extends SavePanel {
     /**
      * Constructor.
      *
-     * @param  saveChooser  controlling chooser
      * @param  sto   output marshaller
      */
     public CurrentSavePanel( StarTableOutput sto ) {
