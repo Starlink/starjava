@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -34,6 +35,7 @@ public class TopcatUtils {
     private static String[] about_;
     private static String version_;
     private static String stilVersion_;
+    private static DecimalFormat longFormat_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
@@ -447,5 +449,21 @@ public class TopcatUtils {
     public static boolean equals( Object o1, Object o2 ) {
         return ( o1 == null && o2 == null )
             || ( o1 != null && o2 != null && o1.equals( o2 ) );
+    }
+
+    /**
+     * Formats a long value for presentation as text.
+     * This typically puts separators between groups of three numbers for
+     * improved visibility.  TOPCAT policy is usually to do this only for
+     * numbers which are, or might be expected to be, quite large.
+     *
+     * @param   num   number to format
+     * @return   formatted value
+     */
+    public static String formatLong( long num ) {
+        if ( longFormat_ == null ) {
+            longFormat_ = new DecimalFormat();
+        }
+        return longFormat_.format( num );
     }
 }

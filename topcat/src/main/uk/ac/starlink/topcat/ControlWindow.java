@@ -928,10 +928,11 @@ public class ControlWindow extends AuxWindow
             indexLabel_.setText( tcModel.getID() + ": " );
             locLabel_.setText( loc );
             nameLabel_.setText( loc.equals( name ) ? null : name );
-            rowsLabel_.setText( totRows + 
+            rowsLabel_.setText( TopcatUtils.formatLong( totRows ) + 
                                 ( ( visRows == totRows ) 
-                                            ? ""
-                                            : " (" + visRows + " apparent)" ) );
+                              ? ""
+                              : " (" + TopcatUtils.formatLong( visRows )
+                                     + " apparent)" ) );
             colsLabel_.setText( totCols +
                                 ( ( visCols == totCols )
                                             ? ""

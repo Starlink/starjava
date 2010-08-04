@@ -13808,6 +13808,8 @@ introduced since the last version:
         via SAMP.</li>
     <li>Can now save multiple tables into a single file.</li>
     <li>Can save session to a single file.</li>
+    <li>Format row counts with group separators (e.g. thousands separated
+        by commas) in some places for better readability.</li>
     </ul>
     </p></dd>
 
