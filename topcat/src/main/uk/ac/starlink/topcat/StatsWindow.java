@@ -662,7 +662,8 @@ public class StatsWindow extends AuxWindow {
      */
     private MetaColumn getMetaColumn( int icol ) {
         int jcol = jtab_.getColumnModel().getColumn( icol ).getModelIndex();
-        return ((MetaColumnTableModel) jtab_.getModel()).getMeta( jcol );
+        return ((MetaColumnTableModel) jtab_.getModel())
+              .getColumnList().get( jcol );
     }
 
     /**
