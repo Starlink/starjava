@@ -9094,6 +9094,7 @@ real data to hand.
 
 </subsect>
 
+
 <subsect id="SaveQueryWindow">
 <subhead><title>Save Window</title></subhead>
 
@@ -9104,34 +9105,166 @@ real data to hand.
 
 <p>The Save Window is used to write tables out,
 and it is accessed using the <label>Save Table</label> button (&IMG.SAVE;)
-in the <ref id="ControlWindow">Control Window</ref>'s toolbar or File menu. 
-Any table in the Control Window's table list can be
-written at any time; what is written is the 
-<ref id="apparent">Apparent Table</ref> corresponding to the currently
-selected table, which takes into account any modifications you have
-made to its data or appearance this session.
-The current <label>Row Subset</label> and <label>Row Order</label>
-are displayed in this window as a reminder of what you're about to
-save; if you modify the values in these selectors you will be
-modifying the Apparent Table in the usual way.
+in the <ref id="ControlWindow">Control Window</ref>'s toolbar or File menu.
 </p>
 
-<p>Any <ref id="subsets">Row Subsets</ref> 
-which have been defined on the table in the current session
-will not be saved themselves, but you can save information about
-subset membership by creating new boolean columns based on subsets
+<p>The window consists of two parts.
+At the top is the <label>Content Panel</label>,
+which is used to determine exactly what table or tables are going to be saved,
+and below it is the <label>Destination Panel</label>,
+which is used to determine where they will be saved to.
+These panels are described separately in the subsections below.
+</p>
+
+<p>For large tables, a progress bar will be displayed
+indicating how near the save is to completion.
+It is not advisable to edit tables which are being saved 
+during a save operation.
+</p>
+
+<p>In some cases, saving the table to a file with the same name 
+as it was loaded from can cause problems 
+(e.g. an application crash which loses the data unrecoverably).
+In other cases, it's perfectly OK.  The main case in which it's
+problematic is when editing an uncompressed FITS binary table on disk.
+TOPCAT will attempt to warn you if it thinks you are doing something
+which could lead to trouble; ignore this at your own risk.
+</p>
+
+<p>If you save a table to a format other than the one from which it was loaded,
+or if some new kinds of metadata have been added,
+it may not be possible to express all the data and metadata from the table
+in the new format.
+Some message to this effect may be output in such cases.
+</p>
+
+<p>There is no option to compress files on output.
+You can of course compress them yourself once they have been written,
+but note that this is not usually a good idea for FITS files,
+since it makes them much slower to read (for TOPCAT at least).
+</p>
+
+<subsubsect>
+<subhead><title>Content Panel</title></subhead>
+
+<subsubsubsect>
+<subhead><title>Current Table</title></subhead>
+
+<p>The <label>Current Table</label> save option 
+saves the table currently selected in the 
+<ref id="ControlWindow">Control Window</ref>.
+What is written is the
+<ref id="apparent">Apparent Table</ref> corresponding to the current table,
+which takes into account any modifications you have made to 
+its data or appearance this session.
+The current <label>Row Subset</label> and <label>Sort Order</label>
+are displayed in this window as a reminder of what you're about to save.
+Information about Row Subsets themselves and hidden columns will not
+be saved, though you can save information about subset membership
+by creating new boolean columns based on subsets
 using the "To Column" button (&IMG.TO_COLUMN;) from the
 <ref id="SubsetWindow">Subsets Window</ref>.
+Alternatively you could use the Session Save option described below.
 </p>
 
-<p>You can use the <label>Table Output Format</label>
-selector box to pick
-the format in which the table will be written from one
-of the <ref plaintextref="yes" id="outFormats">supported output formats</ref>.
-There is no default format, and it won't automatically save to the
-same format it was loaded from, but if you leave it on "(auto)" it
-will try to guess the format based on the filename given;
-for instance if you specify the name "out.fits", a FITS binary table
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Multiple Tables</title></subhead>
+
+<p>The <label>Multiple Tables</label> save option allows you to save 
+multiple tables to the same file.
+If a FITS or VOTable based output format is used, this means that
+when the file is loaded back into TOPCAT, all the saved tables will
+be individually loaded in.
+</p>
+
+<p>The list of loaded tables is shown, with a column of checkboxes
+on the left.  By default these are selected, but you can select or
+unselect them by clicking.  When the save is performed, only those
+tables with the checkbox selected will be saved.
+</p>
+
+<p>As with the Current Table save, it is the
+<ref id="apparent">Apparent Table</ref> in each case which is saved,
+so that only unhidden columns and rows in the Current Subset will be
+included.
+On the right hand side of the table is information to remind you 
+which row subset and ordering will be saved.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Session</title></subhead>
+
+<p>The <label>Session</label> save option allows you to save much 
+of the information
+about the loaded tables in your current TOPCAT session.
+Unlike the <label>Current Table</label> or <label>Multiple Tables</label> 
+options, the whole of each loaded table, along with other
+information about your use of it, is saved, rather than just the
+<ref id="apparent">Apparent Table</ref>.
+The saved items include:
+<ul>
+<li>All rows, not just those in the current Row Subset</li>
+<li>All visible and invisible columns,
+    along with their order and visibility status</li>
+<li>All defined Row Subsets</li>
+<li>The current Sort Order</li>
+<li>The current Row Subset</li>
+<li>The label</li>
+<li>Whether row selection causes a SAMP broadcast</li>
+</ul>
+</p>
+
+<p>The list of loaded tables is shown, with a column of checkboxes
+on the left.  By default these are selected, but you can select or
+unselect them by clicking.  When the save is performed, only thos
+tables with the checkbox selected will be saved.
+</p>
+
+<p>The tables are saved as a multi-table fits-plus (recommended) or VOTable
+file.  This is a normal multi-table file in that any FITS or VOTable 
+reader can read the tables it contains, but it contains some specialised
+metadata encoding information of special significance to TOPCAT,
+marking it as a saved session.
+The upshot is that if you save a file in this way and then load it back into
+TOPCAT, the tables it loads will appear in very much the same
+state as when you saved them, in terms of defined and current subsets,
+row order, visible and invisible columns, and so on.
+</p>
+
+<p>Note however that the reloaded state is not identical to that before saving.
+One important difference is that columns and row subsets 
+which were defined algebraically are saved and restored as fixed values,
+so it is no longer possible to edit the expressions.
+Another is that only state belonging to tables is saved, so that
+for instance plots will not be restored.
+Table activation actions are not saved either.
+It is possible that some of this may be changed in future releases.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Destination Panel</title></subhead>
+
+<p>The Destination Panel is the lower part of the save window,
+and is used to select where and how the table or tables should be saved.
+</p>
+
+<p>The <label>Output Format</label> selector is used to choose
+the format in which the table will be written from one of the 
+<ref plaintextref="yes" id="outFormats">supported output formats</ref>.
+The available selections are somewhat different depending on what it is you
+are saving; for instance some formats cannot accommodate multiple tables,
+so these formats are not offered for the Multiple Table save.
+If the "(auto)" option is used, an attempt is made to guess the 
+format based on the filename given;
+for instance if you specify the name "out.fits" a FITS binary table
 will be written.
 </p>
 
@@ -9154,38 +9287,9 @@ which are described in the following sections:
     (&IMG.SQL_DIALOG;) to get the 
     <ref id="SQLWriteDialog" plaintextref="yes">SQL Output Dialogue</ref></li>
 </ul>
-In some cases, saving the table to the same name as it was loaded from
-can cause problems (e.g. an application crash which loses the data
-unrecoverably).
-In other cases, it's perfectly OK.  The main case in which it's
-problematic is when editing an uncompressed FITS binary table on disk.
-TOPCAT will attempt to warn you if it thinks you are doing something
-which could lead to trouble; ignore this at your own risk.
 </p>
 
-<p>There is no option to compress files on output.
-You can of course compress them yourself once they have been written,
-but note that this is not usually a good idea for FITS files,
-since it makes them much slower to read (for TOPCAT at least).
-</p>
-
-<p>If the table is large, a progress bar indicating how near the
-save is to completion will appear.
-It is not advisable to edit the table during a save operation.
-</p>
-
-<p>In some cases, when saving a table to a format other than the one
-from which it was loaded, or if some new kinds of metadata have been
-added, it may not be possible to express all
-the data and metadata from the table in the new format.
-For instance a WDC table can contain data which represent epoch (date),
-and this cannot be stored in a FITS table.  In this case the table
-may be written with such columns missing.  Some message to this effect
-may be output in this case.
-</p>
-
-
-<subsubsect id="saveString">
+<subsubsubsect id="saveString">
 <subhead><title>Enter Location</title></subhead>
 
 <p>You can specify where to save a table by typing its location
@@ -9195,9 +9299,9 @@ This will usually be the name of a new file to
 write to, but could in principle be a URL or a SQL specifier.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="FilestoreTableSaveDialog">
+<subsubsubsect id="FilestoreTableSaveDialog">
 <subhead><title>Filestore Browser</title></subhead>
 
 <figure>
@@ -9235,9 +9339,9 @@ the <label>Output Format</label> selector box on the right
 (see <ref id="outFormats"/> for discussion of output formats).
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="SystemTableSaveDialog">
+<subsubsubsect id="SystemTableSaveDialog">
 <subhead><title>System Browser</title></subhead>
 
 <p>By clicking the <label>System Browser</label> button or toolbar button
@@ -9257,9 +9361,9 @@ for the other dialogue types.  To select the output table format, you
 will need to use the selector in the <label>Save Window</label>.
 </p>
 
-</subsubsect>
+</subsubsubsect>
 
-<subsubsect id="SQLWriteDialog">
+<subsubsubsect id="SQLWriteDialog">
 <subhead><title>SQL Output Dialogue</title></subhead>
 
 <figure>
@@ -9338,6 +9442,8 @@ and so on) - see the section on
 <ref id="jdbcConfig" plaintextref="yes">JDBC configuration</ref>.
 If you don't take these steps, this dialogue may be inaccessible.
 </p>
+
+</subsubsubsect>
 
 </subsubsect>
 
