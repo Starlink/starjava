@@ -92,14 +92,14 @@
 <author id="mbt"
         email="m.b.taylor@bristol.ac.uk"
         webpage="http://www.star.bristol.ac.uk/~mbt/"
-        affiliation="Starlink, University of Bristol"
+        affiliation="University of Bristol"
         >Mark Taylor</author>
 </authorlist>
 
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>24 March 2010</docdate>
+<docdate>6 August 2010</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -107,6 +107,9 @@
 <contact>Author email:
          <webref url="mailto:m.b.taylor@bristol.ac.uk"
                  >m.b.taylor@bristol.ac.uk</webref></contact>
+<contact>Mailing list:
+         <webref url="mailto:topcat-user@bristol.ac.uk"
+                 >topcat-user@bristol.ac.uk</webref></contact>
 </contactlist>
 
 </docinfo>
@@ -7310,39 +7313,57 @@ but my thanks are especially due to the following:
     </p>
     </dd>
 
-<dt>Next Version</dt>
-<dd><p>
+<dt>Version 2.2 (6 August 2010)</dt>
+<dd><p>New capabilities for multi-table I/O have been introduced:
     <ul>
+    <li>New multi-table output tasks
+        <code>tmulti</code> and <code>tmultin</code>.
+        These currently just copy multiple input tables to a single 
+        multi-table container file (e.g. Multi-Extension FITS or 
+        multi-TABLE VOTable).  Future releases may generalise the output of
+        multi-table processing.</li>
+    <li>New <code>multi</code> parameter introduced for <code>tcat</code>
+        and <code>tmulti</code> tasks to pick up all tables in a 
+        multi-table container file.</li>
+    <li>New JyStilts functions <code>treads</code> and <code>twrites</code>
+        for multi-table I/O.</li>
+    </ul>
+    There are some additional enhancements:
+    <ul>
+    <li>Added experimental name-resolution filter <code>addresolve</code>;
+        this currently uses Sesame.</li>
+    <li>Added filter <code>repeat</code>, which repeats table rows a
+        given number of times.</li>
+    </ul>
+    And a number of bug fixes:
+    <ul>
+    <li>Recognise unofficial column type "<code>long</code>" in IPAC format
+        tables.</li>
+    <li>Better behaviour (warn + failover) when attempting to read large
+        files on 32-bit OS or JVM.</li>
+    <li>Efficiency warning now issued for large compressed FITS files.</li>
+
     <li>Upgraded PixTools HEALPix library to 2010/02/09 version.
         This fixes a bug that could theoretically cause deficient crossmatch
         results, though I haven't managed to produce such errors.</li>
     <li>Fixed bug in TST table output.</li>
     <li>Fixed bug in FITS-plus metadata output
         (table parameters were getting lost).</li>
-    <li>Better behaviour (warn + failover) when attempting to read large
-        files on 32-bit OS or JVM.</li>
     <li>Corrected literature references in Fluxes conversion class
         documentation (thanks to Mattia Vaccari).</li>
-    <li>Now only runs on J2SE 1.5 and greater.</li>
-    <li>Efficiency warning now issued for large compressed FITS files.</li>
     <li>Fixed bug in CSV file parsing that could ignore header row in
         absence of non-numeric columns.</li>
-    <li>Recognise unofficial column type "<code>long</code>" in IPAC format
-        tables.</li>
-    <li>New multi-table output tasks introduced,
-        <code>tmulti</code> and <code>tmultin</code>.</li>
-    <li>New <code>multi</code> parameter introduced for <code>tcat</code>
-        and <code>tmulti</code> tasks to pick up all tables in a container
-        file (e.g. Multi-Extension FITS or multi-TABLE VOTable).</li>
-    <li>New JyStilts functions <code>treads</code> and <code>twrites</code>
-        for multi-table I/O.</li>
     <li>Shape and ElSize metadata items now correctly reported by 
         <code>meta</code> filter.</li>
-    <li>Added experimental name-resolution filter <code>addresolve</code>.</li>
-    <li>Added filter <code>repeat</code>.</li>
     <li>Fixed JyStilts bug when supplying an empty string for a parameter
         value.</li>
     </ul>
+    </p>
+    <p>Finally, from this release STILTS requires version 1.5 (a.k.a. 5.0)
+    of the Java J2SE Runtime Environment; it will no longer run on 
+    version 1.4, which is now very old.  I don't expect this to cause
+    compatibility issues for anyone, but I'm interested to hear if that's
+    not the case.
     </p></dd>
 
 </dl>
