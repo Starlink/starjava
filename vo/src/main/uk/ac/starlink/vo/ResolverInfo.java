@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Element;
@@ -29,6 +30,8 @@ public class ResolverInfo {
     /** Base URL for HTTP-GET-based Sesame service. */
     public static final String SESAME_URL =
         "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-ox2?";
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructs a new resolver from the &lt;Resolver&gt; XML element 
@@ -86,6 +89,7 @@ public class ResolverInfo {
         try {
             URL url = new URL( SESAME_URL
                     + URLEncoder.encode( name, "UTF-8" ) );
+            logger_.info( url.toString() );
             Element el = new SourceReader()
                         .getElement( new StreamSource( url.openStream() ) );
             String tag = getTagname( el );
