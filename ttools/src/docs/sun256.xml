@@ -7338,6 +7338,7 @@ but my thanks are especially due to the following:
         for multi-table I/O.</li>
     <li>Shape and ElSize metadata items now correctly reported by 
         <code>meta</code> filter.</li>
+    <li>Added experimental name-resolution filter <code>addresolve</code>.</li>
     </ul>
     </p></dd>
 
