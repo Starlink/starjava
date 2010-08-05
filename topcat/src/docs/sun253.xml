@@ -9258,7 +9258,7 @@ It is possible that some of this may be changed in future releases.
 
 </subsubsect>
 
-<subsubsect>
+<subsubsect id="TableSaveChooser">
 <subhead><title>Destination Panel</title></subhead>
 
 <p>The Destination Panel is the lower part of the save window,
