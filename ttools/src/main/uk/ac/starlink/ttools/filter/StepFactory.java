@@ -50,6 +50,7 @@ public class StepFactory {
         filterFactory_.register( "progress", pkg + "ProgressFilter" );
         filterFactory_.register( "random", pkg + "RandomFilter" );
         filterFactory_.register( "randomview", pkg + "RandomViewFilter" );
+        filterFactory_.register( "repeat", pkg + "RepeatFilter" );
         filterFactory_.register( "replacecol", pkg + "ReplaceColumnFilter" );
         filterFactory_.register( "replaceval", pkg + "ReplaceValueFilter" );
         filterFactory_.register( "rowrange", pkg + "RangeFilter" );

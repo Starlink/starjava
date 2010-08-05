@@ -7339,6 +7339,7 @@ but my thanks are especially due to the following:
     <li>Shape and ElSize metadata items now correctly reported by 
         <code>meta</code> filter.</li>
     <li>Added experimental name-resolution filter <code>addresolve</code>.</li>
+    <li>Added filter <code>repeat</code>.</li>
     </ul>
     </p></dd>
 

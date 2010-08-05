@@ -409,6 +409,22 @@ public class TablePipeTest extends TableTestCase {
         assertArrayEquals( getColData( inTable_, 2 ), getColData( dup, 0 ) );
     }
 
+    public void testRepeat() throws Exception {
+        long nrow = inTable_.getRowCount();
+        assertTrue( nrow > 2 );
+        assertSameData( inTable_, apply( "repeat 1" ) );
+        assertSameData( inTable_, apply( "repeat 1000000; head " + nrow ) );
+        assertSameData( inTable_, apply( "repeat 999; tail " + nrow ) );
+        assertSameData( inTable_,
+                        apply( "repeat 10; rowrange " + ( nrow + 1 )
+                                                      + " +" + nrow ) );
+        assertSameData( inTable_,
+                        apply( "repeat 10; rowrange " + ( nrow * 4 + 1 )
+                                                      + " +" + nrow ) );
+        assertEquals( nrow * 99, apply( "repeat 99" ).getRowCount() );
+        assertEquals( 0, apply( "repeat 0" ).getRowCount() );
+    }
+
     public void testReplaceval() throws Exception {
         assertArrayEquals(
            new Object[] { "Mark", "Stupendous", "Taylor", "Rex" },
