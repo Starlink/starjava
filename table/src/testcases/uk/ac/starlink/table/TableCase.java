@@ -40,6 +40,9 @@ import uk.ac.starlink.votable.VOTableWriter;
 
 public class TableCase extends TestCase {
 
+    public TableCase() {
+    }
+
     public TableCase( String name ) {
         super( name );
     }
