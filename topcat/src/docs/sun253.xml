@@ -319,7 +319,7 @@ open up new windows.  These fall into a few groups:
 
 <dl>
 <dt>&IMG.LOAD; &IMG.SAVE; &IMG.BROADCAST;</dt>
-<dd><p>Load/save/send table.</p></dd>
+<dd><p>Load/Save/Send Table(s).</p></dd>
 
 <dt>&IMG.VIEWER; &IMG.PARAMS; &IMG.COLUMNS; &IMG.SUBSETS; &IMG.STATS;</dt>
 <dd><p>Display various aspects of information about the table's data and
@@ -4792,10 +4792,12 @@ functions.  They are grouped as follows:
         If a table is loaded it becomes the new current table.
         </p></dd>
 
-    <dt>&IMG.SAVE; Save Table</dt>
+    <dt>&IMG.SAVE; Save Table(s)/Session</dt>
     <dd><p>Pops up the <ref id="SaveQueryWindow">Save Table</ref> dialogue
-        which allows you to write out the current 
-        <ref id="apparent">Apparent Table</ref>.
+        which allows you to write out tables in various ways.
+        You can either write out the current
+        <ref id="apparent">Apparent Table</ref>, or multiple tables,
+        or save (much of) the current session state.
         </p></dd>
 
     <dt>&IMG.BROADCAST; Broadcast Table</dt>
@@ -13779,77 +13781,130 @@ introduced since the last version:
     </p></dd>
 
 <dt>Version 3.6 (6 August 2010)</dt>
-<dd><p>
-    <ul>
-    <li>Finally - you can delete and rename row subsets!</li>
-    <li>Add System Browser option to Load and Save Windows.</li>
-    <li>Save window is changed - can now save either current table,
-        multiple tables, or entire session.</li>
-    <li>Can now save multiple tables into a single file.</li>
-    <li>Can save session to a single file.</li>
-    <li>New actions in Control Window File menu to move current table 
-        up or down in list (also use ALT-up/down arrow from keyboard).
-        This influences save order in Multiple Table or Session save.</li>
-    <li>Upgrade JSAMP to version 1.1.  Now takes account of SAMP_HUB 
-        environment variable (SAMP v1.2), and uses System Tray for hub icon
-        where possible (JRE&gt;=1.6; suitable display manager).</li>
-    <li>Utype metadata items now visible in Parameter and Column windows.</li>
-    <li>VizieR load dialogue can now optionally display sub-tables within
-        catalogues (new "Sub-Table Details" checkbox).</li>
-    <li>VizieR load dialogue now has option to include/exclude obsolete
-        catalogues (new "Include Obsolete Tables" checkbox).</li>
-
-    <li>Update SDSS image cutout downloads to DR7 (was DR4).</li>
-    <li>Recognise unofficial column type "<code>long</code>" in IPAC format 
-        tables.</li>
-    <li>Efficiency warning now issued for large compressed FITS files.</li>
-    <li>Format row counts with group separators (e.g. thousands separated
-        by commas) in some places for better readability.</li>
-    <li>The current table can now be discarded by hitting the
-        <label>Delete</label> key in the Control Window table list.</li>
-
-    <li>Table parameter values in algebraic expressions now evaluate to
-        their current value, rather than the value when the expression 
-        was entered.</li>
-    <li>Tables in TOPCAT now have private copies of column and table metadata.
-        This means that changing a column name or parameter in one table
-        will not affect other tables.
-        It should also prevent a related bug that allowed the
-        column headings the table browser to get out of step with those
-        in the columns window and elsewhere.</li>
-    <li>Receipt of a SAMP <code>table.highlight.row</code> message will no
-        longer cause a similar message to be sent back (and similarly for the
-        PLASTIC <code>ivo://votech.org/votable/highlightObject</code> message).
-        The previous behaviour was an unwanted implementation side effect
-        which could sometimes cause problems in interaction with other
-        tools.</li>
-    <li>Fixed bug in FITS-plus metadata output
-        (table parameters were getting lost).</li>
-    <li>Better behaviour (warn + failover) when attempting to read large
-        files on 32-bit OS or JVM.</li>
-    <li>Corrected literature references in Fluxes conversion class 
-        documentation (thanks to Mattia Vaccari).</li>
-    <li>Fix memory usage issues (unnecessarily large output graphics files,
-        possible out of memory errors) for density plots
-        with large pixel sizes.</li>
-    <li>Fixed bug in CSV file parsing that could ignore header row in
-        absence of non-numeric columns.</li>
-    <li>Fix some minor bugs with Cancel operation during table save.</li>
-    <li>Reinstate help buttons from Save Window toolbar 
-        (erroneously removed since version 2.0).</li>
-    <li>Make sure that failed load of table with no rows reports as such
-        rather than failing silently.</li>
-    <li>Loading tables by typing their name directly in the Load Window
-        now loads multiple tables if present not just the first one,
-        in common with most of the other load dialogue types.</li>
-    <li>Upgraded PixTools HEALPix library to 2010/02/09 version.
-        This fixes a bug that could theoretically cause deficient crossmatch
-        results, though I haven't managed to produce such errors.</li>
-    <li>Fixed (I hope) "Table no longer loaded" error when sending tables
-        via SAMP.</li>
-
-    <li>Now only works on J2SE 1.5 and above.</li>
-    </ul>
+<dd><p>This version contains some new features and usability enhancements,
+    and a number of bugfixes.
+    <dl>
+    <dt>Load/Save Dialogue improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>There is a new <label>System Browser</label> option when loading
+            and saving.  This does essentially same job as the old
+            <label>Filestore Browser</label> (still available), selecting
+            a file to load or save, but it uses the system-default GUI to do it.
+            For Mac and Windows users, this may present a more familiar and
+            functional interface to the file system (for Linux users, it is
+            probably not an improvement).  Both options are available,
+            so you can choose whichever you prefer.
+            </li>
+        <li>You can now save multiple tables at once.
+            The <ref id="SaveQueryWindow">Save Window</ref> now offers
+            three ways of saving: <label>Current Table</label>, 
+            <label>Multiple Tables</label> and <label>Session</label>.
+            Current Table saves the current Apparent Table as before.
+            Multiple Table saves some or all of the loaded Apparent Tables
+            to a container file
+            (typically Multi-Extension FITS or multi-TABLE VOTable).
+            Session saves some or all tables as well, but additionally 
+            saves many aspects of the TOPCAT state, such as table subsets,
+            sort order, hidden columns etc.
+            </li>
+        </ul>
+        </p></dd>
+    <dt>Other significant enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Finally - you can delete and rename row subsets in the 
+            <ref id="SubsetWindow">Subset Window</ref>!
+            Apologies to those who've been asking that this has taken
+            so long to implement.</li>
+        <li>There are new actions in the Control Window 
+            <ref id="controlMenus">File menu</ref> to change the order of
+            loaded tables in the table list (move them up and down).
+            You can use ALT-up/down keys to do the same thing.
+            This may be useful in conjunction with the new 
+            session/multi-table save facility.</li>
+        <li>Utype metadata items are now visible in the Parameter and Column
+            windows.</li>
+        <li>The JSAMP library has been upgraded to version 1.1.
+            This means that the hub will appear in the "System Tray" where
+            possible (when using java 1.6+, and when using a suitable 
+            display manager).  It also recognises the SAMP_HUB environment
+            variable for non-standard hub locations.</li>
+        <li>There are a couple of improvements in the
+            <ref id="VizierTableLoadDialog">VizieR load dialogue</ref>:
+            it has options to display sub-tables within catalogues and 
+            to include or exclude obsolete catalogues.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>The current table can now be discarded by hitting the
+            <label>Delete</label> key in the Control Window table list.</li>
+        <li>SDSS image cutout downloads updated to DR7 (was DR4).</li>
+        <li>The unofficial column type "<code>long</code>" is recognised
+            in IPAC format tables.</li>
+        <li>An efficiency warning is now issued for large
+            compressed FITS files.</li>
+        <li>Format row counts are displayed with group separators
+            (e.g. thousands separated by commas) in some places
+            for better readability.</li>
+        </ul>
+        </p></dd>
+    <dt>Fixes for bugs and misfeatures:</dt>
+    <dd><p>
+        <ul>
+        <li>Table parameter values in algebraic expressions now evaluate to
+            their current value, rather than the value when the expression 
+            was entered.</li>
+        <li>Tables in TOPCAT now have private copies of column and table
+            metadata.
+            This means that changing a column name or parameter in one table
+            will not affect other tables.
+            It should also prevent a related bug that allowed the
+            column headings in the table browser to get out of step with those
+            in the columns window and elsewhere.</li>
+        <li>Receipt of a SAMP <code>table.highlight.row</code> message will no
+            longer cause a similar message to be sent back
+            (and similarly for the PLASTIC
+            <code>ivo://votech.org/votable/highlightObject</code> message).
+            The previous behaviour was an unwanted implementation side effect
+            which could sometimes cause problems in interaction with other
+            tools.</li>
+        <li>Fixed bug in FITS-plus metadata output
+            (table parameters were getting lost).</li>
+        <li>Better behaviour (warn + failover) when attempting to read large
+            files on 32-bit OS or JVM.</li>
+        <li>Corrected literature references in Fluxes conversion class 
+            documentation (thanks to Mattia Vaccari).</li>
+        <li>Fix memory usage issues (unnecessarily large output graphics
+            files, possible out of memory errors) for density plots
+            with large pixel sizes.</li>
+        <li>Fixed bug in CSV file parsing that could ignore header row in
+            absence of non-numeric columns.</li>
+        <li>Fix some minor bugs with Cancel operation during table save.</li>
+        <li>Reinstate help buttons from Save Window toolbar 
+            (erroneously removed since version 2.0).</li>
+        <li>Make sure that failed load of table with no rows reports as such
+            rather than failing silently.</li>
+        <li>Loading tables by typing their name directly in the Load Window
+            now loads multiple tables if present not just the first one,
+            in common with most of the other load dialogue types.</li>
+        <li>Upgraded PixTools HEALPix library to 2010/02/09 version.
+            This fixes a bug that could theoretically cause deficient
+            crossmatch results, though I haven't managed to produce
+            such errors.</li>
+        <li>Fixed (I hope) "Table no longer loaded" error when sending tables
+            via SAMP.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p>
+    <p>Finally, from this release TOPCAT requires version 1.5 (a.k.a. 5.0)
+    of the Java J2SE Runtime Environment; it will no longer run on
+    version 1.4, which is now very old.  I don't expect this to cause
+    compatibility issues for anyone, but I'm interested to hear if that's
+    not the case.
     </p></dd>
 
 </dl>
