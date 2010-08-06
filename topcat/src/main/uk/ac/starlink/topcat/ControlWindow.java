@@ -34,6 +34,7 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -43,6 +44,7 @@ import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -425,11 +427,18 @@ public class ControlWindow extends AuxWindow
                 }
             }
         } );
+
+        /* Keystroke invoked actions on tables list. */
+        InputMap listInputs = tablesList_.getInputMap();
+        ActionMap listActs = tablesList_.getActionMap();
         Object actkey = viewerAct.getValue( Action.NAME );
-        tablesList_.getInputMap()
-                  .put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), 
+        listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ),
                         actkey );
-        tablesList_.getActionMap().put( actkey, viewerAct );
+        listActs.put( actkey, viewerAct );
+        Object delkey = removeAct_.getValue( Action.NAME );
+        listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, 0 ),
+                        delkey );
+        listActs.put( delkey, removeAct_ );
 
         /* Add load/save control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();

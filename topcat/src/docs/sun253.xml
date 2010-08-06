@@ -4960,6 +4960,8 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     operations, but often will not; 
     whether it does or not depends on the details of
     where the table comes from.
+    This action can also be triggered by hitting the <label>Delete</label>
+    key on the keyboard when the table list has keyboard focus.
     </p></dd>
 
 <dt>&IMG.SEND; Send Table to ...</dt>
@@ -12015,6 +12017,7 @@ Some of the notable contributers are these:
 <li>Tim Jenness (JACH)</li>
 <li>Gerard Lemson (MPE Garching)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
+<li>Ben Maughan (Bristol)</li>
 <li>Richard McMahon (IoA)</li>
 <li>Guillaume Mella (JMMC)</li>
 <li>David Mills (Bristol)</li>
@@ -13783,6 +13786,8 @@ introduced since the last version:
     <li>Efficiency warning now issued for large compressed FITS files.</li>
     <li>Format row counts with group separators (e.g. thousands separated
         by commas) in some places for better readability.</li>
+    <li>The current table can now be discarded by hitting the
+        <label>Delete</label> key in the Control Window table list.</li>
 
     <li>Table parameter values in algebraic expressions now evaluate to
         their current value, rather than the value when the expression 
