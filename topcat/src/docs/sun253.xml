@@ -4964,6 +4964,22 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     key on the keyboard when the table list has keyboard focus.
     </p></dd>
 
+<dt>&IMG.UP; Move Table Up</dt>
+<dd><p>Moves the currently selected table up one slot in the tables list.
+    This can be convenient for viewing, and it also influences the order
+    in which tables are saved when doing a Multiple Table or Session save. 
+    This action can also be triggered by hitting <label>ALT-up-arrow</label>
+    key on the keyboard when the table list has keyboard focus.
+    </p></dd>
+
+<dt>&IMG.DOWN; Move Table Down</dt>
+<dd><p>Moves the currently selected table down one slot in the tables list.
+    This can be convenient for viewing, and it also influences the order
+    in which tables are saved when doing a Multiple Table or Session save.
+    This action can also be triggered by hitting <label>ALT-down-arrow</label>
+    key on the keyboard when the table list has keyboard focus.
+    </p></dd>
+
 <dt>&IMG.SEND; Send Table to ...</dt>
 <dd><p>Sends the currently selected table to a selected listening application
     using SAMP or PLASTIC.  Select the desired recipient application from the
@@ -13771,6 +13787,9 @@ introduced since the last version:
         multiple tables, or entire session.</li>
     <li>Can now save multiple tables into a single file.</li>
     <li>Can save session to a single file.</li>
+    <li>New actions in Control Window File menu to move current table 
+        up or down in list (also use ALT-up/down arrow from keyboard).
+        This influences save order in Multiple Table or Session save.</li>
     <li>Upgrade JSAMP to version 1.1.  Now takes account of SAMP_HUB 
         environment variable (SAMP v1.2), and uses System Tray for hub icon
         where possible (JRE&gt;=1.6; suitable display manager).</li>

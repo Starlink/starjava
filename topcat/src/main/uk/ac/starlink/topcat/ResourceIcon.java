@@ -174,6 +174,8 @@ public class ResourceIcon implements Icon {
         DOWN = makeIcon( "arrow_s_pad.gif" ),
         UP_TRIM = makeIcon( "arrow_n.gif" ),
         DOWN_TRIM = makeIcon( "arrow_s.gif" ),
+        MOVE_UP = makeIcon( "Up2.gif" ),
+        MOVE_DOWN = makeIcon( "Down2.gif" ),
         EQUATION = makeIcon( "xeq.gif" ),
         EXPLODE = makeIcon( "explode.gif" ),
         ADDSKY = makeIcon( "addsky1.gif" ),

@@ -11,6 +11,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
@@ -45,6 +46,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.InputMap;
+import javax.swing.ListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -159,6 +161,7 @@ public class ControlWindow extends AuxWindow
         new DefaultComboBoxModel();
     private final ButtonModel dummyButtonModel_ = new DefaultButtonModel();
     private StarTableFactory tabfact_ = new StarTableFactory( true );
+    private final boolean showListToolBar_ = false;
     private TableLoadChooser loadChooser_;
     private LoadQueryWindow loadWindow_;
     private SaveQueryWindow saveWindow_;
@@ -187,6 +190,8 @@ public class ControlWindow extends AuxWindow
     private final Action mirageAct_;
     private final Action removeAct_;
     private final Action concatAct_;
+    private final Action upAct_;
+    private final Action downAct_;
     private final Action multiconeAct_;
     private final Action multisiaAct_;
     private final Action multissaAct_;
@@ -258,6 +263,11 @@ public class ControlWindow extends AuxWindow
         MemoryMonitor memmon = new MemoryMonitor();
         memmon.setPreferredSize( new Dimension( Integer.MAX_VALUE, 24 ) );
         listPanel.add( memmon, BorderLayout.SOUTH );
+        JToolBar listToolbar = new JToolBar( JToolBar.VERTICAL );
+        listToolbar.setFloatable( false );
+        if ( showListToolBar_ ) {
+            listPanel.add( listToolbar, BorderLayout.EAST );
+        }
         infoPanel.add( infoScroller, BorderLayout.CENTER );
         listScroller.setBorder( makeTitledBorder( "Table List" ) );
         infoScroller.setBorder( makeTitledBorder( "Current Table " +
@@ -265,7 +275,7 @@ public class ControlWindow extends AuxWindow
         splitter.setLeftComponent( listPanel );
         splitter.setRightComponent( infoPanel );
         splitter.setPreferredSize( new Dimension( 600, 250 ) );
-        splitter.setDividerLocation( 192 );
+        splitter.setDividerLocation( 192 + ( showListToolBar_ ? 32 : 0 ) );
         getMainArea().add( splitter );
 
         /* Configure drag and drop on the list panel. */
@@ -305,6 +315,12 @@ public class ControlWindow extends AuxWindow
         concatAct_ = new ControlAction( "Concatenate Tables",
                                         ResourceIcon.CONCAT,
                                         "Join tables by concatenating them" );
+        upAct_ = new ControlAction( "Move table up", ResourceIcon.MOVE_UP,
+                                    "Moves the current table "
+                                  + "one position up in the tables list" );
+        downAct_ = new ControlAction( "Move table down", ResourceIcon.MOVE_DOWN,
+                                      "Moves the current table "
+                                    + "one position down in the tables list" );
         multiconeAct_ =
             new ControlAction( "Multicone", ResourceIcon.MULTICONE,
                                "Multiple cone search"
@@ -439,6 +455,22 @@ public class ControlWindow extends AuxWindow
         listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_DELETE, 0 ),
                         delkey );
         listActs.put( delkey, removeAct_ );
+        Object upkey = upAct_.getValue( Action.NAME );
+        listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_UP,
+                                                InputEvent.ALT_MASK ),
+                        upkey );
+        listActs.put( upkey, upAct_ );
+        Object downkey = downAct_.getValue( Action.NAME );
+        listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
+                                                InputEvent.ALT_MASK ),
+                        downkey );
+        listActs.put( downkey, downAct_ );
+
+        /* Add actions to the list toolbar. */
+        listToolbar.add( upAct_ );
+        listToolbar.add( downAct_ );
+        listToolbar.add( dupAct_ );
+        listToolbar.add( removeAct_ );
 
         /* Add load/save control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
@@ -484,6 +516,8 @@ public class ControlWindow extends AuxWindow
                       .setMnemonic( KeyEvent.VK_P );
         fileMenu.insert( removeAct_, fileMenuPos++ )
                       .setMnemonic( KeyEvent.VK_D );
+        fileMenu.insert( upAct_, fileMenuPos++ );
+        fileMenu.insert( downAct_, fileMenuPos++ );
         if ( tableTransmitter != null ) {
             fileMenu.insertSeparator( fileMenuPos++ );
             fileMenu.insert( tableTransmitter.getBroadcastAction(),
@@ -686,6 +720,25 @@ public class ControlWindow extends AuxWindow
             tablesList_.clearSelection();
             tablesModel_.removeElement( model );
         }
+    }
+
+    /**
+     * Moves the current table one item up or down in the tables list.
+     *
+     * @param   up  true for move up (to lower index),
+     *              false for move down (to higher index)
+     */
+    public void moveCurrent( boolean up ) {
+        ListSelectionModel selModel = tablesList_.getSelectionModel();
+        int iFrom = selModel.getMinSelectionIndex();
+        TopcatModel tcFrom = (TopcatModel) tablesModel_.get( iFrom );
+        int iTo = iFrom + ( up ? -1 : +1 );
+        int iLo = iFrom + ( up ? -1 : 0 );
+        tablesModel_.insertElementAt( (TopcatModel) tablesModel_.get( iLo ),
+                                      iLo + 2 );
+        tablesModel_.remove( iLo );
+        assert tablesModel_.get( iTo ) == tcFrom;
+        tablesList_.setSelectionInterval( iTo, iTo );
     }
 
     /**
@@ -979,6 +1032,13 @@ public class ControlWindow extends AuxWindow
         }
         mirageAct_.setEnabled( hasModel );
         removeAct_.setEnabled( hasModel );
+        saveAct_.setEnabled( hasModel );
+        upAct_.setEnabled( tcModel != null &&
+                           tcModel != tablesModel_.getElementAt( 0 ) );
+        downAct_.setEnabled( tcModel != null &&
+                             tcModel != tablesModel_
+                                       .getElementAt( tablesModel_
+                                                     .getSize() - 1 ) );
         subsetSelector_.setEnabled( hasModel );
         sortSelector_.setEnabled( hasModel );
         sortSenseButton_.setEnabled( hasModel );
@@ -1011,6 +1071,9 @@ public class ControlWindow extends AuxWindow
         for ( int i = 0; i < graphicsActs_.length; i++ ) {
             graphicsActs_[ i ].setEnabled( hasTables );
         }
+        int isel = tablesList_.getSelectedIndex();
+        upAct_.setEnabled( isel > 0 );
+        downAct_.setEnabled( isel >= 0 && isel < tablesModel_.getSize() - 1 );
     }
 
     /**
@@ -1286,6 +1349,12 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == concatAct_ ) {
                 getConcatWindow().makeVisible();
+            }
+            else if ( this == upAct_ ) {
+                moveCurrent( true );
+            }
+            else if ( this == downAct_ ) {
+                moveCurrent( false );
             }
             else if ( this == multiconeAct_ ) {
                 getConeMultiWindow().makeVisible();
