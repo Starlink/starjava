@@ -3,8 +3,11 @@
   <!ENTITY map.file "Map.xml">
   <!ENTITY toc.file "TOC.xml">
   <!ENTITY home.file "HelpTop.html">
+  <!ENTITY searchconfig.file "search-config">
   <!ENTITY file.elements 
            "abstract|sect|subsect|subsubsect|subsubsubsect">
+  <!ENTITY file.descendents
+           ".//abstract|.//sect|.//subsect|.//subsubsect|.//subsubsubsect">
 
   <!ENTITY map.pubid 
            "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN">
@@ -26,13 +29,35 @@
 
   <xsl:output method="xml"/>
 
+
+<!-- Top-level processing. -->
+
   <xsl:template match="sun">
     <multisection>
-      <xsl:apply-templates mode="help-map"/>
+      <xsl:apply-templates mode="help-map" select="."/>
       <xsl:apply-templates mode="help-toc"/>
       <xsl:apply-templates mode="help-hs" select="."/>
       <xsl:apply-templates mode="help-text" select="."/>
+      <xsl:apply-templates mode="help-search-config" select="."/>
     </multisection>
+  </xsl:template>
+
+
+<!-- Reference access functions. -->
+
+  <xsl:template name="getRef">
+    <xsl:param name="node" select="."/>
+    <xsl:call-template name="getFile">
+      <xsl:with-param name="node" select="$node"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template name="getFile">
+    <xsl:param name="node" select="."/>
+    <xsl:call-template name="getId">
+      <xsl:with-param name="node" select="$node"/>
+    </xsl:call-template>
+    <xsl:text>.html</xsl:text>
   </xsl:template>
 
 
@@ -103,16 +128,14 @@
 
 <!-- Mode 'help-map' - the JavaHelp Map file. -->
 
-  <xsl:template mode="help-map" match="*"/>
-
-  <xsl:template mode="help-map" match="docbody">
+  <xsl:template mode="help-map" match="sun">
     <filesection file="&map.file;" 
                  method="xml"
                  indent="yes"
                  doctype-public="&map.pubid;"
                  doctype-system="&map.sysid;">
       <map version="1.0">
-        <xsl:apply-templates mode="help-map"/>
+        <xsl:apply-templates mode="help-map" select="&file.descendents;"/>
       </map>
     </filesection>
   </xsl:template>
@@ -127,26 +150,6 @@
       </xsl:attribute>
     </xsl:element>
     <xsl:text>&#x0a;</xsl:text>
-    <xsl:apply-templates mode="help-map" select="&file.elements;"/>
-  </xsl:template>
-
-  <xsl:template mode="help-map" match="appendices">
-    <xsl:apply-templates mode="help-map" select="&file.elements;"/>
-  </xsl:template>
-
-  <xsl:template name="getRef">
-    <xsl:param name="node" select="."/>
-    <xsl:call-template name="getFile">
-      <xsl:with-param name="node" select="$node"/>
-    </xsl:call-template>
-  </xsl:template>
-
-  <xsl:template name="getFile">
-    <xsl:param name="node" select="."/>
-    <xsl:call-template name="getId">
-      <xsl:with-param name="node" select="$node"/>
-    </xsl:call-template>
-    <xsl:text>.html</xsl:text>
   </xsl:template>
 
 
@@ -183,6 +186,7 @@
     <xsl:apply-templates mode="help-toc" select="&file.elements;"/>
   </xsl:template>
 
+
 <!-- Mode 'help-hs' - the top-level Helpset file. -->
 
   <xsl:template mode="help-hs" match="sun">
@@ -217,8 +221,34 @@
           <type>javax.help.TOCView</type>
           <data>&toc.file;</data>
         </view>
+        <view>
+          <name>Search</name>
+          <label>Search for words in text</label>
+          <type>javax.help.SearchView</type>
+          <data engine="com.sun.java.help.search.DefaultSearchEngine">
+            <xsl:text>JavaHelpSearch</xsl:text>
+          </data>
+        </view>
       </helpset>
     </xsl:element>
+  </xsl:template>
+
+
+<!-- Mode 'help-search-config' - config file for JavaHelp indexer. -->
+
+  <xsl:template mode="help-search-config" match="sun">
+    <filesection file="&searchconfig.file;" method="text">
+      <content>
+        <xsl:apply-templates mode="help-search-config"
+                             select="&file.descendents;"/>
+      </content>
+    </filesection>
+  </xsl:template>
+
+  <xsl:template mode="help-search-config" match="&file.elements;">
+    <xsl:text>File </xsl:text>
+    <xsl:call-template name="getFile"/>
+    <xsl:text>&#x0a;</xsl:text>
   </xsl:template>
 
 </xsl:stylesheet>

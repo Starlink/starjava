@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import javax.help.HelpSet;
+import javax.help.JHelp;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -558,6 +558,12 @@ public class ResourceIcon implements Icon {
                      new SsapTableLoadDialog().getIcon() );
         nameMap.put( "REGISTRY_DIALOG",
                      new RegistryTableLoadDialog().getIcon() );
+        nameMap.put( "HELP_TOC",
+                     new ImageIcon( JHelp.class
+                             .getResource( "plaf/basic/images/toc.gif" ) ) );
+        nameMap.put( "HELP_SEARCH",
+                     new ImageIcon( JHelp.class
+                             .getResource( "plaf/basic/images/search.gif" ) ) );
         return nameMap;
     }
 

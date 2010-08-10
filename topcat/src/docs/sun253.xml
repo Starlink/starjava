@@ -11412,10 +11412,29 @@ it can be obtained by clicking the <label>Help</label> (&IMG.HELP;) button
 that appears in the toolbar of most windows.
 It views the text contained in this document, so it may be what you are
 looking at now.
-The panel on the left hand side gives a hierarchical
-view of the available help topics, and the panel on the right hand
-side displays the help text itself.  The bar in between the two
-can be dragged with the mouse to affect the relative sizes of
+</p>
+
+<p>The panel on the right hand side displays the currently selected section
+of help text itself.  The panel on the left gives a couple of ways of
+selecting this view:
+<dl>
+<dt>&IMG.HELP_TOC; Table of Contents</dt>
+<dd><p>A hierarchical view of the available help topics.
+    This is the table of contents of the manual;
+    clicking on an entry will take you to the relevant section.
+    </p></dd>
+<dt>&IMG.HELP_SEARCH; Text Search</dt>
+<dd><p>Allows you to search for words in the manual.
+    Enter a word or words as search terms, and a list of sections which 
+    fully or partially match your search terms will be displayed.
+    You can click on one of these to take you to the section that
+    has been found.
+    </p></dd>
+</dl>
+</p>
+
+<p>The bar in between the two panels can be dragged with the mouse
+to affect the relative sizes of
 these windows.
 </p>
 
@@ -13905,6 +13924,13 @@ introduced since the last version:
     version 1.4, which is now very old.  I don't expect this to cause
     compatibility issues for anyone, but I'm interested to hear if that's
     not the case.
+    </p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Help Window now has a text search tab.</li>
+    </ul>
     </p></dd>
 
 </dl>
