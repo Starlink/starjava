@@ -54,7 +54,7 @@ public class ResourceTableModel extends ArrayTableModel {
             },
             new ArrayTableColumn( "publisher", String.class ) {
                 public Object getValue( Object item ) {
-                    return getResource( item ).getIdentifier();
+                    return getResource( item ).getPublisher();
                 }
             },
             new ArrayTableColumn( "contact", String.class ) {
