@@ -5,9 +5,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -26,16 +29,8 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     private final RegistrySelector urlSelector_;
     private final JTextField keywordField_;
     private final JButton andButton_;
+    private final MatchField[] matchFields_;
     private boolean or_;
-
-    /** VOResource fields compared to keywords. */
-    public static final String[] MATCHED_FIELDS = new String[] {
-        "identifier",
-        "content/description",
-        "title",
-        "content/subject",
-        "content/type",
-    };
 
     /**
      * Constructs a query factory which looks for services with a particular
@@ -51,6 +46,9 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                 urlSelector_.setEnabled( enabled );
                 keywordField_.setEnabled( enabled );
                 andButton_.setEnabled( enabled );
+                for ( int im = 0; im < matchFields_.length; im++ ) {
+                    matchFields_[ im ].button_.setEnabled( enabled );
+                }
             }
         };
 
@@ -97,6 +95,27 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         keywordLine.add( Box.createHorizontalStrut( 5 ) );
         keywordLine.add( andButton_ );
         queryPanel_.add( keywordLine );
+
+        /* Match field selectors.  See the VOResource schema
+         * (http://www.ivoa.net/Documents/latest/VOResource.html) for
+         * path definitions. */
+        matchFields_ = new MatchField[] {
+            new MatchField( "shortName", "Short Name", true ),
+            new MatchField( "title", "Title", true ),
+            new MatchField( "identifier", "ID", true ),
+            new MatchField( "content/subject", "Subject", false ),
+            new MatchField( "content/description", "Description", false ),
+        };
+        JComponent matchLine = Box.createHorizontalBox();
+        matchLine.add( new JLabel( "Match Fields: " ) );
+        for ( int im = 0; im < matchFields_.length; im++ ) {
+            if ( im > 0 ) {
+                matchLine.add( Box.createHorizontalStrut( 5 ) );
+            }
+            matchLine.add( matchFields_[ im ].button_ );
+        }
+        matchLine.add( Box.createHorizontalGlue() );
+        queryPanel_.add( matchLine );
     }
 
     public RegistryQuery getQuery() throws MalformedURLException {
@@ -105,6 +124,14 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         String[] keywords = ( keyText == null || keyText.trim().length() == 0 )
                           ? new String[ 0 ]
                           : keyText.trim().split( "\\s+" );
+        List<String> matchList = new ArrayList<String>();
+        for ( int im = 0; im < matchFields_.length; im++ ) {
+            MatchField mf = matchFields_[ im ];
+            if ( mf.button_.isSelected() ) {
+                matchList.add( mf.fieldPath_ );
+            }
+        }
+        String[] matchPaths = matchList.toArray( new String[ 0 ] );
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( capability_.getAdql() );
         if ( keywords.length > 0 ) {
@@ -114,11 +141,11 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                     sbuf.append( conjunction );
                 }
                 sbuf.append( "(" );
-                for ( int ifi = 0; ifi < MATCHED_FIELDS.length; ifi++ ) {
-                    if ( ifi > 0 ) {
+                for ( int ip = 0; ip < matchPaths.length; ip++ ) {
+                    if ( ip > 0 ) {
                         sbuf.append( " or " );
                     }
-                    sbuf.append( MATCHED_FIELDS[ ifi ] )
+                    sbuf.append( matchPaths[ ip ] )
                         .append( " like " )
                         .append( "'%" )
                         .append( keywords[ iw ] )
@@ -152,5 +179,30 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
      */
     public RegistrySelector getRegistrySelector() {
         return urlSelector_;
+    }
+
+    /**
+     * Takes care of selection of one path element to match by.
+     * Aggregates a checkbox button and some metadata.
+     */
+    private static class MatchField {
+        final JCheckBox button_;
+        final String fieldPath_;
+        final String fieldLabel_;
+
+        /**
+         * Constructor.
+         *
+         * @param   xpath  string for matching against the VOResource schema
+         * @param   label  human-readable label for data element
+         * @param   on     initial selection status
+         */
+        MatchField( String path, String label, boolean on ) {
+            fieldPath_ = path;
+            fieldLabel_ = label;
+            button_ = new JCheckBox( label, on );
+            button_.setToolTipText( "Match keywords against \"" + path
+                                  + "\" field?" );
+        }
     }
 }
