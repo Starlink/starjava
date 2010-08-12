@@ -14,6 +14,7 @@ public class BasicResource {
     String shortName_;
     String publisher_;
     String contact_;
+    String[] subjects_;
     String referenceUrl_;
     BasicCapability[] capabilities_;
 
@@ -61,6 +62,15 @@ public class BasicResource {
      */
     public String getContact() {
         return contact_;
+    }
+
+    /**
+     * Returns an array of subject strings for this resource.
+     *
+     * @return  subject array
+     */
+    public String[] getSubjects() {
+        return subjects_;
     }
 
     /**

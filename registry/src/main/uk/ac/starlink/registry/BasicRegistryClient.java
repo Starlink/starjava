@@ -2,6 +2,7 @@ package uk.ac.starlink.registry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,6 +70,8 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
             RESOURCE_PATH + "/curation/contact/name";
         private static final String CONTACTEMAIL_PATH =
             RESOURCE_PATH + "/curation/contact/email";
+        private static final String SUBJECT_PATH =
+            RESOURCE_PATH + "/content/subject";
         private static final String REFURL_PATH =
             RESOURCE_PATH + "/content/referenceURL";
         private static final String CAPABILITY_PATH =
@@ -86,8 +89,8 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
         private static final String VERSION_PATH =
             CAPINTERFACE_PATH + "interface/@version";
     
-        private Map<String, String> resourceMap_;
-        private Map<String, String> capabilityMap_;
+        private Store resourceStore_;
+        private Store capabilityStore_;
         private StringBuffer txtBuf_;
         private List<BasicCapability> capabilityList_;
         private final Set<String> resourcePathSet_;
@@ -114,6 +117,7 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
                 PUBLISHER_PATH,
                 CONTACTNAME_PATH,
                 CONTACTEMAIL_PATH,
+                SUBJECT_PATH,
                 REFURL_PATH,
                 STATUS_PATH,
             } ) );
@@ -142,14 +146,14 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
                 /* If this is the start of a Resource element, prepare to
                  * accumulate items which will form a BasicResource object. */
                 if ( RESOURCE_PATH.equals( path ) ) {
-                    resourceMap_ = new HashMap<String, String>();
+                    resourceStore_ = new Store();
                     capabilityList_ = new ArrayList<BasicCapability>();
                 }
 
                 /* If this is the start of a capability element, prepare to
                  * accumulate items which will form a BasicCapability object. */
                 else if ( CAPABILITY_PATH.equals( path ) ) {
-                    capabilityMap_ = new HashMap<String, String>();
+                    capabilityStore_ = new Store();
                 }
 
                 /* If this is a string-containing element we're interested in,
@@ -165,10 +169,10 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
                 for ( int ia = 0; ia < natt; ia++ ) {
                     String apath = path + "/@" + atts.getQName( ia );
                     if ( resourcePathSet_.contains( apath ) ) {
-                        resourceMap_.put( apath, atts.getValue( ia ) );
+                        resourceStore_.put( apath, atts.getValue( ia ) );
                     }
                     else if ( capabilityPathSet_.contains( apath ) ) {
-                        capabilityMap_.put( apath, atts.getValue( ia ) );
+                        capabilityStore_.put( apath, atts.getValue( ia ) );
                     }
                 }
             }
@@ -190,20 +194,19 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
                     BasicCapability[] caps =
                         capabilityList_.toArray( new BasicCapability[ 0 ] );
                     capabilityList_ = null;
-                    trimValues( resourceMap_ );
-                    sink_.addResource( createBasicResource( resourceMap_,
+                    sink_.addResource( createBasicResource( resourceStore_,
                                                             caps ) );
-                    resourceMap_ = null;
+                    resourceStore_ = null;
                 }
+
                 /* If this is the end of a capability/interface element,
                  * produce a new BasicCapability and associate it with
                  * the current resource. */
                 else if ( CAPINTERFACE_PATH.equals( path ) ) {
-                    trimValues( capabilityMap_ );
                     capabilityList_.add( createBasicCapability(
-                                             capabilityMap_ ) );
-                    for ( Iterator<String> it = capabilityMap_.keySet()
-                                                              .iterator();
+                                             capabilityStore_ ) );
+                    for ( Iterator<String> it =
+                                  capabilityStore_.keySet().iterator();
                           it.hasNext(); ) {
                         if ( it.next().startsWith( path ) ) {
                             it.remove();
@@ -211,14 +214,14 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
                     }
                 }
                 else if ( CAPABILITY_PATH.equals( path ) ) {
-                    capabilityMap_ = null;
+                    capabilityStore_ = null;
                 }
                 else if ( resourcePathSet_.contains( path ) ) {
-                    resourceMap_.put( path, txtBuf_.toString() );
+                    resourceStore_.put( path, txtBuf_.toString() );
                     txtBuf_ = null;
                 }
                 else if ( capabilityPathSet_.contains( path ) ) {
-                    capabilityMap_.put( path, txtBuf_.toString() );
+                    capabilityStore_.put( path, txtBuf_.toString() );
                     txtBuf_ = null;
                 }
                 path_.setLength( path_.length() - localName.length() - 1 );
@@ -238,49 +241,27 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
         }
     
         /**
-         * Strips leading and trailing whitespace from string values of
-         * map entries.
-         *
-         * @param  map to trim in place
-         */
-        private static void trimValues( Map<String, String> map ) {
-            for ( Iterator<Map.Entry<String, String>> it =
-                      map.entrySet().iterator();
-                  it.hasNext(); ) {
-                Map.Entry<String, String> entry = it.next();
-                String val = entry.getValue();
-                if ( val != null ) {
-                    String tval = val.trim();
-                    if ( tval.length() == 0 ) {
-                        it.remove();
-                    }
-                    else {
-                        entry.setValue( tval );
-                    }
-                }
-            }
-        }
-    
-        /**
          * Constructs and returns a new BasicResource.
          *
          * @param  rMap  map of resource values with XPath-like paths as keys
          * @param  capabilities  capabilities of this resource
          */
         private static BasicResource
-             createBasicResource( final Map<String, String> rMap,
+             createBasicResource( final Store rStore,
                                   final BasicCapability[] caps ) {
             return new BasicResource() {{
                 capabilities_ = caps;
-                title_ = rMap.remove( TITLE_PATH );
-                identifier_ = rMap.remove( IDENTIFIER_PATH );
-                shortName_ = rMap.remove( SHORTNAME_PATH );
-                publisher_ = rMap.remove( PUBLISHER_PATH );
-                contact_ = makeContact( rMap.remove( CONTACTNAME_PATH ),
-                                        rMap.remove( CONTACTEMAIL_PATH ) );
-                referenceUrl_ = rMap.remove( REFURL_PATH );
-                String status = rMap.remove( STATUS_PATH );
-                assert rMap.isEmpty();
+                title_ = rStore.removeScalar( TITLE_PATH );
+                identifier_ = rStore.removeScalar( IDENTIFIER_PATH );
+                shortName_ = rStore.removeScalar( SHORTNAME_PATH );
+                publisher_ = rStore.removeScalar( PUBLISHER_PATH );
+                contact_ =
+                    makeContact( rStore.removeScalar( CONTACTNAME_PATH ),
+                                 rStore.removeScalar( CONTACTEMAIL_PATH ) );
+                referenceUrl_ = rStore.removeScalar( REFURL_PATH );
+                subjects_ = rStore.removeArray( SUBJECT_PATH );
+                String status = rStore.removeScalar( STATUS_PATH );
+                assert rStore.keySet().isEmpty();
             }};
         }
     
@@ -290,14 +271,14 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
          * @param  cMap  map of capability values with XPath-like paths as keys
          */
         private static BasicCapability
-                createBasicCapability( final Map<String, String> cMap ) {
+                createBasicCapability( final Store cStore ) {
             return new BasicCapability() {{
-                accessUrl_ = cMap.remove( ACCESSURL_PATH );
-                description_ = cMap.remove( DESCRIPTION_PATH );
-                standardId_ = cMap.remove( STDID_PATH );
-                version_ = cMap.remove( VERSION_PATH );
-                xsiType_ = cMap.remove( XSITYPE_PATH );
-                assert cMap.isEmpty();
+                accessUrl_ = cStore.removeScalar( ACCESSURL_PATH );
+                description_ = cStore.removeScalar( DESCRIPTION_PATH );
+                standardId_ = cStore.removeScalar( STDID_PATH );
+                version_ = cStore.removeScalar( VERSION_PATH );
+                xsiType_ = cStore.removeScalar( XSITYPE_PATH );
+                assert cStore.keySet().isEmpty();
             }};
         }
     
@@ -320,6 +301,73 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
             }
             else {
                 return null;
+            }
+        }
+
+        /**
+         * Map-like store for key-value pairs.  The values can store multiple
+         * items however.
+         */
+        private static class Store {
+            private final Map<String,Collection<String>> map_;
+
+            /**
+             * Constructor.
+             */
+            Store() {
+                map_ = new HashMap<String,Collection<String>>();
+            }
+
+            /**
+             * Adds an item under a given key.
+             * String values are trimmed, and null or empty ones are ignored.
+             *
+             * @param  key   key string
+             * @param  value  value element
+             */
+            public void put( String key, String value ) {
+                String tval = value.trim();
+                if ( tval.length() > 0 ) {
+                    if ( ! map_.containsKey( key ) ) {
+                        map_.put( key, new ArrayList<String>() );
+                    }
+                    map_.get( key ).add( tval );
+                }
+            }
+
+            /**
+             * Retrieves a single value from the store, and removes its entry.
+             * If multiple values have been stored under that key, the
+             * first one is returned.
+             *
+             * @param   key  key
+             * @return  single entry, or null
+             */
+            public String removeScalar( String key ) {
+                Collection<String> list = map_.remove( key );
+                return list == null ? null : list.iterator().next();
+            }
+
+            /**
+             * Retrieves an array of values from the store, and removes its
+             * entry.
+             *
+             * @param  key key
+             * @return  array entry, possibly with zero elements
+             */
+            public String[] removeArray( String key ) {
+                Collection<String> list = map_.remove( key );
+                return list == null ? new String[ 0 ]
+                                    : list.toArray( new String[ 0 ] );
+            }
+
+            /**
+             * Returns a modifiable set of keys currently present in the store.
+             *
+             * @return  key set
+             */
+            public Set<String> keySet() {
+                return map_.keySet();
             }
         }
     }
