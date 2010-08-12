@@ -293,7 +293,6 @@ public class RegistryPanel extends JPanel {
 
         /* Begin an asynchronous query on the registry. */
         final JProgressBar progBar = setWorking( workingMessage_ );
-        progBar.setStringPainted( true );
         progBar.setString( "Found 0" );
         Thread worker = new Thread( "Registry query" ) {
             List resourceList = new ArrayList();
@@ -494,6 +493,7 @@ public class RegistryPanel extends JPanel {
 
             JComponent progLine = Box.createHorizontalBox();
             progBar = new JProgressBar();
+            progBar.setStringPainted( true );
             progBar.setIndeterminate( true );
             progLine.add( Box.createHorizontalGlue() );
             progLine.add( progBar );
