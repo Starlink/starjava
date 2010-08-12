@@ -10411,8 +10411,8 @@ This consists of the following parts:
     find.  The format is space-separated words, and there is no wildcarding.
     So for instance if you want to find services relating to quasars
     in Sloan data you could enter the terms "SDSS QSO".  
-    These terms are matched against
-    the title, description, identifier, shortname and some other attributes
+    These terms are matched against certain fields of each registry entry
+    (as determined by the Match Fields checkboxes below)
     of each registry entry to see if it matches.
     Usually one or two short words is the appropriate level of detail.
     If no keywords are filled in, all the appropriate services are retrieved.
@@ -10420,14 +10420,27 @@ This consists of the following parts:
     number of results; if your query returns no results, try fewer or more
     general terms, and if it returns too many, try more or more specific ones.
     </p></dd>
-<dt>And/Or button:</dt>
+<dt>And/Or button</dt>
 <dd><p>This determines whether a registry entry is considered to match 
     the chosen keywords if it matches all of them, or at least one of them.
     Clicking it toggles between "And" and "Or".
-    The default is "And", meaning that all keywords must be matched for
-    a selection.
+    The default is "And", meaning that all keywords must be matched 
+    (against any of the selected match fields) for a selection.
     </p></dd>
-<dt>Submit Query button:</dt>
+<dt>Match Fields</dt>
+<dd><p>This line contains a number of checkboxes which allow you to
+    define which fields in each registry record will be compared against the
+    keywords you have entered when looking for matches.
+    The contents of the <label>Short Name</label>, <label>Title</label>,
+    <label>Subjects</label>, <label>ID</label> and <label>Publisher</label>
+    fields are visible in the table of results.
+    <label>Description</label> is a free-form, often long, description of
+    the resource; it can be useful, but can often accidentally contain text
+    which causes unwanted matches.
+    By default the Short Name, Title and Subjects fields are matched - 
+    click the checkboxes to change the selection
+    </p></dd>
+<dt>Submit Query button</dt>
 <dd><p>When the other fields have been filled in, hit the Submit button
     and the registry will be searched to find data services that match
     the constraints you have given.
@@ -10458,7 +10471,8 @@ header to reverse the sort order.  A little up/down arrow in a
 column header indicates that that column is currently determining
 the sort order.  
 You can adjust the columns which are visible using the <label>Columns</label>
-menu.
+menu, or drag the columns sideways to change their order in the 
+<ref id="JTable">usual way</ref>.
 </p>
 
 <p>You should select the service that you want to query for data by clicking
@@ -13930,6 +13944,13 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Help Window now has a text search tab.</li>
+    <li>Fix bug in registry result table which displayed resource identifier
+        instead of publisher in the Publisher column.</li>
+    <li>Registry search in VO windows now allow you to select which resource
+        fields to match (from Short Name, Title, Subjects, ID, Publisher and
+        Description.  This makes it much easier to do the search you want.</li>
+    <li>VO windows now display <label>Subjects</label> column in registry
+        resource description.</li>
     </ul>
     </p></dd>
 
