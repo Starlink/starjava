@@ -37,32 +37,37 @@ public class ResourceTableModel extends ArrayTableModel {
     public ResourceTableModel( boolean includeAcref ) {
         super();
         List colList = new ArrayList( Arrays.asList( new ArrayTableColumn[] {
-            new ArrayTableColumn( "shortName", String.class ) {
+            new ArrayTableColumn( "Short Name", String.class ) {
                 public Object getValue( Object item ) {
                     return getResource( item ).getShortName();
                 }
             },
-            new ArrayTableColumn( "title", String.class ) {
+            new ArrayTableColumn( "Title", String.class ) {
                 public Object getValue( Object item ) {
                     return getResource( item ).getTitle();
                 }
             },
-            new ArrayTableColumn( "identifier", String.class ) {
+            new ArrayTableColumn( "Subjects", String.class ) {
+                public Object getValue( Object item ) {
+                    return arrayToString( getResource( item ).getSubjects() );
+                }
+            },
+            new ArrayTableColumn( "Identifier", String.class ) {
                 public Object getValue( Object item ) {
                     return getResource( item ).getIdentifier();
                 }
             },
-            new ArrayTableColumn( "publisher", String.class ) {
+            new ArrayTableColumn( "Publisher", String.class ) {
                 public Object getValue( Object item ) {
                     return getResource( item ).getPublisher();
                 }
             },
-            new ArrayTableColumn( "contact", String.class ) {
+            new ArrayTableColumn( "Contact", String.class ) {
                 public Object getValue( Object item ) {
                     return getResource( item ).getContact();
                 }
             },
-            new ArrayTableColumn( "refURL", String.class ) {
+            new ArrayTableColumn( "Reference URL", String.class ) {
                 public Object getValue( Object item ) {
                     return getResource( item ).getReferenceUrl();
                 }
@@ -110,5 +115,28 @@ public class ResourceTableModel extends ArrayTableModel {
      */
     private RegResource getResource( Object item ) {
         return (RegResource) item;
+    }
+
+    /**
+     * Turns a string array into a readable string scalar.
+     *
+     * @param   values  array
+     * @return   string
+     */
+    private static String arrayToString( String[] values ) {
+        if ( values == null || values.length == 0 ) {
+            return null;
+        }
+        StringBuffer sbuf = new StringBuffer();
+        for ( int iv = 0; iv < values.length; iv++ ) {
+            String val = values[ iv ];
+            if ( val != null && val.trim().length() > 0 ) {
+                if ( sbuf.length() > 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( val.trim() );
+            }
+        }
+        return sbuf.toString();
     }
 }

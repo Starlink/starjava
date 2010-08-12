@@ -102,8 +102,9 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         matchFields_ = new MatchField[] {
             new MatchField( "shortName", "Short Name", true ),
             new MatchField( "title", "Title", true ),
-            new MatchField( "identifier", "ID", true ),
-            new MatchField( "content/subject", "Subject", false ),
+            new MatchField( "content/subject", "Subjects", true ),
+            new MatchField( "identifier", "ID", false ),
+            new MatchField( "curation/publisher", "Publisher", false ),
             new MatchField( "content/description", "Description", false ),
         };
         JComponent matchLine = Box.createHorizontalBox();

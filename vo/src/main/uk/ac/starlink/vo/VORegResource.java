@@ -18,6 +18,7 @@ public class VORegResource implements RegResource {
     private final String identifier_;
     private final String publisher_;
     private final String contact_;
+    private final String[] subjects_;
     private final String referenceUrl_;
     private final RegCapabilityInterface[] capabilities_;
 
@@ -46,6 +47,7 @@ public class VORegResource implements RegResource {
         else {
             contact_ = null;
         }
+        subjects_ = resource.getParameters( "content/subject" );
         referenceUrl_ = resource.getParameter( "content/referenceURL" );
         Metadata[] capBlocks = resource.getBlocks( "capability" );
         List capList = new ArrayList();
@@ -103,6 +105,10 @@ public class VORegResource implements RegResource {
 
     public String getContact() {
         return contact_;
+    }
+
+    public String[] getSubjects() {
+        return subjects_;
     }
 
     public String getReferenceUrl() {

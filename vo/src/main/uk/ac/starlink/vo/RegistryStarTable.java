@@ -41,6 +41,10 @@ public class RegistryStarTable extends ColumnStarTable {
         new DefaultValueInfo( "Publisher", String.class,
                               "Person or organisation responsible for "
                             + "publishing the resource" );
+    private static final ValueInfo SUBJECTS_INFO =
+        new DefaultValueInfo( "Subjects", String[].class,
+                              "Topic, object type, or other descriptive "
+                            + "keywords about the resource" );
     private static final ValueInfo REFURL_INFO =
         new DefaultValueInfo( "ReferenceURL", String.class,
                               "URL describing the resource" );
@@ -105,6 +109,11 @@ public class RegistryStarTable extends ColumnStarTable {
         addColumn( new ColumnData( PUBLISHER_INFO ) {
             public Object readValue( long irow ) {
                 return getRecord( irow ).resource_.getPublisher();
+            }
+        } );
+        addColumn( new ColumnData( SUBJECTS_INFO ) {
+            public Object readValue( long irow ) {
+                return getRecord( irow ).resource_.getSubjects();
             }
         } );
         addColumn( new ColumnData( REFURL_INFO ) {

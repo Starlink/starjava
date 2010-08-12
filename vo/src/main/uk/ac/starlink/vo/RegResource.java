@@ -48,6 +48,13 @@ public interface RegResource {
     String getContact();
 
     /**
+     * Returns a list of subject areas relevant to this resource.
+     *
+     * @return   subject words
+     */
+    String[] getSubjects();
+
+    /**
      * Returns the reference URL for this resource.
      *
      * @return   reference URL

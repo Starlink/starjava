@@ -232,6 +232,7 @@ public class RegistryQuery {
         private final String identifier_;
         private final String publisher_;
         private final String contact_;
+        private final String[] subjects_;
         private final String referenceUrl_;
         private final RegCapabilityInterface[] caps_;
 
@@ -244,6 +245,7 @@ public class RegistryQuery {
             identifier_ = bres.getIdentifier();
             publisher_ = bres.getPublisher();
             contact_ = bres.getContact();
+            subjects_ = bres.getSubjects();
             referenceUrl_ = bres.getReferenceUrl();
             BasicCapability[] bcaps = bres.getCapabilities();
             caps_ = new BasicRegCapability[ bcaps.length ];
@@ -266,6 +268,9 @@ public class RegistryQuery {
         }
         public String getContact() {
             return contact_;
+        }
+        public String[] getSubjects() {
+            return subjects_;
         }
         public String getReferenceUrl() {
             return referenceUrl_;
