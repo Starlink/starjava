@@ -4,8 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -21,6 +23,7 @@ import uk.ac.starlink.vo.KeywordServiceQueryFactory;
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegistryPanel;
+import uk.ac.starlink.vo.RegistryQuery;
 
 /**
  * Window for executing a multiple query type match between an input
@@ -30,6 +33,11 @@ import uk.ac.starlink.vo.RegistryPanel;
  * @since    29 Sep 2009
  */
 public class DalMultiWindow extends AuxWindow {
+
+    private final KeywordServiceQueryFactory queryFactory_;
+    private final RegistryPanel regPanel_;
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructor.
@@ -46,9 +54,9 @@ public class DalMultiWindow extends AuxWindow {
         String servName = service.getName();
 
         /* Set up a registry query panel for selecting suitable services. */
-        KeywordServiceQueryFactory qfact =
+        queryFactory_ =
             new KeywordServiceQueryFactory( capability );
-        final RegistryPanel regPanel = new RegistryPanel( qfact, true ) {
+        regPanel_ = new RegistryPanel( queryFactory_, true ) {
             public RegCapabilityInterface[] getCapabilities( RegResource res ) {
                 RegCapabilityInterface[] caps = super.getCapabilities( res );
                 List serviceCapList = new ArrayList();
@@ -73,23 +81,23 @@ public class DalMultiWindow extends AuxWindow {
         ListSelectionListener serviceSelListener = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 RegCapabilityInterface[] caps =
-                    regPanel.getSelectedCapabilities();
+                    regPanel_.getSelectedCapabilities();
                 multiPanel.setServiceUrl( caps.length == 1
                                               ? caps[ 0 ].getAccessUrl()
                                               : null );
             }
         };
-        regPanel.getResourceSelectionModel()
-                .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        regPanel.getCapabilitySelectionModel()
-                .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-        regPanel.getResourceSelectionModel()
-                .addListSelectionListener( serviceSelListener );
-        regPanel.getCapabilitySelectionModel()
-                .addListSelectionListener( serviceSelListener );
+        regPanel_.getResourceSelectionModel()
+                 .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+        regPanel_.getCapabilitySelectionModel()
+                 .setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+        regPanel_.getResourceSelectionModel()
+                 .addListSelectionListener( serviceSelListener );
+        regPanel_.getCapabilitySelectionModel()
+                 .addListSelectionListener( serviceSelListener );
 
         /* Cosmetics. */
-        regPanel.setBorder(
+        regPanel_.setBorder(
             BorderFactory.createCompoundBorder(
                 makeTitledBorder( "Available " + servName + " Services" ),
                 BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
@@ -97,11 +105,11 @@ public class DalMultiWindow extends AuxWindow {
             BorderFactory.createCompoundBorder(
                 makeTitledBorder( "Multiple " + servName + " Parameters" ),
                 BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
-        regPanel.setPreferredSize( new Dimension( 600, 350 ) );
+        regPanel_.setPreferredSize( new Dimension( 600, 350 ) );
 
         /* Place components. */
         JComponent main = getMainArea();
-        main.add( regPanel, BorderLayout.CENTER );
+        main.add( regPanel_, BorderLayout.CENTER );
         main.add( multiPanel, BorderLayout.SOUTH );
 
         /* Place start and stop actions. */
@@ -110,11 +118,12 @@ public class DalMultiWindow extends AuxWindow {
         controls.add( new JButton( multiPanel.getStopAction() ) );
 
         /* Place menu actions. */
-        JMenu colMenu = regPanel.makeColumnVisibilityMenu( "Columns" );
+        JMenu colMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
         getJMenuBar().add( colMenu );
         JMenu regMenu = new JMenu( "Registry" );
-        regMenu.add( qfact.getRegistrySelector().getRegistryUpdateAction() );
+        regMenu.add( queryFactory_.getRegistrySelector()
+                                  .getRegistryUpdateAction() );
         regMenu.setMnemonic( KeyEvent.VK_R );
         getJMenuBar().add( regMenu );
 
@@ -122,18 +131,52 @@ public class DalMultiWindow extends AuxWindow {
          * a query for all services of the right type, or show a message
          * describing how to use the registry query. */
         if ( autoQuery ) {
-            regPanel.performAutoQuery( "Searching registry for all known "
+            regPanel_.performAutoQuery( "Searching registry for all known "
                                      + servName + " services" );
         }
         else {
-            regPanel.displayAdviceMessage( new String[] {
+            regPanel_.displayAdviceMessage( new String[] {
                 "Query registry for " + servName + " services:",
                 "enter keywords like \"2mass qso\" and click "
-                + regPanel.getSubmitQueryAction().getValue( Action.NAME )
+                + regPanel_.getSubmitQueryAction().getValue( Action.NAME )
                 + ".",
                 " ",
                 "Alternatively, enter " + servName + " URL in field below.",
             } );
+        }
+    }
+
+    /**
+     * Takes a list of resource ID values and may load them or a subset
+     * into this object's dialogue as appropriate.
+     *
+     * @param  ivoids  ivo:-type identifier strings
+     * @param  msg   text of user-directed message to explain where the
+     *         IDs came from
+     * @return  true iff at least some of the resources were, or may be,
+     *          loaded into this window
+     */ 
+    public boolean acceptResourceIdList( String[] ivoids, String msg ) {
+        if ( isShowing() ) {
+            RegistryQuery query;
+            try {
+                query = queryFactory_.getIdListQuery( ivoids );
+            }
+            catch ( MalformedURLException e ) {
+                logger_.warning( "Resource ID list not accepted: "
+                               + "bad registry endpoint " + e );
+                return false;
+            }
+            if ( query != null ) {
+                regPanel_.performQuery( query, msg );
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
         }
     }
 }
