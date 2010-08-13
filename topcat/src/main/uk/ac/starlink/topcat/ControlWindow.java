@@ -99,6 +99,7 @@ import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.topcat.join.ConeMultiWindow;
+import uk.ac.starlink.topcat.join.DalMultiWindow;
 import uk.ac.starlink.topcat.join.SiaMultiWindow;
 import uk.ac.starlink.topcat.join.SsaMultiWindow;
 import uk.ac.starlink.topcat.join.MatchWindow;
@@ -114,6 +115,7 @@ import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
@@ -916,6 +918,63 @@ public class ControlWindow extends AuxWindow
      */
     public void setLoadChooser( TableLoadChooser chooser ) {
         loadChooser_ = chooser;
+    }
+
+    /**
+     * Load received VO resource identifiers into appropriate windows.
+     *
+     * @param  ids  array of candidate ivo:-type resource identifiers to load
+     * @param  msg  text to explain to the user what's being loaded
+     * @param  dalLoadDialogClass   DalTableLoadDialog subclass for
+     *         dialogues which may be affected by the loaded IDs
+     * @param  dalMultiWindowClass  DalMultiWindow subclass for
+     *         dialogues which may be affected by the loaded IDs
+     */
+    public boolean acceptResourceIdList( String[] ids, String msg,
+                                         Class dalLoadDialogClass,
+                                         Class dalMultiWindowClass ) {
+        boolean accepted = false;
+
+        /* Validate. */
+        if ( ! DalTableLoadDialog.class
+              .isAssignableFrom( dalLoadDialogClass ) ) {
+            throw new IllegalArgumentException();
+        }
+        if ( ! DalMultiWindow.class
+              .isAssignableFrom( dalMultiWindowClass ) ) {
+            throw new IllegalArgumentException();
+        }
+
+        /* Handle single table load dialogues. */
+        if ( loadChooser_ != null ) {
+            TableLoadDialog[] tlds = loadChooser_.getKnownDialogs();
+            for ( int i = 0; i < tlds.length; i++ ) {
+                if ( dalLoadDialogClass
+                    .isAssignableFrom( tlds[ i ].getClass() ) ) {
+                    boolean acc = ((DalTableLoadDialog) tlds[ i ])
+                                 .acceptResourceIdList( ids, msg );
+                    accepted = accepted || acc;
+                }
+            }
+        }
+
+        /* Handle multi-DAL load windows. */
+        DalMultiWindow[] multiWins = new DalMultiWindow[] {
+            multiconeWindow_,
+            multisiaWindow_,
+            multissaWindow_,
+        };
+        for ( int i = 0; i < multiWins.length; i++ ) {
+            DalMultiWindow multiWin = multiWins[ i ];
+            if ( multiWin != null &&
+                 dalMultiWindowClass.isAssignableFrom( multiWin.getClass() ) ) {
+                boolean acc = multiWin.acceptResourceIdList( ids, msg );
+                accepted = accepted || acc;
+            }
+        }
+
+        /* Return status. */
+        return accepted;
     }
 
     /**

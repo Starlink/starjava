@@ -27,17 +27,26 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LoadingToken;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.join.ConeMultiWindow;
+import uk.ac.starlink.topcat.join.DalMultiWindow;
+import uk.ac.starlink.topcat.join.SiaMultiWindow;
+import uk.ac.starlink.topcat.join.SsaMultiWindow;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
  * Provides TOPCAT's SAMP functionality.
@@ -354,6 +363,20 @@ public class TopcatSampControl {
                     return null;
                 }
             },
+
+            /* Accept list of VOResources. */
+            new ResourceListHandler( "voresource.loadlist",
+                                     DalTableLoadDialog.class,
+                                     DalMultiWindow.class ),
+            new ResourceListHandler( "voresource.loadlist.cone",
+                                     ConeSearchDialog.class,
+                                     ConeMultiWindow.class ),
+            new ResourceListHandler( "voresource.loadlist.siap",
+                                     SiapTableLoadDialog.class,
+                                     SiaMultiWindow.class ),
+            new ResourceListHandler( "voresource.loadlist.ssap",
+                                     SsapTableLoadDialog.class,
+                                     SsaMultiWindow.class ),
         };
     }
 
@@ -617,6 +640,71 @@ public class TopcatSampControl {
             }
             if ( label != null && label.trim().length() > 0 ) {
                 tcModel.setLabel( label );
+            }
+        }
+    }
+
+    /**
+     * Message handler for receipt of voresource.loadlist type MTypes.
+     */
+    private class ResourceListHandler extends AbstractMessageHandler {
+
+        private final Class dalLoadDialogClass_;
+        private final Class dalMultiWindowClass_;
+
+        /**
+         * Constructor.
+         *
+         * @param  mtype  mtype this responds to
+         * @param  dalLoadDialogClass   DalTableLoadDialog subclass for
+         *         dialogues specific to this mtype
+         * @param  dalMultiWindowClass  DalMultiWindow subclass for
+         *         dialogues specific to this mtype
+         */
+        ResourceListHandler( String mtype, Class dalLoadDialogClass,
+                             Class dalMultiWindowClass ) {
+            super( new String[] { mtype } );
+            if ( ! DalTableLoadDialog.class
+                  .isAssignableFrom( dalLoadDialogClass ) ) {
+                throw new IllegalArgumentException();
+            }
+            if ( ! DalMultiWindow.class
+                  .isAssignableFrom( dalMultiWindowClass ) ) {
+                throw new IllegalArgumentException();
+            }
+            dalLoadDialogClass_ = dalLoadDialogClass;
+            dalMultiWindowClass_ = dalMultiWindowClass;
+        }
+
+        public Map processCall( HubConnection conn, String senderId,
+                                Message msg ) {
+            Map idMap = (Map) msg.getRequiredParam( "ids" );
+            String[] ids = (String[]) idMap.keySet().toArray( new String[ 0 ] );
+            if ( ids.length > 0 ) {
+                StringBuffer mbuf = new StringBuffer();
+                mbuf.append( "Loading resource set" );
+                String name = (String) msg.getParam( "name" );
+                if ( name != null && name.trim().length() > 0 ) {
+                    mbuf.append( ' ' ).append( name );
+                }
+                mbuf.append( " sent by " )
+                    .append( getClientName( senderId ) );
+                boolean accepted =
+                    controlWindow_
+                   .acceptResourceIdList( ids, mbuf.toString(),
+                                          dalLoadDialogClass_,
+                                          dalMultiWindowClass_ );
+                if ( accepted ) {
+                    return null;
+                }
+                else {
+                    String errmsg = "Resource list not used by "
+                                  + TopcatUtils.getApplicationName();
+                    throw new RuntimeException( errmsg );
+                }
+            }
+            else {
+                throw new RuntimeException( "No resources supplied" );
             }
         }
     }
