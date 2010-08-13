@@ -32,7 +32,7 @@ public class ConeSearchDialog extends DalTableLoadDialog {
     public ConeSearchDialog() {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
-               new KeywordServiceQueryFactory( Capability.CONE ), true, false );
+               Capability.CONE, true, false );
         setIconUrl( getClass().getResource( "cone.gif" ) );
     }
 

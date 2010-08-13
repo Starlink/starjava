@@ -40,7 +40,7 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
     public SsapTableLoadDialog() {
         super( "SSA Query",
                "Get results of a Simple Spectrum Access Protocol query",
-               new KeywordServiceQueryFactory( Capability.SSA ), true, true );
+               Capability.SSA, true, true );
         setIconUrl( getClass().getResource( "ssa.gif" ) );
     }
 

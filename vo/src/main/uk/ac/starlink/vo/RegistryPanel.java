@@ -57,7 +57,6 @@ public class RegistryPanel extends JPanel {
     private JComponent workingPanel_;
     private JComponent dataPanel_;
     private List activeItems_;
-    private String workingMessage_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -86,7 +85,6 @@ public class RegistryPanel extends JPanel {
         };
         submitQueryAction_ = new AbstractAction( "Submit Query" ) {
             public void actionPerformed( ActionEvent evt ) {
-                workingMessage_ = "Searching registry";
                 submitQuery();
             }
         };
@@ -175,8 +173,18 @@ public class RegistryPanel extends JPanel {
      *         query is ongoing
      */
     public void performAutoQuery( String workingMsg ) {
-        workingMessage_ = workingMsg;
-        submitQuery();
+        try {
+            RegistryQuery query = queryFactory_.getQuery();
+            if ( query != null ) {
+                performQuery( query, workingMsg );
+            }
+            else {
+                logger_.warning( "No query to perform" );
+            }
+        }
+        catch ( Exception e ) {
+            logger_.warning( "Registry query failed: " + e );
+        }
     }
 
     /**
@@ -288,11 +296,23 @@ public class RegistryPanel extends JPanel {
             JOptionPane.showMessageDialog( this, "No query selected",
                                            "No Query",
                                            JOptionPane.ERROR_MESSAGE );
-            return;
         }
+        else {
+            performQuery( query, "Searching Registry" );
+        }
+    }
+
+    /**
+     * Submits a query and inserts the results, when ready, into this panel.
+     *
+     * @param  query   query to execute
+     * @param  workingMessage   text to display to user while query is running
+     */
+    public void performQuery( final RegistryQuery query,
+                              String workingMessage ) {
 
         /* Begin an asynchronous query on the registry. */
-        final JProgressBar progBar = setWorking( workingMessage_ );
+        final JProgressBar progBar = setWorking( workingMessage );
         progBar.setString( "Found 0" );
         Thread worker = new Thread( "Registry query" ) {
             List resourceList = new ArrayList();

@@ -60,6 +60,18 @@ public abstract class RegistryServiceTableLoadDialog
         showCapabilities_ = showCapabilities;
     }
 
+    /**
+     * Takes a list of resource ID values and may load them or a subset 
+     * into this object's dialogue as appropriate.
+     *
+     * @param  ivoids  ivo:-type identifier strings
+     * @param  msg   text of user-directed message to explain where the
+     *         IDs came from
+     * @return  true iff at least some of the resources were, or may be,
+     *          loaded into this window
+     */
+    public abstract boolean acceptResourceIdList( String[] ivoids, String msg );
+
     protected Component createQueryPanel() {
         JPanel queryPanel = new JPanel( new BorderLayout() ) {
             public void setEnabled( boolean enabled ) {
@@ -153,6 +165,15 @@ public abstract class RegistryServiceTableLoadDialog
         return resource.getCapabilities();
     }
 
+    /**
+     * Returns the query factory used by this dialogue.
+     *
+     * @return   query factory
+     */
+    public RegistryQueryFactory getQueryFactory() {
+        return queryFactory_;
+    }
+
     protected JDialog createDialog( Component parent ) {
 
         /* Embellish the dialogue with a menu allowing selection of which
@@ -164,17 +185,6 @@ public abstract class RegistryServiceTableLoadDialog
         JMenu metaMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
         metaMenu.setMnemonic( KeyEvent.VK_C );
         dia.getJMenuBar().add( metaMenu );
-
-        /* Menu for other actions. */
-        if ( queryFactory_ instanceof KeywordServiceQueryFactory ) {
-            RegistrySelector regsel =
-                ((KeywordServiceQueryFactory) queryFactory_)
-               .getRegistrySelector();
-            JMenu regMenu = new JMenu( "Registry" );
-            regMenu.setMnemonic( KeyEvent.VK_R );
-            regMenu.add( regsel.getRegistryUpdateAction() );
-            dia.getJMenuBar().add( regMenu );
-        }
         return dia;
     }
 }

@@ -161,6 +161,39 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         return new RegistryQuery( url, adql ); 
     }
 
+    /**
+     * Returns a registry query suitable for this query factory which 
+     * queries a given list of IVO identifiers.
+     *
+     * @param  ivoids  ivo:-type resource identifiers
+     * @return  registry query whose results are suitable for a result
+     *          of this query factory; may be nul
+     */
+    public RegistryQuery getIdListQuery( String[] ivoids )
+            throws MalformedURLException {
+        if ( ivoids == null || ivoids.length == 0 ) {
+            return null;
+        }
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "(" )
+            .append( capability_.getAdql() )
+            .append( ")" )
+            .append( " and " )
+            .append( "(" );
+        for ( int i = 0; i < ivoids.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( " or " );
+            }
+            sbuf.append( "identifier = '" )
+                .append( ivoids[ i ] )
+                .append( "'" );
+        }
+        sbuf.append( ")" );
+        String adql = sbuf.toString();
+        String url = new URL( (String) urlSelector_.getUrl() ).toString();
+        return new RegistryQuery( url, adql );
+    }
+
     public JComponent getComponent() {
         return queryPanel_;
     }

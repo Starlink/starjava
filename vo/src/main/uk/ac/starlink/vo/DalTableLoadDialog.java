@@ -2,15 +2,19 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
@@ -19,7 +23,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.gui.TableConsumer;
 
 /**
  * Table load dialogue abstract superclass for spatial DAL-like queries.
@@ -32,15 +38,19 @@ public abstract class DalTableLoadDialog
 
     private final String name_;
     private final boolean autoQuery_;
+    private final KeywordServiceQueryFactory queryFactory_;
     private SkyPositionEntry skyEntry_;
     private JTextField urlField_;
+    private boolean posted_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
      *
      * @param  name  dialogue name
      * @param  description  dialogue description
-     * @param  queryFactory  source of registry query definition
+     * @param  capability   service capability type
      * @param  showCapabilities  true to display the capabilities JTable as
      *         well as the Resource one; sensible if resource:capabilities
      *         relationship may not be 1:1
@@ -48,12 +58,14 @@ public abstract class DalTableLoadDialog
      *         on initial display
      */
     protected DalTableLoadDialog( String name, String description,
-                                  RegistryQueryFactory queryFactory,
+                                  Capability capability,
                                   boolean showCapabilities,
                                   boolean autoQuery ) {
-        super( name, description, queryFactory, showCapabilities );
+        super( name, description, new KeywordServiceQueryFactory( capability ),
+               showCapabilities );
         name_ = name;
         autoQuery_ = autoQuery;
+        queryFactory_ = (KeywordServiceQueryFactory) getQueryFactory();
     }
 
     protected Component createQueryPanel() {
@@ -140,6 +152,49 @@ public abstract class DalTableLoadDialog
             } );
         }
         return queryPanel;
+    }
+
+    protected JDialog createDialog( Component parent ) {
+        JDialog dialog = super.createDialog( parent );
+        RegistrySelector regsel = queryFactory_.getRegistrySelector();
+        JMenu regMenu = new JMenu( "Registry" );
+        regMenu.setMnemonic( KeyEvent.VK_R );
+        regMenu.add( regsel.getRegistryUpdateAction() );
+        dialog.getJMenuBar().add( regMenu );
+        return dialog;
+    }
+
+    public boolean showLoadDialog( Component parent, StarTableFactory factory,                                     ComboBoxModel formatModel,
+                                   TableConsumer consumer ) {
+        posted_ = true;
+        boolean flag =
+            super.showLoadDialog( parent, factory, formatModel, consumer );
+        posted_ = false;
+        return flag;
+    }
+
+    public boolean acceptResourceIdList( String[] ivoids, String msg ) {
+        if ( posted_ ) {
+            RegistryQuery query;
+            try {
+                query = queryFactory_.getIdListQuery( ivoids );
+            }
+            catch ( MalformedURLException e ) {
+                logger_.warning( "Resource ID list not accepted: "
+                               + "bad registry endpoint " + e );
+                return false;
+            }
+            if ( query != null ) {
+                getRegistryPanel().performQuery( query, msg );
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
     /**
