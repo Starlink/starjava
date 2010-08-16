@@ -147,7 +147,7 @@ public abstract class RegistryServiceTableLoadDialog
      *
      * @return  registry panel
      */
-    protected RegistryPanel getRegistryPanel() {
+    public RegistryPanel getRegistryPanel() {
         return regPanel_;
     }
 
