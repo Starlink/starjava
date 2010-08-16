@@ -78,6 +78,10 @@ public class ConeMultiWindow extends DalMultiWindow {
             return Capability.CONE;
         }
 
+        public String getResourceListType() {
+            return "cone";
+        }
+
         public ValueInfo getSizeInfo() {
             DefaultValueInfo info =
                 new DefaultValueInfo( "Search Radius", Number.class,

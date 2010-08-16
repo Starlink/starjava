@@ -587,9 +587,9 @@ public class ControlWindow extends AuxWindow
             public void menuSelected( MenuEvent evt ) {
                 voMenu.removeMenuListener( this );
                 Action[] voLoadActs = createTableLoadActions( new Class[] {
-                    ConeSearchDialog.class,
-                    SiapTableLoadDialog.class,
-                    SsapTableLoadDialog.class,
+                    ConeSearchDialog2.class,
+                    SiapTableLoadDialog2.class,
+                    SsapTableLoadDialog2.class,
                     VizierTableLoadDialog.class,
                     GavoTableLoadDialog.class,
                     // VOSpace?

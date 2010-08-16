@@ -77,6 +77,10 @@ public class SiaMultiWindow extends DalMultiWindow {
             return "sia";
         }
 
+        public String getResourceListType() {
+            return "siap";
+        }
+
         public Capability getCapability() {
             return Capability.SIA;
         }

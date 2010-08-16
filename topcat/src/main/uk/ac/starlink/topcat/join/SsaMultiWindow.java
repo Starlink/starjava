@@ -77,6 +77,10 @@ public class SsaMultiWindow extends DalMultiWindow {
             return "ssa";
         }
 
+        public String getResourceListType() {
+            return "ssap";
+        }
+
         public Capability getCapability() {
             return Capability.SSA;
         }

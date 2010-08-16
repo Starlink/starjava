@@ -39,6 +39,14 @@ public interface DalMultiService {
     Capability getCapability();
 
     /**
+     * Returns the voresource subtype for this service as used in
+     * voresource.loadlist.* MTypes.
+     *
+     * @return   voresource MType subtype
+     */
+    String getResourceListType();
+
+    /**
      * Returns metadata describing the search radius (or diameter, or whatever)
      * parameter used by this query.
      *

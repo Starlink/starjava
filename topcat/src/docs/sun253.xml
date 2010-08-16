@@ -3188,6 +3188,18 @@ unless you are a tool developer you can probably ignore these.
     <p>SAMP MType: <code>spectrum.load.ssa-generic</code>;
        PLASTIC Message ID: <code>ivo://votech.org/spectrum/loadFromURL</code>
     </p></dd>
+
+<dt>Transmit Resource List</dt>
+<dd><p>The <ref id="RegistryPanel">Registry Query Panel</ref>
+    present in most of the Virtual Observatory windows allows
+    you to send lists of VO registry resource identifiers to other
+    applications which can make use of them.
+    Note this only works in SAMP mode, not for PLASTIC.
+    </p>
+    <p>SAMP MTypes: <code>voresource.loadlist.cone</code>,
+                    <code>voresource.loadlist.siap</code>,
+                    <code>voresource.loadlist.ssap</code>
+    </p></dd>
 </dl>
 </p>
 
@@ -10495,13 +10507,6 @@ menu, or drag the columns sideways to change their order in the
 <ref id="JTable">usual way</ref>.
 </p>
 
-<p>If a SAMP hub is running, it is possible for another application to send
-a list of resources from the VO Registry to TOPCAT.  
-If this happens, and the resources are of a suitable type, and the
-window is visible at the time, the received list of resources will
-be loaded and displayed here, replacing any which are currently displayed.
-</p>
-
 <p>You should select the service that you want to query for data by clicking
 on it.
 When this is done, you will see one or more rows appear in a second table
@@ -10516,6 +10521,19 @@ appropriate entry from the lower table as well.
 will be entered in the lower part of the window (not shown in the
 figure above) and you are ready to perform the actual single or multiple 
 data query.
+</p>
+
+<p>If a SAMP hub is running (see <ref id="interop"/>),
+it is possible to exchange lists of resources
+between this window and other applications.
+If another application sends a suitable message to TOPCAT, and the
+resources are of an appropriate type, and the window is visible at the time,
+the received list will be loaded and displayed here, replacing any which
+are currently displayed.
+If you wish to send your selection to one or more other applications
+which can make use of them, use the 
+Broadcast Resource List (&IMG.BROADCAST;) or Send Resource List (&IMG.SEND;)
+options in the <label>Interop</label> menu.
 </p>
 
 </subsubsubsect>
@@ -13979,10 +13997,10 @@ introduced since the last version:
     <li>VO windows now display <label>Subjects</label> column in registry
         resource description.</li>
     <li>SAMP <code>voresource.loadlist{,.cone,.siap,.ssap}</code> MTypes
-        are now subscribed to.  If an appropriate single or multiple
-        VO service window is visible, its list of displayed resources
-        will be set from the list of resource identifiers received
-        in such a message.</li>
+        can now be sent from and received by windows which display a 
+        list of registry resources in a 
+        <ref id="RegistryPanel">Registry Query Panel</ref>,
+        that is the single and multiple Cone, SIA and SSA windows.</li>
     </ul>
     </p></dd>
 

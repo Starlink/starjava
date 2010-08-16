@@ -18,6 +18,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.RegistryDialogAdjuster;
 import uk.ac.starlink.vo.Capability;
 import uk.ac.starlink.vo.KeywordServiceQueryFactory;
 import uk.ac.starlink.vo.RegCapabilityInterface;
@@ -126,6 +127,9 @@ public class DalMultiWindow extends AuxWindow {
                                   .getRegistryUpdateAction() );
         regMenu.setMnemonic( KeyEvent.VK_R );
         getJMenuBar().add( regMenu );
+        getJMenuBar().add( RegistryDialogAdjuster
+                          .createInteropMenu( regPanel_,
+                                              service.getResourceListType() ) );
 
         /* Display something in the registry result table.  Either start
          * a query for all services of the right type, or show a message
