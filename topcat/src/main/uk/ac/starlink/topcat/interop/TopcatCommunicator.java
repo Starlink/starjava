@@ -9,6 +9,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.plot.DensityWindow;
+import uk.ac.starlink.vo.RegistryPanel;
 
 /**
  * Abstract interface for inter-application messaging requirements of TOPCAT.
@@ -56,6 +57,7 @@ public interface TopcatCommunicator {
      * in the density plot window to other applications as a FITS image.
      *
      * @param  densityWindow  density plot window
+     * @return  new image transmitter
      */
     Transmitter createImageTransmitter( DensityWindow densityWindow );
 
@@ -66,9 +68,22 @@ public interface TopcatCommunicator {
      *
      * @param  tcModel   table
      * @param  subsetWindow   subset window
+     * @return  new subset transmitter
      */
     Transmitter createSubsetTransmitter( TopcatModel tcModel,
                                          SubsetWindow subsetWindow );
+
+    /**
+     * Returns an object that can send the currently displayed resources
+     * from a registry panel.
+     *
+     * @param   regPanel  registry panel component
+     * @param   resourceType  resource subtype - must match the appropriate
+     *          voresource.loadlist.* MType subtype
+     * @return  new resource list transmitter
+     */
+    Transmitter createResourceListTransmitter( RegistryPanel regPanel,
+                                               String resourceType );
 
     /**
      * Returns an object which can be used to send messages drawing attention

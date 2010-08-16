@@ -8,8 +8,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -45,6 +45,8 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.plot.DensityWindow;
+import uk.ac.starlink.vo.RegResource;
+import uk.ac.starlink.vo.RegistryPanel;
 
 /**
  * TopcatCommunicator implementation based on SAMP.
@@ -103,6 +105,15 @@ public class SampCommunicator implements TopcatCommunicator {
                                                 SubsetWindow subWin ) {
         return adaptTransmitter( new SubsetSendActionManager( tcModel,
                                                               subWin ) );
+    }
+
+    public Transmitter createResourceListTransmitter( RegistryPanel regPanel,
+                                                      String resourceType ) {
+        String mtype = ( resourceType == null || resourceType.length() == 0 )
+                     ? "voresource.loadlist"
+                     : "voresource.loadlist." + resourceType;
+        return adaptTransmitter( new ResourceListSendActionManager( regPanel,
+                                                                    mtype ) );
     }
 
     public SkyPointActivity createSkyPointActivity() {
@@ -319,6 +330,39 @@ public class SampCommunicator implements TopcatCommunicator {
         }
     }
 
+    /**
+     * SendActionManager implementation for transmitting
+     * voresource.loadlist messages.
+     */
+    private class ResourceListSendActionManager
+                  extends UniformCallActionManager {
+        private final RegistryPanel regPanel_;
+        private final String mtype_;
+
+        /**
+         * Constructor.
+         *
+         * @param  regPanel   panel whose displayed resources will be sent
+         * @param  mtype   exact MType of message to send
+         */
+        ResourceListSendActionManager( RegistryPanel regPanel,
+                                       String mtype ) {
+            super( regPanel, hubConnector_, mtype, "Resource List" );
+            mtype_ = mtype;
+            regPanel_ = regPanel;
+        }
+
+        protected Map createMessage() {
+            Map idMap = new LinkedHashMap<String,String>();
+            RegResource[] resources = regPanel_.getResources();
+            for ( int ir = 0; ir < resources.length; ir++ ) {
+                idMap.put( resources[ ir ].getIdentifier(), "" );
+            }
+            return new Message( mtype_ )
+                  .addParam( "ids", idMap );
+        }
+    }
+
     public JComponent createInfoPanel() {
         Box box = Box.createHorizontalBox();
         box.add( Box.createHorizontalStrut( 5 ) );
@@ -376,7 +420,7 @@ public class SampCommunicator implements TopcatCommunicator {
          * This is more restrictive than strictly necessary, but it's 
          * easy to do, and it's unlikely (impossible?) that other 
          * legitimate types of entry (String->List or ->Map will be present. */
-        Map okMap = new HashMap();
+        Map okMap = new LinkedHashMap();
         for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
             Object key = entry.getKey();

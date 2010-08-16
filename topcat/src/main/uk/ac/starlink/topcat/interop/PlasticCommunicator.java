@@ -38,6 +38,7 @@ import uk.ac.starlink.topcat.SubsetWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.vo.RegistryPanel;
 
 /**
  * TopcatCommunicator which uses PLASTIC as the messaging protocol.
@@ -120,6 +121,11 @@ public class PlasticCommunicator implements TopcatCommunicator {
         return adaptTransmitter( plasticServer_
                                 .createSubsetTransmitter( tcModel,
                                                           subSelector ) );
+    }
+
+    public Transmitter createResourceListTransmitter( RegistryPanel regPanel,
+                                                      String resourceType ) {
+        return new DisabledTransmitter( "Resource List" );
     }
 
     public void startHub( boolean external ) throws IOException {
