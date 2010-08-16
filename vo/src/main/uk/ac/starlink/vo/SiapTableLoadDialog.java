@@ -42,7 +42,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         super( "SIA Query",
                "Get results of a Simple Image Access Protocol query",
                Capability.SIA, true, true );
-        setIconUrl( getClass().getResource( "sia.gif" ) );
+        setIconUrl( SiapTableLoadDialog.class.getResource( "sia.gif" ) );
     }
 
     protected Component createQueryPanel() {
