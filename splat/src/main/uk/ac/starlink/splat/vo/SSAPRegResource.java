@@ -19,6 +19,7 @@ public class SSAPRegResource
     private String contact;
     private String referenceUrl;
     private RegCapabilityInterface[] capabilities;
+    private String[] subjects = null;
 
     /**
      * Constructor.
@@ -41,6 +42,7 @@ public class SSAPRegResource
         publisher = resource.getPublisher();
         contact = resource.getContact();
         referenceUrl = resource.getReferenceUrl();
+        subjects = resource.getSubjects();
 
         //  Need a copy of each capability.
         RegCapabilityInterface[] rci = resource.getCapabilities();
@@ -120,4 +122,13 @@ public class SSAPRegResource
         this.capabilities = capabilities;
     }
 
+    public String[] getSubjects() 
+    {
+        return subjects;
+    }
+
+    public void setSubjects( String[] subjects )
+    {
+        this.subjects = subjects;
+    }
 }

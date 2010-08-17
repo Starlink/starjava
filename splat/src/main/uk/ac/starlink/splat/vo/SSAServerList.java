@@ -144,7 +144,7 @@ public class SSAServerList
     {
         //  Locate the description file. This may exist in the user's
         //  application specific directory or, the first time, as part of the
-        //  application resources. 
+        //  application resources.
         //  User file first.
         File backingStore = Utilities.getConfigFile( configFile );
         InputStream inputStream = null;
@@ -301,7 +301,7 @@ public class SSAServerList
     {
         XMLEncoder encoder = new XMLEncoder( outputStream );
         Iterator i = serverList.values().iterator();
-        
+
         //  Note these have to be SSAPRegResource instances, not RegResource.
         //  So that they can be serialised as beans.
         RegResource server = null;
