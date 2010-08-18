@@ -385,6 +385,26 @@ public class Loader {
         return is64Bit.booleanValue();
     }
 
+    /**
+     * Sets a system property to a given value unless it has already been set.
+     * If it has a prior value, that is undisturbed.
+     * Potential security exceptions are caught and dealt with.
+     *
+     * @param   key  property name
+     * @param   value  suggested property value
+     */
+    public static void setDefaultProperty( String key, String value ) {
+        String existingVal = System.getProperty( key );
+        if ( existingVal == null || existingVal.trim().length() == 0 ) {
+            try {
+                System.setProperty( key, value );
+            }
+            catch ( SecurityException e ) {
+                warn( "Security manager prevents setting of " + key );
+            }
+        }
+    }
+
     /** 
      * Unless it's been set already, sets the value of the 
      * <tt>apple.laf.useScreenMenuBar</tt> system property to true.
@@ -396,16 +416,7 @@ public class Loader {
      * (haven't got a Mac to hand, can't test it).
      */
     public static void tweakGuiForMac() {
-        String menuProp = "apple.laf.useScreenMenuBar";
-        try {
-            String prop = System.getProperty( menuProp );
-            if ( prop == null || prop.trim().length() == 0 ) {
-                System.setProperty( menuProp, "true" );
-            }
-        }
-        catch ( SecurityException e ) {
-            warn( "Security manager prevents setting of " + menuProp );
-        }
+        setDefaultProperty( "apple.laf.useScreenMenuBar", "true" );
     }
 
     /**
@@ -432,15 +443,7 @@ public class Loader {
      *         >RFC 2616, Section 14.43</a>
      */
     public static void setHttpAgent( String productTokens ) {
-        final String agentProp = "http.agent";
-        try {
-            if ( System.getProperty( agentProp ) == null ) {
-                System.setProperty( agentProp, productTokens );
-            }
-        }
-        catch ( SecurityException e ) {
-            // never mind
-        }
+        setDefaultProperty( "http.agent", productTokens );
     }
 
     /**
