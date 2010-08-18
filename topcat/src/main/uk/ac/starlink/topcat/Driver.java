@@ -209,6 +209,8 @@ public class Driver {
         Loader.tweakGuiForMac();
         Loader.setHttpAgent( TopcatUtils.getApplicationName() + "/"
                            + TopcatUtils.getVersion() );
+        Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
+                                   "true" );
 
         /* Use sloppy interpretation of VOTables. */
         VOElementFactory.STRICT_DEFAULT = false;
