@@ -36,8 +36,8 @@ public class RegistryTable extends JTable {
     private int iSortcol_;
     private boolean descending_;
     private static String[] DEFAULT_COLUMNS = new String[] {
-        "shortName",
-        "title",
+        "Short Name",
+        "Title",
     };
   
     /**
