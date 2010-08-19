@@ -29,6 +29,17 @@ public interface TableBuilder {
      * requirement for the builder to honour this request, but if
      * it knows how to make both random and non-random tables, it can
      * use this flag to decide which to return.
+     * <p>
+     * <strong>Note:</strong> the presence of the <code>wantRandom</code>
+     * parameter is somewhat misleading.  TableBuilder implementations 
+     * usually should, and do, ignore it (it would be removed from the
+     * interface if it were not for backward compatibility issues).
+     * Regardless of the value of this parameter, implementations should
+     * return a random-access table only if it is easy for them to do so;
+     * in particular they should not use the supplied 
+     * <code>storagePolicy</code>, or any other resource-expensive measure,
+     * to randomise a sequential table just because the 
+     * <code>wantRandom</code> parameter is true.
      *
      * @param  datsrc  the DataSource containing the table resource
      * @param  wantRandom  whether, preferentially, a random access table
