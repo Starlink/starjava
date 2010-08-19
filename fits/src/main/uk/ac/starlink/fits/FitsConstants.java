@@ -447,7 +447,7 @@ public class FitsConstants {
         }
         else if ( ! ( datsrc instanceof FileDataSource ) ) {
             msg = "Can't map FITS stream " + datsrc.getName() + "; "
-                + "use local uncompresed file for better performance";
+                + "use local uncompressed file for better performance";
             level = Level.INFO;
         }
         if ( msg != null ) {
