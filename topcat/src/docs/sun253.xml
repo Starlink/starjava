@@ -14002,7 +14002,7 @@ introduced since the last version:
         <ref id="RegistryPanel">Registry Query Panel</ref>,
         that is the single and multiple Cone, SIA and SSA windows.</li>
     <li>Window placement should now behave a bit more like platform norms,
-        rather than gravitating towards the top left corner.</li>
+        rather than sitting in the top left corner.</li>
     </ul>
     </p></dd>
 
