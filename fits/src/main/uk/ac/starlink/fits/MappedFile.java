@@ -39,7 +39,8 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor (Starlink)
  * @since    30 Aug 2002
  */
-public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
+public class MappedFile extends AbstractArrayDataIO
+                        implements CopyableRandomAccess {
 
     private final ByteBuffer niobuf_;
     private int size_;
@@ -104,6 +105,10 @@ public class MappedFile extends AbstractArrayDataIO implements RandomAccess {
 
     public long getFilePointer() {
         return (long) niobuf_.position();
+    }
+
+    public CopyableRandomAccess copyAccess() throws IOException {
+        return new MappedFile( niobuf_.duplicate() );
     }
 
     public int skipBytes( int toSkip ) {

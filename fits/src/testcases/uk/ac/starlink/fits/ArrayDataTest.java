@@ -52,10 +52,28 @@ public class ArrayDataTest extends TestCase {
                 readBlock( i, in );
             }
             if ( in instanceof RandomAccess ) {
+                RandomAccess rin = (RandomAccess) in;
                 for ( int j = count - 1; j >= 0; j-- ) {
-                    ((RandomAccess) in).seek( j * cblock );
-                    readBlock( j, in );
+                    rin.seek( j * cblock );
+                    assertEquals( j * cblock, rin.getFilePointer() );
+                    readBlock( j, rin );
+                    assertEquals( ( j + 1 ) * cblock, rin.getFilePointer() );
                 }
+            }
+            if ( in instanceof CopyableRandomAccess ) {
+                CopyableRandomAccess crin = (CopyableRandomAccess) in;
+                CopyableRandomAccess crin1 = crin.copyAccess();
+                assertEquals( crin.getFilePointer(), crin1.getFilePointer() );
+                assertEquals( crin.readLong(), crin1.readLong() );
+                assertEquals( crin.readLong(), crin1.readLong() );
+                crin1.readLong();
+                assertEquals( crin.getFilePointer() + 8,
+                              crin1.getFilePointer() );
+                assertTrue( crin.readLong() != crin1.readLong() );
+                crin.seek( 155 );
+                long m0 = crin.readLong();
+                crin1.seek( 155 );
+                assertEquals( m0, crin1.readLong() );
             }
             in.close();
         }

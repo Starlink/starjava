@@ -95,35 +95,28 @@ public abstract class BintableStarTable extends AbstractStarTable {
      */
     public static StarTable makeRandomStarTable( Header hdr, 
                                                  final RandomAccess rstream )
-            throws FitsException {
-        final long dataStart = rstream.getFilePointer();
-        return new BintableStarTable( hdr, dataStart ) {
-            final long rowLength = getRowLength();
-            final int[] colOffsets = getColumnOffsets();
-            final int ncol = getColumnCount();
-            public boolean isRandom() {
-                return true;
-            }
-            public Object getCell( long lrow, int icol )
-                    throws IOException {
-                synchronized ( rstream ) {
-                    long offset = dataStart + lrow * rowLength
-                                            + colOffsets[ icol ];
-                    rstream.seek( offset );
-                    return readCell( rstream, icol );
+            throws FitsException, IOException {
+        if ( rstream instanceof CopyableRandomAccess ) {
+            final CopyableRandomAccess crstream =
+                ((CopyableRandomAccess) rstream).copyAccess();
+            return new RandomBintableStarTable( hdr, crstream ) {
+                public RowSequence getRowSequence() throws IOException {
+                    RandomAccess seqStream;
+                    synchronized ( crstream ) {
+                        crstream.seek( 0 );
+                        seqStream = crstream.copyAccess();
+                    }
+                    return createUnsafeRowSequence( seqStream );
                 }
-            }
-            public Object[] getRow( long lrow ) throws IOException {
-                Object[] row = new Object[ ncol ];
-                synchronized ( rstream ) {
-                    rstream.seek( dataStart + lrow * rowLength );
-                    return readRow( rstream );
+            };
+        }
+        else {
+            return new RandomBintableStarTable( hdr, rstream ) {
+                public RowSequence getRowSequence() {
+                    return new RandomRowSequence( this );
                 }
-            }
-            public RowSequence getRowSequence() {
-                return new RandomRowSequence( this );
-            }
-        };
+            };
+        }
     }
 
     /**
@@ -522,5 +515,86 @@ public abstract class BintableStarTable extends AbstractStarTable {
      */
     protected int[] getColumnOffsets() {
         return colOffsets;
+    }
+
+    /**
+     * Partial implementation of random-access BintableStarTable.
+     * Only the getRowSequence method remains to be implemented.
+     */
+    private static abstract class RandomBintableStarTable
+            extends BintableStarTable {
+        private final RandomAccess rstream_;
+        private final long dataStart_;
+        private final long rowLength_;
+        private final int[] colOffsets_;
+        private final int ncol_;
+
+        /**
+         * Constructor.
+         *
+         * @param  hdr  FITS header descrbing the HDU
+         * @param  rstream   data stream positioned at the start of the data 
+         *                   section of the HDU
+         */
+        RandomBintableStarTable( Header hdr, RandomAccess rstream )
+                throws FitsException {
+            super( hdr, rstream.getFilePointer() );
+            rstream_ = rstream;
+            dataStart_ = rstream.getFilePointer();
+            rowLength_ = getRowLength();
+            colOffsets_ = getColumnOffsets();
+            ncol_ = getColumnCount();
+        }
+
+        public boolean isRandom() {
+            return true;
+        }
+
+        public Object getCell( long lrow, int icol ) throws IOException {
+            synchronized ( rstream_ ) {
+                rstream_.seek( dataStart_ + lrow * rowLength_
+                                          + colOffsets_[ icol ] );
+                return readCell( rstream_, icol );
+            }
+        }
+
+        public Object[] getRow( long lrow ) throws IOException {
+            synchronized ( rstream_ ) {
+                rstream_.seek( dataStart_ + lrow * rowLength_ );
+                return readRow( rstream_ );
+            } 
+        }
+
+        RowSequence createUnsafeRowSequence( final RandomAccess seqStream ) {
+            final long startPos = seqStream.getFilePointer();
+            final long endPos = startPos + getRowCount() * rowLength_;
+            return new RowSequence() {
+                long pos = startPos - rowLength_;
+                public boolean next() {
+                    pos += rowLength_;
+                    return pos < endPos;
+                }
+                public Object getCell( int icol ) throws IOException {
+                    if ( pos >= startPos && pos < endPos ) {
+                        seqStream.seek( pos + colOffsets_[ icol ] );
+                        return readCell( seqStream, icol );
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
+                }
+                public Object[] getRow() throws IOException {
+                    if ( pos >= startPos && pos < endPos ) {
+                        seqStream.seek( pos );
+                        return readRow( seqStream );
+                    }
+                    else {
+                        throw new IllegalStateException();
+                    }
+                }
+                public void close() {
+                }
+            };
+        }
     }
 }

@@ -7372,6 +7372,8 @@ but my thanks are especially due to the following:
     <li>Window placement for the few GUI tasks should now behave a bit more
         like platform norms, rather than sitting in the top left hand
         corner.</li>
+    <li>Efficiency improvement in sequential mapped access to large FITS
+        files.</li>
     </ul>
     </p></dd>
 
