@@ -13,13 +13,14 @@ import uk.ac.starlink.table.Tables;
  * {@link java.io.DataInput}.
  * As documented below, the <tt>DataInput</tt> and <tt>DataOut</tt> 
  * implementations are not quite complete; the unimplemented methods 
- * are not used by the classes in this package for which this adapter
+ * are not used by the classes in the package for which this adapter
  * class was written.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004
  */
-class NioDataAccess implements SeekableDataInput, DataOutput {
+class NioDataAccess extends NioDataInput
+                    implements SeekableDataInput, DataOutput {
 
     private final ByteBuffer bbuf_;
 
@@ -32,264 +33,77 @@ class NioDataAccess implements SeekableDataInput, DataOutput {
         bbuf_ = bbuf;
     }
 
+    protected ByteBuffer getBuffer( int nbyte ) throws IOException {
+        int remaining = bbuf_.remaining();
+        if ( remaining >= nbyte ) {
+            return bbuf_;
+        }
+        else if ( remaining == 0 ) {
+            throw new EOFException();
+        }
+        else {
+            throw new EOFException( "Requested " + nbyte + " bytes, "
+                                  + "only " + remaining + " left" );
+        }
+    }
+
     public void seek( long pos ) throws IOException {
-        try {
-            bbuf_.position( Tables.checkedLongToInt( pos ) );
+        if ( pos >= 0 && pos < bbuf_.limit() ) {
+            bbuf_.position( (int) pos );
         }
-        catch ( IllegalArgumentException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
-    }
-
-    public boolean readBoolean() throws EOFException {
-        try {
-            return bbuf_.get() != 0;
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public byte readByte() throws EOFException {
-        try {
-            return bbuf_.get();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public int readUnsignedByte() throws EOFException {
-        try {
-            return bbuf_.get() & 0xff;
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public short readShort() throws EOFException {
-        try {
-            return bbuf_.getShort();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public int readUnsignedShort() throws EOFException {
-        try {
-            return bbuf_.getShort() & 0xffff;
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public char readChar() throws EOFException {
-        try {
-            return bbuf_.getChar();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public int readInt() throws EOFException {
-        try {
-            return bbuf_.getInt();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public long readLong() throws EOFException {
-        try {
-            return bbuf_.getLong();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public float readFloat() throws EOFException {
-        try {
-            return bbuf_.getFloat();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public double readDouble() throws EOFException {
-        try {
-            return bbuf_.getDouble();
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException( "Buffer underflow" );
-        }
-    }
-
-    public void readFully( byte[] b ) throws EOFException {
-        try {
-            bbuf_.get( b );
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException();
-        }
-    }
-
-    public void readFully( byte[] b, int offset, int length )
-            throws EOFException {
-        try {
-            bbuf_.get( b, offset, length );
-        }
-        catch ( BufferUnderflowException e ) {
-            throw new EOFException();
+        else {
+            throw new IOException( "Out of range " + pos );
         }
     }
 
     public int skipBytes( int n ) {
-        try {
-            bbuf_.position( bbuf_.position() + n );
-            return n;
-        }
-        catch ( IllegalArgumentException e ) {
-            return 0;
-        }
+        int nb = Math.min( Math.max( n, 0 ), bbuf_.remaining() );
+        bbuf_.position( bbuf_.position() + nb );
+        return nb;
     }
 
     public void write( int b ) throws IOException {
-        try {
-            bbuf_.put( (byte) b );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 1 ).put( (byte) b );
     }
 
     public void write( byte[] b, int off, int len ) throws IOException {
-        try {
-            bbuf_.put( b, off, len );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( len ).put( b, off, len );
     }
 
     public void write( byte[] b ) throws IOException {
-        try {
-            bbuf_.put( b );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( b.length ).put( b );
     }
 
     public void writeBoolean( boolean val ) throws IOException {
-        try {
-            bbuf_.put( val ? (byte) 1 : (byte) 0 );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 1 ).put( val ? (byte) 1 : (byte) 0 );
     }
 
     public void writeByte( int val ) throws IOException {
-        try {
-            bbuf_.put( (byte) val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 1 ).put( (byte) val );
     }
 
     public void writeChar( int val ) throws IOException {
-        try {
-            bbuf_.putChar( (char) val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 2 ).putChar( (char) val );
     }
 
     public void writeShort( int val ) throws IOException {
-        try {
-            bbuf_.putShort( (short) val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 2 ).putShort( (short) val );
     }
 
     public void writeInt( int val ) throws IOException {
-        try {
-            bbuf_.putInt( val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 4 ).putInt( val );
     }
 
     public void writeLong( long val ) throws IOException {
-        try {
-            bbuf_.putLong( val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 8 ).putLong( val );
     }
 
     public void writeFloat( float val ) throws IOException {
-        try {
-            bbuf_.putFloat( val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
+        getBuffer( 4 ).putFloat( val );
     }
 
     public void writeDouble( double val ) throws IOException {
-        try {
-            bbuf_.putDouble( val );
-        }
-        catch ( RuntimeException e ) {
-            throw (IOException)
-                  new IOException( e.getMessage() ).initCause( e );
-        }
-    }
-
-
-    /**
-     * Not implemented.
-     *
-     * @throws UnsupportedOperationException
-     */
-    public String readLine() throws IOException {
-        throw new UnsupportedOperationException( 
-                      "Incomplete DataInput implementation" );
-    }
-
-    /**
-     * Not implemented.
-     *
-     * @throws UnsupportedOperationException
-     */
-    public String readUTF() throws IOException {
-        throw new UnsupportedOperationException( 
-                      "Incomplete DataInput implementation" );
+        getBuffer( 8 ).putDouble( val );
     }
 
     /**
@@ -321,5 +135,4 @@ class NioDataAccess implements SeekableDataInput, DataOutput {
         throw new UnsupportedOperationException( 
                       "Incomplete DataInput implementation" );
     }
-
 }
