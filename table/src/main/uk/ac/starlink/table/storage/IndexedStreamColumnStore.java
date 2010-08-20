@@ -27,7 +27,7 @@ class IndexedStreamColumnStore implements ColumnStore {
     private final DataOutputStream indexOut_;
     private long dataOffset_;
     private long nrow_;
-    private SeekableDataInput dataIn_;
+    private ByteStoreAccess dataIn_;
     private LongBuffer indexIn_;
 
     /**

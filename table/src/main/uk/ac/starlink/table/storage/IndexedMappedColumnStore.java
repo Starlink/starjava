@@ -22,7 +22,7 @@ class IndexedMappedColumnStore implements ColumnStore {
     private final LongBuffer indexBuf_;
     private long auxOffset_;
     private long nrow_;
-    private SeekableDataInput auxAccess_;
+    private ByteStoreAccess auxAccess_;
 
     /**
      * Constructor.

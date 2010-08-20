@@ -1,17 +1,15 @@
 package uk.ac.starlink.table.storage;
 
-import java.io.DataInput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Partial implementation of DataInput based on ByteBuffers.
+ * Partial implementation of ByteStoreAccess.
  *
- * As documented below, the <tt>DataInput</tt> implementation is
- * not quite complete; the unimplemented methods are not used by 
- * the classes in this package.
+ * @author   Mark Taylor
+ * @since    20 Aug 2010
  */
-abstract class NioDataInput implements DataInput {
+abstract class NioByteStoreAccess implements ByteStoreAccess {
 
     /**
      * Returns a buffer with at least the requested number of bytes
@@ -24,24 +22,12 @@ abstract class NioDataInput implements DataInput {
      */
     protected abstract ByteBuffer getBuffer( int nbyte ) throws IOException;
 
-    public boolean readBoolean() throws IOException {
-        return getBuffer( 1 ).get() != 0;
-    }
-
     public byte readByte() throws IOException {
         return getBuffer( 1 ).get();
     }
 
-    public int readUnsignedByte() throws IOException {
-        return getBuffer( 1 ).get() & 0xff;
-    }
-
     public short readShort() throws IOException {
         return getBuffer( 2 ).getShort();
-    }
-
-    public int readUnsignedShort() throws IOException {
-        return getBuffer( 2 ).getShort() & 0xffff;
     }
 
     public char readChar() throws IOException {
@@ -64,32 +50,8 @@ abstract class NioDataInput implements DataInput {
         return getBuffer( 8 ).getDouble();
     }
 
-    public void readFully( byte[] b ) throws IOException {
-        getBuffer( b.length ).get( b );
-    }
-
-    public void readFully( byte[] b, int offset, int length )
+    public void readBytes( byte[] b, int offset, int length )
             throws IOException {
         getBuffer( length ).get( b, offset, length );
-    }
-
-    /**
-     * Not implemented.
-     *
-     * @throws UnsupportedOperationException
-     */
-    public String readLine() throws IOException {
-        throw new UnsupportedOperationException(
-                      "Incomplete DataInput implementation" );
-    }
-
-    /**
-     * Not implemented.
-     *
-     * @throws UnsupportedOperationException
-     */
-    public String readUTF() throws IOException {
-        throw new UnsupportedOperationException(
-                      "Incomplete DataInput implementation" );
     }
 }

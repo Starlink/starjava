@@ -1,6 +1,5 @@
 package uk.ac.starlink.table.storage;
 
-import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -46,7 +45,7 @@ abstract class Codec {
      * @param  in  source stream, positioned at start of object
      * @return  deserialized object
      */
-    abstract public Object decode( DataInput in ) throws IOException;
+    abstract public Object decode( ByteStoreAccess in ) throws IOException;
 
     /**
      * Returns the number of bytes a call to <tt>encode</tt> will write.
@@ -166,7 +165,7 @@ abstract class Codec {
             out.writeByte( ((Byte) value).byteValue() );
             return 1;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Byte( in.readByte() );
         }
         public int getItemSize() {
@@ -179,7 +178,7 @@ abstract class Codec {
             out.writeShort( ((Short) value).shortValue() );
             return 2;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Short( in.readShort() );
         }
         public int getItemSize() {
@@ -192,7 +191,7 @@ abstract class Codec {
             out.writeInt( ((Integer) value).intValue() );
             return 4;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Integer( in.readInt() );
         }
         public int getItemSize() {
@@ -205,7 +204,7 @@ abstract class Codec {
             out.writeLong( ((Long) value).longValue() );
             return 8;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Long( in.readLong() );
         }
         public int getItemSize() {
@@ -218,7 +217,7 @@ abstract class Codec {
             out.writeChar( ((Character) value).charValue() );
             return 2;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Character( in.readChar() );
         }
         public int getItemSize() {
@@ -232,7 +231,7 @@ abstract class Codec {
                                           : ((Float) value).floatValue() );
             return 4;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Float( in.readFloat() );
         }
         public int getItemSize() {
@@ -246,7 +245,7 @@ abstract class Codec {
                                            : ((Double) value).doubleValue() );
             return 8;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             return new Double( in.readDouble() );
         }
         public int getItemSize() {
@@ -263,7 +262,7 @@ abstract class Codec {
             out.writeByte( brep );
             return 1;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             switch ( in.readByte() ) {
                 case (byte) 'T':
                     return Boolean.TRUE;
@@ -309,13 +308,13 @@ abstract class Codec {
             return itemSize_;
         }
 
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             byte flag = in.readByte();
             switch ( flag ) {
                 case OK:
                     return baseCodec_.decode( in );
                 case BAD: 
-                    in.skipBytes( itemSize_ - 1 );
+                    in.skip( itemSize_ - 1 );
                     return null;
             }
             this.warnCorrupt();
@@ -348,7 +347,7 @@ abstract class Codec {
             return itemSize_;
         }
 
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             Object value = codec1_.getBuffer( nel_ );
             for ( int i = 0; i < nel_; i++ ) {
                 codec1_.decode1( value, i, in );
@@ -382,7 +381,7 @@ abstract class Codec {
             return 4 + nel * codec1_.getItemSize1();
         }
 
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             int nel = in.readInt();
             if ( nel < 0 ) {
                 this.warnCorrupt();
@@ -430,7 +429,7 @@ abstract class Codec {
             return nchar_ * 2;
         }
 
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             int lastNonZero = -1;
             for ( int ic = 0; ic < nchar_; ic++ ) {
                 char c = in.readChar();
@@ -456,7 +455,7 @@ abstract class Codec {
                                         : ((String) value).toCharArray();
             return super.encode( cval, out );
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             char[] cval = (char[]) super.decode( in );
             return cval == null ? null
                                 : new String( cval );
@@ -483,7 +482,7 @@ abstract class Codec {
             }
             return count;
         }
-        public Object decode( DataInput in ) throws IOException {
+        public Object decode( ByteStoreAccess in ) throws IOException {
             int nstr = in.readInt();
             if ( nstr < 0 ) {
                 warnCorrupt();
@@ -539,7 +538,7 @@ abstract class Codec {
          * @param  index  position in <tt>array/tt> to which to write
          * @param  in     source stream
          */
-        abstract void decode1( Object array, int index, DataInput in )
+        abstract void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException;
 
         /**
@@ -575,7 +574,7 @@ abstract class Codec {
                 throws IOException {
             out.writeByte( ((byte[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((byte[]) array)[ index ] = in.readByte();
         }
@@ -592,7 +591,7 @@ abstract class Codec {
                 throws IOException {
             out.writeShort( ((short[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((short[]) array)[ index ] = in.readShort();
         }
@@ -609,7 +608,7 @@ abstract class Codec {
                 throws IOException {
             out.writeInt( ((int[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((int[]) array)[ index ] = in.readInt();
         }
@@ -626,7 +625,7 @@ abstract class Codec {
                 throws IOException {
             out.writeLong( ((long[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((long[]) array)[ index ] = in.readLong();
         }
@@ -643,7 +642,7 @@ abstract class Codec {
                 throws IOException {
             out.writeFloat( ((float[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((float[]) array)[ index ] = in.readFloat();
         }
@@ -660,7 +659,7 @@ abstract class Codec {
                 throws IOException {
             out.writeDouble( ((double[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((double[]) array)[ index ] = in.readDouble();
         }
@@ -677,7 +676,7 @@ abstract class Codec {
                 throws IOException {
             out.writeChar( ((char[]) array)[ index ] );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             ((char[]) array)[ index ] = in.readChar();
         }
@@ -695,7 +694,7 @@ abstract class Codec {
             out.writeByte( ((boolean[]) array)[ index ] ? (byte) 'T' 
                                                         : (byte) 'F' );
         }
-        public void decode1( Object array, int index, DataInput in )
+        public void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException {
             boolean bval;
             switch ( in.readByte() ) {

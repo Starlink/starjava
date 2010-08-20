@@ -166,7 +166,7 @@ public class ByteStoreRowStore implements RowStore {
      * StarTable implementation based on a ByteBuffer.
      */
     private static class ByteBufferStarTable extends WrapperStarTable {
-        private final SeekableDataInput in_;
+        private final ByteStoreAccess in_;
         private final long nrow_;
         private final int ncol_;
         private final Codec[] codecs_;

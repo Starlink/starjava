@@ -1,6 +1,5 @@
 package uk.ac.starlink.table.storage;
 
-import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
@@ -9,18 +8,17 @@ import java.nio.BufferUnderflowException;
 import uk.ac.starlink.table.Tables;
 
 /**
- * Adapts a {@link java.nio.ByteBuffer} to look like a 
- * {@link java.io.DataInput}.
- * As documented below, the <tt>DataInput</tt> and <tt>DataOut</tt> 
- * implementations are not quite complete; the unimplemented methods 
+ * ByteStoreAccess based on a single ByteBuffer.
+ * It also mostly implements DataOutput.
+ * As documented below, the <tt>DataOut</tt> 
+ * implementation is not quite complete; the unimplemented methods 
  * are not used by the classes in the package for which this adapter
  * class was written.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004
  */
-class NioDataAccess extends NioDataInput
-                    implements SeekableDataInput, DataOutput {
+class NioDataAccess extends NioByteStoreAccess implements DataOutput {
 
     private final ByteBuffer bbuf_;
 
@@ -56,10 +54,9 @@ class NioDataAccess extends NioDataInput
         }
     }
 
-    public int skipBytes( int n ) {
-        int nb = Math.min( Math.max( n, 0 ), bbuf_.remaining() );
-        bbuf_.position( bbuf_.position() + nb );
-        return nb;
+    public void skip( int n ) throws IOException {
+        getBuffer( n );
+        bbuf_.position( bbuf_.position() + n );
     }
 
     public void write( int b ) throws IOException {
@@ -113,7 +110,7 @@ class NioDataAccess extends NioDataInput
      */
     public void writeBytes( String val ) throws IOException {
         throw new UnsupportedOperationException( 
-                      "Incomplete DataInput implementation" );
+                      "Incomplete DataOutput implementation" );
     }
 
     /**
@@ -123,7 +120,7 @@ class NioDataAccess extends NioDataInput
      */
     public void writeChars( String val ) throws IOException {
         throw new UnsupportedOperationException( 
-                      "Incomplete DataInput implementation" );
+                      "Incomplete DataOutput implementation" );
     }
 
     /**
@@ -133,6 +130,6 @@ class NioDataAccess extends NioDataInput
      */
     public void writeUTF( String val ) throws IOException {
         throw new UnsupportedOperationException( 
-                      "Incomplete DataInput implementation" );
+                      "Incomplete DataOutput implementation" );
     }
 }

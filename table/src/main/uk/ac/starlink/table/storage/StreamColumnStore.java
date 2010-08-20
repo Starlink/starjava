@@ -23,7 +23,7 @@ class StreamColumnStore implements ColumnStore {
     private final DataOutputStream dataOut_;
     private final int itemSize_;
     private long nrow_;
-    private SeekableDataInput dataIn_;
+    private ByteStoreAccess dataIn_;
 
     /**
      * Constructor.
