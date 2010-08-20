@@ -565,6 +565,16 @@ public abstract class BintableStarTable extends AbstractStarTable {
             } 
         }
 
+        /**
+         * Returns a new RowSequence for this table based on a stream
+         * which will be used without synchronization.
+         * So, no other thread or code should use the supplied
+         * <code>seqStream</code> during the lifetime of the returned
+         * sequence.
+         *
+         * @param  seqStream  stream for exclusive use of the returned sequence
+         * @return  row sequence
+         */
         RowSequence createUnsafeRowSequence( final RandomAccess seqStream ) {
             final long startPos = seqStream.getFilePointer();
             final long endPos = startPos + getRowCount() * rowLength_;
