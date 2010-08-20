@@ -99,11 +99,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
         if ( rstream instanceof CopyableRandomAccess ) {
             final CopyableRandomAccess crstream =
                 ((CopyableRandomAccess) rstream).copyAccess();
+            final long startPos = crstream.getFilePointer();
             return new RandomBintableStarTable( hdr, crstream ) {
                 public RowSequence getRowSequence() throws IOException {
                     RandomAccess seqStream;
                     synchronized ( crstream ) {
-                        crstream.seek( 0 );
+                        crstream.seek( startPos );
                         seqStream = crstream.copyAccess();
                     }
                     return createUnsafeRowSequence( seqStream );
