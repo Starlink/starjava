@@ -66,7 +66,7 @@ class IndexedStreamColumnStore implements ColumnStore {
                             .getChannel()
                             .map( FileChannel.MapMode.READ_ONLY,
                                   0, dataOffset_ );
-        dataIn_ = new NioDataAccess( dataBuf );
+        dataIn_ = new SingleNioAccess( dataBuf );
         ByteBuffer indexBuf = new RandomAccessFile( indexFile_, "r" )
                              .getChannel()
                              .map( FileChannel.MapMode.READ_ONLY,

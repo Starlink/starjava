@@ -52,7 +52,7 @@ class IndexedMappedColumnStore implements ColumnStore {
     public void endCells() throws IOException {
         ByteBuffer auxBuf = auxRaf_.getChannel()
                            .map( FileChannel.MapMode.READ_ONLY, 0, auxOffset_ );
-        auxAccess_ = new NioDataAccess( auxBuf );
+        auxAccess_ = new SingleNioAccess( auxBuf );
         auxRaf_.close();
     }
 

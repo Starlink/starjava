@@ -57,7 +57,7 @@ class StreamColumnStore implements ColumnStore {
                          .getChannel()
                          .map( FileChannel.MapMode.READ_ONLY, 0,
                                itemSize_ * nrow_ );
-        dataIn_ = new NioDataAccess( bbuf );
+        dataIn_ = new SingleNioAccess( bbuf );
     }
 
     public synchronized Object readCell( long lrow ) throws IOException {

@@ -188,7 +188,7 @@ public class ByteStoreRowStore implements RowStore {
             ncol_ = template.getColumnCount();
             codecs_ = codecs;
             offsets_ = offsets;
-            in_ = new NioDataAccess( bbuf );
+            in_ = new SingleNioAccess( bbuf );
         }
 
         public boolean isRandom() {
