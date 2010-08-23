@@ -33,17 +33,22 @@ public interface ByteStore {
     void copy( OutputStream out ) throws IOException;
 
     /**
-     * Returns a byte buffer containing the bytes written to this store.
-     * The buffer's <em>limit</em> indicates the amount of data written.
+     * Returns an array of byte buffers containing the bytes written
+     * to this store.  The stored bytes are all of the bytes from
+     * the first buffer in the returned array, followed by all in the
+     * second, etc.  In many cases the returned array will, and probably
+     * should, contain a single buffer, but if the written byte count
+     * exceeds <code>Integer.MAX_VALUE</code>, more than one will be
+     * required.  The <em>limit</em> of each buffer indicates the 
+     * number of bytes it contains.
      *
      * <p>Usual usage will be to write all data, then call this method once;
      * this model may affect implementation decisions about efficiency.
      *
      * @return   byte buffer containing bytes written
-     * @throws   IOException  if there is a problem, including if the
-     *           number of byte written exceeds <code>Integer.MAX_VALUE</code>
+     * @throws   IOException  if there is an I/O error
      */
-    ByteBuffer toByteBuffer() throws IOException;
+    ByteBuffer[] toByteBuffers() throws IOException;
 
     /**
      * Tidies up.  Should be called when the data in this object is no 

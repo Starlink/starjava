@@ -22,6 +22,10 @@ public class DiscardByteStore implements ByteStore {
         devnull_ = new OutputStream() {
             public void write( int b ) {
             }
+            public void write( byte[] b, int off, int len ) {
+            }
+            public void write( byte[] b ) {
+            }
         };
     }
 
@@ -32,8 +36,8 @@ public class DiscardByteStore implements ByteStore {
     public void copy( OutputStream out ) {
     }
 
-    public ByteBuffer toByteBuffer() {
-        return ByteBuffer.allocate( 0 );
+    public ByteBuffer[] toByteBuffers() {
+        return new ByteBuffer[] { ByteBuffer.allocate( 0 ) };
     }
 
     public void close() {

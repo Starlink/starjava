@@ -198,11 +198,23 @@ public class StorageTest extends TestCase {
         bs.copy( bos );
         assertArrayEquals( buf, bos.toByteArray() );
 
-        ByteBuffer bbuf = bs.toByteBuffer();
-        assertEquals( buf.length, bbuf.limit() );
-        assertEquals( 0, bbuf.position() );
-        byte[] bbufcopy = new byte[ bbuf.limit() ];
-        bbuf.get( bbufcopy );
+        ByteBuffer[] bbufs = bs.toByteBuffers();
+        int nbyte = 0;
+        for ( int ib = 0; ib < bbufs.length; ib++ ) {
+            assertEquals( 0, bbufs[ ib ].position() );
+            nbyte += bbufs[ ib ].limit();
+        }
+        assertEquals( buf.length, nbyte );
+
+        byte[] bbufcopy = new byte[ nbyte ];
+        int ibyte = 0;
+        for ( int ib = 0; ib < bbufs.length; ib++ ) {
+            ByteBuffer bbuf = bbufs[ ib ];
+            int lim = bbuf.limit();
+            bbuf.get( bbufcopy, ibyte, lim );
+            ibyte += lim;
+        }
+        assertEquals( ibyte, nbyte );
         assertArrayEquals( buf, bbufcopy );
 
         bs.close();

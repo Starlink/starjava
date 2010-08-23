@@ -45,6 +45,7 @@ public class AdaptiveByteStore implements ByteStore {
      */
 
     private final int memLimit_;
+    private final int bufLimit_;
     private AdaptiveOutputStream out_;
     private OutputStream baseOut_;
     private int count_;
@@ -76,6 +77,7 @@ public class AdaptiveByteStore implements ByteStore {
             baseOut_ = new FileOutputStream( file_ );
         }
         memLimit_ = memLimit;
+        bufLimit_ = Integer.MAX_VALUE;
         out_ = new AdaptiveOutputStream();
     }
 
@@ -100,25 +102,26 @@ public class AdaptiveByteStore implements ByteStore {
         }
     }
 
-    public ByteBuffer toByteBuffer() throws IOException {
+    public ByteBuffer[] toByteBuffers() throws IOException {
         out_.flush();
         if ( file_ == null ) {
             BytesOutputStream byteOut = (BytesOutputStream) baseOut_;
             byte[] buf = byteOut.toByteArray();
+            final ByteBuffer bbuf;
             if ( count_ < MAX_HEAP ) {
-                return ByteBuffer.wrap( byteOut.toByteArray() );
+                bbuf = ByteBuffer.wrap( byteOut.toByteArray() );
             }
             else {
-                ByteBuffer dbuf = ByteBuffer.allocateDirect( count_ );
-                if ( dbuf.isDirect() ) {
+                bbuf = ByteBuffer.allocateDirect( count_ );
+                if ( bbuf.isDirect() ) {
                     logger_.info( "malloc " + count_ + " bytes" );
                 }
-                dbuf.put( byteOut.getBuf(), 0, byteOut.getCount() );
-                return dbuf;
+                bbuf.put( byteOut.getBuf(), 0, byteOut.getCount() );
             }
+            return new ByteBuffer[] { bbuf };
         }
         else {
-            return FileByteStore.toByteBuffer( file_ );
+            return FileByteStore.toByteBuffers( file_, bufLimit_ );
         }
     }
 

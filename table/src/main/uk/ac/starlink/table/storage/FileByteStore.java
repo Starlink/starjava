@@ -23,6 +23,7 @@ public class FileByteStore implements ByteStore {
 
     private final File file_;
     private final OutputStream out_;
+    private final int maxBufLen_;
     private final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
 
@@ -39,6 +40,7 @@ public class FileByteStore implements ByteStore {
     public FileByteStore( File file ) throws IOException {
         file_ = file;
         out_ = new FileOutputStream( file_ );
+        maxBufLen_ = Integer.MAX_VALUE;
     }
 
     /**
@@ -77,9 +79,9 @@ public class FileByteStore implements ByteStore {
         copy( file_, out );
     }
 
-    public ByteBuffer toByteBuffer() throws IOException {
+    public ByteBuffer[] toByteBuffers() throws IOException {
         out_.flush();
-        return toByteBuffer( file_ );
+        return toByteBuffers( file_, maxBufLen_ );
     }
 
     /**
@@ -108,19 +110,32 @@ public class FileByteStore implements ByteStore {
      * Utility method to return a ByteBuffer backed by a file.
      *
      * @param  file  file
-     * @return   mapped byte buffer
-     * @throws  IOException if the file is too large to map
+     * @param  maxLen  maximum length of a single buffer
+     * @return   mapped byte buffers
      */
-    static ByteBuffer toByteBuffer( File file ) throws IOException {
+    static ByteBuffer[] toByteBuffers( File file, int maxLen )
+            throws IOException {
         long size = file.length();
-        if ( size > Integer.MAX_VALUE ) {
-            throw new IOException( "File too big to map" );
+        if ( size == 0 ) {
+            return new ByteBuffer[] { ByteBuffer.allocate( 0 ) };
         }
         FileInputStream in = new FileInputStream( file );
-        ByteBuffer bbuf = in.getChannel()
-                            .map( FileChannel.MapMode.READ_ONLY, 0, size );
+        FileChannel chan = in.getChannel();
+        FileChannel.MapMode mode = FileChannel.MapMode.READ_ONLY;
+        long mBuf = ( ( size - 1 ) / maxLen ) + 1;
+        int nBuf = (int) mBuf;
+        if ( nBuf != mBuf ) {
+            throw new IOException( "HOW big???" );
+        }
+        ByteBuffer[] bufs = new ByteBuffer[ nBuf ];
+        for ( int ib = 0; ib < nBuf; ib++ ) {
+            long start = ib * maxLen;
+            assert size - start > 0;
+            long len = Math.min( size - start, maxLen );
+            bufs[ ib ] = chan.map( mode, start, len );
+        }
         in.close();
-        return bbuf;
+        return bufs;
     }
 
     public void close() {

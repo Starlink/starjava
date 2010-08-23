@@ -132,10 +132,15 @@ public class ByteStoreRowStore implements RowStore {
                       + ( offsets_.isFixed() ? "fixed" : "variable" ) );
 
         /* Create a new StarTable instance based on the data we've cached. */
-        ByteBuffer bbuf = byteStore_.toByteBuffer();
-        logger_.config( nrow_ + " rows stored in " + bbuf.limit() + " bytes" );
-        storedTable_ = new ByteBufferStarTable( template_, nrow_, codecs_,
-                                                offsets_, bbuf );
+        ByteBuffer[] bbufs = byteStore_.toByteBuffers();
+        long nbyte = 0;
+        for ( int ib = 0; ib < bbufs.length; ib++ ) {
+            nbyte += bbufs[ ib ].limit();
+        }
+        logger_.config( nrow_ + " rows stored in " + nbyte + " bytes" );
+        ByteStoreAccess access = NioByteStoreAccess.createAccess( bbufs );
+        storedTable_ = new ByteStoreStarTable( template_, nrow_, codecs_,
+                                               offsets_, access );
     }
 
     public StarTable getStarTable() {
@@ -165,8 +170,8 @@ public class ByteStoreRowStore implements RowStore {
     /**
      * StarTable implementation based on a ByteBuffer.
      */
-    private static class ByteBufferStarTable extends WrapperStarTable {
-        private final ByteStoreAccess in_;
+    private static class ByteStoreStarTable extends WrapperStarTable {
+        private final ByteStoreAccess access_;
         private final long nrow_;
         private final int ncol_;
         private final Codec[] codecs_;
@@ -179,16 +184,17 @@ public class ByteStoreRowStore implements RowStore {
          * @param  nrow    row count
          * @param  codecs  per-column de/serializer array
          * @param  offsets  information about row offsets into the byte store
-         * @param  bbuf   byte buffer holding byte data
+         * @param  access  byte store reader
+         * @param  bbufs   buffers holding byte data
          */
-        ByteBufferStarTable( StarTable template, long nrow, Codec[] codecs,
-                             Offsets offsets, ByteBuffer bbuf ) {
+        ByteStoreStarTable( StarTable template, long nrow, Codec[] codecs,
+                            Offsets offsets, ByteStoreAccess access ) {
             super( template );
             nrow_ = nrow;
             ncol_ = template.getColumnCount();
             codecs_ = codecs;
             offsets_ = offsets;
-            in_ = new SingleNioAccess( bbuf );
+            access_ = access;
         }
 
         public boolean isRandom() {
@@ -201,10 +207,10 @@ public class ByteStoreRowStore implements RowStore {
 
         public Object[] getRow( long lrow ) throws IOException {
             Object[] row = new Object[ ncol_ ];
-            synchronized ( in_ ) {
-                in_.seek( offsets_.getRowOffset( lrow ) );
+            synchronized ( access_ ) {
+                access_.seek( offsets_.getRowOffset( lrow ) );
                 for ( int icol = 0; icol < ncol_; icol++ ) {
-                    row[ icol ] = codecs_[ icol ].decode( in_ );
+                    row[ icol ] = codecs_[ icol ].decode( access_ );
                 }
             }
             return row;
@@ -212,9 +218,9 @@ public class ByteStoreRowStore implements RowStore {
 
         public Object getCell( long lrow, int icol ) throws IOException {
             final Object cell;
-            synchronized ( in_ ) {
-                in_.seek( offsets_.getCellOffset( lrow, icol ) );
-                cell = codecs_[ icol ].decode( in_ );
+            synchronized ( access_ ) {
+                access_.seek( offsets_.getCellOffset( lrow, icol ) );
+                cell = codecs_[ icol ].decode( access_ );
             }
             return cell;
         }

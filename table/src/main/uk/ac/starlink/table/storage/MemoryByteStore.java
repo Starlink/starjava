@@ -27,11 +27,11 @@ public class MemoryByteStore extends ByteArrayOutputStream
         out.write( this.buf, 0, this.count );
     }
 
-    public ByteBuffer toByteBuffer() {
+    public ByteBuffer[] toByteBuffers() {
         byte[] buf2 = new byte[ count ];
         System.arraycopy( buf, 0, buf2, 0, count );
         buf = buf2;
-        return ByteBuffer.wrap( buf, 0, count );
+        return new ByteBuffer[] { ByteBuffer.wrap( buf, 0, count ) };
     }
 
     public void close() {
