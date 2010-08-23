@@ -7374,6 +7374,8 @@ but my thanks are especially due to the following:
         corner.</li>
     <li>Efficiency improvement in sequential mapped access to large FITS
         files.</li>
+    <li>Storage management improvements; removed restriction on large
+        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     </ul>
     </p></dd>
 

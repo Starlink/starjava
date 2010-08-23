@@ -14003,6 +14003,8 @@ introduced since the last version:
         that is the single and multiple Cone, SIA and SSA windows.</li>
     <li>Window placement should now behave a bit more like platform norms,
         rather than sitting in the top left corner.</li>
+    <li>Storage management improvements; removed restriction on large
+        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     </ul>
     </p></dd>
 
