@@ -202,6 +202,19 @@ public class StarTableFactory {
     }
 
     /**
+     * Constructs a StarTableFactory which is a copy of an existing one.
+     *
+     * @param   fact   instance to copy
+     */
+    public StarTableFactory( StarTableFactory fact ) {
+        this( fact.requireRandom() );
+        defaultBuilders_ = new ArrayList( fact.defaultBuilders_ );
+        knownBuilders_ = new ArrayList( fact.knownBuilders_ );
+        jdbcHandler_ = fact.jdbcHandler_;
+        storagePolicy_ = fact.storagePolicy_;
+    }
+
+    /**
      * Gets the list of builders which are used for automatic format detection.
      * Builders earlier in the list are given a chance to make the
      * table before ones later in the list.
