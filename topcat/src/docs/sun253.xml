@@ -14006,6 +14006,9 @@ introduced since the last version:
     <li>Storage management improvements; removed restriction on large
         (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     <li>Now reports on progress (row count) as large tables are loaded.</li>
+    <li>Activation window can now be scrolled - this tall window was causing
+        trouble on some laptops with short screens.  Layout of this window
+        may be changed to provide a better solution in a future release.</li>
     </ul>
     </p></dd>
 
