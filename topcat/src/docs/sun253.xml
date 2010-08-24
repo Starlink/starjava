@@ -14005,6 +14005,7 @@ introduced since the last version:
         rather than sitting in the top left corner.</li>
     <li>Storage management improvements; removed restriction on large
         (&gt;2Gb) non-FITS datasets in some circumstances.</li>
+    <li>Now reports on progress (row count) as large tables are loaded.</li>
     </ul>
     </p></dd>
 

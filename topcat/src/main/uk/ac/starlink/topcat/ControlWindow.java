@@ -66,6 +66,7 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
@@ -87,12 +88,15 @@ import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
@@ -762,6 +766,66 @@ public class ControlWindow extends AuxWindow
      */
     public void removeLoadingToken( LoadingToken token ) {
         loadingModel_.removeElement( token );
+    }
+
+    /**
+     * Updates the state of a LoadingToken.  If it is in the loading list,
+     * it will be repainted.
+     *
+     * @param  token  token to update
+     */
+    public void updateLoadingToken( LoadingToken token ) {
+        int ix = loadingModel_.indexOf( token );
+        if ( ix >= 0 ) {
+            loadingModel_.set( ix, token );
+        }
+    }
+
+    /**
+     * Returns a new StarTableFactory which will update the given 
+     * LoadingToken as rows are read into row stores provided by its
+     * storage policy.  By using this rather than this control window's
+     * basic StarTableFactory, the LoadingToken's display will monitor
+     * the number of rows loaded, which is useful visual feedback for
+     * the user, especially for large/slow tables.
+     *
+     * @param   token  token to update
+     * @return   table factory; note this should only be used for work
+     *           associated with the given token
+     */
+    public StarTableFactory createMonitorFactory( final LoadingToken token ) {
+        TableSink monitorSink = new TableSink() {
+            long nrow;
+            long irow;
+            Timer timer;
+            public void acceptMetadata( StarTable meta ) {
+                nrow = meta.getRowCount();
+                timer = new Timer( 100, new ActionListener() {
+                    public void actionPerformed( ActionEvent evt ) {
+                        updateLoadingToken( token );
+                    }
+                } );
+                irow = 0;
+                timer.start();
+            }
+            public void acceptRow( Object[] row ) {
+                StringBuffer sbuf = new StringBuffer();
+                sbuf.append( ++irow );
+                if ( nrow > 0 ) {
+                    sbuf.append( '/' );
+                    sbuf.append( nrow );
+                }
+                token.setProgress( sbuf.toString() );
+            }
+            public void endRows() {
+                timer.stop();
+            }
+        };
+        StarTableFactory tfact = new StarTableFactory( getTableFactory() );
+        StoragePolicy policy =
+            new MonitorStoragePolicy( tfact.getStoragePolicy(), monitorSink );
+        tfact.setStoragePolicy( policy );
+        return tfact;
     }
 
     /**

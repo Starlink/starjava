@@ -472,15 +472,18 @@ public class TopcatSampControl {
      *
      * @param   format  table format string (as used by StarTableFactory)
      * @param   url   table location
+     * @param   token  loading token
      */
-    private StarTable createTable( String format, String url )
+    private StarTable createTable( String format, String url,
+                                   LoadingToken token )
             throws IOException {
         File file = URLUtils.urlToFile( url );
         DataSource datsrc =
             file != null
                 ? (DataSource) new FileDataSource( file )
                 : (DataSource) new URLDataSource( new URL( url ) );
-        return controlWindow_.getTableFactory().makeStarTable( datsrc, format );
+        return controlWindow_.createMonitorFactory( token )
+                             .makeStarTable( datsrc, format );
     }
 
     /**
@@ -566,7 +569,7 @@ public class TopcatSampControl {
 
             /* Place a marker in the control window to indicate that a
              * table is being loaded. */
-            final LoadingToken token = new LoadingToken( "SAMP " + mtype_ );
+            final LoadingToken token = new LoadingToken( "SAMP" );
             controlWindow_.addLoadingToken( token );
 
             /* Attempt to create a table from the message received. */
@@ -575,7 +578,8 @@ public class TopcatSampControl {
             boolean success;
             try {
                 table = createTable( format_,
-                                    (String) msg.getRequiredParam( "url" ) );
+                                     (String) msg.getRequiredParam( "url" ),
+                                     token );
                 error = null;
                 success = true;
             }

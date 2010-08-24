@@ -409,15 +409,16 @@ public class Driver {
             String hand = (String) handlers.get( i );
             final LoadingToken token = new LoadingToken( name );
             control.addLoadingToken( token );
+            StarTableFactory tf = control.createMonitorFactory( token );
             try {
                 StarTable[] startabs =
-                    tabfact.makeStarTables( DataSource.makeDataSource( name ),
-                                            hand );
+                    tf.makeStarTables( DataSource.makeDataSource( name ),
+                                       hand );
                 for ( int j = 0; j < startabs.length; j++ ) {
                     String tName = startabs.length == 1
                                  ? name
                                  : name + "-" + ( j + 1 );
-                    addTableLater( tabfact.randomTable( startabs[ j ] ),
+                    addTableLater( tf.randomTable( startabs[ j ] ),
                                    tName );
                 }
             }
