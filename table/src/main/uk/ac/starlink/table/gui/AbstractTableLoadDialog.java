@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
 import javax.swing.AbstractAction;
@@ -20,7 +21,11 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -73,6 +78,8 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
             }
         };
         progBar_ = new JProgressBar();
+        progBar_.setStringPainted( true );
+        progBar_.setString( "" );
         emptyModel_ = new DefaultComboBoxModel();
     }
 
@@ -106,7 +113,7 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
     }
 
     /**
-     * Should feed a table or tables to the given consuemer based on the
+     * Should feed a table or tables to the given consumer based on the
      * current state of this component.  This method is invoked when the
      * OK action is selected by the user.
      *
@@ -169,6 +176,9 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
         setFormatModel( formatModel );
 
         /* Pop up the modal dialogue. */
+        progBar_.setValue( 0 );
+        progBar_.setIndeterminate( false );
+        progBar_.setString( "" );
         dia.setVisible( true );
         setBusy( false );
 
@@ -278,7 +288,6 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
     protected void setBusy( boolean busy ) {
         getQueryPanel().setEnabled( ! busy );
         okAction_.setEnabled( ! busy );
-        progBar_.setIndeterminate( busy );
     }
 
     /**
@@ -301,13 +310,20 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
         }
         Object formatItem = formatModel_.getSelectedItem();
         String format = formatItem == null ? null : formatItem.toString();
+        StarTableFactory tf = new StarTableFactory( factory_ );
+        ProgressSink progSink = new ProgressSink();
+        tf.setStoragePolicy( new MonitorStoragePolicy( tf.getStoragePolicy(),
+                                                       progSink ) );
         try {
-            submitLoad( dialog_, factory_, format, consumer_ );
+            submitLoad( dialog_, tf, format, consumer_ );
         }
         catch ( Exception e ) {
             setBusy( false );
             ErrorDialog.showError( dialog_, "Dialogue Error", e );
             return;
+        }
+        finally {
+            progSink.dispose();
         }
     }
 
@@ -340,5 +356,71 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
             msg = th.getClass().getName();
         }
         return (IOException) new IOException( msg ).initCause( th );
+    }
+
+    /**
+     * TableSink implementation which messages this dialogue's progress bar.
+     */
+    private class ProgressSink implements TableSink {
+        private int itab_;
+        private long irow_;
+        private long nrow_;
+        private final Timer timer_;
+
+        /**
+         * Constructor.
+         */
+        ProgressSink() {
+            timer_ = new Timer( 200, new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    progBar_.setValue( (int) Math.min( irow_,
+                                                       Integer.MAX_VALUE ) );
+                    StringBuffer sbuf = new StringBuffer();
+                    if ( itab_ > 1 ) {
+                        sbuf.append( itab_ )
+                            .append( ": " );
+                    }
+                    sbuf.append( irow_ );
+                    if ( nrow_ > 0 ) {
+                        sbuf.append( " / " )
+                            .append( nrow_ );
+                    }
+                    progBar_.setString( sbuf.toString() );
+                }
+            } );
+        }
+
+        public void acceptMetadata( StarTable meta ) {
+            itab_++;
+            irow_ = 0;
+            progBar_.setMinimum( 0 );
+            progBar_.setValue( 0 );
+            nrow_ = meta.getRowCount();
+            if ( nrow_ > 0 ) {
+                progBar_.setMaximum( (int) Math.min( nrow_,
+                                                     Integer.MAX_VALUE ) );
+            }
+            progBar_.setIndeterminate( nrow_ <= 0 );
+            timer_.start();
+        }
+
+        public void acceptRow( Object[] row ) {
+            irow_++;
+        }
+
+        public void endRows() {
+            timer_.stop();
+            progBar_.setIndeterminate( false );
+        }
+
+        /**
+         * Ensure all resources are released.
+         */
+        public void dispose() {
+            progBar_.setIndeterminate( false );
+            progBar_.setValue( 0 );
+            progBar_.setString( "" );
+            timer_.stop();
+        }
     }
 }
