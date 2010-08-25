@@ -62,7 +62,7 @@ public class Driver {
     private static final ValueInfo DEMOLOC_INFO = 
         new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
     private static final int DEFAULT_SERVER_PORT = 2525;
-    private static String[] KNOWN_DIALOGS = new String[] {
+    public static String[] KNOWN_DIALOGS = new String[] {
         "uk.ac.starlink.table.gui.FileChooserLoader",
         "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
         SQLReadDialog.class.getName(),

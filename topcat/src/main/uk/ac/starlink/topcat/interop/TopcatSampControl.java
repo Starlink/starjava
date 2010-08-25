@@ -320,7 +320,7 @@ public class TopcatSampControl {
      *
      * @return  message handler array
      */
-    private final MessageHandler[] createMessageHandlers() {
+    final MessageHandler[] createMessageHandlers() {
         return new MessageHandler[] {
 
             /* Load VOTable by reference. */
@@ -651,10 +651,10 @@ public class TopcatSampControl {
     /**
      * Message handler for receipt of voresource.loadlist type MTypes.
      */
-    private class ResourceListHandler extends AbstractMessageHandler {
+    class ResourceListHandler extends AbstractMessageHandler {
 
-        private final Class dalLoadDialogClass_;
-        private final Class dalMultiWindowClass_;
+        final Class dalLoadDialogClass_;
+        final Class dalMultiWindowClass_;
 
         /**
          * Constructor.
