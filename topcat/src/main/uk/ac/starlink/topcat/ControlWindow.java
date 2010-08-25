@@ -969,9 +969,6 @@ public class ControlWindow extends AuxWindow
      * @return  load chooser dialogue
      */
     public TableLoadChooser getLoadChooser() {
-        if ( loadChooser_ == null ) {
-            loadChooser_ = new TableLoadChooser( getTableFactory() );
-        }
         return loadChooser_;
     }
 
