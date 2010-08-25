@@ -31,7 +31,7 @@ public class SampControlTest extends TestCase {
         catch ( HeadlessException e ) {
             cwin = null;
         }
-        controlWindow_ = null;
+        controlWindow_ = cwin;
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
     }
