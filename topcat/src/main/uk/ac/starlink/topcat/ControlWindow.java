@@ -1010,8 +1010,7 @@ public class ControlWindow extends AuxWindow
         if ( loadChooser_ != null ) {
             TableLoadDialog[] tlds = loadChooser_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
-                if ( dalLoadDialogClass
-                    .isAssignableFrom( tlds[ i ].getClass() ) ) {
+                if ( loadDialogMatches( tlds[ i ], dalLoadDialogClass ) ) {
                     boolean acc = ((DalTableLoadDialog) tlds[ i ])
                                  .acceptResourceIdList( ids, msg );
                     accepted = accepted || acc;
@@ -1028,7 +1027,7 @@ public class ControlWindow extends AuxWindow
         for ( int i = 0; i < multiWins.length; i++ ) {
             DalMultiWindow multiWin = multiWins[ i ];
             if ( multiWin != null &&
-                 dalMultiWindowClass.isAssignableFrom( multiWin.getClass() ) ) {
+                 multiWindowMatches( multiWin, dalMultiWindowClass ) ) {
                 boolean acc = multiWin.acceptResourceIdList( ids, msg );
                 accepted = accepted || acc;
             }
@@ -1036,6 +1035,25 @@ public class ControlWindow extends AuxWindow
 
         /* Return status. */
         return accepted;
+    }
+
+    /**
+     * Indicates whether the given load dialogue is of the type indicated
+     * by the given class.
+     *
+     * @param  tld  load dialogue
+     * @param  tldClass  load dialogue type
+     */
+    public boolean loadDialogMatches( TableLoadDialog tld, Class tldClass ) {
+        return tldClass.isAssignableFrom( tld.getClass() );
+    }
+
+    /**
+     * Indicates whether the given multi window is of the type indicated
+     * by the given class.
+     */
+    public boolean multiWindowMatches( DalMultiWindow mw, Class mwClass ) {
+        return mwClass.isAssignableFrom( mw.getClass() );
     }
 
     /**

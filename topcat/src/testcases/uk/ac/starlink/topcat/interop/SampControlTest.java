@@ -3,8 +3,6 @@ package uk.ac.starlink.topcat.interop;
 import java.awt.HeadlessException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,12 +16,15 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Driver;
+import uk.ac.starlink.topcat.join.DalMultiWindow;
 
 public class SampControlTest extends TestCase {
 
     private final ControlWindow controlWindow_;
 
     public SampControlTest() {
+        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
         ControlWindow cwin;
         try {
             cwin = ControlWindow.getInstance();
@@ -32,8 +33,6 @@ public class SampControlTest extends TestCase {
             cwin = null;
         }
         controlWindow_ = cwin;
-        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
     }
 
     /**
@@ -42,7 +41,7 @@ public class SampControlTest extends TestCase {
      * list.  This is a somewhat dangerous practice, since if the 
      * classes are changed (polymorphism) the code could stop working
      * properly.  The purpose of this test is to check that the classes
-     * can still be identified - see ControlWindow.acceptResourceIdList.
+     * can still be identified.
      * To do an interactive runtime test, send the SAMP message(s)
      * "voresource.loadlist{,.cone,.siap,.ssap}".
      */
@@ -71,19 +70,16 @@ public class SampControlTest extends TestCase {
         /* Get the list of table load dialogues and multiwindows as used
          * by ControlWindow for matching against the classes held in
          * resourcehandler instances. */
-        TableLoadChooser chooser =
+        TableLoadDialog[] tlds =
             new TableLoadChooser( controlWindow_.getTableFactory(),
                                   TableLoadChooser.makeDefaultLoadDialogs(),
-                                  Driver.KNOWN_DIALOGS );
-        TableLoadDialog[] tlds = chooser.getKnownDialogs();
-        Collection<Class> tldClassList = new HashSet<Class>();
-        for ( int i = 0; i < tlds.length; i++ ) {
-            tldClassList.add( tlds[ i ].getClass() );
-        }
-        Collection<Class> multiClassList = new HashSet<Class>();
-        multiClassList.add( controlWindow_.getConeMultiWindow().getClass() );
-        multiClassList.add( controlWindow_.getSiaMultiWindow().getClass() );
-        multiClassList.add( controlWindow_.getSsaMultiWindow().getClass() );
+                                  Driver.KNOWN_DIALOGS )
+           .getKnownDialogs();
+        DalMultiWindow[] mws = new DalMultiWindow[] {
+            controlWindow_.getConeMultiWindow(),
+            controlWindow_.getSiaMultiWindow(),
+            controlWindow_.getSsaMultiWindow(),
+        };
 
         /* For each resource handler, make sure it is matched by an
          * appropriate number of the known dialogue types. */
@@ -92,14 +88,14 @@ public class SampControlTest extends TestCase {
             Class mwClazz = rh.dalMultiWindowClass_;
             boolean isGeneral = ldClazz == DalTableLoadDialog.class;
             int gotTld = 0;
-            for ( Class ldc : tldClassList ) {
-                if ( ldClazz.isAssignableFrom( ldc ) ) {
+            for ( int id = 0; id < tlds.length; id++ ) {
+                if ( controlWindow_.loadDialogMatches( tlds[ id ], ldClazz ) ) {
                     gotTld++;
                 }
             }
             int gotMw = 0;
-            for ( Class mwc : multiClassList ) {
-                if ( mwClazz.isAssignableFrom( mwc ) ) {
+            for ( int im = 0; im < mws.length; im++ ) {
+                if ( controlWindow_.multiWindowMatches( mws[ im ], mwClazz ) ) {
                     gotMw++;
                 }
             }
