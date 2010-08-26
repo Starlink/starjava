@@ -16,6 +16,7 @@ import uk.ac.starlink.table.TableSink;
  *
  * @author   Mark Taylor
  * @since    24 Aug 2010
+ * @see      uk.ac.starlink.table.gui.ProgressBarTableSink
  */
 public class MonitorStoragePolicy extends StoragePolicy {
 
