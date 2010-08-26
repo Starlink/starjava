@@ -44,7 +44,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.ttools.jel.RandomJELRowReader;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
