@@ -83,12 +83,10 @@ public class ProgressBarTableSink implements TableSink {
     }
 
     /**
-     * Ensure all resources are released.
+     * Ensure all resources are released and no further changes will be
+     * made to the progress bar.
      */
     public void dispose() {
         timer_.stop();
-        progBar_.setIndeterminate( false );
-        progBar_.setValue( 0 );
-        progBar_.setString( "" );
     }
 }
