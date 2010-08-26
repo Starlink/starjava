@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.storage;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.RowStore;
@@ -22,6 +23,7 @@ public class MonitorStoragePolicy extends StoragePolicy {
 
     private final StoragePolicy base_;
     private final TableSink sink_;
+    private boolean interrupted_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table" );
 
@@ -35,6 +37,25 @@ public class MonitorStoragePolicy extends StoragePolicy {
     public MonitorStoragePolicy( StoragePolicy base, TableSink sink ) {
         base_ = base;
         sink_ = sink;
+    }
+
+    /**
+     * Cancels this storage policy for table row writes.
+     * Any attempt to call <code>acceptRow</code> on a RowStore obtained
+     * from this policy after calling this will result in an
+     * {@link InterruptedIOException}.
+     */
+    public void interrupt() {
+        interrupted_ = true;
+    }
+
+    /**
+     * Indicates whether {@link #interrupted} has been called on this object.
+     *
+     * @return  true  iff interrupted
+     */
+    public boolean isInterrupted() {
+        return interrupted_;
     }
 
     /**
@@ -70,7 +91,7 @@ public class MonitorStoragePolicy extends StoragePolicy {
      * RowStore implementation which wraps an existing row store but
      * additionally messages a second sink with row storage events.
      */
-    private static class TeeRowStore implements RowStore {
+    private class TeeRowStore implements RowStore {
 
         private final RowStore baseStore_;
         private final TableSink sink_;
@@ -94,6 +115,9 @@ public class MonitorStoragePolicy extends StoragePolicy {
         }
 
         public void acceptRow( Object[] row ) throws IOException {
+            if ( interrupted_ ) {
+                throw new InterruptedIOException();
+            }
             baseStore_.acceptRow( row );
             sink_.acceptRow( row );
         }
