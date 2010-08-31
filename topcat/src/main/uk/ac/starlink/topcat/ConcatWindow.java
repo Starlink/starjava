@@ -63,12 +63,12 @@ public class ConcatWindow extends AuxWindow
         main.setLayout( new BorderLayout() );
 
         /* Construct base table selection control. */
-        t1selector = new JComboBox( new TablesListComboBoxModel() );
+        t1selector = new TablesListComboBox();
         t1selector.setToolTipText( "Table supplying the columns and top rows" );
         t1selector.addItemListener( this );
 
         /* Construct added table selection control. */
-        t2selector = new JComboBox( new TablesListComboBoxModel() );
+        t2selector = new TablesListComboBox();
         t2selector.setToolTipText( "Table supplying the bottom rows" );
         t2selector.addItemListener( this );
 

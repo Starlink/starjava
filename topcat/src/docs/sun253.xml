@@ -14009,6 +14009,8 @@ introduced since the last version:
     <li>Activation window can now be scrolled - this tall window was causing
         trouble on some laptops with short screens.  Layout of this window
         may be changed to provide a better solution in a future release.</li>
+    <li>When a table is discarded, it is now deselected from any table
+        selector (for instance in a plot, match or concatenation window).</li>
     </ul>
     </p></dd>
 

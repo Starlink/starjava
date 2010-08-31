@@ -45,7 +45,7 @@ import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ColumnSelectorModel;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.RowSubset;
-import uk.ac.starlink.topcat.TablesListComboBoxModel;
+import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
@@ -119,8 +119,7 @@ public class DalMultiPanel extends JPanel {
         main.add( Box.createVerticalStrut( 10 ) );
 
         /* Field for input table. */
-        final JComboBox tableSelector =
-            new JComboBox( new TablesListComboBoxModel() );
+        final JComboBox tableSelector = new TablesListComboBox();
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setInputTable( (TopcatModel) tableSelector.getSelectedItem() );

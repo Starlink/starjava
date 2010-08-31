@@ -16,7 +16,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.topcat.ColumnSelector;
-import uk.ac.starlink.topcat.TablesListComboBoxModel;
+import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
 
 /**
@@ -49,8 +49,7 @@ public class TupleSelector extends JPanel {
         add( main );
 
         /* Set up a table selection box. */
-        final JComboBox tableSelector = 
-            new JComboBox( new TablesListComboBoxModel() );
+        final JComboBox tableSelector = new TablesListComboBox();
         tableSelector.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 setTable( (TopcatModel) tableSelector.getSelectedItem() );

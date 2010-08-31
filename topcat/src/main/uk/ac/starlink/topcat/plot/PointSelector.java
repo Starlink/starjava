@@ -39,7 +39,7 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.CheckBoxStack;
 import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.RowSubset;
-import uk.ac.starlink.topcat.TablesListComboBoxModel;
+import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
@@ -218,8 +218,7 @@ public class PointSelector extends JPanel {
         controlBox.add( Box.createHorizontalStrut( 5 ) );
 
         /* Prepare a selection box for the table. */
-        TablesListComboBoxModel tablesModel = new TablesListComboBoxModel();
-        tableSelector_ = new JComboBox( tablesModel );
+        tableSelector_ = new TablesListComboBox();
         tableSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 TopcatModel tcModel =
