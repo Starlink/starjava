@@ -50,7 +50,7 @@ public class MonitorStoragePolicy extends StoragePolicy {
     }
 
     /**
-     * Indicates whether {@link #interrupted} has been called on this object.
+     * Indicates whether {@link #interrupt} has been called on this object.
      *
      * @return  true  iff interrupted
      */
