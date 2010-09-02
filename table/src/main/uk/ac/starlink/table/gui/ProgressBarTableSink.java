@@ -88,5 +88,8 @@ public class ProgressBarTableSink implements TableSink {
      */
     public void dispose() {
         timer_.stop();
+        progBar_.setString( "" );
+        progBar_.setValue( 0 );
+        progBar_.setIndeterminate( false );
     }
 }
