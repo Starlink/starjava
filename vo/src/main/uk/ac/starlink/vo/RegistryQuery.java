@@ -102,6 +102,7 @@ public class RegistryQuery {
      * @return  iterator over {@link RegResource}s
      */
     public Iterator getQueryIterator() throws IOException {
+        logger_.info( text_ );
         final Iterator<BasicResource> bIt =
             regClient_.getResourceIterator( getSoapRequest() );
         return new Iterator<RegResource>() {
@@ -124,6 +125,7 @@ public class RegistryQuery {
      * @return   resource list
      */
     public RegResource[] getQueryResources() throws IOException {
+        logger_.info( text_ );
         List<BasicResource> bList =
             regClient_.getResourceList( getSoapRequest() );
         RegResource[] resources = new RegResource[ bList.size() ];
