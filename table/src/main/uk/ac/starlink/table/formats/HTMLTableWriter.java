@@ -3,6 +3,8 @@ package uk.ac.starlink.table.formats;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.RowSequence;
@@ -186,11 +188,8 @@ public class HTMLTableWriter extends StreamStarTableWriter
                 Object[] row = rseq.getRow();
                 String[] cells = new String[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    cells[ icol ] = escape( colinfos[ icol ]
-                                           .formatValue( row[ icol ], 200 ) );
-                    if ( cells[ icol ].length() == 0 ) {
-                        cells[ icol ] = "&nbsp;";
-                    }
+                    cells[ icol ] =
+                        colinfos[ icol ].formatValue( row[ icol ], 200 );
                 }
                 outputRow( ostrm, "TD", null, cells );
             }
@@ -228,7 +227,7 @@ public class HTMLTableWriter extends StreamStarTableWriter
      * @param  values  the array of values providing cell contents
      */
     private void outputRow( OutputStream ostrm, String tagname, 
-                                   String attlist, String[] values ) 
+                            String attlist, String[] values ) 
             throws IOException {
         int ncol = values.length;
         printLine( ostrm, "<TR>" );
@@ -241,8 +240,20 @@ public class HTMLTableWriter extends StreamStarTableWriter
                 sbuf.append( " " + attlist );
             }
             sbuf.append( '>' );
-            if ( values[ icol ] != null ) {
-                sbuf.append( values[ icol ] );
+            String value = values[ icol ] == null ? null
+                                                  : escape( values[ icol ] );
+            if ( value == null || value.length() == 0 ) {
+                sbuf.append( "&nbsp;" );
+            }
+            else if ( isUrl( value ) ) {
+                sbuf.append( "<A href='" )
+                    .append( value )
+                    .append( "'>" )
+                    .append( value )
+                    .append( "</A>" );
+            }
+            else {
+                sbuf.append( value );
             }
             sbuf.append( "</" )
                 .append( tagname )
@@ -335,5 +346,30 @@ public class HTMLTableWriter extends StreamStarTableWriter
             }
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Determines whether a string is apparently a URL.
+     * If this returns true, it is appropriate to format it within an HTML
+     * "a" element.
+     *
+     * @param  txt   string to test
+     * @return  true  iff txt looks like a URL
+     */
+    protected boolean isUrl( String txt ) {
+        if ( txt.startsWith( "http:" ) ||
+             txt.startsWith( "ftp:" ) ||
+             txt.startsWith( "mailto:" ) ) {
+            try {
+                new URL( txt );
+                return true;
+            }
+            catch ( MalformedURLException e ) {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
     }
 }

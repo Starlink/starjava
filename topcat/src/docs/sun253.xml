@@ -14011,6 +14011,8 @@ introduced since the last version:
         may be changed to provide a better solution in a future release.</li>
     <li>When a table is discarded, it is now deselected from any table
         selector (for instance in a plot, match or concatenation window).</li>
+    <li>HTML table output now writes cell contents which look like URLs 
+        in HTML &lt;A&gt; tags.</li>
     </ul>
     </p></dd>
 

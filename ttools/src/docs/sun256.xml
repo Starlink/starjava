@@ -7376,6 +7376,8 @@ but my thanks are especially due to the following:
         files.</li>
     <li>Storage management improvements; removed restriction on large
         (&gt;2Gb) non-FITS datasets in some circumstances.</li>
+    <li>HTML table output now writes cell contents which look like URLs
+        in HTML &lt;A&gt; tags.</li>
     </ul>
     </p></dd>
 
