@@ -401,6 +401,12 @@ public class LocalLineIDManager
             if ( specFrame != null ) {
                 specFrame.setSystem( system );
                 specFrame.setUnit( 1, units );
+                
+                //  Line identifier specifics for submilli... Don't think
+                //  this will effect other bands.
+                specFrame.setC( "StdOfRest", "Source" );
+                specFrame.setC( "SourceVRF", "Topocentric" );
+                specFrame.setD( "SourceVel", 0.0 );
             }
         }
         public String getSystem()
@@ -432,9 +438,15 @@ public class LocalLineIDManager
             createSpecFrame();
             Mapping match = targetFrame.convert( specFrame, "" );
             if ( match != null ) {
+
                 double[] matchedRange = match.tran1( 2, targetRange, true );
-                if ( range[0] <= Math.max(matchedRange[0],matchedRange[1]) &&
-                     range[1] >= Math.min(matchedRange[0],matchedRange[1]) ) {
+                double mintr = Math.min( matchedRange[0], matchedRange[1] );
+                double maxtr = Math.max( matchedRange[0], matchedRange[1] );
+
+                double minsr = Math.min( range[0], range[1] );
+                double maxsr = Math.max( range[0], range[1] );
+
+                if ( minsr <= maxtr && maxsr >= mintr  ) {
                     return true;
                 }
             }

@@ -1286,14 +1286,8 @@ public class PlotControl
         int[] iaxes = new int[] { 1 };
         Frame picked = frame.pickAxes( 1, iaxes, null );
         if ( picked instanceof SpecFrame ) {
-            try {
-                double[] range = spectra.getRange();
-                manager.matchDisplayLoad( (SpecFrame) picked, range, all, 
-                                          this );
-            }
-            catch (SplatException e) {
-                e.printStackTrace();
-            }
+            double[] range = spectra.getCurrentSpectrum().getRange();
+            manager.matchDisplayLoad( (SpecFrame) picked, range, all, this );
         }
     }
 
