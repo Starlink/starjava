@@ -224,8 +224,12 @@ public class MultiXML {
                    ParserConfigurationException {
 
         /* Read the input document. */
-        DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
-                                    .newDocumentBuilder();
+        DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
+
+        /* See: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6181020 */
+        fact.setFeature( "http://apache.org/xml/features/dom/defer-node-expansion", 
+                         false );
+        DocumentBuilder docBuilder = fact.newDocumentBuilder();
         log( 1, "Parsing document " + ( in == null ? " on standard input "
                                                    : in ) );
         Document doc = ( in == null || in.equals( "-" ) ) 
