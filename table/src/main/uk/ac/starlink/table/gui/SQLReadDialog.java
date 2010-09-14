@@ -22,7 +22,7 @@ import uk.ac.starlink.table.StarTableFactory;
  */
 public class SQLReadDialog implements TableLoadDialog {
     private final Icon icon_;
-    private SQLDialog sqlDialog_;
+    private SQLPanel sqlPanel_;
 
     /**
      * Constructs a new <tt>SQLReadDialog</tt>.
@@ -44,24 +44,27 @@ public class SQLReadDialog implements TableLoadDialog {
     }
 
     public boolean isAvailable() {
-        return SQLDialog.isSqlAvailable();
+        return SQLPanel.isSqlAvailable();
     }
 
     public boolean showLoadDialog( Component parent, 
                                    final StarTableFactory factory,
                                    ComboBoxModel formatModel,
                                    TableConsumer eater ) {
-        SQLDialog sqlDialog = getSqlDialog();
-        sqlDialog.useAuthenticator( factory.getJDBCHandler()
-                                           .getAuthenticator() );
-        JDialog dialog = sqlDialog.createDialog( parent, "Open JDBC table" );
+        SQLPanel sqlPanel = getSqlPanel();
+        sqlPanel.useAuthenticator( factory.getJDBCHandler()
+                                          .getAuthenticator() );
+        JOptionPane optPane =
+            new JOptionPane( sqlPanel, JOptionPane.QUESTION_MESSAGE,
+                             JOptionPane.OK_CANCEL_OPTION );
+        JDialog dialog = optPane.createDialog( parent, "Open JDBC table" );
         while ( true ) {
             dialog.setVisible( true );
-            if ( sqlDialog.getValue() instanceof Integer &&
-                 ((Integer) sqlDialog.getValue()).intValue()
+            if ( optPane.getValue() instanceof Integer &&
+                 ((Integer) optPane.getValue()).intValue()
                    == JOptionPane.OK_OPTION ) {
-                String qtext = sqlDialog.getRef();
-                final String url = sqlDialog.getFullURL();
+                String qtext = sqlPanel.getRef();
+                final String url = sqlPanel.getFullURL();
                 new LoadWorker( eater, qtext ) {
                     public StarTable[] attemptLoads() throws IOException {
                         return new StarTable[] { factory.makeStarTable( url ) };
@@ -77,14 +80,14 @@ public class SQLReadDialog implements TableLoadDialog {
     }
 
     /**
-     * Returns a lazily-constructed SQLDialog.
+     * Returns a lazily-constructed SQLPanel.
      *
-     * @return  SQLDialog for use with this component
+     * @return  SQLPanel for use with this component
      */
-    private SQLDialog getSqlDialog() {
-        if ( sqlDialog_ == null ) {
-            sqlDialog_ = new SQLDialog( "SQL query" );
+    private SQLPanel getSqlPanel() {
+        if ( sqlPanel_ == null ) {
+            sqlPanel_ = new SQLPanel( "SQL query" );
         }
-        return sqlDialog_;
+        return sqlPanel_;
     }
 }
