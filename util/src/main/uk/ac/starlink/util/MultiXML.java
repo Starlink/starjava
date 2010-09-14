@@ -227,8 +227,14 @@ public class MultiXML {
         DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
 
         /* See: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6181020 */
-        fact.setFeature( "http://apache.org/xml/features/dom/defer-node-expansion", 
-                         false );
+        try {
+            fact.setFeature( "http://apache.org/xml/features/dom/"
+                           + "defer-node-expansion", 
+                             false );
+        }
+        catch ( ParserConfigurationException e ) {
+            // no such feature - presumably no such bug
+        }
         DocumentBuilder docBuilder = fact.newDocumentBuilder();
         log( 1, "Parsing document " + ( in == null ? " on standard input "
                                                    : in ) );
