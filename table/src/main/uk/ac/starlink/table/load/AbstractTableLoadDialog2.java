@@ -82,7 +82,6 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
     }
 
     public JMenu[] getMenus() {
-        getQueryComponent();
         return menus_;
     }
 
@@ -96,7 +95,6 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
     }
 
     public Action[] getToolbarActions() {
-        getQueryComponent();
         return toolbarActions_;
     }
 
