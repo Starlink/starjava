@@ -98,6 +98,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     private final JComponent logBox;
     private final JButton logButton;
     private final JLabel logLabel;
+    private final JComponent controlBox;
+    private final JComponent bottomBox;
     private JTextField gotoField;
     private Action chooseAction;
     private Action cancelAction;
@@ -125,7 +127,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         setBorder( gapBorder );
         Box topBox = Box.createVerticalBox();
         JPanel mainPanel = new JPanel();
-        Box bottomBox = Box.createVerticalBox();
+        bottomBox = Box.createVerticalBox();
         add( topBox, BorderLayout.NORTH );
         add( bottomBox, BorderLayout.SOUTH );
 
@@ -242,13 +244,13 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             new DoneAction( false, "Cancel", "Abort chooser dialog" );
         chooseAction =
             new DoneAction( true, "Open", "Open selected item" );
-        Box buttonBox = Box.createHorizontalBox();
-        buttonBox.add( Box.createHorizontalGlue() );
-        buttonBox.add( new JButton( chooseAction ) );
-        buttonBox.add( Box.createHorizontalStrut( 5 ) );
-        buttonBox.add( new JButton( cancelAction ) );
+        controlBox = Box.createHorizontalBox();
+        controlBox.add( Box.createHorizontalGlue() );
+        controlBox.add( new JButton( chooseAction ) );
+        controlBox.add( Box.createHorizontalStrut( 5 ) );
+        controlBox.add( new JButton( cancelAction ) );
         bottomBox.add( Box.createVerticalStrut( 10 ) );
-        bottomBox.add( buttonBox );
+        bottomBox.add( controlBox );
 
         /* Arrange for some actions to take place the first time the 
          * component is displayed. */
@@ -367,6 +369,37 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     }
 
     /**
+     * Sets whether the panel containing the OK and Cancel buttons is
+     * visible or not.
+     *
+     * @param  visible   true iff OK and Cancel buttons should be seen
+     */
+    public void setControlsVisible( boolean visible ) {
+        boolean isvis = false;
+        for ( int i = 0; i < bottomBox.getComponentCount(); i++ ) {
+            if ( bottomBox.getComponent( i ) == controlBox ) {
+                isvis = true;
+            }
+        }
+        if ( isvis && ! visible ) {
+            bottomBox.remove( controlBox );
+        }
+        else if ( ! isvis && visible ) {
+            bottomBox.add( controlBox );
+        }
+    }
+
+    /**
+     * Returns the action which indicated that the currently selected node
+     * is to be used.
+     *
+     * @return   choose action
+     */
+    public Action getChooseAction() {
+        return chooseAction;
+    }
+
+    /**
      * Returns a panel into which extra buttons can be placed.
      *
      * @return  a box for buttons
@@ -429,6 +462,17 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     public String getChosenPath() {
         return chosenNode == null ? null
                                   : NodeUtil.getNodePath( chosenNode );
+    }
+
+    /**
+     * Returns the datanode which is currently selected in the GUI.
+     *
+     * @return  selected node
+     */
+    public DataNode getSelectedNode() {
+        TreePath tpath = jtree.getSelectionPath();
+        return tpath == null ? null
+                             : (DataNode) tpath.getLastPathComponent();
     }
 
     /**
@@ -519,9 +563,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             new BasicAction( "Down", IconFactory.getIcon( IconFactory.DOWN ),
                              "Set root to selected node" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    TreePath tpath = jtree.getSelectionPath();
-                    if ( tpath != null ) {
-                        setRootNode( (DataNode) tpath.getLastPathComponent() );
+                    DataNode selNode = getSelectedNode();
+                    if ( selNode != null ) {
+                        setRootNode( selNode );
                     }
                 }
             };
@@ -549,10 +593,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             new BasicAction( "Search Selected", null,
                              "Search the selected node" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    TreePath tpath = jtree.getSelectionPath();
-                    if ( tpath != null ) {
-                        showAllChoosable( (DataNode) 
-                                          tpath.getLastPathComponent() );
+                    DataNode node = getSelectedNode();
+                    if ( node != null ) {
+                        showAllChoosable( node );
                     }
                 }
             };
@@ -736,8 +779,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             /* Work out what node has been selected, if any. */
             DataNode node;
             if ( useSelection ) {
-                node = (DataNode) jtree.getSelectionPath()
-                                       .getLastPathComponent();
+                node = getSelectedNode();
             }
             else {
                 node = null;
