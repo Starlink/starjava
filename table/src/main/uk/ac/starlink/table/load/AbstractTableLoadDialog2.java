@@ -2,6 +2,7 @@ package uk.ac.starlink.table.load;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -193,6 +194,26 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
      */
     protected void setEnabled( boolean enabled ) {
         getSubmitAction().setEnabled( enabled );
+    }
+
+    /**
+     * Converts an exception to an IOException, probably by wrapping it
+     * in one.  This utility method can be used for wrapping up an
+     * exception of some other kind if it needs to be thrown in
+     * <code>TableSupplier.getTable</code>.
+     *
+     * @param  th  base throwable
+     * @return   IOException based on <code>th</code>
+     */
+    public static IOException asIOException( Throwable th ) {
+        if ( th instanceof IOException ) {
+            return (IOException) th;
+        }
+        String msg = th.getMessage();
+        if ( msg != null ) {
+            msg = th.getClass().getName();
+        }
+        return (IOException) new IOException( msg ).initCause( th );
     }
 
     /**
