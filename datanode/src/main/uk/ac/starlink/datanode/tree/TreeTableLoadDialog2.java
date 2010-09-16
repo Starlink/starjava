@@ -35,7 +35,7 @@ public class TreeTableLoadDialog2 extends AbstractTableLoadDialog2 {
 
     public Component createQueryComponent() {
         NodeUtil.setGUI( true );
-        chooser_ = new TableNodeChooser();
+        chooser_ = createNodeChooser();
         chooser_.setControlsVisible( false );
         final Action chooseAct = chooser_.getChooseAction();
         chooseAct.addPropertyChangeListener( new PropertyChangeListener() {
@@ -74,5 +74,14 @@ public class TreeTableLoadDialog2 extends AbstractTableLoadDialog2 {
                 }
             };
         }
+    }
+
+    /**
+     * Constructs a node chooser for use with this dialogue.
+     *
+     * @return   new node chooser
+     */
+    protected TableNodeChooser createNodeChooser() {
+        return new TableNodeChooser();
     }
 }
