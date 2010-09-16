@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -61,6 +62,7 @@ public abstract class TableLoadPanel extends JPanel {
         progBar_.setStringPainted( true );
         JComponent main = new JPanel( new BorderLayout() );
         JComponent controlBox = Box.createHorizontalBox();
+        controlBox.setBorder( BorderFactory.createEmptyBorder( 5, 0, 0, 0 ) );
         main.add( controlBox, BorderLayout.SOUTH );
         add( main, BorderLayout.CENTER );
         okAct_ = new AbstractAction( "OK" ) {
@@ -214,6 +216,7 @@ public abstract class TableLoadPanel extends JPanel {
                     return client;
                 }
             };
+            tlp.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
             getContentPane().setLayout( new BorderLayout() );
             getContentPane().add( tlp, BorderLayout.CENTER );
             getContentPane().add( tlp.getProgressBar(), BorderLayout.SOUTH );
@@ -276,6 +279,7 @@ public abstract class TableLoadPanel extends JPanel {
             throws IOException {
         ModalDialog dia = new ModalDialog( parent, tld, tfact );
         dia.pack();
+        dia.setLocationRelativeTo( parent );
         dia.setVisible( true );
         return dia.getTables();
     }
