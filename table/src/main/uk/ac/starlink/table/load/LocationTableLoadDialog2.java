@@ -6,6 +6,8 @@ import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.DataSource;
@@ -32,10 +34,24 @@ public class LocationTableLoadDialog2 extends AbstractTableLoadDialog2 {
         JComponent qc = Box.createHorizontalBox();
         qc.add( new JLabel( "Location: " ) );
         locField_ = new JTextField( 25 );
+        locField_.addCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                updateState();
+            }
+        } );
+        updateState();
         qc.add( locField_ );
         locField_.addActionListener( getSubmitAction() );
         qc.add( createFormatSelector() );
         return qc;
+    }
+
+    /**
+     * Ensures that enabledness is set correctly.
+     */
+    private void updateState() {
+        String text = locField_.getText();
+        setEnabled( text != null && text.trim().length() > 0 );
     }
 
     public TableLoader createTableLoader() {
