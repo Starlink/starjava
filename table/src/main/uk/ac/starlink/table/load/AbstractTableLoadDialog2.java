@@ -91,7 +91,7 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
      *
      * @param  menus  menu array
      */
-    protected void setMenus( JMenu[] menus ) {
+    public void setMenus( JMenu[] menus ) {
         menus_ = menus;
     }
 
