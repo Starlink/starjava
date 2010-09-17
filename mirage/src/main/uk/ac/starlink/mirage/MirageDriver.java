@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.table.load.TableLoadPanel;
+import uk.ac.starlink.table.load.FilestoreTableLoadDialog2;
 import uk.ac.starlink.util.AuxClassLoader;
 
 /**
@@ -57,9 +58,13 @@ public class MirageDriver {
         /* If invoked with no command line arguments (direct from jar file?) 
          * use a dialog box to get a table. */
         if ( args.length == 0 ) {
-            TableLoadChooser chooser = 
-                new TableLoadChooser( new StarTableFactory( false ) );
-            table = chooser.showTableDialog( null );    
+            StarTable[] tables = 
+                TableLoadPanel
+               .loadTables( null, new FilestoreTableLoadDialog2(),
+                            new StarTableFactory( false ) );
+            table = tables != null && tables.length > 0 
+                  ? tables[ 0 ]
+                  : null;
             if ( table == null ) {
                 System.err.println( "No table selected" );
                 System.exit( 1 );
