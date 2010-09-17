@@ -16,6 +16,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.jdbc.Connector;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
+import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 
 /**
@@ -104,6 +105,9 @@ public class SQLPanel extends JPanel {
             passField.setDocument( tAuth.getPasswordDocument() );
         }
         else {
+            if ( auth instanceof SwingAuthenticator ) {
+                ((SwingAuthenticator) auth).setParentComponent( this );
+            }
             try {
                 String[] up = auth.authenticate();
                 userField.setText( up[ 0 ] );
