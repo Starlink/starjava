@@ -1,10 +1,13 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.JMenu;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.vo.RegistryPanel;
-import uk.ac.starlink.vo.RegistryServiceTableLoadDialog;
+import uk.ac.starlink.vo.RegistryServiceTableLoadDialog2;
 
 /**
  * Provides the necessary methods to customise one of the
@@ -15,7 +18,7 @@ import uk.ac.starlink.vo.RegistryServiceTableLoadDialog;
  */
 public class RegistryDialogAdjuster {
     private final String resourceType_;
-    private final RegistryServiceTableLoadDialog dalLoader_;
+    private final RegistryServiceTableLoadDialog2 dalLoader_;
 
     /**
      * Constructor.
@@ -25,20 +28,21 @@ public class RegistryDialogAdjuster {
      *         list contains; must be MType subtype for
      *         voresource.loadlist.* message
      */
-    public RegistryDialogAdjuster( RegistryServiceTableLoadDialog dalLoader,
+    public RegistryDialogAdjuster( RegistryServiceTableLoadDialog2 dalLoader,
                                    String resourceType ) {
         dalLoader_ = dalLoader;
         resourceType_ = resourceType;
     }
 
     /**
-     * Returns an Interop menu suitable for use in this object's load dialogue.
-     *
-     * @return  interop menu
+     * Adds a suitable Interop menu to this object's load dialogue menu list.
      */
-    public JMenu createInteropMenu() {
-        return createInteropMenu( dalLoader_.getRegistryPanel(),
-                                  resourceType_ );
+    public void addInteropMenu() {
+        List<JMenu> menuList =
+            new ArrayList<JMenu>( Arrays.asList( dalLoader_.getMenus() ) );
+        menuList.add( createInteropMenu( dalLoader_.getRegistryPanel(),
+                                         resourceType_ ) );
+        dalLoader_.setMenus( menuList.toArray( new JMenu[ 0 ] ) );
     }
 
     /**
