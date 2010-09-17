@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.SwingUtilities;
@@ -30,6 +32,7 @@ public class SystemBrowser {
 
     private String filename_;
     private String dirname_;
+    private static Icon icon_;
 
     /**
      * Returns a TableLoader based on the file selected by a user.
@@ -110,5 +113,18 @@ public class SystemBrowser {
                 return tfact.makeStarTables( datsrc1, format );
             }
         };
+    }
+
+    /**
+     * Returns an icon which represents system browsing.
+     *
+     * @return   icon
+     */
+    public static Icon getSystemBrowserIcon() {
+        if ( icon_ == null ) {
+            icon_ = new ImageIcon( StarTable.class
+                                  .getResource( "gui/sysbrowser.gif" ) );
+        }
+        return icon_;
     }
 }

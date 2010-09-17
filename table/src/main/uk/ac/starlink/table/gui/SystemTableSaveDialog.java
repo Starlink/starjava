@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.load.SystemBrowser;
 
 /**
  * Table save dialogue based on the native system file dialogue.
@@ -39,7 +40,7 @@ public class SystemTableSaveDialog implements TableSaveDialog {
     }
 
     public Icon getIcon() {
-        return SystemTableLoadDialog.getSystemBrowserIcon();
+        return SystemBrowser.getSystemBrowserIcon();
     }
 
     public boolean isAvailable() {
