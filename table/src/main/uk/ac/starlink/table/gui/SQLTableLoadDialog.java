@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.io.IOException;
@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.SQLPanel;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 
 /**
@@ -15,17 +14,17 @@ import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
  * @author   Mark Taylor
  * @since    14 Sep 2010
  */
-public class SQLTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class SQLTableLoadDialog extends AbstractTableLoadDialog {
 
     private SQLPanel sqlPanel_;
     private JDBCAuthenticator authenticator_;
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.table.load" );
+        Logger.getLogger( "uk.ac.starlink.table.gui" );
 
     /**
      * Constructor.
      */
-    public SQLTableLoadDialog2() {
+    public SQLTableLoadDialog() {
         super( "SQL Query",
                "Get table as result of an SQL query on a relational database" );
         setIconUrl( StarTable.class.getResource( "gui/sqlread.gif" ) );

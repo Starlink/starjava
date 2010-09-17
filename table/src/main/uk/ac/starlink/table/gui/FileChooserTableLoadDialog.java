@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.io.File;
@@ -19,7 +19,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor
  * @since    13 Sept 2010
  */
-public class FileChooserTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
 
     private JFileChooser chooser_;
     private Boolean isAvailable_;
@@ -27,7 +27,7 @@ public class FileChooserTableLoadDialog2 extends AbstractTableLoadDialog2 {
     /**
      * Constructor.
      */
-    public FileChooserTableLoadDialog2() {
+    public FileChooserTableLoadDialog() {
         super( "File Browser",
                "Load tables from files on the local filesystem" );
         setIconUrl( StarTable.class.getResource( "gui/filechooser.gif" ) );

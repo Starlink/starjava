@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;

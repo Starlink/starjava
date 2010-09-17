@@ -15,7 +15,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
-import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 
 /**
  * Partial implementation of a table load dialogue which has two parts:
@@ -24,14 +24,14 @@ import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
  * Concrete subclasses should populate the control box 
  * {@link #getControlBox} with service-specific controls and implement
  * the abstract 
- * {@link uk.ac.starlink.table.load.TableLoadDialog2#createTableLoader}
+ * {@link uk.ac.starlink.table.gui.TableLoadDialog#createTableLoader}
  * method appropriately.
  *
  * @author   Mark Taylor (Starlink)
  * @since    6 Jan 2005
  */
-public abstract class RegistryServiceTableLoadDialog2 
-                      extends AbstractTableLoadDialog2 {
+public abstract class RegistryServiceTableLoadDialog 
+                      extends AbstractTableLoadDialog {
 
     private final String name_;
     private final RegistryQueryFactory queryFactory_;
@@ -51,9 +51,9 @@ public abstract class RegistryServiceTableLoadDialog2
      *         well as the Resource one; sensible if resource:capabilities
      *         relationship may not be 1:1
      */
-    public RegistryServiceTableLoadDialog2( String name, String description,
-                                            RegistryQueryFactory queryFactory,
-                                            boolean showCapabilities ) {
+    public RegistryServiceTableLoadDialog( String name, String description,
+                                           RegistryQueryFactory queryFactory,
+                                           boolean showCapabilities ) {
         super( name, description );
         name_ = name;
         queryFactory_ = queryFactory;
@@ -84,7 +84,7 @@ public abstract class RegistryServiceTableLoadDialog2
          * registry and display the result. */
         regPanel_ = new RegistryPanel( queryFactory_, showCapabilities_ ) {
             public RegCapabilityInterface[] getCapabilities( RegResource res ) {
-                return RegistryServiceTableLoadDialog2.this
+                return RegistryServiceTableLoadDialog.this
                       .getCapabilities( res );
             }
         };

@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import uk.ac.starlink.table.StarTableFactory;
  * @author   Mark Taylor
  * @since    13 Sept 2010
  */
-public interface TableLoadDialog2 {
+public interface TableLoadDialog {
 
     /**
      * Returns the name of this dialogue.

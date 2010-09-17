@@ -4,7 +4,7 @@ import java.awt.Component;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.TableLoadClient;
+import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**

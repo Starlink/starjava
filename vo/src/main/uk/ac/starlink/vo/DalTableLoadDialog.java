@@ -33,8 +33,8 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor
  * @since    22 Sep 2009
  */
-public abstract class DalTableLoadDialog2
-        extends RegistryServiceTableLoadDialog2 {
+public abstract class DalTableLoadDialog
+        extends RegistryServiceTableLoadDialog {
 
     private final String name_;
     private final boolean autoQuery_;
@@ -57,10 +57,10 @@ public abstract class DalTableLoadDialog2
      * @param  autoQuery  populate service table with full registry query
      *         on initial display
      */
-    protected DalTableLoadDialog2( String name, String description,
-                                   Capability capability,
-                                   boolean showCapabilities,
-                                   boolean autoQuery ) {
+    protected DalTableLoadDialog( String name, String description,
+                                  Capability capability,
+                                  boolean showCapabilities,
+                                  boolean autoQuery ) {
         super( name, description, new KeywordServiceQueryFactory( capability ),
                showCapabilities );
         name_ = name;
@@ -121,7 +121,7 @@ public abstract class DalTableLoadDialog2
                     catch ( MalformedURLException e ) {
                     }
                 }
-                DalTableLoadDialog2.this.setEnabled( hasUrl );
+                DalTableLoadDialog.this.setEnabled( hasUrl );
             }
         } );
 

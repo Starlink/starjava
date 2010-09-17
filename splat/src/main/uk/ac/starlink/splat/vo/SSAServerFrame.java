@@ -39,7 +39,7 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.TableLoadPanel;
+import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
@@ -131,7 +131,7 @@ public class SSAServerFrame
         StarTable[] tables = null;
         try {
             tables = TableLoadPanel
-                    .loadTables( this, new SSARegistryQueryDialog2(),
+                    .loadTables( this, new SSARegistryQueryDialog(),
                                  new StarTableFactory() );
         }
         catch ( IOException e ) {

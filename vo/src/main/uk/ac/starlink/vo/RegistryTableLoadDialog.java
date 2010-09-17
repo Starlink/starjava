@@ -11,8 +11,8 @@ import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
-import uk.ac.starlink.table.load.TableLoader;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 
 /**
  * Table load dialogue implementation for performing a simple query on 
@@ -23,7 +23,7 @@ import uk.ac.starlink.table.load.TableLoader;
  * @author   Mark Taylor (Starlink)
  * @since    23 Dec 2004
  */
-public class RegistryTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class RegistryTableLoadDialog extends AbstractTableLoadDialog {
 
     private RegistryQueryPanel rqPanel_;
 
@@ -37,7 +37,7 @@ public class RegistryTableLoadDialog2 extends AbstractTableLoadDialog2 {
     /**
      * Constructor. 
      */
-    public RegistryTableLoadDialog2() {
+    public RegistryTableLoadDialog() {
         super( "Registry Query", 
                "Imports a table describing the result of querying a registry" );
         setIconUrl( getClass().getResource( "registry.gif" ) );

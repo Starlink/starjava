@@ -1,7 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
-import uk.ac.starlink.vo.SiapTableLoadDialog2;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
 
 /**
  * SiapTableLoadDialog subclass customised for use with TOPCAT.
@@ -9,7 +9,7 @@ import uk.ac.starlink.vo.SiapTableLoadDialog2;
  * @author   Mark Taylor
  * @since    16 Aug 2010
  */
-public class TopcatSiapTableLoadDialog extends SiapTableLoadDialog2 {
+public class TopcatSiapTableLoadDialog extends SiapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
     public TopcatSiapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "siap" );

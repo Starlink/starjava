@@ -37,17 +37,17 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
-import uk.ac.starlink.table.load.FileChooserTableLoadDialog2;
-import uk.ac.starlink.table.load.FilestoreTableLoadDialog2;
-import uk.ac.starlink.table.load.SQLTableLoadDialog2;
+import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
+import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
+import uk.ac.starlink.table.gui.SQLTableLoadDialog;
 import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
-import uk.ac.starlink.vo.ConeSearchDialog2;
-import uk.ac.starlink.vo.RegistryTableLoadDialog2;
-import uk.ac.starlink.vo.SiapTableLoadDialog2;
-import uk.ac.starlink.vo.SsapTableLoadDialog2;
+import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
@@ -543,19 +543,19 @@ public class ResourceIcon implements Icon {
         nameMap.put( "ERROR_BOTH",
                      errX.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
         nameMap.put( "FILESTORE_DIALOG",
-                     new FilestoreTableLoadDialog2().getIcon() );
+                     new FilestoreTableLoadDialog().getIcon() );
         nameMap.put( "FILECHOOSER_DIALOG",
-                     new FileChooserTableLoadDialog2().getIcon() );
+                     new FileChooserTableLoadDialog().getIcon() );
         nameMap.put( "SQL_DIALOG",
-                     new SQLTableLoadDialog2().getIcon() );
+                     new SQLTableLoadDialog().getIcon() );
         nameMap.put( "CONE_DIALOG",
-                     new ConeSearchDialog2().getIcon() );
+                     new ConeSearchDialog().getIcon() );
         nameMap.put( "SIAP_DIALOG",
-                     new SiapTableLoadDialog2().getIcon() );
+                     new SiapTableLoadDialog().getIcon() );
         nameMap.put( "SSAP_DIALOG",
-                     new SsapTableLoadDialog2().getIcon() );
+                     new SsapTableLoadDialog().getIcon() );
         nameMap.put( "REGISTRY_DIALOG",
-                     new RegistryTableLoadDialog2().getIcon() );
+                     new RegistryTableLoadDialog().getIcon() );
         nameMap.put( "HELP_TOC",
                      new ImageIcon( JHelp.class
                              .getResource( "plaf/basic/images/toc.gif" ) ) );

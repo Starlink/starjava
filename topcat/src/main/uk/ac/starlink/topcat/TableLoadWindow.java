@@ -9,9 +9,9 @@ import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JProgressBar;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.TableLoadClient;
-import uk.ac.starlink.table.load.TableLoadDialog2;
-import uk.ac.starlink.table.load.TableLoadPanel;
+import uk.ac.starlink.table.gui.TableLoadClient;
+import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoadPanel;
 
 /**
  * Window to contain a single TableLoadDialog.
@@ -32,7 +32,7 @@ public class TableLoadWindow extends AuxWindow {
      * @param  tld   load dialogue
      * @param  tfact   representative table factory
      */
-    public TableLoadWindow( Component parent, TableLoadDialog2 tld,
+    public TableLoadWindow( Component parent, TableLoadDialog tld,
                             StarTableFactory tfact ) {
         super( tld.getName(), parent );
 

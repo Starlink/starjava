@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.table.load.SystemBrowser;
 
 /**
  * Table save dialogue based on the native system file dialogue.

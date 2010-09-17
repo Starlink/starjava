@@ -22,7 +22,7 @@ import uk.ac.starlink.table.gui.SQLWriteDialog;
 import uk.ac.starlink.table.gui.SystemTableSaveDialog;
 import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.table.gui.TableSaveDialog;
-import uk.ac.starlink.table.load.FilestoreTableLoadDialog2;
+import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
 
 /**
  * Window which allows the user to save one or multiple tables.
@@ -54,8 +54,8 @@ public class SaveQueryWindow extends QueryWindow {
          * Make sure it has the same directory model as the load window,
          * so the user will see the same directory in both. */
         ComboBoxModel dirModel =
-            ((FilestoreTableLoadDialog2)
-             loadWindow.getKnownDialog( FilestoreTableLoadDialog2.class ))
+            ((FilestoreTableLoadDialog)
+             loadWindow.getKnownDialog( FilestoreTableLoadDialog.class ))
            .getChooser().getModel();
         FilestoreTableSaveDialog fsd = new FilestoreTableSaveDialog();
         fsd.getChooser().setModel( dirModel );

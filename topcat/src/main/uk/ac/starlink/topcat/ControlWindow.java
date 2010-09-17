@@ -92,9 +92,9 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
-import uk.ac.starlink.table.load.TableLoadDialog2;
+import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
-import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog2;
+import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
@@ -111,16 +111,16 @@ import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.LinesWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
-import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog2;
+import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.util.gui.StringPaster;
-import uk.ac.starlink.vo.ConeSearchDialog2;
-import uk.ac.starlink.vo.DalTableLoadDialog2;
-import uk.ac.starlink.vo.RegistryTableLoadDialog2;
-import uk.ac.starlink.vo.SiapTableLoadDialog2;
-import uk.ac.starlink.vo.SsapTableLoadDialog2;
+import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
  * Main window providing user control of the TOPCAT application.
@@ -582,13 +582,13 @@ public class ControlWindow extends AuxWindow
                     TopcatConeSearchDialog.class,
                     TopcatSiapTableLoadDialog.class,
                     TopcatSsapTableLoadDialog.class,
-                    VizierTableLoadDialog2.class,
-                    GavoTableLoadDialog2.class,
+                    VizierTableLoadDialog.class,
+                    GavoTableLoadDialog.class,
                 };
                 LoadWindow loadWin = getLoadWindow();
                 for ( int ic = 0; ic < tldClasses.length; ic++ ) {
                     Class clazz = tldClasses[ ic ];
-                    assert TableLoadDialog2.class.isAssignableFrom( clazz );
+                    assert TableLoadDialog.class.isAssignableFrom( clazz );
                     Action act = loadWin.getDialogAction( clazz );
                     assert act != null;
                     voMenu.add( act );
@@ -966,7 +966,7 @@ public class ControlWindow extends AuxWindow
         boolean accepted = false;
 
         /* Validate. */
-        if ( ! DalTableLoadDialog2.class
+        if ( ! DalTableLoadDialog.class
               .isAssignableFrom( dalLoadDialogClass ) ) {
             throw new IllegalArgumentException();
         }
@@ -977,10 +977,10 @@ public class ControlWindow extends AuxWindow
 
         /* Handle single table load dialogues. */
         if ( loadWindow_ != null ) {
-            TableLoadDialog2[] tlds = loadWindow_.getKnownDialogs();
+            TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
                 if ( loadDialogMatches( tlds[ i ], dalLoadDialogClass ) ) {
-                    boolean acc = ((DalTableLoadDialog2) tlds[ i ])
+                    boolean acc = ((DalTableLoadDialog) tlds[ i ])
                                  .acceptResourceIdList( ids, msg );
                     accepted = accepted || acc;
                 }
@@ -1013,7 +1013,7 @@ public class ControlWindow extends AuxWindow
      * @param  tld  load dialogue
      * @param  tldClass  load dialogue type
      */
-    public boolean loadDialogMatches( TableLoadDialog2 tld, Class tldClass ) {
+    public boolean loadDialogMatches( TableLoadDialog tld, Class tldClass ) {
         return tldClass.isAssignableFrom( tld.getClass() );
     }
 

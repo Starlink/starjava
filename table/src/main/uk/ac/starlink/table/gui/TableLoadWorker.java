@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -7,7 +7,6 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.ProgressBarTableSink;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 
 /**

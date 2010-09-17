@@ -7,7 +7,7 @@ import java.util.List;
 import javax.swing.JMenu;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.vo.RegistryPanel;
-import uk.ac.starlink.vo.RegistryServiceTableLoadDialog2;
+import uk.ac.starlink.vo.RegistryServiceTableLoadDialog;
 
 /**
  * Provides the necessary methods to customise one of the
@@ -18,7 +18,7 @@ import uk.ac.starlink.vo.RegistryServiceTableLoadDialog2;
  */
 public class RegistryDialogAdjuster {
     private final String resourceType_;
-    private final RegistryServiceTableLoadDialog2 dalLoader_;
+    private final RegistryServiceTableLoadDialog dalLoader_;
 
     /**
      * Constructor.
@@ -28,7 +28,7 @@ public class RegistryDialogAdjuster {
      *         list contains; must be MType subtype for
      *         voresource.loadlist.* message
      */
-    public RegistryDialogAdjuster( RegistryServiceTableLoadDialog2 dalLoader,
+    public RegistryDialogAdjuster( RegistryServiceTableLoadDialog dalLoader,
                                    String resourceType ) {
         dalLoader_ = dalLoader;
         resourceType_ = resourceType;

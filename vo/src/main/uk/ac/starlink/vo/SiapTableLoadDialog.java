@@ -14,35 +14,36 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.load.TableLoader;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Table load dialogue for retrieving the result of a SSAP query.
- * SSAP services are returned from a registry.
+ * Table load dialogue for retrieving the result of a SIAP query.
+ * SIAP services are obtained from a registry.
  *
- * @author   Mark Taylor
- * @since    2 Feb 2009
- * @see      <http://www.ivoa.net/Documents/latest/SSA.html>
+ * @author   Mark Taylor (Starlink)
+ * @since    5 Dec 2005
+ * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
  */
-public class SsapTableLoadDialog2 extends DalTableLoadDialog2 {
+public class SiapTableLoadDialog extends DalTableLoadDialog {
 
     private DoubleValueField raField_;
     private DoubleValueField decField_;
     private DoubleValueField sizeField_;
     private JComboBox formatSelector_;
     private static final ValueInfo SIZE_INFO =
-        new DefaultValueInfo( "Diameter", Double.class,
-                              "Angular diameter of the search region" );
+        new DefaultValueInfo( "Angular Size", Double.class,
+                              "Angular size of the search region"
+                            + " in RA and Dec" );
 
     /**
      * Constructor.
      */
-    public SsapTableLoadDialog2() {
-        super( "SSA Query",
-               "Get results of a Simple Spectrum Access Protocol query",
-               Capability.SSA, true, true );
-        setIconUrl( SsapTableLoadDialog2.class.getResource( "ssa.gif" ) );
+    public SiapTableLoadDialog() {
+        super( "SIA Query",
+               "Get results of a Simple Image Access Protocol query",
+               Capability.SIA, true, true );
+        setIconUrl( SiapTableLoadDialog.class.getResource( "sia.gif" ) );
     }
 
     protected Component createQueryComponent() {
@@ -51,14 +52,15 @@ public class SsapTableLoadDialog2 extends DalTableLoadDialog2 {
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
         sizeField_ = DoubleValueField.makeSizeDegreesField( SIZE_INFO );
+        sizeField_.getEntryField().setText( "0" );
         skyEntry.addField( sizeField_ );
 
-        /* Add a selector for spectrum format. */
+        /* Add a selector for image format. */
         JComponent formatLine = Box.createHorizontalBox();
         formatSelector_ = new JComboBox( getFormatOptions() );
         formatSelector_.setEditable( true );
         formatSelector_.setSelectedIndex( 0 );
-        formatLine.add( new JLabel( "Spectrum Format: " ) );
+        formatLine.add( new JLabel( "Image Format: " ) );
         formatLine.add( new ShrinkWrapper( formatSelector_ ) );
         formatLine.add( Box.createHorizontalGlue() );
         getControlBox().add( Box.createVerticalStrut( 5 ) );
@@ -71,12 +73,8 @@ public class SsapTableLoadDialog2 extends DalTableLoadDialog2 {
         checkUrl( serviceUrl );
         double ra = raField_.getValue();
         double dec = decField_.getValue();
-        String sizeString = sizeField_.getEntryField().getText();
-        double size = sizeString == null || sizeString.trim().length() == 0
-                    ? Double.NaN
-                    : sizeField_.getValue();
-        final DalQuery query = new DalQuery( serviceUrl, "SSA", ra, dec, size );
-        query.addArgument( "REQUEST", "queryData" );
+        double size = sizeField_.getValue();
+        final DalQuery query = new DalQuery( serviceUrl, "SIA", ra, dec, size );
         Object format = formatSelector_.getSelectedItem();
         if ( format != null && format.toString().trim().length() > 0 ) {
             query.addArgument( "FORMAT", format.toString() );
@@ -104,35 +102,31 @@ public class SsapTableLoadDialog2 extends DalTableLoadDialog2 {
 
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
         RegCapabilityInterface[] caps = super.getCapabilities( resource );
-        List ssapcapList = new ArrayList();
+        List siapcapList = new ArrayList();
         for ( int i = 0; i < caps.length; i++ ) {
-            if ( Capability.SSA.isInstance( caps[ i ] ) ) {
-                ssapcapList.add( caps[ i ] );
+            if ( Capability.SIA.isInstance( caps[ i ] ) ) {
+                siapcapList.add( caps[ i ] );
             }
         }
         return (RegCapabilityInterface[])
-               ssapcapList.toArray( new RegCapabilityInterface[ 0 ] );
+               siapcapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     /**
      * Returns the list of standard options provided by the Format selector.
-     * These are taken from the SSA standard; they are not exhaustive, but
+     * These are taken from the SIA standard; they are not exhaustive, but
      * represent some of the more useful options.  The user is able to
      * enter custom items as an alternative.
      * The first element in the returned list is a reasonable default.
      *
-     * @return   format option strings
+     * @return  format option strings
      */
     public static String[] getFormatOptions() {
         return new String[] {
+            "image/fits",
+            "GRAPHIC",
+            "ALL",
             "",
-            "all",
-            "compliant",
-            "native",
-            "graphic",
-            "votable",
-            "fits",
-            "xml",
         };
     }
 }

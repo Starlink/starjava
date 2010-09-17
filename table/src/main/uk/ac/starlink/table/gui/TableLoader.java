@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;

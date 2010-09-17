@@ -45,8 +45,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
-import uk.ac.starlink.table.load.TableLoader;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.URLDataSource;
@@ -62,7 +62,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Thomas Boch
  * @since    19 Oct 2009
  */
-public class VizierTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class VizierTableLoadDialog extends AbstractTableLoadDialog {
 
     private JComboBox serverSelector_;
     private SkyPositionEntry skyEntry_;
@@ -96,7 +96,7 @@ public class VizierTableLoadDialog2 extends AbstractTableLoadDialog2 {
     /**
      * Constructor.
      */
-    public VizierTableLoadDialog2() {
+    public VizierTableLoadDialog() {
         super( "VizieR Catalogue Service",
                "Access the VizieR library"
              + " of published astronomical catalogues" );

@@ -6,7 +6,6 @@ import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.TableLoadClient;
 
 /**
  * TransferHandler which will load a table if it is dragged onto its

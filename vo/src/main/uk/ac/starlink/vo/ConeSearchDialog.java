@@ -10,7 +10,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.load.TableLoader;
+import uk.ac.starlink.table.gui.TableLoader;
 
 /**
  * Table load dialogue which allows cone searches.  Cone search services
@@ -19,7 +19,7 @@ import uk.ac.starlink.table.load.TableLoader;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
-public class ConeSearchDialog2 extends DalTableLoadDialog2 {
+public class ConeSearchDialog extends DalTableLoadDialog {
 
     private DoubleValueField raField_;
     private DoubleValueField decField_;
@@ -30,11 +30,11 @@ public class ConeSearchDialog2 extends DalTableLoadDialog2 {
     /**
      * Constructor.
      */
-    public ConeSearchDialog2() {
+    public ConeSearchDialog() {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
                Capability.CONE, true, false );
-        setIconUrl( ConeSearchDialog2.class.getResource( "cone.gif" ) );
+        setIconUrl( ConeSearchDialog.class.getResource( "cone.gif" ) );
     }
 
     protected Component createQueryComponent() {

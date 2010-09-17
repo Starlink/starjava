@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -23,7 +23,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @author   Mark Taylor 
  * @since    13 Sept 2010
  */
-public class FilestoreTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
 
     private FilestoreChooser chooser_;
     private JTextField posField_;
@@ -31,7 +31,7 @@ public class FilestoreTableLoadDialog2 extends AbstractTableLoadDialog2 {
     /**
      * Constructor.
      */
-    public FilestoreTableLoadDialog2() {
+    public FilestoreTableLoadDialog() {
         super( "Filestore Browser",
                "Loader for files from local or remote filespace" );
         setIconUrl( StarTable.class.getResource( "gui/filestore.gif" ) );

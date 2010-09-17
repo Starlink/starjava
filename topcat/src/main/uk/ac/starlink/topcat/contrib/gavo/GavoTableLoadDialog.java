@@ -40,11 +40,11 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
-import uk.ac.starlink.table.load.TableLoader;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 
-public class GavoTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class GavoTableLoadDialog extends AbstractTableLoadDialog {
 
     private int nquery = 0;
 
@@ -77,7 +77,7 @@ public class GavoTableLoadDialog2 extends AbstractTableLoadDialog2 {
      * Constructor.  A public no-arg constructor is required by STIL's
      * pluggable load dialogue mechanism.
      */
-    public GavoTableLoadDialog2() {
+    public GavoTableLoadDialog() {
         super( "GAVO Millennium Run Query",
                "Uses the GAVO service to query the " +
                "Millennium Simulation Database" );

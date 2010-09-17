@@ -14,7 +14,7 @@ public class LoadingToken {
     /**
      * Constructor.
      *
-     * @param  text  short description of item being loaded
+     * @param  targetText  short description of item being loaded
      */
     public LoadingToken( String targetText ) {
         targetText_ = targetText;

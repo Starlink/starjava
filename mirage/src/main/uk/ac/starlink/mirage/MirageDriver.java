@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.TableLoadPanel;
-import uk.ac.starlink.table.load.FilestoreTableLoadDialog2;
+import uk.ac.starlink.table.gui.TableLoadPanel;
+import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
 import uk.ac.starlink.util.AuxClassLoader;
 
 /**
@@ -60,7 +60,7 @@ public class MirageDriver {
         if ( args.length == 0 ) {
             StarTable[] tables = 
                 TableLoadPanel
-               .loadTables( null, new FilestoreTableLoadDialog2(),
+               .loadTables( null, new FilestoreTableLoadDialog(),
                             new StarTableFactory( false ) );
             table = tables != null && tables.length > 0 
                   ? tables[ 0 ]

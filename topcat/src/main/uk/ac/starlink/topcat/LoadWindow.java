@@ -21,18 +21,21 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.FileChooserTableLoadDialog2;
-import uk.ac.starlink.table.load.FilestoreTableLoadDialog2;
-import uk.ac.starlink.table.load.LocationTableLoadDialog2;
-import uk.ac.starlink.table.load.SQLTableLoadDialog2;
-import uk.ac.starlink.table.load.SystemBrowser;
-import uk.ac.starlink.table.load.TableLoadClient;
-import uk.ac.starlink.table.load.TableLoadDialog2;
-import uk.ac.starlink.table.load.TableLoadWorker;
-import uk.ac.starlink.table.load.TableLoader;
-import uk.ac.starlink.vo.RegistryTableLoadDialog2;
+import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
+import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
+import uk.ac.starlink.table.gui.LocationTableLoadDialog;
+import uk.ac.starlink.table.gui.SQLTableLoadDialog;
+import uk.ac.starlink.table.gui.SystemBrowser;
+import uk.ac.starlink.table.gui.TableLoadClient;
+import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoadWorker;
+import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
+import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
+import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -45,13 +48,13 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class LoadWindow extends AuxWindow {
 
     private final ToggleButtonModel stayOpenModel_;
-    private final TableLoadDialog2[] knownDialogs_;
+    private final TableLoadDialog[] knownDialogs_;
     private final List<Action> actList_;
     private TableLoadClient latestClient_;
 
     /**
      * Name of the system property which can be used to specify the class
-     * names of additional {@link TableLoadDialog2} implementations.
+     * names of additional {@link TableLoadDialog} implementations.
      * Each must have a no-arg constructor.  Multiple classnames should be
      * separated by colons.
      */
@@ -59,17 +62,17 @@ public class LoadWindow extends AuxWindow {
 
     /** Class names for the TableLoadDialogs known by default. */
     public final String[] DIALOG_CLASSES = new String[] {
-        "uk.ac.starlink.table.load.FilestoreTableLoadDialog2",
-        "uk.ac.starlink.datanode.tree.TreeTableLoadDialog2",
-        "uk.ac.starlink.table.load.FileChooserTableLoadDialog2",
-        "uk.ac.starlink.table.load.LocationTableLoadDialog2",
-        "uk.ac.starlink.table.load.SQLTableLoadDialog2",
+        FilestoreTableLoadDialog.class.getName(),
+        TreeTableLoadDialog.class.getName(),
+        FileChooserTableLoadDialog.class.getName(),
+        LocationTableLoadDialog.class.getName(),
+        SQLTableLoadDialog.class.getName(),
         TopcatConeSearchDialog.class.getName(),
         TopcatSiapTableLoadDialog.class.getName(),
         TopcatSsapTableLoadDialog.class.getName(),
-        "uk.ac.starlink.vo.RegistryTableLoadDialog2",
-        "uk.ac.starlink.topcat.vizier.VizierTableLoadDialog2",
-        "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog2",
+        RegistryTableLoadDialog.class.getName(),
+        VizierTableLoadDialog.class.getName(),
+        GavoTableLoadDialog.class.getName(),
     };
 
     /**
@@ -91,7 +94,7 @@ public class LoadWindow extends AuxWindow {
 
         /* Create and place components for loading by entering location. */
         JComponent locBox = Box.createVerticalBox();
-        final LocationTableLoadDialog2 locTld = new LocationTableLoadDialog2();
+        final LocationTableLoadDialog locTld = new LocationTableLoadDialog();
         LoaderAction locAct =
             new LoaderAction( "OK", null,
                               "Load table by giving its filename or URL" ) {
@@ -117,10 +120,10 @@ public class LoadWindow extends AuxWindow {
         /* Prepare actions for all known dialogues. */
         actList_ = new ArrayList<Action>();
         knownDialogs_ =
-            (TableLoadDialog2[])
+            (TableLoadDialog[])
             Loader.getClassInstances( DIALOG_CLASSES, LOAD_DIALOGS_PROPERTY,
-                                      TableLoadDialog2.class )
-           .toArray( new TableLoadDialog2[ 0 ] );
+                                      TableLoadDialog.class )
+           .toArray( new TableLoadDialog[ 0 ] );
         for ( int i = 0; i < knownDialogs_.length; i++ ) {
             actList_.add( new DialogAction( knownDialogs_[ i ], tfact ) );
         }
@@ -138,9 +141,9 @@ public class LoadWindow extends AuxWindow {
 
         /* Add actions to toolbar. */
         List<Action> toolList = new ArrayList<Action>( actList_ );
-        toolList.remove( getDialogAction( RegistryTableLoadDialog2.class ) );
-        toolList.remove( getDialogAction( FileChooserTableLoadDialog2.class ) );
-        toolList.remove( getDialogAction( LocationTableLoadDialog2.class ) );
+        toolList.remove( getDialogAction( RegistryTableLoadDialog.class ) );
+        toolList.remove( getDialogAction( FileChooserTableLoadDialog.class ) );
+        toolList.remove( getDialogAction( LocationTableLoadDialog.class ) );
         for ( Action act : toolList ) {
             getToolBar().add( act );
         }
@@ -156,7 +159,7 @@ public class LoadWindow extends AuxWindow {
 
         /* Add larger buttons for the most common load types. */
         List<Action> commonList = new ArrayList<Action>();
-        commonList.add( getDialogAction( FilestoreTableLoadDialog2.class ) );
+        commonList.add( getDialogAction( FilestoreTableLoadDialog.class ) );
         commonList.add( sysAct );
         List<JButton> buttList = new ArrayList<JButton>();
         int buttw = 0;
@@ -215,7 +218,7 @@ public class LoadWindow extends AuxWindow {
      *
      * @return  dialogue list
      */
-    public TableLoadDialog2[] getKnownDialogs() {
+    public TableLoadDialog[] getKnownDialogs() {
         return knownDialogs_;
     }
 
@@ -226,12 +229,12 @@ public class LoadWindow extends AuxWindow {
      * @param  clazz  class, some subclass of TableLoadDialog
      * @return  existing dialog instance of clazz, or null
      */
-    public TableLoadDialog2 getKnownDialog( Class clazz ) {
-        if ( ! TableLoadDialog2.class.isAssignableFrom( clazz ) ) {
+    public TableLoadDialog getKnownDialog( Class clazz ) {
+        if ( ! TableLoadDialog.class.isAssignableFrom( clazz ) ) {
             throw new IllegalArgumentException();
         }
         for ( int i = 0; i < knownDialogs_.length; i++ ) {
-            TableLoadDialog2 tld = knownDialogs_[ i ];
+            TableLoadDialog tld = knownDialogs_[ i ];
             if ( clazz.isAssignableFrom( tld.getClass() ) ) {
                 return tld;
             }
@@ -247,7 +250,7 @@ public class LoadWindow extends AuxWindow {
      * @return  action which invokes an instance of tldClazz, if one is in use
      */
     public Action getDialogAction( Class tldClazz ) {
-        if ( ! TableLoadDialog2.class.isAssignableFrom( tldClazz ) ) {
+        if ( ! TableLoadDialog.class.isAssignableFrom( tldClazz ) ) {
             throw new IllegalArgumentException();
         }
         for ( Action act : actList_ ) {
@@ -267,7 +270,7 @@ public class LoadWindow extends AuxWindow {
      * Action to display a given TableLoadDialog.
      */
     private class DialogAction extends BasicAction {
-        private final TableLoadDialog2 tld_;
+        private final TableLoadDialog tld_;
         private final TableLoadWindow win_;
 
         /**
@@ -276,7 +279,7 @@ public class LoadWindow extends AuxWindow {
          * @param  tld  load dialogue
          * @param  tfact  table factory
          */
-        DialogAction( TableLoadDialog2 tld, StarTableFactory tfact ) {
+        DialogAction( TableLoadDialog tld, StarTableFactory tfact ) {
             super( tld.getName(), tld.getIcon(), tld.getDescription() );
             tld_ = tld;
             win_ = new TableLoadWindow( LoadWindow.this, tld, tfact ) {
@@ -299,7 +302,7 @@ public class LoadWindow extends AuxWindow {
          *
          * @return  dialogue
          */
-        public TableLoadDialog2 getLoadDialog() {
+        public TableLoadDialog getLoadDialog() {
             return tld_;
         }
     }

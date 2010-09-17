@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -17,12 +17,12 @@ import javax.swing.JMenu;
 import uk.ac.starlink.table.StarTableFactory;
 
 /**
- * Partial implementation of TableLoadDialog2 interface.
+ * Partial implementation of TableLoadDialog interface.
  *
  * @author   Mark Taylor
  * @since    13 Sept 2010
  */
-public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
+public abstract class AbstractTableLoadDialog implements TableLoadDialog {
 
     private final String name_;
     private final String description_;
@@ -35,7 +35,7 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
     private Action submitAct_;
     private boolean configured_;
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.table.load" );
+        Logger.getLogger( "uk.ac.starlink.table.gui" );
 
     /**
      * Constructor.
@@ -43,7 +43,7 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
      * @param  name  dialogue name
      * @param  description  dialogue description
      */
-    protected AbstractTableLoadDialog2( String name, String description ) {
+    protected AbstractTableLoadDialog( String name, String description ) {
         name_ = name;
         description_ = description;
         formats_ = new String[ 0 ];
@@ -183,7 +183,7 @@ public abstract class AbstractTableLoadDialog2 implements TableLoadDialog2 {
      */
     protected void submit() {
         getSubmitAction()
-       .actionPerformed( new ActionEvent( AbstractTableLoadDialog2.this,
+       .actionPerformed( new ActionEvent( AbstractTableLoadDialog.this,
                                           0, "Submit" ) );
     }
 

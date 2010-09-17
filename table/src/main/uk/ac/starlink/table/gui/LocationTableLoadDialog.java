@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.io.IOException;
@@ -19,14 +19,14 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    13 Sept 2010
  */
-public class LocationTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class LocationTableLoadDialog extends AbstractTableLoadDialog {
 
     private JTextField locField_;
 
     /**
      * Constructor.
      */
-    public LocationTableLoadDialog2() {
+    public LocationTableLoadDialog() {
         super( "Location", "Loads from a filename or URL entered as text" );
     }
 

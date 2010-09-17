@@ -12,8 +12,8 @@ import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
-import uk.ac.starlink.table.load.TableLoader;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 
 /**
  * Table load dialogue which can select tables from a datanode tree.
@@ -21,14 +21,14 @@ import uk.ac.starlink.table.load.TableLoader;
  * @author   Mark Taylor
  * @since    14 Sep 2010
  */
-public class TreeTableLoadDialog2 extends AbstractTableLoadDialog2 {
+public class TreeTableLoadDialog extends AbstractTableLoadDialog {
 
     private TableNodeChooser chooser_;
 
     /**
      * Constructor.
      */
-    public TreeTableLoadDialog2() {
+    public TreeTableLoadDialog() {
         super( "Hierarchy Browser", "Load table using treeview-type browser" );
         setIcon( IconFactory.getIcon( IconFactory.HIERARCH ) );
     }
@@ -41,8 +41,8 @@ public class TreeTableLoadDialog2 extends AbstractTableLoadDialog2 {
         chooseAct.addPropertyChangeListener( new PropertyChangeListener() {
             public void propertyChange( PropertyChangeEvent evt ) {
                 if ( "enabled".equals( evt.getPropertyName() ) ) {
-                    TreeTableLoadDialog2.this
-                                        .setEnabled( chooseAct.isEnabled() );
+                    TreeTableLoadDialog.this
+                                       .setEnabled( chooseAct.isEnabled() );
                 }
             }
         } );

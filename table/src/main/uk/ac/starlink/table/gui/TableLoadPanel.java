@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.load;
+package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -41,7 +41,7 @@ import uk.ac.starlink.table.StarTableFactory;
  */
 public abstract class TableLoadPanel extends JPanel {
 
-    private final TableLoadDialog2 tld_;
+    private final TableLoadDialog tld_;
     private final Action okAct_;
     private final Action cancelAct_;
     private JProgressBar progBar_;
@@ -54,7 +54,7 @@ public abstract class TableLoadPanel extends JPanel {
      * @param  tfact  representative table factory
      *         (not necessarily the one used to create tables)
      */
-    public TableLoadPanel( TableLoadDialog2 tld, StarTableFactory tfact ) {
+    public TableLoadPanel( TableLoadDialog tld, StarTableFactory tfact ) {
         super( new BorderLayout() );
         tld_ = tld;
         progBar_ = new JProgressBar();
@@ -180,7 +180,7 @@ public abstract class TableLoadPanel extends JPanel {
          * @param  tld   load dialogue
          * @param  tfact  table factory
          */
-        ModalDialog( Component parent, TableLoadDialog2 tld,
+        ModalDialog( Component parent, TableLoadDialog tld,
                      final StarTableFactory tfact ) {
             super( parent instanceof Frame 
                        ? (Frame) parent
@@ -274,7 +274,7 @@ public abstract class TableLoadPanel extends JPanel {
      * @param  tfact  table factory
      */
     public static StarTable[] loadTables( Component parent,
-                                          TableLoadDialog2 tld,
+                                          TableLoadDialog tld,
                                           StarTableFactory tfact )
             throws IOException {
         ModalDialog dia = new ModalDialog( parent, tld, tfact );
@@ -289,7 +289,7 @@ public abstract class TableLoadPanel extends JPanel {
      * that were loaded.
      */
     public static void main( String[] args ) throws IOException {
-        StarTable[] tables = loadTables( null, new FilestoreTableLoadDialog2(),
+        StarTable[] tables = loadTables( null, new FilestoreTableLoadDialog(),
                                          new StarTableFactory( true ) );
         for ( int i = 0; i < tables.length; i++ ) {
             StarTable table = tables[ i ];

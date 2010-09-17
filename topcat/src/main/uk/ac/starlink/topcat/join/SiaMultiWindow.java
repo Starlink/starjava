@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.SiaConeSearcher;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
-import uk.ac.starlink.vo.SiapTableLoadDialog2;
+import uk.ac.starlink.vo.SiapTableLoadDialog;
 
 /**
  * DalMultiWindow subclass for Simple Image Access services.
@@ -48,7 +48,7 @@ public class SiaMultiWindow extends DalMultiWindow {
          */
         SiaMultiService() {
             formatSelector_ =
-                new JComboBox( SiapTableLoadDialog2.getFormatOptions() );
+                new JComboBox( SiapTableLoadDialog.getFormatOptions() );
             formatSelector_.setSelectedIndex( 0 );
             formatSelector_.setEditable( true );
 
