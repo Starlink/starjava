@@ -26,7 +26,6 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.gui.TableConsumer;
 
 /**
  * Table load dialogue abstract superclass for spatial DAL-like queries.

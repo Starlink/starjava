@@ -34,7 +34,7 @@ public class ConeSearchDialog2 extends DalTableLoadDialog2 {
         super( "Cone Search",
                "Obtain source catalogues using cone search web services",
                Capability.CONE, true, false );
-        setIconUrl( ConeSearchDialog.class.getResource( "cone.gif" ) );
+        setIconUrl( ConeSearchDialog2.class.getResource( "cone.gif" ) );
     }
 
     protected Component createQueryComponent() {
