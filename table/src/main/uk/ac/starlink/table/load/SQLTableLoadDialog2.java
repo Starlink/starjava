@@ -28,6 +28,7 @@ public class SQLTableLoadDialog2 extends AbstractTableLoadDialog2 {
     public SQLTableLoadDialog2() {
         super( "SQL Query",
                "Get table as result of an SQL query on a relational database" );
+        setIconUrl( StarTable.class.getResource( "gui/sqlread.gif" ) );
     }
 
     public boolean isAvailable() {

@@ -34,6 +34,7 @@ public class FilestoreTableLoadDialog2 extends AbstractTableLoadDialog2 {
     public FilestoreTableLoadDialog2() {
         super( "Filestore Browser",
                "Loader for files from local or remote filespace" );
+        setIconUrl( StarTable.class.getResource( "gui/filestore.gif" ) );
     }
 
     protected Component createQueryComponent() {
