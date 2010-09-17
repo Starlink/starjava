@@ -91,13 +91,10 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.gui.PasteLoader;
-import uk.ac.starlink.table.gui.TableConsumer;
-import uk.ac.starlink.table.gui.TableLoadChooser;
-import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.table.load.TableLoadDialog2;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
-import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
+import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog2;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
@@ -114,15 +111,16 @@ import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.LinesWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
-import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
+import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog2;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
-import uk.ac.starlink.vo.ConeSearchDialog;
-import uk.ac.starlink.vo.DalTableLoadDialog;
-import uk.ac.starlink.vo.RegistryTableLoadDialog;
-import uk.ac.starlink.vo.SiapTableLoadDialog;
-import uk.ac.starlink.vo.SsapTableLoadDialog;
+import uk.ac.starlink.util.gui.StringPaster;
+import uk.ac.starlink.vo.ConeSearchDialog2;
+import uk.ac.starlink.vo.DalTableLoadDialog2;
+import uk.ac.starlink.vo.RegistryTableLoadDialog2;
+import uk.ac.starlink.vo.SiapTableLoadDialog2;
+import uk.ac.starlink.vo.SsapTableLoadDialog2;
 
 /**
  * Main window providing user control of the TOPCAT application.
@@ -168,8 +166,7 @@ public class ControlWindow extends AuxWindow
     private final ButtonModel dummyButtonModel_ = new DefaultButtonModel();
     private StarTableFactory tabfact_ = new StarTableFactory( true );
     private final boolean showListToolBar_ = false;
-    private TableLoadChooser loadChooser_;
-    private LoadQueryWindow loadWindow_;
+    private LoadWindow loadWindow_;
     private SaveQueryWindow saveWindow_;
     private ConcatWindow concatWindow_;
     private ConeMultiWindow multiconeWindow_;
@@ -416,18 +413,9 @@ public class ControlWindow extends AuxWindow
 
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
-        MouseListener pasteLoader = new PasteLoader( this ) {
-            protected boolean tableLoaded( StarTable table, String loc ) {
-                if ( table.getRowCount() > 0 ) {
-                    addTable( table, loc, true );
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            public StarTableFactory getTableFactory() {
-                return tabfact_;
+        MouseListener pasteLoader = new StringPaster() {
+            public void pasted( String loc ) {
+  // do something here
             }
         };
         tablesList_.addMouseListener( pasteLoader );
@@ -590,16 +578,20 @@ public class ControlWindow extends AuxWindow
             }
             public void menuSelected( MenuEvent evt ) {
                 voMenu.removeMenuListener( this );
-                Action[] voLoadActs = createTableLoadActions( new Class[] {
-                    ConeSearchDialog2.class,
-                    SiapTableLoadDialog2.class,
-                    SsapTableLoadDialog2.class,
-                    VizierTableLoadDialog.class,
-                    GavoTableLoadDialog.class,
-                    // VOSpace?
-                } );
-                for ( int ia = 0; ia < voLoadActs.length; ia++ ) {
-                    voMenu.add( voLoadActs[ ia ] );
+                Class[] tldClasses = new Class[] {
+                    TopcatConeSearchDialog.class,
+                    TopcatSiapTableLoadDialog.class,
+                    TopcatSsapTableLoadDialog.class,
+                    VizierTableLoadDialog2.class,
+                    GavoTableLoadDialog2.class,
+                };
+                LoadWindow loadWin = getLoadWindow();
+                for ( int ic = 0; ic < tldClasses.length; ic++ ) {
+                    Class clazz = tldClasses[ ic ];
+                    assert TableLoadDialog2.class.isAssignableFrom( clazz );
+                    Action act = loadWin.getDialogAction( clazz );
+                    assert act != null;
+                    voMenu.add( act );
                 }
                 voMenu.addSeparator();
                 voMenu.add( multiconeAct_ );
@@ -861,14 +853,9 @@ public class ControlWindow extends AuxWindow
      *
      * @return  a table load window
      */
-    public LoadQueryWindow getLoader() {
+    public LoadWindow getLoadWindow() {
         if ( loadWindow_ == null ) {
-            loadWindow_ = new LoadQueryWindow( tabfact_, getLoadChooser(),
-                                               this ) {
-                protected void performLoading( StarTable st, String loc ) {
-                    addTable( st, loc, true );
-                }
-            };
+            loadWindow_ = new LoadWindow( this, tabfact_ );
         }
         return loadWindow_;
     }
@@ -881,7 +868,7 @@ public class ControlWindow extends AuxWindow
     public SaveQueryWindow getSaver() {
         if ( saveWindow_ == null ) {
             saveWindow_ =
-                new SaveQueryWindow( getTableOutput(), getLoadChooser(),
+                new SaveQueryWindow( getTableOutput(), getLoadWindow(),
                                      ControlWindow.this );
         }
         return saveWindow_;
@@ -964,24 +951,6 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * Returns the dialogue used for loading tables used by this application.
-     *
-     * @return  load chooser dialogue
-     */
-    public TableLoadChooser getLoadChooser() {
-        return loadChooser_;
-    }
-
-    /**
-     * Sets the dialogue used for loading tables used by this application.
-     *
-     * @param  chooser  load chooser dialogue
-     */
-    public void setLoadChooser( TableLoadChooser chooser ) {
-        loadChooser_ = chooser;
-    }
-
-    /**
      * Load received VO resource identifiers into appropriate windows.
      *
      * @param  ids  array of candidate ivo:-type resource identifiers to load
@@ -997,7 +966,7 @@ public class ControlWindow extends AuxWindow
         boolean accepted = false;
 
         /* Validate. */
-        if ( ! DalTableLoadDialog.class
+        if ( ! DalTableLoadDialog2.class
               .isAssignableFrom( dalLoadDialogClass ) ) {
             throw new IllegalArgumentException();
         }
@@ -1007,11 +976,11 @@ public class ControlWindow extends AuxWindow
         }
 
         /* Handle single table load dialogues. */
-        if ( loadChooser_ != null ) {
-            TableLoadDialog[] tlds = loadChooser_.getKnownDialogs();
+        if ( loadWindow_ != null ) {
+            TableLoadDialog2[] tlds = loadWindow_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
                 if ( loadDialogMatches( tlds[ i ], dalLoadDialogClass ) ) {
-                    boolean acc = ((DalTableLoadDialog) tlds[ i ])
+                    boolean acc = ((DalTableLoadDialog2) tlds[ i ])
                                  .acceptResourceIdList( ids, msg );
                     accepted = accepted || acc;
                 }
@@ -1044,7 +1013,7 @@ public class ControlWindow extends AuxWindow
      * @param  tld  load dialogue
      * @param  tldClass  load dialogue type
      */
-    public boolean loadDialogMatches( TableLoadDialog tld, Class tldClass ) {
+    public boolean loadDialogMatches( TableLoadDialog2 tld, Class tldClass ) {
         return tldClass.isAssignableFrom( tld.getClass() );
     }
 
@@ -1212,82 +1181,6 @@ public class ControlWindow extends AuxWindow
         int isel = tablesList_.getSelectedIndex();
         upAct_.setEnabled( isel > 0 );
         downAct_.setEnabled( isel >= 0 && isel < tablesModel_.getSize() - 1 );
-    }
-
-    /**
-     * Returns a list of Actions which correspond to table load dialogues.
-     *
-     * @param   tldClasses  array of classes, each of which should be a
-     *          TableLoadDialogue subclass
-     */
-    private Action[] createTableLoadActions( Class[] tldClasses ) {
-
-        /* For each requested class, identify the instance of that class
-         * in the load chooser list of dialogues (better to use the same
-         * instance than create a new one, since it may have state imparted
-         * by the user in other interactions with it).  Then generate an
-         * action which will invoke the dialogue in question, and add it
-         * to the list. */
-        TableLoadDialog[] tlds = getLoadChooser().getKnownDialogs();
-        final ComboBoxModel formatModel =
-            TableLoadChooser.makeFormatBoxModel( tabfact_ );
-        List actList = new ArrayList();
-        for ( int ic = 0; ic < tldClasses.length; ic++ ) {
-            Class tldClass = tldClasses[ ic ];
-            if ( ! TableLoadDialog.class.isAssignableFrom( tldClass ) ) {
-                logger_.warning( "Class " + tldClass.getName()
-                               + " is not a TableLoadDialog" );
-            }
-            Action act = null;
-            for ( int id = 0; id < tlds.length && act == null; id++ ) {
-                if ( tlds[ id ].getClass().equals( tldClass ) ) {
-                    final TableLoadDialog tld = tlds[ id ];
-                    act = new BasicAction( tld.getName(), tld.getIcon(),
-                                           tld.getDescription() ) {
-                        public void actionPerformed( ActionEvent evt ) {
-                            Object src = evt.getSource();
-                            Component parent = src instanceof Component 
-                                             ? (Component) src
-                                             : null;
-                            TableConsumer loadConsumer =
-                                new TopcatTableConsumer( parent,
-                                                         ControlWindow.this ) {
-                                    protected boolean tableLoaded( StarTable
-                                                                   table ) {
-                                        if ( table.getRowCount() > 0 ) {
-                                            addTable( table, getLoadingId(),
-                                                      true );
-                                            return true;
-                                        }
-                                        else {
-                                            JOptionPane.showMessageDialog(
-                                                getParent(),
-                                                "Table contained no rows",
-                                                "Empty Table",
-                                                JOptionPane.ERROR_MESSAGE );
-                                            return false;
-                                        }
-                                    }
-                                };
-                            tld.showLoadDialog( ControlWindow.this, tabfact_,
-                                                formatModel, loadConsumer );
-                        }
-                    };
-                    if ( ! tld.isAvailable() ) {
-                        act.setEnabled( false );
-                    }
-                }
-            }
-            if ( act != null ) {
-                actList.add( act );
-            }
-            else {
-                logger_.warning( "No load dialogue " + tldClass.getName() );
-            }
-        }
-
-        /* Return the completed list of actions. */
-        return (Action[]) actList.toArray( new Action[ 0 ] );
     }
 
     /*
@@ -1473,7 +1366,7 @@ public class ControlWindow extends AuxWindow
 
         public void actionPerformed( ActionEvent evt ) {
             if ( this == readAct_ ) {
-                getLoader().makeVisible();
+                getLoadWindow().makeVisible();
             }
             else if ( this == saveAct_ ) {
                 getSaver().makeVisible();

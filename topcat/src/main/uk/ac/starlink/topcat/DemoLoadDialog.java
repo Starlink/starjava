@@ -13,7 +13,7 @@ import uk.ac.starlink.datanode.nodes.ErrorDataNode;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 import uk.ac.starlink.datanode.nodes.ResourceListDataNode;
 import uk.ac.starlink.datanode.tree.TableNodeChooser;
-import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
+import uk.ac.starlink.datanode.tree.TreeTableLoadDialog2;
 
 /**
  * Table load dialogue which presents some demonstration data.
@@ -21,7 +21,7 @@ import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
  * @author   Mark Taylor (Starlink)
  * @since    1 Dec 2004
  */
-public class DemoLoadDialog extends TreeTableLoadDialog {
+public class DemoLoadDialog extends TreeTableLoadDialog2 {
 
     public String getName() {
         return "Browse Demo Data";
@@ -29,10 +29,6 @@ public class DemoLoadDialog extends TreeTableLoadDialog {
 
     public String getDescription() {
         return "View a data hierarchy containing some demonstration tables";
-    }
-
-    public boolean isEnabled() {
-        return true;
     }
 
     protected TableNodeChooser createNodeChooser() {

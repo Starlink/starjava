@@ -27,7 +27,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.load.TableLoadDialog2;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LoadingToken;
@@ -43,10 +43,10 @@ import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
-import uk.ac.starlink.vo.ConeSearchDialog;
-import uk.ac.starlink.vo.DalTableLoadDialog;
-import uk.ac.starlink.vo.SiapTableLoadDialog;
-import uk.ac.starlink.vo.SsapTableLoadDialog;
+import uk.ac.starlink.vo.ConeSearchDialog2;
+import uk.ac.starlink.vo.DalTableLoadDialog2;
+import uk.ac.starlink.vo.SiapTableLoadDialog2;
+import uk.ac.starlink.vo.SsapTableLoadDialog2;
 
 /**
  * Provides TOPCAT's SAMP functionality.
@@ -366,16 +366,16 @@ public class TopcatSampControl {
 
             /* Accept list of VOResources. */
             new ResourceListHandler( "voresource.loadlist",
-                                     DalTableLoadDialog.class,
+                                     DalTableLoadDialog2.class,
                                      DalMultiWindow.class ),
             new ResourceListHandler( "voresource.loadlist.cone",
-                                     ConeSearchDialog.class,
+                                     ConeSearchDialog2.class,
                                      ConeMultiWindow.class ),
             new ResourceListHandler( "voresource.loadlist.siap",
-                                     SiapTableLoadDialog.class,
+                                     SiapTableLoadDialog2.class,
                                      SiaMultiWindow.class ),
             new ResourceListHandler( "voresource.loadlist.ssap",
-                                     SsapTableLoadDialog.class,
+                                     SsapTableLoadDialog2.class,
                                      SsaMultiWindow.class ),
         };
     }
@@ -668,7 +668,7 @@ public class TopcatSampControl {
         ResourceListHandler( String mtype, Class dalLoadDialogClass,
                              Class dalMultiWindowClass ) {
             super( new String[] { mtype } );
-            if ( ! DalTableLoadDialog.class
+            if ( ! DalTableLoadDialog2.class
                   .isAssignableFrom( dalLoadDialogClass ) ) {
                 throw new IllegalArgumentException();
             }

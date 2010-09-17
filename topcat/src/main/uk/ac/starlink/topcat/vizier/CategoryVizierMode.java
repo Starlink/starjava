@@ -29,7 +29,7 @@ public class CategoryVizierMode extends SearchVizierMode {
      *
      * @param   tld  controlling load dialogue
      */
-    public CategoryVizierMode( VizierTableLoadDialog tld ) {
+    public CategoryVizierMode( VizierTableLoadDialog2 tld ) {
         super( "By Category", tld, true );
         lambdaList_ = new JList();
         missionList_ = new JList();
@@ -107,7 +107,7 @@ public class CategoryVizierMode extends SearchVizierMode {
             Object sel = selections[ i ];
             assert sel instanceof String;
             if ( sel instanceof String ) {
-                sbuf.append( VizierTableLoadDialog
+                sbuf.append( VizierTableLoadDialog2
                             .encodeArg( key, (String) sel ) );
             }
         }

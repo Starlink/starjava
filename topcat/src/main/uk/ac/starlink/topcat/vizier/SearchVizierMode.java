@@ -49,7 +49,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 public abstract class SearchVizierMode implements VizierMode {
 
     private final String name_;
-    private final VizierTableLoadDialog tld_; 
+    private final VizierTableLoadDialog2 tld_; 
     private final boolean useSplit_;
     private final JTable table_;
     private final JScrollPane tScroller_;
@@ -75,7 +75,7 @@ public abstract class SearchVizierMode implements VizierMode {
      * @param   useSplit  true to use a JSplitPane to separate query panel
      *          from catalogue display table; false to use a fixed layout
      */     
-    public SearchVizierMode( String name, VizierTableLoadDialog tld,
+    public SearchVizierMode( String name, VizierTableLoadDialog2 tld,
                              boolean useSplit ) {
         name_ = name; 
         tld_ = tld;
@@ -331,11 +331,11 @@ public abstract class SearchVizierMode implements VizierMode {
             ubuf.append( "-meta" );
         }
         if ( target != null && target.trim().length() > 0 ) {
-            ubuf.append( VizierTableLoadDialog.encodeArg( "-c", target ) );
+            ubuf.append( VizierTableLoadDialog2.encodeArg( "-c", target ) );
         }
         if ( radius != null && radius.trim().length() > 0 ) {
-            ubuf.append( VizierTableLoadDialog.encodeArg( "-c.r", radius ) );
-            ubuf.append( VizierTableLoadDialog.encodeArg( "-c.u", "deg" ) );
+            ubuf.append( VizierTableLoadDialog2.encodeArg( "-c.r", radius ) );
+            ubuf.append( VizierTableLoadDialog2.encodeArg( "-c.u", "deg" ) );
         }
         if ( queryArgs != null && queryArgs.trim().length() > 0 ) {
             ubuf.append( queryArgs );

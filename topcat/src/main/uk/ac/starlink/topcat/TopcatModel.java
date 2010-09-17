@@ -112,7 +112,7 @@ public class TopcatModel {
         controlWindow_ = controlWindow;
 
         /* Ensure that we have random access. */
-        if ( ! startab.isRandom() ) {
+        if ( ! startab.isRandom() && startab.getRowCount() != 0 ) {
             throw new IllegalArgumentException( "Can't use non-random table" );
         }
 

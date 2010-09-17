@@ -39,11 +39,12 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.gui.BasicTableLoadDialog;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.table.load.AbstractTableLoadDialog2;
+import uk.ac.starlink.table.load.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 
-public class GavoTableLoadDialog extends BasicTableLoadDialog {
+public class GavoTableLoadDialog2 extends AbstractTableLoadDialog2 {
 
     private int nquery = 0;
 
@@ -76,14 +77,14 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
      * Constructor.  A public no-arg constructor is required by STIL's
      * pluggable load dialogue mechanism.
      */
-    public GavoTableLoadDialog() {
+    public GavoTableLoadDialog2() {
         super( "GAVO Millennium Run Query",
                "Uses the GAVO service to query the " +
                "Millennium Simulation Database" );
         setIcon( ResourceIcon.GAVO );
     }
 
-    protected Component createQueryPanel() {
+    protected Component createQueryComponent() {
 
         /* Set up fields for user interaction. */
         urlField_ = new JComboBox(DATABASES);
@@ -125,6 +126,12 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         sqlHolder.add( new JScrollPane( sqlField_ ), BorderLayout.CENTER );
         sqlHolder.setBorder( BorderFactory.createEmptyBorder( 5, 0, 0, 0 ) );
 
+        /* Menus. */
+        setMenus( new JMenu[] {
+            createSampleMenu( "HaloSamples", GavoSampleQuery.HALO_SAMPLES ),
+            createSampleMenu( "GalaxySamples", GavoSampleQuery.GAL_SAMPLES ),
+        } );
+
         /* Place the components in a container panel and return it. */
         JPanel queryPanel = new JPanel( new BorderLayout() ) {
             public void setEnabled( boolean enabled ) {
@@ -140,17 +147,6 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
         queryPanel.add( sqlHolder, BorderLayout.CENTER );
         queryPanel.setPreferredSize( new Dimension( 400, 300 ) );
         return queryPanel;
-    }
-
-    protected JDialog createDialog( java.awt.Component parent ) {
-        JDialog dialog = super.createDialog( parent );
-        JMenuBar mbar = new JMenuBar();
-        dialog.setJMenuBar( mbar );
-        mbar.add( createSampleMenu( "HaloSamples",
-                                    GavoSampleQuery.HALO_SAMPLES ) );
-        mbar.add( createSampleMenu( "GalaxySamples",
-                                    GavoSampleQuery.GAL_SAMPLES ) );
-        return dialog;
     }
 
     /**
@@ -199,9 +195,9 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
 
     /**
      * Interrogates the internal state of this component and returns a
-     * TableSupplier object.
+     * TableLoader object.
      */
-    protected TableSupplier getTableSupplier() {
+    public TableLoader createTableLoader() {
 
         /* Get state. */
         Database db = getSelectedDatabase();
@@ -241,8 +237,8 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                  .initCause( e );
         }
         final String id = db.toString() + " query " + nquery;
-        return new TableSupplier() {
-            public StarTable getTable( StarTableFactory tabFact, String fmt )
+        return new TableLoader() {
+            public StarTable[] loadTables( StarTableFactory tabFact )
                     throws IOException {
                 logger_.info( queryUrl.toString() );
                 URLConnection uc = queryUrl.openConnection();
@@ -271,7 +267,7 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 StarTable table;
                 GavoCSVTableParser csvParser =
                     new GavoCSVTableParser( tabFact.getStoragePolicy(),
-                                            getQueryPanel() );
+                                            getQueryComponent() );
                 try {
                     table = csvParser.parse(stream);
                 }
@@ -283,9 +279,9 @@ public class GavoTableLoadDialog extends BasicTableLoadDialog {
                 }
                 table.setParameter( new DescribedValue( URL_INFO, url ) );
                 table.setParameter( new DescribedValue( SQL_INFO, sql ) );
-                return table;
+                return new StarTable[] { table };
             }
-            public String getTableID() {
+            public String getLabel() {
                 return id;
             }
         };

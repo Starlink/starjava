@@ -23,7 +23,7 @@ public class WordVizierMode extends SearchVizierMode {
      *
      * @param   tld  controlling load dialogue
      */
-    public WordVizierMode( VizierTableLoadDialog tld ) {
+    public WordVizierMode( VizierTableLoadDialog2 tld ) {
         super( "By Keyword", tld, false );
         wordField_ = new JTextField();
     }
@@ -49,7 +49,7 @@ public class WordVizierMode extends SearchVizierMode {
     protected String getSearchArgs() {
         String txt = wordField_.getText();
         return txt.trim().length() > 0
-             ? VizierTableLoadDialog.encodeArg( "-words", txt.trim() )
+             ? VizierTableLoadDialog2.encodeArg( "-words", txt.trim() )
              : "";
     }
 }

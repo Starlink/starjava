@@ -27,9 +27,6 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.table.gui.TableLoadChooser;
-import uk.ac.starlink.table.gui.TableLoadDialog;
-import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.Stilts;
@@ -58,21 +55,9 @@ public class Driver {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static StarTableFactory tabfact;
     private static ControlWindow control;
-    private static String[] extraLoaders;
     private static final ValueInfo DEMOLOC_INFO = 
         new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
     private static final int DEFAULT_SERVER_PORT = 2525;
-    public static String[] KNOWN_DIALOGS = new String[] {
-        "uk.ac.starlink.table.gui.FileChooserLoader",
-        "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
-        SQLReadDialog.class.getName(),
-        "uk.ac.starlink.topcat.ConeSearchDialog2",
-        "uk.ac.starlink.topcat.SiapTableLoadDialog2",
-        "uk.ac.starlink.topcat.SsapTableLoadDialog2",
-        "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.topcat.vizier.VizierTableLoadDialog",
-        "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog",
-    };
 
     /**
      * Determines whether TableViewers associated with this class should
@@ -243,7 +228,6 @@ public class Driver {
 
         /* Process flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
-        List loaderList = new ArrayList();
         boolean demo = false;
         int verbosity = 0;
         boolean interopServe = true;
@@ -329,7 +313,6 @@ public class Driver {
                 System.exit( 1 );
             }
         }
-        extraLoaders = (String[]) loaderList.toArray( new String[ 0 ] );
 
         /* Configure logging. */
         configureLogging( verbosity );
@@ -506,10 +489,8 @@ public class Driver {
      */
     private static ControlWindow getControlWindow() {
         if ( control == null ) {
-            TableLoadChooser chooser = makeLoadChooser();
             control = ControlWindow.getInstance();
             control.setTableFactory( tabfact );
-            control.setLoadChooser( chooser );
         }
         return control;
     }
@@ -529,48 +510,6 @@ public class Driver {
                 getControlWindow().addTable( table, location, false );
             }
         } );
-    }
-
-    /**
-     * Creates a TableLoadChooser suitable for use by the application.
-     *
-     * @return  new chooser
-     */
-    private static TableLoadChooser makeLoadChooser() {
-
-        /* If we have been requested to use any extra load dialogues,
-         * install them into the chooser here.  It would be more
-         * straightforward to do this using the system property mechanism
-         * designed for this (set TableLoadChooser.LOAD_DIALOGS_PROPERTY),
-         * but this would fail with a SecurityException under some 
-         * circumstances (unsigned WebStart). */
-        List dList = new ArrayList();
-        dList.addAll( Arrays.asList( TableLoadChooser
-                                    .makeDefaultLoadDialogs() ) );
-        List nameList = new ArrayList();
-        for ( Iterator it = dList.iterator(); it.hasNext(); ) {
-            nameList.add( it.next().getClass().getName() );
-        }
-        for ( int i = 0; i < extraLoaders.length; i++ ) {
-            String cname = extraLoaders[ i ];
-            if ( ! nameList.contains( cname ) ) {
-                try {
-                    TableLoadDialog tld =
-                        (TableLoadDialog) 
-                        Driver.class.forName( extraLoaders[ i ] ).newInstance();
-                    dList.add( tld );
-                }
-                catch ( Throwable th ) {
-                    System.err.println( "Class loading error for optional " +
-                                        "loader:" );
-                    th.printStackTrace( System.err );
-                    System.exit( 1 );
-                }
-            }
-        }
-        TableLoadDialog[] dialogs = (TableLoadDialog[]) 
-                                    dList.toArray( new TableLoadDialog[ 0 ] );
-        return new TableLoadChooser( tabfact, dialogs, KNOWN_DIALOGS );
     }
 
     /**

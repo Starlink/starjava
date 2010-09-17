@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.SsaConeSearcher;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
-import uk.ac.starlink.vo.SsapTableLoadDialog;
+import uk.ac.starlink.vo.SsapTableLoadDialog2;
 
 /**
  * DalMultiWindow subclass for Simple Spectral Access services.
@@ -48,7 +48,7 @@ public class SsaMultiWindow extends DalMultiWindow {
          */
         SsaMultiService() {
             formatSelector_ =
-                new JComboBox( SsapTableLoadDialog.getFormatOptions() );
+                new JComboBox( SsapTableLoadDialog2.getFormatOptions() );
             formatSelector_.setSelectedIndex( 0 );
             formatSelector_.setEditable( true );
 
