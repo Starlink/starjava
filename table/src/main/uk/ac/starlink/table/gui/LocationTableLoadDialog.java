@@ -28,6 +28,7 @@ public class LocationTableLoadDialog extends AbstractTableLoadDialog {
      */
     public LocationTableLoadDialog() {
         super( "Location", "Loads from a filename or URL entered as text" );
+        setIconUrl( StarTable.class.getResource( "gui/loctext.gif" ) );
     }
 
     protected Component createQueryComponent() {
