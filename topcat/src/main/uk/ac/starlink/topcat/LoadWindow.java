@@ -21,6 +21,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import uk.ac.starlink.datanode.tree.TreeTableLoadDialog;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -50,7 +51,7 @@ public class LoadWindow extends AuxWindow {
     private final ToggleButtonModel stayOpenModel_;
     private final TableLoadDialog[] knownDialogs_;
     private final List<Action> actList_;
-    private TableLoadClient latestClient_;
+    private final LoadWorkerStack workerStack_;
 
     /**
      * Name of the system property which can be used to specify the class
@@ -96,7 +97,7 @@ public class LoadWindow extends AuxWindow {
         JComponent locBox = Box.createVerticalBox();
         final LocationTableLoadDialog locTld = new LocationTableLoadDialog();
         LoaderAction locAct =
-            new LoaderAction( "OK", null,
+            new LoaderAction( "OK", locTld.getIcon(),
                               "Load table by giving its filename or URL" ) {
             public TableLoader createTableLoader() {
                 return locTld.createTableLoader();
@@ -112,10 +113,15 @@ public class LoadWindow extends AuxWindow {
         locLine.add( new JLabel( "Location: " ) );
         locLine.add( Box.createHorizontalStrut( 5 ) );
         locLine.add( locTld.getLocationField() );
-        locLine.add( new JButton( locAct ) );
+        locLine.add( Box.createHorizontalStrut( 5 ) );
+        JButton locButt = new JButton( locAct );
+        locButt.setIcon( null );
+        locLine.add( locButt );
         locBox.add( Box.createVerticalStrut( 5 ) );
         locBox.add( locLine );
-        getMainArea().add( locBox, BorderLayout.NORTH );
+        JComponent entryBox = Box.createVerticalBox();
+        entryBox.add( locBox );
+        getMainArea().add( entryBox, BorderLayout.NORTH );
 
         /* Prepare actions for all known dialogues. */
         actList_ = new ArrayList<Action>();
@@ -180,7 +186,19 @@ public class LoadWindow extends AuxWindow {
             new JPanel( new FlowLayout( FlowLayout.RIGHT, 0, 0 ) );
         buttLine.add( buttBox );
         buttLine.setAlignmentX( LEFT_ALIGNMENT );
-        getMainArea().add( buttLine, BorderLayout.SOUTH );
+        entryBox.add( buttLine );
+        entryBox.add( Box.createVerticalStrut( 5 ) );
+
+        /* Table for pending loads. */
+        workerStack_ = new LoadWorkerStack();
+        JScrollPane workScroller =
+            new JScrollPane( workerStack_,
+                             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+        workScroller.getViewport()
+                    .setBackground( workerStack_.getBackground() );
+        workScroller.setBorder( makeTitledBorder( "Loading Tables" ) );
+        getMainArea().add( workScroller, BorderLayout.CENTER );
 
         /* Demo actions. */
         JMenu demoMenu = new JMenu( "Examples" );
@@ -267,11 +285,31 @@ public class LoadWindow extends AuxWindow {
     }
 
     /**
+     * Adds a thread which is loading a table to the display in this window.
+     *
+     * @param   worker  loading thread
+     * @param   icon   optional icon indicatig table source
+     */
+    public void addWorker( TableLoadWorker worker, Icon icon ) {
+        workerStack_.addWorker( worker, icon );
+    }
+
+    /**
+     * Removes a load worker thread which was previously added to 
+     * the display in this window.
+     *
+     * @param   worker  loading thread
+     */
+    public void removeWorker( TableLoadWorker worker ) {
+        workerStack_.removeWorker( worker );
+    }
+
+    /**
      * Action to display a given TableLoadDialog.
      */
     private class DialogAction extends BasicAction {
         private final TableLoadDialog tld_;
-        private final TableLoadWindow win_;
+        private final TableLoadDialogWindow win_;
 
         /**
          * Constructor.
@@ -282,12 +320,8 @@ public class LoadWindow extends AuxWindow {
         DialogAction( TableLoadDialog tld, StarTableFactory tfact ) {
             super( tld.getName(), tld.getIcon(), tld.getDescription() );
             tld_ = tld;
-            win_ = new TableLoadWindow( LoadWindow.this, tld, tfact ) {
-                protected TableLoadClient createTableLoadClient() {
-                    return adjustClient( (TopcatLoadClient)
-                                         super.createTableLoadClient() );
-                }
-            };
+            win_ = new TableLoadDialogWindow( LoadWindow.this, tld,
+                                              LoadWindow.this, tfact );
             if ( ! tld.isAvailable() ) {
                 setEnabled( false );
             }
@@ -315,6 +349,8 @@ public class LoadWindow extends AuxWindow {
      */
     private abstract class LoaderAction extends BasicAction {
 
+        private final Icon icon_;
+
         /**
          * Constructor.
          *
@@ -324,6 +360,7 @@ public class LoadWindow extends AuxWindow {
          */
         LoaderAction( String name, Icon icon, String description ) {
             super( name, icon, description );
+            icon_ = icon;
         }
 
         /**
@@ -338,62 +375,17 @@ public class LoadWindow extends AuxWindow {
             if ( loader == null ) {
                 return;
             }
-            final TopcatLoadClient client =
+            TopcatLoadClient client =
                 new TopcatLoadClient( LoadWindow.this,
                                       ControlWindow.getInstance() );
-            final JFrame win = new JFrame( "Loading Table..." );
-            win.setLocationRelativeTo( LoadWindow.this );
-            Container main = win.getContentPane();
-            TableLoadWorker worker =
-                    new TableLoadWorker( loader, adjustClient( client ) ) {
+            TableLoadWorker worker = new TableLoadWorker( loader, client ) {
                 protected void finish( boolean cancelled ) {
-                    win.dispose();
                     super.finish( cancelled );
+                    LoadWindow.this.removeWorker( this );
                 }
             };
-            main.setLayout( new BoxLayout( main, BoxLayout.Y_AXIS ) );
-            main.add( new JLabel( "Loading Table " + loader.getLabel() ) );
-            main.add( new JButton( worker.getCancelAction() ) );
-            main.add( worker.getProgressBar() );
-            win.pack();
-            win.setVisible( true );
+            LoadWindow.this.addWorker( worker, icon_ );
             worker.start();
         }
-    }
-
-    /**
-     * Tweaks a load client so that it (possibly) closes this window when
-     * it has completed a load sequence.
-     *
-     * @param  loadClient  input client
-     * @return   adjusted client
-     */
-    private TableLoadClient adjustClient( final TopcatLoadClient loadClient ) {
-        return new TableLoadClient() {
-            public StarTableFactory getTableFactory() {
-                return loadClient.getTableFactory();
-            }
-            public void startSequence() {
-                latestClient_ = this;
-                loadClient.startSequence();
-            }
-            public void setLabel( String label ) {
-                loadClient.setLabel( label );
-            }
-            public boolean loadSuccess( StarTable table ) {
-                return loadClient.loadSuccess( table );
-            }
-            public boolean loadFailure( Throwable error ) {
-                return loadClient.loadFailure( error );
-            }
-            public void endSequence( boolean cancelled ) {
-                loadClient.endSequence( cancelled );
-                if ( ! cancelled && loadClient.getLoadCount() > 0 &&
-                     ! stayOpenModel_.isSelected() && latestClient_ == this ) {
-                    LoadWindow.this.dispose();
-                    latestClient_ = null;
-                }
-            }
-        };
     }
 }
