@@ -54,6 +54,24 @@ public class TableLoadWorker extends Thread {
     }
 
     /**
+     * Returns the table loader used by this worker.
+     *
+     * @return  table loader
+     */
+    public TableLoader getLoader() {
+        return loader_;
+    }
+
+    /**
+     * Returns the table load client used by this worker.
+     *
+     * @return  load client
+     */
+    public TableLoadClient getLoadClient() {
+        return client_;
+    }
+
+    /**
      * Constructs a TableLoadWorker with a default progress bar.
      *
      * @param  loader  table loader, supplies tables
