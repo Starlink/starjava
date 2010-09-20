@@ -69,7 +69,8 @@ public abstract class TableLoadPanel extends JPanel {
             public void actionPerformed( ActionEvent evt ) {
                 assert worker_ == null;
                 worker_ = new TableLoadWorker( tld_.createTableLoader(),
-                                               getLoadClient(), progBar_ ) {
+                                               getLoadClient(),
+                                               getProgressBar() ) {
                     protected void finish( boolean cancelled ) {
                         super.finish( cancelled );
                         assert worker_ == this;
