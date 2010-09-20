@@ -236,6 +236,18 @@ public class ResourceIcon implements Icon {
         /* Dummy terminator. */
         dummy = DO_WHAT;
 
+    /** Blank icon. */
+    public static final Icon BLANK = new Icon() {
+        public int getIconHeight() {
+            return 24;
+        }
+        public int getIconWidth() {
+            return 24;
+        }
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+        }
+    };
+
     private String location;
     private Icon baseIcon;
     private Boolean resourceFound;
