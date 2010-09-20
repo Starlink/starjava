@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -127,10 +128,13 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
         sqlHolder.setBorder( BorderFactory.createEmptyBorder( 5, 0, 0, 0 ) );
 
         /* Menus. */
-        setMenus( new JMenu[] {
-            createSampleMenu( "HaloSamples", GavoSampleQuery.HALO_SAMPLES ),
-            createSampleMenu( "GalaxySamples", GavoSampleQuery.GAL_SAMPLES ),
-        } );
+        JMenu haloMenu =
+            createSampleMenu( "HaloSamples", GavoSampleQuery.HALO_SAMPLES );
+        haloMenu.setMnemonic( KeyEvent.VK_H );
+        JMenu galaxyMenu =
+            createSampleMenu( "GalaxySamples", GavoSampleQuery.GAL_SAMPLES );
+        galaxyMenu.setMnemonic( KeyEvent.VK_G );
+        setMenus( new JMenu[] { haloMenu, galaxyMenu } );
 
         /* Place the components in a container panel and return it. */
         JPanel queryPanel = new JPanel( new BorderLayout() ) {
