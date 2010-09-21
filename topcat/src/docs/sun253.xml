@@ -12111,6 +12111,7 @@ Some of the notable contributers are these:
 <li>Evanthia Hatziminaoglou (ESO)</li>
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Tim Jenness (JACH)</li>
+<li>JJ Kavelaars (NRC)</li>
 <li>Gerard Lemson (MPE Garching)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
 <li>Ben Maughan (Bristol)</li>
@@ -14013,6 +14014,8 @@ introduced since the last version:
         selector (for instance in a plot, match or concatenation window).</li>
     <li>HTML table output now writes cell contents which look like URLs 
         in HTML &lt;A&gt; tags.</li>
+    <li>Basic authorization (<code>http://user:pass@host/path</code>) on
+        table URLs handled.</li>
     </ul>
     </p></dd>
 

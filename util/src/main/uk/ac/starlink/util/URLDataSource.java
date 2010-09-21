@@ -3,6 +3,8 @@ package uk.ac.starlink.util;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -33,6 +35,10 @@ public class URLDataSource extends DataSource {
         //  Contact the resource.
         URLConnection connection = url.openConnection();
 
+        /* Handle basic authentication if present. */
+        String userInfo = url.getUserInfo();
+        setBasicAuth( connection, userInfo );
+
         //  Handle switching from HTTP to HTTPS (but not vice-versa, that's
         //  insecure), if a HTTP 30x redirect is returned, as Java doesn't do
         //  this by default.
@@ -43,6 +49,7 @@ public class URLDataSource extends DataSource {
                 String newloc = connection.getHeaderField( "Location" );
                 URL newurl = new URL( newloc );
                 connection = newurl.openConnection();
+                setBasicAuth( connection, userInfo );
             }
         }
 
@@ -64,5 +71,42 @@ public class URLDataSource extends DataSource {
      */
     public URL getURL() {
         return url;
+    }
+
+    /**
+     * Sets the basic authorization parameter on a URL request if a
+     * userinfo part is present.
+     *
+     * @param  connection  connection to adjust (must not have been opened yet)
+     * @param  userInfo  user info (user:pass) part of URL, or null
+     */
+    private static void setBasicAuth( URLConnection connection,
+                                      String userInfo ) {
+        if ( userInfo != null && userInfo.trim().length() > 0 ) {
+            connection.setRequestProperty( "Authorization",
+                                           "Basic " + b64encode( userInfo ) );
+        }
+    }
+
+    /**
+     * Encodes a string into base64, without line breaks.
+     *
+     * @param   txt  unencoded
+     * @return   encoded version of txt
+     */
+    private static String b64encode( String txt ) {
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            OutputStream b64out =
+                new Base64OutputStream( bout, txt.length() * 2 );
+            for ( int i = 0; i < txt.length(); i++ ) {
+                b64out.write( (byte) txt.charAt( i ) );
+            }
+            b64out.close();
+            return new String( bout.toByteArray(), "UTF-8" ).trim();
+        }
+        catch ( IOException e ) {
+            throw new AssertionError( e );
+        }
     }
 }

@@ -7378,6 +7378,8 @@ but my thanks are especially due to the following:
         (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     <li>HTML table output now writes cell contents which look like URLs
         in HTML &lt;A&gt; tags.</li>
+    <li>Basic authorization (<code>http://user:pass@host/path</code>) on
+        table URLs handled.</li>
     </ul>
     </p></dd>
 
