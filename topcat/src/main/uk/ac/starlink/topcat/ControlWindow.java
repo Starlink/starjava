@@ -92,7 +92,10 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
+import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoadWorker;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
@@ -112,6 +115,7 @@ import uk.ac.starlink.topcat.plot.LinesWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
@@ -414,11 +418,25 @@ public class ControlWindow extends AuxWindow
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
         MouseListener pasteLoader = new StringPaster() {
-            public void pasted( String loc ) {
-  // do something here
+            public void pasted( final String loc ) {
+                TableLoader loader = new TableLoader() {
+                    public String getLabel() {
+                        return "Pasted";
+                    }
+                    public StarTable[] loadTables( StarTableFactory tfact )
+                            throws IOException {
+                        return tfact
+                              .makeStarTables( DataSource
+                                              .makeDataSource( loc.trim() ),
+                                               null );
+                    }
+                };
+                runLoading( loader, new TopcatLoadClient( ControlWindow.this,
+                                                          ControlWindow.this ),
+                            null );
             }
         };
-        tablesList_.addMouseListener( pasteLoader );
+        listScroller.addMouseListener( pasteLoader );
 
         /* Configure load button for mouse actions. */
         JButton readButton = new JButton( readAct_ );
@@ -737,6 +755,33 @@ public class ControlWindow extends AuxWindow
         tablesModel_.remove( iLo );
         assert tablesModel_.get( iTo ) == tcFrom;
         tablesList_.setSelectionInterval( iTo, iTo );
+    }
+
+    /**
+     * Passes tables from a loader to a load client, presenting progress
+     * information and cancellation control as appropriate in the GUI.
+     * If the load client is a TopcatLoadClient, this will have the effect
+     * of loading the tables into the application.
+     * This method is the usual way of inserting new tables which may be
+     * time-consuming to load into the TOPCAT application.
+     *
+     * @param   loader  table source
+     * @param   loadClient  table destination
+     *                      (usually a {@link TopcatLoadClient})
+     * @param   icon   optional icon to accompany the progress GUI
+     */
+    public void runLoading( TableLoader loader,
+                            final TableLoadClient loadClient, Icon icon ) {
+        final LoadWindow loadWin = getLoadWindow();
+        TableLoadWorker worker = new TableLoadWorker( loader, loadClient ) {
+            protected void finish( boolean cancelled ) {
+                super.finish( cancelled );
+                loadWin.removeWorker( this );
+            }
+        };
+        loadWin.addWorker( worker, icon );
+        loadWin.makeVisible();
+        worker.start();
     }
 
     /**

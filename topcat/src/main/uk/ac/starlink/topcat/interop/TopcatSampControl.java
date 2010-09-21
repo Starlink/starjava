@@ -16,22 +16,33 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Logger;
+import javax.swing.Icon;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
+import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.gui.IconStore;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
-import uk.ac.starlink.topcat.LoadingToken;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatLoadClient;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.join.ConeMultiWindow;
@@ -61,6 +72,8 @@ public class TopcatSampControl {
     private final Map idMap_;
     private final Map highlightMap_;
     private int idCount_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.interop" );
 
     /**
      * Constructor.
@@ -468,25 +481,6 @@ public class TopcatSampControl {
     }
 
     /**
-     * Constructs a table given a format and a URL.
-     *
-     * @param   format  table format string (as used by StarTableFactory)
-     * @param   url   table location
-     * @param   token  loading token
-     */
-    private StarTable createTable( String format, String url,
-                                   LoadingToken token )
-            throws IOException {
-        File file = URLUtils.urlToFile( url );
-        DataSource datsrc =
-            file != null
-                ? (DataSource) new FileDataSource( file )
-                : (DataSource) new URLDataSource( new URL( url ) );
-        return controlWindow_.createMonitorFactory( token )
-                             .makeStarTable( datsrc, format );
-    }
-
-    /**
      * Try to find a TableWithRows object corresponding to a request.
      * The point about aggregating the table and the row map is that the
      * view of the table might have been different at the time communication
@@ -547,10 +541,12 @@ public class TopcatSampControl {
     /**
      * MessageHandler implementation for loading a table into TOPCAT.
      */
-    private class TableLoadHandler extends AbstractMessageHandler {
+    private class TableLoadHandler implements MessageHandler {
 
         private final String mtype_;
         private final String format_;
+        private final Subscriptions subs_;
+        private final IconStore iconStore_;
 
         /**
          * Constructor.
@@ -559,91 +555,176 @@ public class TopcatSampControl {
          * @param   format  STIL name for format specific table input handler
          */
         TableLoadHandler( String mtype, String format ) {
-            super( mtype );
             mtype_ = mtype;
             format_ = format;
+            subs_ = new Subscriptions();
+            subs_.addMType( mtype );
+            iconStore_ = new IconStore( ResourceIcon.SAMP );
         }
 
-        public Map processCall( HubConnection conn, final String senderId,
-                                final Message msg ) throws Exception {
+        public Map getSubscriptions() {
+            return subs_;
+        }
 
-            /* Place a marker in the control window to indicate that a
-             * table is being loaded. */
-            final LoadingToken token = new LoadingToken( "SAMP" );
-            controlWindow_.addLoadingToken( token );
+        public void receiveNotification( HubConnection connection,
+                                         String senderId, Message message )
+                throws IOException {
+            loadTable( connection, senderId, message, null );
+        }
 
-            /* Attempt to create a table from the message received. */
-            Throwable error;
-            StarTable table;
-            boolean success;
-            try {
-                table = createTable( format_,
-                                     (String) msg.getRequiredParam( "url" ),
-                                     token );
-                error = null;
-                success = true;
-            }
-            catch ( Throwable e ) {
-                error = e;
-                table = null;
-                success = false;
-            }
-
-            /* Do something with the success or failure of the table creation
-             * on the event dispatch thread. */
-            final boolean success0 = success;
-            final Throwable error0 = error;
-            final StarTable table0 = table;
-            final String tableId = (String) msg.getParam( "table-id" );
-            final String tableName = (String) msg.getParam( "name" );
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    if ( success0 ) {
-                        load( table0, tableId, tableName, senderId );
-                    }
-                    else {
-                        ErrorDialog.showError( controlWindow_,
-                                               "SAMP Load Error", error0,
-                                               "SAMP " + mtype_ + " failed" );
-                    }
-                    controlWindow_.removeLoadingToken( token );
-                }
-            } );
-
-            /* Pass success/failure status back to the caller as for a 
-             * message handler. */
-            if ( success0 ) {
-                return null;
-            }
-            else {
-                if ( error0 instanceof Error ) {
-                    throw (Error) error0;
-                }
-                else {
-                    throw (Exception) error0;
-                }
-            }
+        public void receiveCall( HubConnection connection, String senderId,
+                                 String msgId, Message message )
+                throws IOException {
+            loadTable( connection, senderId, message, msgId );
         }
 
         /**
-         * Loads a table into TOPCAT as the result of a SAMP message.
+         * Does the work of loading a table for this message handler.
          *
-         * @param   table  table to load
-         * @param   key    table id for later reference, or null
-         * @param   label  table label for informal naming
-         * @param   senderId  public identifier for sending client
+         * @param   connection  hub connection
+         * @param   senderId  sender ID
+         * @param   message   message
+         * @param   msgId  msgID for a Call, or null for a Notification
          */
-        private void load( StarTable table, String key, String label,
-                           String senderId ) {
+        private void loadTable( HubConnection connection, String senderId,
+                                Message message, String msgId )
+                throws IOException {
+
+            /* Get sender information. */
+            final String senderName = getClientName( senderId );
+            Client sender =
+                (Client) hubConnector_.getClientMap().get( senderId );
+            Icon senderIcon = sender == null
+                ? ResourceIcon.SAMP
+                : IconStore.sizeIcon( iconStore_.getIcon( sender ), 24 );
+
+            /* Prepare a loader which can load the table. */
+            String url = (String) message.getRequiredParam( "url" );
+            File file = URLUtils.urlToFile( url );
+            final DataSource datsrc =
+                file != null
+                     ? (DataSource) new FileDataSource( file )
+                     : (DataSource) new URLDataSource( new URL( url ) );
+            TableLoader loader = new TableLoader() {
+                public String getLabel() {
+                    return "SAMP, from " + senderName;
+                }
+                public StarTable[] loadTables( StarTableFactory tfact )
+                        throws IOException {
+                    return new StarTable[] { tfact.makeStarTable( datsrc,
+                                                                  format_ ) };
+                }
+            };
+
+            /* Prepare a load client which can consume the table. */
+            TableLoadClient loadClient =
+                new SampLoadClient( connection, senderName, message, msgId );
+
+            /* Pass control to the standard load method. */
+            controlWindow_.runLoading( loader, loadClient, senderIcon );
+        }
+    }
+
+    /**
+     * TableLoadClient used with the table load message handler.
+     * As well as inserting received tables into the application,
+     * it makes asynchronous responses to the hub if in Call mode.
+     */
+    private class SampLoadClient extends TopcatLoadClient {
+
+        private final HubConnection connection_;
+        private final String senderName_;
+        private final Message message_;
+        private final String msgId_;
+        private int nLoad_;
+        private boolean responded_;
+
+        /** 
+         * Constructor.
+         *
+         * @param   connection  hub connection
+         * @param   senderName  client name of sender
+         * @param   message   message
+         * @param   msgId  msgID for a Call, or null for a Notification
+         */
+        SampLoadClient( HubConnection connection, String senderName,
+                        Message message, String msgId ) {
+            super( controlWindow_, controlWindow_ );
+            connection_ = connection;
+            senderName_ = senderName;
+            message_ = message;
+            msgId_ = msgId;
+        }
+
+        public boolean loadSuccess( StarTable table ) {
+            respond( Response.createSuccessResponse( new HashMap() ) );
             String name = table.getName();
-            String title = name == null ? getClientName( senderId )
-                                        : name;
-            TopcatModel tcModel = controlWindow_.addTable( table, title, true );
-            if ( key != null && key.trim().length() > 0 ) {
-                idMap_.put( key, new TableWithRows( tcModel, null ) );
+            String title = name == null ? senderName_ : name;
+            TopcatModel tcModel =
+                controlWindow_.addTable( table, title, true );
+            String tableId = (String) message_.getParam( "table-id" );
+            if ( tableId != null && tableId.trim().length() > 0 ) {
+                idMap_.put( tableId, new TableWithRows( tcModel, null ) );
             }
-            if ( label != null && label.trim().length() > 0 ) {
-                tcModel.setLabel( label );
+            String tableName = (String) message_.getParam( "name" );
+            if ( tableName != null && tableName.trim().length() > 0 ) {
+                tcModel.setLabel( tableName );
+            }
+            nLoad_++;
+            return false;
+        }
+
+        public boolean loadFailure( Throwable error ) {
+            respond( Response.createErrorResponse( new ErrInfo( error ) ) );
+            return false;
+        }
+
+        public void endSequence( boolean cancelled ) {
+            super.endSequence( cancelled );
+            if ( cancelled ) {
+                respond( new Response( Response.ERROR_STATUS, new HashMap(),
+                                       new ErrInfo( "User cancelled load" ) ) );
+            }
+            else {
+                if ( ! responded_ ) {
+                    logger_.warning( "Neither success nor failure?" );
+                    respond( new Response( Response.ERROR_STATUS, new HashMap(),
+                                           new ErrInfo( "No table found" ) ) );
+                }
+            }
+        }
+
+        public int getLoadCount() {
+            return nLoad_;
+        }
+
+        /**
+         * Passes a given SAMP response back to the hub if required.
+         * This should be called exactly once; but invocations after the
+         * first one are checked for, and just generate a warning.
+         */
+        private void respond( final Response response ) {
+
+            /* Check we have not already responded. */
+            if ( responded_ ) {
+                logger_.warning( "Multiple responses attempted" );
+                return;
+            }
+            responded_ = true;
+
+            /* If this was a Call (not a Notification), then pass the 
+             * response back to the hub. */
+            if ( msgId_ != null ) {
+                new Thread() {
+                    public void run() {
+                        try {
+                            connection_.reply( msgId_, response );
+                        }
+                        catch ( SampException e ) {
+                            logger_.warning( "SAMP response failed: " + e );
+                        }
+                    }
+                }.start();
             }
         }
     }

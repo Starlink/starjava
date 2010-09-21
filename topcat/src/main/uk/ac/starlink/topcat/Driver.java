@@ -27,6 +27,7 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.Stilts;
@@ -376,12 +377,16 @@ public class Driver {
         if ( demo ) {
             StarTable[] demoTables = getDemoTables();
             for ( int i = 0; i < demoTables.length; i++ ) {
-                StarTable table = demoTables[ i ];
+                final StarTable table = demoTables[ i ];
                 if ( table != null ) {
-                    String loc = table
-                                .getParameterByName( DEMOLOC_INFO.getName() )
-                                .getValue().toString();
-                    addTableLater( table, "[Demo]:" + loc );
+                    final String loc =
+                        table.getParameterByName( DEMOLOC_INFO.getName() )
+                             .getValue().toString();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            control.addTable( table, "[Demo]:" + loc, false );
+                        }
+                    } );
                 }
             }
         }
@@ -389,53 +394,20 @@ public class Driver {
         /* Load the requested tables. */
         for ( int i = 0; i < nload; i++ ) {
             final String name = (String) names.get( i );
-            String hand = (String) handlers.get( i );
-            final LoadingToken token = new LoadingToken( name );
-            control.addLoadingToken( token );
-            StarTableFactory tf = control.createMonitorFactory( token );
-            try {
-                StarTable[] startabs =
-                    tf.makeStarTables( DataSource.makeDataSource( name ),
-                                       hand );
-                for ( int j = 0; j < startabs.length; j++ ) {
-                    String tName = startabs.length == 1
-                                 ? name
-                                 : name + "-" + ( j + 1 );
-                    addTableLater( tf.randomTable( startabs[ j ] ),
-                                   tName );
+            final String hand = (String) handlers.get( i );
+            TableLoader loader = new TableLoader() {
+                public String getLabel() {
+                    return name;
                 }
-            }
-            catch ( OutOfMemoryError e ) {
-                TopcatUtils.memoryError( e );
-            }
-            catch ( final Throwable e ) {
-                System.err.println( e.getMessage() );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( e instanceof TableFormatException ) {
-                           ErrorDialog.showError( getControlWindow(),
-                                                  "Load Error", e );
-                        }
-                        else if ( e instanceof FileNotFoundException ) {
-                           ErrorDialog.showError( getControlWindow(),
-                                                  "Load Error", e,
-                                                  "No such file: " + name );
-                        }
-                        else {
-                            ErrorDialog.showError( getControlWindow(),
-                                                   "Load Error", e,
-                                                   "Can't open table " + name );
-                        }
-                    }
-                } );
-            }
-            finally {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        control.removeLoadingToken( token );
-                    }
-                } );
-            }
+                public StarTable[] loadTables( StarTableFactory tfact )
+                        throws IOException {
+                    return tfact.makeStarTables( DataSource
+                                                .makeDataSource( name ),
+                                                 hand );
+                }
+            };
+            control.runLoading( loader, new TopcatLoadClient( null, control ),
+                                null );
         }
 
         /* Downgrade this thread's priority now; anything done after this 
@@ -493,23 +465,6 @@ public class Driver {
             control.setTableFactory( tabfact );
         }
         return control;
-    }
-
-    /**
-     * Schedules a table for posting to the Control Window in the event
-     * dispatch thread.  
-     *
-     * @param  table  the table to add
-     * @param  location  location string indicating the provenance of
-     *         <tt>table</tt> - preferably a URL or filename or something
-     */
-    private static void addTableLater( final StarTable table,
-                                       final String location ) {
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                getControlWindow().addTable( table, location, false );
-            }
-        } );
     }
 
     /**

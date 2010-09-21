@@ -8,8 +8,8 @@ import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
-import uk.ac.starlink.table.gui.TableLoadWorker;
 import uk.ac.starlink.table.gui.TableLoader;
 
 /**
@@ -26,6 +26,14 @@ public class TableLoadDialogWindow extends AuxWindow {
     private final LoadWindow loadWin_;
     private final ToggleButtonModel stayOpenModel_;
 
+    /**
+     * Constructor.
+     *
+     * @param  parent   parent component
+     * @param  tld     table load dialogue
+     * @param  loadWin  load window
+     * @param  tfact  sample table factory
+     */
     public TableLoadDialogWindow( Component parent, TableLoadDialog tld,
                                   LoadWindow loadWin, StarTableFactory tfact ) {
         super( tld.getName(), parent );
@@ -99,27 +107,20 @@ public class TableLoadDialogWindow extends AuxWindow {
             return;
         }
 
-        /* Acquire a TableLoadClient to accept the loaded table(s). */
-        final TopcatLoadClient client =
-            new TopcatLoadClient( this, ControlWindow.getInstance() );
-
-        /* Prepare to feed the tables from the loader to the client. */
-        TableLoadWorker worker = new TableLoadWorker( loader, client ) {
-            protected void finish( boolean cancelled ) {
-                super.finish( cancelled );
-                loadWin_.removeWorker( this );
-                if ( ! cancelled && client.getLoadCount() > 0 &&
+        /* Prepare a LoadClient which will close this window if appropriate
+         * when done. */
+        ControlWindow controlWin = ControlWindow.getInstance();
+        TableLoadClient loadClient = new TopcatLoadClient( this, controlWin ) {
+            public void endSequence( boolean cancelled ) {
+                super.endSequence( cancelled );
+                if ( ! cancelled && getLoadCount() > 0 &&
                      ! stayOpenModel_.isSelected() ) {
                     TableLoadDialogWindow.this.dispose();
                 }
             }
         };
 
-        /* Display progress for the load in the load window. */
-        loadWin_.addWorker( worker, tld_.getIcon() );
-        loadWin_.makeVisible();
-
-        /* Start the processing in a new thread. */
-        worker.start();
+        /* Perform asynchronous table loading. */
+        controlWin.runLoading( loader, loadClient, tld_.getIcon() );
     }
 }
