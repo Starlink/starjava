@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ListSelectionEvent;
@@ -162,7 +164,10 @@ public abstract class DalTableLoadDialog
     }
 
     public boolean acceptResourceIdList( String[] ivoids, String msg ) {
-        if ( queryComponent_.isVisible() ) {
+        Window container =
+            (Window) SwingUtilities
+                    .getAncestorOfClass( Window.class, queryComponent_ );
+        if ( container != null && container.isShowing() ) {
             RegistryQuery query;
             try {
                 query = queryFactory_.getIdListQuery( ivoids );
