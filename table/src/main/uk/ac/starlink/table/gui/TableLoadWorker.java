@@ -54,6 +54,16 @@ public class TableLoadWorker extends Thread {
     }
 
     /**
+     * Constructs a TableLoadWorker with a default progress bar.
+     *
+     * @param  loader  table loader, supplies tables
+     * @param  client  table load client, consumes tables into a GUI
+     */
+    public TableLoadWorker( TableLoader loader, TableLoadClient client ) {
+        this( loader, client, createDefaultProgressBar() );
+    }
+
+    /**
      * Returns the table loader used by this worker.
      *
      * @return  table loader
@@ -69,16 +79,6 @@ public class TableLoadWorker extends Thread {
      */
     public TableLoadClient getLoadClient() {
         return client_;
-    }
-
-    /**
-     * Constructs a TableLoadWorker with a default progress bar.
-     *
-     * @param  loader  table loader, supplies tables
-     * @param  client  table load client, consumes tables into a GUI
-     */
-    public TableLoadWorker( TableLoader loader, TableLoadClient client ) {
-        this( loader, client, createDefaultProgressBar() );
     }
 
     /**
