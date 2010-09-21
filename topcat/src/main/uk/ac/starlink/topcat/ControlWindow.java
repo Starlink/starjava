@@ -1005,9 +1005,10 @@ public class ControlWindow extends AuxWindow
      * @param  dalMultiWindowClass  DalMultiWindow subclass for
      *         dialogues which may be affected by the loaded IDs
      */
-    public boolean acceptResourceIdList( String[] ids, String msg,
-                                         Class dalLoadDialogClass,
-                                         Class dalMultiWindowClass ) {
+    public boolean acceptResourceIdList(
+                       String[] ids, String msg,
+                       Class<? extends DalTableLoadDialog> dalLoadDialogClass,
+                       Class<? extends DalMultiWindow> dalMultiWindowClass ) {
         boolean accepted = false;
 
         /* Validate. */
