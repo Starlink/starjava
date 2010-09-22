@@ -771,17 +771,9 @@ public class ControlWindow extends AuxWindow
      * @param   icon   optional icon to accompany the progress GUI
      */
     public void runLoading( TableLoader loader,
-                            final TableLoadClient loadClient, Icon icon ) {
-        final LoadWindow loadWin = getLoadWindow();
-        TableLoadWorker worker = new TableLoadWorker( loader, loadClient ) {
-            protected void finish( boolean cancelled ) {
-                super.finish( cancelled );
-                loadWin.removeWorker( this );
-            }
-        };
-        loadWin.addWorker( worker, icon );
-        loadWin.makeVisible();
-        worker.start();
+                            final TableLoadClient loadClient,
+                            final Icon icon ) {
+        new LoadRunner( loader, loadClient, icon, 750 ).start();
     }
 
     /**
@@ -1892,6 +1884,66 @@ public class ControlWindow extends AuxWindow
                 }
             } );
             return true;
+        }
+    }
+
+    /**
+     * An instance of this class handles passing tables from a TableLoader
+     * to a TableLoadClient, taking care of displaying progress in the
+     * load window if loading takes a while.
+     */
+    private class LoadRunner {
+        private final Icon icon_;
+        private final TableLoadWorker worker_;
+        private final Timer timer_;
+        private volatile boolean workerAdded_;
+        private volatile boolean loadFinished_;
+
+        /**
+         * Constructor.
+         *
+         * @param   loader  table source
+         * @param   loadClient  table destination
+         *                      (usually a {@link TopcatLoadClient})
+         * @param   delay  number of milliseconds before the progress bar is
+         *                 displayed
+         */
+        LoadRunner( TableLoader loader, TableLoadClient loadClient,
+                    Icon icon, int delay ) {
+            icon_ = icon;
+            worker_ = new TableLoadWorker( loader, loadClient ) {
+                protected void finish( boolean cancelled ) {
+                    super.finish( cancelled );
+                    loadFinished_ = true;
+                    if ( timer_.isRunning() ) {
+                        timer_.stop();
+                    }
+                    if ( workerAdded_ ) {
+                        assert loadWindow_ != null;
+                        loadWindow_.removeWorker( this );
+                    }
+                    else if ( loadWindow_ != null ) {
+                        loadWindow_.conditionallyClose();
+                    }
+                }
+            };
+            timer_ = new Timer( delay, new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    if ( ! loadFinished_ ) {
+                        getLoadWindow().addWorker( worker_, icon_ );
+                        workerAdded_ = true;
+                    }
+                }
+            } );
+            timer_.setRepeats( false );
+        }
+
+        /**
+         * Initiates the load.
+         */
+        public void start() {
+            worker_.start();
+            timer_.start();
         }
     }
 

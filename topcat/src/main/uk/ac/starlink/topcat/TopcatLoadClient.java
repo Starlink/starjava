@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadClient;
@@ -48,24 +49,36 @@ public class TopcatLoadClient implements TableLoadClient {
 
     public boolean loadSuccess( StarTable table ) {
         if ( table.getRowCount() == 0 ) {
-            JOptionPane.showMessageDialog( parent_, "Table contained no rows",
-                                           "Empty Table",
-                                           JOptionPane.ERROR_MESSAGE );
+            final String[] msg = { "Empty table " + label_ + ".",
+                                   "Table contained no rows." };
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    JOptionPane
+                        .showMessageDialog( parent_, msg,
+                                            "Empty Table",
+                                            JOptionPane.ERROR_MESSAGE );
+                }
+            } );
         }
         else {
-            controlWin_.addTable( table, label_, false );
+            controlWin_.addTable( table, label_, true );
             nLoad_++;
         }
         return true;
     }
 
-    public boolean loadFailure( Throwable error ) {
-        if ( error instanceof OutOfMemoryError ) {
-            TopcatUtils.memoryError( (OutOfMemoryError) error );
-        }
-        else {
-            ErrorDialog.showError( parent_, "Load Error", error );
-        }
+    public boolean loadFailure( final Throwable error ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                if ( error instanceof OutOfMemoryError ) {
+                    TopcatUtils.memoryError( (OutOfMemoryError) error );
+                }
+                else {
+                    String[] msg = { "Error loading " + label_ + "." };
+                    ErrorDialog.showError( parent_, "Load Error", error, msg );
+                }
+            }
+        } );
         return false;
     }
 

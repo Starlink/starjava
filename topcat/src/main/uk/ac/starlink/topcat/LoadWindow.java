@@ -212,9 +212,7 @@ public class LoadWindow extends AuxWindow {
                 try {
                     StarTable table = tfact.makeStarTable( loc );
                     ControlWindow.getInstance().addTable( table, loc, true );
-                    if ( ! stayOpenModel_.isSelected() ) {
-                        LoadWindow.this.dispose();
-                    }
+                    conditionallyClose();
                 }
                 catch ( IOException e ) {
                     ErrorDialog.showError( LoadWindow.this, "Load Failure", e,
@@ -292,6 +290,7 @@ public class LoadWindow extends AuxWindow {
      */
     public void addWorker( TableLoadWorker worker, Icon icon ) {
         workerStack_.addWorker( worker, icon );
+        makeVisible();
     }
 
     /**
@@ -302,6 +301,19 @@ public class LoadWindow extends AuxWindow {
      */
     public void removeWorker( TableLoadWorker worker ) {
         workerStack_.removeWorker( worker );
+        conditionallyClose();
+    }
+
+    /**
+     * Indicates that an activity has finished which might cause this window
+     * to close.  This may or may not cause the window to close, depending on
+     * its internal state.
+     */
+    public void conditionallyClose() {
+        if ( workerStack_.getComponentCount() == 0 &&
+             ! stayOpenModel_.isSelected() && isShowing() ) {
+            dispose();
+        }
     }
 
     /**
