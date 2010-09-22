@@ -11,11 +11,11 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
-import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.topcat.ControlWindow;
-import uk.ac.starlink.topcat.Driver;
+import uk.ac.starlink.topcat.LoadWindow;
 import uk.ac.starlink.topcat.join.DalMultiWindow;
 
 public class SampControlTest extends TestCase {
@@ -71,9 +71,7 @@ public class SampControlTest extends TestCase {
          * by ControlWindow for matching against the classes held in
          * resourcehandler instances. */
         TableLoadDialog[] tlds =
-            new TableLoadChooser( controlWindow_.getTableFactory(),
-                                  TableLoadChooser.makeDefaultLoadDialogs(),
-                                  Driver.KNOWN_DIALOGS )
+            new LoadWindow( null, new StarTableFactory( true ) )
            .getKnownDialogs();
         DalMultiWindow[] mws = new DalMultiWindow[] {
             controlWindow_.getConeMultiWindow(),
