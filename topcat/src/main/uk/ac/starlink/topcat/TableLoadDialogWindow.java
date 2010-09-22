@@ -43,7 +43,7 @@ public class TableLoadDialogWindow extends AuxWindow {
         /* Add a model and button to control whether the window stays open
          * after a completed load. */
         stayOpenModel_ =
-            new ToggleButtonModel( "Stay Open", ResourceIcon.DO_WHAT,
+            new ToggleButtonModel( "Stay Open", ResourceIcon.KEEP_OPEN,
                                    "Keep window open even after " +
                                    "successful load" );
         getToolBar().add( stayOpenModel_.createToolbarButton() );

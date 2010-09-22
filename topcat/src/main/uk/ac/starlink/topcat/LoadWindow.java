@@ -87,7 +87,7 @@ public class LoadWindow extends AuxWindow {
 
         /* Define action for whether to stay open after loading. */
         stayOpenModel_ =
-            new ToggleButtonModel( "Stay Open", ResourceIcon.DO_WHAT,
+            new ToggleButtonModel( "Stay Open", ResourceIcon.KEEP_OPEN,
                                    "Keep window open even after " +
                                    "successful load" );
         getToolBar().add( stayOpenModel_.createToolbarButton() );
