@@ -8,16 +8,25 @@ package uk.ac.starlink.topcat;
  */
 public class LoadingToken {
 
-    private final String text_;
+    private String targetText_;
     private String progText_;
 
     /**
      * Constructor.
      *
-     * @param  text  short description of item being loaded
+     * @param  targetText  short description of item being loaded
      */
-    public LoadingToken( String text ) {
-        text_ = text;
+    public LoadingToken( String targetText ) {
+        targetText_ = targetText;
+    }
+
+    /**
+     * Sets the target text.
+     *
+     * @param  targetText  a short description of the item being loaded.
+     */
+    public void setTarget( String targetText ) {
+        targetText_ = targetText;
     }
 
     /**
@@ -32,7 +41,7 @@ public class LoadingToken {
     public String toString() {
         StringBuffer sbuf = new StringBuffer()
             .append( "Loading " )
-            .append( text_ );
+            .append( targetText_ );
         if ( progText_ != null ) {
             sbuf.append( ' ' )
                 .append( progText_ );

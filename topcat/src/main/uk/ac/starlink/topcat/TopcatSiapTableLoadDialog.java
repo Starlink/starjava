@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
-import javax.swing.JDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 
 /**
@@ -10,14 +9,14 @@ import uk.ac.starlink.vo.SiapTableLoadDialog;
  * @author   Mark Taylor
  * @since    16 Aug 2010
  */
-public class SiapTableLoadDialog2 extends SiapTableLoadDialog {
+public class TopcatSiapTableLoadDialog extends SiapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
-    public SiapTableLoadDialog2() {
+    public TopcatSiapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "siap" );
     }
-    public JDialog createDialog( Component parent ) {
-        JDialog dialog = super.createDialog( parent );
-        dialog.getJMenuBar().add( adjuster_.createInteropMenu() );
-        return dialog;
+    public Component createQueryComponent() {
+        Component comp = super.createQueryComponent();
+        adjuster_.addInteropMenu();
+        return comp;
     }
 }

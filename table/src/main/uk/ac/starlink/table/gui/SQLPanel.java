@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
@@ -10,25 +11,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.jdbc.Connector;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
+import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 
 /**
- * A popup dialog for eliciting a JDBC access type URL string from the user.
- * This class itself could be used on its own to get a JDBC connection, 
- * but to get the URL-like string for reading or writing a table see its
- * subclasses {@link SQLReadDialog} and {@link SQLWriteDialog}, which
- * know about the 'ref' part of the URLs used by 
- * {@link uk.ac.starlink.table.jdbc.JDBCFormatter} and
- * {@link uk.ac.starlink.table.jdbc.JDBCHandler}.
+ * A component for eliciting a JDBC access type URL string from the user.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class SQLDialog extends JOptionPane {
+public class SQLPanel extends JPanel {
 
     private LabelledComponentStack stack;
     private JComboBox protoField;
@@ -43,18 +39,16 @@ public class SQLDialog extends JOptionPane {
         Logger.getLogger( "uk.ac.starlink.table.gui" );
 
     /**
-     * Constructs an SQLDialog using a given annotation for the 'ref'
+     * Constructs an SQLPanel using a given annotation for the 'ref'
      * part of the URL (the part after the '#' character).
      *
      * @param   refString  the string used for annotating
      */
-    public SQLDialog( String refString ) {
-
-        /* JOptionPane configuration. */
+    public SQLPanel( String refString ) {
+        super( new BorderLayout() );
         stack = new LabelledComponentStack();
+        add( stack, BorderLayout.CENTER );
         Font inputFont = stack.getInputFont();
-        setMessage( stack );
-        setOptionType( OK_CANCEL_OPTION );
 
         /* Protocol input field. */
         protoField = new JComboBox();
@@ -111,6 +105,9 @@ public class SQLDialog extends JOptionPane {
             passField.setDocument( tAuth.getPasswordDocument() );
         }
         else {
+            if ( auth instanceof SwingAuthenticator ) {
+                ((SwingAuthenticator) auth).setParentComponent( this );
+            }
             try {
                 String[] up = auth.authenticate();
                 userField.setText( up[ 0 ] );

@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -38,6 +39,7 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
@@ -126,9 +128,18 @@ public class SSAServerFrame
      */
     public void updateServers()
     {
-        SSARegistryQueryDialog d = new SSARegistryQueryDialog();
-        if ( d.showLoadDialog( this, new StarTableFactory() ) ) {
-            StarTable table = d.getStarTable();
+        StarTable[] tables = null;
+        try {
+            tables = TableLoadPanel
+                    .loadTables( this, new SSARegistryQueryDialog(),
+                                 new StarTableFactory() );
+        }
+        catch ( IOException e ) {
+            ErrorDialog.showError( this, "Registry query failed", e );
+            return;
+        }
+        if ( tables != null && tables.length > 0 ) {
+            StarTable table = tables[ 0 ];
             if ( table instanceof BeanStarTable ) {
                 Object[] resources = ((BeanStarTable)table).getData();
                 for ( int i = 0; i < resources.length; i++ ) {

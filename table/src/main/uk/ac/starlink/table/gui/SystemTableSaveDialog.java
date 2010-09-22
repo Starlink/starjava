@@ -39,7 +39,7 @@ public class SystemTableSaveDialog implements TableSaveDialog {
     }
 
     public Icon getIcon() {
-        return SystemTableLoadDialog.getSystemBrowserIcon();
+        return SystemBrowser.getSystemBrowserIcon();
     }
 
     public boolean isAvailable() {

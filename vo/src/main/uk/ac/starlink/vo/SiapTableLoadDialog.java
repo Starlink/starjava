@@ -14,6 +14,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -45,8 +46,8 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         setIconUrl( SiapTableLoadDialog.class.getResource( "sia.gif" ) );
     }
 
-    protected Component createQueryPanel() {
-        Component queryPanel = super.createQueryPanel();
+    protected Component createQueryComponent() {
+        Component queryPanel = super.createQueryComponent();
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
@@ -67,7 +68,7 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         return queryPanel;
     }
 
-    public TableSupplier getTableSupplier() {
+    public TableLoader createTableLoader() {
         String serviceUrl = getServiceUrl();
         checkUrl( serviceUrl );
         double ra = raField_.getValue();
@@ -86,14 +87,14 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
         } ) );
         metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
         final String summary = getQuerySummary( serviceUrl, size );
-        return new TableSupplier() {
-            public StarTable getTable( StarTableFactory factory,
-                                       String format ) throws IOException {
+        return new TableLoader() {
+            public StarTable[] loadTables( StarTableFactory factory )
+                    throws IOException {
                 StarTable st = query.execute( factory );
                 st.getParameters().addAll( metadata );
-                return st;
+                return new StarTable[] { st };
             }
-            public String getTableID() {
+            public String getLabel() {
                 return summary;
             }
         };

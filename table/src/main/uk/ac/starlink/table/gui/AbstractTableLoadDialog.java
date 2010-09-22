@@ -1,83 +1,64 @@
 package uk.ac.starlink.table.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URL;
-import javax.swing.AbstractAction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
+import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
+import javax.swing.JComboBox;
+import javax.swing.JMenu;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.storage.MonitorStoragePolicy;
-import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
- * Skeleton implementation of a {@link TableLoadDialog}.
- * Concrete subclasses should implement the abstract methods
- * {@link #submitLoad} and {@link #cancelLoad}.
+ * Partial implementation of TableLoadDialog interface.
  *
- * <p>Subclasses are encouraged to override the
- * {@link javax.swing.JComponent#setEnabled} method to en/disable
- * child components which ought not to be active while a load is actually
- * taking place.  The overriding implementation ought to call
- * <tt>super.setEnabled</tt>.
- *
- * @author   Mark Taylor (Starlink)
- * @since    8 Oct 2009
+ * @author   Mark Taylor
+ * @since    13 Sept 2010
  */
 public abstract class AbstractTableLoadDialog implements TableLoadDialog {
 
     private final String name_;
     private final String description_;
-    private final Action okAction_;
-    private final Action cancelAction_;
-    private final JProgressBar progBar_;
-    private final ComboBoxModel emptyModel_;
-    private Component queryPanel_;
+    private final FormatComboBoxModel formatSelectorModel_;
+    private Component queryComponent_;
+    private JMenu[] menus_;
+    private Action[] toolbarActions_;
     private Icon icon_;
-    private JDialog dialog_;
-    private StarTableFactory factory_;
-    private ComboBoxModel formatModel_;
-    private TableConsumer consumer_;
+    private String[] formats_;
+    private Action submitAct_;
+    private boolean configured_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.gui" );
 
     /**
      * Constructor.
-     * 
-     * @param  name  dialogue name (typically used as text of a button)
-     * @param  description  dialogue description (typically used as 
-     *         tooltip text)
+     *
+     * @param  name  dialogue name
+     * @param  description  dialogue description
      */
-    public AbstractTableLoadDialog( String name, String description ) {
+    protected AbstractTableLoadDialog( String name, String description ) {
         name_ = name;
         description_ = description;
-        okAction_ = new AbstractAction( "OK" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                ok();
-            }
-        };
-        cancelAction_ = new AbstractAction( "Cancel" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                cancel();
-            }
-        };
-        progBar_ = new JProgressBar();
-        progBar_.setStringPainted( true );
-        progBar_.setString( "" );
-        emptyModel_ = new DefaultComboBoxModel();
+        formats_ = new String[ 0 ];
+        formatSelectorModel_ = new FormatComboBoxModel();
+        menus_ = new JMenu[ 0 ];
+        toolbarActions_ = new Action[ 0 ];
     }
+
+    /**
+     * Constructs the query component used by this dialogue.
+     * Called only once (lazily).
+     *
+     * @return  query component
+     */
+    protected abstract Component createQueryComponent();
 
     public String getName() {
         return name_;
@@ -91,8 +72,53 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
         return icon_;
     }
 
+    public Component getQueryComponent() {
+        if ( queryComponent_ == null ) {
+            if ( ! configured_ ) {
+                logger_.warning( "getQueryComponent called before configure" );
+            }
+            queryComponent_ = createQueryComponent();
+        }
+        return queryComponent_;
+    }
+
+    public JMenu[] getMenus() {
+        return menus_;
+    }
+
+    /**
+     * Sets the menus for this dialogue.
+     *
+     * @param  menus  menu array
+     */
+    public void setMenus( JMenu[] menus ) {
+        menus_ = menus;
+    }
+
+    public Action[] getToolbarActions() {
+        return toolbarActions_;
+    }
+
+    /**
+     * Sets the toolbar actions for this dialogue.
+     *
+     * @param  acts  toolbar actions
+     */
+    protected void setToolbarActions( Action[] acts ) {
+        toolbarActions_ = acts;
+    }
+
+    /**
+     * The default implementation returns true.
+     */
+    public boolean isAvailable() {
+        return true;
+    }
+
     /**
      * Sets the icon to associate with this dialogue.
+     *
+     * @param   icon   icon
      */
     public void setIcon( Icon icon ) {
         icon_ = icon;
@@ -108,230 +134,66 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
         setIcon( iconUrl == null ? null : new ImageIcon( iconUrl ) );
     }
 
-    /**
-     * Should feed a table or tables to the given consumer based on the
-     * current state of this component.  This method is invoked when the
-     * OK action is selected by the user.
-     *
-     * @param  dialog  dialogue currently containing this component
-     * @param  tfact   table factory to use for generating tables
-     * @param  format  selected table format;
-     *                 it may or may not be appropriate to ignore this hint
-     * @param  consumer  destination for loaded table or tables
-     */
-    protected abstract void submitLoad( JDialog dialog, StarTableFactory tfact,
-                                        String format, TableConsumer consumer )
-            throws Exception;
+    public void configure( StarTableFactory tfact, Action submitAct ) {
+        configured_ = true;
 
-    /**
-     * Should interrupt any current load action, so that any pending load
-     * which is not complete should avoid passing tables to the consumer
-     * in the future, and preferably any work in progress should be 
-     * stopped.
-     */
-    protected abstract void cancelLoad();
-
-    /**
-     * Returns the component which contains all the implementation-specific
-     * GUI components, including query controls etc.  Only called once.
-     *
-     * @return  returns the component containing query controls
-     */
-    protected abstract Component createQueryPanel();
-
-    /**
-     * Returns the lazily-constructed query panel.
-     *
-     * @return  query panel
-     */
-    public Component getQueryPanel() {
-        if ( queryPanel_ == null ) {
-            queryPanel_ = createQueryPanel();
-        }
-        return queryPanel_;
-    }
-
-    public boolean showLoadDialog( Component parent,
-                                   StarTableFactory factory,
-                                   ComboBoxModel formatModel,
-                                   TableConsumer consumer ) {
-
-        /* Check state. */
-        if ( dialog_ != null ) {
-            throw new IllegalStateException( "Dialogue already active" );
+        /* Set formats. */
+        FormatComboBoxModel fcm = formatSelectorModel_;
+        fcm.fireAllRemoved();
+        formats_ =
+            (String[]) tfact.getKnownFormats().toArray( new String[ 0 ] );
+        fcm.fireAllAdded();
+        if ( fcm.getSelectedItem() == null && fcm.getSize() > 0 ) {
+            fcm.setSelectedItem( fcm.getElementAt( 0 ) );
         }
 
-        /* Construct a modal dialogue containing this component. */
-        JDialog dia = createDialog( parent );
-
-        /* Set up state used only when the dialogue is active. */
-        dialog_ = dia;
-        factory_ = factory;
-        formatModel_ = formatModel;
-        consumer_ = consumer;
-        setFormatModel( formatModel );
-
-        /* Pop up the modal dialogue. */
-        progBar_.setValue( 0 );
-        progBar_.setIndeterminate( false );
-        progBar_.setString( "" );
-        dia.setVisible( true );
-        setBusy( false );
-
-        /* Clear members used only when the dialogue is active. */
-        boolean ok = dia == dialog_;
-        dialog_ = null;
-        factory_ = null;
-        formatModel_ = null;
-        consumer_ = null;
-        setFormatModel( emptyModel_ );
-
-        /* Return status. */
-        return ok;
+        /* Set submission action. */
+        submitAct_ = submitAct;
     }
 
     /**
-     * Constructs a dialogue based on the component returned by 
-     * {@link #createQueryPanel}; that component forms
-     * the main part of the dialogue window, with an OK and Cancel button
-     * shown as well.  This method may be overridden by subclasses to
-     * customise the dialogue's appearance.
+     * Returns a new combo box which can be used to select table formats
+     * from the ones known by this dialogue.
+     * This method may be called multiple times, but the same model is
+     * used in each case.
      *
-     * @param  parent component
-     * @return  modal dialogue
+     * @return  table format combo box
      */
-    protected JDialog createDialog( Component parent ) {
-
-        /* Work out the new dialogue's master. */
-        Frame frame = null;
-        if ( parent != null ) {
-            frame = parent instanceof Frame
-                  ? (Frame) parent
-                  : (Frame) SwingUtilities.getAncestorOfClass( Frame.class,
-                                                               parent );
-        }
-
-        /* Create a panel containing OK and Cancel buttons. */
-        JComponent controlPanel = Box.createHorizontalBox();
-        controlPanel.add( Box.createHorizontalGlue() );
-        controlPanel.add( new JButton( cancelAction_ ) );
-        controlPanel.add( Box.createHorizontalStrut( 5 ) );
-        controlPanel.add( new JButton( okAction_ ) );
-        controlPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-
-        /* Create the dialogue containing the query panel. */
-        JDialog dialog = new JDialog( frame, getName(), true );
-        JComponent main = new JPanel( new BorderLayout() );
-        main.add( getQueryPanel(), BorderLayout.CENTER );
-        main.add( controlPanel, BorderLayout.SOUTH );
-        dialog.getContentPane().setLayout( new BorderLayout() );
-        dialog.getContentPane().add( main, BorderLayout.CENTER );
-        dialog.getContentPane().add( progBar_, BorderLayout.SOUTH );
-
-        /* Prepare and return dialogue. */
-        dialog.setLocationRelativeTo( parent );
-        dialog.pack();
-        return dialog;
+    public JComboBox createFormatSelector() {
+        return new JComboBox( formatSelectorModel_ );
     }
 
     /**
-     * Installs a table format selector intot this dialogue.
-     * If it makes sense for a concrete dialogue implementation to
-     * display format selection, it should override this method in
-     * such a way as to present the format model to the user for
-     * selection (presumably by setting it as the model of a
-     * visible {@link javax.swing.JComboBox}).
+     * Returns the table format currently selected by any of the format
+     * selectors.
      *
-     * <p>The default implementation does nothing (suitable for classes
-     * which can't make sense of varying table formats).
+     * @return  selected table format
+     * @see     #createFormatSelector
+     */
+    public String getSelectedFormat() {
+        return (String) formatSelectorModel_.getSelectedItem();
+    }
+
+    public Action getSubmitAction() {
+        return submitAct_;
+    }
+
+    /**
+     * Invokes this dialogue's Submit Action with a non-descript ActionEvent.
+     */
+    protected void submit() {
+        getSubmitAction()
+       .actionPerformed( new ActionEvent( AbstractTableLoadDialog.this,
+                                          0, "Submit" ) );
+    }
+
+    /**
+     * Sets this dialogue's Submit Action's enabledness state.
      *
-     * @param   formatModel  selector model to install
+     * @param  enabled   true iff the submit action can be invoked
      */
-    protected void setFormatModel( ComboBoxModel formatModel ) {
-    }
-
-    /**
-     * Returns the action associated with hitting the OK dialogue button.
-     *
-     * @return  OK action
-     */
-    protected Action getOkAction() {
-        return okAction_;
-    }
-
-    /**
-     * Returns the action associated with hitting the Cancel dialogue button.
-     *
-     * @return  Cancel action
-     */
-    protected Action getCancelAction() {
-        return cancelAction_;
-    }
-
-    /**
-     * Returns the progress bar at the bottom of the dialogue window.
-     */
-    protected JProgressBar getProgessBar() {
-        return progBar_;
-    }
-
-    /**
-     * Gives visible indication (including disabling components) that this
-     * component is active or not.
-     *
-     * @param  busy  whether we're busy
-     */
-    protected void setBusy( boolean busy ) {
-        getQueryPanel().setEnabled( ! busy );
-        okAction_.setEnabled( ! busy );
-    }
-
-    /**
-     * Indicates whether the given dialogue is currently being displayed
-     * to the user containing this component.
-     *
-     * @param  dialog  dialog window to test
-     * @return   true  iff <code>dialog</code> is being displayed
-     */
-    protected boolean isActive( JDialog dialog ) {
-        return dialog == dialog_;
-    }
-
-    /**
-     * Invoked when the OK button is pressed.
-     */
-    private void ok() {
-        if ( dialog_ == null ) {
-            return;
-        }
-        Object formatItem = formatModel_.getSelectedItem();
-        String format = formatItem == null ? null : formatItem.toString();
-        StarTableFactory tf = new StarTableFactory( factory_ );
-        ProgressBarTableSink progSink = new ProgressBarTableSink( progBar_ );
-        tf.setStoragePolicy( new MonitorStoragePolicy( tf.getStoragePolicy(),
-                                                       progSink ) );
-        try {
-            submitLoad( dialog_, tf, format, consumer_ );
-        }
-        catch ( Exception e ) {
-            setBusy( false );
-            ErrorDialog.showError( dialog_, "Dialogue Error", e );
-            return;
-        }
-        finally {
-            progSink.dispose();
-        }
-    }
-
-    /**
-     * Invoked when the Cancel button is pressed.
-     */
-    private void cancel() {
-        if ( dialog_ != null ) {
-            dialog_.dispose();
-            dialog_ = null;
-        }
-        cancelLoad();
+    protected void setEnabled( boolean enabled ) {
+        getSubmitAction().setEnabled( enabled );
     }
 
     /**
@@ -352,5 +214,33 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
             msg = th.getClass().getName();
         }
         return (IOException) new IOException( msg ).initCause( th );
+    }
+
+    /**
+     * ComboBoxModel for selecting table formats from the list of those known
+     * by this dialogue.
+     */
+    private class FormatComboBoxModel extends AbstractListModel
+                                      implements ComboBoxModel {
+        private Object selected_;
+        public Object getElementAt( int ix ) {
+            return ix == 0 ? StarTableFactory.AUTO_HANDLER
+                           : formats_[ ix - 1 ];
+        }
+        public int getSize() {
+            return formats_.length + 1;
+        }
+        public Object getSelectedItem() {
+            return selected_;
+        }
+        public void setSelectedItem( Object item ) {
+            selected_ = item;
+        }
+        void fireAllRemoved() {
+            fireIntervalRemoved( this, 0, getSize() );
+        }
+        void fireAllAdded() {
+            fireIntervalAdded( this, 0, getSize() );
+        }
     }
 }

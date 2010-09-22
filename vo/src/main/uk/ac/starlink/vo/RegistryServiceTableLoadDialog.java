@@ -15,7 +15,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
-import uk.ac.starlink.table.gui.BasicTableLoadDialog;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 
 /**
  * Partial implementation of a table load dialogue which has two parts:
@@ -24,14 +24,14 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
  * Concrete subclasses should populate the control box 
  * {@link #getControlBox} with service-specific controls and implement
  * the abstract 
- * {@link uk.ac.starlink.table.gui.BasicTableLoadDialog#getTableSupplier}
+ * {@link uk.ac.starlink.table.gui.TableLoadDialog#createTableLoader}
  * method appropriately.
  *
  * @author   Mark Taylor (Starlink)
  * @since    6 Jan 2005
  */
 public abstract class RegistryServiceTableLoadDialog 
-                      extends BasicTableLoadDialog {
+                      extends AbstractTableLoadDialog {
 
     private final String name_;
     private final RegistryQueryFactory queryFactory_;
@@ -72,7 +72,7 @@ public abstract class RegistryServiceTableLoadDialog
      */
     public abstract boolean acceptResourceIdList( String[] ivoids, String msg );
 
-    protected Component createQueryPanel() {
+    protected Component createQueryComponent() {
         JPanel queryPanel = new JPanel( new BorderLayout() ) {
             public void setEnabled( boolean enabled ) {
                 super.setEnabled( enabled );
@@ -102,6 +102,11 @@ public abstract class RegistryServiceTableLoadDialog
             regPanel_.performAutoQuery( msg );
         }
 
+        /* Menus. */
+        JMenu metaMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
+        metaMenu.setMnemonic( KeyEvent.VK_C );
+        setMenus( new JMenu[] { metaMenu } );
+
         /* Cosmetics. */
         Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
@@ -126,14 +131,10 @@ public abstract class RegistryServiceTableLoadDialog
         return queryPanel;
     }
 
-    public boolean isAvailable() {
-        return true;
-    }
-
     /**
      * Returns the component within which service-specific components should
      * be placed.
-     * Will return null if called before {@link #createQueryPanel}.
+     * Will return null if called before {@link #createQueryComponent}.
      *
      * @return  control box
      */
@@ -143,7 +144,7 @@ public abstract class RegistryServiceTableLoadDialog
 
     /**
      * Returns the registry panel for this dialogue.
-     * Will return null if called before {@link #createQueryPanel}.
+     * Will return null if called before {@link #createQueryComponent}.
      *
      * @return  registry panel
      */
@@ -172,19 +173,5 @@ public abstract class RegistryServiceTableLoadDialog
      */
     public RegistryQueryFactory getQueryFactory() {
         return queryFactory_;
-    }
-
-    protected JDialog createDialog( Component parent ) {
-
-        /* Embellish the dialogue with a menu allowing selection of which
-         * columns are visible in the displayed registry table. */
-        JDialog dia = super.createDialog( parent );
-        if ( dia.getJMenuBar() == null ) {
-            dia.setJMenuBar( new JMenuBar() );
-        }
-        JMenu metaMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
-        metaMenu.setMnemonic( KeyEvent.VK_C );
-        dia.getJMenuBar().add( metaMenu );
-        return dia;
     }
 }

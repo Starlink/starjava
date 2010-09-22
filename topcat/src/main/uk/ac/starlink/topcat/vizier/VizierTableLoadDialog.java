@@ -45,7 +45,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.gui.MultiTableLoadDialog;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.URLDataSource;
@@ -61,7 +62,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @author   Thomas Boch
  * @since    19 Oct 2009
  */
-public class VizierTableLoadDialog extends MultiTableLoadDialog {
+public class VizierTableLoadDialog extends AbstractTableLoadDialog {
 
     private JComboBox serverSelector_;
     private SkyPositionEntry skyEntry_;
@@ -102,7 +103,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
         setIcon( ResourceIcon.VIZIER );
     }
 
-    protected Component createQueryPanel() {
+    protected Component createQueryComponent() {
 
         /* Server panel. */
         JComponent serverBox = Box.createHorizontalBox();
@@ -323,7 +324,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                            : CgiQuery.formatDouble( srField_.getValue() );
     }
 
-    protected TablesSupplier getTablesSupplier() {
+    public TableLoader createTableLoader() {
 
         /* Identify the catalogue to query. */
         JTable catTable = getCurrentMode().getQueryableTable();
@@ -381,12 +382,11 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
 
         /* Construct and return an object which will submit the query. */
         final String id = queryable.getQueryId();
-        return new TablesSupplier() {
-            public String getTablesID() {
+        return new TableLoader() {
+            public String getLabel() {
                 return id;
             }
-            public StarTable[] getTables( StarTableFactory tfact,
-                                          String format )
+            public StarTable[] loadTables( StarTableFactory tfact )
                     throws IOException {
                 logger_.info( "VizieR query: " + url );
                 StarTable[] tables =
@@ -396,12 +396,15 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                     if ( tables[ i ].getRowCount() != 0 ) {
                         tList.add( tables[ i ] );
                     }
+                    else {
+                        logger_.info( "Ignoring VizieR table #" + ( i + 1 ) 
+                                    + "with no rows" );
+                    }
                 }
                 return (StarTable[]) tList.toArray( new StarTable[ 0 ] );
             }
         };
     }
-
 
     /**
      * Returns the VizierMode currently visible (selected by the user).
@@ -419,7 +422,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
     private void updateActions() {
         boolean hasCatalog =
             getCurrentMode().getQueryableTable().getSelectedRow() >= 0;
-        getOkAction().setEnabled( hasCatalog && hasTarget() );
+        setEnabled( hasCatalog && hasTarget() );
     }
 
     /**
@@ -437,7 +440,7 @@ public class VizierTableLoadDialog extends MultiTableLoadDialog {
                 Toolkit.getDefaultToolkit().beep();
                 return;
             }
-            VizierInfo vizinfo = new VizierInfo( getQueryPanel(), url );
+            VizierInfo vizinfo = new VizierInfo( getQueryComponent(), url );
             vizinfo_ = vizinfo;
             for ( int i = 0; i < vizModes_.length; i++ ) {
                 vizModes_[ i ].setVizierInfo( vizinfo );

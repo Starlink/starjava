@@ -2,10 +2,12 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -17,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ListSelectionEvent;
@@ -25,7 +28,6 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.gui.TableConsumer;
 
 /**
  * Table load dialogue abstract superclass for spatial DAL-like queries.
@@ -41,7 +43,7 @@ public abstract class DalTableLoadDialog
     private final KeywordServiceQueryFactory queryFactory_;
     private SkyPositionEntry skyEntry_;
     private JTextField urlField_;
-    private boolean posted_;
+    private JComponent queryComponent_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -68,18 +70,15 @@ public abstract class DalTableLoadDialog
         queryFactory_ = (KeywordServiceQueryFactory) getQueryFactory();
     }
 
-    protected Component createQueryPanel() {
-        Component queryPanel = new JPanel( new BorderLayout() ) {
-            {
-                add( DalTableLoadDialog.super.createQueryPanel(),
-                     BorderLayout.CENTER );
-            }
+    protected Component createQueryComponent() {
+        JPanel queryPanel = new JPanel( new BorderLayout() ) {
             public void setEnabled( boolean enabled ) {
                 super.setEnabled( enabled );
                 urlField_.setEnabled( enabled );
                 skyEntry_.setEnabled( enabled );
             }
         };
+        queryPanel.add( super.createQueryComponent(), BorderLayout.CENTER );
 
         /* Add a field for holding the service URL.  This will typically be
          * populated by selecting an entry from the result of the displayed
@@ -111,8 +110,7 @@ public abstract class DalTableLoadDialog
 
         /* Only enable the query submission when the service URL field
          * contains a syntactically valid URL. */
-        final Action okAction = getOkAction();
-        okAction.setEnabled( false );
+        setEnabled( false );
         urlField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
                 boolean hasUrl = false;
@@ -125,14 +123,24 @@ public abstract class DalTableLoadDialog
                     catch ( MalformedURLException e ) {
                     }
                 }
-                okAction.setEnabled( hasUrl );
+                DalTableLoadDialog.this.setEnabled( hasUrl );
             }
         } );
 
         /* Add a spatial position selector component. */
         skyEntry_ = new SkyPositionEntry( "J2000" );
-        skyEntry_.addActionListener( getOkAction() );
+        skyEntry_.addActionListener( getSubmitAction() );
         getControlBox().add( skyEntry_ );
+
+        /* Menus. */
+        List<JMenu> menuList =
+            new ArrayList<JMenu>( Arrays.asList( getMenus() ) );
+        RegistrySelector regsel = queryFactory_.getRegistrySelector();
+        JMenu regMenu = new JMenu( "Registry" );
+        regMenu.setMnemonic( KeyEvent.VK_R );
+        regMenu.add( regsel.getRegistryUpdateAction() );
+        menuList.add( regMenu );
+        setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         /* Either initiate an automatic query, or provide some user-visible
          * advice about what to do now. */
@@ -151,30 +159,15 @@ public abstract class DalTableLoadDialog
                 "Alternatively, enter " + name_ + " URL in field below.",
             } );
         }
+        queryComponent_ = queryPanel;
         return queryPanel;
     }
 
-    protected JDialog createDialog( Component parent ) {
-        JDialog dialog = super.createDialog( parent );
-        RegistrySelector regsel = queryFactory_.getRegistrySelector();
-        JMenu regMenu = new JMenu( "Registry" );
-        regMenu.setMnemonic( KeyEvent.VK_R );
-        regMenu.add( regsel.getRegistryUpdateAction() );
-        dialog.getJMenuBar().add( regMenu );
-        return dialog;
-    }
-
-    public boolean showLoadDialog( Component parent, StarTableFactory factory,                                     ComboBoxModel formatModel,
-                                   TableConsumer consumer ) {
-        posted_ = true;
-        boolean flag =
-            super.showLoadDialog( parent, factory, formatModel, consumer );
-        posted_ = false;
-        return flag;
-    }
-
     public boolean acceptResourceIdList( String[] ivoids, String msg ) {
-        if ( posted_ ) {
+        Window container =
+            (Window) SwingUtilities
+                    .getAncestorOfClass( Window.class, queryComponent_ );
+        if ( container != null && container.isShowing() ) {
             RegistryQuery query;
             try {
                 query = queryFactory_.getIdListQuery( ivoids );

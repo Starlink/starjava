@@ -4,6 +4,8 @@
  *  History:
  *     04-APR-2005 (Peter W. Draper):
  *       Original version, based on Mark's Dialog in vo package.
+ *     15-SEP-2010 (Mark Taylor):
+ *       Adjusted to use revised load dialog framework.
  */
 package uk.ac.starlink.splat.vo;
 
@@ -11,18 +13,12 @@ import java.awt.Component;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.rmi.RemoteException;
-
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
-import javax.xml.rpc.ServiceException;
 
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.BasicTableConsumer;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryQueryPanel;
@@ -35,7 +31,7 @@ import uk.ac.starlink.vo.RegistryTableLoadDialog;
  *
  * @author Peter W. Draper
  * @author Mark Taylor (Starlink)
- * @version $Id$
+ * @version $Id: SSARegistryQueryDialog.java 9052 2009-12-09 18:48:37Z mbt $
  */
 public class SSARegistryQueryDialog
     extends RegistryTableLoadDialog
@@ -50,13 +46,6 @@ public class SSARegistryQueryDialog
             "capability/@standardID = 'ivo://ivoa.net/std/SSA'"
         };
 
-    protected Component createQueryPanel()
-    {
-        rqPanel_ = new RegistryQueryPanel();
-        rqPanel_.setPresetQueries( defaultQuery_ );
-        return rqPanel_;
-    }
-
     public String getName()
     {
         return "SSAP Registry Query";
@@ -67,22 +56,21 @@ public class SSARegistryQueryDialog
         return "Query a registry for all known SSAP services";
     }
 
-    public boolean showLoadDialog( Component parent, StarTableFactory factory )
+    protected Component createQueryComponent()
     {
-        return super.showLoadDialog( parent, factory,
-                                     new DefaultComboBoxModel( defaultQuery_ ),
-                                     new QueryConsumer( parent ) );
+        rqPanel_ = new RegistryQueryPanel();
+        rqPanel_.setPresetQueries( defaultQuery_ );
+        return rqPanel_;
     }
 
-    protected TableSupplier getTableSupplier()
+    public TableLoader createTableLoader()
     {
         try {
             final RegistryQuery query = rqPanel_.getRegistryQuery();
-            return new TableSupplier()
+            return new TableLoader()
                 {
-                    public StarTable getTable( StarTableFactory factory,
-                                               String format )
-                        throws IOException
+                    public StarTable[] loadTables( StarTableFactory factory )
+                            throws IOException
                     {
                         RegResource[] resources = query.getQueryResources();
                         BeanStarTable st;
@@ -90,16 +78,18 @@ public class SSARegistryQueryDialog
                             st = new BeanStarTable( RegResource.class );
                         }
                         catch ( IntrospectionException e ) {
-                            throw asIOException( e );
+                            throw (IOException)
+                                  new IOException( e.getMessage() )
+                                 .initCause( e );
                         }
                         DescribedValue[] metadata = query.getMetadata();
                         for ( int i = 0; i < metadata.length; i++ ) {
                             st.setParameter( metadata[ i ] );
                         }
                         st.setData( resources );
-                        return st;
+                        return new StarTable[] { st };
                     }
-                    public String getTableID()
+                    public String getLabel()
                     {
                         return query.toString();
                     }
@@ -108,28 +98,5 @@ public class SSARegistryQueryDialog
         catch ( MalformedURLException e ) {
             throw new IllegalStateException( e.getMessage() );
         }
-    }
-
-    public class QueryConsumer
-        extends BasicTableConsumer
-    {
-        public QueryConsumer( Component parent )
-        {
-            super( parent );
-        }
-        protected boolean tableLoaded( StarTable table )
-        {
-            table_ = table;
-            return true;
-        }
-    }
-
-    /**
-     * Return the StarTable containing the RegResource objects supplied by
-     * the registry.
-     */
-    public StarTable getStarTable()
-    {
-        return table_;
     }
 }

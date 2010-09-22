@@ -177,21 +177,6 @@ public abstract class TableSaveChooser extends JPanel {
     }
 
     /**
-     * Sets the configuration of this saver up to match that of a
-     * loader widget.  This will typically involve things like making
-     * sure they are viewing the same directory.
-     * 
-     * @param  loader  loader
-     */
-    public void configureFromLoader( TableLoadChooser loader ) {
-        FilestoreChooser saveChooser = getFilestoreChooser();
-        FilestoreChooser loadChooser = loader.getFilestoreChooser();
-        if ( saveChooser != null && loadChooser != null ) {
-            saveChooser.setModel( loadChooser.getModel() );
-        }
-    }
-
-    /**
      * Returns the FilestoreChooser, if any, used by this save dialogue.
      *
      * @return  chooser

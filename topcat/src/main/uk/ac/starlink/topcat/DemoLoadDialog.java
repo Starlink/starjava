@@ -31,10 +31,6 @@ public class DemoLoadDialog extends TreeTableLoadDialog {
         return "View a data hierarchy containing some demonstration tables";
     }
 
-    public boolean isEnabled() {
-        return true;
-    }
-
     protected TableNodeChooser createNodeChooser() {
         TableNodeChooser nodeChooser = super.createNodeChooser();
         nodeChooser.clear();

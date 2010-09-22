@@ -27,9 +27,7 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.table.gui.TableLoadChooser;
-import uk.ac.starlink.table.gui.TableLoadDialog;
-import uk.ac.starlink.table.gui.SQLReadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.ttools.Stilts;
@@ -58,21 +56,9 @@ public class Driver {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static StarTableFactory tabfact;
     private static ControlWindow control;
-    private static String[] extraLoaders;
     private static final ValueInfo DEMOLOC_INFO = 
         new DefaultValueInfo( "DemoLoc", String.class, "Demo file location" );
     private static final int DEFAULT_SERVER_PORT = 2525;
-    public static String[] KNOWN_DIALOGS = new String[] {
-        "uk.ac.starlink.table.gui.FileChooserLoader",
-        "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
-        SQLReadDialog.class.getName(),
-        "uk.ac.starlink.topcat.ConeSearchDialog2",
-        "uk.ac.starlink.topcat.SiapTableLoadDialog2",
-        "uk.ac.starlink.topcat.SsapTableLoadDialog2",
-        "uk.ac.starlink.vo.RegistryTableLoadDialog",
-        "uk.ac.starlink.topcat.vizier.VizierTableLoadDialog",
-        "uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog",
-    };
 
     /**
      * Determines whether TableViewers associated with this class should
@@ -243,7 +229,6 @@ public class Driver {
 
         /* Process flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
-        List loaderList = new ArrayList();
         boolean demo = false;
         int verbosity = 0;
         boolean interopServe = true;
@@ -329,7 +314,6 @@ public class Driver {
                 System.exit( 1 );
             }
         }
-        extraLoaders = (String[]) loaderList.toArray( new String[ 0 ] );
 
         /* Configure logging. */
         configureLogging( verbosity );
@@ -393,12 +377,16 @@ public class Driver {
         if ( demo ) {
             StarTable[] demoTables = getDemoTables();
             for ( int i = 0; i < demoTables.length; i++ ) {
-                StarTable table = demoTables[ i ];
+                final StarTable table = demoTables[ i ];
                 if ( table != null ) {
-                    String loc = table
-                                .getParameterByName( DEMOLOC_INFO.getName() )
-                                .getValue().toString();
-                    addTableLater( table, "[Demo]:" + loc );
+                    final String loc =
+                        table.getParameterByName( DEMOLOC_INFO.getName() )
+                             .getValue().toString();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            control.addTable( table, "[Demo]:" + loc, false );
+                        }
+                    } );
                 }
             }
         }
@@ -406,53 +394,20 @@ public class Driver {
         /* Load the requested tables. */
         for ( int i = 0; i < nload; i++ ) {
             final String name = (String) names.get( i );
-            String hand = (String) handlers.get( i );
-            final LoadingToken token = new LoadingToken( name );
-            control.addLoadingToken( token );
-            StarTableFactory tf = control.createMonitorFactory( token );
-            try {
-                StarTable[] startabs =
-                    tf.makeStarTables( DataSource.makeDataSource( name ),
-                                       hand );
-                for ( int j = 0; j < startabs.length; j++ ) {
-                    String tName = startabs.length == 1
-                                 ? name
-                                 : name + "-" + ( j + 1 );
-                    addTableLater( tf.randomTable( startabs[ j ] ),
-                                   tName );
+            final String hand = (String) handlers.get( i );
+            TableLoader loader = new TableLoader() {
+                public String getLabel() {
+                    return name;
                 }
-            }
-            catch ( OutOfMemoryError e ) {
-                TopcatUtils.memoryError( e );
-            }
-            catch ( final Throwable e ) {
-                System.err.println( e.getMessage() );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( e instanceof TableFormatException ) {
-                           ErrorDialog.showError( getControlWindow(),
-                                                  "Load Error", e );
-                        }
-                        else if ( e instanceof FileNotFoundException ) {
-                           ErrorDialog.showError( getControlWindow(),
-                                                  "Load Error", e,
-                                                  "No such file: " + name );
-                        }
-                        else {
-                            ErrorDialog.showError( getControlWindow(),
-                                                   "Load Error", e,
-                                                   "Can't open table " + name );
-                        }
-                    }
-                } );
-            }
-            finally {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        control.removeLoadingToken( token );
-                    }
-                } );
-            }
+                public StarTable[] loadTables( StarTableFactory tfact )
+                        throws IOException {
+                    return tfact.makeStarTables( DataSource
+                                                .makeDataSource( name ),
+                                                 hand );
+                }
+            };
+            control.runLoading( loader, new TopcatLoadClient( null, control ),
+                                null );
         }
 
         /* Downgrade this thread's priority now; anything done after this 
@@ -506,71 +461,10 @@ public class Driver {
      */
     private static ControlWindow getControlWindow() {
         if ( control == null ) {
-            TableLoadChooser chooser = makeLoadChooser();
             control = ControlWindow.getInstance();
             control.setTableFactory( tabfact );
-            control.setLoadChooser( chooser );
         }
         return control;
-    }
-
-    /**
-     * Schedules a table for posting to the Control Window in the event
-     * dispatch thread.  
-     *
-     * @param  table  the table to add
-     * @param  location  location string indicating the provenance of
-     *         <tt>table</tt> - preferably a URL or filename or something
-     */
-    private static void addTableLater( final StarTable table,
-                                       final String location ) {
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                getControlWindow().addTable( table, location, false );
-            }
-        } );
-    }
-
-    /**
-     * Creates a TableLoadChooser suitable for use by the application.
-     *
-     * @return  new chooser
-     */
-    private static TableLoadChooser makeLoadChooser() {
-
-        /* If we have been requested to use any extra load dialogues,
-         * install them into the chooser here.  It would be more
-         * straightforward to do this using the system property mechanism
-         * designed for this (set TableLoadChooser.LOAD_DIALOGS_PROPERTY),
-         * but this would fail with a SecurityException under some 
-         * circumstances (unsigned WebStart). */
-        List dList = new ArrayList();
-        dList.addAll( Arrays.asList( TableLoadChooser
-                                    .makeDefaultLoadDialogs() ) );
-        List nameList = new ArrayList();
-        for ( Iterator it = dList.iterator(); it.hasNext(); ) {
-            nameList.add( it.next().getClass().getName() );
-        }
-        for ( int i = 0; i < extraLoaders.length; i++ ) {
-            String cname = extraLoaders[ i ];
-            if ( ! nameList.contains( cname ) ) {
-                try {
-                    TableLoadDialog tld =
-                        (TableLoadDialog) 
-                        Driver.class.forName( extraLoaders[ i ] ).newInstance();
-                    dList.add( tld );
-                }
-                catch ( Throwable th ) {
-                    System.err.println( "Class loading error for optional " +
-                                        "loader:" );
-                    th.printStackTrace( System.err );
-                    System.exit( 1 );
-                }
-            }
-        }
-        TableLoadDialog[] dialogs = (TableLoadDialog[]) 
-                                    dList.toArray( new TableLoadDialog[ 0 ] );
-        return new TableLoadChooser( tabfact, dialogs, KNOWN_DIALOGS );
     }
 
     /**

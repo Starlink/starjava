@@ -1,107 +1,121 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
-import javax.swing.ComboBoxModel;
+import java.io.IOException;
+import javax.swing.Action;
 import javax.swing.Icon;
-import uk.ac.starlink.table.StarTable;
+import javax.swing.JMenu;
 import uk.ac.starlink.table.StarTableFactory;
 
 /**
- * Interface describing the action of a dialogue with which the user
- * can interact to specify a new table to load.
+ * Interface for an object which can handle the user interaction for
+ * selecting a table or tables to load.
  *
- * @author    Mark Taylor (Starlink)
- * @since     25 Nov 2004
- * @see    LoadWorker
+ * @author   Mark Taylor
+ * @since    13 Sept 2010
  */
 public interface TableLoadDialog {
 
     /**
-     * Presents the user with a dialogue which may be used to specify 
-     * a table to load.  This method should return true if an attempt
-     * will be made to load a table, and false if it will not
-     * (for instance if the user hit a Cancel button).
+     * Returns the name of this dialogue.
+     * This may be used as the text of a button
+     * ({@link javax.swing.Action#NAME}).
      *
-     * <p>In the event that true is returned, the implementation of this
-     * method should ensure that notification of the table load attempt
-     * should be made to the <tt>consumer</tt> argument 
-     * using the defined {@link TableConsumer} methods.
-     * The purpose of doing it like this
-     * (rather than just returning a <tt>StarTable</tt> from this method)
-     * is so that the table loading, which may be time-consuming,
-     * can be done in a thread other than the event dispatch thread
-     * on which this method will have been called.
-     * The {@link LoadWorker} class is provided to assist with this;
-     * the usual idiom for performing the load from the event dispatch
-     * thread within the implementation of this method looks like this:
-     * <pre>
-     *     new LoadWorker( tableConsumer, tableId ) {
-     *         protected StarTable attemptLoads() throws IOException {
-     *             return tableFactory.makeStarTables( ... );
-     *         }
-     *     }.invoke();
-     * </pre>
-     *
-     * <p>Error conditions during the course of the user interaction by 
-     * this method should in general be dealt with by informing the user
-     * (e.g. with a popup) and permitting another attempt.
-     * Some sort of cancel button should be provided which should trigger
-     * return with a false result.
-     *
-     * <p>The <tt>formatModel</tt> argument may be used to determine or 
-     * set the format to be used for interpreting tables.
-     * Its entries are <tt>String</tt>s, and in general the selected one
-     * should be passed as the <tt>handler</tt> argument to one of
-     * <tt>factory</tt>'s <tt>makeStarTable</tt> methods.
-     * The dialogue may wish to allow the user to modify the selection
-     * by presenting a {@link javax.swing.JComboBox} based on this model.
-     * A suitable model can be obtained using 
-     * {@link TableLoadChooser#makeFormatBoxModel}.
-     * 
-     * @param  parent   parent window
-     * @param  factory  factory which may be used for table creation
-     * @param  formatModel  comboBoxModel 
-     * @param  consumer  object which can do something with the loaded table
-     * @return   true if an attempt will be made to load a table
-     */
-    boolean showLoadDialog( Component parent, StarTableFactory factory,
-                            ComboBoxModel formatModel, TableConsumer consumer );
-
-    /**
-     * Name of this dialogue.  This will typically be used as the text of
-     * a button ({@link javax.swing.Action#NAME}) 
-     * which invokes <tt>showLoadDialog</tt>.
-     *
-     * @return  name
+     * @return  dialogue name
      */
     String getName();
 
     /**
-     * Description of this dialogue.  This will typically be used as the
-     * tooltip text of a button ({@link javax.swing.Action#SHORT_DESCRIPTION})
-     * which invokes <tt>showLoadDialog</tt>
+     * Returns a short description of this dialogue.
+     * This may be used as the tooltip text of a button
+     * ({@link javax.swing.Action#SHORT_DESCRIPTION}).
      *
-     * @return   short description
+     * @return  dialogue description
      */
     String getDescription();
 
     /**
-     * Icon associated with this dialogue.  
+     * Returns an icon associated with this dialogue.
      * A size of 24x24 pixels is preferred.
      * Null may be returned if no icon is available.
      *
-     * @return   icon
+     * @return  dialogue icon
      */
     Icon getIcon();
 
     /**
-     * Indicates whether this dialog can be invoked.  This allows the
-     * implementation to check that it has enough resources (e.g. required
-     * classes) for it to be worth trying it.  This method should be 
-     * invoked before the first invocation of {@link #showLoadDialog},
-     * but is not guaranteed to be invoked again.
+     * Returns the GUI component which allows the user to select how tables
+     * are to be loaded.
      *
-     * @return  true iff this dialog can be used
+     * @return  component for user interaction
+     */
+    Component getQueryComponent();
+
+    /**
+     * Returns an array of menus which may be presented in the window 
+     * alongside the query component.
+     *
+     * @return   menu array; may be empty
+     */
+    JMenu[] getMenus();
+
+    /**
+     * Returns an array of actions suitable for presentation as toolbar
+     * buttons alongside the query component.
+     *
+     * @return  toolbar action array; may be empty
+     */
+    Action[] getToolbarActions();
+
+    /**
+     * Indicates whether this dialogue may be used.  Normally it will return
+     * true, but in the case that classes or other resources required 
+     * for its use are missing, it should return false.  In this case most
+     * of the other methods will not be called.
+     * 
+     * @return  true iff this dialogue may be able to do something useful
      */
     boolean isAvailable();
+
+    /**
+     * Provides some configuration which must be performed before use.
+     * This method should be called before {@link #getQueryComponent} is called.
+     *
+     * <p>The <code>tfact</code> argument provides a table factory which
+     * resembles the one to be used for generating tables.
+     * Although this factory should not in general be used or retained,
+     * since the one presented later to the TableLoader should be used
+     * instead, it can be interrogated for known table formats etc.
+     *
+     * <p>The <code>submitAct</code> argument sets the action which
+     * when invoked will cause {@link #createTableLoader} to be called.
+     * Its setEnabled method can be called to reflect readiness,
+     * and it can be added as a listener to dialogue-specific events
+     * which indicate that a selection has been made.
+     *
+     * @param  tfact  representative table factory
+     * @param  submitAct   action for load submission
+     */
+    void configure( StarTableFactory tfact, Action submitAct );
+
+    /**
+     * Returns the action set by {@link #configure}.
+     *
+     * @return  action which initiates a table load attempt
+     */
+    Action getSubmitAction();
+
+    /**
+     * Returns a new object which specifies how table loading is to 
+     * be performed.  The actions performed by the returned object will
+     * presumably be determined by the state at call time of this 
+     * dialogues GUI component.
+     *
+     * <p>If the dialogue is not in a suitable state, either return null,
+     * or, if you want to provide more detailed information about what's
+     * wrong, throw a RuntimeException with an informative message.
+     *
+     * @return   new table loader object
+     */
+    TableLoader createTableLoader();
 }

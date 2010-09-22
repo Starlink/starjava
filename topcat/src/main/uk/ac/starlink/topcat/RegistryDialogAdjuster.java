@@ -1,6 +1,9 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.JMenu;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.vo.RegistryPanel;
@@ -32,13 +35,14 @@ public class RegistryDialogAdjuster {
     }
 
     /**
-     * Returns an Interop menu suitable for use in this object's load dialogue.
-     *
-     * @return  interop menu
+     * Adds a suitable Interop menu to this object's load dialogue menu list.
      */
-    public JMenu createInteropMenu() {
-        return createInteropMenu( dalLoader_.getRegistryPanel(),
-                                  resourceType_ );
+    public void addInteropMenu() {
+        List<JMenu> menuList =
+            new ArrayList<JMenu>( Arrays.asList( dalLoader_.getMenus() ) );
+        menuList.add( createInteropMenu( dalLoader_.getRegistryPanel(),
+                                         resourceType_ ) );
+        dalLoader_.setMenus( menuList.toArray( new JMenu[ 0 ] ) );
     }
 
     /**

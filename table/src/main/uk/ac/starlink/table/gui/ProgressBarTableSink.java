@@ -83,6 +83,15 @@ public class ProgressBarTableSink implements TableSink {
     }
 
     /**
+     * Returns the progress bar used by this object.
+     *
+     * @return  progress bar
+     */
+    public JProgressBar getProgressBar() {
+        return progBar_;
+    }
+
+    /**
      * Ensure all resources are released and no further changes will be
      * made to the progress bar.
      */

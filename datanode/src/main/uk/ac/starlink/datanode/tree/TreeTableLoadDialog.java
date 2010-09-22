@@ -1,83 +1,78 @@
 package uk.ac.starlink.datanode.tree;
 
 import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import javax.swing.ComboBoxModel;
-import javax.swing.Icon;
+import javax.swing.Action;
+import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.DataObjectException;
+import uk.ac.starlink.datanode.nodes.DataType;
 import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.LoadWorker;
-import uk.ac.starlink.table.gui.TableConsumer;
-import uk.ac.starlink.table.gui.TableLoadDialog;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 
 /**
- * Table load dialogue based on a Treeview-like node chooser.
+ * Table load dialogue which can select tables from a datanode tree.
  *
- * @author   Mark Taylor (Starlink)
- * @since    1 Dec 2004
+ * @author   Mark Taylor
+ * @since    14 Sep 2010
  */
-public class TreeTableLoadDialog implements TableLoadDialog {
-    private TableNodeChooser nodeChooser_;
+public class TreeTableLoadDialog extends AbstractTableLoadDialog {
+
+    private TableNodeChooser chooser_;
 
     /**
-     * Constructor. 
+     * Constructor.
      */
     public TreeTableLoadDialog() {
+        super( "Hierarchy Browser", "Load table using treeview-type browser" );
+        setIcon( IconFactory.getIcon( IconFactory.HIERARCH ) );
     }
 
-    public String getName() {
-        return "Hierarchy Browser";
-    }
-
-    public String getDescription() {
-        return "Load table using treeview-type browser";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.HIERARCH );
-    }
-
-    public boolean isAvailable() {
-        return true;
-    }
-
-    public boolean showLoadDialog( Component parent,
-                                   final StarTableFactory factory,
-                                   ComboBoxModel formatModel,
-                                   TableConsumer eater ) {
+    public Component createQueryComponent() {
         NodeUtil.setGUI( true );
-        if ( nodeChooser_ == null ) {
-            nodeChooser_ = createNodeChooser();
-        }
-        final StarTable table = nodeChooser_.chooseStarTable( parent );
-        if ( table != null ) {
-            String id = null;
-            if ( id == null && table.getURL() != null ) {
-                id = table.getURL().toString();
+        chooser_ = createNodeChooser();
+        chooser_.setControlsVisible( false );
+        final Action chooseAct = chooser_.getChooseAction();
+        chooseAct.addPropertyChangeListener( new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                if ( "enabled".equals( evt.getPropertyName() ) ) {
+                    TreeTableLoadDialog.this
+                                       .setEnabled( chooseAct.isEnabled() );
+                }
             }
-            if ( id == null ) {
-                id = table.getName();
-            }
-            if ( id == null ) {
-                id = "Table";
-            }
-            if ( ! factory.requireRandom() || table.isRandom() ) {
-                eater.loadStarted( id );
-                return eater.loadSucceeded( table );
-            }
-            else {
-                new LoadWorker( eater, id ) {
-                    public StarTable[] attemptLoads() throws IOException {
-                        return new StarTable[] { factory.randomTable( table ) };
-                    }
-                }.invoke();
-                return true;
-            }
+        } );
+        setEnabled( chooseAct.isEnabled() );
+        return chooser_;
+    }
+
+    public TableLoader createTableLoader() {
+        final DataNode node = chooser_.getSelectedNode();
+        if ( node == null || ! node.hasDataObject( DataType.TABLE ) ) {
+            return null;
         }
         else {
-            return false;
+            return new TableLoader() {
+                public String getLabel() {
+                    return node.getLabel();
+                }
+                public StarTable[] loadTables( StarTableFactory tfact )
+                        throws IOException {
+                    try {
+                        StarTable table =
+                            (StarTable) node.getDataObject( DataType.TABLE );
+                        return new StarTable[] { tfact.randomTable( table ) };
+                    }
+                    catch ( DataObjectException e ) {
+                        throw (IOException)
+                              new IOException( e.getMessage() ).initCause( e );
+                    }
+                }
+            };
         }
     }
 

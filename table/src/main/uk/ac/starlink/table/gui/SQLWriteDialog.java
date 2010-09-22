@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
 import java.sql.Connection;
@@ -10,6 +11,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.jdbc.JDBCFormatter;
@@ -19,8 +21,9 @@ import uk.ac.starlink.table.jdbc.WriteMode;
  * A popup dialog for querying the user about the location of a new
  * JDBC table to write.
  */
-public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
+public class SQLWriteDialog extends JPanel implements TableSaveDialog {
 
+    private SQLPanel sqlPanel_;
     private JDialog dialog_; 
     private JComboBox modeSelector_;
     private static Icon icon_;
@@ -29,10 +32,12 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
      * Constructs a new SQLWriteDialog.
      */
     public SQLWriteDialog() {
-        super( "Write New SQL Table" );
+        super( new BorderLayout() );
+        sqlPanel_ = new SQLPanel( "Write New SQL Table" );
+        add( sqlPanel_, BorderLayout.CENTER );
         modeSelector_ = new JComboBox( WriteMode.getAllModes() );
         modeSelector_.setSelectedItem( WriteMode.CREATE );
-        getStack().addLine( "Write Mode", null, modeSelector_ );
+        sqlPanel_.getStack().addLine( "Write Mode", null, modeSelector_ );
     }
 
     public String getName() {
@@ -50,6 +55,10 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
         return icon_;
     }
 
+    public boolean isAvailable() {
+        return sqlPanel_.isAvailable();
+    }
+
     public boolean showSaveDialog( Component parent, StarTableOutput sto,
                                    ComboBoxModel formatModel,
                                    StarTable[] tables ) {
@@ -62,14 +71,19 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
                                            JOptionPane.ERROR_MESSAGE );
             return false;
         }
-        useAuthenticator( sto.getJDBCHandler().getAuthenticator() );
-        JDialog dialog = createDialog( parent, "Write New SQL Table" );
+        sqlPanel_.useAuthenticator( sto.getJDBCHandler().getAuthenticator() );
+        JOptionPane optPane =
+            new JOptionPane( sqlPanel_, JOptionPane.QUESTION_MESSAGE,
+                             JOptionPane.OK_CANCEL_OPTION );
+        JDialog dialog = optPane.createDialog( parent, "Write New SQL Table" );
         final boolean[] done = new boolean[ 1 ];
         while ( ! done[ 0 ] ) {
             dialog.setVisible( true );
-            if ( getValue() instanceof Integer &&
-                 ((Integer) getValue()).intValue() == OK_OPTION ) {
-                SaveWorker worker = new SaveWorker( parent, tables, getRef() ) {
+            if ( optPane.getValue() instanceof Integer &&
+                 ((Integer) optPane.getValue()).intValue()
+                  == JOptionPane.OK_OPTION ) {
+                SaveWorker worker = new SaveWorker( parent, tables,
+                                                    sqlPanel_.getRef() ) {
                     public void attemptSave( StarTable[] tables )
                             throws IOException {
                         assert tables.length == 1;
@@ -78,9 +92,9 @@ public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
                             (WriteMode) modeSelector_.getSelectedItem();
                         Connection conn = null;
                         try {
-                            conn = getConnector().getConnection();
+                            conn = sqlPanel_.getConnector().getConnection();
                             new JDBCFormatter( conn, table )
-                               .createJDBCTable( getRef(), mode );
+                               .createJDBCTable( sqlPanel_.getRef(), mode );
                         }
                         catch ( SQLException e ) {
                             throw (IOException) 

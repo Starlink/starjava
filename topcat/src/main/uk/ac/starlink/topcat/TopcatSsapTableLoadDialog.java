@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
-import javax.swing.JDialog;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
@@ -10,14 +9,14 @@ import uk.ac.starlink.vo.SsapTableLoadDialog;
  * @author   Mark Taylor
  * @since    16 Aug 2010
  */
-public class SsapTableLoadDialog2 extends SsapTableLoadDialog {
+public class TopcatSsapTableLoadDialog extends SsapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
-    public SsapTableLoadDialog2() {
+    public TopcatSsapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "ssap" );
     }
-    public JDialog createDialog( Component parent ) {
-        JDialog dialog = super.createDialog( parent );
-        dialog.getJMenuBar().add( adjuster_.createInteropMenu() );
-        return dialog;
+    public Component createQueryComponent() {
+        Component comp = super.createQueryComponent();
+        adjuster_.addInteropMenu();
+        return comp;
     }
 }

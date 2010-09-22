@@ -10,6 +10,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.gui.TableLoader;
 
 /**
  * Table load dialogue which allows cone searches.  Cone search services
@@ -36,8 +37,8 @@ public class ConeSearchDialog extends DalTableLoadDialog {
         setIconUrl( ConeSearchDialog.class.getResource( "cone.gif" ) );
     }
 
-    protected Component createQueryPanel() {
-        Component queryPanel = super.createQueryPanel();
+    protected Component createQueryComponent() {
+        Component queryPanel = super.createQueryComponent();
         SkyPositionEntry skyEntry = getSkyEntry();
         raField_ = skyEntry.getRaDegreesField();
         decField_ = skyEntry.getDecDegreesField();
@@ -50,7 +51,7 @@ public class ConeSearchDialog extends DalTableLoadDialog {
         return selectConeSearches( super.getCapabilities( resource ) );
     }
 
-    protected TableSupplier getTableSupplier() {
+    public TableLoader createTableLoader() {
         String serviceUrl = getServiceUrl();
         checkUrl( serviceUrl );
         final ConeSearch coner = new ConeSearch( serviceUrl );
@@ -66,15 +67,15 @@ public class ConeSearchDialog extends DalTableLoadDialog {
         } ) );
         metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
         final String summary = getQuerySummary( serviceUrl, sr );
-        return new TableSupplier() {
-            public StarTable getTable( StarTableFactory factory,
-                                       String format ) throws IOException {
+        return new TableLoader() {
+            public StarTable[] loadTables( StarTableFactory factory )
+                    throws IOException {
                 StarTable st = coner.performSearch( ra, dec, sr, verb,
                                                     factory );
                 st.getParameters().addAll( metadata );
-                return st;
+                return new StarTable[] { st };
             }
-            public String getTableID() {
+            public String getLabel() {
                 return summary;
             }
         };

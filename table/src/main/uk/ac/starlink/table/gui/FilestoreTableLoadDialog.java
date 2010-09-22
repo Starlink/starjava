@@ -2,12 +2,9 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ComboBoxModel;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,45 +18,44 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Table load dialogue based on a FilestoreChooser.
+ * Load dialogue based on a FilestoreChooser.
  *
- * @author   Mark Taylor (Starlink)
- * @since    18 Feb 2005
+ * @author   Mark Taylor 
+ * @since    13 Sept 2010
  */
-public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
+public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
 
     private FilestoreChooser chooser_;
-    private JComboBox formatSelector_;
     private JTextField posField_;
 
+    /**
+     * Constructor.
+     */
     public FilestoreTableLoadDialog() {
         super( "Filestore Browser",
                "Loader for files from local or remote filespace" );
-        setIconUrl( getClass().getResource( "filestore.gif" ) );
+        setIconUrl( StarTable.class.getResource( "gui/filestore.gif" ) );
     }
 
-    protected Component createQueryPanel() {
-        JPanel panel = new JPanel( new BorderLayout() );
-        final FilestoreTableLoadDialog tld = this;
+    protected Component createQueryComponent() {
+        JComponent panel = new JPanel( new BorderLayout() );
         chooser_ = new FilestoreChooser() {
             public void leafSelected( Leaf leaf ) {
-                tld.getOkAction()
-                   .actionPerformed( new ActionEvent( tld, 0, "OK" ) );
+                submit();
             }
         };
         chooser_.addDefaultBranches();
         panel.add( chooser_, BorderLayout.CENTER );
-        formatSelector_ = new JComboBox();
         JLabel posLabel = new JLabel( "Position in file: #" );
         posField_ = new JTextField( 6 );
-        posField_.addActionListener( getOkAction() );
+        posField_.addActionListener( getSubmitAction() );
         String posHelp = "HDU index for FITS files or TABLE index for VOTables"
                        + " (optional)";
         posField_.setToolTipText( posHelp );
         posLabel.setToolTipText( posHelp );
         JComponent formatBox = Box.createHorizontalBox();
         formatBox.add( new JLabel( "Table Format: " ) );
-        formatBox.add( new ShrinkWrapper( formatSelector_ ) );
+        formatBox.add( new ShrinkWrapper( createFormatSelector() ) );
         formatBox.add( Box.createHorizontalStrut( 10 ) );
         formatBox.add( Box.createHorizontalGlue() );
         formatBox.add( new JLabel( "Position in file: #" ) );
@@ -69,68 +65,50 @@ public class FilestoreTableLoadDialog extends MultiTableLoadDialog {
         return panel;
     }
 
-    protected void setFormatModel( ComboBoxModel formatModel ) {
-        formatSelector_.setModel( formatModel );
-    }
-
-    protected TablesSupplier getTablesSupplier() {
+    public TableLoader createTableLoader() {
         Node node = chooser_.getSelectedNode();
-        if ( node instanceof Leaf ) {
-            final Leaf leaf = (Leaf) node;
-            String posText = posField_.getText();
-            final String pos = posText != null && posText.trim().length() > 0
-                             ? posText.trim()
-                             : null;
-            return new TablesSupplier() {
-
-                public StarTable[] getTables( StarTableFactory factory,
-                                              String format )
-                        throws IOException {
-                    DataSource datsrc = leaf.getDataSource();
-                    if ( pos != null && pos.trim().length() > 0 ) {
-                        datsrc.setPosition( pos );
-                        return new StarTable[] {
-                            factory.makeStarTable( datsrc, format ),
-                        };
-                    }
-                    else {
-                        return factory.makeStarTables( datsrc, format );
-                    }
-                }
-
-                public String getTablesID() {
-                    return leaf.toString()
-                         + ( pos != null ? ( "#" + pos ) : "" );
-                }
-            };
+        if ( ! ( node instanceof Leaf ) ) {
+            throw new IllegalStateException( "No table selected" );
         }
-        else {
-            throw new IllegalArgumentException( "No file selected" );
+        final Leaf leaf = (Leaf) node;
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( node.getName() );
+        String posText = posField_.getText();
+        final String pos = posText != null && posText.trim().length() > 0
+                         ? posText.trim()
+                         : null;
+        if ( pos != null ) {
+            sbuf.append( '#' )
+                .append( pos );
         }
+        final String format = getSelectedFormat();
+        final String label = sbuf.toString();
+        return new TableLoader() {
+            public String getLabel() {
+                return label;
+            }
+            public StarTable[] loadTables( StarTableFactory tfact )
+                    throws IOException {
+                DataSource datsrc = leaf.getDataSource();
+                if ( pos != null ) {
+                    datsrc.setPosition( pos );
+                    return new StarTable[] {
+                        tfact.makeStarTable( datsrc, format ),
+                    };
+                }
+                else {
+                    return tfact.makeStarTables( datsrc, format );
+                }
+            }
+        };
     }
 
-    public boolean isAvailable() {
-        return true;
-    }
-
+    /**
+     * Returns the filestore chooser used by this dialogue.
+     *
+     * @return  chooser
+     */
     public FilestoreChooser getChooser() {
-        getQueryPanel();
         return chooser_;
-    }
-
-    public void setEnabled( boolean enabled ) {
-        Component queryPanel = getQueryPanel();
-        if ( enabled != queryPanel.isEnabled() ) {
-            chooser_.setEnabled( enabled );
-            formatSelector_.setEnabled( enabled );
-        }
-        queryPanel.setEnabled( enabled );
-    }
-
-    public boolean showLoadDialog( Component parent, StarTableFactory factory,
-                                   ComboBoxModel formatModel,
-                                   TableConsumer consumer ) {
-        getChooser().refreshList();
-        return super.showLoadDialog( parent, factory, formatModel, consumer );
     }
 }

@@ -11,7 +11,8 @@ import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.BasicTableLoadDialog;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 
 /**
  * Table load dialogue implementation for performing a simple query on 
@@ -22,7 +23,7 @@ import uk.ac.starlink.table.gui.BasicTableLoadDialog;
  * @author   Mark Taylor (Starlink)
  * @since    23 Dec 2004
  */
-public class RegistryTableLoadDialog extends BasicTableLoadDialog {
+public class RegistryTableLoadDialog extends AbstractTableLoadDialog {
 
     private RegistryQueryPanel rqPanel_;
 
@@ -42,7 +43,7 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
         setIconUrl( getClass().getResource( "registry.gif" ) );
     }
 
-    protected Component createQueryPanel() {
+    protected Component createQueryComponent() {
         rqPanel_ = new RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQueries_ );
         return rqPanel_;
@@ -61,16 +62,15 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
         return true;
     }
 
-    protected TableSupplier getTableSupplier() {
+    public TableLoader createTableLoader() {
         try {
             final RegistryQuery query = rqPanel_.getRegistryQuery();
-            return new TableSupplier() {
-                public StarTable getTable( StarTableFactory factory,
-                                           String format )
+            return new TableLoader() {
+                public StarTable[] loadTables( StarTableFactory factory )
                         throws IOException {
-                    return new RegistryStarTable( query );
+                    return new StarTable[] { new RegistryStarTable( query ) };
                 }
-                public String getTableID() {
+                public String getLabel() {
                     return query.toString();
                 }
             };

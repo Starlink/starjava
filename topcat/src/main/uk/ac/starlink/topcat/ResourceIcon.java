@@ -37,10 +37,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
-import uk.ac.starlink.table.gui.FileChooserLoader;
+import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
 import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
-import uk.ac.starlink.table.gui.SQLReadDialog;
-import uk.ac.starlink.table.gui.SystemTableLoadDialog;
+import uk.ac.starlink.table.gui.SQLTableLoadDialog;
 import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
@@ -215,6 +214,8 @@ public class ResourceIcon implements Icon {
         PDF = makeIcon( "pdf3.gif" ),
         TUNING = makeIcon( "TuningFork.gif" ),
         PROFILE = makeIcon( "vu-meter.gif" ),
+        SYSTEM = makeIcon( "sysbrowser.gif" ),
+        KEEP_OPEN = makeIcon( "wedge3.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
@@ -235,6 +236,18 @@ public class ResourceIcon implements Icon {
 
         /* Dummy terminator. */
         dummy = DO_WHAT;
+
+    /** Blank icon. */
+    public static final Icon BLANK = new Icon() {
+        public int getIconHeight() {
+            return 24;
+        }
+        public int getIconWidth() {
+            return 24;
+        }
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+        }
+    };
 
     private String location;
     private Icon baseIcon;
@@ -545,11 +558,9 @@ public class ResourceIcon implements Icon {
         nameMap.put( "FILESTORE_DIALOG",
                      new FilestoreTableLoadDialog().getIcon() );
         nameMap.put( "FILECHOOSER_DIALOG",
-                     FileChooserLoader.getFileChooserIcon() );
-        nameMap.put( "SYSTEM_DIALOG",
-                     new SystemTableLoadDialog().getIcon() );
+                     new FileChooserTableLoadDialog().getIcon() );
         nameMap.put( "SQL_DIALOG",
-                     new SQLReadDialog().getIcon() );
+                     new SQLTableLoadDialog().getIcon() );
         nameMap.put( "CONE_DIALOG",
                      new ConeSearchDialog().getIcon() );
         nameMap.put( "SIAP_DIALOG",
