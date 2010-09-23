@@ -72,7 +72,7 @@ public class TableLoadDialogWindow extends AuxWindow {
         Action[] toolActs = tld.getToolbarActions();
         if ( toolActs != null && toolActs.length > 0 ) {
             for ( int ia = 0; ia < toolActs.length; ia++ ) {
-                getToolBar().add( new JButton( toolActs[ ia ] ) );
+                getToolBar().add( toolActs[ ia ] );
             }
             getToolBar().addSeparator();
         }
