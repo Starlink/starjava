@@ -377,6 +377,23 @@ public class TopcatSampControl {
                 }
             },
 
+            /* Accept sky position. */
+            new ResponseMessageHandler( "coord.pointAt.sky" ) {
+                public Map processCall( HubConnection conn, String senderId,
+                                        Message msg ) {
+                    double ra =
+                        SampUtils
+                       .decodeFloat( (String) msg.getRequiredParam( "ra" ) );
+                    double dec =
+                        SampUtils
+                       .decodeFloat( (String) msg.getRequiredParam( "dec" ) );
+                    boolean accepted =
+                        controlWindow_.acceptSkyPosition( ra, dec );
+                    return createAcceptanceResponse( null, accepted,
+                                                     "coordinate pair" );
+                }
+            },
+
             /* Accept list of VOResources. */
             new ResourceListHandler( "voresource.loadlist",
                                      DalTableLoadDialog.class,
@@ -732,7 +749,7 @@ public class TopcatSampControl {
     /**
      * Message handler for receipt of voresource.loadlist type MTypes.
      */
-    class ResourceListHandler extends AbstractMessageHandler {
+    class ResourceListHandler extends ResponseMessageHandler {
 
         final Class dalLoadDialogClass_;
         final Class dalMultiWindowClass_;
@@ -746,9 +763,11 @@ public class TopcatSampControl {
          * @param  dalMultiWindowClass  DalMultiWindow subclass for
          *         dialogues specific to this mtype
          */
-        ResourceListHandler( String mtype, Class dalLoadDialogClass,
-                             Class dalMultiWindowClass ) {
-            super( new String[] { mtype } );
+        ResourceListHandler(
+                String mtype,
+                Class<? extends DalTableLoadDialog> dalLoadDialogClass,
+                Class<? extends DalMultiWindow> dalMultiWindowClass ) {
+            super( mtype );
             if ( ! DalTableLoadDialog.class
                   .isAssignableFrom( dalLoadDialogClass ) ) {
                 throw new IllegalArgumentException();
@@ -779,17 +798,91 @@ public class TopcatSampControl {
                    .acceptResourceIdList( ids, mbuf.toString(),
                                           dalLoadDialogClass_,
                                           dalMultiWindowClass_ );
-                if ( accepted ) {
-                    return null;
-                }
-                else {
-                    String errmsg = "Resource list not used by "
-                                  + TopcatUtils.getApplicationName();
-                    throw new RuntimeException( errmsg );
-                }
+                return createAcceptanceResponse( null, accepted,
+                                                 "resource list" );
             }
             else {
                 throw new RuntimeException( "No resources supplied" );
+            }
+        }
+    }
+
+    /**
+     * Slightly adjusted AbstractMessageHandler class used for some of the
+     * message handlers here.  Semantics of processCall are different from
+     * AbstractMessageHandler - use with care.  JSAMP versions after 1.1
+     * wouldn't need this hacked in quite this way (but it would still work).
+     */
+    private static abstract class ResponseMessageHandler
+            extends AbstractMessageHandler {
+
+        /**
+         * Constructor.
+         *
+         * @param  mtype  sole mtype
+         */
+        ResponseMessageHandler( String mtype ) {
+            super( mtype );
+        }
+
+        /**
+         * Does the message processing.
+         *
+         * @param connection  hub connection
+         * @param senderId  public ID of sender client
+         * @param message  message with MType this handler is subscribed to
+         * @return   message response (Response instance)
+         */
+        public abstract Map processCall( HubConnection connection,
+                                         String senderId, Message message );
+
+
+        /**
+         * Overridden to use different semantics of processCall.
+         */
+        public void receiveCall( HubConnection connection, String senderId,
+                                 String msgId, Message message )
+                throws SampException {
+            Response response;
+            try {
+                response =
+                    (Response) processCall( connection, senderId, message );
+            }
+            catch ( Throwable e ) {
+                response = Response.createErrorResponse( new ErrInfo( e ) );
+            }
+            connection.reply( msgId, response );
+        }
+
+        /**
+         * Creates a response based on an acceptance flag.
+         *
+         * @param  result  result of call
+         * @param  accepted  whether the call achieved anything
+         * @param  dataType  type of data transferred by the call
+         *                   (used in error message)
+         */
+        Response createAcceptanceResponse( Map result, boolean accepted,
+                                           String dataType ) {
+            if ( result == null ) {
+                result = Response.EMPTY;
+            }           
+            if ( accepted ) {
+                return Response.createSuccessResponse( result );
+            }           
+            else {
+                String appName = TopcatUtils.getApplicationName();
+                ErrInfo errInfo =
+                    new ErrInfo( dataType + " not used by " + appName );
+                errInfo.setUsertxt( new StringBuffer()
+                    .append( "The " + dataType
+                                    + " was received successfully,\n" )
+                    .append( "but " + appName 
+                                    + " was not in a suitable state " )
+                    .append( "to make use of it\n" )
+                    .append( "(perhaps suitable windows were not open).\n" )
+                    .toString() );
+                return new Response( Response.WARNING_STATUS, result, errInfo );
             }
         }
     }

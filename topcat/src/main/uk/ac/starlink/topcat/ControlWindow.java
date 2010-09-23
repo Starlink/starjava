@@ -124,6 +124,7 @@ import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SkyPositionEntry;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
 
 /**
@@ -985,6 +986,30 @@ public class ControlWindow extends AuxWindow
     public void setTableFactory( StarTableFactory tabfact ) {
         tabfact_ = tabfact;
         taboutput_.setJDBCHandler( tabfact.getJDBCHandler() );
+    }
+
+    /**
+     * Takes a sky position acquired from somewhere and does something with it.
+     *
+     * @param  raDegrees   right ascension in degrees
+     * @param  decDegrees  declination in degrees
+     * @return  true if any useful work was done
+     */
+    public boolean acceptSkyPosition( double raDegrees, double decDegrees ) {
+        boolean accepted = false;
+        if ( loadWindow_ != null ) {
+            TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
+            for ( int i = 0; i < tlds.length; i++ ) {
+                TableLoadDialog tld = tlds[ i ];
+                if ( tld instanceof DalTableLoadDialog &&
+                     loadWindow_.isShowing( tld ) ) {
+                    ((DalTableLoadDialog) tld).getSkyEntry()
+                                         .setPosition( raDegrees, decDegrees );
+                    accepted = true;
+                }
+            }
+        }
+        return accepted;
     }
 
     /**

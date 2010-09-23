@@ -283,6 +283,26 @@ public class LoadWindow extends AuxWindow {
     }
 
     /**
+     * Indicates whether a given load dialogue controlled by this window
+     * is currently visible.
+     *
+     * @param  tld  dialogue
+     * @return   true iff a window containing tld's query component
+     *                is currently showing
+     */
+    public boolean isShowing( TableLoadDialog tld ) {
+        for ( Action act : actList_ ) {
+            if ( act instanceof DialogAction ) {
+                DialogAction dact = (DialogAction) act;
+                if ( dact.getLoadDialog() == tld ) {
+                    return dact.isDialogShowing();
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Adds a thread which is loading a table to the display in this window.
      *
      * @param   worker  loading thread
@@ -321,7 +341,8 @@ public class LoadWindow extends AuxWindow {
      */
     private class DialogAction extends BasicAction {
         private final TableLoadDialog tld_;
-        private final TableLoadDialogWindow win_;
+        private final StarTableFactory tfact_;
+        private TableLoadDialogWindow win_;
 
         /**
          * Constructor.
@@ -332,14 +353,17 @@ public class LoadWindow extends AuxWindow {
         DialogAction( TableLoadDialog tld, StarTableFactory tfact ) {
             super( tld.getName(), tld.getIcon(), tld.getDescription() );
             tld_ = tld;
-            win_ = new TableLoadDialogWindow( LoadWindow.this, tld,
-                                              LoadWindow.this, tfact );
+            tfact_ = tfact;
             if ( ! tld.isAvailable() ) {
                 setEnabled( false );
             }
         }
 
         public void actionPerformed( ActionEvent evt ) {
+            if ( win_ == null ) {
+                win_ = new TableLoadDialogWindow( LoadWindow.this, tld_,
+                                                  LoadWindow.this, tfact_ );
+            }
             win_.setVisible( true );
         }
 
@@ -350,6 +374,16 @@ public class LoadWindow extends AuxWindow {
          */
         public TableLoadDialog getLoadDialog() {
             return tld_;
+        }
+
+        /**
+         * Indicates whether this dialogue is currently displayed in a
+         * non-hidden window.
+         *
+         * @return  true  iff this dialogue is showing
+         */
+        public boolean isDialogShowing() {
+            return win_ != null && win_.isShowing();
         }
     }
 

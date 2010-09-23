@@ -14018,6 +14018,9 @@ introduced since the last version:
         option, since in general the windows are arranged so that resizing
         them will resize sensible parts of them, but it may be useful
         if using some of the larger windows on a small screen.</li>
+    <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
+        it will enter the coordinates in a Cone, SIA or SSA table load
+        dialogue if one is currently visible.</li>
     </ul>
     </p></dd>
 
