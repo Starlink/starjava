@@ -2,11 +2,16 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import uk.ac.starlink.connect.Leaf;
@@ -39,12 +44,20 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
 
     protected Component createQueryComponent() {
         JComponent panel = new JPanel( new BorderLayout() );
-        chooser_ = new FilestoreChooser() {
+        chooser_ = new FilestoreChooser( false ) {
             public void leafSelected( Leaf leaf ) {
                 submit();
             }
         };
         chooser_.addDefaultBranches();
+        Action[] navActs = chooser_.getNavigationActions();
+        setToolbarActions( navActs );
+        JMenu navMenu = new JMenu( "Navigation" );
+        navMenu.setMnemonic( KeyEvent.VK_N );
+        for ( int i = 0; i < navActs.length; i++ ) {
+            navMenu.add( navActs[ i ] );
+        }
+        setMenus( new JMenu[] { navMenu } );
         panel.add( chooser_, BorderLayout.CENTER );
         JLabel posLabel = new JLabel( "Position in file: #" );
         posField_ = new JTextField( 6 );

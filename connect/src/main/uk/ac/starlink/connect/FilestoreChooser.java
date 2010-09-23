@@ -28,6 +28,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -67,18 +68,32 @@ public class FilestoreChooser extends JPanel {
     private final JLabel logLabel_;
     private final PropertyChangeListener connectorWatcher_;
     private final Action upAction_;
+    private final Action prevAction_;
     private final Action okAction_;
+    private final Action[] navActions_;
     private final Component[] activeComponents_;
-    private Branch lastBranch_;
+    private Branch currentBranch_;
+    private Branch prevBranch_;
     private ConnectorAction connectorAction_;
     private List connectorActions_;
     private static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.connect" );
 
     /**
-     * Constructor.
+     * Constructs a FilestoreChooser with navigation buttons included.
      */
     public FilestoreChooser() {
+        this( true );
+    }
+
+    /**
+     * Constructs a FilestoreChooser with navigation buttons optionally
+     * included.
+     *
+     * @param  includeButtons  whether to include navigation buttons in
+     *         the component
+     */
+    public FilestoreChooser( boolean includeButtons ) {
         super( new BorderLayout() );
 
         /* Basic setup. */
@@ -97,9 +112,10 @@ public class FilestoreChooser extends JPanel {
         branchBox.setBorder( gapBorder );
         add( branchBox, BorderLayout.NORTH );
 
-        /* Define and add a button for moving up a directory. */
-        Icon upIcon = UIManager.getIcon( "FileChooser.upFolderIcon" );
-        upAction_ = new AbstractAction( null, upIcon ) {
+        /* Action for moving up a directory. */
+        Icon upIcon =
+            new ImageIcon( FilestoreChooser.class.getResource( "Up24.gif" ) );
+        upAction_ = new AbstractAction( "Up", upIcon ) {
             public void actionPerformed( ActionEvent evt ) {
                 Branch parent = getBranch().getParent();
                 if ( parent != null ) {
@@ -107,25 +123,64 @@ public class FilestoreChooser extends JPanel {
                 }
             }
         };
-        JButton upButton = new JButton( upAction_ );
-        branchBox.add( Box.createHorizontalStrut( 5 ) );
-        branchBox.add( upButton );
+        upAction_.putValue( Action.SHORT_DESCRIPTION,
+                            "Move to the parent directory" );
 
-        /* Define and add a button for moving to home directory. */
-        Icon homeIcon = UIManager.getIcon( "FileChooser.homeFolderIcon" );
+        /* Action for moving to home directory. */
+        Icon homeIcon =
+            new ImageIcon( FilestoreChooser.class.getResource( "Home24.gif" ) );
         final Branch homedir = getHomeBranch();
-        Action homeAction = new AbstractAction( null, homeIcon ) {
+        Action homeAction = new AbstractAction( "Home", homeIcon ) {
             public void actionPerformed( ActionEvent evt ) {
                 if ( homedir != null ) {
                     setBranch( homedir );
                 }
             }
         };
+        homeAction.putValue( Action.SHORT_DESCRIPTION,
+                              "Return to home directory" );
         homeAction.setEnabled( homedir != null );
-        JButton homeButton = new JButton( homeAction );
-        activeList.add( homeButton );
-        branchBox.add( Box.createHorizontalStrut( 5 ) );
-        branchBox.add( homeButton );
+
+        /* Action for moving to previous directory. */
+        Icon prevIcon =
+            new ImageIcon( FilestoreChooser.class.getResource( "Back24.gif" ) );
+        prevAction_ = new AbstractAction( "Back", prevIcon ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( prevBranch_ != null ) {
+                    setBranch( prevBranch_ );
+                }
+            }
+        };
+        prevAction_.putValue( Action.SHORT_DESCRIPTION,
+                              "Back to previously selected directory" );
+        prevAction_.setEnabled( prevBranch_ != null );
+
+        /* Action for refreshing the file list. */
+        Icon refreshIcon = 
+            new ImageIcon( FilestoreChooser.class
+                                           .getResource( "Refresh24.gif" ) );
+        Action refreshAction = new AbstractAction( "Refresh", refreshIcon ) {
+            public void actionPerformed( ActionEvent evt ) {
+                refreshList();
+            }
+        };
+        refreshAction.putValue( Action.SHORT_DESCRIPTION,
+                                "Refresh list of files in current directory" );
+
+        /* Add navigation action buttons if required. */
+        navActions_ =
+            new Action[] { homeAction, upAction_, prevAction_, refreshAction, };
+        if ( includeButtons ) {
+            for ( int ia = 0; ia < navActions_.length; ia++ ) {
+                JButton button = new JButton( navActions_[ ia ] );
+                button.setText( null );
+                activeList.add( button );
+                if ( ia > 0 ) {
+                    branchBox.add( Box.createHorizontalStrut( 5 ) );
+                    branchBox.add( button );
+                }
+            }
+        }
 
         /* Button for login/logout.  This will only be visible if the current
          * branch represents a remote filesystem. */
@@ -263,13 +318,23 @@ public class FilestoreChooser extends JPanel {
         return okAction_;
     }
 
+    /**
+     * Returns the actions which allow the user to do additional navigation.
+     *
+     * @return   navigation actions
+     */
+    public Action[] getNavigationActions() {
+        return navActions_;
+    }
+
     public void setEnabled( boolean enabled ) {
         if ( enabled != isEnabled() ) {
             okAction_.setEnabled( enabled );
             for ( int i = 0; i < activeComponents_.length; i++ ) {
                 activeComponents_[ i ].setEnabled( enabled );
             }
-            upAction_.setEnabled( enabled && lastBranch_.getParent() != null );
+            upAction_.setEnabled( enabled &&
+                                  currentBranch_.getParent() != null );
         }
         super.setEnabled( enabled );
     }
@@ -336,10 +401,12 @@ public class FilestoreChooser extends JPanel {
      */
     public void setBranch( Branch branch ) {
         if ( branch != branchSelector_.getSelectedBranch() ) {
+            prevBranch_ = branchSelector_.getSelectedBranch();
+            prevAction_.setEnabled( prevBranch_ != null );
             branchSelector_.setSelectedBranch( branch );
         }
-        if ( branch != lastBranch_ ) {
-            lastBranch_ = branch;
+        if ( branch != currentBranch_ ) {
+            currentBranch_ = branch;
             BoundedRangeModel scrollModel = 
                 scroller_.getVerticalScrollBar().getModel();
             scrollModel.setValue( scrollModel.getMinimum() );
@@ -356,11 +423,22 @@ public class FilestoreChooser extends JPanel {
      * currently selected branch.
      */
     public void refreshList() {
-        Branch branch = getBranch();
-        Node[] children = branch == null ? new Node[ 0 ]
-                                         : branch.getChildren();
-        Arrays.sort( children, NodeComparator.getInstance() );
-        nodeList_.setListData( children );
+        final Branch branch = getBranch();
+        if ( branch != null ) {
+            new Thread( "Refresh Directory" ) {
+                public void run() {
+                    final Node[] children = branch.getChildren();
+                    Arrays.sort( children, NodeComparator.getInstance() );
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            if ( getBranch() == branch ) {
+                                nodeList_.setListData( children );
+                            }
+                        }
+                    } );
+               }
+            }.start();
+        }
     }
 
     /**
