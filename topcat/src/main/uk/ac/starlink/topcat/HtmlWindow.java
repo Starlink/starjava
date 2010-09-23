@@ -57,7 +57,7 @@ public class HtmlWindow extends AuxWindow {
         line.add( new JLabel( "URL: " ) );
         urlLabel_ = new JLabel();
         line.add( urlLabel_ );
-        getContentPane().add( line, BorderLayout.SOUTH );
+        main.add( line, BorderLayout.SOUTH );
 
         /* Add a listener for links. */
         textPane_.addHyperlinkListener( new HyperlinkListener() {

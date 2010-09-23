@@ -71,7 +71,8 @@ public class HelpWindow extends AuxWindow {
         infoBox.add( urlHead );
         infoBox.add( urlInfo );
         externalURL( null );
-        getContentPane().add( infoBox, BorderLayout.SOUTH );
+        JComponent mainArea = getMainArea();
+        mainArea.add( infoBox, BorderLayout.SOUTH );
 
         /* Create the HelpSet if there is not already one. */
         try {
@@ -122,7 +123,7 @@ public class HelpWindow extends AuxWindow {
         addHelp( "HelpWindow" );
 
         /* Install it into this window. */
-        getContentPane().add( helpComponent );
+        mainArea.add( helpComponent, BorderLayout.CENTER );
     }
 
     /**
