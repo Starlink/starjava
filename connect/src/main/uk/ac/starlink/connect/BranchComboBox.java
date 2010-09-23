@@ -283,7 +283,7 @@ public class BranchComboBox extends JComboBox {
         final ListCellRenderer baseRenderer_;
         final static Icon FOLDER_ICON = UIManager.getIcon( "Tree.closedIcon" );
         final Icon ROOT_ICON =
-            new ImageIcon( getClass().getResource( "disk.gif" ) );
+            new ImageIcon( BranchComboBox.class.getResource( "disk.gif" ) );
 
         public WrapperCellRenderer( ListCellRenderer base ) {
             baseRenderer_ = base;

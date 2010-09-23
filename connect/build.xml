@@ -419,9 +419,7 @@
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
-      <fileset dir="${java.dir}">
-        <include name="**/*.gif"/>
-      </fileset>
+      <fileset dir="${src.dir}/resources"/>
     </copy>
 
     <!-- Local third party jars, if any. Copy straight into
