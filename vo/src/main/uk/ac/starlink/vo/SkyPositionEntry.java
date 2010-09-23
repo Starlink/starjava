@@ -209,6 +209,19 @@ public class SkyPositionEntry extends JPanel {
     }
 
     /**
+     * Sets the current sky position in degrees.  This can be called by
+     * external code, and resets the resolver field to empty.
+     *
+     * @param   raDegrees   right ascension in degreees
+     * @param   decDegrees  declination in degrees
+     */
+    public void setPosition( double raDegrees, double decDegrees ) {
+        setDegrees( raField_, raDegrees );
+        setDegrees( decField_, decDegrees );
+        resolveField_.setText( null );
+    }
+
+    /**
      * Sets a value field to contain a given value in degrees.
      *
      * @param   field  field to set
