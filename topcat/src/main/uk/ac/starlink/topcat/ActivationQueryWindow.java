@@ -31,7 +31,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
@@ -116,6 +115,7 @@ public class ActivationQueryWindow extends QueryWindow {
         qc.fill = GridBagConstraints.BOTH;
         qc.weightx = 1.0;
         JComponent mainBox = new JPanel( layer );
+        getMainArea().add( mainBox );
 
         /* Add a new row for each activator factory. */
         ButtonGroup buttGroup = new ButtonGroup();
@@ -146,13 +146,6 @@ public class ActivationQueryWindow extends QueryWindow {
             qc.gridy++;
         }
         factories[ 0 ].button_.setSelected( true );
-
-        /* Wrap the whole thing in a scroll pane.  This is a bit ugly, but
-         * this window can get too tall for some laptop screens, especially
-         * if layout is poor (sometimes using OpenJDK). */
-        JScrollPane scroller = new JScrollPane( mainBox );
-        scroller.setBorder( BorderFactory.createEmptyBorder() );
-        getMainArea().add( scroller );
 
         /* Add tools. */
         getToolBar().add( MethodWindow.getWindowAction( this, true ) );

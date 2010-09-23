@@ -116,6 +116,7 @@ public class ResourceIcon implements Icon {
         LOG = makeIcon( "book3.gif" ),
         CLEAR = makeIcon( "newdoc1.gif" ),
         HIDE_WINDOWS = makeIcon( "hide1.gif" ),
+        SCROLLER = makeIcon( "scroll2.gif" ),
 
         /* Windows. */
         CONTROL = makeIcon( "controlw.gif" ),

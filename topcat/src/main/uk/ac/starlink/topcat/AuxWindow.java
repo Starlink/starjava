@@ -17,6 +17,7 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.GregorianCalendar;
@@ -29,6 +30,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -37,6 +39,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -70,10 +73,12 @@ public class AuxWindow extends JFrame {
     private boolean isStandalone;
     private boolean packed;
 
+    private final JComponent overPanel;
     private Action aboutAct;
-    private Action controlAct;
-    private Action closeAct;
-    private Action exitAct;
+    private final Action controlAct;
+    private final Action closeAct;
+    private final Action exitAct;
+    private final ToggleButtonModel scrollableModel;
 
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
@@ -95,6 +100,33 @@ public class AuxWindow extends JFrame {
         }
         saveWindows = new HashMap();
 
+        /* Set up a switch for whether this window's content pane will be
+         * wrapped in a scrollpane or not.  This is not generally advisable,
+         * but for people using very small laptop screens it is sometimes
+         * the only way for the larger windows. */
+        scrollableModel =
+            new ToggleButtonModel( "Scrollable", ResourceIcon.SCROLLER,
+                                   "Make the entire window contents "
+                                 + "scrollable (for small screens)" );
+        final BorderLayout layout = new BorderLayout();
+        final JComponent contentPane = new JPanel( layout );
+        setContentPane( contentPane );
+        final Object centerPos = BorderLayout.CENTER;
+        setLayout( layout );
+        scrollableModel.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                Component center0 = layout.getLayoutComponent( centerPos );
+                if ( center0 != null ) {
+                    Component center1 = scrollableModel.isSelected()
+                                      ? new JScrollPane( overPanel )
+                                      : overPanel;
+                    contentPane.remove( center0 );
+                    contentPane.add( center1, centerPos );
+                    contentPane.revalidate();
+                }
+            }
+        } );
+
         /* Set up a basic menubar with a File menu. */
         menuBar = new JMenuBar();
         setJMenuBar( menuBar );
@@ -108,6 +140,7 @@ public class AuxWindow extends JFrame {
         exitAct = new AuxAction( "Exit", ResourceIcon.EXIT,
                                  "Exit the application" );
         fileMenu.add( controlAct );
+        fileMenu.add( scrollableModel.createMenuItem() );
         JMenuItem closeItem = fileMenu.add( closeAct );
         closeItem.setMnemonic( KeyEvent.VK_C );
         isStandalone = Driver.isStandalone();
@@ -120,10 +153,10 @@ public class AuxWindow extends JFrame {
         toolBar = new JToolBar();
         toolBar.addSeparator();
         toolBar.setFloatable( false );
-        getContentPane().add( toolBar, BorderLayout.NORTH );
+        contentPane.add( toolBar, BorderLayout.NORTH );
 
         /* Divide the main area into heading, main area, and control panels. */
-        JPanel overPanel = new JPanel();
+        overPanel = new JPanel();
         overPanel.setLayout( new BoxLayout( overPanel, BoxLayout.Y_AXIS ) );
         headingLabel = new JLabel();
         headingLabel.setAlignmentX( 0.0f );
@@ -137,7 +170,7 @@ public class AuxWindow extends JFrame {
         overPanel.add( controlPanel );
         overPanel.setBorder( BorderFactory
                             .createEmptyBorder( 10, 10, 10, 10 ) );
-        getContentPane().add( overPanel, BorderLayout.CENTER );
+        contentPane.add( overPanel, centerPos );
     }
 
     /**
