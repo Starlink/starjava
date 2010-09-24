@@ -170,8 +170,9 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
         /* Try to get a VOTable object from this source. */
         VOElement voEl;
         try {
-            voEl = new VOElementFactory( storagePolicy )
-                  .makeVOElement( datsrc );
+            VOElementFactory elFact = new VOElementFactory( storagePolicy );
+            elFact.setStrict( strict_ );
+            voEl = elFact.makeVOElement( datsrc );
         }
 
         /* If we have got a parse exception it's probably because

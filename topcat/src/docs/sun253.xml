@@ -14021,6 +14021,7 @@ introduced since the last version:
     <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
         it will enter the coordinates in a Cone, SIA or SSA table load
         dialogue if one is currently visible.</li>
+    <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
     </ul>
     </p></dd>
 

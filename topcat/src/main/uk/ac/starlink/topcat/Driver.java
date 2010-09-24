@@ -182,6 +182,7 @@ public class Driver {
      * @param  args  list of table specifications
      */
     private static void runMain( String[] args ) {
+        VOElementFactory.STRICT_DEFAULT = false;
         tabfact = new StarTableFactory( true );
         String cmdname;
         try {
@@ -197,9 +198,6 @@ public class Driver {
                            + TopcatUtils.getVersion() );
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
-
-        /* Use sloppy interpretation of VOTables. */
-        VOElementFactory.STRICT_DEFAULT = false;
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
