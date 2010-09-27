@@ -118,20 +118,22 @@ public abstract class MultiOutputTask implements Task {
         final Iterator<InputTableSpec> it = Arrays.asList( inSpecs ).iterator();
         return new TableSequence() {
             private int index;
-            public boolean hasNextTable() {
-                return it.hasNext();
-            }
             public StarTable nextTable() throws IOException {
-                index++;
-                InputTableSpec inSpec = it.next();
-                try {
-                    return inSpec.getWrappedTable();
+                if ( it.hasNext() ) {
+                    index++;
+                    InputTableSpec inSpec = it.next();
+                    try {
+                        return inSpec.getWrappedTable();
+                    }
+                    catch ( TaskException e ) {
+                        throw (IOException)
+                              new IOException( "Load error for table #" + index
+                                             + ": " + inSpec.getLocation() )
+                             .initCause( e );
+                    }
                 }
-                catch ( TaskException e ) {
-                    throw (IOException)
-                          new IOException( "Load error for table #" + index
-                                         + ": " + inSpec.getLocation() )
-                         .initCause( e );
+                else {
+                    return null;
                 }
             }
         };

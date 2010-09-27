@@ -98,9 +98,9 @@ public class HTMLTableWriter extends StreamStarTableWriter
         if ( standalone_ ) {
             printHeader( out, null );
         }
-        while ( tableSeq.hasNextTable() ) {
+        for ( StarTable table; ( table = tableSeq.nextTable() ) != null; ) {
             printLine( out, "<P>" );
-            writeTableElement( tableSeq.nextTable(), out );
+            writeTableElement( table, out );
             printLine( out, "</P>" );
         }
         if ( standalone_ ) {

@@ -87,8 +87,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
             throws IOException {
         DataOutputStream ostrm = new DataOutputStream( out );
         writePrimaryHDU( ostrm );
-        while ( tableSeq.hasNextTable() ) {
-            StarTable table = tableSeq.nextTable();
+        for ( StarTable table; ( table = tableSeq.nextTable() ) != null; ) {
             writeTableHDU( table, createSerializer( table ), ostrm );
         }
         ostrm.flush();

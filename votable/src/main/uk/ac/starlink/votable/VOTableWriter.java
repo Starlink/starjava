@@ -201,8 +201,9 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         writePreTableXML( writer );
 
         /* Loop over all tables for output. */
-        for ( int itable = 0; tableSeq.hasNextTable(); itable++ ) {
-            StarTable startab = tableSeq.nextTable();
+        int itable = 0;
+        for ( StarTable startab; ( startab = tableSeq.nextTable() ) != null;
+              itable++ ) {
 
             /* Get the format to provide a configuration object which describes
              * exactly how the data from each cell is going to get written. */

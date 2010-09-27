@@ -59,8 +59,8 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
          * (can't stream one table at a time), but it's necessary
          * to write the header. */
         List tableList = new ArrayList();
-        while ( tableSeq.hasNextTable() ) {
-            tableList.add( tableSeq.nextTable() );
+        for ( StarTable table; ( table = tableSeq.nextTable() ) != null; ) {
+            tableList.add( table );
         }
         StarTable[] tables =
             (StarTable[]) tableList.toArray( new StarTable[ 0 ] );

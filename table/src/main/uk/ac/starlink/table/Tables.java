@@ -312,11 +312,9 @@ public class Tables {
     public static TableSequence arrayTableSequence( StarTable[] tables ) {
         final Iterator it = Arrays.asList( tables ).iterator();
         return new TableSequence() {
-            public boolean hasNextTable() {
-                return it.hasNext();
-            }
             public StarTable nextTable() {
-                return (StarTable) it.next();
+                return it.hasNext() ? (StarTable) it.next()
+                                    : null;
             }
         };
     }

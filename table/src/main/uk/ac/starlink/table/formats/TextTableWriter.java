@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiStarTableWriter;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.ValueInfo;
@@ -46,11 +47,12 @@ public class TextTableWriter extends AbstractTextTableWriter
 
     public void writeStarTables( TableSequence tableSeq, OutputStream out )
             throws IOException {
-        while ( tableSeq.hasNextTable() ) {
-            writeStarTable( tableSeq.nextTable(), out );
-            if ( tableSeq.hasNextTable() ) {
+        int ix = 0;
+        for ( StarTable table; ( table = tableSeq.nextTable() ) != null; ix++) {
+            if ( ix > 0 ) {
                 out.write( '\n' );
             }
+            writeStarTable( table, out );
         }
     }
 

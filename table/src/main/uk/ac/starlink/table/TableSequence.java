@@ -13,17 +13,11 @@ import java.io.IOException;
 public interface TableSequence {
 
     /**
-     * Whether there are thought to be more tables to read from this sequence.
-     *
-     * @return   true iff there are more tables
-     */
-    boolean hasNextTable();
-
-    /**
-     * Returns the next table in the sequence.
+     * Returns the next table in the sequence, or null if the end of
+     * the sequence is reached.
      *
      * @throws   IOException  if there is an error obtaining the table
-     * @throws   NoSuchElementException   if there are no more elements
+     * @return   next table, or null if there are no more
      */
     StarTable nextTable() throws IOException;
 }
