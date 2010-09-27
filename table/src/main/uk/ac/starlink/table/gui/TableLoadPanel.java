@@ -19,12 +19,15 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Component which aggregates a TableLoadDialog and buttons (OK and Cancel)
@@ -164,6 +167,7 @@ public abstract class TableLoadPanel extends JPanel {
      * Updates enabledness of actions based on current state.
      */
     private void updateStatus() {
+        okAct_.setEnabled( worker_ == null );
         cancelAct_.setEnabled( worker_ != null );
     }
 
@@ -182,7 +186,7 @@ public abstract class TableLoadPanel extends JPanel {
          * @param  tfact  table factory
          */
         ModalDialog( Component parent, TableLoadDialog tld,
-                     final StarTableFactory tfact ) {
+                     final StarTableFactory tfact, final boolean multi ) {
             super( parent instanceof Frame 
                        ? (Frame) parent
                        : (Frame) SwingUtilities.getAncestorOfClass( Frame.class,
@@ -202,14 +206,16 @@ public abstract class TableLoadPanel extends JPanel {
                 }
                 public boolean loadSuccess( StarTable table ) {
                     tableList_.add( table );
-                    return true;
+                    return multi;
                 }
                 public boolean loadFailure( Throwable error ) {
                     error_ = error;
                     return false;
                 }
                 public void endSequence( boolean cancelled ) {
-                    dispose();
+                    if ( ! cancelled ) {
+                        dispose();
+                    }
                 }
             };
             final TableLoadPanel tlp = new TableLoadPanel( tld, tfact ) {
@@ -223,8 +229,10 @@ public abstract class TableLoadPanel extends JPanel {
             getContentPane().add( tlp.getProgressBar(), BorderLayout.SOUTH );
             JMenu[] menus = tld.getMenus();
             if ( menus != null ) {
+                JMenuBar mbar = new JMenuBar();
+                setJMenuBar( mbar );
                 for ( int im = 0; im < menus.length; im++ ) {
-                    getJMenuBar().add( menus[ im ] );
+                    mbar.add( menus[ im ] );
                 }
             }
             Action[] tacts = tld.getToolbarActions();
@@ -267,8 +275,34 @@ public abstract class TableLoadPanel extends JPanel {
     }
 
     /**
-     * Displays a modal load dialogue, and returns the tables it has loaded
-     * when finished.
+     * Displays a modal load dialogue to load a single table,
+     * and returns the tables it has loaded when finished.
+     *
+     * @param  parent  parent component
+     * @param  tld   load dialogue
+     * @param  tfact  table factory
+     */
+    public static StarTable loadTable( Component parent,
+                                       TableLoadDialog tld,
+                                       StarTableFactory tfact )
+            throws IOException {
+        ModalDialog dia = new ModalDialog( parent, tld, tfact, false );
+        dia.pack();
+        dia.setLocationRelativeTo( parent );
+        dia.setVisible( true );
+        StarTable[] tables = dia.getTables();
+        if ( tables.length == 0 ) {
+            return null;
+        }
+        else {
+            assert tables.length == 1;
+            return tables[ 0 ];
+        }
+    }
+
+    /**
+     * Displays a modal load dialogue to load (possibly) multiple tables,
+     * and returns the tables it has loaded when finished.
      *
      * @param  parent  parent component
      * @param  tld   load dialogue
@@ -278,7 +312,7 @@ public abstract class TableLoadPanel extends JPanel {
                                           TableLoadDialog tld,
                                           StarTableFactory tfact )
             throws IOException {
-        ModalDialog dia = new ModalDialog( parent, tld, tfact );
+        ModalDialog dia = new ModalDialog( parent, tld, tfact, true );
         dia.pack();
         dia.setLocationRelativeTo( parent );
         dia.setVisible( true );
@@ -290,11 +324,21 @@ public abstract class TableLoadPanel extends JPanel {
      * that were loaded.
      */
     public static void main( String[] args ) throws IOException {
-        StarTable[] tables = loadTables( null, new FilestoreTableLoadDialog(),
-                                         new StarTableFactory( true ) );
-        for ( int i = 0; i < tables.length; i++ ) {
-            StarTable table = tables[ i ];
-            System.out.println( i + ":\t" + table.getName() + "\t" +
+        TableLoadDialog tld = new FilestoreTableLoadDialog();
+        StarTableFactory tfact = new StarTableFactory( true );
+        boolean multi = false;
+        if ( multi ) {
+            StarTable[] tables = loadTables( null, tld, tfact );
+            for ( int i = 0; i < tables.length; i++ ) {
+                StarTable table = tables[ i ];
+                System.out.println( i + ":\t" + table.getName() + " \t"
+                                  + table.getColumnCount() + " x "
+                                  + table.getRowCount() );
+            }
+        }
+        else {
+            StarTable table = loadTable( null, tld, tfact );
+            System.out.println( table.getName() + " \t" 
                               + table.getColumnCount() + " x "
                               + table.getRowCount() );
         }
