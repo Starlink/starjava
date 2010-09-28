@@ -124,6 +124,9 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
      * @return  chooser
      */
     public FilestoreChooser getChooser() {
+        if ( chooser_ == null ) {
+            getQueryComponent();
+        }
         return chooser_;
     }
 }
