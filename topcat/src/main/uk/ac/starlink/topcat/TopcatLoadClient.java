@@ -3,9 +3,11 @@ package uk.ac.starlink.topcat;
 import java.awt.Component;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadClient;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -61,14 +63,33 @@ public class TopcatLoadClient implements TableLoadClient {
             } );
         }
         else {
-            String label = label_;
-            if ( nLoad_ > 0 ) {
-                label += "-" + ( nLoad_ + 1 );
-            }
-            controlWin_.addTable( table, label, true );
-            nLoad_++;
+            addTable( table );
         }
         return true;
+    }
+
+    /**
+     * Takes a table and inserts it into the TOPCAT application, performing
+     * some housekeeping tasks at the same time.
+     *
+     * @param   table  table to insert
+     * @return   topcat model which holds the table
+     */
+    protected TopcatModel addTable( StarTable table ) {
+        String location;
+        DescribedValue srcParam =
+            table.getParameterByName( TableLoader.SOURCE_INFO.getName() );
+        if ( srcParam != null && srcParam.getValue() instanceof String ) {
+            location = (String) srcParam.getValue();
+        }
+        else {
+            location = label_;
+            if ( nLoad_ > 0 ) {
+                location += "-" + ( nLoad_ + 1 );
+            }
+        }
+        nLoad_++;
+        return controlWin_.addTable( table, location, true );
     }
 
     public boolean loadFailure( final Throwable error ) {

@@ -624,9 +624,15 @@ public class TopcatSampControl {
                 file != null
                      ? (DataSource) new FileDataSource( file )
                      : (DataSource) new URLDataSource( new URL( url ) );
+            String tableName = (String) message.getParam( "name" );
+            String label = "SAMP" + ":" + senderName;
+            if ( tableName != null ) {
+                label += ":" + tableName;
+            }
+            final String label1 = label;
             TableLoader loader = new TableLoader() {
                 public String getLabel() {
-                    return "SAMP, from " + senderName;
+                    return label1;
                 }
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
@@ -655,7 +661,6 @@ public class TopcatSampControl {
         private final String senderName_;
         private final Message message_;
         private final String msgId_;
-        private int nLoad_;
         private boolean responded_;
 
         /** 
@@ -677,19 +682,11 @@ public class TopcatSampControl {
 
         public boolean loadSuccess( StarTable table ) {
             respond( Response.createSuccessResponse( new HashMap() ) );
-            String name = table.getName();
-            String title = name == null ? senderName_ : name;
-            TopcatModel tcModel =
-                controlWindow_.addTable( table, title, true );
+            TopcatModel tcModel = super.addTable( table );
             String tableId = (String) message_.getParam( "table-id" );
             if ( tableId != null && tableId.trim().length() > 0 ) {
                 idMap_.put( tableId, new TableWithRows( tcModel, null ) );
             }
-            String tableName = (String) message_.getParam( "name" );
-            if ( tableName != null && tableName.trim().length() > 0 ) {
-                tcModel.setLabel( tableName );
-            }
-            nLoad_++;
             return false;
         }
 
@@ -711,10 +708,6 @@ public class TopcatSampControl {
                                            new ErrInfo( "No table found" ) ) );
                 }
             }
-        }
-
-        public int getLoadCount() {
-            return nLoad_;
         }
 
         /**

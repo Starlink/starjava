@@ -42,6 +42,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
@@ -385,7 +386,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         final String id = queryable.getQueryId();
         return new TableLoader() {
             public String getLabel() {
-                return id;
+                return "Vizier-" + id;
             }
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
@@ -399,13 +400,25 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                         boolean isEmpty;
                         do {
                             table = tseq.nextTable();
+                            if ( table == null ) {
+                                return null;
+                            }
                             ix_++;
-                            isEmpty = table != null && table.getRowCount() == 0;
+                            isEmpty = table.getRowCount() == 0;
                             if ( isEmpty ) {
-                                logger_.info( "Ignoring VizieR table #" + ix_
+                                String name = table.getName();
+                                logger_.info( "Ignoring VizieR table "
+                                            + name == null ? ( "#" + ix_ )
+                                                           : name
                                             + " with no rows" );
                             }
                         } while ( isEmpty );
+                        String name = table.getName();
+                        if ( name != null ) {
+                            name = name.replace( '/', '_' );
+                            table.setParameter( new DescribedValue( SOURCE_INFO,
+                                                                    name ) );
+                        }
                         return table;
                     }
                 };

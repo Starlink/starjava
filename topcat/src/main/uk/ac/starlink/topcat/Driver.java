@@ -408,7 +408,7 @@ public class Driver {
             else {
                 TableLoader loader = new TableLoader() {
                     public String getLabel() {
-                        return "command line tables";
+                        return "command line";
                     }
                     public TableSequence
                             loadTables( final StarTableFactory tfac ) {
@@ -747,8 +747,25 @@ public class Driver {
          * @return   table sequence
          */
         TableSequence loadTables( StarTableFactory tfact ) throws IOException {
-            return tfact.makeStarTables( DataSource.makeDataSource( loc_ ),
-                                         format_ );
+            final TableSequence tseq =
+                tfact.makeStarTables( DataSource.makeDataSource( loc_ ),
+                                      format_ );
+            return new TableSequence() {
+                int ix_;
+                public StarTable nextTable() throws IOException {
+                    StarTable table = tseq.nextTable();
+                    if ( table != null ) {
+                        String label = loc_;
+                        if ( ix_++ > 0 ) {
+                            label += "-" + ix_;
+                        }
+                        table.setParameter(
+                            new DescribedValue( TableLoader.SOURCE_INFO,
+                                                label ) );
+                    }
+                    return table;
+                }
+            };
         }
     }
 }
