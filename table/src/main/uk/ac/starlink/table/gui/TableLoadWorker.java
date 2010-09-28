@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.event.ActionEvent;
+import java.io.InterruptedIOException;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -121,8 +122,12 @@ public class TableLoadWorker extends Thread {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( ! finished_ ) {
-                        client_.loadFailure( error );
-                        finish( false );
+                        boolean interrupted =
+                            error instanceof InterruptedIOException;
+                        if ( ! interrupted ) {
+                            client_.loadFailure( error );
+                        }
+                        finish( interrupted );
                     }
                 }
             } );
@@ -149,9 +154,23 @@ public class TableLoadWorker extends Thread {
                         final Boolean[] moreHolder = new Boolean[ 1 ];
                         SwingUtilities.invokeAndWait( new Runnable() {
                             public void run() {
-                                boolean more = table1 != null
-                                             ? client_.loadSuccess( table1 )
-                                             : client_.loadFailure( error1 );
+                                boolean more;
+                                if ( table1 != null ) {
+                                    more = client_.loadSuccess( table1 );
+                                }
+                                else {
+                                    assert error1 != null;
+                                    if ( error1 instanceof
+                                                InterruptedIOException ) {
+                                        if ( ! finished_ ) {
+                                            finish( true );
+                                        }
+                                        more = false;
+                                    }
+                                    else {
+                                        more = client_.loadFailure( error1 );
+                                    }
+                                }
                                 moreHolder[ 0 ] = Boolean.valueOf( more );
                             }
                         } );
@@ -171,7 +190,8 @@ public class TableLoadWorker extends Thread {
             finally {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        finish( false );
+                        if ( ! finished_ ) {
+                            finish( false ); }
                     }
                 } );
             }
