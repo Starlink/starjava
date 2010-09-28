@@ -894,7 +894,7 @@ public class ControlWindow extends AuxWindow
      */
     public LoadWindow getLoadWindow() {
         if ( loadWindow_ == null ) {
-            loadWindow_ = new LoadWindow( this, tabfact_ );
+            loadWindow_ = new LoadWindow( null, tabfact_ );
         }
         return loadWindow_;
     }
