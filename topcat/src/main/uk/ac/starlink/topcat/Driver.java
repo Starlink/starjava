@@ -25,6 +25,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.TableLoader;
@@ -339,8 +340,7 @@ public class Driver {
         URLUtils.installCustomHandlers();
 
         /* Assemble pairs of (table name, handler name) to be loaded. */
-        List names = new ArrayList();
-        List handlers = new ArrayList();
+        final List<Loadable> loadableList = new ArrayList<Loadable>();
         String handler = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -361,12 +361,9 @@ public class Driver {
                 System.exit( 1 );
             }
             else {
-                names.add( arg );
-                handlers.add( handler );
+                loadableList.add( new Loadable( arg, handler ) );
             }
         }
-        int nload = names.size();
-        assert nload == handlers.size();
 
         /* Start up the GUI now. */
         final ControlWindow control = getControlWindow();
@@ -390,22 +387,61 @@ public class Driver {
         }
 
         /* Load the requested tables. */
-        for ( int i = 0; i < nload; i++ ) {
-            final String name = (String) names.get( i );
-            final String hand = (String) handlers.get( i );
-            TableLoader loader = new TableLoader() {
-                public String getLabel() {
-                    return name;
+        boolean argsLoadParallel = false;
+        if ( ! loadableList.isEmpty() ) {
+            if ( argsLoadParallel ) {
+                for ( final Loadable loadable : loadableList ) {
+                    TableLoader loader = new TableLoader() {
+                        public String getLabel() {
+                            return loadable.loc_;
+                        }
+                        public TableSequence loadTables( StarTableFactory tfac )
+                                throws IOException {
+                            return loadable.loadTables( tfac );
+                        }
+                    };
+                    control.runLoading( loader,
+                                        new TopcatLoadClient( null, control ),
+                                        null );
                 }
-                public StarTable[] loadTables( StarTableFactory tfact )
-                        throws IOException {
-                    return tfact.makeStarTables( DataSource
-                                                .makeDataSource( name ),
-                                                 hand );
-                }
-            };
-            control.runLoading( loader, new TopcatLoadClient( null, control ),
-                                null );
+            }
+            else {
+                TableLoader loader = new TableLoader() {
+                    public String getLabel() {
+                        return "command line tables";
+                    }
+                    public TableSequence
+                            loadTables( final StarTableFactory tfac ) {
+                        final Iterator<Loadable> loadIt =
+                            loadableList.iterator();
+                        return new TableSequence() {
+                            TableSequence tseq_;
+                            public StarTable nextTable() throws IOException {
+                                StarTable table = null;
+                                while ( table == null ) {
+                                    if ( tseq_ == null ) {
+                                        if ( loadIt.hasNext() ) {
+                                            Loadable loadable = loadIt.next();
+                                            tseq_ = loadable.loadTables( tfac );
+                                        }
+                                        else {
+                                            return null;
+                                        }
+                                    }
+                                    table = tseq_.nextTable();
+                                    if ( table == null ) {
+                                        tseq_ = null;
+                                    }
+                                }
+                                return table;
+                            }
+                        };
+                    }
+                };
+                control.runLoading( loader,
+                                    new TopcatLoadClient( null, control ),
+                                    null );
+            }
         }
 
         /* Downgrade this thread's priority now; anything done after this 
@@ -683,6 +719,36 @@ public class Driver {
         catch ( SecurityException e ) {
             logger.warning( "Logging configuration failed" +
                             " - security exception" );
+        }
+    }
+
+    /**
+     * Describes a table to be loaded on the command line.
+     */
+    private static class Loadable {
+        private final String loc_;
+        private final String format_;
+
+        /**
+         * Constructor.
+         *
+         * @param    loc   location
+         * @param    format  format name
+         */
+        Loadable( String loc, String format ) {
+            loc_ = loc;
+            format_ = format;
+        }
+
+        /**
+         * Loads the tables from this loadable.
+         *
+         * @param  tfact  table factory
+         * @return   table sequence
+         */
+        TableSequence loadTables( StarTableFactory tfact ) throws IOException {
+            return tfact.makeStarTables( DataSource.makeDataSource( loc_ ),
+                                         format_ );
         }
     }
 }

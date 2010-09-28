@@ -61,7 +61,11 @@ public class TopcatLoadClient implements TableLoadClient {
             } );
         }
         else {
-            controlWin_.addTable( table, label_, true );
+            String label = label_;
+            if ( nLoad_ > 0 ) {
+                label += "-" + ( nLoad_ + 1 );
+            }
+            controlWin_.addTable( table, label, true );
             nLoad_++;
         }
         return true;

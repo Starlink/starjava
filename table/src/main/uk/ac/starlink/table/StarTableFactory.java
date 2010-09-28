@@ -409,34 +409,28 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs an array of StarTables from a DataSource using automatic
+     * Constructs a sequence of StarTables from a DataSource using automatic
      * format detection.  Only certain formats (those whose handlers 
      * implement {@link MultiTableBuilder} will be capable of returning
-     * an array having more than one element.
+     * a sequence having more than one element.
      *
      * @param  datsrc  the data source containing the table data
-     * @return   an array of tables loaded from <code>datsrc</code>
+     * @return   a sequence of tables loaded from <code>datsrc</code>
      * @throws TableFormatException if none of the default handlers
      *         could turn <tt>datsrc</tt> into a table
      * @throws IOException  if an I/O error is encountered
      */
-    public StarTable[] makeStarTables( DataSource datsrc ) 
+    public TableSequence makeStarTables( DataSource datsrc ) 
             throws TableFormatException, IOException {
         for ( Iterator it = defaultBuilders_.iterator(); it.hasNext(); ) {
             TableBuilder builder = (TableBuilder) it.next();
             try {
                 if ( builder instanceof MultiTableBuilder ) {
-                    StarTable[] startabs =
+                    TableSequence tseq =
                         ((MultiTableBuilder) builder)
                        .makeStarTables( datsrc, getStoragePolicy() );
-                    for ( int i = 0; i < startabs.length; i++ ) {
-                        startabs[ i ] = prepareTable( startabs[ i ] );
-                        if ( startabs[ i ].getName() == null ) {
-                            startabs[ i ].setName( datsrc.getName() + "-"
-                                                 + ( i + 1 ) );
-                        }
-                    }
-                    return startabs;
+                    String nameBase = datsrc.getName() + "-";
+                    return prepareTableSequence( tseq, nameBase );
                 }
                 else {
                     StarTable startab =
@@ -447,7 +441,7 @@ public class StarTableFactory {
                     if ( startab.getName() == null ) {
                         startab.setName( datsrc.getName() );
                     }
-                    return new StarTable[] { startab };
+                    return Tables.singleTableSequence( startab );
                 }
             }
             catch ( TableFormatException e ) {
@@ -581,7 +575,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs an array of StarTables from a DataSource using a named
+     * Constructs a sequence of StarTables from a DataSource using a named
      * table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
@@ -593,17 +587,17 @@ public class StarTableFactory {
      * format detection.
      *
      * <p>If the handler does not implement the {@link MultiTableBuilder}
-     * interface, then the returned array will have a single element.
+     * interface, then the returned sequence will contain a single table.
      *
      * @param  datsrc  the data source containing the table data
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
-     * @return an array of StarTables loaded from <tt>datsrc</tt>
+     * @return a sequence of StarTables loaded from <tt>datsrc</tt>
      * @throws TableFormatException  if <tt>datsrc</tt> does not contain
      *         a table in the format named by <tt>handler</tt>
      * @throws IOException  if an I/O error is encountered
      */
-    public StarTable[] makeStarTables( DataSource datsrc, String handler )
+    public TableSequence makeStarTables( DataSource datsrc, String handler )
             throws TableFormatException, IOException {
         if ( handler == null || handler.trim().length() == 0 ||
              handler.equals( AUTO_HANDLER ) ) {
@@ -613,16 +607,11 @@ public class StarTableFactory {
         StarTable[] startabs;
         try {
             if ( builder instanceof MultiTableBuilder ) {
-                startabs = ((MultiTableBuilder) builder)
-                          .makeStarTables( datsrc, getStoragePolicy() );
-                for ( int i = 0; i < startabs.length; i++ ) {
-                    startabs[ i ] = prepareTable( startabs[ i ] );
-                    if ( startabs[ i ].getName() == null ) {
-                        startabs[ i ].setName( datsrc.getName() + "-"
-                                             + ( i + 1 ) );
-                    }
-                }
-                return startabs;
+                TableSequence tseq = 
+                    ((MultiTableBuilder) builder)
+                   .makeStarTables( datsrc, getStoragePolicy() );
+                String nameBase = datsrc.getName() + "-";
+                return prepareTableSequence( tseq, nameBase );
             }
             else {
                 StarTable startab =
@@ -633,7 +622,7 @@ public class StarTableFactory {
                 if ( startab.getName() == null ) {
                     startab.setName( datsrc.getName() );
                 }
-                return new StarTable[] { startab };
+                return Tables.singleTableSequence( startab );
             }
         }
 
@@ -944,5 +933,35 @@ public class StarTableFactory {
     private StarTable prepareTable( StarTable startab ) throws IOException {
         return requireRandom() ? randomTable( startab )
                                : startab;
+    }
+
+    /**
+     * Prepares a sequence of tables for return from one of the makeStarTables
+     * methods.  As well as calling {@link #prepareTable}, it adjusts the
+     * tables names if appropriate.
+     *
+     * @param  tseq  input sequence
+     * @param  nameBase  stem of table name
+     * @return  output sequence
+     */
+    private TableSequence prepareTableSequence( final TableSequence tseq,
+                                                final String nameBase ) {
+        return new TableSequence() {
+            private int index;
+            public StarTable nextTable() throws IOException {
+                StarTable table = tseq.nextTable();
+                if ( table == null ) {
+                    return null;
+                }
+                else {
+                    index++;
+                    table = prepareTable( table );
+                    if ( table.getName() == null ) {
+                        table.setName( nameBase + index );
+                    }
+                    return table;
+                }
+            }
+        };
     }
 }

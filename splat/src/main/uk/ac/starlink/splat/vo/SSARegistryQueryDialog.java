@@ -18,6 +18,8 @@ import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegistryQuery;
@@ -69,7 +71,7 @@ public class SSARegistryQueryDialog
             final RegistryQuery query = rqPanel_.getRegistryQuery();
             return new TableLoader()
                 {
-                    public StarTable[] loadTables( StarTableFactory factory )
+                    public TableSequence loadTables( StarTableFactory factory )
                             throws IOException
                     {
                         RegResource[] resources = query.getQueryResources();
@@ -87,7 +89,7 @@ public class SSARegistryQueryDialog
                             st.setParameter( metadata[ i ] );
                         }
                         st.setData( resources );
-                        return new StarTable[] { st };
+                        return Tables.singleTableSequence( st );
                     }
                     public String getLabel()
                     {

@@ -11,6 +11,7 @@ import java.io.IOException;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -108,7 +109,7 @@ public class SystemBrowser {
             public String getLabel() {
                 return datsrc1.getFile().getName();
             }
-            public StarTable[] loadTables( StarTableFactory tfact )
+            public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 return tfact.makeStarTables( datsrc1, format );
             }

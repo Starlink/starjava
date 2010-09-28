@@ -16,15 +16,15 @@ import uk.ac.starlink.util.DataSource;
 public interface MultiTableBuilder extends TableBuilder {
 
     /**
-     * Constructs an array of StarTables based on a given DataSource.
-     * If the source is not recognised or a this object does not know
+     * Constructs a sequence of StarTables based on a given DataSource.
+     * If the source is not recognised or this object does not know
      * how to make tables from it, then a {@link TableFormatException}
      * should be thrown.  If this builder thinks it should be able to
      * handle the source but an error occurs during processing, an
      * <code>IOException</code> can be thrown.
      *
      * <p>If the <code>position</code> of the data source is not null,
-     * then this method should return an array containing a single table,
+     * then this method should return a sequence containing a single table,
      * the one which would be returned by the <code>makeStarTable</code>
      * method with that position.
      *
@@ -37,7 +37,7 @@ public interface MultiTableBuilder extends TableBuilder {
      *         can be handled by this handler
      * @throws IOException  if an unexpected I/O error occurs during processing
      */
-    public StarTable[] makeStarTables( DataSource datsrc, 
-                                       StoragePolicy storagePolicy )
+    public TableSequence makeStarTables( DataSource datsrc, 
+                                         StoragePolicy storagePolicy )
             throws IOException;
 }

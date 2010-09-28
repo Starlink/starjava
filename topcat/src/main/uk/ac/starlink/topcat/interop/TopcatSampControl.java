@@ -35,6 +35,8 @@ import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.IconStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
@@ -626,10 +628,10 @@ public class TopcatSampControl {
                 public String getLabel() {
                     return "SAMP, from " + senderName;
                 }
-                public StarTable[] loadTables( StarTableFactory tfact )
+                public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
-                    return new StarTable[] { tfact.makeStarTable( datsrc,
-                                                                  format_ ) };
+                    StarTable table = tfact.makeStarTable( datsrc, format_ );
+                    return Tables.singleTableSequence( table );
                 }
             };
 

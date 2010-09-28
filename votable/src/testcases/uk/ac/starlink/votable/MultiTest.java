@@ -45,7 +45,8 @@ public class MultiTest extends TestCase {
         byte[] buf = bout.toByteArray();
         StoragePolicy sp = StoragePolicy.PREFER_MEMORY;
         StarTable[] iTables = 
-            reader.makeStarTables( toDataSource( buf, null ), sp );
+            Tables.tableArray(
+                reader.makeStarTables( toDataSource( buf, null ), sp ) );
         for ( int itab = 0; itab < iTables.length; itab++ ) {
             assertEqualData( tables[ itab ], iTables[ itab ] );
             DataSource datsrc =

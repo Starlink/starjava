@@ -1,12 +1,14 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 
 /**
@@ -109,9 +111,11 @@ public class TableLoadWorker extends Thread {
                 client_.setLabel( loader_.getLabel() );
             }
         } );
-        StarTable[] tables = null;
+        TableSequence tseq = null;
+        boolean ok;
         try {
-            tables = loader_.loadTables( tfact_ );
+            tseq = loader_.loadTables( tfact_ );
+            ok = true;
         }
         catch ( final Throwable error ) {
             SwingUtilities.invokeLater( new Runnable() {
@@ -122,20 +126,55 @@ public class TableLoadWorker extends Thread {
                     }
                 }
             } );
+            ok = false;
         }
-        if ( tables != null ) {
-            final StarTable[] tables1 = tables;
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    if ( ! finished_ ) {
-                        boolean more = true;
-                        for ( int i = 0; i < tables1.length && more; i++ ) {
-                            more = more && client_.loadSuccess( tables1[ i ] );
-                        }
-                        finish( false );
+        if ( ok ) {
+            boolean more = true;
+            try {
+                while ( ! finished_ && more ) {
+                    StarTable table = null;
+                    Throwable error = null;
+                    boolean endSeq;
+                    try {
+                        table = tseq.nextTable();
+                        endSeq = table == null;
+                    }
+                    catch ( Throwable e ) {
+                        error = e;
+                        endSeq = false;
+                    }
+                    if ( ! endSeq ) {
+                        final StarTable table1 = table;
+                        final Throwable error1 = error;
+                        final Boolean[] moreHolder = new Boolean[ 1 ];
+                        SwingUtilities.invokeAndWait( new Runnable() {
+                            public void run() {
+                                boolean more = table1 != null
+                                             ? client_.loadSuccess( table1 )
+                                             : client_.loadFailure( error1 );
+                                moreHolder[ 0 ] = Boolean.valueOf( more );
+                            }
+                        } );
+                        more = more && moreHolder[ 0 ].booleanValue();
+                    }
+                    else {
+                        more = false;
                     }
                 }
-            } );
+            }
+            catch ( InvocationTargetException e ) {
+                throw new RuntimeException( e );
+            }
+            catch ( InterruptedException e ) {
+                throw new RuntimeException( e );
+            }
+            finally {
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        finish( false );
+                    }
+                } );
+            }
         }
     }
 

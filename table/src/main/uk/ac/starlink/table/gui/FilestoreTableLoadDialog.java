@@ -19,6 +19,8 @@ import uk.ac.starlink.connect.Node;
 import uk.ac.starlink.connect.FilestoreChooser;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -100,14 +102,14 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
             public String getLabel() {
                 return label;
             }
-            public StarTable[] loadTables( StarTableFactory tfact )
+            public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 DataSource datsrc = leaf.getDataSource();
                 if ( pos != null ) {
                     datsrc.setPosition( pos );
-                    return new StarTable[] {
-                        tfact.makeStarTable( datsrc, format ),
-                    };
+                    return Tables
+                          .singleTableSequence( tfact.makeStarTable( datsrc,
+                                                                     format ) );
                 }
                 else {
                     return tfact.makeStarTables( datsrc, format );

@@ -7,6 +7,14 @@ import java.io.IOException;
  * Unlike the <code>java.util.Iterator</code> interface,
  * the <code>nextTable</code> method throws a checked exception.
  *
+ * <p>A suitable looping idiom is
+ * <pre>
+ *     TableSequence tseq = getTableSequence();
+ *     for (StarTable table; (table = tseq.nextTable()) != null;) {
+ *         doStuff(table);
+ *     }
+ * </pre>
+ *
  * @author   Mark Taylor
  * @since    5 Jul 2010
  */

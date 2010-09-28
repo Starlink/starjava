@@ -39,6 +39,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
@@ -242,7 +244,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
         }
         final String id = db.toString() + " query " + nquery;
         return new TableLoader() {
-            public StarTable[] loadTables( StarTableFactory tabFact )
+            public TableSequence loadTables( StarTableFactory tabFact )
                     throws IOException {
                 logger_.info( queryUrl.toString() );
                 URLConnection uc = queryUrl.openConnection();
@@ -283,7 +285,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
                 }
                 table.setParameter( new DescribedValue( URL_INFO, url ) );
                 table.setParameter( new DescribedValue( SQL_INFO, sql ) );
-                return new StarTable[] { table };
+                return Tables.singleTableSequence( table );
             }
             public String getLabel() {
                 return id;

@@ -89,6 +89,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
@@ -424,7 +425,7 @@ public class ControlWindow extends AuxWindow
                     public String getLabel() {
                         return "Pasted";
                     }
-                    public StarTable[] loadTables( StarTableFactory tfact )
+                    public TableSequence loadTables( StarTableFactory tfact )
                             throws IOException {
                         return tfact
                               .makeStarTables( DataSource

@@ -8,6 +8,7 @@ import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
@@ -25,9 +26,10 @@ public class MultiCopyTest extends TableTestCase {
     public void testMulti() throws Exception {
         String[] ofmts = new String[] { "fits", "votable", };
         StarTableFactory tfact = new StarTableFactory();
-        StarTable[] inTables = new VOTableBuilder()
+        StarTable[] inTables =
+            Tables.tableArray( new VOTableBuilder()
                               .makeStarTables( new URLDataSource( multiLoc_ ),
-                                               StoragePolicy.PREFER_MEMORY );
+                                               StoragePolicy.PREFER_MEMORY ) );
         for ( int i = 0; i < ofmts.length; i++ ) {
             String ofmt = ofmts[ i ];
             File ofile = File.createTempFile( "tbl", "." + ofmt );
@@ -39,9 +41,10 @@ public class MultiCopyTest extends TableTestCase {
                                 .setValue( "out", ofile.toString() );
             new MultiCopy().createExecutable( env ).execute();
             StarTable[] tables =
-                ((MultiTableBuilder) tfact.getTableBuilder( ofmt ))
-                    .makeStarTables( new FileDataSource( ofile ),
-                                     StoragePolicy.PREFER_MEMORY );
+                Tables.tableArray(
+                    ((MultiTableBuilder) tfact.getTableBuilder( ofmt ))
+                        .makeStarTables( new FileDataSource( ofile ),
+                                         StoragePolicy.PREFER_MEMORY ) );
             for ( int itab = 0; itab < tables.length; itab++ ) {
                 assertSameData( inTables[ itab ], tables[ itab ] );
             }
@@ -55,9 +58,10 @@ public class MultiCopyTest extends TableTestCase {
                                  .setValue( "out", ofile.toString() );
             new MultiCopyN().createExecutable( envN ).execute();
             StarTable[] tablesN =
-                ((MultiTableBuilder) tfact.getTableBuilder( ofmt ))
-                    .makeStarTables( new FileDataSource( ofile ),
-                                     StoragePolicy.PREFER_MEMORY );
+                Tables.tableArray(
+                    ((MultiTableBuilder) tfact.getTableBuilder( ofmt ))
+                        .makeStarTables( new FileDataSource( ofile ),
+                                         StoragePolicy.PREFER_MEMORY ) );
             assertEquals( 1, tablesN[ 0 ].getRowCount() );
             assertEquals( 1, tablesN[ 1 ].getRowCount() );
             assertArrayEquals( inTables[ 0 ].getRow( 0 ),

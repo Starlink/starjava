@@ -10,6 +10,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -72,7 +73,7 @@ public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
             public String getLabel() {
                 return file.getName();
             }
-            public StarTable[] loadTables( StarTableFactory tfact )
+            public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 return tfact.makeStarTables( new FileDataSource( file ),
                                              format );

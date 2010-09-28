@@ -10,6 +10,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
@@ -167,8 +168,8 @@ public abstract class AbstractInputTableParameter extends Parameter {
                 if ( streamParam_.booleanValue( env ) ) {
                     logger_.warning( streamWarning );
                 }
-                return tfact
-                      .makeStarTables( DataSource.makeDataSource( loc ), fmt );
+                DataSource datsrc = DataSource.makeDataSource( loc );
+                return Tables.tableArray( tfact.makeStarTables( datsrc, fmt ) );
             }
         }
         catch ( EOFException e ) {

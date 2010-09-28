@@ -12,6 +12,8 @@ import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 
@@ -60,12 +62,13 @@ public class TreeTableLoadDialog extends AbstractTableLoadDialog {
                 public String getLabel() {
                     return node.getLabel();
                 }
-                public StarTable[] loadTables( StarTableFactory tfact )
+                public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
                     try {
                         StarTable table =
                             (StarTable) node.getDataObject( DataType.TABLE );
-                        return new StarTable[] { tfact.randomTable( table ) };
+                        table = tfact.randomTable( table );
+                        return Tables.singleTableSequence( table );
                     }
                     catch ( DataObjectException e ) {
                         throw (IOException)

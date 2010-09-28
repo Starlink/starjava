@@ -18,7 +18,9 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
 
@@ -125,13 +127,14 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
         return rowStore.getStarTable();
     }
 
-    public StarTable[] makeStarTables( DataSource datsrc,
-                                       StoragePolicy storagePolicy )
+    public TableSequence makeStarTables( DataSource datsrc,
+                                         StoragePolicy storagePolicy )
             throws TableFormatException, IOException {
         String frag = datsrc.getPosition();
         if ( frag != null && frag.trim().length() > 0 ) {
-            return new StarTable[] { makeStarTable( datsrc, false,
-                                                    storagePolicy ) };
+            return Tables
+                  .singleTableSequence( makeStarTable( datsrc, false,
+                                                       storagePolicy ) );
         }
         TableElement[] tEls = readTableElements( datsrc, storagePolicy );
         List tableList = new ArrayList();
@@ -141,7 +144,9 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
                 tableList.add( table );
             }
         }
-        return (StarTable[]) tableList.toArray( new StarTable[ 0 ] );
+        return Tables
+              .arrayTableSequence( (StarTable[])
+                                   tableList.toArray( new StarTable[ 0 ] ) );
     }
 
     /**

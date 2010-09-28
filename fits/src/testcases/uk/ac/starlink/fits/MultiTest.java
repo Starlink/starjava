@@ -46,9 +46,9 @@ public class MultiTest extends TestCase {
 
         FitsTableBuilder builder = new FitsTableBuilder();
         StarTable[] inTables =
-            builder
-           .makeStarTables( ioer.createDataSource(),
-                            StoragePolicy.PREFER_MEMORY );
+            Tables.tableArray( builder
+                              .makeStarTables( ioer.createDataSource(),
+                                               StoragePolicy.PREFER_MEMORY ) );
         assertEquals( outTables.length, nt );
         for ( int i = nt - 1; i >= 0; i-- ) {
             assertTableEquals( outTables[ i ], inTables[ i ] );

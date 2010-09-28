@@ -320,6 +320,22 @@ public class Tables {
     }
 
     /**
+     * Convenience method to construct an array of StarTables from a
+     * TableSequence.
+     *
+     * @param  tseq   table sequence
+     * @return   array containing tables from sequence
+     */
+    public static StarTable[] tableArray( TableSequence tseq )
+            throws IOException {
+        List<StarTable> list = new ArrayList<StarTable>();
+        for ( StarTable table; ( table = tseq.nextTable() ) != null; ) {
+            list.add( table );
+        }
+        return list.toArray( new StarTable[ 0 ] );
+    }
+
+    /**
      * Returns a sorted version of a table.  The sorting is done on the
      * values of one or more columns, as specified by the <tt>colIndices</tt>
      * argument; the first element is the primary sort key, but in case

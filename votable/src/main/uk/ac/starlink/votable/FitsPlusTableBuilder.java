@@ -22,11 +22,14 @@ import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiTableBuilder;
+import uk.ac.starlink.table.QueueTableSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -108,16 +111,17 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
         }
     }
 
-    public StarTable[] makeStarTables( DataSource datsrc,
-                                       StoragePolicy storagePolicy)
+    public TableSequence makeStarTables( DataSource datsrc,
+                                         StoragePolicy storagePolicy)
             throws IOException {
 
         /* If there is a position, use makeStarTable.  Otherwise, we want
          * all the tables. */
         String srcpos = datsrc.getPosition();
         if ( srcpos != null && srcpos.trim().length() > 0 ) {
-            return new StarTable[] { makeStarTable( datsrc, false,
-                                                    storagePolicy ) };
+            return Tables
+                  .singleTableSequence( makeStarTable( datsrc, false,
+                                                       storagePolicy ) );
         }
 
         /* See if this looks like a fits-plus table. */
@@ -126,67 +130,10 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                 "Doesn't look like a FITS-plus file" );
         }
 
-        /* Get an input stream. */
-        ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc );
-        try {
-
-            /* Read the metadata from the primary HDU. */
-            long[] posptr = new long[ 1 ]; 
-            TableElement[] tabEls = readMetadata( in, posptr );
-            long pos = posptr[ 0 ];
-            int nTable = tabEls.length;
-            StarTable[] outTables = new StarTable[ nTable ];
-
-            /* Read each table HDU in turn. */
-            for ( int itab = 0; itab < nTable; itab++ ) {
-
-                /* Make sure we have a usable stream positioned at the start
-                 * of the right HDU. */
-                if ( in == null ) {
-                    in = FitsConstants.getInputStreamStart( datsrc );
-                    if ( pos > 0 ) {
-                        if ( in instanceof RandomAccess ) {
-                            ((RandomAccess) in).seek( pos );
-                        }
-                        else {
-                            IOUtils.skipBytes( in, pos );
-                        }
-                    }
-                }
-
-                /* Read the HDU header. */
-                Header hdr = new Header();
-                int headsize = FitsConstants.readHeader( hdr, in );
-                long datasize = FitsConstants.getDataSize( hdr );
-                long datpos = pos + headsize;
-                if ( ! "BINTABLE".equals( hdr.getStringValue( "XTENSION" ) ) ) {
-                    throw new TableFormatException( "Non-BINTABLE at ext #"
-                                                  + itab + " - not FITS-plus" );
-                }
-
-                /* Read the BINTABLE. */
-                final StarTable dataTable;
-                if ( in instanceof RandomAccess ) {
-                    dataTable = BintableStarTable
-                               .makeRandomStarTable( hdr, (RandomAccess) in );
-                }
-                else {
-                    dataTable = BintableStarTable
-                               .makeSequentialStarTable( hdr, datsrc, datpos );
-                }
-                in = null;
-
-                /* Combine the data from the BINTABLE with the header from
-                 * the VOTable to create an output table. */
-                outTables[ itab ] =
-                    createFitsPlusTable( tabEls[ itab ], dataTable );
-                pos += headsize + datasize;
-            }
-            return outTables;
-        }
-        catch ( FitsException e ) {
-            throw new TableFormatException( e.getMessage(), e );
-        }
+        /* Return an iterator over the tables in the data source. */
+        MultiLoadWorker loadWorker = new MultiLoadWorker( datsrc );
+        loadWorker.start();
+        return loadWorker.getTableSequence();
     }
 
     public void streamStarTable( InputStream in, final TableSink sink,
@@ -510,6 +457,110 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                 return "VOTMETA".equals( key ) && "T".equals( value );
             default:
                 return true;
+        }
+    }
+
+    /**
+     * Thread which loads the table data from a FITS-plus file.
+     */
+    private static class MultiLoadWorker extends Thread {
+        private final DataSource datsrc_;
+        private final QueueTableSequence tqueue_;
+
+        /**
+         * Constructor.
+         *
+         * @param   datsrc  data source
+         */
+        MultiLoadWorker( DataSource datsrc ) {
+            super( "FITS-plus multi table loader" );
+            setDaemon( true );
+            datsrc_ = datsrc;
+            tqueue_ = new QueueTableSequence();
+        }
+
+        /**
+         * Returns the table sequence populated by this thread.
+         * The thread must be started in order for the returned sequence to
+         * become populated and eventually terminated.
+         *
+         * @return   output table sequence
+         */
+        TableSequence getTableSequence() {
+            return tqueue_;
+        }
+
+        public void run() {
+            try {
+                multiLoad();
+            }
+            catch ( Throwable e ) {
+                tqueue_.addError( e );
+            }
+            finally {
+                tqueue_.endSequence();
+            }
+        }
+
+        /**
+         * Do the work for loading tables.
+         */
+        private void multiLoad() throws IOException, FitsException {
+
+            /* Get an input stream. */
+            ArrayDataInput in = FitsConstants.getInputStreamStart( datsrc_ );
+
+            /* Read the metadata from the primary HDU. */
+            long[] posptr = new long[ 1 ]; 
+            TableElement[] tabEls = readMetadata( in, posptr );
+            long pos = posptr[ 0 ];
+            int nTable = tabEls.length;
+
+            /* Read each table HDU in turn. */
+            for ( int itab = 0; itab < nTable; itab++ ) {
+
+                /* Make sure we have a usable stream positioned at the start
+                 * of the right HDU. */
+                if ( in == null ) {
+                    in = FitsConstants.getInputStreamStart( datsrc_ );
+                    if ( pos > 0 ) {
+                        if ( in instanceof RandomAccess ) {
+                            ((RandomAccess) in).seek( pos );
+                        }
+                        else {
+                            IOUtils.skipBytes( in, pos );
+                        }
+                    }
+                }
+
+                /* Read the HDU header. */
+                Header hdr = new Header();
+                int headsize = FitsConstants.readHeader( hdr, in );
+                long datasize = FitsConstants.getDataSize( hdr );
+                long datpos = pos + headsize;
+                if ( ! "BINTABLE".equals( hdr.getStringValue( "XTENSION" ) ) ) {
+                    throw new TableFormatException( "Non-BINTABLE at ext #"
+                                                  + itab + " - not FITS-plus" );
+                }
+
+                /* Read the BINTABLE. */
+                final StarTable dataTable;
+                if ( in instanceof RandomAccess ) {
+                    dataTable = BintableStarTable
+                               .makeRandomStarTable( hdr, (RandomAccess) in );
+                }
+                else {
+                    dataTable = BintableStarTable
+                               .makeSequentialStarTable( hdr, datsrc_, datpos );
+                }
+                in = null;
+
+                /* Combine the data from the BINTABLE with the header from
+                 * the VOTable to create an output table. */
+                tqueue_.addTable( createFitsPlusTable( tabEls[ itab ],
+                                                       dataTable ) );
+                pos += headsize + datasize;
+            }
         }
     }
 }

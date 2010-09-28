@@ -25,11 +25,13 @@ import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.MultiTableBuilder;
+import uk.ac.starlink.table.QueueTableSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
@@ -149,94 +151,21 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         }
     }
 
-    public StarTable[] makeStarTables( DataSource datsrc, StoragePolicy policy )
+    public TableSequence makeStarTables( DataSource datsrc,
+                                         StoragePolicy policy )
             throws IOException {
         String frag = datsrc.getPosition();
         if ( frag != null && frag.trim().length() > 0 ) {
-            return new StarTable[] { makeStarTable( datsrc, false, policy ) };
+            return Tables
+                  .singleTableSequence( makeStarTable( datsrc, false,
+                                                       policy ) );
         }
         if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
-
-        ArrayDataInput in = null;
-        long pos = 0L;
-        List tableList = new ArrayList();
-        int ihdu = 0;
-        try {
-            for ( ; ; ihdu++ ) {
-                if ( in == null ) {
-                    in = FitsConstants.getInputStreamStart( datsrc );
-                    if ( pos > 0 ) {
-                        if ( in instanceof RandomAccess ) {
-                            ((RandomAccess) in).seek( pos );
-                        }
-                        else {
-                            IOUtils.skipBytes( in, pos );
-                        }
-                    }
-                }
-                TableResult tres = attemptReadTable( in, datsrc, pos );
-                StarTable table = tres.table_;
-                pos = tres.afterPos_;
-                if ( tres.streamUsed_ ) {
-                    in = null;
-                }
-                if ( table != null ) {
-                    table.setName( datsrc.getName() + "#" + ihdu );
-                    URL baseUrl = datsrc.getURL();
-                    if ( baseUrl != null &&
-                         baseUrl.toString().indexOf( '#' ) < 0 ) {
-                        String hduUrl = baseUrl + "#" + ihdu;
-                        try {
-                            table.setURL( new URL( hduUrl ) );
-                        }
-                        catch ( MalformedURLException e ) {
-                            logger.info( "Bad URL " + hduUrl + "?" );
-                        }
-                    }
-                    tableList.add( table );
-                }
-                if ( tres.streamEnded_ ) {
-                    return (StarTable[])
-                           tableList.toArray( new StarTable[ 0 ] );
-                }
-            }
-        }
-        catch ( IOException e ) {
-            if ( tableList.isEmpty() ) {
-                throw e;
-            }
-            else {
-                if ( ! ( e instanceof EOFException ) ) {
-                    logger.log( Level.WARNING,
-                                "Error reading FITS tables at extension "
-                              + ihdu + " in " + datsrc.getName() + "; "
-                              + "returning earlier tables" );
-                }
-                return (StarTable[])
-                       tableList.toArray( new StarTable[ 0 ] );
-            }
-        }
-        catch ( FitsException e ) {
-            if ( tableList.isEmpty() ) {
-                throw (TableFormatException)
-                      new TableFormatException( e.getMessage() ).initCause( e );
-            }
-            else {
-                logger.log( Level.WARNING,
-                            "Error reading FITS tables at extension "
-                          + ihdu + " in " + datsrc.getName() + "; "
-                          + "returning earlier tables" );
-                return (StarTable[])
-                       tableList.toArray( new StarTable[ 0 ] );
-            }
-        }
-        finally {
-            if ( in != null ) {
-                in.close();
-            }
-        }
+        MultiLoadWorker loadWorker = new MultiLoadWorker( datsrc );
+        loadWorker.start();
+        return loadWorker.getTableSequence();
     }
 
     /**
@@ -479,6 +408,102 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         }
         else {
             return false;
+        }
+    }
+
+    /**
+     * Thread which loads tables.
+     */
+    private static class MultiLoadWorker extends Thread {
+        private final DataSource datsrc_;
+        private final QueueTableSequence tqueue_;
+
+        /**
+         * Constructor.
+         *
+         * @param  datsrc  data source containing FITS table
+         */
+        MultiLoadWorker( DataSource datsrc ) {
+            super( "FITS multi table loader" );
+            setDaemon( true );
+            datsrc_ = datsrc;
+            tqueue_ = new QueueTableSequence();
+        }
+
+        /**
+         * Returns the table sequence populated by this thread.
+         * This thread must be started for the returned sequence to become
+         * populated and eventually terminated.
+         *
+         * @return   output table sequence
+         */
+        TableSequence getTableSequence() {
+            return tqueue_;
+        }
+
+        public void run() {
+            try {
+                multiLoad();
+            }
+            catch ( Throwable e ) {
+                tqueue_.addError( e );
+            }
+            finally {
+                tqueue_.endSequence();
+            }
+        }
+
+        /**
+         * Does the work of loading tables.  Table successes and failures
+         * are added to the table sequence, ready for readout on a different
+         * thread, as they are encountered.
+         */
+        private void multiLoad() throws IOException, FitsException {
+            ArrayDataInput in = null;
+            try {
+                long pos = 0L;
+                boolean done = false;
+                for ( int ihdu = 0; ! done ; ihdu++ ) {
+                    if ( in == null ) {
+                        in = FitsConstants.getInputStreamStart( datsrc_ );
+                        if ( pos > 0 ) {
+                            if ( in instanceof RandomAccess ) {
+                                ((RandomAccess) in).seek( pos );
+                            }
+                            else {
+                                IOUtils.skipBytes( in, pos );
+                            }
+                        }
+                    }
+                    TableResult tres = attemptReadTable( in, datsrc_, pos );
+                    StarTable table = tres.table_;
+                    pos = tres.afterPos_;
+                    if ( tres.streamUsed_ ) {
+                        in = null;
+                    }
+                    if ( table != null ) {
+                        table.setName( datsrc_.getName() + "#" + ihdu );
+                        URL baseUrl = datsrc_.getURL();
+                        if ( baseUrl != null &&
+                             baseUrl.toString().indexOf( '#' ) < 0 ) {
+                            String hduUrl = baseUrl + "#" + ihdu;
+                            try {
+                                table.setURL( new URL( hduUrl ) );
+                            }
+                            catch ( MalformedURLException e ) {
+                                logger.info( "Bad URL " + hduUrl + "?" );
+                            }
+                        }
+                        tqueue_.addTable( table );
+                    }
+                    done = tres.streamEnded_;
+                }
+            }
+            finally {
+                if ( in != null ) {
+                    in.close();
+                }
+            }
         }
     }
 

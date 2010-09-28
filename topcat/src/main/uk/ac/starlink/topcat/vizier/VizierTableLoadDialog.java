@@ -44,6 +44,7 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
@@ -386,22 +387,28 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
             public String getLabel() {
                 return id;
             }
-            public StarTable[] loadTables( StarTableFactory tfact )
+            public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 logger_.info( "VizieR query: " + url );
-                StarTable[] tables =
+                final TableSequence tseq =
                     tfact.makeStarTables( new URLDataSource( url ), "votable" );
-                List tList = new ArrayList();
-                for ( int i = 0; i < tables.length; i++ ) {
-                    if ( tables[ i ].getRowCount() != 0 ) {
-                        tList.add( tables[ i ] );
+                return new TableSequence() {
+                    int ix_;
+                    public StarTable nextTable() throws IOException {
+                        StarTable table;
+                        boolean isEmpty;
+                        do {
+                            table = tseq.nextTable();
+                            ix_++;
+                            isEmpty = table != null && table.getRowCount() == 0;
+                            if ( isEmpty ) {
+                                logger_.info( "Ignoring VizieR table #" + ix_
+                                            + " with no rows" );
+                            }
+                        } while ( isEmpty );
+                        return table;
                     }
-                    else {
-                        logger_.info( "Ignoring VizieR table #" + ( i + 1 ) 
-                                    + "with no rows" );
-                    }
-                }
-                return (StarTable[]) tList.toArray( new StarTable[ 0 ] );
+                };
             }
         };
     }

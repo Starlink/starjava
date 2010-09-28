@@ -13,6 +13,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -90,11 +92,11 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
         metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
         final String summary = getQuerySummary( serviceUrl, size );
         return new TableLoader() {
-            public StarTable[] loadTables( StarTableFactory factory )
+            public TableSequence loadTables( StarTableFactory factory )
                     throws IOException {
                 StarTable st = query.execute( factory );
                 st.getParameters().addAll( metadata );
-                return new StarTable[] { st };
+                return Tables.singleTableSequence( st );
             }
             public String getLabel() {
                 return summary;

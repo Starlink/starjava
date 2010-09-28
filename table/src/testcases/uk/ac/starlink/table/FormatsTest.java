@@ -509,10 +509,10 @@ public class FormatsTest extends TableCase {
             new BufferedOutputStream( new FileOutputStream( loc ) );
         writer.writeStarTables( Tables.arrayTableSequence( touts ), out );
         out.close();
-
         StarTable[] tins =
-            reader.makeStarTables( new FileDataSource( loc ),
-                                   StoragePolicy.PREFER_MEMORY );
+            Tables.tableArray( reader
+                              .makeStarTables( new FileDataSource( loc ),
+                                               StoragePolicy.PREFER_MEMORY ) );
         assertEquals( touts.length, tins.length );
         for ( int jseq = 0; jseq < 2; jseq++ ) {
             for ( int i = 0; i < touts.length; i++ ) {

@@ -20,6 +20,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.DoubleParameter;
@@ -81,6 +82,7 @@ public class JyStilts {
         uk.ac.starlink.table.StarTableFactory.class,
         uk.ac.starlink.table.StarTableOutput.class,
         uk.ac.starlink.table.TableSequence.class,
+        uk.ac.starlink.table.Tables.class,
         uk.ac.starlink.table.WrapperStarTable.class,
         uk.ac.starlink.table.WrapperRowSequence.class,
         uk.ac.starlink.task.InvokeUtils.class,
@@ -742,7 +744,9 @@ public class JyStilts {
         lineList.add( "    else:" );
         lineList.add( "        datsrc = " + getImportName( DataSource.class )
                                           + ".makeDataSource(location)" );
-        lineList.add( "    tables = fact.makeStarTables(datsrc, fmt)" );
+        lineList.add( "    tseq = fact.makeStarTables(datsrc, fmt)" );
+        lineList.add( "    tables = " + getImportName( Tables.class )
+                                      + ".tableArray(tseq)" );
         lineList.add( "    return map(import_star_table, tables)" );
         return (String[]) lineList.toArray( new String[ 0 ] );
     }

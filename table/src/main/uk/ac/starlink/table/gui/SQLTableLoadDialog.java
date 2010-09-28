@@ -6,6 +6,8 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 
 /**
@@ -52,10 +54,10 @@ public class SQLTableLoadDialog extends AbstractTableLoadDialog {
             public String getLabel() {
                 return qtext;
             }
-            public StarTable[] loadTables( StarTableFactory tfact )
+            public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 logger_.info( url );
-                return new StarTable[] { tfact.makeStarTable( url ) };
+                return Tables.singleTableSequence( tfact.makeStarTable( url ) );
             }
         };
     }

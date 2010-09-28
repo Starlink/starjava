@@ -10,6 +10,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -66,7 +67,7 @@ public class LocationTableLoadDialog extends AbstractTableLoadDialog {
                 public String getLabel() {
                     return loc;
                 }
-                public StarTable[] loadTables( StarTableFactory tfact )
+                public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
                     return tfact.makeStarTables( DataSource
                                                 .makeDataSource( loc ),

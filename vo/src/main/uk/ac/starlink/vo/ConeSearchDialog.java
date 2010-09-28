@@ -9,6 +9,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoader;
 
@@ -68,12 +70,12 @@ public class ConeSearchDialog extends DalTableLoadDialog {
         metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
         final String summary = getQuerySummary( serviceUrl, sr );
         return new TableLoader() {
-            public StarTable[] loadTables( StarTableFactory factory )
+            public TableSequence loadTables( StarTableFactory factory )
                     throws IOException {
                 StarTable st = coner.performSearch( ra, dec, sr, verb,
                                                     factory );
                 st.getParameters().addAll( metadata );
-                return new StarTable[] { st };
+                return Tables.singleTableSequence( st );
             }
             public String getLabel() {
                 return summary;

@@ -1,8 +1,8 @@
 package uk.ac.starlink.table.gui;
 
 import java.io.IOException;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 
 /**
  * Interface defining an object which can load tables.
@@ -28,5 +28,5 @@ public interface TableLoader {
      * @param  tfact   table factory
      * @return   loaded tables
      */
-    StarTable[] loadTables( StarTableFactory tfact ) throws IOException;
+    TableSequence loadTables( StarTableFactory tfact ) throws IOException;
 }

@@ -9,8 +9,9 @@ import java.net.URL;
 import javax.xml.rpc.ServiceException;
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 
@@ -66,9 +67,10 @@ public class RegistryTableLoadDialog extends AbstractTableLoadDialog {
         try {
             final RegistryQuery query = rqPanel_.getRegistryQuery();
             return new TableLoader() {
-                public StarTable[] loadTables( StarTableFactory factory )
+                public TableSequence loadTables( StarTableFactory factory )
                         throws IOException {
-                    return new StarTable[] { new RegistryStarTable( query ) };
+                    return Tables
+                       .singleTableSequence( new RegistryStarTable( query ) );
                 }
                 public String getLabel() {
                     return query.toString();
