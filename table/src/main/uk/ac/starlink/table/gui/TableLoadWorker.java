@@ -122,8 +122,7 @@ public class TableLoadWorker extends Thread {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( ! finished_ ) {
-                        boolean interrupted =
-                            error instanceof InterruptedIOException;
+                        boolean interrupted = isInterruption( error );
                         if ( ! interrupted ) {
                             client_.loadFailure( error );
                         }
@@ -160,8 +159,7 @@ public class TableLoadWorker extends Thread {
                                 }
                                 else {
                                     assert error1 != null;
-                                    if ( error1 instanceof
-                                                InterruptedIOException ) {
+                                    if ( isInterruption( error1 ) ) {
                                         if ( ! finished_ ) {
                                             finish( true );
                                         }
@@ -223,6 +221,26 @@ public class TableLoadWorker extends Thread {
             policy_.interrupt();
         }
         progSink_.dispose();
+    }
+
+    /**
+     * Works out whether a given throwable counts as an interruption.
+     * This will generally be the case if the user has taken steps to
+     * cancel the load.  When that's happened, it's best to avoid an
+     * explicit notification (such as a popup) to tell the user that
+     * the cancel has happened.
+     *
+     * @param  error   throwable to test
+     * @return   true iff error apparently originated from a cancellation action
+     */
+    private static boolean isInterruption( Throwable error ) {
+        for ( Throwable err = error; err != null; err = err.getCause() ) {
+            if ( err instanceof InterruptedException ||
+                 err instanceof InterruptedIOException ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
