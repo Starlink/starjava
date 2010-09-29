@@ -1,6 +1,7 @@
 package uk.ac.starlink.fits;
 
 import java.awt.datatransfer.DataFlavor;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,8 +70,12 @@ public class ColFitsTableBuilder implements TableBuilder {
             pos += FitsConstants.readHeader( hdr, in );
         }
         catch ( FitsException e ) {
-            throw (IOException) new IOException( "FITS read error" )
-                               .initCause( e );
+            throw (TableFormatException)
+                  new TableFormatException( "FITS read error" ).initCause( e );
+        }
+        catch ( EOFException e ) {
+            throw (TableFormatException)
+                  new TableFormatException( "No extensions" ).initCause( e );
         }
         finally {
             in.close();
