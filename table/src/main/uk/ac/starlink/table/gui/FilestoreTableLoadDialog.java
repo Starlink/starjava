@@ -46,12 +46,7 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
 
     protected Component createQueryComponent() {
         JComponent panel = new JPanel( new BorderLayout() );
-        chooser_ = new FilestoreChooser( false ) {
-            public void leafSelected( Leaf leaf ) {
-                submit();
-            }
-        };
-        chooser_.addDefaultBranches();
+        getChooser();
         Action[] navActs = chooser_.getNavigationActions();
         setToolbarActions( navActs );
         JMenu navMenu = new JMenu( "Navigation" );
@@ -87,7 +82,7 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
         }
         final Leaf leaf = (Leaf) node;
         StringBuffer sbuf = new StringBuffer();
-        sbuf.append( node.getName() );
+        sbuf.append( leaf.toString() );
         String posText = posField_.getText();
         final String pos = posText != null && posText.trim().length() > 0
                          ? posText.trim()
@@ -125,7 +120,12 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
      */
     public FilestoreChooser getChooser() {
         if ( chooser_ == null ) {
-            getQueryComponent();
+            chooser_ = new FilestoreChooser( false ) {
+                public void leafSelected( Leaf leaf ) {
+                    submit();
+                }
+            };
+            chooser_.addDefaultBranches();
         }
         return chooser_;
     }

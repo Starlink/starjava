@@ -107,7 +107,7 @@ public class SystemBrowser {
         final FileDataSource datsrc1 = datsrc;
         return new TableLoader() {
             public String getLabel() {
-                return datsrc1.getFile().getName();
+                return datsrc1.getFile().toString();
             }
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
