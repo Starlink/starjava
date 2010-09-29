@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.StarEntityResolver;
 
@@ -31,6 +32,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
     private int skipTables_;
     private final TableSink sink_;
     private final Namespacing namespacing_;
+    private boolean isVotable_; 
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -57,6 +59,9 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         super.startElement( namespaceURI, localName, qName, atts );
         String tagName =
             namespacing_.getVOTagName( namespaceURI, localName, qName );
+        if ( "VOTABLE".equals( tagName ) ) {
+            isVotable_ = true;
+        }
         if ( "TABLE".equals( tagName ) ) {
             if ( skipTables_-- == 0 ) {
                 setReadHrefTables( true );
@@ -160,9 +165,17 @@ class TableStreamer extends TableContentHandler implements TableHandler {
             return;
         }
         catch ( SAXException e ) {
-            throw VOElementFactory.fixStackTrace( e );
+            e = VOElementFactory.fixStackTrace( e );
+            if ( streamer.isVotable_ ) {
+                throw e;
+            }
+            else {
+                throw new TableFormatException( e );
+            }
         }
-        throw new IOException( "No TABLE element found" );
+        throw streamer.isVotable_
+            ? new IOException( "No TABLE element found" )
+            : new TableFormatException( "No VOTABLE element" );
     }
 
     /**
