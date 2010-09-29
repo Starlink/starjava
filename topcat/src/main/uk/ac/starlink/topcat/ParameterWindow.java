@@ -115,6 +115,7 @@ public class ParameterWindow extends AuxWindow
                     name = null;
                 }
                 dataModel.setName( name );
+                tcModel.fireModelChanged( TopcatEvent.LABEL, null );
             }
         };
         params.addPseudoParameter( nameParam );
