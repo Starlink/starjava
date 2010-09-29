@@ -23,6 +23,7 @@ public class TopcatLoadClient implements TableLoadClient {
     private final LoadingToken token_;
     private String label_;
     private int nLoad_;
+    private int nAttempt_;
 
     /**
      * Constructor.
@@ -50,6 +51,7 @@ public class TopcatLoadClient implements TableLoadClient {
     }
 
     public boolean loadSuccess( StarTable table ) {
+        nAttempt_++;
         if ( table.getRowCount() == 0 ) {
             final String[] msg = { "Empty table " + label_ + ".",
                                    "Table contained no rows." };
@@ -93,6 +95,7 @@ public class TopcatLoadClient implements TableLoadClient {
     }
 
     public boolean loadFailure( final Throwable error ) {
+        nAttempt_++;
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 if ( error instanceof OutOfMemoryError ) {
@@ -109,6 +112,16 @@ public class TopcatLoadClient implements TableLoadClient {
 
     public void endSequence( boolean cancelled ) {
         controlWin_.removeLoadingToken( token_ );
+        if ( nAttempt_ == 0 ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    JOptionPane
+                   .showMessageDialog( parent_,
+                                       "No tables present in " + label_,
+                                       "No Tables", JOptionPane.ERROR_MESSAGE );
+                }
+            } );
+        }
     }
 
     /**
