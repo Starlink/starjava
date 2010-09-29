@@ -169,6 +169,15 @@ public class ColFitsStarTable extends ColumnStarTable {
             pos += colData.getItemBytes() * nrow_;
         }
 
+        /* Get table name. */
+        if ( cards.containsKey( "EXTNAME" ) ) {
+            String tname = cards.getStringValue( "EXTNAME" );
+            if ( cards.containsKey( "EXTVER" ) ) {
+                tname += "-" + cards.getStringValue( "EXTVER" );
+            }
+            setName( tname );
+        }
+
         /* Add table params containing header card information. */
         getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
     }

@@ -620,6 +620,7 @@ public class FormatsTest extends TableCase {
         assertEquals( ncol, t2.getColumnCount() );
         long nrow = t1.getRowCount();
         assertEquals( nrow, t2.getRowCount() );
+        assertEquals( t1.getName(), t2.getName() );
 
         boolean[] badcols = new boolean[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {

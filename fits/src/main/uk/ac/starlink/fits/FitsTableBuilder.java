@@ -111,7 +111,9 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                                          + "HDU " + datsrc.getPosition() );
                 }
                 if ( table != null ) {
-                    table.setName( datsrc.getName() );
+                    if ( table.getName() == null ) {
+                        table.setName( datsrc.getName() );
+                    }
                     table.setURL( datsrc.getURL() );
                     return table;
                 }
@@ -128,7 +130,9 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                         table = attemptReadTable( strm, wantRandom,
                                                   datsrc, pos );
                         if ( table != null ) {
-                            table.setName( datsrc.getName() );
+                            if ( table.getName() == null ) {
+                                table.setName( datsrc.getName() );
+                            }
                             table.setURL( datsrc.getURL() );
                             return table;
                         }
@@ -325,7 +329,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             if ( strm instanceof RandomAccess ) {
                 StarTable table =
                     BintableStarTable
-                   .makeRandomStarTable( hdr, ( RandomAccess) strm );
+                   .makeRandomStarTable( hdr, (RandomAccess) strm );
                 ((RandomAccess) strm).seek( afterpos );
                 return new TableResult( table, afterpos, true, isEof( strm ) );
             }
@@ -482,7 +486,9 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
                         in = null;
                     }
                     if ( table != null ) {
-                        table.setName( datsrc_.getName() + "#" + ihdu );
+                        if ( table.getName() == null ) {
+                            table.setName( datsrc_.getName() + "#" + ihdu );
+                        }
                         URL baseUrl = datsrc_.getURL();
                         if ( baseUrl != null &&
                              baseUrl.toString().indexOf( '#' ) < 0 ) {

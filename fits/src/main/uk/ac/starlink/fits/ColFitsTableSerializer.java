@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
@@ -28,6 +29,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
     private final String[] colids_;
     private final int ncol_;
     private final long nrow_;
+    private final String tname_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -41,6 +43,7 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
 
         /* Prepare an array of column storage objects which know how to do
          * serial storage/retrieval of the data in a table column. */
+        tname_ = table.getName();
         ncol_ = table.getColumnCount();
         colStores_ = new ColumnStore[ ncol_ ];
         colids_ = new String[ ncol_ ];
@@ -120,6 +123,12 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         hdr.addValue( "PCOUNT", 0, "size of special data area" );
         hdr.addValue( "GCOUNT", 1, "one data group" );
         hdr.addValue( "TFIELDS", nUseCol, "number of columns" );
+
+        /* Add EXTNAME record containing table name. */
+        if ( tname_ != null && tname_.trim().length() > 0 ) {
+            FitsConstants
+           .addTrimmedValue( hdr, "EXTNAME", tname_, "table name" );
+        }
 
         /* Ask each ColumnStore to add header cards describing the data
          * cell it will write. */
@@ -206,7 +215,13 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
         Header hdr = new Header();
         try {
             int icol = 99;
+            Level level = logger_.getLevel();
+
+            /* Avoid unwanted logging messages that might occur in case of
+             * truncated card values. */
+            logger_.setLevel( Level.SEVERE );
             colStore.addHeaderInfo( hdr, icol );
+            logger_.setLevel( level );
             String key = tcard + icol;
             return hdr.containsKey( key )
                  ? hdr.findCard( key ).getValue().trim()

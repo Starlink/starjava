@@ -439,6 +439,16 @@ public abstract class BintableStarTable extends AbstractStarTable {
                                      " != " + rowLength );
         }
 
+        /* Get table name. */
+        if ( cards.containsKey( "EXTNAME" ) ) {
+            String tname = cards.getStringValue( "EXTNAME" );
+            if ( cards.containsKey( "EXTVER" ) ) {
+                tname += "-" + cards.getStringValue( "EXTVER" );
+            }
+            setName( tname );
+        }
+
+        /* Any unused header cards become table parameters. */
         getParameters().addAll( Arrays.asList( cards.getUnusedParams() ) );
     }
 

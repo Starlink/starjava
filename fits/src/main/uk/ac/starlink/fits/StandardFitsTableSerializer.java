@@ -312,7 +312,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* Prepare a FITS header block. */
         Header hdr = new Header();
 
-        /* Prepare the overall HDU metadata. */
+        /* Add HDU layout metadata. */
         hdr.addValue( "XTENSION", "BINTABLE", "binary table extension" );
         hdr.addValue( "BITPIX", 8, "8-bit bytes" );
         hdr.addValue( "NAXIS", 2, "2-dimensional table" );
@@ -322,7 +322,14 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         hdr.addValue( "GCOUNT", 1, "one data group" );
         hdr.addValue( "TFIELDS", nUseCol, "number of columns" );
 
-        /* Prepare the per-column HDU metadata. */
+        /* Add EXTNAME record containing table name. */
+        String tname = table.getName();
+        if ( tname != null && tname.trim().length() > 0 ) {
+            FitsConstants
+           .addTrimmedValue( hdr, "EXTNAME", tname, "table name" );
+        }
+
+        /* Add HDU metadata describing columns. */
         int jcol = 0;
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnWriter colwriter = colWriters[ icol ];
@@ -334,7 +341,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 /* Name. */
                 String name = colinfo.getName();
                 if ( name != null && name.trim().length() > 0 ) {
-                    hdr.addValue( "TTYPE" + jcol, name, "label" + forcol );
+                    FitsConstants
+                   .addTrimmedValue( hdr, "TTYPE" + jcol, name,
+                                     "label" + forcol );
                 }
 
                 /* Format. */
@@ -344,7 +353,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 /* Units. */
                 String unit = colinfo.getUnitString();
                 if ( unit != null && unit.trim().length() > 0 ) {
-                    hdr.addValue( "TUNIT" + jcol, unit, "units" + forcol );
+                    FitsConstants
+                   .addTrimmedValue( hdr, "TUNIT" + jcol, unit,
+                                     "units" + forcol );
                 }
 
                 /* Blank. */
@@ -381,9 +392,6 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                 /* Comment (non-standard). */
                 String comm = colinfo.getDescription();
                 if ( comm != null && comm.trim().length() > 0 ) {
-                    if ( comm.length() > 67 ) {
-                        comm = comm.substring( 0, 68 );
-                    }
                     try {
                         hdr.addValue( "TCOMM" + jcol, comm, null );
                     }

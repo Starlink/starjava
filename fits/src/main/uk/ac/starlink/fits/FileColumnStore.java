@@ -159,7 +159,8 @@ abstract class FileColumnStore implements ColumnStore {
         /* Column name. */
         String name = info_.getName();
         if ( name != null && name.trim().length() > 0 ) {
-            hdr.addValue( "TTYPE" + icol, name, "label" + forcol );
+            FitsConstants
+           .addTrimmedValue( hdr, "TTYPE" + icol, name, "label" + forcol );
         }
 
         /* Column format. */
@@ -181,15 +182,13 @@ abstract class FileColumnStore implements ColumnStore {
         /* Column units. */
         String unit = info_.getUnitString();
         if ( unit != null && unit.trim().length() > 0 ) {
-            hdr.addValue( "TUNIT" + icol, unit, "units" + forcol );
+            FitsConstants
+           .addTrimmedValue( hdr, "TUNIT" + icol, unit, "units" + forcol );
         }
 
         /* Column description. */
         String comm = info_.getDescription();
         if ( comm != null && comm.trim().length() > 0 ) {
-            if ( comm.length() > 67 ) {
-                comm = comm.substring( 0, 68 );
-            }
             try {
                 hdr.addValue( "TCOMM" + icol, comm, null );
             }

@@ -7380,6 +7380,8 @@ but my thanks are especially due to the following:
         in HTML &lt;A&gt; tags.</li>
     <li>Basic authorization (<code>http://user:pass@host/path</code>) on
         table URLs handled.</li>
+    <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
+        header cards.</li>
     </ul>
     </p></dd>
 

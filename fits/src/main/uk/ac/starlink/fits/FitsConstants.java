@@ -16,6 +16,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.FitsUtil;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
+import nom.tam.fits.HeaderCardException;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.ArrayDataOutput;
@@ -455,6 +456,27 @@ public class FitsConstants {
         }
     }
 
+    /**
+     * Adds a string-valued card to the header.  If the value is too long,
+     * it is truncated appropriately, and a warning is emitted through
+     * the logging system.
+     *
+     * @param  hdr  header
+     * @param  key  card key
+     * @param  value  card value
+     * @param  comment  card comment
+     */
+    public static void addTrimmedValue( Header hdr, String key, String value,
+                                        String comment )
+            throws HeaderCardException {
+        if ( value != null && value.length() > 68 ) {
+            value = value.substring( 0, 65 ) + "...";
+            logger.warning( "Truncated long FITS header card " + key + " = " + 
+                            value );
+        }
+        hdr.addValue( key, value, comment );
+    }
+
     private static long getRawSize( Header hdr ) {
         int naxis = hdr.getIntValue( "NAXIS", 0 );
         if ( naxis <= 0 ) {
@@ -473,6 +495,4 @@ public class FitsConstants {
         }
         return ( nel + pcount ) * gcount * Math.abs( bitpix ) / 8;
     }
-
-
 }
