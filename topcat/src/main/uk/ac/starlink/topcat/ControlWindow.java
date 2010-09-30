@@ -1002,11 +1002,10 @@ public class ControlWindow extends AuxWindow
             TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
                 TableLoadDialog tld = tlds[ i ];
-                if ( tld instanceof DalTableLoadDialog &&
-                     loadWindow_.isShowing( tld ) ) {
-                    ((DalTableLoadDialog) tld).getSkyEntry()
-                                         .setPosition( raDegrees, decDegrees );
-                    accepted = true;
+                if ( tld instanceof DalTableLoadDialog ) {
+                    accepted = accepted
+                            || ((DalTableLoadDialog) tld)
+                              .acceptSkyPosition( raDegrees, decDegrees );
                 }
             }
         }

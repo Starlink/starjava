@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.RegistryDialogAdjuster;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.vo.Capability;
 import uk.ac.starlink.vo.KeywordServiceQueryFactory;
 import uk.ac.starlink.vo.RegCapabilityInterface;
@@ -37,6 +38,7 @@ public class DalMultiWindow extends AuxWindow {
 
     private final KeywordServiceQueryFactory queryFactory_;
     private final RegistryPanel regPanel_;
+    private final ToggleButtonModel acceptResourceModel_;
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -71,6 +73,10 @@ public class DalMultiWindow extends AuxWindow {
                       .toArray( new RegCapabilityInterface[ 0 ] );
             }
         };
+        acceptResourceModel_ =
+            RegistryDialogAdjuster.createAcceptResourceIdListModel();
+        RegistryDialogAdjuster.adjustRegistryPanel( regPanel_,
+                                                    acceptResourceModel_ );
 
         /* Set up the panel for entering the query parameters for a given
          * service. */
@@ -127,9 +133,12 @@ public class DalMultiWindow extends AuxWindow {
                                   .getRegistryUpdateAction() );
         regMenu.setMnemonic( KeyEvent.VK_R );
         getJMenuBar().add( regMenu );
-        getJMenuBar().add( RegistryDialogAdjuster
-                          .createInteropMenu( regPanel_,
-                                              service.getResourceListType() ) );
+        JMenu interopMenu =
+            RegistryDialogAdjuster
+           .createInteropMenu( regPanel_, service.getResourceListType() );
+        interopMenu.addSeparator();
+        interopMenu.add( acceptResourceModel_.createMenuItem() );
+        getJMenuBar().add( interopMenu );
 
         /* Display something in the registry result table.  Either start
          * a query for all services of the right type, or show a message
@@ -161,7 +170,7 @@ public class DalMultiWindow extends AuxWindow {
      *          loaded into this window
      */ 
     public boolean acceptResourceIdList( String[] ivoids, String msg ) {
-        if ( isShowing() ) {
+        if ( acceptResourceModel_.isSelected() && isShowing() ) {
             RegistryQuery query;
             try {
                 query = queryFactory_.getIdListQuery( ivoids );

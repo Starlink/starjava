@@ -1,24 +1,30 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.Box;
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import uk.ac.starlink.topcat.interop.Transmitter;
+import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.RegistryPanel;
-import uk.ac.starlink.vo.RegistryServiceTableLoadDialog;
+import uk.ac.starlink.vo.SkyPositionEntry;
 
 /**
  * Provides the necessary methods to customise one of the
- * RegistryServiceTableLoadDialog classes for use with TOPCAT.
+ * DalTableLoadDialog classes for use with TOPCAT.
  *
  * @author   Mark Taylor
  * @since    16 Aug 2010
  */
 public class RegistryDialogAdjuster {
     private final String resourceType_;
-    private final RegistryServiceTableLoadDialog dalLoader_;
+    private final DalTableLoadDialog dalLoader_;
+    private final ToggleButtonModel acceptResourceModel_;
+    private final ToggleButtonModel acceptPositionModel_;
 
     /**
      * Constructor.
@@ -28,21 +34,71 @@ public class RegistryDialogAdjuster {
      *         list contains; must be MType subtype for
      *         voresource.loadlist.* message
      */
-    public RegistryDialogAdjuster( RegistryServiceTableLoadDialog dalLoader,
+    public RegistryDialogAdjuster( DalTableLoadDialog dalLoader,
                                    String resourceType ) {
         dalLoader_ = dalLoader;
         resourceType_ = resourceType;
+        acceptResourceModel_ = createAcceptResourceIdListModel();
+        acceptPositionModel_ =
+            new ToggleButtonModel( "Accept Sky Positions", ResourceIcon.LISTEN,
+                                   "Accept incoming SAMP/PLASTIC sky position "
+                                 + "messages to update search coordinates" );
+        acceptPositionModel_.setSelected( true );
     }
 
     /**
-     * Adds a suitable Interop menu to this object's load dialogue menu list.
+     * Performs various adjustments to this dialogue's query component
+     * to make it work better in a TOPCAT window.
      */
-    public void addInteropMenu() {
+    public void adjustComponent() {
+
+        /* Add a new interop menu. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( dalLoader_.getMenus() ) );
-        menuList.add( createInteropMenu( dalLoader_.getRegistryPanel(),
-                                         resourceType_ ) );
+        JMenu interopMenu = createInteropMenu( dalLoader_.getRegistryPanel(),
+                                               resourceType_ );
+        interopMenu.addSeparator();
+        interopMenu.add( acceptResourceModel_.createMenuItem() );
+        interopMenu.add( acceptPositionModel_.createMenuItem() );
+        menuList.add( interopMenu );
         dalLoader_.setMenus( menuList.toArray( new JMenu[ 0 ] ) );
+
+        /* Add acceptance buttons at suitable places in the GUI. */
+        adjustRegistryPanel( dalLoader_.getRegistryPanel(),
+                             acceptResourceModel_ );
+        adjustSkyEntry( dalLoader_.getSkyEntry(), acceptPositionModel_ );
+    }
+
+    /**
+     * Indicates whether incoming resource lists are currently being accepted.
+     *
+     * @return   true  iff resource lists should be used
+     */
+    public boolean acceptResourceIdLists() {
+        return acceptResourceModel_.isSelected();
+    }
+
+    /**
+     * Indicates whether incoming sky positions are currently being accepted.
+     *
+     * @return  true  iff sky positions should be used
+     */
+    public boolean acceptSkyPositions() {
+        return acceptPositionModel_.isSelected();
+    }
+
+    /**
+     * Returns a toggle model for acceping resource lists.
+     *
+     * @return  new toggle button model
+     */
+    public static ToggleButtonModel createAcceptResourceIdListModel() {
+        ToggleButtonModel model =
+            new ToggleButtonModel( "Accept Resource Lists", ResourceIcon.LISTEN,
+                                   "Accept incoming SAMP voresource.loadlist* "
+                                 + "messages to update resource list" );
+        model.setSelected( true );
+        return model;
     }
 
     /**
@@ -63,5 +119,30 @@ public class RegistryDialogAdjuster {
         interopMenu.add( transmitter.getBroadcastAction() );
         interopMenu.add( transmitter.createSendMenu() );
         return interopMenu;
+    }
+
+    /**
+     * Adjusts a registry panel for use with TOPCAT.
+     *
+     * @param  regPanel  registry panel to adjust
+     * @param  acceptResourceModel  toggler for resource list acceptance
+     */
+    public static void adjustRegistryPanel(
+            RegistryPanel regPanel, ToggleButtonModel acceptResourceModel ) {
+        regPanel.getControlBox().add( acceptResourceModel.createCheckBox() );
+    }
+
+    /**
+     * Adjusts a sky entry panel for use with TOPCAT.
+     *
+     * @param  skyEntry  sky entry panel to adjust
+     * @param  acceptPositionModel  toggler for sky position acceptance
+     */
+    public static void adjustSkyEntry( SkyPositionEntry skyEntry,
+                                       ToggleButtonModel acceptPositionModel ) {
+        JComponent vbox = Box.createVerticalBox();
+        vbox.add( acceptPositionModel.createCheckBox() );
+        vbox.add( Box.createVerticalGlue() );
+        skyEntry.add( vbox, BorderLayout.EAST );
     }
 }

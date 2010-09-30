@@ -16,7 +16,15 @@ public class TopcatSsapTableLoadDialog extends SsapTableLoadDialog {
     }
     public Component createQueryComponent() {
         Component comp = super.createQueryComponent();
-        adjuster_.addInteropMenu();
+        adjuster_.adjustComponent();
         return comp;
+    }
+    public boolean acceptResourceIdList( String[] ivoids, String msg ) {
+        return adjuster_.acceptResourceIdLists()
+            && super.acceptResourceIdList( ivoids, msg );
+    }
+    public boolean acceptSkyPosition( double raDegrees, double decDegrees ) {
+        return adjuster_.acceptSkyPositions() 
+            && super.acceptSkyPosition( raDegrees, decDegrees );
     }
 }
