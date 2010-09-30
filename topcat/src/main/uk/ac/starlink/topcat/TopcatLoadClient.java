@@ -112,7 +112,7 @@ public class TopcatLoadClient implements TableLoadClient {
 
     public void endSequence( boolean cancelled ) {
         controlWin_.removeLoadingToken( token_ );
-        if ( nAttempt_ == 0 ) {
+        if ( ! cancelled && nAttempt_ == 0 ) {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     JOptionPane
