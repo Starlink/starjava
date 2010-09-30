@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URL;
@@ -14,6 +15,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JMenu;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTableFactory;
 
 /**
@@ -176,6 +178,21 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
 
     public Action getSubmitAction() {
         return submitAct_;
+    }
+
+    /**
+     * Indicates whether the query component of this dialogue is currently
+     * contained in a visible window.
+     *
+     * @return  true  iff this dialog's query component exists and is showing
+     */
+    public boolean isComponentShowing() {
+        Window container =
+            queryComponent_ == null
+                ? null
+                : (Window) SwingUtilities
+                          .getAncestorOfClass( Window.class, queryComponent_ );
+        return container != null && container.isShowing();
     }
 
     /**
