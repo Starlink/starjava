@@ -14,6 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import uk.ac.starlink.connect.Leaf;
 import uk.ac.starlink.connect.Node;
 import uk.ac.starlink.connect.FilestoreChooser;
@@ -72,6 +74,18 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
         formatBox.add( new ShrinkWrapper( posField_ ) );
         formatBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         panel.add( formatBox, BorderLayout.SOUTH );
+
+        /* Make sure that the file list is refreshed every time the window
+         * is made visible. */
+        panel.addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+                chooser_.refreshList();
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+        } );
         return panel;
     }
 

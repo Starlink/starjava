@@ -8,6 +8,8 @@ import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
@@ -60,6 +62,17 @@ public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
         /* Fix it so that actions which indicate selection in the chooser
          * cause a submit action in this dialogue. */
         chooser_.addActionListener( getSubmitAction() );
+
+        /* Ensure a refresh whenever the component is made visible. */
+        chooser_.addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+                chooser_.rescanCurrentDirectory();
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+        } );
         return chooser_;
     }
 
