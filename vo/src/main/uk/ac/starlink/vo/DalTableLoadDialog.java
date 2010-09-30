@@ -2,7 +2,6 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,7 +18,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ListSelectionEvent;
@@ -164,10 +162,7 @@ public abstract class DalTableLoadDialog
     }
 
     public boolean acceptResourceIdList( String[] ivoids, String msg ) {
-        Window container =
-            (Window) SwingUtilities
-                    .getAncestorOfClass( Window.class, queryComponent_ );
-        if ( container != null && container.isShowing() ) {
+        if ( isComponentShowing() ) {
             RegistryQuery query;
             try {
                 query = queryFactory_.getIdListQuery( ivoids );
@@ -184,6 +179,24 @@ public abstract class DalTableLoadDialog
             else {
                 return false;
             }
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Takes a sky position and may update this component's sky entry 
+     * fields with the supplied values.
+     *
+     * @param  raDegrees  right ascension in degrees
+     * @param  decDegrees declination in degrees
+     * @return  true iff the position was used
+     */
+    public boolean acceptSkyPosition( double raDegrees, double decDegrees ) {
+        if ( isComponentShowing() ) {
+            getSkyEntry().setPosition( raDegrees, decDegrees, false );
+            return true;
         }
         else {
             return false;
