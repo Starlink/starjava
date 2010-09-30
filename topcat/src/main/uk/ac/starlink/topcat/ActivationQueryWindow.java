@@ -503,6 +503,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 return null;
             }
             return new Activator() {
+                final ControlWindow controlWin = ControlWindow.getInstance();
                 public String activateRow( long lrow ) {
                     Object raObj;
                     Object decObj;
@@ -520,6 +521,16 @@ public class ActivationQueryWindow extends QueryWindow {
                         if ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) ) {
                             ra = Math.toDegrees( ra );
                             dec = Math.toDegrees( dec );
+
+                            /* Send it to the control window as well as to
+                             * whatever external applications.  This isn't
+                             * quite within the obvious remit of this
+                             * activator, but there is currently no other
+                             * mechanism for doing that, and it fits
+                             * reasonably well here.  Maybe remove in future
+                             * if a more logical way to send positions from
+                             * row highlights becomes available. */
+                            controlWin.acceptSkyPosition( ra, dec );
                             try {
                                 skyPointer_.pointAtSky( ra, dec );
                                 return "(" + ra + ", " + dec + ")";
