@@ -2481,6 +2481,32 @@ public class SpecData
     }
 
     /**
+     * Draw a fake spectrum using some given graphics coordinates
+     * as the X and Y positions. This is intended for use when
+     * a small representation of the spectrum is required, for
+     * instance as part of a plot legend. See {@link drawSpec}.
+     *
+     * Note if a histogram style is being used that will be ignored.
+     *
+     * @param grf Grf object that can be drawn into using AST primitives.
+     * @param xpos the graphics X positions.
+     * @param ypos the graphics Y positions.
+     */
+    public void drawLegendSpec( Grf grf, double xpos[], double ypos[] )
+    {
+        boolean line = ( plotStyle != POINT );
+        DefaultGrf defaultGrf = (DefaultGrf) grf;
+        DefaultGrfState oldState = setGrfAttributes( defaultGrf, line );
+        if ( line ) {
+            renderSpectrum( defaultGrf, xpos, ypos );
+        }
+        else {
+            renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        }
+        resetGrfAttributes( defaultGrf, oldState, line );
+    }
+
+    /**
      * Lookup the index nearest to a given physical coordinate.
      *
      * @param x X coordinate

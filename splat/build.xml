@@ -215,7 +215,7 @@
    !   class files in preference to installed ones (an extra user-define
    !   defined CLASSPATH can also be used as needed).
    !-->
-  <extclasspath id="installed.classpath">
+  <path id="installed.classpath">
 
     <!-- JNIAST -->
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
@@ -265,7 +265,7 @@
     <!-- UTIL -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
-  </extclasspath>
+  </path>
 
   <!-- Generate the local build classpath. This is the most difficult
    !   part of handling the classpath. The local classes will be in
@@ -283,7 +283,7 @@
    !   doesn't work as expected add the additional classes/jars to
    !   the extra classpath.
    !-->
-  <extclasspath id="built.jarpath">
+  <path id="built.jarpath">
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
@@ -296,7 +296,7 @@
     <pathelement location="${star.build.dir}/vo/lib/vo/vo.jar"/>
     <pathelement location="${star.build.dir}/plastic/lib/plastic/plastic.jar"/>
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
-  </extclasspath>
+  </path>
 
   <!-- Local third party jars. Normally these will be kept in their
    !   own third party package, but may be kept here temporarily, so

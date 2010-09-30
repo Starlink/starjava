@@ -6,6 +6,9 @@
    Make position and target optional in VO queries. Not all SSAP
    servers are fixated on positions and objects.
 
+   Both sidebands are now loaded when a request to load all matching
+   line identifiers is made.
+
    3.9-5
    =====
 

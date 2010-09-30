@@ -236,6 +236,11 @@ public class PlotControl
     protected Point synopsisAnchor = null;
 
     /**
+     *  Position of the legend.
+     */
+    protected Point legendAnchor = null;
+
+    /**
      * Create a PlotControl, adding spectra later.
      */
     public PlotControl()
@@ -1277,8 +1282,12 @@ public class PlotControl
      * @param all if true then all known identifiers will be searched for
      *            matches and loaded, otherwise just those already available
      *            in the global list will be displayed.
+     * @param checkSideBands if true and spectrum is a DSB check matches
+     *                       against both sidebands.
+     * @param manager the line identifier manager.
      */
-    public void loadLineIDs( boolean all, LocalLineIDManager manager )
+    public void loadLineIDs( boolean all, boolean checkSideBands,
+                             LocalLineIDManager manager )
     {
         //  Create a SpecFrame that describes the spectral coordinates of the
         //  current spectrum.
@@ -1287,7 +1296,8 @@ public class PlotControl
         Frame picked = frame.pickAxes( 1, iaxes, null );
         if ( picked instanceof SpecFrame ) {
             double[] range = spectra.getCurrentSpectrum().getRange();
-            manager.matchDisplayLoad( (SpecFrame) picked, range, all, this );
+            manager.matchDisplayLoad( (SpecFrame) picked, range, all,
+                                      checkSideBands, this );
         }
     }
 
@@ -1612,6 +1622,49 @@ public class PlotControl
         int lgap = xo + inset.left + (int)( w * ge.getXLeft() );
         int tgap = yo + inset.top + (int)( h * ge.getYTop() );
         synopsisAnchor = new Point( lgap, tgap );
+    }
+
+    /**
+     * Set whether we're displaying the legend.
+     */
+    public void setShowLegend( boolean showLegend )
+    {
+        plot.setShowingLegendFigure( showLegend );
+    }
+
+    /**
+     * Get whether we're displaying the legend.
+     */
+    public boolean isShowLegend()
+    {
+        return plot.isShowingLegendFigure();
+    }
+
+    /**
+     * Position the anchor at the top-left of the visible plot.
+     * Should be just inside the axes.
+     */
+    public void positionLegendAnchor()
+    {
+        Rectangle rect = plot.getVisibleRect();
+        int w = rect.width;
+        int h = rect.height;
+        int xo = 0; //rect.x;
+        int yo = 0; //rect.y;
+        if ( rect.width == 0 ) {
+            //  Not realized yet, so used preferred size (OK as
+            //  cannot be zoomed yet).
+            Dimension size = plot.getPreferredSize();
+            w = size.width;
+            h = size.height;
+        }
+        GraphicsEdges ge = plot.getGraphicsEdges();
+        Insets inset = plot.getInsets();
+        int lgap = xo + inset.left + (int)( w * ge.getXLeft() );
+        int tgap = yo + inset.top + (int)( h * ge.getYTop() );
+        legendAnchor = new Point( lgap, tgap );
+
+        // XXX set legend position.
     }
 
     /**

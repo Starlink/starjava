@@ -47,12 +47,13 @@ import javax.swing.event.EventListenerList;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.grf.DefaultGrf;
-import uk.ac.starlink.ast.gui.AstTicks;
 import uk.ac.starlink.ast.gui.AstAxes;
 import uk.ac.starlink.ast.gui.AstPlotSource;
+import uk.ac.starlink.ast.gui.AstTicks;
 import uk.ac.starlink.ast.gui.ColourStore;
 import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
@@ -278,6 +279,16 @@ public class DivaPlot
     private boolean usePlotStacker = false;
 
     /**
+     * Whether to show the plot legend.
+     */
+    private boolean showLegendFigure = false;
+
+    /**
+     * The legend figure.
+     */
+    protected SpecLegendFigure legendFigure = null;
+
+    /**
      * Plot a series of spectra.
      *
      * @param spectra reference to spectra.
@@ -369,6 +380,9 @@ public class DivaPlot
         GrfFigure grfFigure = new GrfFigure( this );
         graphicsPane.addFigure( grfFigure );
 
+        //  Create Figure for the legend.
+        setShowingLegendFigure( showLegendFigure );
+
         //  Create the required DefaultGrf object to draw AST graphics.
         mainGrf = new DefaultGrf( this );
 
@@ -381,6 +395,42 @@ public class DivaPlot
         // Listen for mouse events so we can control the keyboard
         // focus.
         addMouseListener( this );
+    }
+
+    /**
+     *  Whether to show the legend figure or not.
+     */
+    public void setShowingLegendFigure( boolean showLegendFigure )
+    {
+        this.showLegendFigure = showLegendFigure;
+        if ( showLegendFigure ) {
+            if ( legendFigure == null ) {
+                legendFigure = new SpecLegendFigure( this );
+            }
+            graphicsPane.addFigure( legendFigure );
+            legendFigure.update();
+        }
+        else {
+            if ( legendFigure != null ) {
+                graphicsPane.removeFigure( legendFigure );
+            }
+        }
+    }
+
+    /**
+     *  Whether we're showing the legend figure or not.
+     */
+    public boolean isShowingLegendFigure()
+    {
+        return showLegendFigure;
+    }
+
+    /**
+     * Get a reference to the Grf instance.
+     */
+    public Grf getGrf()
+    {
+        return mainGrf;
     }
 
     /**

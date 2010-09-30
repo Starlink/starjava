@@ -165,6 +165,7 @@ public class PlotControlFrame
     protected JCheckBoxMenuItem shortNameLineIDs = null;
     protected JCheckBoxMenuItem showShortNames = null;
     protected JCheckBoxMenuItem showSynopsis = null;
+    protected JCheckBoxMenuItem showLegend = null;
     protected JCheckBoxMenuItem showVerticalMarks = null;
     protected JCheckBoxMenuItem showVisibleOnly = null;
     protected JCheckBoxMenuItem sidebandMatching = null;
@@ -222,7 +223,7 @@ public class PlotControlFrame
      *
      *  @param specDataComp Active SpecDataComp reference.
      *  @param id plot identifier (-1 for automatic, otherwise must not be in
-     *            use). 
+     *            use).
      *
      */
     public PlotControlFrame( SpecDataComp specDataComp, int id )
@@ -273,7 +274,7 @@ public class PlotControlFrame
      *  @param title for window
      *  @param specDataComp active SpecDataComp reference.
      *  @param id plot identifier (-1 for automatic, otherwise must not be in
-     *            use). 
+     *            use).
      *
      */
     public PlotControlFrame( String title, SpecDataComp specDataComp, int id )
@@ -645,13 +646,13 @@ public class PlotControlFrame
 
         boolean state1 =
             prefs.getBoolean( "PlotControlFrame_coordinatematch", true );
-        boolean state2 = 
+        boolean state2 =
             prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
-        boolean state3 = 
+        boolean state3 =
             prefs.getBoolean( "PlotControlFrame_sidebandmatch", false );
-        boolean state4 = 
+        boolean state4 =
             prefs.getBoolean( "PlotControlFrame_offsetmatch", false );
-        boolean state5 = 
+        boolean state5 =
             prefs.getBoolean( "PlotControlFrame_basesystemmatch", true );
         coordinateMatching.setSelected( state1 );
         dataUnitsMatching.setSelected( state2 );
@@ -715,13 +716,20 @@ public class PlotControlFrame
         LineRenderer.setShowShortNames( state1 );
 
         //  Display the current spectrum synopsis.
-        showSynopsis =
-            new JCheckBoxMenuItem( "Display synopsis" );
+        showSynopsis = new JCheckBoxMenuItem( "Display synopsis" );
         optionsMenu.add( showSynopsis );
         showSynopsis.addItemListener( this );
         state1 = prefs.getBoolean( "PlotControlFrame_showsynopsis", false );
         showSynopsis.setSelected( state1 );
         plot.setShowSynopsis( state1 );
+
+        //  Display the legend. XXX not finished.
+        //showLegend = new JCheckBoxMenuItem( "Display legend" );
+        //optionsMenu.add( showLegend );
+        //showLegend.addItemListener( this );
+        //state1 = prefs.getBoolean( "PlotControlFrame_showlegend", false );
+        //showLegend.setSelected( state1 );
+        //plot.setShowLegend( state1 );
     }
 
     /**
@@ -770,21 +778,21 @@ public class PlotControlFrame
         prefixLineIDs = new JCheckBoxMenuItem( "Prefix name to labels" );
         lineOptionsMenu.add( prefixLineIDs );
         prefixLineIDs.addItemListener( this );
-        boolean state1 = 
+        boolean state1 =
             prefs.getBoolean( "PlotControlFrame_prefixlineids", false );
 
         //  Or Suffix labels with the short name.
         suffixLineIDs = new JCheckBoxMenuItem( "Suffix name to labels" );
         lineOptionsMenu.add( suffixLineIDs );
         suffixLineIDs.addItemListener( this );
-        boolean state2 = 
+        boolean state2 =
             prefs.getBoolean( "PlotControlFrame_suffixlineids", false );
 
         //  Or show only short name (useful when labels are very long).
         shortNameLineIDs = new JCheckBoxMenuItem("Short name only as labels");
         lineOptionsMenu.add( shortNameLineIDs );
         shortNameLineIDs.addItemListener( this );
-        boolean state3 = 
+        boolean state3 =
             prefs.getBoolean( "PlotControlFrame_shortnamelineids", false );
 
         //  Interdependent, so initialise once all are realised.
@@ -823,32 +831,32 @@ public class PlotControlFrame
 
         //  Keyboard shortcuts to some actions.
         Action action = drawActions.getDeleteSelectedAction();
-        action.putValue( Action.ACCELERATOR_KEY, 
+        action.putValue( Action.ACCELERATOR_KEY,
                          KeyStroke.getKeyStroke( "DELETE" ) );
 
         action = drawActions.getClearAction();
-        action.putValue( Action.ACCELERATOR_KEY, 
+        action.putValue( Action.ACCELERATOR_KEY,
                          KeyStroke.getKeyStroke( "shift DELETE" ) );
 
         action = drawActions.getRaiseSelectedAction();
-        action.putValue( Action.ACCELERATOR_KEY, 
+        action.putValue( Action.ACCELERATOR_KEY,
                          KeyStroke.getKeyStroke( "R" ) );
 
         action = drawActions.getLowerSelectedAction();
-        action.putValue( Action.ACCELERATOR_KEY, 
+        action.putValue( Action.ACCELERATOR_KEY,
                          KeyStroke.getKeyStroke( "L" ) );
 
         action = drawActions.getHideAction();
-        action.putValue( Action.ACCELERATOR_KEY, 
+        action.putValue( Action.ACCELERATOR_KEY,
                          KeyStroke.getKeyStroke( "H" ) );
 
         action = drawActions.getHideAction();
-        action.putValue( Action.ACCELERATOR_KEY, 
+        action.putValue( Action.ACCELERATOR_KEY,
                          KeyStroke.getKeyStroke( "H" ) );
 
         for ( int i = 2; i < DrawActions.NUM_DRAWING_MODES; i++ ) {
-            action = drawActions.getDrawingModeAction( i ); 
-            action.putValue( Action.ACCELERATOR_KEY, 
+            action = drawActions.getDrawingModeAction( i );
+            action.putValue( Action.ACCELERATOR_KEY,
                              KeyStroke.getKeyStroke( "control "+ ( i - 1 ) ) );
         }
 
@@ -1917,7 +1925,7 @@ public class PlotControlFrame
         Object source = e.getSource();
 
         if ( source.equals( coordinateMatching ) ||
-             source.equals( dataUnitsMatching ) || 
+             source.equals( dataUnitsMatching ) ||
              source.equals( sidebandMatching ) ||
              source.equals( offsetMatching ) ||
              source.equals( baseSystemMatching ) ) {
@@ -2031,6 +2039,13 @@ public class PlotControlFrame
             return;
         }
 
+        if ( source.equals( showLegend ) ) {
+            boolean state = showLegend.isSelected();
+            prefs.putBoolean( "PlotControlFrame_showlegend", state );
+            plot.setShowLegend( state );
+            return;
+        }
+
         if ( source.equals( trackerLineIDs ) ) {
             boolean state = trackerLineIDs.isSelected();
             prefs.putBoolean( "PlotControlFrame_trackerlineids", state );
@@ -2112,12 +2127,14 @@ public class PlotControlFrame
         }
 
         if ( source.equals( loadAllLineIDs ) ) {
-            plot.loadLineIDs( true, LocalLineIDManager.getInstance() );
+            plot.loadLineIDs( true, doubleDSBLineIDs.isSelected(),
+                              LocalLineIDManager.getInstance() );
             return;
         }
 
         if ( source.equals( loadLoadedLineIDs ) ) {
-            plot.loadLineIDs( false, LocalLineIDManager.getInstance() );
+            plot.loadLineIDs( false, doubleDSBLineIDs.isSelected(),
+                              LocalLineIDManager.getInstance() );
             return;
         }
 

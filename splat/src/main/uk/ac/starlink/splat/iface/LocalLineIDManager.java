@@ -25,6 +25,7 @@ import javax.swing.JMenuItem;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDSpecDataImpl;
@@ -77,9 +78,9 @@ public class LocalLineIDManager
      */
     private LocalLineIDManager()
     {
-        readDescriptionFile();        
+        readDescriptionFile();
     }
-    
+
     /**
      * Return reference to the single instance of this class.
      */
@@ -108,7 +109,7 @@ public class LocalLineIDManager
     /**
      * Add a line identifier spectrum. Used when spectra not in the main
      * repository are added.
-     * 
+     *
      * @param specData the new line identifier spectrum.
      */
     public void addSpectrum( LineIDSpecData specData )
@@ -241,8 +242,54 @@ public class LocalLineIDManager
      * together with a SpecFrame that describes the system that the coordinate
      * are defined in.
      */
-    public int matchDisplayLoad( SpecFrame specFrame, double[] range, 
-                                 boolean load, PlotControl control )
+    public int matchDisplayLoad( SpecFrame specFrame, double[] range,
+                                 boolean load, boolean checkSideBand, 
+                                 PlotControl control )
+    {
+        int count = matchDisplayLoader( specFrame, range, load, control );
+
+        //  Repeat this all again for DSB spectra. We need to look 
+        //  for matches in the other sideband.
+        if ( checkSideBand && ( specFrame instanceof DSBSpecFrame ) ) {
+            String sideband = specFrame.getC( "SideBand" );
+            if ( ! "LO".equals( sideband ) ) {
+
+                //  Need to convert the range into the coordinate system
+                //  of the other side band, so keep a copy.
+                DSBSpecFrame testSpecFrame = (DSBSpecFrame) specFrame.copy();
+
+                if ( "USB".equals( sideband ) ) {
+                    testSpecFrame.setC( "SideBand", "LSB" );
+                }
+                else {
+                    testSpecFrame.setC( "SideBand", "USB" );
+                }
+
+                // Now transform the coordinates.
+                testSpecFrame.setB( "AlignSideBand", true );
+                specFrame.setB( "AlignSideBand", true );
+                Mapping match = testSpecFrame.convert( specFrame, "" );
+                if ( match != null ) {
+
+                    range = match.tran1( 2, range, true );
+                    double[] newrange = new double[2];
+                    newrange[0] = Math.min( range[0], range[1] );
+                    newrange[1] = Math.max( range[0], range[1] );
+                    count += matchDisplayLoader( testSpecFrame, newrange,
+                                                 load, control );
+                }
+            }
+        }
+        return count;
+    }
+
+
+    /**
+     * See matchDisplayLoad. Does that job for a spectrum, repeated for
+     * sideband switching.
+     */
+    private int matchDisplayLoader( SpecFrame specFrame, double[] range,
+                                    boolean load, PlotControl control )
     {
         int count = 0;
         Iterator i = propsList.iterator();
@@ -279,7 +326,7 @@ public class LocalLineIDManager
     }
 
     //
-    //  Action class for dealing with the properties of each line 
+    //  Action class for dealing with the properties of each line
     //  identifier spectrum.
     //
     protected class LineProps
@@ -344,10 +391,10 @@ public class LocalLineIDManager
             setName( specData.getShortName() );
             setRange( specData.getRange() );
             FrameSet frameSet = specData.getFrameSet();
-            setSystemAndUnits( frameSet.getC( "System(1)" ), 
+            setSystemAndUnits( frameSet.getC( "System(1)" ),
                                frameSet.getC( "unit(1)" ) );
         }
-        
+
 
         public void setName( String name )
         {
@@ -401,7 +448,7 @@ public class LocalLineIDManager
             if ( specFrame != null ) {
                 specFrame.setSystem( system );
                 specFrame.setUnit( 1, units );
-                
+
                 //  Line identifier specifics for submilli... Don't think
                 //  this will effect other bands.
                 specFrame.setC( "StdOfRest", "Source" );
@@ -515,7 +562,7 @@ public class LocalLineIDManager
                 if ( specStr != null ) {
                     try {
                         ObjectInputStream ois = new ObjectInputStream(specStr);
-                        LineIDSpecData specData = 
+                        LineIDSpecData specData =
                             (LineIDSpecData) ois.readObject();
                         ois.close();
                         impl = (LineIDSpecDataImpl) specData.getSpecDataImpl();
@@ -538,11 +585,11 @@ public class LocalLineIDManager
             if ( external ) {
                 //  In this case fullName is the file name.
                 try {
-                    LineIDTXTSpecDataImpl impl = 
+                    LineIDTXTSpecDataImpl impl =
                         new LineIDTXTSpecDataImpl( fullName );
                     specData = new LineIDSpecData( impl );
                     FrameSet frameSet = specData.getFrameSet();
-                    setSystemAndUnits( frameSet.getC( "system" ), 
+                    setSystemAndUnits( frameSet.getC( "system" ),
                                        frameSet.getC( "unit(1)" ) );
                     createSpecFrame();
                 }
@@ -571,7 +618,7 @@ public class LocalLineIDManager
                 }
             }
         }
-            
+
         /**
          * See if a given LineIDSpecData is ours.
          */
@@ -609,9 +656,9 @@ public class LocalLineIDManager
          */
         public void showDialog()
         {
-            Object[] selection = 
+            Object[] selection =
                 SelectListDialog.showDialog( browser, "Line identifiers",
-                                             "Choose line identifiers", 
+                                             "Choose line identifiers",
                                              propsList.toArray() );
             if ( selection != null ) {
                 for ( int i = 0; i < selection.length; i++ ) {
@@ -619,7 +666,7 @@ public class LocalLineIDManager
                 }
             }
         }
-        
+
         //
         //  Implement the ActionListener interface. This pops up a dialog for
         //  choosing a set of spectra,
