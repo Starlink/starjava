@@ -3,6 +3,11 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -25,6 +30,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -54,6 +60,7 @@ public class RegistryPanel extends JPanel {
     private final CapabilityTableModel capTableModel_;
     private final RegistryQueryFactory queryFactory_;
     private final JComponent controlBox_;
+    private final List<ActionListener> listenerList_;
     private Thread queryWorker_;
     private JComponent workingPanel_;
     private JComponent dataPanel_;
@@ -152,6 +159,28 @@ public class RegistryPanel extends JPanel {
                 }
             }
         } );
+
+        /* Arrange to notify listeners on invocation events. */
+        listenerList_ = new ArrayList<ActionListener>();
+        MouseListener mouseListener = new MouseAdapter() {
+            public void mouseClicked( MouseEvent evt ) {
+                if ( evt.getClickCount() == 2 ) {
+                    fireAction();
+                }
+            }
+        };
+        Action invokeAction = new AbstractAction( "invoke" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                RegistryPanel.this.fireAction();
+            }
+        };
+        KeyStroke enterKey = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 );
+        for ( JTable table :
+              Arrays.asList( new JTable[] { regTable_, capTable_ } ) ) {
+            table.addMouseListener( mouseListener );
+            table.getInputMap().put( enterKey, "invoke" );
+            table.getActionMap().put( "invoke", invokeAction );
+        }
 
         /* Place components. */
         if ( showCapabilities ) {
@@ -478,6 +507,35 @@ public class RegistryPanel extends JPanel {
      */
     public JComponent getControlBox() {
         return controlBox_;
+    }
+
+    /**
+     * Adds a listener to be notified when one of the resources has been
+     * selected (currently, double-click or hit Enter).
+     *
+     * @param  listener  listener to add
+     */
+    public void addActionListener( ActionListener listener ) {
+        listenerList_.add( listener );
+    }
+
+    /**
+     * Removes a listener previously added by addActionListener.
+     *
+     * @return  listener  listener to remove
+     */
+    public void removeActionListener( ActionListener listener ) {
+        listenerList_.remove( listener );
+    }
+
+    /**
+     * Sends an action event to all registered action listeners.
+     */
+    protected void fireAction() {
+        ActionEvent evt = new ActionEvent( this, 0, "invoke" );
+        for ( ActionListener listener : listenerList_ ) {
+            listener.actionPerformed( evt );
+        }
     }
 
     public void setEnabled( boolean enabled ) {

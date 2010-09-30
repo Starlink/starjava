@@ -130,6 +130,10 @@ public abstract class DalTableLoadDialog
         skyEntry_.addActionListener( getSubmitAction() );
         getControlBox().add( skyEntry_ );
 
+        /* Fix it so that the submit action is activated on double clicks
+         * and so on. */
+        regPanel.addActionListener( getSubmitAction() );
+
         /* Menus. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( getMenus() ) );
