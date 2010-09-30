@@ -216,7 +216,8 @@ public class ResourceIcon implements Icon {
         TUNING = makeIcon( "TuningFork.gif" ),
         PROFILE = makeIcon( "vu-meter.gif" ),
         SYSTEM = makeIcon( "sysbrowser.gif" ),
-        KEEP_OPEN = makeIcon( "wedge3.gif" ),
+        KEEP_OPEN = makeIcon( "tack2.gif" ),
+        LISTEN = makeIcon( "tcear3.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),
