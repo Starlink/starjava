@@ -9,6 +9,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -20,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -32,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
@@ -229,6 +235,25 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                           .addListSelectionListener( readySelListener );
         }
         updateActions();
+
+        /* Listen for double-clicks or Enter keystrokes and interpret these
+         * as submit actions. */
+        final Action submitAct = getSubmitAction();
+        final ActionEvent actEvt = new ActionEvent( this, 0, "viz-invoke" );
+        MouseListener mousey = new MouseAdapter() {
+            public void mouseClicked( MouseEvent evt ) {
+                if ( evt.getClickCount() == 2 ) {
+                    submitAct.actionPerformed( actEvt );
+                }
+            }
+        };
+        KeyStroke enterKey = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 );
+        for ( int i = 0; i < vizModes_.length; i++ ) {
+            JTable table = vizModes_[ i ].getQueryableTable();
+            table.addMouseListener( mousey );
+            table.getInputMap().put( enterKey, "invoke-viz" );
+            table.getActionMap().put( "invoke-viz", submitAct );
+        }
 
         /* Arrange to initialise the visual state with asynchronous reads
          * from the server when the window is first displayed. */
