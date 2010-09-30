@@ -65,8 +65,7 @@ public class SkyPositionEntry extends JPanel {
         resolveBox.add( Box.createHorizontalStrut( 5 ) );
         resolveBox.add( new JButton( resolveAction_ ) );
         resolveBox.add( Box.createHorizontalGlue() );
-        box.add( resolveBox );
-        box.add( Box.createVerticalStrut( 5 ) );
+        add( resolveBox, BorderLayout.NORTH );
 
         /* Add fields for entering query position and radius. */
         raField_ = DoubleValueField.makeRADegreesField();
@@ -214,11 +213,16 @@ public class SkyPositionEntry extends JPanel {
      *
      * @param   raDegrees   right ascension in degreees
      * @param   decDegrees  declination in degrees
+     * @param   clearResolver  if true, clear the contents of the
+     *           resolved object field
      */
-    public void setPosition( double raDegrees, double decDegrees ) {
+    public void setPosition( double raDegrees, double decDegrees,
+                             boolean clearResolver ) {
         setDegrees( raField_, raDegrees );
         setDegrees( decField_, decDegrees );
-        resolveField_.setText( null );
+        if ( clearResolver ) {
+            resolveField_.setText( null );
+        }
     }
 
     /**

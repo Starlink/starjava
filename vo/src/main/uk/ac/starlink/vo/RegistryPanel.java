@@ -53,6 +53,7 @@ public class RegistryPanel extends JPanel {
     private final JTable capTable_;
     private final CapabilityTableModel capTableModel_;
     private final RegistryQueryFactory queryFactory_;
+    private final JComponent controlBox_;
     private Thread queryWorker_;
     private JComponent workingPanel_;
     private JComponent dataPanel_;
@@ -93,6 +94,7 @@ public class RegistryPanel extends JPanel {
 
         /* Create the component which will hold the query parameters. */
         JComponent queryComponent = queryFactory.getComponent();
+        controlBox_ = Box.createHorizontalBox();
         if ( queryComponent != null ) {
             JComponent qBox = Box.createVerticalBox();
             activeItems_.add( queryComponent );
@@ -101,6 +103,7 @@ public class RegistryPanel extends JPanel {
 
             /* Component to hold submit/cancel buttons. */
             JComponent controlLine = Box.createHorizontalBox();
+            controlLine.add( controlBox_ );
             controlLine.add( Box.createHorizontalGlue() );
             controlLine.add( new JButton( cancelQueryAction_ ) );
             controlLine.add( Box.createHorizontalStrut( 5 ) );
@@ -466,6 +469,15 @@ public class RegistryPanel extends JPanel {
     public JMenu makeColumnVisibilityMenu( String name ) {
         return ((MetaColumnModel) regTable_.getColumnModel())
               .makeCheckBoxMenu( name );
+    }
+
+    /**
+     * Returns a container into which (small) additional controls can be added.
+     *
+     * @return  control box
+     */
+    public JComponent getControlBox() {
+        return controlBox_;
     }
 
     public void setEnabled( boolean enabled ) {
