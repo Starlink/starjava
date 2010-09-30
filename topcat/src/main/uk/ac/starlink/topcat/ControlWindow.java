@@ -523,6 +523,11 @@ public class ControlWindow extends AuxWindow
 
         /* Add actions to the file menu. */
         JMenu fileMenu = getFileMenu();
+        for ( int i = fileMenu.getItemCount() - 1; i >= 0; i-- ) {
+            if ( "Scrollable".equals( fileMenu.getItem( i ).getText() ) ) {
+                fileMenu.remove( i );
+            }
+        }
         int fileMenuPos = 0;
         fileMenu.insert( readAct_, fileMenuPos++ );
         fileMenu.insert( saveAct_, fileMenuPos++ );
