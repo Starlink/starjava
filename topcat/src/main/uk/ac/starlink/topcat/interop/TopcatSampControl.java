@@ -673,7 +673,7 @@ public class TopcatSampControl {
          */
         SampLoadClient( HubConnection connection, String senderName,
                         Message message, String msgId ) {
-            super( controlWindow_, controlWindow_ );
+            super( controlWindow_, controlWindow_, false );
             connection_ = connection;
             senderName_ = senderName;
             message_ = message;

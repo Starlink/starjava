@@ -20,20 +20,36 @@ public class TopcatLoadClient implements TableLoadClient {
 
     private final Component parent_;
     private final ControlWindow controlWin_;
+    private final boolean popups_;
     private final LoadingToken token_;
     private String label_;
     private int nLoad_;
     private int nAttempt_;
 
     /**
-     * Constructor.
+     * Constructs a load client with popup windows for warnings and errors.
      *
      * @param   parent  parent component
      * @param   controlWin  control window
      */
     public TopcatLoadClient( Component parent, ControlWindow controlWin ) {
+        this( parent, controlWin, true );
+    }
+
+    /**
+     * Constructs a load client optionally with popup windows for warnings
+     * and errors.
+     *
+     * @param   parent  parent component
+     * @param   controlWin  control window
+     * @param   popups   true iff popup windows should be used to inform
+     *          the user of possible problems
+     */
+    public TopcatLoadClient( Component parent, ControlWindow controlWin,
+                             boolean popups ) {
         parent_ = parent;
         controlWin_ = controlWin;
+        popups_ = popups;
         token_ = new LoadingToken( "Table"  );
     }
 
@@ -52,7 +68,7 @@ public class TopcatLoadClient implements TableLoadClient {
 
     public boolean loadSuccess( StarTable table ) {
         nAttempt_++;
-        if ( table.getRowCount() == 0 ) {
+        if ( table.getRowCount() == 0 && popups_ ) {
             final String[] msg = { "Empty table " + label_ + ".",
                                    "Table contained no rows." };
             SwingUtilities.invokeLater( new Runnable() {
@@ -96,23 +112,26 @@ public class TopcatLoadClient implements TableLoadClient {
 
     public boolean loadFailure( final Throwable error ) {
         nAttempt_++;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                if ( error instanceof OutOfMemoryError ) {
-                    TopcatUtils.memoryError( (OutOfMemoryError) error );
+        if ( popups_ ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( error instanceof OutOfMemoryError ) {
+                        TopcatUtils.memoryError( (OutOfMemoryError) error );
+                    }
+                    else {
+                        String[] msg = { "Error loading " + label_ + "." };
+                        ErrorDialog.showError( parent_, "Load Error",
+                                               error, msg );
+                    }
                 }
-                else {
-                    String[] msg = { "Error loading " + label_ + "." };
-                    ErrorDialog.showError( parent_, "Load Error", error, msg );
-                }
-            }
-        } );
+            } );
+        }
         return false;
     }
 
     public void endSequence( boolean cancelled ) {
         controlWin_.removeLoadingToken( token_ );
-        if ( ! cancelled && nAttempt_ == 0 ) {
+        if ( ! cancelled && nAttempt_ == 0 && popups_ ) {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     JOptionPane
