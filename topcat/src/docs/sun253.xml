@@ -14027,6 +14027,7 @@ introduced since the last version:
     <li>Major load dialogue overhaul.  Not modal any more, progress monitors
         in load window, help actions, keep open options, etc.
         Some related bugs and infelicities ameliorated as well.</li>
+    <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
     </ul>
     </p></dd>
 

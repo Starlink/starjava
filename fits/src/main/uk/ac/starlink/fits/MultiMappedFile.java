@@ -100,7 +100,8 @@ public class MultiMappedFile extends AbstractArrayDataIO
 
     public long getFilePointer() {
         try {
-            return iblock_ * blockBytes_ + getBuffer( iblock_ ).position();
+            return (long) iblock_ * blockBytes_
+                 + getBuffer( iblock_ ).position();
         }
         catch ( IOException e ) {
             throw new RuntimeException( "Lost file pointer", e );

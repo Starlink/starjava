@@ -7382,6 +7382,7 @@ but my thanks are especially due to the following:
         table URLs handled.</li>
     <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
         header cards.</li>
+    <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
     </ul>
     </p></dd>
 
