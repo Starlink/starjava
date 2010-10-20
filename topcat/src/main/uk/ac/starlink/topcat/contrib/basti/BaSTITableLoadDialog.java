@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.io.IOException;
 import java.net.URL;
 
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
@@ -59,7 +60,7 @@ public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
                 for (int t=0; t<locations.length; t++) {
                     URL URLLocation = new URL(locations[t]);
                     StarTable table = tfact.makeStarTable(new URLDataSource(URLLocation), "votable");
-                    table.setParameter(new DescribedValue(TableLoader.SOURCE_INFO, "some name"));
+                    table.setParameter(new DescribedValue(TableLoader.SOURCE_INFO, "BaSTI Table"));
                     BaSTITables[t] = table;
                 }
                 return Tables.arrayTableSequence(BaSTITables);
