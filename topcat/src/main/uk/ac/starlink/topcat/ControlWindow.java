@@ -98,6 +98,7 @@ import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoadWorker;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
+import uk.ac.starlink.topcat.contrib.basti.BaSTITableLoadDialog;
 import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.interop.PlasticCommunicator;
 import uk.ac.starlink.topcat.interop.SampCommunicator;
@@ -609,6 +610,7 @@ public class ControlWindow extends AuxWindow
                     TopcatSsapTableLoadDialog.class,
                     VizierTableLoadDialog.class,
                     GavoTableLoadDialog.class,
+                    BaSTITableLoadDialog.class,
                 };
                 LoadWindow loadWin = getLoadWindow();
                 for ( int ic = 0; ic < tldClasses.length; ic++ ) {

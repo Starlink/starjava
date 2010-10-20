@@ -14028,6 +14028,7 @@ introduced since the last version:
         in load window, help actions, keep open options, etc.
         Some related bugs and infelicities ameliorated as well.</li>
     <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
+    <li>Add BaSTI load dialogue.</li>
     </ul>
     </p></dd>
 
