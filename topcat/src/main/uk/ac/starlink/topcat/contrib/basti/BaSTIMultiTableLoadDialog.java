@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package basti.bot;
+package uk.ac.starlink.topcat.contrib.basti;
 
 import java.awt.Component;
 import java.io.IOException;
