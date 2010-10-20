@@ -2,6 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package uk.ac.starlink.topcat.contrib.basti;
 
 import java.awt.Color;
@@ -32,7 +33,7 @@ class BaSTIPanelActions {
      */
     static void ResetQuery() {
         /* reset POST message */
-        BaSTIPOSTMessage.resetMessage(BaSTIMultiTableLoadDialog.POSTQuery);
+        BaSTIPOSTMessage.resetMessage(BaSTITableLoadDialog.POSTQuery);
 
         /* reset query Info text */
         BaSTIPanel.QueryInfo.setText(BaSTIPanel.QUERYINFOSTRING);
@@ -97,14 +98,14 @@ class BaSTIPanelActions {
     static void SubmitQuery() {
 
         /* populate POST message from query fields */
-        BaSTIPOSTMessage.Populate(BaSTIMultiTableLoadDialog.POSTQuery);
+        BaSTIPOSTMessage.Populate(BaSTITableLoadDialog.POSTQuery);
 
         /* Query must NOT be empty */
-        if ( BaSTIPOSTMessage.isEmpty(BaSTIMultiTableLoadDialog.POSTQuery) ) {
+        if ( BaSTIPOSTMessage.isEmpty(BaSTITableLoadDialog.POSTQuery) ) {
             BaSTIPanel.QueryInfo.setText("Define at least one query option!");
         } else {
             /* check query consistency */
-            String CheckQuery = BaSTIPOSTMessage.Validate(BaSTIMultiTableLoadDialog.POSTQuery);
+            String CheckQuery = BaSTIPOSTMessage.Validate(BaSTITableLoadDialog.POSTQuery);
             if ( !CheckQuery.equals("correct") ) {
                 BaSTIPanel.QueryInfo.setText(CheckQuery);
             } else {
@@ -112,7 +113,7 @@ class BaSTIPanelActions {
                 /* prepare POST message */
                 String StrPOST = "";
                 String[] tempValue = new String[3];
-                BaSTIPOSTMessage post = BaSTIMultiTableLoadDialog.POSTQuery;
+                BaSTIPOSTMessage post = BaSTITableLoadDialog.POSTQuery;
                 try {
                     // MAXIMUM number of returned results
                     // set by default and unchangeable
@@ -226,14 +227,14 @@ class BaSTIPanelActions {
      */
     static void CountQueryResults() {
         /* populate POST message from query fields */
-        BaSTIPOSTMessage.Populate(BaSTIMultiTableLoadDialog.POSTQuery);
+        BaSTIPOSTMessage.Populate(BaSTITableLoadDialog.POSTQuery);
 
         /* Query must NOT be empty (however this should not happen here) */
-        if ( BaSTIPOSTMessage.isEmpty(BaSTIMultiTableLoadDialog.POSTQuery) ) {
+        if ( BaSTIPOSTMessage.isEmpty(BaSTITableLoadDialog.POSTQuery) ) {
             BaSTIPanel.QueryInfo.setText("Define at least one query option!");
         } else {
             /* check query consistency */
-            String CheckQuery = BaSTIPOSTMessage.Validate(BaSTIMultiTableLoadDialog.POSTQuery);
+            String CheckQuery = BaSTIPOSTMessage.Validate(BaSTITableLoadDialog.POSTQuery);
             if ( !CheckQuery.equals("correct") ) {
                 BaSTIPanel.QueryInfo.setText(CheckQuery);
             } else {
@@ -241,7 +242,7 @@ class BaSTIPanelActions {
                 /* prepare POST message */
                 String StrPOST = "";
                 String[] tempValue = new String[3];
-                BaSTIPOSTMessage post = BaSTIMultiTableLoadDialog.POSTQuery;
+                BaSTIPOSTMessage post = BaSTITableLoadDialog.POSTQuery;
                 try {
                     // kept from the SUBMIT version if I decide to merge to 2 calls
 //                    // MAXIMUM number of returned results
@@ -334,14 +335,14 @@ class BaSTIPanelActions {
      */
     static void CheckRangeValues() {
         /* populate POST message from query fields */
-        BaSTIPOSTMessage.Populate(BaSTIMultiTableLoadDialog.POSTQuery);
+        BaSTIPOSTMessage.Populate(BaSTITableLoadDialog.POSTQuery);
 
         /* Query must NOT be empty (however this should not happen here) */
-        if ( BaSTIPOSTMessage.isEmpty(BaSTIMultiTableLoadDialog.POSTQuery) ) {
+        if ( BaSTIPOSTMessage.isEmpty(BaSTITableLoadDialog.POSTQuery) ) {
             BaSTIPanel.QueryInfo.setText("Define at least one query option!");
         } else {
             /* check query consistency */
-            String CheckQuery = BaSTIPOSTMessage.Validate(BaSTIMultiTableLoadDialog.POSTQuery);
+            String CheckQuery = BaSTIPOSTMessage.Validate(BaSTITableLoadDialog.POSTQuery);
             if ( !CheckQuery.equals("correct") ) {
                 BaSTIPanel.QueryInfo.setText(CheckQuery);
             } else {
@@ -349,7 +350,7 @@ class BaSTIPanelActions {
                 /* prepare POST message */
                 String StrPOST = "";
                 String[] tempValue = new String[3];
-                BaSTIPOSTMessage post = BaSTIMultiTableLoadDialog.POSTQuery;
+                BaSTIPOSTMessage post = BaSTITableLoadDialog.POSTQuery;
                 try {
                     // kept from the SUBMIT and getCount version if I decide to merge to calls
 //                    // MAXIMUM number of returned results

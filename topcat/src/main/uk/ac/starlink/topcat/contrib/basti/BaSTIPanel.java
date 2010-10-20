@@ -2,6 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package uk.ac.starlink.topcat.contrib.basti;
 
 import java.awt.Component;

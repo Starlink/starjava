@@ -9,17 +9,20 @@ import java.awt.Component;
 import java.io.IOException;
 import java.net.URL;
 
-import javax.swing.ImageIcon;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.gui.MultiTableLoadDialog;
+import uk.ac.starlink.table.TableSequence;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
+import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.URLDataSource;
 /**
  *
  * @author molinaro
+ * @author taylor
  */
-public class BaSTITableLoadDialog extends TableLoadDialog {
+public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
 
     private static final String GET_VOT_ENDPOINT = "http://albione.oa-teramo.inaf.it/POSTQuery/getVOTable.php?";
 
@@ -27,30 +30,27 @@ public class BaSTITableLoadDialog extends TableLoadDialog {
     static BaSTIPOSTMessage POSTQuery = new BaSTIPOSTMessage();
 
     public BaSTITableLoadDialog() {
-        super("BaSTI Data Loader", "a Bag of Stellar Tracks and Isochrones (under development)");
-        setIcon( ResourceIcon.LOAD );
-        //setIcon( new ImageIcon("BaSTI_logo.jpg") );
+        super("BaSTI Data Loader",
+              "a Bag of Stellar Tracks and Isochrones (under development)");
+        setIcon(ResourceIcon.BASTI);
     }
 
-    @Override
-    protected TablesSupplier getTablesSupplier() throws RuntimeException {
-        return new TablesSupplier() {
-            
-            public StarTable[] getTables(StarTableFactory tfact, String format) throws IOException {
-                String[] locations = new String[BaSTIPanel.ResultsTable.getSelectedRowCount()];
+    public TableLoader createTableLoader() {
+        return new TableLoader() {
+
+            public String getLabel() {
+                return "BaSTI";
+            }
+
+            public TableSequence loadTables( StarTableFactory tfact )
+                    throws IOException {
+                final String[] locations = new String[BaSTIPanel.ResultsTable.getSelectedRowCount()];
                 String[] SubDirs = new String[BaSTIPanel.ResultsTable.getSelectedRowCount()];
                 int[] rowSelection = BaSTIPanel.ResultsTable.getSelectedRows();
-
-//                System.out.println(locations.length + " righe selezionate: ");
-//                for (int j=0; j<locations.length; j++) { System.out.print(rowSelection[j] + " "); }
-//                System.out.println();
-
                 for ( int r=0; r<locations.length; r++ ) {
                     String[] rowPieces = BaSTIPOSTMessage.SQLresults[rowSelection[r]+2].split(":");
                     SubDirs[r] = rowPieces[1];
-                    locations[r] = GET_VOT_ENDPOINT + rowPieces[1] +
-                                BaSTIPanel.ResultsData.getValueAt(rowSelection[r], 0).toString();
-//                    System.out.println("riga " + rowSelection[r] + ": " + locations[r]);
+                    locations[r] = GET_VOT_ENDPOINT + rowPieces[1] + BaSTIPanel.ResultsData.getValueAt(rowSelection[r], 0).toString();
                 }
 
                 int NTables = locations.length;
@@ -58,24 +58,16 @@ public class BaSTITableLoadDialog extends TableLoadDialog {
 
                 for (int t=0; t<locations.length; t++) {
                     URL URLLocation = new URL(locations[t]);
-                    BaSTITables[t] = tfact.makeStarTable(new URLDataSource(URLLocation), "votable");
+                    StarTable table = tfact.makeStarTable(new URLDataSource(URLLocation), "votable");
+                    table.setParameter(new DescribedValue(TableLoader.SOURCE_INFO, "some name"));
+                    BaSTITables[t] = table;
                 }
-                return BaSTITables;
-            }
-
-            public String getTablesID() {
-                return("BaSTI");
+                return Tables.arrayTableSequence(BaSTITables);
             }
         };
     }
 
-    @Override
-    protected Component createQueryPanel() {
+    protected Component createQueryComponent() {
         return BaSTIPanel.create();
     }
-
-    public boolean isAvailable() {
-        return true;
-    }
-
 }
