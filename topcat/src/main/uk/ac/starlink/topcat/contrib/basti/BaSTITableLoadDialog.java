@@ -19,14 +19,14 @@ import uk.ac.starlink.util.URLDataSource;
  *
  * @author molinaro
  */
-public class BaSTIMultiTableLoadDialog extends MultiTableLoadDialog {
+public class BaSTITableLoadDialog extends TableLoadDialog {
 
     private static final String GET_VOT_ENDPOINT = "http://albione.oa-teramo.inaf.it/POSTQuery/getVOTable.php?";
 
     /* POST Message container and handler */
     static BaSTIPOSTMessage POSTQuery = new BaSTIPOSTMessage();
 
-    public BaSTIMultiTableLoadDialog() {
+    public BaSTITableLoadDialog() {
         super("BaSTI Data Loader", "a Bag of Stellar Tracks and Isochrones (under development)");
         setIcon( ResourceIcon.LOAD );
         //setIcon( new ImageIcon("BaSTI_logo.jpg") );
