@@ -640,6 +640,11 @@ public class AuxWindow extends JFrame {
                              + "http://www.astrogrid.org/" );
         box.add( agLogo );
         box.add( Box.createHorizontalStrut( igap ) );
+        JLabel stfcLogo = new JLabel( ResourceIcon.STFC_LOGO );
+        stfcLogo.setToolTipText( "Science and Technology Facilities Council: "
+                               + "http://www.stfc.ac.uk/" );
+        box.add( stfcLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
         JLabel brisLogo = new JLabel( ResourceIcon.BRISTOL_LOGO );
         brisLogo.setToolTipText( "Bristol University, Astrophysics group: "
                                + "http://www.star.bris.ac.uk/" );

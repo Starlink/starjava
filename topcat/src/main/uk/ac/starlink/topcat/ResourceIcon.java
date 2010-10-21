@@ -87,6 +87,7 @@ public class ResourceIcon implements Icon {
         ASTROGRID_LOGO = makeIcon( "ag48.gif" ),
         BRISTOL_LOGO = makeIcon( "bris48.gif" ),
         VOTECH_LOGO = makeIcon( "votech48.gif" ),
+        STFC_LOGO = makeIcon( "stfc48.gif" ),
         VIZIER_LOGO = makeIcon( "vizier_logo.gif" ),
 
         /* Generic actions. */
