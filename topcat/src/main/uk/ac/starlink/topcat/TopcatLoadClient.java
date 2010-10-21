@@ -22,9 +22,10 @@ public class TopcatLoadClient implements TableLoadClient {
     private final ControlWindow controlWin_;
     private final boolean popups_;
     private final LoadingToken token_;
-    private String label_;
-    private int nLoad_;
-    private int nAttempt_;
+    private volatile String label_;
+    private volatile int nLoad_;
+    private volatile int nAttempt_;
+    private volatile boolean cancelled_;
 
     /**
      * Constructs a load client with popup windows for warnings and errors.
@@ -112,7 +113,7 @@ public class TopcatLoadClient implements TableLoadClient {
 
     public boolean loadFailure( final Throwable error ) {
         nAttempt_++;
-        if ( popups_ ) {
+        if ( popups_ && ! cancelled_ ) {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     if ( error instanceof OutOfMemoryError ) {
@@ -130,6 +131,7 @@ public class TopcatLoadClient implements TableLoadClient {
     }
 
     public void endSequence( boolean cancelled ) {
+        cancelled_ = true;
         controlWin_.removeLoadingToken( token_ );
         if ( ! cancelled && nAttempt_ == 0 && popups_ ) {
             SwingUtilities.invokeLater( new Runnable() {
