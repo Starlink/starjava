@@ -13,7 +13,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
-import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.QueueTableSequence;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -43,7 +43,7 @@ public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
                 return "BaSTI";
             }
 
-            public TableSequence loadTables( StarTableFactory tfact )
+            public TableSequence loadTables( final StarTableFactory tfact )
                     throws IOException {
                 final String[] locations = new String[BaSTIPanel.ResultsTable.getSelectedRowCount()];
                 String[] SubDirs = new String[BaSTIPanel.ResultsTable.getSelectedRowCount()];
@@ -54,16 +54,28 @@ public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
                     locations[r] = GET_VOT_ENDPOINT + rowPieces[1] + BaSTIPanel.ResultsData.getValueAt(rowSelection[r], 0).toString();
                 }
 
-                int NTables = locations.length;
-                StarTable[] BaSTITables = new StarTable[NTables];
-
-                for (int t=0; t<locations.length; t++) {
-                    URL URLLocation = new URL(locations[t]);
-                    StarTable table = tfact.makeStarTable(new URLDataSource(URLLocation), "votable");
-                    table.setParameter(new DescribedValue(TableLoader.SOURCE_INFO, "BaSTI Table"));
-                    BaSTITables[t] = table;
-                }
-                return Tables.arrayTableSequence(BaSTITables);
+                final QueueTableSequence tseq = new QueueTableSequence();
+                Thread loader = new Thread("BaSTI loader") {
+                    public void run() {
+                        try {
+                            for (int t=0; t<locations.length; t++) {
+                                URL URLLocation = new URL(locations[t]);
+                                StarTable table = tfact.makeStarTable(new URLDataSource(URLLocation), "votable");
+                                table.setParameter(new DescribedValue(TableLoader.SOURCE_INFO, table.getName()));
+                                tseq.addTable(table);
+                            }
+                        }
+                        catch (Throwable e) {
+                            tseq.addError(e);
+                        }
+                        finally {
+                            tseq.endSequence();
+                        }
+                    }
+                };
+                loader.setDaemon(false);
+                loader.start();
+                return tseq;
             }
         };
     }
