@@ -4116,6 +4116,15 @@ report on the console), and there are some things you can do about this:
     See <ref id="topcatArgs"/>, <ref id="jvmProperties"/>.
     </p></dd>
 
+<dt>Run in 64-bit mode</dt>
+<dd><p>If you are working with a file or files whose total size approaches
+    or exceeds about 2 Gbyte, you should use a 64-bit version of java.
+    This means that you will need a 64-bit operating system, and also
+    a 64-bit version of the Java Virtual Machine.
+    Executing "<code>java -version</code>" (or "<code>topcat -version</code>")
+    will probably say something about 64-bit-ness if it is 64-bit.
+    </p></dd>
+
 <dt>Use column-oriented storage</dt>
 <dd><p>For really large tables storing them in 
     the <ref id="outColfits">colfits</ref> output format 
@@ -14030,6 +14039,9 @@ introduced since the last version:
     <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
     <li>Add BaSTI load dialogue.</li>
     <li>Belatedly added STFC logo to About window.</li>
+    <li>Add recommendation to use 64-bit java in large table tips section.</li>
+    <li>Fix so FITS tables &gt;2Gb can be used in 32-bit mode
+        (though slower than 64-bit).</li>
     </ul>
     </p></dd>
 

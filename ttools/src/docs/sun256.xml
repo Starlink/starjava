@@ -7383,6 +7383,8 @@ but my thanks are especially due to the following:
     <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
         header cards.</li>
     <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
+    <li>Fix so FITS tables &gt;2Gb can provide random access in 32-bit mode
+        (though slower than 64-bit).</li>
     </ul>
     </p></dd>
 
