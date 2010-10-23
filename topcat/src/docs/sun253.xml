@@ -14042,6 +14042,7 @@ introduced since the last version:
     <li>Add recommendation to use 64-bit java in large table tips section.</li>
     <li>Fix so FITS tables &gt;2Gb can be used in 32-bit mode
         (though slower than 64-bit).</li>
+    <li>Fix SAMP table load bug which tripped over "+" characters in URLs.</li>
     </ul>
     </p></dd>
 

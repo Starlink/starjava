@@ -337,7 +337,15 @@ public class URLUtils {
                                               && u.getQuery() == null ) {
             String path = u.getPath();
             try {
-                path = URLDecoder.decode( path );
+
+                /* Careful.  URLDecoder does almost what we want, but not
+                 * quite - it replaces "+" with " ", which is appropriate
+                 * for application/x-www-form-urlencoded, but not for
+                 * normal URL decoding (RFC1738).  The %xy decoding is
+                 * as required.  So by converting + to its hex-escaped
+                 * form before using URLDecoder we get what we need. 
+                 * An alternative would be to do the hex decoding by hand. */
+                path = URLDecoder.decode( path.replace( "+", "%2B" ) );
             }
             catch ( IllegalArgumentException e ) {
                 // probably a badly-formed URL - try with the undecoded form

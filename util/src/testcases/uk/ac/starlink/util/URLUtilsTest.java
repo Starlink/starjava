@@ -143,6 +143,13 @@ public class URLUtilsTest extends junit.framework.TestCase {
         assertEquals( new URL( "ftp://rtfm.mit.edu/pub/" ),
                       URLUtils.fixURL( new URL( "ftp://rtfm.mit.edu/pub/" ) ) );
     }
+
+    public void testUrlToFile() {
+        assertEquals( new File( "/etc/motd" ),
+                      URLUtils.urlToFile( "file://localhost/etc/motd" ) );
+        assertEquals( new File( "/data/table/x++m.xml" ),
+                      URLUtils.urlToFile( "file:///data/table/x++m.xml" ) );
+    }
 }
 
             
