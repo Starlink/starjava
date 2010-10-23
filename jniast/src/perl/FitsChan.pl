@@ -168,17 +168,24 @@ public class FitsChan extends Channel {
         return cardIt.hasNext() ? (String) cardIt.next() : null;
     }
 
-    /**
-     * Finalizes the object.  When this method is called, either explicitly
-     * or under control of the garbage collector, the <code>sink</code>
-     * method will be invoked to write out any content of this 
-     * <code>FitsChan</code>
-     */
-    public void finalize() throws Throwable {
-        destroy();
-        super.finalize();
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        }
+        finally {
+            super.finalize();
+        }
     }
-    private native void destroy();
+
+    /**
+     * Must be called to dispose of the object and ensure that any
+     * writes are performed.
+     * When this method is called, either explicitly
+     * or by the finalizer, the <code>sink</code>
+     * method will be invoked to write out any content of this 
+     * <code>FitsChan</code>.
+     */
+    public native void close();
 
     /**
      * Reads an AST object from this FitsChan.
