@@ -77,7 +77,7 @@ public class Channel extends AstObject {
      * Finalizes the object.  Certain resources allocated by the native
      * code are freed, and the finalizer of the superclass is called.
      */
-    public void finalize() throws Throwable {
+    protected void finalize() throws Throwable {
         try {
             destroy();
         }
