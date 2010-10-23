@@ -139,6 +139,7 @@ void jniastClearErrMsg();
 const char *jniastGetErrMsg();
 AstPointer jniastGetPointerField( JNIEnv *env, jobject object );
 void jniastInitObject( JNIEnv *env, jobject object, AstPointer pointer );
+void jniastClearObject( JNIEnv *env, jobject object );
 void jniastLock( AstObject **ast_objs );
 void jniastUnlock( AstObject **ast_objs );
 AstObject **jniastList( int count, ... );

@@ -333,6 +333,34 @@ void jniastInitObject( JNIEnv *env, jobject object, AstPointer pointer ) {
    }
 }
 
+void jniastClearObject( JNIEnv *env, jobject object ) {
+/*
+*+
+*  Name:
+*     jniastClearObject
+
+*  Purpose:
+*     Clears a Java AstObject. 
+
+*  Description:
+*     Clears the AstPointer field of an AstObject.  It cannot be safely
+*     used after this call.  Normally it is not necessary to make this
+*     call, since this operation is performed in the AstObject finalizer,
+*     but if the annul is performed manually for some reason it may
+*     be necessary.
+
+*  Arguments:
+*     env = JNIEnv *
+*        Pointer to the JNI interface
+*     object = jobject
+*        Reference to the AstObject whose pointer field is to be set.
+*-
+*/
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      (*env)->SetLongField( env, object, AstPointerID, (jlong) 0 );
+   }
+}
+
 jobject jniastMakeObject( JNIEnv *env, AstObject *objptr ) {
 /*+
 *  Name:
