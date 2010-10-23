@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -597,22 +596,6 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
     static String urlEncode( String txt ) {
         try {
             return URLEncoder.encode( txt, "utf-8" );
-        }
-        catch ( UnsupportedEncodingException e ) {
-            assert false;
-            return txt;
-        }
-    }
-
-    /**
-     * URL-decodes text.
-     *
-     * @param  txt  text to decode
-     * @return  decoded text
-     */
-    static String urlDecode( String txt ) {
-        try {
-            return URLDecoder.decode( txt, "utf-8" );
         }
         catch ( UnsupportedEncodingException e ) {
             assert false;
