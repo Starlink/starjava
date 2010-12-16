@@ -428,10 +428,7 @@ public class ControlWindow extends AuxWindow
                     }
                     public TableSequence loadTables( StarTableFactory tfact )
                             throws IOException {
-                        return tfact
-                              .makeStarTables( DataSource
-                                              .makeDataSource( loc.trim() ),
-                                               null );
+                        return tfact.makeStarTables( loc.trim(), null );
                     }
                 };
                 runLoading( loader, new TopcatLoadClient( ControlWindow.this,

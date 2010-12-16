@@ -748,9 +748,7 @@ public class Driver {
 
         public TableSequence loadTables( StarTableFactory tfact )
                 throws IOException {
-            final TableSequence tseq =
-                tfact.makeStarTables( DataSource.makeDataSource( loc_ ),
-                                      format_ );
+            final TableSequence tseq = tfact.makeStarTables( loc_, format_ );
             return new TableSequence() {
                 int ix_;
                 public StarTable nextTable() throws IOException {
