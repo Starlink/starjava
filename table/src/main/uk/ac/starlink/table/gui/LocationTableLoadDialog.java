@@ -69,9 +69,7 @@ public class LocationTableLoadDialog extends AbstractTableLoadDialog {
                 }
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
-                    return tfact.makeStarTables( DataSource
-                                                .makeDataSource( loc ),
-                                                 format );
+                    return tfact.makeStarTables( loc, format );
                 }
             };
         }

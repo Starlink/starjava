@@ -643,6 +643,38 @@ public class StarTableFactory {
     }
 
     /**
+     * Constructs a sequence of <tt>StarTable</tt>s from a location string
+     * using a named table input handler.
+     * The input handler may be named either using its format name
+     * (as returned from the {@link TableBuilder#getFormatName} method)
+     * or by giving the full class name of the handler.  In the latter
+     * case this factory does not need to have been informed about the
+     * handler previously.  If <tt>null</tt> or the empty string or
+     * the special value {@link #AUTO_HANDLER} is 
+     * supplied for <tt>handler</tt>, it will fall back on automatic 
+     * format detection.
+     *
+     * @param  location  the name of the table resource
+     * @param  handler  specifier for the handler which can handle tables
+     *         of the right format
+     * @return a new StarTable view of the resource at <tt>location</tt>
+     * @throws TableFormatException  if <tt>location</tt> does not point to
+     *         a table in the format named by <tt>handler</tt>
+     * @throws IOException  if an I/O error is encountered
+     */
+    public TableSequence makeStarTables( String location, String handler )
+            throws TableFormatException, IOException {
+        if ( location.startsWith( "jdbc:" ) ) {
+            StarTable table = makeStarTable( location, handler );
+            return Tables.singleTableSequence( table );
+        }                       
+        else {
+            return makeStarTables( DataSource.makeDataSource( location ),
+                                   handler );
+        }
+    }
+
+    /**
      * Constructs a readable <tt>StarTable</tt> from a location string
      * using a named table input handler.
      * The input handler may be named either using its format name
