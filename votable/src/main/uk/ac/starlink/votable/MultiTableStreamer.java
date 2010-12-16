@@ -177,7 +177,7 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
             parser = spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
-            throw (SAXException) new SAXException( e.getMessage() )
+            throw (SAXException) new SAXException( e.getMessage(), e )
                                 .initCause( e );
         }
 

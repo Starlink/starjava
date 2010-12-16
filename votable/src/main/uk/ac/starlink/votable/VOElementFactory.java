@@ -377,7 +377,7 @@ public class VOElementFactory {
                                        validate );
             }
             catch ( TransformerException e ) {
-                throw (SAXException) new SAXException( e.getMessage() )
+                throw (SAXException) new SAXException( e.getMessage(), e )
                                     .initCause( e );
             }
         }
@@ -479,7 +479,8 @@ public class VOElementFactory {
                 sparser = SAXParserFactory.newInstance().newSAXParser();
             }
             catch ( ParserConfigurationException e2 ) {
-                throw new SAXException( e2 );  // shouldn't happen?
+                throw (SAXException) new SAXException( e2 )
+                                    .initCause( e );  // shouldn't happen?
             }
         }
         XMLReader parser = sparser.getXMLReader();

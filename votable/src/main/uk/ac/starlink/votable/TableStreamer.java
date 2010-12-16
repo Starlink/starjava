@@ -76,7 +76,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         }
         catch ( IOException e ) {
             throw (SAXException)
-                  new SAXParseException( e.getMessage(), getLocator() )
+                  new SAXParseException( e.getMessage(), getLocator(), e )
                  .initCause( e );
         }
     }
@@ -87,7 +87,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         }
         catch ( IOException e ) {
             throw (SAXException)
-                  new SAXParseException( e.getMessage(), getLocator() )
+                  new SAXParseException( e.getMessage(), getLocator(), e )
                  .initCause( e );
         }
     }
@@ -98,7 +98,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         }
         catch ( IOException e ) {
             throw (SAXException)
-                  new SAXParseException( e.getMessage(), getLocator() )
+                  new SAXParseException( e.getMessage(), getLocator(), e )
                  .initCause( e );
         }
         throw new SuccessfulCompletionException();
@@ -132,7 +132,7 @@ class TableStreamer extends TableContentHandler implements TableHandler {
             parser = spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
-            throw (SAXException) new SAXException( e.getMessage() )
+            throw (SAXException) new SAXException( e.getMessage(), e )
                                 .initCause( e );
         }
 

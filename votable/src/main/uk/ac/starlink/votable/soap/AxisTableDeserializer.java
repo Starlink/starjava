@@ -82,7 +82,7 @@ public class AxisTableDeserializer extends DeserializerImpl
             else {
                 throw (SAXException)
                       new SAXParseException( e.getMessage(),
-                                             voParser_.getLocator() )
+                                             voParser_.getLocator(), e )
                      .initCause( e );
             }
         }
@@ -99,7 +99,7 @@ public class AxisTableDeserializer extends DeserializerImpl
             else {
                 throw (SAXException)
                       new SAXParseException( e.getMessage(),
-                                             voParser_.getLocator() )
+                                             voParser_.getLocator(), e )
                      .initCause( e );
             }
         }

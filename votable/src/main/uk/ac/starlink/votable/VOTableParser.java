@@ -81,7 +81,8 @@ class VOTableParser extends SkeletonDOMBuilder {
                 }
                 else {
                     throw (SAXException) 
-                          new SAXParseException( e.getMessage(), getLocator() )
+                          new SAXParseException( e.getMessage(), getLocator(),
+                                                 e )
                          .initCause( e );
                 }
             }
@@ -117,7 +118,8 @@ class VOTableParser extends SkeletonDOMBuilder {
                 }
                 else {
                     throw (SAXException)
-                          new SAXParseException( e.getMessage(), getLocator() )
+                          new SAXParseException( e.getMessage(), getLocator(),
+                                                 e )
                          .initCause( e );
                 }
             }

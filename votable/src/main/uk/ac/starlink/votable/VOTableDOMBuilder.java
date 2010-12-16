@@ -77,7 +77,7 @@ class VOTableDOMBuilder extends SkeletonDOMBuilder implements TableHandler {
              }
              catch ( IOException e ) {
                  throw (SAXException)
-                       new SAXParseException( e.getMessage(), getLocator() )
+                       new SAXParseException( e.getMessage(), getLocator(), e )
                       .initCause( e );
              }
          }
@@ -93,7 +93,7 @@ class VOTableDOMBuilder extends SkeletonDOMBuilder implements TableHandler {
         }
         catch ( IOException e ) {
             throw (SAXException)
-                  new SAXParseException( e.getMessage(), getLocator() )
+                  new SAXParseException( e.getMessage(), getLocator(), e )
                  .initCause( e );
         }
     }
@@ -109,7 +109,7 @@ class VOTableDOMBuilder extends SkeletonDOMBuilder implements TableHandler {
         }
         catch ( IOException e ) {
             throw (SAXException)
-                  new SAXParseException( e.getMessage(), getLocator() )
+                  new SAXParseException( e.getMessage(), getLocator(), e )
                  .initCause( e );
         }
         rowStore_ = null;
