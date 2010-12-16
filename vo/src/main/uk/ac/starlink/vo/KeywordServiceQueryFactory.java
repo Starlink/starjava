@@ -103,7 +103,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
             new MatchField( "shortName", "Short Name", true ),
             new MatchField( "title", "Title", true ),
             new MatchField( "content/subject", "Subjects", true ),
-            new MatchField( "identifier", "ID", false ),
+            new MatchField( "identifier", "ID", true ),
             new MatchField( "curation/publisher", "Publisher", false ),
             new MatchField( "content/description", "Description", false ),
         };
