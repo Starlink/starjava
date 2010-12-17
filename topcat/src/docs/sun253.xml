@@ -8476,7 +8476,7 @@ though others may be available in your installation.
 <ul>
 <li>&IMG.FILESTORE_DIALOG;
     <ref id="FilestoreTableLoadDialog">Filestore Browser</ref></li>
-<li>&IMG.SYSTEM_DIALOG;
+<li>&IMG.SYSTEM;
     <ref id="SystemTableLoadDialog">System Browser</ref></li>
 <li>&IMG.TREE_DIALOG;
     <ref id="TreeTableLoadDialog">Hierarchy Browser</ref></li>
@@ -8580,7 +8580,7 @@ instead.
 <subhead><title>System Browser</title></subhead>
 
 <p>By clicking the <label>System Browser</label> button or toolbar button
-(&IMG.SYSTEM_DIALOG;) in the 
+(&IMG.SYSTEM;) in the 
 <ref id="LoadWindow">Load Window</ref>,
 you can use your Operating System's native file browser to choose
 a file to load from.
@@ -9372,7 +9372,7 @@ which are described in the following sections:
     <ref id="FilestoreTableSaveDialog" plaintextref="yes">browser</ref>
     that shows you local and remote files</li>
 <li>Use the <label>System Browser</label> button or toolbar button
-    (&IMG.SYSTEM_DIALOG;) to get a
+    (&IMG.SYSTEM;) to get a
     <ref id="SystemTableSaveDialog" plaintextref="yes">native browser</ref>
     that uses your OS's standard file saving interface</li>
 <li>Use the <label>SQL table</label> toolbar button
@@ -9437,7 +9437,7 @@ the <label>Output Format</label> selector box on the right
 <subhead><title>System Browser</title></subhead>
 
 <p>By clicking the <label>System Browser</label> button or toolbar button
-(&IMG.SYSTEM_DIALOG;) in the
+(&IMG.SYSTEM;) in the
 <ref id="SaveQueryWindow">Save Window</ref>,
 you can use your Operating System's native file browser to decide where
 to save a file.
