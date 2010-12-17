@@ -12459,7 +12459,7 @@ introduced since the last version:
         runtime using the <code>startable.load.dialogs</code> system property.
         </p>
 
-        <p>The appearance of the <label>Load Window<label>
+        <p>The appearance of the <label>Load Window</label>
         has changed; now only the <label>File Browser</label> button
         is visible along with the <label>Location</label> field in the
         body of the window, but the <label>DataSources</label> menu
