@@ -25,6 +25,7 @@ public class SampControlTest extends TestCase {
     public SampControlTest() {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
         Logger.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
         ControlWindow cwin;
         try {
             cwin = ControlWindow.getInstance();
