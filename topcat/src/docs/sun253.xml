@@ -10558,7 +10558,7 @@ If another application sends a suitable message to TOPCAT, and the
 resources are of an appropriate type, and the window is visible at the time,
 the received list will normally be loaded and displayed here,
 replacing any which are currently displayed.
-You can inhibit this behaviour by unselecting the
+You can prevent this behaviour by unselecting the
 <label>Accept Resource Lists</label> (&IMG.LISTEN;) item in the
 <label>Interop</label> menu.
 If you wish to send your selection to one or more other applications
@@ -10628,6 +10628,17 @@ If you get bored waiting (the service may be down, or just very slow, or you
 may have submitted a query with a very large return set),
 you can hit the <label>Cancel</label> button,
 and perhaps adjust the parameters and try again.
+</p>
+
+<p>If a SAMP hub is running (see <ref id="interop"/>),
+then other running clients may be able to fill in the RA and Dec
+coordinates.  For instance clicking on a sky position in an image
+viewing tool might fill in the sky position you clicked on.
+Usually this will happen automatically.
+This is often convenient, but may not be what you want.
+To prevent this behaviour unselect the 
+<label>Accept Sky Positions</label> (&IMG.LISTEN;)
+option in the <label>Interop</label> menu.
 </p>
 
 </subsubsubsect>
@@ -14035,6 +14046,9 @@ introduced since the last version:
         list of registry resources in a 
         <ref id="RegistryPanel">Registry Query Panel</ref>,
         that is the single and multiple Cone, SIA and SSA windows.</li>
+    <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
+        it will enter the coordinates in a Cone, SIA or SSA table load
+        dialogue if one is currently visible and accepting them.</li>
     <li>Window placement should now behave a bit more like platform norms,
         rather than sitting in the top left corner.</li>
     <li>Storage management improvements; removed restriction on large
@@ -14050,9 +14064,6 @@ introduced since the last version:
         option, since in general the windows are arranged so that resizing
         them will resize sensible parts of them, but it may be useful
         if using some of the larger windows on an unusually small screen.</li>
-    <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
-        it will enter the coordinates in a Cone, SIA or SSA table load
-        dialogue if one is currently visible and accepting them.</li>
     <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
     <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
         header cards.</li>
