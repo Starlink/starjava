@@ -33,7 +33,7 @@
   <!ENTITY FIG.TableViewerWindow '&figs;TableViewerWindow.gif'>
   <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.gif'>
   <!ENTITY FIG.StatsWindow '&figs;StatsWindow.gif'>
-  <!ENTITY FIG.LoadQueryWindow '&figs;LoadQueryWindow.gif'>
+  <!ENTITY FIG.LoadWindow '&figs;LoadWindow.gif'>
   <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.gif'>
   <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
   <!ENTITY FIG.SQLReadDialog '&figs;SQLReadDialog.gif'>
@@ -214,7 +214,7 @@ Here is a summary of its main capabilities:
 At any time, it has a list of tables it knows about - these are 
 displayed in the <ref id="ControlWindow">Control Window</ref> which 
 is the first thing you see when you start up the program.
-You can add to the list by <ref id="LoadQueryWindow">loading tables in</ref>,
+You can add to the list by <ref id="LoadWindow">loading tables in</ref>,
 or by some actions which create new tables from the existing ones.
 When you select a table in the list by clicking on it, 
 you can see general information
@@ -759,7 +759,7 @@ supported input formats have matching output formats and vice versa.
 
 <p>Loading tables into TOPCAT is done either from the command line
 when you start the program up or
-using the <ref id="LoadQueryWindow">Load Table</ref> dialogue.
+using the <ref id="LoadWindow">Load Table</ref> dialogue.
 For FITS and VOTable formats
 the file format can be detected automatically
 (note this is done by looking at the file content, it has nothing
@@ -1635,7 +1635,7 @@ just need to click on a filename or directory to indicate the
 load/save location.  However in some cases, for instance
 specifying tables on the command line (<ref id="topcatArgs"/>) 
 or typing pathnames directly into the 
-<ref id="LoadQueryWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
+<ref id="LoadWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
 dialogue windows,
 you may want give the location of a table for input or output 
 using only a single string.
@@ -3980,7 +3980,7 @@ with the following RDBMSs and corresponding JDBC drivers:
     dialogue boxes to do it.  You have to specify a JDBC URL specifying
     the query to read/table to write as a string in the 
     <label>Location</label> field of the normal table 
-    <ref id="LoadQueryWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
+    <ref id="LoadWindow">load</ref>/<ref id="SaveQueryWindow">save</ref> 
     dialogue boxes.  The URL will look something like
     <verbatim>
     jdbc:oracle:thin:@//hostname:1521/database#SELECT ...
@@ -4621,7 +4621,7 @@ are described in the following subsections.
 <p>The Table List panel on the left of the Control Window is 
 pretty straightforward - it lists all the tables currently known
 to TOPCAT.  If a new table is introduced by loading it from the 
-<ref id="LoadQueryWindow">Load Window</ref> or as a result of 
+<ref id="LoadWindow">Load Window</ref> or as a result of 
 some action such as <ref id="join">table joining</ref> then its
 name and number will appear in this list.
 The currently selected table is highlighted - clicking on a different
@@ -4847,7 +4847,7 @@ functions.  They are grouped as follows:
     <dl>
 
     <dt>&IMG.LOAD; Load Table</dt>
-    <dd><p>Pops up the <ref id="LoadQueryWindow">Load Table</ref> dialogue
+    <dd><p>Pops up the <ref id="LoadWindow">Load Table</ref> dialogue
         which allows you to load a table into TOPCAT.
         If a table is loaded it becomes the new current table.
         </p></dd>
@@ -5146,7 +5146,7 @@ it brings back the control window if it's been hidden.
 
 <p>The <label>VO</label> menu groups together those actions which access
 remote data sources.  All of these options can also be found in
-either the <ref id="LoadQueryWindow">Load Window</ref> toolbar or
+either the <ref id="LoadWindow">Load Window</ref> toolbar or
 the <label>Joins</label> menu.
 </p>
 
@@ -8417,12 +8417,12 @@ it has no effect and is disabled.
 
 </subsect>
 
-<subsect id="LoadQueryWindow">
+<subsect id="LoadWindow">
 <subhead><title>Load Window</title></subhead>
 
 <figure>
 <caption><px>Load Window</px></caption>
-<figureimage src="&FIG.LoadQueryWindow;"/>
+<figureimage src="&FIG.LoadWindow;"/>
 </figure>
 
 <p>The Load Window is used for loading tables from an external location
@@ -8505,7 +8505,7 @@ though others may be available in your installation.
 
 <p>By clicking the <label>Filestore Browser</label> button 
 or toolbar button (&IMG.FILESTORE_DIALOG;) in the
-<ref id="LoadQueryWindow">Load Window</ref>,
+<ref id="LoadWindow">Load Window</ref>,
 you can obtain a file browser which will
 display the files in a given directory.
 The way this window works is almost certainly familiar to you 
@@ -8581,7 +8581,7 @@ instead.
 
 <p>By clicking the <label>System Browser</label> button or toolbar button
 (&IMG.SYSTEM_DIALOG;) in the 
-<ref id="LoadQueryWindow">Load Window</ref>,
+<ref id="LoadWindow">Load Window</ref>,
 you can use your Operating System's native file browser to choose
 a file to load from.
 What this looks like is entirely dependent on your OS;
@@ -8608,7 +8608,7 @@ will need to use the selector in the main <label>Load Window</label>.
 
 <p>By selecting the <label>Hierarchy Browser</label> button
 (&IMG.TREE_DIALOG;) 
-from the <ref id="LoadQueryWindow">Load Window</ref>'s toolbar
+from the <ref id="LoadWindow">Load Window</ref>'s toolbar
 or <label>DataSources</label> menu,
 you can obtain a browser which presents a table-aware
 hierarchical view of the file system.
@@ -8757,7 +8757,7 @@ Changing the root of the tree will interrupt the search.
 <ref id="inSql" plaintextref="yes">read a table from an SQL database</ref>,
 you can use a specialised dialogue to specify the SQL query by selecting
 <label>SQL Query</label> button from the
-<ref id="LoadQueryWindow">Load Window</ref>'s 
+<ref id="LoadWindow">Load Window</ref>'s 
 toolbar (&IMG.SQL_DIALOG;) or <label>DataSources</label> menu.
 </p>
 
@@ -8838,7 +8838,7 @@ these steps, this dialogue may be inaccessible.
 
 <p>The VizieR query dialogue can be opened using the
 <label>VizieR Catalogue Service</label> button (&IMG.VIZIER;)
-in the <ref id="LoadQueryWindow">Load Window</ref>'s toolbar 
+in the <ref id="LoadWindow">Load Window</ref>'s toolbar 
 or the <ref id="ControlWindow">Control Window</ref>'s <label>VO</label> menu.
 It allows you to make queries directly to the 
 <webref url="http://vizier.u-strasbg.fr/">VizieR</webref> 
@@ -9069,7 +9069,7 @@ The original description of the VizieR service was published in
 </figure>
 
 <p>This dialogue, selected from the 
-<ref id="LoadQueryWindow">Load Window</ref>'s toolbar
+<ref id="LoadWindow">Load Window</ref>'s toolbar
 button (&IMG.GAVO;) or <label>DataSources</label> menu,
 permits direct queries to the services provided by
 <webref url="http://www.g-vo.org/">GAVO</webref>,
@@ -9148,7 +9148,7 @@ the program to start up with a few demonstration tables already loaded in.
 </p>
 
 <p>You can also load examples in from the <label>Examples</label> menu 
-in the <ref id="LoadQueryWindow">Load Window</ref> however.
+in the <ref id="LoadWindow">Load Window</ref> however.
 This contains the following options:
 <dl>
 
@@ -12459,7 +12459,7 @@ introduced since the last version:
         runtime using the <code>startable.load.dialogs</code> system property.
         </p>
 
-        <p>The appearance of the <ref id="LoadQueryWindow">Load Window</ref>
+        <p>The appearance of the <label>Load Window<label>
         has changed; now only the <label>File Browser</label> button
         is visible along with the <label>Location</label> field in the
         body of the window, but the <label>DataSources</label> menu
