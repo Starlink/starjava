@@ -14031,16 +14031,17 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
-    <li>Help Window now has a text search tab, shown by default.</li>
-    <li>Fix bug in registry result table which displayed resource identifier
-        instead of publisher in the Publisher column.</li>
-    <li>Registry search in VO windows now allow you to select which resource
+    <li>Major load dialogue overhaul.  Not modal any more, progress monitors
+        in load window, help actions, keep open options, etc.
+        Some related bugs and infelicities ameliorated as well.</li>
+    <li>Now reports on progress (row count) as large tables are loaded.</li>
+    <li>Add BaSTI load dialogue.</li>
+
+    <li>Registry search in VO windows now allows you to select which resource
         fields to match (from Short Name, Title, Subjects, ID, Publisher and
         Description.  This makes it much easier to do the search you want.
         A not-well-characterised bug in registry search may also have
         been fixed.</li>
-    <li>VO windows now display <label>Subjects</label> column in registry
-        resource description.</li>
     <li>SAMP <code>voresource.loadlist{,.cone,.siap,.ssap}</code> MTypes
         can now be sent from and received by windows which display a 
         list of registry resources in a 
@@ -14049,37 +14050,41 @@ introduced since the last version:
     <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
         it will enter the coordinates in a Cone, SIA or SSA table load
         dialogue if one is currently visible and accepting them.</li>
+    <li>VO windows now display <label>Subjects</label> column in registry
+        resource description.</li>
+
+    <li>Help Window now has a text search tab, shown by default.</li>
+    <li>All windows have a new Scrollable option (&IMG.SCROLLER;)
+        in their File menu.  It is not generally recommended to use this
+        option, since in general the windows are arranged so that resizing
+        them will resize sensible parts of them, but it may be useful
+        if using some of the larger windows on an unusually small screen.</li>
+    <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
+        header cards.</li>
     <li>Window placement should now behave a bit more like platform norms,
         rather than sitting in the top left corner.</li>
-    <li>Storage management improvements; removed restriction on large
-        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     <li>When a table is discarded, it is now deselected from any table
         selector (for instance in a plot, match or concatenation window).</li>
     <li>HTML table output now writes cell contents which look like URLs 
         in HTML &lt;A&gt; tags.</li>
     <li>Basic authorization (<code>http://user:pass@host/path</code>) on
         table URLs handled.</li>
-    <li>All windows have a new Scrollable option (&IMG.SCROLLER;)
-        in their File menu.  It is not generally recommended to use this
-        option, since in general the windows are arranged so that resizing
-        them will resize sensible parts of them, but it may be useful
-        if using some of the larger windows on an unusually small screen.</li>
-    <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
-    <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
-        header cards.</li>
-    <li>Major load dialogue overhaul.  Not modal any more, progress monitors
-        in load window, help actions, keep open options, etc.
-        Some related bugs and infelicities ameliorated as well.</li>
-    <li>Now reports on progress (row count) as large tables are loaded.</li>
-    <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
-    <li>Add BaSTI load dialogue.</li>
     <li>Belatedly added STFC logo to About window.</li>
-    <li>Add recommendation to use 64-bit java in large table tips section.</li>
+
+    <li>Storage management improvements; removed restriction on large
+        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     <li>Fix so FITS tables &gt;2Gb can be used in 32-bit mode
         (though slower than 64-bit).</li>
+    <li>Add recommendation to use 64-bit java in large table tips section.</li>
+
+    <li>Fix bug in registry result table which displayed resource identifier
+        instead of publisher in the Publisher column.</li>
     <li>Fix SAMP table load bug which tripped over "+" characters in URLs.</li>
     <li>Fix regression bug from v3.6 - loading jdbc tables from
         command line or text entry now works again.</li>
+    <li>Fixed file pointer <code>int</code> overflow bug in FITS
+        MultiMappedFiles.</li>
+    <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
     </ul>
     </p></dd>
 
