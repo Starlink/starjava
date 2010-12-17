@@ -11486,17 +11486,17 @@ looking at now.
 of help text itself.  The panel on the left gives a couple of ways of
 selecting this view:
 <dl>
-<dt>&IMG.HELP_TOC; Table of Contents</dt>
-<dd><p>A hierarchical view of the available help topics.
-    This is the table of contents of the manual;
-    clicking on an entry will take you to the relevant section.
-    </p></dd>
 <dt>&IMG.HELP_SEARCH; Text Search</dt>
 <dd><p>Allows you to search for words in the manual.
     Enter a word or words as search terms, and a list of sections which 
     fully or partially match your search terms will be displayed.
     You can click on one of these to take you to the section that
     has been found.
+    </p></dd>
+<dt>&IMG.HELP_TOC; Table of Contents</dt>
+<dd><p>A hierarchical view of the available help topics.
+    This is the table of contents of the manual;
+    clicking on an entry will take you to the relevant section.
     </p></dd>
 </dl>
 </p>
@@ -13998,7 +13998,7 @@ introduced since the last version:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
-    <li>Help Window now has a text search tab.</li>
+    <li>Help Window now has a text search tab, shown by default.</li>
     <li>Fix bug in registry result table which displayed resource identifier
         instead of publisher in the Publisher column.</li>
     <li>Registry search in VO windows now allow you to select which resource
