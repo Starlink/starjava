@@ -216,18 +216,18 @@
           <mapref location="&map.file;"/>
         </maps>
         <view>
-          <name>TOC</name>
-          <label>Table of Contents</label>
-          <type>javax.help.TOCView</type>
-          <data>&toc.file;</data>
-        </view>
-        <view>
           <name>Search</name>
           <label>Search for words in text</label>
           <type>javax.help.SearchView</type>
           <data engine="com.sun.java.help.search.DefaultSearchEngine">
             <xsl:text>JavaHelpSearch</xsl:text>
           </data>
+        </view>
+        <view>
+          <name>TOC</name>
+          <label>Table of Contents</label>
+          <type>javax.help.TOCView</type>
+          <data>&toc.file;</data>
         </view>
       </helpset>
     </xsl:element>
