@@ -2977,6 +2977,17 @@ features several ways to view and control SAMP status.
 </dl>
 </p>
 
+<p>A number of other windows feature an <label>Interop</label> menu with
+<label>Broadcast</label> (&IMG.BROADCAST;) and
+<label>Send</label> (&IMG.SEND;)
+operations for data types appropriate to that window.
+Sometimes Broadcast appears in the toolbar as well.
+In some cases there are also <label>Accept</label> (&IMG.LISTEN;)
+toggle options in the Interop menu.
+These control whether TOPCAT will respond to appropriate messages sent
+by other SAMP applications.
+</p>
+
 </subsect>
 
 
@@ -10478,7 +10489,7 @@ This consists of the following parts:
     <label>Description</label> is a free-form, often long, description of
     the resource; it can be useful, but can often accidentally contain text
     which causes unwanted matches.
-    By default the Short Name, Title and Subjects fields are matched - 
+    By default the Short Name, Title, Subjects and ID fields are matched - 
     click the checkboxes to change the selection
     </p></dd>
 <dt>Submit Query button</dt>
@@ -10537,8 +10548,11 @@ it is possible to exchange lists of resources
 between this window and other applications.
 If another application sends a suitable message to TOPCAT, and the
 resources are of an appropriate type, and the window is visible at the time,
-the received list will be loaded and displayed here, replacing any which
-are currently displayed.
+the received list will normally be loaded and displayed here,
+replacing any which are currently displayed.
+You can inhibit this behaviour by unselecting the
+<label>Accept Resource Lists</label> (&IMG.LISTEN;) item in the
+<label>Interop</label> menu.
 If you wish to send your selection to one or more other applications
 which can make use of them, use the 
 Broadcast Resource List (&IMG.BROADCAST;) or Send Resource List (&IMG.SEND;)
@@ -14003,7 +14017,9 @@ introduced since the last version:
         instead of publisher in the Publisher column.</li>
     <li>Registry search in VO windows now allow you to select which resource
         fields to match (from Short Name, Title, Subjects, ID, Publisher and
-        Description.  This makes it much easier to do the search you want.</li>
+        Description.  This makes it much easier to do the search you want.
+        A not-well-characterised bug in registry search may also have
+        been fixed.</li>
     <li>VO windows now display <label>Subjects</label> column in registry
         resource description.</li>
     <li>SAMP <code>voresource.loadlist{,.cone,.siap,.ssap}</code> MTypes
