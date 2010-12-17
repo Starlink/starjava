@@ -4290,12 +4290,6 @@ representing actions that can be invoked from the window.
 Most of them contain the following buttons:
 <dl>
 
-<dt>&IMG.CONTROL; Control Window</dt>
-<dd><p>Ensures that the Control Window is visible on the screen,
-    deiconifying and raising it if necessary.  This can be useful if
-    you 'lose' the window behind a proliferation of other ones.
-    </p></dd>
-
 <dt>&IMG.CLOSE; Close</dt> 
 <dd><p>Closes the window.  This convenience button 
     has the same effect as closing the window
@@ -4347,6 +4341,20 @@ may provide some other less-commonly-required actions too.
 <dd><p>Nearly all windows have this menu.
     At least the following options are available:
     <dl>
+
+    <dt>&IMG.CONTROL; Control Window</dt>
+    <dd><p>Ensures that the Control Window is visible on the screen,
+        deiconifying and raising it if necessary.  This can be useful if
+        you 'lose' the window behind a proliferation of other ones.
+        </p></dd>
+
+    <dt>&IMG.SCROLLER; Scrollable</dt>
+    <dd><p>If selected, this causes the entire content of the window to be
+        wrapped in scrollbars.  It is not generally recommended to use this
+        option, since in general the windows are arranged so that resizing
+        them will resize sensible parts of them, but it may be useful
+        if using some of the larger windows on an unusually small screen.
+        </p></dd>
 
     <dt>&IMG.CLOSE; Close</dt>
     <dd><p>Closes the window.  This convenience button 
@@ -14031,7 +14039,6 @@ introduced since the last version:
         rather than sitting in the top left corner.</li>
     <li>Storage management improvements; removed restriction on large
         (&gt;2Gb) non-FITS datasets in some circumstances.</li>
-    <li>Now reports on progress (row count) as large tables are loaded.</li>
     <li>When a table is discarded, it is now deselected from any table
         selector (for instance in a plot, match or concatenation window).</li>
     <li>HTML table output now writes cell contents which look like URLs 
@@ -14042,7 +14049,7 @@ introduced since the last version:
         in their File menu.  It is not generally recommended to use this
         option, since in general the windows are arranged so that resizing
         them will resize sensible parts of them, but it may be useful
-        if using some of the larger windows on a small screen.</li>
+        if using some of the larger windows on an unusually small screen.</li>
     <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
         it will enter the coordinates in a Cone, SIA or SSA table load
         dialogue if one is currently visible and accepting them.</li>
@@ -14052,6 +14059,7 @@ introduced since the last version:
     <li>Major load dialogue overhaul.  Not modal any more, progress monitors
         in load window, help actions, keep open options, etc.
         Some related bugs and infelicities ameliorated as well.</li>
+    <li>Now reports on progress (row count) as large tables are loaded.</li>
     <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
     <li>Add BaSTI load dialogue.</li>
     <li>Belatedly added STFC logo to About window.</li>
