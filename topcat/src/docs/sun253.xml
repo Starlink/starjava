@@ -14043,6 +14043,8 @@ introduced since the last version:
     <li>Fix so FITS tables &gt;2Gb can be used in 32-bit mode
         (though slower than 64-bit).</li>
     <li>Fix SAMP table load bug which tripped over "+" characters in URLs.</li>
+    <li>Fix regression bug from v3.6 - loading jdbc tables from
+        command line or text entry now works again.</li>
     </ul>
     </p></dd>
 
