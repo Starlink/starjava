@@ -32,7 +32,7 @@ public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
 
     public BaSTITableLoadDialog() {
         super("BaSTI Data Loader",
-              "a Bag of Stellar Tracks and Isochrones (under development)");
+              "a Bag of Stellar Tracks and Isochrones");
         setIcon(ResourceIcon.BASTI);
     }
 

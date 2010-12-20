@@ -78,7 +78,8 @@ public class TableLoadDialogWindow extends AuxWindow {
         }
 
         /* Add standard help actions. */
-        addHelp( tld.getClass().getName().replaceFirst( ".*\\.", "" ) );
+        addHelp( tld.getClass().getName().replaceFirst( ".*\\.", "" )
+                                         .replaceFirst( "^Topcat", "" ) );
     }
 
     /**

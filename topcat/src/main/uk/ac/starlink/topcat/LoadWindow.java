@@ -137,7 +137,7 @@ public class LoadWindow extends AuxWindow {
         }
 
         /* Prepare action for system browser load. */
-        Action sysAct = new LoaderAction( "System load", ResourceIcon.SYSTEM,
+        Action sysAct = new LoaderAction( "System Browser", ResourceIcon.SYSTEM,
                                           "Load table using system browser") {
             private final SystemBrowser browser_ = new SystemBrowser();
             public TableLoader createTableLoader() {
