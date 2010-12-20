@@ -9175,7 +9175,7 @@ database schemas, is available on the GAVO website, at
 <ref id="LoadWindow">Load Window</ref>'s toolbar button (&IMG.BASTI;)
 or the main <label>VO</label> menu,
 allows direct queries to the BaSTI
-<em>(Bag of Stellar Tricks and Isochrones)</em> database
+<em>(Bag of Stellar Tracks and Isochrones)</em> database
 hosted by the INAF-Teramo Astronomical Observatory.
 You can find
 <webref url="http://albione.oa-teramo.inaf.it/"
@@ -14174,62 +14174,110 @@ introduced since the last version:
     </p></dd>
 
 <dt>Next Version</dt>
-<dd><p>
-    <ul>
-    <li>Major load dialogue overhaul.  Not modal any more, progress monitors
-        in load window, help actions, keep open options, etc.
-        Some related bugs and infelicities ameliorated as well.</li>
-    <li>Now reports on progress (row count) as large tables are loaded.</li>
-    <li>Add BaSTI load dialogue.</li>
-
-    <li>Registry search in VO windows now allows you to select which resource
-        fields to match (from Short Name, Title, Subjects, ID, Publisher and
-        Description.  This makes it much easier to do the search you want.</li>
-    <li>SAMP <code>voresource.loadlist{,.cone,.siap,.ssap}</code> MTypes
-        can now be sent from and received by windows which display a 
-        list of registry resources in a 
-        <ref id="RegistryPanel">Registry Query Panel</ref>,
-        that is the single and multiple Cone, SIA and SSA windows.</li>
-    <li>SAMP <code>coord.pointAt.sky</code> MType is now subscribed to;
-        it will enter the coordinates in a Cone, SIA or SSA table load
-        dialogue if one is currently visible and accepting them.</li>
-    <li>VO windows now display <label>Subjects</label> column in registry
-        resource description.</li>
-
-    <li>Help Window now has a text search tab, shown by default.</li>
-    <li>All windows have a new Scrollable option (&IMG.SCROLLER;)
-        in their File menu.  It is not generally recommended to use this
-        option, since in general the windows are arranged so that resizing
-        them will resize sensible parts of them, but it may be useful
-        if using some of the larger windows on an unusually small screen.</li>
-    <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
-        header cards.</li>
-    <li>Window placement should now behave a bit more like platform norms,
-        rather than sitting in the top left corner.</li>
-    <li>When a table is discarded, it is now deselected from any table
-        selector (for instance in a plot, match or concatenation window).</li>
-    <li>HTML table output now writes cell contents which look like URLs 
-        in HTML &lt;A&gt; tags.</li>
-    <li>Basic authorization (<code>http://user:pass@host/path</code>) on
-        table URLs handled.</li>
-    <li>Belatedly added STFC logo to About window.</li>
-
-    <li>Storage management improvements; removed restriction on large
-        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
-    <li>Fix so FITS tables &gt;2Gb can be used in 32-bit mode
-        (though slower than 64-bit).</li>
-    <li>Add recommendation to use 64-bit java in large table tips section.</li>
-
-    <li>Fix bug in registry result table which displayed resource identifier
-        instead of publisher in the Publisher column.</li>
-    <li>Fix SAMP table load bug which tripped over "+" characters in URLs.</li>
-    <li>Fix regression bug from v3.6 - loading jdbc tables from
-        command line or text entry now works again.</li>
-    <li>Fixed file pointer <code>int</code> overflow bug in FITS
-        MultiMappedFiles.</li>
-    <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
-    <li>Possibly fixed a not-well-characterised bug in registry search.</li>
-    </ul>
+<dd><p>This version contains some significant enhancements and a number
+    of minor improvements and bugfixes.
+    <dl>
+    <dt>Load Dialogues:</dt>
+    <dd><p>Table loading has had a major overhaul.
+        Load dialogues are no longer <em>modal</em>, that is you can now
+        interact with the rest of the application while they are open.
+        This has a number of benefits:
+        <ul>
+        <li>A slow load doesn't prevent you from doing other things.</li>
+        <li>You can be loading several different tables at once,
+            either from the same or from different places.</li>
+        <li>You can use the Help system while a load dialogue is open
+            (load dialogues now have the usual Help button like other
+            TOPCAT windows).</li>
+        </ul>
+        </p>
+        <p>It has also enabled some related changes:
+        <ul>
+        <li>Progress is reported for each table load - you can see how many
+            rows have loaded and, if known, how many there are in total</li>
+        <li>Cancelling a load in progress is more straightforward and
+            works more reliably than in earlier versions</li>
+        </ul>
+        </p>
+        <p>A few related bugs and idiosyncracies have been corrected
+        at the same time.
+        </p></dd>
+    <dt>Registry Queries:</dt>
+    <dd><p>The registry search interface used in single and multiple VO
+           access windows has been improved:
+        <ul>
+        <li>When specifying a keyword search for Cone, SIA or SSA services,
+            you can select which registry record fields to match
+            (ShortName, ID, Title, Publisher, Subjects etc).
+            This makes it much easier to get the records you're
+            interested in.</li>
+        <li>The Subjects field is now displayed for retrieved records.</li>
+        <li>Lists of registry records (i.e. Cone, SIA or SSA services) can
+            now be sent to/received from other tools via SAMP
+            (<code>voresource.loadlist</code>{,<code>.cone</code>,<code>.siap</code>,<code>.ssap</code>} MTypes).</li>
+        <li>Sky coordinates can be received from other tools via SAMP and
+            used to set Cone, SIA or SSA position
+            (<code>coord.pointAt.sky</code> MType).</li>
+        </ul>
+        </p></dd>
+    <dt>BaSTI Load Dialogue:</dt>
+    <dd><p>A new load dialogue is available for accessing the INAF-OATS
+        <webref url="http://albione.oa-teramo.inaf.it/">BaSTI</webref>
+        (Bag of Stellar Tracks and Isochrones) service --
+        code contributed by Marco Molinaro.
+        </p></dd>
+    <dt>Searchable Help:</dt>
+    <dd><p>The Help browser now has a Search tab as well as the 
+        Table of Contents tab, so you can do text searching on the
+        extensive help document.
+        </p></dd>
+    <dt>Minor Enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Storage management improvements; removed restriction on large
+            (&gt;2Gb) non-FITS datasets in some circumstances.</li>
+        <li>Fix so FITS tables &gt;2Gb can be used in 32-bit mode
+            (though slower than 64-bit).</li>
+        <li>All windows have a new Scrollable option
+            in their File menu.  It is not generally recommended to use this
+            option, since in general the windows are arranged so that resizing
+            them will resize sensible parts of them, but it may be useful
+            if using some of the larger windows on an unusually
+            small screen.</li>
+        <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
+            header cards.</li>
+        <li>Window placement should now behave a bit more like platform norms,
+            rather than sitting in the top left corner.</li>
+        <li>When a table is discarded, it is now deselected from any table
+            selector (for instance in a plot, match or 
+            concatenation window).</li>
+        <li>HTML table output now writes cell contents which look like URLs 
+            in HTML &lt;A&gt; tags.</li>
+        <li>Basic authorization (<code>http://user:pass@host/path</code>) on
+            table URLs handled.</li>
+        <li>Belatedly added STFC logo to About window.</li>
+        <li>Add recommendation to use 64-bit java in large
+            table tips section.</li>
+        </ul>
+        </p>
+        </dd>
+    <dt>Bug Fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in registry result table which displayed resource
+            identifier instead of publisher in the Publisher column.</li>
+        <li>Fix SAMP table load bug which tripped over "+" characters
+            in URLs.</li>
+        <li>Fix regression bug from v3.6 - loading jdbc tables from
+            command line or text entry now works again.</li>
+        <li>Fixed file pointer <code>int</code> overflow bug in FITS
+            MultiMappedFiles.</li>
+        <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
+        <li>Possibly fixed a not-well-characterised bug in
+            registry search.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
