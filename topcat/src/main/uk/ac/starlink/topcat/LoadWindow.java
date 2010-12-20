@@ -94,6 +94,9 @@ public class LoadWindow extends AuxWindow {
                                    "successful load" );
         getToolBar().add( stayOpenModel_.createToolbarButton() );
         getToolBar().addSeparator();
+        JMenu fileMenu = getFileMenu();
+        fileMenu.insert( stayOpenModel_.createMenuItem(),
+                         fileMenu.getItemCount() - 2 );
 
         /* Create and place components for loading by entering location. */
         JComponent locBox = Box.createVerticalBox();
