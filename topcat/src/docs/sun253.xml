@@ -10670,11 +10670,12 @@ it is possible to exchange lists of resources
 between this window and other applications.
 If another application sends a suitable message to TOPCAT, and the
 resources are of an appropriate type, and the window is visible at the time,
-the received list will normally be loaded and displayed here,
+the received list can be loaded and displayed here,
 replacing any which are currently displayed.
-You can prevent this behaviour by unselecting the
-<label>Accept Resource Lists</label> (&IMG.LISTEN;) item in the
-<label>Interop</label> menu.
+You can control whether incoming lists are accepted and displayed in this
+way using the <label>Accept Resource Lists</label> toggle,
+either using the checkbox just above the resource display panel,
+or using the corresponding item in the <label>Interop</label> menu.
 If you wish to send your selection to one or more other applications
 which can make use of them, use the 
 Broadcast Resource List (&IMG.BROADCAST;) or Send Resource List (&IMG.SEND;)
@@ -10750,9 +10751,10 @@ coordinates.  For instance clicking on a sky position in an image
 viewing tool might fill in the sky position you clicked on.
 Usually this will happen automatically.
 This is often convenient, but may not be what you want.
-To prevent this behaviour unselect the 
-<label>Accept Sky Positions</label> (&IMG.LISTEN;)
-option in the <label>Interop</label> menu.
+You can control whether incoming coordinate settings are accepted in this way
+using the <label>Accept Sky Positions</label> toggle below the
+Resolve button, or using the corresponding item in the 
+<label>Interop</label> menu.
 </p>
 
 </subsubsubsect>
