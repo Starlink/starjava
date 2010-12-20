@@ -96,6 +96,7 @@
   <!ENTITY FIG.IntraMatchSpec '&figs;IntraMatchSpec.gif'>
   <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.gif'>
   <!ENTITY FIG.InterMatchSpec '&figs;InterMatchSpec.gif'>
+  <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -8492,6 +8493,8 @@ though others may be available in your installation.
     <ref id="VizierTableLoadDialog">VizieR Catalogue Service Query</ref></li>
 <li>&IMG.GAVO;
     <ref id="GavoTableLoadDialog">GAVO Millennium Database Query</ref></li>
+<li>&IMG.BASTI;
+    <ref id="BaSTITableLoadDialog">BaSTI Theory Database Query</ref></li>
 </ul>
 </p>
 
@@ -9070,7 +9073,7 @@ The original description of the VizieR service was published in
 
 <p>This dialogue, selected from the 
 <ref id="LoadWindow">Load Window</ref>'s toolbar
-button (&IMG.GAVO;) or <label>DataSources</label> menu,
+button (&IMG.GAVO;) or the main <label>VO</label> menu,
 permits direct queries to the services provided by
 <webref url="http://www.g-vo.org/">GAVO</webref>,
 the German Astrophysical Virtual Observatory.
@@ -9132,6 +9135,117 @@ filled in accordingly.
 <p>Much more documentation, including tutorials and descriptions of the 
 database schemas, is available on the GAVO website, at
 <webref url="http://www.g-vo.org/Millennium/Help"/>.
+</p>
+
+</subsubsect>
+
+<subsubsect id="BaSTITableLoadDialog">
+<subhead><title>BaSTI Theory Database Query</title></subhead>
+
+<figure>
+<caption><px>BaSTI load dialog query tab</px></caption>
+<figureimage src="&FIG.BaSTITableLoadDialog;"/>
+</figure>
+
+<p>This dialogue,selected from the
+<ref id="LoadWindow">Load Window</ref>'s toolbar button (&IMG.BASTI;)
+or the main <label>VO</label> menu,
+allows direct queries to the BaSTI
+<em>(Bag of Stellar Tricks and Isochrones)</em> database
+hosted by the INAF-Teramo Astronomical Observatory.
+You can find
+<webref url="http://albione.oa-teramo.inaf.it/"
+        >more detailed documentation</webref>
+on the web site.
+</p>
+
+<p>This load dialogue has two tabs:
+a <label>Query</label> tab to input search parameters, and
+a <label>Results</label> tab to display the results table with one row
+for each table resulting from the user's query.
+</p>
+
+<p>The <label>Query</label> tab
+contains a set of parameters by which the query will be constrained,
+some aids to help the user while preparing the selection and two buttons.
+The <label>Reset</label> button simply clears query inputs and 
+(if present) user's selections in the Results tab.
+The <label>Submit</label> button performs the query and switches 
+the dialog to the Results tab.
+As an aid to allow a refined query without too much recursive steps,
+at the bottom center of the tab,
+a counter displays how many rows (i.e. resulting tables) the output will count. Remembering that the results will contain 30 rows at maximum,
+the user can than refine his/her constrains to reduce the number of 
+results.
+</p>
+
+<p>To do so the query helps the user in two ways mainly:
+automatically unselecting the unavailable
+parameters for a specific query 
+(e.g. the mass range for an isochrone search) and displaying,
+for the ranged parameters, the value limits for that parameter,
+this happens just moving the mouse cursor over the input area.
+</p>
+
+<p>Here follows a short description of the query parameters,
+for full details refer to the
+<webref url="http://albione.oa-teramo.inaf.it">BaSTI</webref> main site.
+<dl>
+<dt>Data Type</dt>
+<dd><p>The type of simulation desired: isochrones, tracks or summary tables.
+    This field is the only mandatory to submit a query.
+    </p></dd>
+<dt>Scenario</dt>
+<dd><p>Stellar evolution scenario, i.e. canonical simulation or 
+    including overshooting calculations.
+    </p></dd>
+<dt>Type</dt>
+<dd><p>Type of track simulation: normal or including the Asymptotic Giant
+    Branch (AGB) simulation.
+    </p></dd>
+<dt>Mass Loss</dt>
+<dd><p>Selects which value the Mass Loss parameter should have:
+    0.2 or 0.4 are the available choices.
+    </p></dd>
+<dt>Photometric System</dt>
+<dd><p>A set of photometric systems is used to <em>colour</em>
+    the stellar simulated tracks for comparison with observational data.
+    This dropdown input allows for a selection within them.
+    </p></dd>
+<dt>Mixture</dt>
+<dd><p>Stellar abundances mixture: scaled solar values or alpha enhanced.
+    </p></dd>
+<dt>Age</dt>
+<dd><p>Age range, in values of Gyr, for the isochrones.
+    </p></dd>
+<dt>Mass</dt>
+<dd><p>Mass range, in values of Solar Masses.
+    </p></dd>
+<dt>Z</dt>
+<dd><p>Initial metal abundance range.
+    </p></dd>
+<dt>Y</dt>
+<dd><p>Initial Helium abundance range.
+    </p></dd>
+<dt>[Fe/H]</dt>
+<dd><p>Iron over Hydrogen logarithmic ratio.
+    </p></dd>
+<dt>[M/H]</dt>
+<dd><p>Metals over Hydrogen logarithmic ratio.
+    </p></dd>
+</dl>
+</p>
+
+<p>Once the Query panel has been filled in, hit the <label>Submit</label>
+button.  This will show the <label>Results</label> tab.
+This displays  a table where each row refers to an available result from the BaSTI database as constrained by the user's query. 
+On top of the table the number of results identified by the
+query is recalled.
+The user now can switch back to refine the query or selected 
+(mouse clicking) the table/s he/she wants to load into TOPCAT.
+Once the selection is ready (CTRL+click or SHIFT+click for multiple
+selections) pressing the <label>OK</label> button will load the 
+tables into TOPCAT.
 </p>
 
 </subsubsect>
@@ -12127,6 +12241,7 @@ functionality:
 <ul>
 <li>Thomas Boch (CDS), for the VizieR load dialogue.</li>
 <li>Gerard Lemson (MPE, Garching) for the GAVO load dialogue.</li>
+<li>Marco Molinaro (INAF-OATS) for the BaSTI load dialogue.</li>
 </ul>
 </p>
 
