@@ -8432,7 +8432,7 @@ it has no effect and is disabled.
 <ref id="ControlWindow">Control Window</ref> toolbar or File menu.
 </p>
 
-<p>This dialogue allows you to specify a new table to open in several
+<p>This dialogue allows you to specify a new table to open in a number of
 different ways, described below.
 If you perform a successful load using any of these options,
 a new entry or entries will be added into the Table List in the Control Window,
@@ -8440,10 +8440,10 @@ which you can then use in the usual ways.
 If you choose a location which can't be turned into a table
 (for instance because the file doesn't exist),
 a window will pop up telling you what went wrong.
-If you get an <code>OutOfMemoryError</code> while loading a table,
-you will have to run TOPCAT with more memory, as described in
-<ref id="jvmMemory"/> or use the <code>-disk</code> flag described in
-<ref id="topcatArgs"/>.
+The panel at the bottom of the window displays progress for tables
+currently loading; it is used to show progress for tables loaded
+from other sources too, for instance received via SAMP or specified
+on the command line.
 </p>
 
 <p>In the simplest case, you can type a name into the 
@@ -8496,6 +8496,30 @@ though others may be available in your installation.
 <li>&IMG.BASTI;
     <ref id="BaSTITableLoadDialog">BaSTI Theory Database Query</ref></li>
 </ul>
+</p>
+
+<p>All of these load dialogues have an <label>OK</label> button.
+Once you click it, whatever load you have specified will start.
+If the load takes more than a few hundreths of a second,
+a progress bar will appear in the <label>Loading Tables</label> panel 
+of the load window, as in the screenshot above.
+This will report on how many rows have been loaded, and if known,
+how many there are in total.  If you want to interrupt the load 
+for any reason while it is in progress, click the <label>Cancel</label>
+button, and the load will cease.  If the load completes without 
+cancellation, a new table will appear in the Table List of the
+main <ref id="ControlWindow">Control Window</ref>, ready for use.
+</p>
+
+<p>By default, when a table load has completed, both the Load Window
+itself and whichever specific load dialogue window you used will close.
+If you don't want this to happen use the 
+<label>Stay Open</label> (&IMG.KEEP_OPEN;) item in the File menu or
+toolbar of the Load Window and/or specific load dialogue.
+If this is selected, the window will not automatically close.
+This can be very convenient if you want to load many tables from
+a similar place, for instance several files from the same directory
+or several cone searches to different services.
 </p>
 
 <subsubsect id="FilestoreTableLoadDialog">
