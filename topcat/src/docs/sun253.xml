@@ -36,7 +36,7 @@
   <!ENTITY FIG.LoadWindow '&figs;LoadWindow.gif'>
   <!ENTITY FIG.FilestoreTableLoadDialog '&figs;FilestoreTableLoadDialog.gif'>
   <!ENTITY FIG.TreeTableLoadDialog '&figs;TreeTableLoadDialog.gif'>
-  <!ENTITY FIG.SQLReadDialog '&figs;SQLReadDialog.gif'>
+  <!ENTITY FIG.SQLTableLoadDialog '&figs;SQLTableLoadDialog.gif'>
   <!ENTITY FIG.ConeSearchDialog '&figs;ConeSearchDialog.gif'>
   <!ENTITY FIG.GavoTableLoadDialog '&figs;GavoTableLoadDialog.gif'>
   <!ENTITY FIG.SaveQueryWindow '&figs;SaveQueryWindow.gif'>
@@ -1168,7 +1168,7 @@ constructed from certain rows from the table "swaa" in the database
 </p>
 
 <p>Fortunately you don't have to construct this by hand, there is
-an <ref plaintextref="yes" id="SQLReadDialog">SQL Query Dialogue</ref> 
+an <ref plaintextref="yes" id="SQLTableLoadDialog">SQL Query Dialogue</ref> 
 to assist in putting it together.
 </p>
 
@@ -3976,7 +3976,7 @@ with the following RDBMSs and corresponding JDBC drivers:
     <webref url="http://www.oracle.com/technology/tech/oci/instantclient/instantclient.html"
             >Basic Instant Client Package</webref>.
     However, you <em>can't</em> currently use the
-    <ref id="SQLReadDialog">SQL load</ref
+    <ref id="SQLTableLoadDialog">SQL load</ref
          >/<ref id="SQLWriteDialog">SQL save</ref>
     dialogue boxes to do it.  You have to specify a JDBC URL specifying
     the query to read/table to write as a string in the 
@@ -8482,7 +8482,7 @@ though others may be available in your installation.
 <li>&IMG.TREE_DIALOG;
     <ref id="TreeTableLoadDialog">Hierarchy Browser</ref></li>
 <li>&IMG.SQL_DIALOG;
-    <ref id="SQLReadDialog">SQL Query</ref></li>
+    <ref id="SQLTableLoadDialog">SQL Query</ref></li>
 <li>&IMG.CONE_DIALOG;
     <ref id="ConeSearchDialog">Cone Search</ref></li>
 <li>&IMG.SIAP_DIALOG;
@@ -8748,12 +8748,12 @@ Changing the root of the tree will interrupt the search.
 
 </subsubsect>
 
-<subsubsect id="SQLReadDialog">
+<subsubsect id="SQLTableLoadDialog">
 <subhead><title>SQL Query</title></subhead>
 
 <figure>
 <caption><px>SQL Query Dialogue</px></caption>
-<figureimage src="&FIG.SQLReadDialog;"/>
+<figureimage src="&FIG.SQLTableLoadDialog;"/>
 </figure>
 
 <p>If you want to 
@@ -12195,6 +12195,10 @@ grant ST/H008470/1 from the UK's Science and Technology Facilities Council.
 All of this support is gratefully acknowledged.
 </p>
 
+<p>Nearly all of this work has been done in the Astrophysics Group
+of the School of Physics, in the University of Bristol, UK.
+</p>
+
 <p>Inspiration for many of TOPCAT's features has been taken from the
 following pre-existing tools:
 <ul>
@@ -12222,7 +12226,7 @@ functionality:
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within TOPCAT)</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
-    (Ptolemy) for axis plotting</li>
+    (Ptolemy) for 2D axis plotting</li>
 <li><webref url="http://www.1t3xt.com/about/">iText</webref>
     (1T3XT BVBA) for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
@@ -14154,9 +14158,7 @@ introduced since the last version:
 
     <li>Registry search in VO windows now allows you to select which resource
         fields to match (from Short Name, Title, Subjects, ID, Publisher and
-        Description.  This makes it much easier to do the search you want.
-        A not-well-characterised bug in registry search may also have
-        been fixed.</li>
+        Description.  This makes it much easier to do the search you want.</li>
     <li>SAMP <code>voresource.loadlist{,.cone,.siap,.ssap}</code> MTypes
         can now be sent from and received by windows which display a 
         list of registry resources in a 
@@ -14200,6 +14202,7 @@ introduced since the last version:
     <li>Fixed file pointer <code>int</code> overflow bug in FITS
         MultiMappedFiles.</li>
     <li>Fixed a couple of bugs relating to VOTable strict mode.</li>
+    <li>Possibly fixed a not-well-characterised bug in registry search.</li>
     </ul>
     </p></dd>
 
