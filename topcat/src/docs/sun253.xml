@@ -120,7 +120,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>6 August 2010</docdate>
+<docdate>23 December 2010</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -14178,7 +14178,7 @@ introduced since the last version:
     not the case.
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.7 (23 December 2010)</dt>
 <dd><p>This version contains some significant enhancements and a number
     of minor improvements and bugfixes.
     <dl>
