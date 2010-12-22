@@ -6366,7 +6366,8 @@ are welcomed.
 Since then it has been supported by
 grant PP/D002486/1 from the
 UK's Particle Physics and Astronomy Research Council,
-the <webref url="http://eurovotech.org/">VOTech</webref> project (from EU FP6),
+the <webref url="http://www.eurovotech.org/">VOTech</webref> project
+    (from EU FP6),
 the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
@@ -6385,7 +6386,7 @@ functionality:
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
     (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
-<li><webref url="http://www.1t3xt.com/about/">iText</webref>
+<li><webref url="http://www.1t3xt.com/">iText</webref>
     (1T3XT BVBA) for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
