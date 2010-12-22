@@ -235,6 +235,7 @@ public class Driver {
         boolean internalHub = false;
         boolean externalHub = false;
         boolean stiltsMode = false;
+        boolean checkVersion = true;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -305,6 +306,14 @@ public class Driver {
                 it.remove();
                 interopServe = false;
                 ControlWindow.interopType_ = "none";
+            }
+            else if ( arg.startsWith( "-checkvers" ) ) {
+                it.remove();
+                checkVersion = true;
+            }
+            else if ( arg.startsWith( "-nocheckvers" ) ) {
+                it.remove();
+                checkVersion = false;
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
@@ -441,6 +450,11 @@ public class Driver {
                            + " registration atttempt failed" );
             }
         }
+
+        /* Investigate whether we have a recent version. */
+        if ( checkVersion ) {
+            TopcatUtils.enquireLatestVersion();
+        }
     }
 
     /**
@@ -557,6 +571,7 @@ public class Driver {
            .append( p2 + "-exthub        run external SAMP/PLASTIC hub" )
            .append( p2 + "-noserv        don't run any services"
                                          + " (PLASTIC or SAMP)" )
+           .append( p2 + "-nocheckvers   don't check latest version" )
            .append( p2 + "-stilts <args> run STILTS not TOPCAT" )
            .append( p2 + "-jsamp <args>  run JSAMP not TOPCAT" );
 

@@ -3529,6 +3529,11 @@ The meaning of the flags is as follows:
     which it may run are SAMP or PLASTIC (see above).
     </p></dd>
 
+<dt>-checkvers</dt>
+<dd><p>Prevents TOPCAT from checking an external URL so it can determine
+    whether the latest version is being run.
+    </p></dd>
+
 <dt>-stilts &lt;stilts-args&gt;</dt>
 <dd><p>This flag is a convenience which allows you to run the
     <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>
@@ -14255,6 +14260,9 @@ introduced since the last version:
             in HTML &lt;A&gt; tags.</li>
         <li>Basic authorization (<code>http://user:pass@host/path</code>) on
             table URLs handled.</li>
+        <li>Logs current version and whether it is up to date with latest
+            release on startup.  This behaviour can be controlled by the
+            [-no]checkversion flag.</li>
         <li>Belatedly added STFC logo to About window.</li>
         <li>Add recommendation to use 64-bit java in large
             table tips section.</li>

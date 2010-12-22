@@ -2,7 +2,11 @@ package uk.ac.starlink.topcat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -36,12 +40,15 @@ public class TopcatUtils {
     private static String version_;
     private static String stilVersion_;
     private static DecimalFormat longFormat_;
+    private static Map statusMap_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
     public static String DEMO_TABLE = "6dfgs_mini.xml.bz2";
     public static String DEMO_NODES = "demo_list";
     public static final String VERSION_RESOURCE = "version-string";
+    public static final String STATUS_URL =
+        "http://www.starlink.ac.uk/topcat/topcat-status";
 
     /**
      * Column auxiliary metadata key identifying the uniqe column identifier
@@ -434,6 +441,50 @@ public class TopcatUtils {
      */
     public static String getSTILVersion() {
         return IOUtils.getResourceContents( StarTable.class, "stil.version" );
+    }
+
+    /**
+     * Ascertains the most recent release using an external connection,
+     * and reports through the logging system as appropriate.
+     */
+    public static void enquireLatestVersion() {
+        if ( statusMap_ == null ) {
+            try {
+                URL url = new URL( STATUS_URL );
+                Properties versionProps = new Properties();
+                versionProps.load( url.openStream() );
+                statusMap_ = new HashMap( versionProps );
+            }
+            catch ( Throwable e ) {
+                statusMap_ = new HashMap();
+            }
+            String currentVersion = getVersion();
+            String latestVersion =
+                (String) statusMap_.get( "topcat.latest.version" );
+            StringBuffer statusBuf = new StringBuffer()
+                .append( "This is TOPCAT version " )
+                .append( currentVersion );
+            boolean isOld = false;
+            if ( latestVersion != null ) {
+                try {
+                    isOld = new Version( latestVersion )
+                           .compareTo( new Version( currentVersion ) ) > 0;
+                    if ( isOld ) {
+                        statusBuf.append( " (out of date - latest is " )
+                                 .append( latestVersion )
+                                 .append( ")" );
+                    }
+                    else {
+                        statusBuf.append( " (up to date)" );
+                    }
+                }
+                catch ( Throwable e ) {
+                    logger_.info( "Version arithmetic error: " + e );
+                }
+            }
+            logger_.log( isOld ? Level.INFO : Level.INFO,
+                         statusBuf.toString() );
+        }
     }
 
     /**
