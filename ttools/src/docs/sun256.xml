@@ -99,7 +99,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>6 August 2010</docdate>
+<docdate>23 December 2010</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -7366,25 +7366,25 @@ but my thanks are especially due to the following:
     not the case.
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 2.2-1 (23 December 2010)</dt>
 <dd><p>
     <ul>
+    <li>Storage management improvements; removed restriction on large
+        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
+    <li>Efficiency improvement in sequential mapped access to large FITS
+        files.</li>
+    <li>Fix so FITS tables &gt;2Gb can provide random access in 32-bit mode
+        (though slower than 64-bit).</li>
+    <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
+        header cards.</li>
     <li>Window placement for the few GUI tasks should now behave a bit more
         like platform norms, rather than sitting in the top left hand
         corner.</li>
-    <li>Efficiency improvement in sequential mapped access to large FITS
-        files.</li>
-    <li>Storage management improvements; removed restriction on large
-        (&gt;2Gb) non-FITS datasets in some circumstances.</li>
     <li>HTML table output now writes cell contents which look like URLs
         in HTML &lt;A&gt; tags.</li>
     <li>Basic authorization (<code>http://user:pass@host/path</code>) on
         table URLs handled.</li>
-    <li>FITS files now store table names in EXTNAME (and possibly EXTVAR)
-        header cards.</li>
     <li>Fixed file pointer int overflow bug in FITS MultiMappedFiles.</li>
-    <li>Fix so FITS tables &gt;2Gb can provide random access in 32-bit mode
-        (though slower than 64-bit).</li>
     </ul>
     </p></dd>
 
