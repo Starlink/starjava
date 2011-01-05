@@ -11,10 +11,13 @@
 
 *  Authors:
 *     MBT: Mark Taylor (Starlink)
+*     DSB: David Berry (JACH)
 
 *  History:
 *     18-SEP-2001 (MBT):
 *        Original version.
+*     05-JAN-2011 (DSB):
+*        Fix memory leak caused by broken THASTLOCK macro.
 *-
 */
 
@@ -285,11 +288,13 @@ JNIEnv *jniastGetEnv();
  * This macro uses AST error-reporting conventions - from a JNI context
  * it should be used within an ASTCALL block.
  */
-#define THASTLOCK(ast_objs, code) \
-   jniastLock(ast_objs); \
+#define THASTLOCK(ast_objs, code) { \
+   AstObject **thastlock_objlist = (ast_objs); \
+   jniastLock(thastlock_objlist); \
    code \
-   jniastUnlock(ast_objs); \
-   free(ast_objs);
+   jniastUnlock(thastlock_objlist); \
+   free(thastlock_objlist); \
+}
 
 /*
  * Macro for calling a code block which uses AST-like conventions for
