@@ -27,7 +27,10 @@ makeClassHeader(
       external source.  To make a more useful object, subclass this
       class and override the <code>source</code> and/or <code>sink</code>
       methods.  Note that output is only guaranteed to get written
-      if the <code>finalize</code> method is explicitly called.
+      if the <code>close</code> method is explicitly called.
+      The <code>close</code> method should be explicitly called to ensure
+      cleanup, but the finalizer will call it if it has not previously been
+      called at finalization time.
    },
 );
 
@@ -134,7 +137,7 @@ public class FitsChan extends Channel {
 
     /**
      * Disposes of a line of output.  This method is invoked repeatedly 
-     * when the <code>finalize</code> method of this FitsChan is called 
+     * when the <code>close</code> method of this FitsChan is called 
      * (either explicitly or under control of the garbage collector)
      * to dispose of each FITS header card currently in the channel.
      *
@@ -168,17 +171,24 @@ public class FitsChan extends Channel {
         return cardIt.hasNext() ? (String) cardIt.next() : null;
     }
 
-    /**
-     * Finalizes the object.  When this method is called, either explicitly
-     * or under control of the garbage collector, the <code>sink</code>
-     * method will be invoked to write out any content of this 
-     * <code>FitsChan</code>
-     */
-    public void finalize() throws Throwable {
-        destroy();
-        super.finalize();
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        }
+        finally {
+            super.finalize();
+        }
     }
-    private native void destroy();
+
+    /**
+     * Must be called to dispose of the object and ensure that any
+     * writes are performed.
+     * When this method is called, either explicitly
+     * or by the finalizer, the <code>sink</code>
+     * method will be invoked to write out any content of this 
+     * <code>FitsChan</code>.
+     */
+    public native void close();
 
     /**
      * Reads an AST object from this FitsChan.

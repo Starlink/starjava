@@ -99,49 +99,44 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_construct(
    }
 }
 
-JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_destroy(
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_close(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    AstPointer infopointer;
    ChanInfo *chaninfo;
-   int refcnt = 0;
 
-   /* If we have already done this, don't do it again - the finalizer may
-    * get called explicitly as well as by the garbage collector. */
-   THASTCALL( jniastList( 1, pointer.AstObject ),
-      refcnt = astGetI( pointer.AstObject, "RefCount" );
-   )
-
-   /* Only do what we are about to do if we haven't done it before, and
-    * if the reference count of the object is 1, since the events we
-    * are anticipating (astDelete being called on the object and 
-    * triggering sinkWrap calls) will only happen when there are no
-    * more AST references to the object. */
+   /* Only do this once; if the info pointer is NULL, then close must
+    * already have been called. */
    infopointer.jlong = (*env)->GetLongField( env, this, ChaninfoFieldID );
-   if ( infopointer.ptr != NULL && refcnt == 1 ) {
+   if ( infopointer.ptr != NULL ) {
+      chaninfo = (ChanInfo *) infopointer.ptr;
+      (*env)->SetLongField( env, this, ChaninfoFieldID, (jlong) 0 );
 
-      /* Annul the object.  Since we know that the reference count is unity,
-       * this will result in object destruction, and hence invocations
-       * of sourceWrap. */
+      /* Annul the AST object.  This will trigger SinkWrap calls, as long
+       * as there are no other AST references to this object.
+       * We want to do it here since it needs to get done for correctness,
+       * and if we leave it to the finalizer it might not get called
+       * promptly, or ever.
+       * Not sure what happens if there are other references to this object
+       * when this is called.  This code was fixed when JNIAST was
+       * essentially unsupported so there may be issues. */
       ASTCALL(
          astAnnul( pointer.AstObject );
       )
 
-      /* Set the pointer field to 0 so that the AstObject finalizer knows
-       * not to try to annul it again. */
-      pointer.jlong = 0L;
-      jniastInitObject( env, this, pointer );
+      /* Make sure that AstObject knows the annul has taken place, so
+       * that it is not attempted again in the finalizer. */
+      jniastClearObject( env, this );
+
+      /* Delete the reference to this object in the chaninfo. */
+      if ( ! (*env)->ExceptionCheck( env ) ) {
+          (*env)->DeleteGlobalRef( env, chaninfo->object );
+      }
 
       /* Free the chaninfo structure. */
-      chaninfo = (ChanInfo *) infopointer.ptr;
-      (*env)->DeleteGlobalRef( env, chaninfo->object );
       free( chaninfo );
-    
-      /* Record that destruction has happened. */
-      infopointer.ptr = NULL;
-      (*env)->SetLongField( env, this, ChaninfoFieldID, infopointer.jlong );
    }
 }
 
