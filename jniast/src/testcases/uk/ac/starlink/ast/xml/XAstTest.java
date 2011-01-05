@@ -68,7 +68,6 @@ public class XAstTest extends TestCase {
     public void testToXmlChan() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XmlChan xc = new XmlChan( null, bos );
-        xc.setXmlIndent( true );
         xc.write( fset );
         byte[] buf = bos.toByteArray();
         AstObject obj =

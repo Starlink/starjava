@@ -8,7 +8,6 @@ import javax.xml.transform.stream.StreamSource;
 
 class MemoryXmlChan extends XmlChan {
     List buf = new ArrayList();
-    { setXmlIndent( true ); }
     protected void sink( String line ) {
         buf.add( line );
     }
