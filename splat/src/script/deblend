@@ -27,7 +27,7 @@
 #    The format of the configuration file is line-based with each line
 #    representing a component and having the following format:
 #
-#       l|g|v scale t|f centre t|f sigma|width|gwidth t|f [lwidth] t|f
+#       l|g|v scale t|f centre t|f sigma|lwidth|gwidth t|f [lwidth] t|f
 #
 #    where "l" means a Lorentzian, "g" a Gaussian and "v" a Voigt profile, 
 #    and | means "or".
@@ -35,10 +35,10 @@
 #    You are free to use any combination of profiles.
 #
 #    The "scale" is the height of the line, "centre" the central position
-#    (as a wavelength) and "sigma|width|gwidth" the width according to the
-#    line type. The "lwidth" value is needed for Voigt profiles. The "t|f"
-#    strings indicate if the preceding value is to be fixed or allowed to
-#    float during the minimisation.
+#    (as a wavelength) and "sigma|lwidth|gwidth" the width according to the
+#    line type (note these are not FWHM). The "lwidth" value is needed for
+#    Voigt profiles. The "t|f" strings indicate if the preceding value is to
+#    be tied or allowed to float during the minimisation.
 #
 #    Example:
 #
@@ -68,9 +68,9 @@
 
 # Output files:
 #    Other than the files described above you will also get a file 
-#    "result.config" that describes the fitted model as a configuration file
+#    "report.config" that describes the fitted model as a configuration file
 #    suitable for passing back to this script. A human readable file 
-#    "result.log" will also be produced by describes the measurables of the
+#    "report.log" will also be produced by describes the measurables of the
 #    fit.
 
 # Copyright:
