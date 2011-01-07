@@ -82,7 +82,9 @@ public class StyleParameter extends ChoiceParameter {
         for ( int i = 0; i < names.length; i++ ) {
             sbuf.append( "<li>" )
                 .append( "<code>" )
+                .append( "<![CDATA[" )
                 .append( names[ i ] )
+                .append( "]]>" )
                 .append( "</code>" )
                 .append( "</li>" )
                 .append( '\n' );

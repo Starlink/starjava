@@ -158,7 +158,9 @@ public abstract class NamedObjectParameter extends Parameter {
             NamedOption opt = (NamedOption) it.next();
             sbuf.append( "<li>" )
                 .append( "<code>" )
+                .append( "<![CDATA[" )
                 .append( opt.name_ )
+                .append( "]]>" )
                 .append( "</code>" )
                 .append( "</li>" )
                 .append( '\n' );
