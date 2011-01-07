@@ -2,7 +2,10 @@ package uk.ac.starlink.ttools.plottask;
 
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
@@ -42,11 +45,20 @@ public class FontParameter extends StyleParameter {
         }
         setPrompt( "Font family name" );
         setUsage( "dialog|serif|..." );
+        List alwaysList = Arrays.asList( new String[] {
+            "serif", "sansserif", "monospaced", "dialog", "dialoginput",
+        } );
+        List otherList = new ArrayList( Arrays.asList( getOptionNames() ) );
+        otherList.removeAll( alwaysList );
+        otherList = otherList.subList( 0, Math.min( otherList.size(), 24 ) );
         setDescription( new String[] {
             "<p>Determines the font that will be used for textual annotation",
             "of the plot, including axes etc.",
-            "The available names are:",
-            getOptionList(),
+            "At least the following fonts will be available:",
+            xmlList( alwaysList ),
+            "as well as a range of system-dependent fonts,",
+            "possibly including",
+            xmlList( otherList ),
             "</p>",
         } );
 
@@ -111,5 +123,28 @@ public class FontParameter extends StyleParameter {
     public Font fontValue( Environment env ) throws TaskException {
         checkGotValue( env );
         return fontValue_;
+    }
+
+    /**
+     * Turns a list of strings into an XML UL element.
+     *
+     * @param  sList  list of strings
+     * @return   UL list
+     */
+    private static String xmlList( List sList ) {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<ul>\n" );
+        for ( Iterator it = sList.iterator(); it.hasNext(); ) {
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( "<![CDATA[" )
+                .append( (String) it.next() )
+                .append( "]]>" )
+                .append( "</code>" )
+                .append( "</li>" )
+                .append( "\n" );
+        }
+        sbuf.append( "</ul>" );
+        return sbuf.toString();
     }
 }
