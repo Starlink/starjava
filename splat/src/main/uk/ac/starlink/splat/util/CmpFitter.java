@@ -31,12 +31,12 @@ import uk.ac.starlink.util.AsciiFileParser;
  * The format of the configuration file is line-based with each line
  * representing a component and having the following format:
  * <pre>
- *    l|g|v scale t|f centre t|f sigma|width|gwidth t|f [lwidth] t|f
+ *    l|g|v scale t|f centre t|f sigma|lwidth|gwidth t|f [lwidth] t|f
  * </pre>
  * where <code>l</code> means a Lorentzian, <code>g</code> a Gaussian and
  * <code>v</code> a Voigt profile. The <code>scale</code> is the size of the
  * line, <code>centre</code> the central position (wavelength) and
- * <code>sigma|width|gwidth</code> the width according to the line type. The
+ * <code>sigma|lwidth|gwidth</code> the width according to the line type. The
  * <code>lwidth</code> value is needed for Voigt profiles. The
  * <code>t|f</code> strings indicate if the value is to be fixed or allowed to
  * float during the minimisation.

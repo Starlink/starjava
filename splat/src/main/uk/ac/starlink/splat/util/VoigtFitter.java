@@ -418,6 +418,22 @@ public class VoigtFitter
         setPeak();
     }
 
+    // Get the parameters error estimates.
+    public double[] getPErrors()
+    {
+        return perrors;
+    }
+
+    // Set all the parameters errors, only used when setting parameters
+    // and this is container class.
+    public void setPErrors( double[] perrors )
+    {
+        this.perrors[SCALE] = perrors[SCALE];
+        this.perrors[CENTRE] = perrors[CENTRE];
+        this.perrors[GWIDTH] = perrors[GWIDTH];
+        this.perrors[LWIDTH] = perrors[LWIDTH];
+    }
+
     //  Get the fixed/floating state of parameters.
     public boolean[] getFixed()
     {

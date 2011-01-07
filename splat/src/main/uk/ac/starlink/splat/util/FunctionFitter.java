@@ -98,6 +98,16 @@ public interface FunctionFitter
     public void setParams( double[] params );
 
     /**
+     * Return the parameters error estimates of this function as a list.
+     */
+    public double[] getPErrors();
+
+    /**
+     * Set the parameters error estimates. Not normally used.
+     */
+    public void setPErrors( double[] params );
+
+    /**
      * Return the fixed or floating states of the various parameters. This
      * determines if the values are fixed and should not be changed,
      * or may float. The default state should be floating.

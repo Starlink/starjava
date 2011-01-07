@@ -339,6 +339,21 @@ public class GaussianFitter
         this.params[2] = params[2];
     }
 
+    // Get the parameters error estimates.
+    public double[] getPErrors()
+    {
+        return perrors;
+    }
+
+    // Set all the parameters errors, only used when setting parameters
+    // and this is container class.
+    public void setPErrors( double[] perrors )
+    {
+        this.perrors[0] = perrors[0];
+        this.perrors[1] = perrors[1];
+        this.perrors[2] = perrors[2];
+    }
+
     //  Get the fixed/floating state of parameters.
     public boolean[] getFixed()
     {

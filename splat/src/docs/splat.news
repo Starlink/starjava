@@ -9,6 +9,9 @@
    Both sidebands are now loaded when a request to load all matching
    line identifiers is made.
 
+   The deblend script has been enhanced to also report errors for the
+   parameter fits.
+
    3.9-5
    =====
 

@@ -74,6 +74,10 @@ public class CompositeFunctionFitter
         LevMarq lm = new LevMarq( this, x.length, npar );
 
         // Pass it the data.
+        boolean unitweights = false;
+        if ( w == null ) {
+            unitweights = true;
+        }
         for ( int i = 0; i < x.length; i++ ) {
             lm.setX( i + 1, x[i] );
             lm.setY( i + 1, y[i] );
@@ -81,7 +85,7 @@ public class CompositeFunctionFitter
                 lm.setSigma( i + 1, 1.0 );
             }
             else {
-                lm.setSigma( i + 1, w[i] ); //1.0 / w[i] );
+                lm.setSigma( i + 1, w[i] );
             }
         }
 
@@ -102,10 +106,13 @@ public class CompositeFunctionFitter
         converged = lm.isConverged();
 
         //  And reset all FunctionGenerators to the new values.
+        double[] errors = new double[params.length];
         for ( int i = 0; i < params.length; i++ ) {
             params[i] = lm.getParam( i + 1 );
+            errors[i] = lm.getError( i + 1, unitweights );
         }
         setParams( params );
+        setPErrors( errors );
     }
 
     /**
@@ -275,6 +282,43 @@ public class CompositeFunctionFitter
                 pars[j] = params[offset++];
             }
             g.setParams( pars );
+        }
+    }
+
+    // Get all parameter errors in a single array.
+    public double[] getPErrors()
+    {
+        int total = getNumParams();
+        double[] errors = new double[total];
+
+        int size = funcs.size();
+        double[] errs;
+        int offset = 0;
+        for ( int i = 0; i < size; i++ ) {
+            errs = ((FunctionGenerator) funcs.get( i )).getPErrors();
+            for ( int j = 0; j < errs.length; j++ ) {
+                errors[offset++] = errs[j];
+            }
+        }
+        return errors;
+    }
+
+    // Set all parameter errors, complementary to setParams.
+    public void setPErrors( double[] errors )
+    {
+        int size = funcs.size();
+        double[] errs;
+        int offset = 0;
+        int nerrs = 0;
+        FunctionGenerator g;
+        for ( int i = 0; i < size; i++ ) {
+            g = ((FunctionGenerator) funcs.get( i ));
+            nerrs = g.getNumParams();
+            errs = new double[nerrs];
+            for ( int j = 0; j < errs.length; j++ ) {
+                errs[j] = errors[offset++];
+            }
+            g.setPErrors( errs );
         }
     }
 
