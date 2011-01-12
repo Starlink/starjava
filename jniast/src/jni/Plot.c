@@ -82,6 +82,16 @@ static void initializeIDs( JNIEnv *env );
 #define current_grf() ( (jobject) pthread_getspecific( grf_key ) )
 
 
+/* Class methods. */
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_nativeInitializePlot(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class          /* Class object */
+) {
+   initializeIDs( env );
+}
+
+
 /* Instance methods. */
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
@@ -98,10 +108,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
 
    ENSURE_SAME_TYPE(float,jfloat)
    ENSURE_SAME_TYPE(double,jdouble)
-
-   /* Ensure that method IDs etc which may be required by methods in the
-    * Plot class are initialized. */
-   initializeIDs( env );
 
    if ( jniastCheckNotNull( env, frame ) &&
         jniastCheckArrayLength( env, jGraphbox, 4 ) &&
@@ -588,9 +594,7 @@ static void initializeIDs( JNIEnv *env ) {
    static jclass PlotClass = NULL;
    static jclass GrfClass;
 
-   /* Only proceed if we haven't done this before and no exceptions are
-    * pending. */
-   if ( PlotClass == NULL && ! (*env)->ExceptionCheck( env ) ) {
+   if ( ! (*env)->ExceptionCheck( env ) ) {
 
       /* Get global references to classes. */
       ( PlotClass = (jclass) (*env)->NewGlobalRef( env,

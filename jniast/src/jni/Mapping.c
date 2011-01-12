@@ -75,9 +75,7 @@ static void initializeIDs( JNIEnv *env ) {
 *        Pointer to the JNI environment.
 *-
 */
-   /* Don't bother if we have been here before. */
-   if ( InterpolatorClass == NULL && 
-        ! (*env)->ExceptionCheck( env ) ) {
+   if ( ! (*env)->ExceptionCheck( env ) ) {
 
       /* Get global references to classes. */
       ( InterpolatorClass = (jclass) (*env)->NewGlobalRef( env,
@@ -112,6 +110,16 @@ static void initializeIDs( JNIEnv *env ) {
                                 "()I" ) ) &&
       1;
    }
+}
+
+
+/* Class methods. */
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Mapping_nativeInitializeMapping(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class          /* Class object */
+) {
+   initializeIDs( env );
 }
 
 
@@ -840,9 +848,6 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
    ENSURE_SAME_TYPE(int,jint) \
    ENSURE_SAME_TYPE(double,jdouble) \
  \
-   /* Ensure that we have all the field and method ID that we may require. */ \
-   initializeIDs( env ); \
- \
    /* Decode flags. */ \
    flags = (int) (*env)->CallIntMethod( env, jFlags, \
                                         ResampleFlagsGetFlagsIntID ); \
@@ -1311,9 +1316,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Mapping_rebin##Xletter( \
    ENSURE_SAME_TYPE(Xtype,Xjtype) \
    ENSURE_SAME_TYPE(int,jint) \
    ENSURE_SAME_TYPE(double,jdouble) \
- \
-   /* Ensure that we have all the field and method ID that we may require. */ \
-   initializeIDs( env ); \
  \
    /* Map array elements from java arrays. */ \
    ( lbnd = (int *) (*env)->GetIntArrayElements( env, jLbnd, NULL ) ) && \

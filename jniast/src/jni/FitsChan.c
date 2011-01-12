@@ -56,6 +56,18 @@ static void fillChaninfo( JNIEnv *env, jobject this );
 static char *sourceWrap( const char *(* source)( void ), int * );
 static void sinkWrap( void (* sink )( const char * ), const char *, int * );
 
+
+/* Class methods. */
+
+JNIEXPORT void JNICALL
+          Java_uk_ac_starlink_ast_FitsChan_nativeInitializeFitsChan(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class          /* Class object */
+) {
+   initializeIDs( env );
+}
+
+
 /* Instance methods. */
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_construct(
@@ -65,10 +77,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_construct(
    AstPointer pointer;
    ChanInfo *chaninfo;
    AstPointer infopointer;
-
-   /* Ensure that the FitsChan field and method ID values which will
-    * be used by the source and sink wrapper routines are initialized. */
-   initializeIDs( env );
 
    /* Allocate space for the chaninfo structure and store it in the 
     * chaninfo instance variable of this object. */
@@ -444,8 +452,7 @@ static void initializeIDs( JNIEnv *env ) {
 */
    static jclass FitsChanClass = NULL;
 
-   /* Don't bother if we have done this before. */
-   if ( FitsChanClass == NULL && ! (*env)->ExceptionCheck( env ) ) {
+   if ( ! (*env)->ExceptionCheck( env ) ) {
 
       /* Get global references to classes. */
       ( FitsChanClass = (jclass) (*env)->NewGlobalRef( env,
@@ -464,7 +471,6 @@ static void initializeIDs( JNIEnv *env ) {
                                                     "unChannelize", "()V" ) ) &&
       1;
    }
-
 }
 
 static void fillChaninfo( JNIEnv *env, jobject this ) {

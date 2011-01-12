@@ -53,6 +53,14 @@ print <<'__EOT__';
         Spreader.linear();
 
     /**
+     * Perform initialization required for JNI code at class load time.
+     */
+    static {
+        nativeInitializeMapping();
+    }
+    private native static void nativeInitializeMapping();
+
+    /**
      * Dummy constructor.  This constructor does not create a valid
      * Mapping object, but is required for inheritance by Mapping's
      * subclasses.

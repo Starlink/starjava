@@ -45,6 +45,14 @@ public class FitsChan extends Channel {
     private Iterator cardIt;
 
     /**
+     * Perform initialization required for JNI code at class load time.
+     */
+    static {
+        nativeInitializeFitsChan();
+    }
+    private native static void nativeInitializeFitsChan();
+
+    /**
      * Creates a new FitsChan whose initial contents will be a sequence of
      * FITS header cards obtained from an Iterator.
      *

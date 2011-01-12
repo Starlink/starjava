@@ -43,6 +43,14 @@ public class Channel extends AstObject {
     private OutputStream outstream;
 
     /**
+     * Perform initialization required for JNI code at class load time.
+     */
+    static {
+        nativeInitializeChannel();
+    }
+    private native static void nativeInitializeChannel();
+
+    /**
      * Creates a channel which reads from the given <code>InputStream</code>
      * and writes to the given <code>OutputStream</code>.
      *

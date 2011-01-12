@@ -133,9 +133,17 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Plot'>AST Plot</a>  
  */
 public class Plot extends FrameSet {
-   /* Private fields. */
+    /* Private fields. */
 
-   private Grf grfobj;
+    private Grf grfobj;
+
+    /**
+     * Perform initialization required for JNI code at class load time.
+     */
+    static {
+        nativeInitializePlot();
+    }
+    private native static void nativeInitializePlot();
 
     /**
      * Creates a Plot which plots onto a given rectangle.

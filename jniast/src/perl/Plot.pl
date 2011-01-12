@@ -66,9 +66,17 @@ my( $baseboxDescrip ) = jdocize( q{
 
 
 print <<__EOT__;
-   /* Private fields. */
+    /* Private fields. */
 
-   private Grf grfobj;
+    private Grf grfobj;
+
+    /**
+     * Perform initialization required for JNI code at class load time.
+     */
+    static {
+        nativeInitializePlot();
+    }
+    private native static void nativeInitializePlot();
 
     /**
      * Creates a $cName which plots onto a given rectangle.

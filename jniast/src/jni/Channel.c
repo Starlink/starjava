@@ -68,6 +68,16 @@ static jmethodID ChannelizeMethodID;
 static jmethodID UnChannelizeMethodID;
 
 
+/* Class methods. */
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_nativeInitializeChannel(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class          /* Class object */
+) {
+   initializeIDs( env );
+}
+
+
 /* Instance methods. */
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_constructChannel(
@@ -213,10 +223,6 @@ static void constructFlavouredChannel( JNIEnv *env, jobject this,
    AstPointer infopointer;
    ChanInfo *chaninfo;
 
-   /* Ensure that the Channel field and method ID values which will
-    * be used by the source and sink wrapper functions are initialized. */
-   initializeIDs( env );
-
    /* Allocate space for the chaninfo structure and store its location in
     * the chaninfo instance variable of this object.  The structure will
     * be used to hold pointers required by the sourceWrap and sinkWrap
@@ -289,7 +295,7 @@ static void initializeIDs( JNIEnv *env ) {
    static jclass ChannelClass = NULL;
 
    /* Don't bother if we have done this before. */
-   if ( ChannelClass == NULL && ! (*env)->ExceptionCheck( env ) ) {
+   if ( ! (*env)->ExceptionCheck( env ) ) {
 
       /* Get global references to classes. */
       ( ChannelClass = (jclass) (*env)->NewGlobalRef( env,
