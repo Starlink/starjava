@@ -188,4 +188,8 @@ public class ThreadTest extends TestCase {
             return "zooms";
         }
     }
+
+    public static void main( String[] args ) {
+        junit.textui.TestRunner.run(ThreadTest.class);
+    }
 }
