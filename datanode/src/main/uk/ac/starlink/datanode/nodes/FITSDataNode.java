@@ -165,7 +165,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     try {
                         Header hdr = nextHeader;
                         int headsize = nextHeaderSize;
-                        long datsize = getDataSize( hdr );
+                        long datsize = FitsConstants.getDataSize( hdr );
                         long hdusize = headsize + datsize;
                         for ( long nskip = datsize; nskip > 0; ) {
                              int skipped = (int) istrm.skip( nskip );
@@ -280,37 +280,6 @@ public abstract class FITSDataNode extends DefaultDataNode {
         else {
             return new BufferedDataInputStream( datsrc.getInputStream() );
         }
-    }
-
-    /**
-     * Utility function to find the number of bytes in the data segment
-     * of an HDU.  As far as I can see, Header.getDataSize() ought to
-     * do this, but it doesn't seem to.
-     */                     
-    private static long getDataSize( Header hdr ) {
-        long nel = getRawSize( hdr );
-        if ( nel % 2880 == 0 ) { 
-            return nel; 
-        }
-        else {                          
-            return ( ( nel / 2880 ) + 1 ) * 2880;
-        }               
-    }               
-                    
-    private static long getRawSize( Header hdr ) {
-        int naxis = hdr.getIntValue( "NAXIS", 0 );
-        if ( naxis <= 0 ) {
-            return 0;
-        }
-        int bitpix = hdr.getIntValue( "BITPIX" );
-        int gcount = hdr.getIntValue( "GCOUNT", 1 );
-        long pcount = hdr.getLongValue( "PCOUNT", 0L );
-        long nel = 1;
-        for ( int i = 1; i <= naxis; i++ ) {
-            nel *= hdr.getLongValue( "NAXIS" + i );
-        }
-        int bytepix = Math.abs( bitpix ) / 8;
-        return bytepix * gcount * ( pcount + nel );
     }
 
     /**
