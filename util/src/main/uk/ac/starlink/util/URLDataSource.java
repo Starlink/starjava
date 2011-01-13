@@ -42,6 +42,7 @@ public class URLDataSource extends DataSource {
         //  Handle switching from HTTP to HTTPS (but not vice-versa, that's
         //  insecure), if a HTTP 30x redirect is returned, as Java doesn't do
         //  this by default.
+        //  See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4620571.
         if ( connection instanceof HttpURLConnection ) {
             int code = ((HttpURLConnection)connection).getResponseCode();
             if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
