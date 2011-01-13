@@ -483,16 +483,19 @@ public class FitsConstants {
         if ( naxis <= 0 ) {
             return 0;
         }
+        int bitpix = hdr.getIntValue( "BITPIX" );
+        boolean isRandomGroups = hdr.getIntValue( "NAXIS1" ) == 0 &&
+                                 hdr.getBooleanValue( "SIMPLE" ) &&
+                                 hdr.getBooleanValue( "GROUPS" );
         long nel = 1;
-        for ( int i = 1; i <= naxis; i++ ) {
+        for ( int i = isRandomGroups ? 2 : 1; i <= naxis; i++ ) {
             nel *= hdr.getLongValue( "NAXIS" + i );
         }
-        int bitpix = hdr.getIntValue( "BITPIX" );
-        int pcount = 0;
-        int gcount = 1;
-        if ( hdr.containsKey( "XTENSION" ) ) {
-            pcount = hdr.getIntValue( "PCOUNT", 0 );
-            gcount = hdr.getIntValue( "GCOUNT", 1 );
+        long pcount = 0;
+        long gcount = 1;
+        if ( hdr.containsKey( "XTENSION" ) || isRandomGroups ) {
+            pcount = hdr.getLongValue( "PCOUNT", 0 );
+            gcount = hdr.getLongValue( "GCOUNT", 1 );
         }
         return ( nel + pcount ) * gcount * Math.abs( bitpix ) / 8;
     }

@@ -7389,6 +7389,14 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Random Groups HDUs are now tolerated, though not interpreted, 
+        within FITS files.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
