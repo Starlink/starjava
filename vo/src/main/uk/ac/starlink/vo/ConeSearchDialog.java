@@ -21,7 +21,7 @@ import uk.ac.starlink.table.gui.TableLoader;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
-public class ConeSearchDialog extends DalTableLoadDialog {
+public class ConeSearchDialog extends SkyDalTableLoadDialog {
 
     private DoubleValueField raField_;
     private DoubleValueField decField_;
@@ -47,10 +47,6 @@ public class ConeSearchDialog extends DalTableLoadDialog {
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
         skyEntry.addField( srField_ );
         return queryPanel;
-    }
-
-    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
-        return selectConeSearches( super.getCapabilities( resource ) );
     }
 
     public TableLoader createTableLoader() {
@@ -81,25 +77,5 @@ public class ConeSearchDialog extends DalTableLoadDialog {
                 return summary;
             }
         };
-    }
-
-    /**
-     * Selects only the capability objects from a list of them which 
-     * represent cone search services.
-     *
-     * @param   caps  input list
-     * @return  all the capabilities from <code>caps</code> which
-     *          are cone search services
-     */
-    public static RegCapabilityInterface[]
-                  selectConeSearches( RegCapabilityInterface[] caps ) {
-        List cscapList = new ArrayList();
-        for ( int i = 0; i < caps.length; i++ ) {
-            if ( Capability.CONE.isInstance( caps[ i ] ) ) {
-                cscapList.add( caps[ i ] );
-            }
-        }
-        return (RegCapabilityInterface[])
-               cscapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 }

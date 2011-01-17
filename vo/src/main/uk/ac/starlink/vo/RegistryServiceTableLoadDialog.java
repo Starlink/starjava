@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.net.MalformedURLException;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -70,7 +71,29 @@ public abstract class RegistryServiceTableLoadDialog
      * @return  true iff at least some of the resources were, or may be,
      *          loaded into this window
      */
-    public abstract boolean acceptResourceIdList( String[] ivoids, String msg );
+    public boolean acceptResourceIdList( String[] ivoids, String msg ) {
+        if ( isComponentShowing() ) {
+            RegistryQuery query;
+            try {
+                query = queryFactory_.getIdListQuery( ivoids );
+            }
+            catch ( MalformedURLException e ) {
+                logger_.warning( "Resource ID list not accepted: "
+                               + "bad registry endpoint " + e );
+                return false;
+            }
+            if ( query != null ) {
+                getRegistryPanel().performQuery( query, msg ); 
+                return true; 
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
 
     protected Component createQueryComponent() {
         JPanel queryPanel = new JPanel( new BorderLayout() ) {

@@ -28,7 +28,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Table load dialogue abstract superclass for spatial DAL-like queries.
+ * Table load dialogue abstract superclass for registry-based DAL-like queries.
  *
  * @author   Mark Taylor
  * @since    22 Sep 2009
@@ -37,11 +37,10 @@ public abstract class DalTableLoadDialog
         extends RegistryServiceTableLoadDialog {
 
     private final String name_;
+    private final Capability capability_;
     private final boolean autoQuery_;
-    private final KeywordServiceQueryFactory queryFactory_;
-    private SkyPositionEntry skyEntry_;
+    private final RegistryQueryFactory queryFactory_;
     private JTextField urlField_;
-    private JComponent queryComponent_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -64,6 +63,7 @@ public abstract class DalTableLoadDialog
         super( name, description, new KeywordServiceQueryFactory( capability ),
                showCapabilities );
         name_ = name;
+        capability_ = capability;
         autoQuery_ = autoQuery;
         queryFactory_ = (KeywordServiceQueryFactory) getQueryFactory();
     }
@@ -73,7 +73,6 @@ public abstract class DalTableLoadDialog
             public void setEnabled( boolean enabled ) {
                 super.setEnabled( enabled );
                 urlField_.setEnabled( enabled );
-                skyEntry_.setEnabled( enabled );
             }
         };
         queryPanel.add( super.createQueryComponent(), BorderLayout.CENTER );
@@ -125,11 +124,6 @@ public abstract class DalTableLoadDialog
             }
         } );
 
-        /* Add a spatial position selector component. */
-        skyEntry_ = new SkyPositionEntry( "J2000" );
-        skyEntry_.addActionListener( getSubmitAction() );
-        getControlBox().add( skyEntry_ );
-
         /* Fix it so that the submit action is activated on double clicks
          * and so on. */
         regPanel.addActionListener( getSubmitAction() );
@@ -161,50 +155,7 @@ public abstract class DalTableLoadDialog
                 "Alternatively, enter " + name_ + " URL in field below.",
             } );
         }
-        queryComponent_ = queryPanel;
         return queryPanel;
-    }
-
-    public boolean acceptResourceIdList( String[] ivoids, String msg ) {
-        if ( isComponentShowing() ) {
-            RegistryQuery query;
-            try {
-                query = queryFactory_.getIdListQuery( ivoids );
-            }
-            catch ( MalformedURLException e ) {
-                logger_.warning( "Resource ID list not accepted: "
-                               + "bad registry endpoint " + e );
-                return false;
-            }
-            if ( query != null ) {
-                getRegistryPanel().performQuery( query, msg );
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
-     * Takes a sky position and may update this component's sky entry 
-     * fields with the supplied values.
-     *
-     * @param  raDegrees  right ascension in degrees
-     * @param  decDegrees declination in degrees
-     * @return  true iff the position was used
-     */
-    public boolean acceptSkyPosition( double raDegrees, double decDegrees ) {
-        if ( isComponentShowing() ) {
-            getSkyEntry().setPosition( raDegrees, decDegrees, false );
-            return true;
-        }
-        else {
-            return false;
-        }
     }
 
     /**
@@ -214,6 +165,15 @@ public abstract class DalTableLoadDialog
      */
     public String getServiceUrl() {
         return urlField_.getText();
+    }
+
+    /**
+     * Sets the current contents of the service URL field.
+     *
+     * @param url  value to insert into service URL field
+     */
+    public void setServiceUrl( String url ) {
+        urlField_.setText( url );
     }
 
     /**
@@ -239,78 +199,6 @@ public abstract class DalTableLoadDialog
     }
 
     /**
-     * Returns the SkyPositionEntry component used by this dialog.
-     *
-     * @return  sky position entry
-     */
-    public SkyPositionEntry getSkyEntry() {
-        return skyEntry_;
-    }
-
-    /**
-     * Returns a short string summarising the current query.
-     *
-     * @param  serviceUrl  service URL for the query to be labelled
-     *         - may or may not be that of the currently selected
-     *         resource/capability
-     * @param  sizeDeg   size in degrees of the spatial query to be labelled
-     * @return  query label
-     */
-    public String getQuerySummary( String serviceUrl, double sizeDeg ) {
-
-        /* Get the name of the astronomical object being searched around,
-         * if any. */
-        String objName = getSkyEntry().getResolveField().getText();
-
-        /* Get the short name for the registry resource providing the query
-         * capability, if there is one. */
-        RegistryPanel regPanel = getRegistryPanel();
-        RegResource[] resources = regPanel.getSelectedResources();
-        RegCapabilityInterface[] caps = regPanel.getSelectedCapabilities();
-        String shortName = null;
-        if ( resources.length == 1 && caps.length == 1 &&
-             serviceUrl.equals( caps[ 0 ].getAccessUrl() ) ) {
-            shortName = resources[ 0 ].getShortName();
-            if ( shortName != null ) {
-                shortName = shortName.replace( '/', '_' );
-            }
-        }
-        if ( shortName == null || shortName.trim().length() == 0 ) {
-            shortName = name_.replaceFirst( " .*", "" );
-        }
-
-        /* Get a short string summarising the query spatial extent. */
-        String size;
-        if ( sizeDeg > 0 ) {
-            if ( sizeDeg > 1 ) {
-                size = ((int) sizeDeg) + "d";
-            }
-            else if ( sizeDeg * 60 >= 1 ) {
-                size = ((int) (sizeDeg * 60)) + "m";
-            }
-            else {
-                size = ((int) (sizeDeg * 60 * 60)) + "s";
-            }
-        }
-        else {
-            size = null;
-        }
-
-        /* Combine and return the known information. */
-        StringBuffer sbuf = new StringBuffer();
-        if ( objName != null && objName.trim().length() > 0 ) {
-            sbuf.append( objName )
-                .append( '-' );
-        }
-        sbuf.append( shortName );
-        if ( size != null ) {
-            sbuf.append( '-' );
-            sbuf.append( size );
-        }
-        return sbuf.toString();
-    }
-
-    /**
      * Returns an array of metadata items describing the resource being queried.
      *
      * @param  serviceUrl  service URL of query
@@ -330,10 +218,10 @@ public abstract class DalTableLoadDialog
 
     /**
      * Returns a list of described values for the resource
-     * object representing a cone search.
+     * object representing a DAL service.
      *
-     * @param   resource   cone search resource
-     * @param   cap   cone search capability interface
+     * @param   resource   DAL resource
+     * @param   cap   DAL capability interface
      */
     public DescribedValue[] getMetadata( RegResource resource,
                                          RegCapabilityInterface cap ) {
@@ -357,6 +245,18 @@ public abstract class DalTableLoadDialog
                       "Contact person",
                       "Individual to contact about this service" );
         return (DescribedValue[]) metadata.toArray( new DescribedValue[ 0 ] );
+    }
+
+    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
+        RegCapabilityInterface[] caps = super.getCapabilities( resource );
+        List capList = new ArrayList();
+        for ( int i = 0; i < caps.length; i++ ) {
+            if ( capability_.isInstance( caps[ i ] ) ) {
+                capList.add( caps[ i ] );
+            }
+        }
+        return (RegCapabilityInterface[])
+               capList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     /**

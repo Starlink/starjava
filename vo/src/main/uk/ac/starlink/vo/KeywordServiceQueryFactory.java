@@ -161,14 +161,6 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         return new RegistryQuery( url, adql ); 
     }
 
-    /**
-     * Returns a registry query suitable for this query factory which 
-     * queries a given list of IVO identifiers.
-     *
-     * @param  ivoids  ivo:-type resource identifiers
-     * @return  registry query whose results are suitable for a result
-     *          of this query factory; may be nul
-     */
     public RegistryQuery getIdListQuery( String[] ivoids )
             throws MalformedURLException {
         if ( ivoids == null || ivoids.length == 0 ) {
@@ -206,11 +198,6 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         keywordField_.removeActionListener( listener );
     }
 
-    /**
-     * Returns the registry component object associated with this object.
-     *
-     * @return   registry selector
-     */
     public RegistrySelector getRegistrySelector() {
         return urlSelector_;
     }

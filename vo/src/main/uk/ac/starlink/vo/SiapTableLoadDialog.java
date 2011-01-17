@@ -27,7 +27,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    5 Dec 2005
  * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
  */
-public class SiapTableLoadDialog extends DalTableLoadDialog {
+public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
 
     private DoubleValueField raField_;
     private DoubleValueField decField_;
@@ -100,18 +100,6 @@ public class SiapTableLoadDialog extends DalTableLoadDialog {
                 return summary;
             }
         };
-    }
-
-    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
-        RegCapabilityInterface[] caps = super.getCapabilities( resource );
-        List siapcapList = new ArrayList();
-        for ( int i = 0; i < caps.length; i++ ) {
-            if ( Capability.SIA.isInstance( caps[ i ] ) ) {
-                siapcapList.add( caps[ i ] );
-            }
-        }
-        return (RegCapabilityInterface[])
-               siapcapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     /**

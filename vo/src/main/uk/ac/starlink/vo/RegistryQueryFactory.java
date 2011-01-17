@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import javax.swing.JComponent;
 
 /**
@@ -27,6 +28,24 @@ public interface RegistryQueryFactory {
      * @return   GUI component for query selection, or null
      */
     JComponent getComponent();
+
+    /**
+     * Returns a registry query suitable for this query factory which
+     * queries a given list of IVO identifiers.
+     *
+     * @param  ivoids  ivo:-type resource identifiers
+     * @return  registry query whose results are suitable for a result
+     *          of this query factory; may be null
+     */
+    RegistryQuery getIdListQuery( String[] ivoids )
+        throws MalformedURLException;
+
+    /**
+     * Returns the registry component object associated with this object.
+     *
+     * @return   registry selector
+     */
+    RegistrySelector getRegistrySelector();
 
     /**
      * Adds a listener which will be notified when the user has entered

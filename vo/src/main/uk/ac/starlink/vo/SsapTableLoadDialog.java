@@ -27,7 +27,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    2 Feb 2009
  * @see      <http://www.ivoa.net/Documents/latest/SSA.html>
  */
-public class SsapTableLoadDialog extends DalTableLoadDialog {
+public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
 
     private DoubleValueField raField_;
     private DoubleValueField decField_;
@@ -102,18 +102,6 @@ public class SsapTableLoadDialog extends DalTableLoadDialog {
                 return summary;
             }
         };
-    }
-
-    public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
-        RegCapabilityInterface[] caps = super.getCapabilities( resource );
-        List ssapcapList = new ArrayList();
-        for ( int i = 0; i < caps.length; i++ ) {
-            if ( Capability.SSA.isInstance( caps[ i ] ) ) {
-                ssapcapList.add( caps[ i ] );
-            }
-        }
-        return (RegCapabilityInterface[])
-               ssapcapList.toArray( new RegCapabilityInterface[ 0 ] );
     }
 
     /**
