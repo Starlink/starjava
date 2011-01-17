@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * @author   Mark Taylor
  * @since    20 Dec 2010
  */
-class Version implements Comparable {
+public class Version implements Comparable {
 
     private static Pattern VERSION_REGEX =
         Pattern.compile( "([0-9+])\\.([0-9+])(?:-([0-9+]))?(.*)" );
