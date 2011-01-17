@@ -655,6 +655,12 @@ public class AuxWindow extends JFrame {
         votechLogo.setToolTipText( "VO-Tech project: "
                                  + "http://www.eurovotech.org/" );
         box.add( votechLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
+        JLabel gavoLogo = new JLabel( ResourceIcon.GAVO_LOGO );
+        gavoLogo = new JLabel( ResourceIcon.GAVO_LOGO );
+        gavoLogo.setToolTipText( "German Astrophysical Virtual Observatory: "
+                               + "http://www.g-vo.org/" );
+        box.add( gavoLogo );
         return box;
     }
 
