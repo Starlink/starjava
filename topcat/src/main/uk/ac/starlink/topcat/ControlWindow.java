@@ -126,6 +126,7 @@ import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
+import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
 
@@ -1006,9 +1007,9 @@ public class ControlWindow extends AuxWindow
             TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
                 TableLoadDialog tld = tlds[ i ];
-                if ( tld instanceof DalTableLoadDialog ) {
+                if ( tld instanceof SkyDalTableLoadDialog ) {
                     accepted = accepted
-                            || ((DalTableLoadDialog) tld)
+                            || ((SkyDalTableLoadDialog) tld)
                               .acceptSkyPosition( raDegrees, decDegrees );
                 }
             }

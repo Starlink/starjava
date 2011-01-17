@@ -11,6 +11,7 @@ import javax.swing.JMenu;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.RegistryPanel;
+import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
 
 /**
@@ -21,8 +22,9 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @since    16 Aug 2010
  */
 public class RegistryDialogAdjuster {
-    private final String resourceType_;
     private final DalTableLoadDialog dalLoader_;
+    private final SkyDalTableLoadDialog skyDalLoader_;
+    private final String resourceType_;
     private final ToggleButtonModel acceptResourceModel_;
     private final ToggleButtonModel acceptPositionModel_;
 
@@ -33,17 +35,21 @@ public class RegistryDialogAdjuster {
      * @param  resourceType   name of resource type the dialogue's resource
      *         list contains; must be MType subtype for
      *         voresource.loadlist.* message
+     * @param  isSky  true if the dialogue should be capable of receiving
+     *         skyPositions
      */
     public RegistryDialogAdjuster( DalTableLoadDialog dalLoader,
-                                   String resourceType ) {
+                                   String resourceType, boolean isSky ) {
         dalLoader_ = dalLoader;
         resourceType_ = resourceType;
+        skyDalLoader_ = isSky ? (SkyDalTableLoadDialog) dalLoader
+                              : null;
         acceptResourceModel_ = createAcceptResourceIdListModel();
         acceptPositionModel_ =
             new ToggleButtonModel( "Accept Sky Positions", ResourceIcon.LISTEN,
                                    "Accept incoming SAMP/PLASTIC sky position "
                                  + "messages to update search coordinates" );
-        acceptPositionModel_.setSelected( true );
+        acceptPositionModel_.setSelected( skyDalLoader_ != null );
     }
 
     /**
@@ -59,14 +65,18 @@ public class RegistryDialogAdjuster {
                                                resourceType_ );
         interopMenu.addSeparator();
         interopMenu.add( acceptResourceModel_.createMenuItem() );
-        interopMenu.add( acceptPositionModel_.createMenuItem() );
+        if ( skyDalLoader_ != null ) {
+            interopMenu.add( acceptPositionModel_.createMenuItem() );
+        }
         menuList.add( interopMenu );
         dalLoader_.setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         /* Add acceptance buttons at suitable places in the GUI. */
         adjustRegistryPanel( dalLoader_.getRegistryPanel(),
                              acceptResourceModel_ );
-        adjustSkyEntry( dalLoader_.getSkyEntry(), acceptPositionModel_ );
+        if ( skyDalLoader_ != null ) {
+            adjustSkyEntry( skyDalLoader_.getSkyEntry(), acceptPositionModel_ );
+        }
     }
 
     /**

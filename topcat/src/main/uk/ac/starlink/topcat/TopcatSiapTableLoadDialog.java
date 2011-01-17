@@ -12,7 +12,7 @@ import uk.ac.starlink.vo.SiapTableLoadDialog;
 public class TopcatSiapTableLoadDialog extends SiapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
     public TopcatSiapTableLoadDialog() {
-        adjuster_ = new RegistryDialogAdjuster( this, "siap" );
+        adjuster_ = new RegistryDialogAdjuster( this, "siap", true );
     }
     public Component createQueryComponent() {
         Component comp = super.createQueryComponent();

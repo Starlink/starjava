@@ -12,7 +12,7 @@ import uk.ac.starlink.vo.SsapTableLoadDialog;
 public class TopcatSsapTableLoadDialog extends SsapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
     public TopcatSsapTableLoadDialog() {
-        adjuster_ = new RegistryDialogAdjuster( this, "ssap" );
+        adjuster_ = new RegistryDialogAdjuster( this, "ssap", true );
     }
     public Component createQueryComponent() {
         Component comp = super.createQueryComponent();

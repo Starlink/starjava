@@ -12,7 +12,7 @@ import uk.ac.starlink.vo.ConeSearchDialog;
 public class TopcatConeSearchDialog extends ConeSearchDialog {
     private final RegistryDialogAdjuster adjuster_;
     public TopcatConeSearchDialog() {
-        adjuster_ = new RegistryDialogAdjuster( this, "cone" );
+        adjuster_ = new RegistryDialogAdjuster( this, "cone", true );
     }
     public Component createQueryComponent() {
         Component comp = super.createQueryComponent();
