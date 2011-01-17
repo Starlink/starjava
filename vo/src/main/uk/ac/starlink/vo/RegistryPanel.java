@@ -522,7 +522,7 @@ public class RegistryPanel extends JPanel {
     /**
      * Removes a listener previously added by addActionListener.
      *
-     * @return  listener  listener to remove
+     * @param  listener  listener to remove
      */
     public void removeActionListener( ActionListener listener ) {
         listenerList_.remove( listener );
