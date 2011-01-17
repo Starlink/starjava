@@ -80,15 +80,24 @@ public class RegistryQuery {
     };
 
     /**
+     * Constructs a new query object from a SOAP client and a query.
+     *
+     * @param  soapClient   SOAP client
+     * @param  text   ADQL WHERE clause for the registry query
+     */
+    public RegistryQuery( SoapClient soapClient, String text ) {
+        text_ = text;
+        regClient_ = new BasicRegistryClient( soapClient );
+    }
+
+    /**
      * Constructs a new query object from a registry URL and a query.
      *
      * @param  endpoint   registry endpoint URL 
      * @param  text   ADQL WHERE clause for the registry query
      */
     public RegistryQuery( String endpoint, String text ) {
-        text_ = text;
-        regClient_ =
-            new BasicRegistryClient( new SoapClient( toUrl( endpoint ) ) );
+        this( new SoapClient( toUrl( endpoint ) ), text );
     }
 
     /**

@@ -7394,6 +7394,8 @@ but my thanks are especially due to the following:
     <ul>
     <li>Random Groups HDUs are now tolerated, though not interpreted, 
         within FITS files.</li>
+    <li>Added <code>soapout</code> parameter to <code>regquery</code>
+        command.</li>
     </ul>
     </p></dd>
 

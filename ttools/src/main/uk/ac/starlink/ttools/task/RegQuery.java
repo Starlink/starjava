@@ -4,12 +4,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import uk.ac.starlink.registry.SoapClient;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
+import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.util.Destination;
 import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryStarTable;
 
@@ -23,6 +26,7 @@ public class RegQuery extends ConsumerTask {
 
     private final Parameter queryParam_;
     private final Parameter urlParam_;
+    private final OutputStreamParameter soapoutParam_;
     private final static String ALL_RECORDS = "ALL";
 
     /**
@@ -81,18 +85,31 @@ public class RegQuery extends ConsumerTask {
         } );
         paramList.add( urlParam_ );
 
+        soapoutParam_ = new OutputStreamParameter( "soapout" );
+        soapoutParam_.setNullPermitted( true );
+        soapoutParam_.setDefault( null );
+        soapoutParam_.setPrompt( "SOAP message destination stream" );
+        soapoutParam_.setDescription( new String[] {
+            "<p>If set to a non-null value, this gives the destination",
+            "for the text of the request and response SOAP messages.",
+            "The special value \"-\" indicates standard output.",
+            "</p>",
+        } );
+        paramList.add( soapoutParam_ );
+
         getParameterList().addAll( 0, paramList );
     }
 
     public TableProducer createProducer( Environment env )
             throws TaskException {
-                String queryText = queryParam_.stringValue( env );
+        String queryText = queryParam_.stringValue( env );
         if ( ALL_RECORDS.toUpperCase()
             .equals( queryText.trim().toUpperCase() ) ) {
             queryText = null;
         }
+        final String qText = queryText;
         String urlText = urlParam_.stringValue( env );
-        URL regURL;
+        final URL regURL;
         try {
             regURL = new URL( urlText );
         }
@@ -100,11 +117,16 @@ public class RegQuery extends ConsumerTask {
             throw new ParameterValueException( urlParam_, "Bad URL: " + urlText,
                                                e );
         }
-        final RegistryQuery query =
-            new RegistryQuery( regURL.toString(), queryText );
+        final Destination soapdest = soapoutParam_.destinationValue( env );
         return new TableProducer() {
             public StarTable getTable() throws TaskException {
                 try {
+                    SoapClient soapClient = new SoapClient( regURL );
+                    if ( soapdest != null ) {
+                        soapClient.setEchoStream( soapdest.createStream() );
+                    }
+                    RegistryQuery query =
+                        new RegistryQuery( soapClient, qText );
                     return new RegistryStarTable( query );
                 }
                 catch ( Exception e ) {
