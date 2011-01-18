@@ -300,9 +300,9 @@
 #  ----------------------
             MacOSX)
                AR_IN='ar r'
-               BLD_SHR='f() { gcc -arch $(JAVA_SYSTEM) -dynamiclib -single_module -flat_namespace -undefined suppress -o $$1 $$2 ;}; f'
+               BLD_SHR='f() { gcc -arch $(JAVA_SYSTEM) -framework JavaVM -dynamiclib -single_module -flat_namespace -undefined suppress -o $$1 $$2 ;}; f'
                CC='gcc'
-               CFLAGS='-arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g'
+               CFLAGS='-framework JavaVM -I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g'
                FC='g77'
                FFLAGS='-fno-second-underscore -O'
                LINK='ln -s'
