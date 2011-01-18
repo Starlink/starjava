@@ -20,6 +20,10 @@ public abstract class Capability {
     public static final Capability SSA =
         createCapability( "ivo://ivoa.net/std/SSA", "SimpleSpectralAccess" );
 
+    /** Table Access Protocol capability. */
+    public static final Capability TAP =
+        createCapability( "ivo://ivoa.net/std/TAP", "TableAccess" );
+
     /**
      * Returns an ADQL query which can be used to search for capabilities
      * of this type in the registry.
@@ -80,7 +84,8 @@ public abstract class Capability {
             public boolean isInstance( RegCapabilityInterface cap ) {
                 String xsiType = cap.getXsiType();
                 return standardId.equals( cap.getStandardId() )
-                    || ( xsiType != null && xsiType.endsWith( xsiTypeTail ) );
+                    || ( xsiType != null && xsiTypeTail != null 
+                                         && xsiType.endsWith( xsiTypeTail ) );
             }
             public String toString() {
                 return xsiTypeTail;
