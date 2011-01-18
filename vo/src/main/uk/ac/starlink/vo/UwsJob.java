@@ -264,8 +264,12 @@ public class UwsJob {
 
     /**
      * Posts deletion of this job to the server.
+     *
+     * @return   the URL connection corresponding to the DELETE request;
+     *           it is possible, but not required, to query this for
+     *           the response code etc
      */
-    public void postDelete() throws IOException {
+    public HttpURLConnection postDelete() throws IOException {
         URLConnection connection = jobUrl_.openConnection();
         if ( ! ( connection instanceof HttpURLConnection ) ) {
             throw new IOException( "Not an HTTP URL?" );
@@ -274,6 +278,11 @@ public class UwsJob {
         hconn.setRequestMethod( "DELETE" );
         hconn.setInstanceFollowRedirects( false );
         hconn.connect();
+
+        /* Read the response code, otherwise the request doesn't seem
+         * to take place. */
+        int code = hconn.getResponseCode();  
+        return hconn;
     }
 
     /**

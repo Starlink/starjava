@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -112,16 +113,27 @@ public class TapQuery {
             }
         }
         finally {
+            final String jobId = String.valueOf( uwsJob_.getJobUrl() );
             new Thread( "UWS Job deletion" ) {
                 public void run() {
                     try {
-                        uwsJob_.postDelete();
-                        logger_.info( "UWS job " + uwsJob_.getJobUrl()
-                                                 + " deleted" );
+                        HttpURLConnection hconn = uwsJob_.postDelete();
+                        int tapDeleteCode =
+                            HttpURLConnection.HTTP_SEE_OTHER; // 303
+                        int code = hconn.getResponseCode();
+                        if ( code == tapDeleteCode ) {
+                            logger_.info( "UWS job " + jobId + " deleted" );
+                        }
+                        else {
+                            logger_.warning( "UWS job deletion error"
+                                           + " - response " + code
+                                           + " not " + tapDeleteCode
+                                           + " for job " + jobId );
+                        }
                     }
                     catch ( IOException e ) {
                         logger_.warning( "UWS job deletion failed for "
-                                       + uwsJob_.getJobUrl() );
+                                       + jobId );
                     }
                 }
             }.start();
