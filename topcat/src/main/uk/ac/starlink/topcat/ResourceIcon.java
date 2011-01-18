@@ -48,6 +48,7 @@ import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
+import uk.ac.starlink.vo.TapTableLoadDialog;
 
 /**
  * Handles the procurement of icons and other graphics for the TableViewer
@@ -572,6 +573,8 @@ public class ResourceIcon implements Icon {
                      new SiapTableLoadDialog().getIcon() );
         nameMap.put( "SSAP_DIALOG",
                      new SsapTableLoadDialog().getIcon() );
+        nameMap.put( "TAP_DIALOG",
+                     new TapTableLoadDialog().getIcon() );
         nameMap.put( "REGISTRY_DIALOG",
                      new RegistryTableLoadDialog().getIcon() );
         nameMap.put( "HELP_TOC",

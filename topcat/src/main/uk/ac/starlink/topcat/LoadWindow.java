@@ -72,6 +72,7 @@ public class LoadWindow extends AuxWindow {
         TopcatConeSearchDialog.class.getName(),
         TopcatSiapTableLoadDialog.class.getName(),
         TopcatSsapTableLoadDialog.class.getName(),
+        TopcatTapTableLoadDialog.class.getName(),
         RegistryTableLoadDialog.class.getName(),
         VizierTableLoadDialog.class.getName(),
         GavoTableLoadDialog.class.getName(),

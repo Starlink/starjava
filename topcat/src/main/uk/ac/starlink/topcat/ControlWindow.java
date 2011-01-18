@@ -129,6 +129,7 @@ import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
+import uk.ac.starlink.vo.TapTableLoadDialog;
 
 /**
  * Main window providing user control of the TOPCAT application.
@@ -606,6 +607,7 @@ public class ControlWindow extends AuxWindow
                     TopcatConeSearchDialog.class,
                     TopcatSiapTableLoadDialog.class,
                     TopcatSsapTableLoadDialog.class,
+                    TopcatTapTableLoadDialog.class,
                     VizierTableLoadDialog.class,
                     GavoTableLoadDialog.class,
                     BaSTITableLoadDialog.class,

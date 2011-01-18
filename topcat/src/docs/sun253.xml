@@ -14294,6 +14294,7 @@ introduced since the last version:
     <ul>
     <li>Random Groups HDUs are now tolerated, though not interpreted, 
         within FITS files.</li>
+    <li>TAP.</li>
     </ul>
     </p></dd>
 
