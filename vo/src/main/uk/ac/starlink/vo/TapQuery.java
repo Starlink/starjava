@@ -1,6 +1,8 @@
 package uk.ac.starlink.vo;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -98,7 +100,7 @@ public class TapQuery {
                  * UWS protocol. */
                 try {
                     errText = readErrorInfo( new URL( uwsJob_.getJobUrl()
-                                                    + "/error" ) );
+                                                    + "/error" ).openStream() );
                 }
                 catch ( Throwable e ) {
                     throw (IOException)
@@ -112,31 +114,46 @@ public class TapQuery {
                 throw new IOException( "Unknown UWS execution phase " + phase );
             }
         }
+        catch ( UwsJob.UnexpectedResponseException e ) {
+            String errMsg = null;
+            try {
+                errMsg = readErrorInfo( e.getConnection().getInputStream() );
+            }
+            catch ( IOException e2 ) {
+            }
+            if ( errMsg == null || errMsg.length() == 0 ) {
+                errMsg = e.getMessage();
+            }
+            throw (IOException) new IOException( errMsg ).initCause( e );
+        }
         finally {
-            final String jobId = String.valueOf( uwsJob_.getJobUrl() );
-            new Thread( "UWS Job deletion" ) {
-                public void run() {
-                    try {
-                        HttpURLConnection hconn = uwsJob_.postDelete();
-                        int tapDeleteCode =
-                            HttpURLConnection.HTTP_SEE_OTHER; // 303
-                        int code = hconn.getResponseCode();
-                        if ( code == tapDeleteCode ) {
-                            logger_.info( "UWS job " + jobId + " deleted" );
+            URL jobUrl = uwsJob_.getJobUrl();
+            if ( jobUrl != null ) {
+                final String jobId = String.valueOf( jobUrl );
+                new Thread( "UWS Job deletion" ) {
+                    public void run() {
+                        try {
+                            HttpURLConnection hconn = uwsJob_.postDelete();
+                            int tapDeleteCode =
+                                HttpURLConnection.HTTP_SEE_OTHER; // 303
+                            int code = hconn.getResponseCode();
+                            if ( code == tapDeleteCode ) {
+                                logger_.info( "UWS job " + jobId + " deleted" );
+                            }
+                            else {
+                                logger_.warning( "UWS job deletion error"
+                                               + " - response " + code
+                                               + " not " + tapDeleteCode
+                                               + " for job " + jobId );
+                            }
                         }
-                        else {
-                            logger_.warning( "UWS job deletion error"
-                                           + " - response " + code
-                                           + " not " + tapDeleteCode
-                                           + " for job " + jobId );
+                        catch ( IOException e ) {
+                            logger_.warning( "UWS job deletion failed for "
+                                           + jobId );
                         }
                     }
-                    catch ( IOException e ) {
-                        logger_.warning( "UWS job deletion failed for "
-                                       + jobId );
-                    }
-                }
-            }.start();
+                }.start();
+            }
         }
     }
 
@@ -196,10 +213,11 @@ public class TapQuery {
      *
      * @return   plain text error message
      */
-    private static String readErrorInfo( URL voturl ) throws IOException {
+    private static String readErrorInfo( InputStream in ) throws IOException {
         try {
             Document errDoc = DocumentBuilderFactory.newInstance()
-                             .newDocumentBuilder().parse( voturl.toString() );
+                             .newDocumentBuilder()
+                             .parse( new BufferedInputStream( in ) );
             XPath xpath = XPathFactory.newInstance().newXPath();
             return xpath.evaluate( "VOTABLE/RESOURCE[@type='results']"
                                  + "/INFO[@name='QUERY_STATUS']/text()",

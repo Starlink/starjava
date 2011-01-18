@@ -158,6 +158,7 @@ public class UwsJob {
      * The phase following this method is expected to be PENDING.
      *
      * @throws  IllegalArgumentException  if creation has already occurred
+     * @throws  UnexpectedResponseException  if a non-303 response was received
      */
     public void postCreate() throws IOException {
         synchronized ( this ) {
@@ -168,9 +169,11 @@ public class UwsJob {
         }
         HttpURLConnection hconn = postForm( jobListUrl_, paramMap_ );
         int code = hconn.getResponseCode();
-        if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {
-            throw new IOException( "Non-303 response: " + code + " " +
-                                   hconn.getResponseMessage() );
+        if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
+            String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
+                       + " (" + hconn.getResponseCode() + " "
+                       + hconn.getResponseMessage() + ")";
+            throw new UnexpectedResponseException( msg, hconn );
         }
         String location = hconn.getHeaderField( "Location" );
         if ( location == null ) {
@@ -205,6 +208,8 @@ public class UwsJob {
      *
      * @param   poll   polling time in milliseconds to assess job completion
      * @return   final phase
+     * @throws   UnexpectedResponseException  if HTTP responses other than
+     *           UWS mandated ones occur
      */
     public String runToCompletion( final long poll )
             throws IOException, InterruptedException {
@@ -376,5 +381,38 @@ public class UwsJob {
             bbuf[ i ] = (byte) sbuf.charAt( i );
         }
         return bbuf;
+    }
+
+    /**
+     * Exception which may be thrown if a UWS HTTP request receives a
+     * response code which is not as mandated by UWS, but not obviously
+     * an error.  An example is getting a 200 rather than 303 from a
+     * job creation attempt.
+     */
+    public static class UnexpectedResponseException extends IOException {
+        private final HttpURLConnection hconn_;
+
+        /**
+         * Constructor.
+         *
+         * @param   msg   error message
+         * @param   hconn  connection which supplied the response
+         */
+        private UnexpectedResponseException( String msg,
+                                             HttpURLConnection hconn ) {
+            super( msg );
+            hconn_ = hconn;
+        }
+
+        /**
+         * Returns the HTTP connection which supplied the response.
+         * The response code, but probably not the content, has already been
+         * read.
+         *
+         * @return  connection
+         */
+        public HttpURLConnection getConnection() {
+            return hconn_;
+        }
     }
 }
