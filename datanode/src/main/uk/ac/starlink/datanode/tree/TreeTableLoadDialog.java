@@ -39,17 +39,20 @@ public class TreeTableLoadDialog extends AbstractTableLoadDialog {
         NodeUtil.setGUI( true );
         chooser_ = createNodeChooser();
         chooser_.setControlsVisible( false );
-        final Action chooseAct = chooser_.getChooseAction();
-        chooseAct.addPropertyChangeListener( new PropertyChangeListener() {
+        chooser_.getChooseAction()
+                .addPropertyChangeListener( new PropertyChangeListener() {
             public void propertyChange( PropertyChangeEvent evt ) {
                 if ( "enabled".equals( evt.getPropertyName() ) ) {
-                    TreeTableLoadDialog.this
-                                       .setEnabled( chooseAct.isEnabled() );
+                    updateReady();
                 }
             }
         } );
-        setEnabled( chooseAct.isEnabled() );
+        updateReady();
         return chooser_;
+    }
+
+    public boolean isReady() {
+        return chooser_.getChooseAction().isEnabled();
     }
 
     public TableLoader createTableLoader() {

@@ -205,12 +205,29 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
     }
 
     /**
-     * Sets this dialogue's Submit Action's enabledness state.
-     *
-     * @param  enabled   true iff the submit action can be invoked
+     * Updates the enabledness state of this dialogue's Submit Action
+     * according to the current value of {@link #isReady}.
+     * Subclasses should call this method when the return value of
+     * <code>isReady</code> might have changed.
      */
-    protected void setEnabled( boolean enabled ) {
-        getSubmitAction().setEnabled( enabled );
+    protected void updateReady() {
+        getSubmitAction().setEnabled( isReady() );
+    }
+
+    /**
+     * Indicates whether the submit action should be enabled.
+     * The implementation should return true if the user should be
+     * allowed to submit the query, or false if the internal state
+     * of this dialogue is known to be incomplete in some way.
+     * Evaluation should be fast; the return does not need to provide a
+     * guarantee that a submitted query will suceed.
+     *
+     * <p>The default implementation returns true.
+     *
+     * @return   false iff dialogue state is known to be incomplete
+     */
+    public boolean isReady() {
+        return true;
     }
 
     /**

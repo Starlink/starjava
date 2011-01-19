@@ -211,29 +211,29 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         /* Keep action enabledness up to date. */
         tabber_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                updateActions();
+                updateReady();
             }
         } );
         addTargetActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                updateActions();
+                updateReady();
             }
         } );
         addTargetCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
-                updateActions();
+                updateReady();
             }
         } );
         ListSelectionListener readySelListener = new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                updateActions();
+                updateReady();
             }
         };
         for ( int i = 0; i < vizModes_.length; i++ ) {
             vizModes_[ i ].getQueryableTable().getSelectionModel()
                           .addListSelectionListener( readySelListener );
         }
-        updateActions();
+        updateReady();
 
         /* Listen for double-clicks or Enter keystrokes and interpret these
          * as submit actions. */
@@ -459,14 +459,10 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         return vizModes_[ tabber_.getSelectedIndex() ];
     }
 
-    /**
-     * Updates enabledness of various displayed components according to the
-     * current state.
-     */
-    private void updateActions() {
+    public boolean isReady() {
         boolean hasCatalog =
             getCurrentMode().getQueryableTable().getSelectedRow() >= 0;
-        setEnabled( hasCatalog && hasTarget() );
+        return hasCatalog && hasTarget();
     }
 
     /**

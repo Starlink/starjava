@@ -107,22 +107,12 @@ public abstract class DalTableLoadDialog
 
         /* Only enable the query submission when the service URL field
          * contains a syntactically valid URL. */
-        setEnabled( false );
         urlField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
-                boolean hasUrl = false;
-                String txt = urlField_.getText();
-                if ( txt != null && txt.trim().length() > 0 ) {
-                    try {
-                        new URL( urlField_.getText() );
-                        hasUrl = true;
-                    }
-                    catch ( MalformedURLException e ) {
-                    }
-                }
-                DalTableLoadDialog.this.setEnabled( hasUrl );
+                updateReady();
             }
         } );
+        updateReady();
 
         /* Fix it so that the submit action is activated on double clicks
          * and so on. */
@@ -156,6 +146,22 @@ public abstract class DalTableLoadDialog
             } );
         }
         return queryPanel;
+    }
+
+    public boolean isReady() {
+        String txt = urlField_.getText();
+        if ( txt == null || txt.trim().length() == 0 ) {
+            return false;
+        }
+        else {
+            try {
+                new URL( txt );
+                return true;
+            }
+            catch ( MalformedURLException e ) {
+                return false;
+            }
+        }
     }
 
     /**

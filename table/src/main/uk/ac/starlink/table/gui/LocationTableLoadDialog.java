@@ -38,22 +38,19 @@ public class LocationTableLoadDialog extends AbstractTableLoadDialog {
         locField_ = new JTextField( 25 );
         locField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
-                updateState();
+                updateReady();
             }
         } );
-        updateState();
+        updateReady();
         qc.add( locField_ );
         locField_.addActionListener( getSubmitAction() );
         qc.add( createFormatSelector() );
         return qc;
     }
 
-    /**
-     * Ensures that enabledness is set correctly.
-     */
-    private void updateState() {
+    public boolean isReady() {
         String text = locField_.getText();
-        setEnabled( text != null && text.trim().length() > 0 );
+        return text != null && text.trim().length() > 0;
     }
 
     public TableLoader createTableLoader() {
