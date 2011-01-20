@@ -411,6 +411,9 @@ public class ControlWindow extends AuxWindow
             new MatchWindowAction( "Quadruple Match", ResourceIcon.MATCHN,
                                    "Create new table by matching rows in " +
                                    "four existing tables", 4 ),
+            new MatchWindowAction( "Quintuple Match", ResourceIcon.MATCHN,
+                                   "Create new table by matching rows in " +
+                                   "five existing tables", 5 ),
         };
 
         Transmitter tableTransmitter = communicator_ == null

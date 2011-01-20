@@ -14295,6 +14295,8 @@ introduced since the last version:
     <li>Random Groups HDUs are now tolerated, though not interpreted, 
         within FITS files.</li>
     <li>TAP.</li>
+    <li>Add quintuple match option to multi-table match window
+        (someone requested it!).</li>
     </ul>
     </p></dd>
 
