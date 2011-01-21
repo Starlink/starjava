@@ -1,5 +1,14 @@
 1 Starlink SPLAT news.
 
+   3.9-7
+   =====
+
+   The "remove selected" option in the cutter toolbox now handles
+   regions that overlap the ends of the spectrum correctly. Previously
+   bad values where added to the ends and given poor coordinates.
+
+   Post Namaka
+
    3.9-6
    =====
 

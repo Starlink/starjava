@@ -1004,7 +1004,6 @@ public class SpecData
                 //  Arrived within a range, so mark one mid-range
                 //  position BAD (so show the break) and skip to the
                 //  end. Set for next valid range.
-                newCoords[k] = xPos[i];
                 newData[k] = BAD;
                 k++;
                 if ( j + 1 == nRanges ) {
@@ -1054,6 +1053,34 @@ public class SpecData
                     newErrors[k] = yErr[i];
                     k++;
                 }
+            }
+        }
+
+        //  Final task, trim off any BAD values at ends if ranges
+        //  included those.
+        if ( lower[0] <= 0 || upper[upper.length-1] >= ( xPos.length - 1 ) ) {
+            int i1 = 0;
+            int i2 = newData.length;
+            if ( lower[0] <= 0 ) {
+                i1++;
+            }
+            if ( upper[upper.length-1] >= ( xPos.length - 1 ) ) {
+                i2--;
+            }
+            int trimlength = i2 - i1;
+            double trimCoords[] = new double[trimlength];
+            System.arraycopy( newCoords, i1, trimCoords, 0, trimlength );
+            newCoords = trimCoords;
+
+            double trimData[] = new double[trimlength];
+            System.arraycopy( newData, i1, trimData, 0, trimlength );
+            newData = trimData;
+
+            double trimErrors[] = null;
+            if ( newErrors != null ) {
+                trimErrors = new double[trimlength];
+                System.arraycopy( newErrors, i1, trimErrors, 0, trimlength );
+                newErrors = trimErrors;
             }
         }
 
