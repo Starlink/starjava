@@ -69,10 +69,13 @@ public class FuncTest extends TestCase {
         for ( int ia = 0; ia < a1s.length; ia++ ) {
             Object array = a1s[ ia ];
             assertEquals( 10, Arrays.size( array ) );
+            assertEquals( 10, Arrays.size( array ) );
             assertEquals( 16.0, Arrays.sum( array ) );
             assertEquals( -3.0, Arrays.minimum( array ) );
             assertEquals( 6.0, Arrays.maximum( array ) );
             assertEquals( 1.6, Arrays.mean( array ) );
+            assertEquals( 2.8, Arrays.stdev( array ) );
+            assertEquals( 7.84, Arrays.variance( array ) );
             assertEquals( Arrays.minimum( array ),
                           Arrays.quantile( array, 0.0 ) );
             assertEquals( Arrays.maximum( array ),
@@ -82,10 +85,13 @@ public class FuncTest extends TestCase {
         for ( int ia = 0; ia < a2s.length; ia++ ) {
             Object array = a2s[ ia ];
             assertEquals( 10, Arrays.size( array ) );
+            assertEquals( 8, Arrays.count( array ) );
             assertEquals( 16.0, Arrays.sum( array ) );
             assertEquals( -3.0, Arrays.minimum( array ) );
             assertEquals( 6.0, Arrays.maximum( array ) );
             assertEquals( 2.0, Arrays.mean( array ) );
+            assertEquals( 3.0, Arrays.stdev( array ) );
+            assertEquals( 9.0, Arrays.variance( array ) );
             assertEquals( Arrays.minimum( array ),
                           Arrays.quantile( array, 0.0 ) );
             assertEquals( Arrays.maximum( array ),

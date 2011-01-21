@@ -87,6 +87,48 @@ public class Arrays {
     }
 
     /**
+     * Returns the population variance of all the non-blank elements
+     * in the array.  If <code>array</code> is not a numeric array,
+     * <code>null</code> is returned.
+     *
+     * @param  array  array of numbers
+     * @return  variance of the numeric values in <code>array</code>
+     */
+    public static double variance( Object array ) {
+        try {
+            int n = Array.getLength( array );
+            double sum = 0;
+            double sum2 = 0;
+            int count = 0;
+            for ( int i = 0; i < n; i++ ) {
+                double d = Array.getDouble( array, i );
+                if ( ! Double.isNaN( d ) ) {
+                    sum += d;
+                    sum2 += d * d;
+                    count++;
+                }
+            }
+            double mean = sum / (double) count;
+            return sum2 / (double) count - mean * mean;
+        }
+        catch ( RuntimeException e ) {
+            return Double.NaN;
+        }
+    }
+
+    /**
+     * Returns the population standard deviation of all the non-blank elements
+     * in the array.  If <code>array</code> is not a numeric array,
+     * <code>null</code> is returned.
+     *
+     * @param   array  array of numbers
+     * @return  standard deviation of the numeric values in <code>array</code>
+     */
+    public static double stdev( Object array ) {
+        return Math.sqrt( variance( array ) );
+    }
+
+    /**
      * Returns the smallest of the non-blank elements in the array.
      * If <code>array</code> is not a numeric array, <code>null</code>
      * is returned.
@@ -190,6 +232,30 @@ public class Arrays {
         return array != null && array.getClass().isArray()
              ? Array.getLength( array )
              : 0;
+    }
+
+    /**
+     * Returns the number of non-blank elements in the array.
+     * If <code>array</code> is not an array, zero is returned.
+     *
+     * @param  array   array (may or may not be numeric)
+     * @return   number of non-blank elements in <code>array</code>
+     */
+    public static int count( Object array ) {
+        try {
+            int n = Array.getLength( array );
+            int count = 0;
+            for ( int i = 0; i < n; i++ ) {
+                double d = Array.getDouble( array, i );
+                if ( ! Double.isNaN( d ) ) {
+                    count++;
+                }
+            }
+            return count;
+        }
+        catch ( RuntimeException e ) {
+            return 0;
+        }
     }
 
     /**

@@ -7396,6 +7396,9 @@ but my thanks are especially due to the following:
         within FITS files.</li>
     <li>Added <code>soapout</code> parameter to <code>regquery</code>
         command.</li>
+    <li>Added <code>count</code>, <code>variance</code> and <code>stdev</code>
+        functions to 
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
     </ul>
     </p></dd>
 
