@@ -364,6 +364,7 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     public JComponent createInfoPanel() {
+        JComponent panel = new JPanel( new BorderLayout() );
         Box box = Box.createHorizontalBox();
         box.add( Box.createHorizontalStrut( 5 ) );
         int boxHeight = 20;
@@ -388,23 +389,24 @@ public class SampCommunicator implements TopcatCommunicator {
         box.add( Box.createHorizontalStrut( 10 ) );
  
         /* Add reg/unreg button/indicator. */
-        final JButton regButton = new JButton( hubConnector_
-                                              .createToggleRegisterAction() );
-        hubConnector_.addConnectionListener( new ChangeListener() {
+        final JButton regButton =
+            new JButton( hubConnector_
+                        .createRegisterOrHubAction( panel, null ) );
+        ChangeListener connListener = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 regButton.setText( null );
                 regButton.setIcon( hubConnector_.isConnected()
                                        ? ResourceIcon.CONNECT
                                        : ResourceIcon.DISCONNECT );
             }
-        } );
-        regButton.setText( null );
+        };
+        hubConnector_.addConnectionListener( connListener );
+        connListener.stateChanged( null );
         regButton.setBorder( BorderFactory.createEmptyBorder() );
         box.add( regButton );
         box.add( Box.createHorizontalStrut( 5 ) );
 
         /* Wrap and return. */
-        JComponent panel = new JPanel( new BorderLayout() );
         panel.setBorder( AuxWindow.makeTitledBorder( getProtocolName() ) );
         panel.add( box, BorderLayout.CENTER );
         return panel;

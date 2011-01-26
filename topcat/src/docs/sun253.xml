@@ -14301,6 +14301,9 @@ introduced since the last version:
         BigInteger/BigDecimal types to Long/Double.
         The PostgreSQL JDBC driver seems to use the Big* types routinely
         for numeric values (which I don't think it used to do).</li>
+    <li>Connection button on SAMP panel in Control Window is now always 
+        present (not just if a hub exists) and will start a hub if
+        necessary.</li>
     </ul>
     </p></dd>
 
