@@ -1,5 +1,7 @@
 package uk.ac.starlink.table.jdbc;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -139,9 +141,56 @@ public class TypeMappers {
     }
 
     /**
+     * Partial ValueHandler implementation which forces an input type
+     * to a given output type.
+     */
+    private static abstract class ForcedValueHandler implements ValueHandler {
+        private final ColumnInfo colInfo_;
+
+        /**
+         * Constructor.
+         *
+         * @param   meta   JDBC metadata object
+         * @param   jcol1  JDBC column index (first column is 1)
+         * @param   forcedClass  class which output values (getValue return
+         *                       values) will be members of
+         */
+        ForcedValueHandler( ResultSetMetaData meta, int jcol1,
+                            Class forcedClass ) throws SQLException {
+            String name = meta.getColumnName( jcol1 );
+            colInfo_ = new ColumnInfo( name );
+            if ( meta.isNullable( jcol1 ) == ResultSetMetaData.columnNoNulls ) {
+                colInfo_.setNullable( false );
+            }
+            String label = meta.getColumnLabel( jcol1 );
+            if ( label != null &&
+                 label.trim().length() > 0 &&
+                 ! label.equalsIgnoreCase( name ) ) {
+                colInfo_.setAuxDatum( new DescribedValue( JDBC_LABEL_INFO,
+                                                          label.trim() ) );
+            }
+            String origClass = meta.getColumnClassName( jcol1 );
+            String origType = meta.getColumnTypeName( jcol1 );
+            if ( origClass != null && origClass.trim().length() > 0 ) {
+                colInfo_.setAuxDatum( new DescribedValue( JDBC_CLAZZ_INFO,
+                                                          origClass ) );
+            }
+            if ( origType != null && origType.trim().length() > 0 ) {
+                colInfo_.setAuxDatum( new DescribedValue( JDBC_TYPE_INFO,
+                                                          origType ) );
+            }
+            colInfo_.setContentClass( forcedClass );
+        }
+
+        public ColumnInfo getColumnInfo() {
+            return colInfo_;
+        }
+    }
+
+    /**
      * ValueHandler implementation which converts JDBC values to Strings.
      */
-    private static class StringValueHandler extends IdentityValueHandler {
+    private static class StringValueHandler extends ForcedValueHandler {
 
         /**
          * Constructor.
@@ -151,18 +200,7 @@ public class TypeMappers {
          */
         StringValueHandler( ResultSetMetaData meta, int jcol1 )
                 throws SQLException {
-            super( meta, jcol1 );
-            String origClazz = meta.getColumnClassName( jcol1 );
-            String origType = meta.getColumnTypeName( jcol1 );
-            if ( origClazz != null && origClazz.trim().length() > 0 ) {
-                colInfo_.setAuxDatum( new DescribedValue( JDBC_CLAZZ_INFO,
-                                                          origClazz ) );
-            }
-            if ( origType != null && origType.trim().length() > 0 ) {
-                colInfo_.setAuxDatum( new DescribedValue( JDBC_TYPE_INFO,
-                                                          origType ) );
-            }
-            colInfo_.setContentClass( String.class );
+            super( meta, jcol1, String.class );
         }
 
         public Object getValue( Object baseValue ) {
@@ -205,6 +243,46 @@ public class TypeMappers {
              * subclasses. */
             if ( java.util.Date.class.isAssignableFrom( clazz ) ) {
                 return createStringValueHandler( meta, jcol1 );
+            }
+
+            /* Downcast BigInteger and BigDecimal to Long/Double respectively.
+             * Although the driver might conceivably have a reason to use
+             * the Big types, in which case it could be questionable to
+             * make this conversion, at time of writing the PostgreSQL
+             * driver seems to use these types indiscriminately for numeric
+             * values, so this much more common case makes the running for
+             * default behaviour. */
+            else if ( BigInteger.class.isAssignableFrom( clazz ) ) {
+                final BigInteger minLong = BigInteger.valueOf( Long.MIN_VALUE );
+                final BigInteger maxLong = BigInteger.valueOf( Long.MAX_VALUE );
+                return new ForcedValueHandler( meta, jcol1, Long.class ) {
+                    public Object getValue( Object baseValue ) {
+                        if ( baseValue instanceof BigInteger ) {
+                            BigInteger biv = (BigInteger) baseValue;
+                            if ( biv.compareTo( minLong ) >= 0 &&
+                                 biv.compareTo( maxLong ) <= 0 ) {
+                                long lv = biv.longValue();
+                                assert biv.equals( BigInteger.valueOf( lv ) );
+                                return new Long( lv );
+                            }
+                            else {
+                                return null;  // out of range
+                            }
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+                };
+            }
+            else if ( BigDecimal.class.isAssignableFrom( clazz ) ) {
+                return new ForcedValueHandler( meta, jcol1, Double.class ) {
+                    public Object getValue( Object baseValue ) {
+                        return baseValue instanceof Number
+                             ? new Double( ((Number) baseValue).doubleValue() )
+                             : null;
+                    }
+                };
             }
 
             /* Is this a likely type?  Earlier versions of the code 

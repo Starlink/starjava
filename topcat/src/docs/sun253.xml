@@ -14297,6 +14297,10 @@ introduced since the last version:
     <li>TAP.</li>
     <li>Add quintuple match option to multi-table match window
         (someone requested it!).</li>
+    <li>JDBC table input handler now effectively downcasts 
+        BigInteger/BigDecimal types to Long/Double.
+        The PostgreSQL JDBC driver seems to use the Big* types routinely
+        for numeric values (which I don't think it used to do).</li>
     </ul>
     </p></dd>
 

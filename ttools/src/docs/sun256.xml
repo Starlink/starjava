@@ -7399,6 +7399,10 @@ but my thanks are especially due to the following:
     <li>Added <code>count</code>, <code>variance</code> and <code>stdev</code>
         functions to 
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+    <li>JDBC table input handler now effectively downcasts
+        BigInteger/BigDecimal types to Long/Double.  
+        The PostgreSQL JDBC driver seems to use the Big* types routinely 
+        for numeric values (which I don't think it used to do).</li>
     </ul>
     </p></dd>
 
