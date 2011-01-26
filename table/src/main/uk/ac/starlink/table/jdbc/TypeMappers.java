@@ -242,6 +242,8 @@ public class TypeMappers {
             /* java.sql.{Date,Time,Timestamp} are all java.util.Date
              * subclasses. */
             if ( java.util.Date.class.isAssignableFrom( clazz ) ) {
+                logger_.info( "JDBC table handler casting Date column "
+                            + meta.getColumnName( jcol1 ) + " to String" );
                 return createStringValueHandler( meta, jcol1 );
             }
 
@@ -253,6 +255,8 @@ public class TypeMappers {
              * values, so this much more common case makes the running for
              * default behaviour. */
             else if ( BigInteger.class.isAssignableFrom( clazz ) ) {
+                logger_.info( "JDBC table handler casting BigInteger column "
+                            + meta.getColumnName( jcol1 ) + " to Long" );
                 final BigInteger minLong = BigInteger.valueOf( Long.MIN_VALUE );
                 final BigInteger maxLong = BigInteger.valueOf( Long.MAX_VALUE );
                 return new ForcedValueHandler( meta, jcol1, Long.class ) {
@@ -276,6 +280,8 @@ public class TypeMappers {
                 };
             }
             else if ( BigDecimal.class.isAssignableFrom( clazz ) ) {
+                logger_.info( "JDBC table handler casting BigDecimal column "
+                            + meta.getColumnName( jcol1 ) + " to Double" );
                 return new ForcedValueHandler( meta, jcol1, Double.class ) {
                     public Object getValue( Object baseValue ) {
                         return baseValue instanceof Number
@@ -288,6 +294,8 @@ public class TypeMappers {
             /* Is this a likely type?  Earlier versions of the code 
              * treated it specially, so it may occur in some DBs. */
             else if ( clazz.equals( char[].class ) ) {
+                logger_.info( "JDBC table handler casting char[] column "
+                            + meta.getColumnName( jcol1 ) + " to String" );
                 return new StringValueHandler( meta, jcol1 ) {
                     public Object getValue( Object baseValue ) {
                         return baseValue instanceof char[]
