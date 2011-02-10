@@ -183,6 +183,15 @@ public abstract class DalTableLoadDialog
     }
 
     /**
+     * Returns the text field into which the user can enter the service URL.
+     *
+     * @return  url field
+     */
+    public JTextField getServiceUrlField() {
+        return urlField_;
+    }
+
+    /**
      * Performs syntactic checks on a string which should be a URL, and
      * throws an informative RuntimeException if it is not.
      *

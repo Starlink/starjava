@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -14,7 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
@@ -100,6 +105,41 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         splitter.setBottomComponent( adqlScroller );
         splitter.setResizeWeight( 0.7 );
         tabber.add( "ADQL", splitter );
+        final int adqlTabIndex = tabber.getTabCount() - 1;
+
+        /* Provide a button to move to the query tab.
+         * Placing it near the service selector makes it more obvious that
+         * that is what you need to do after selecting a TAP service. */
+        final Action adqlAct = new AbstractAction( "Enter Query" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                tabber.setSelectedIndex( adqlTabIndex );
+            }
+        };
+        adqlAct.putValue( Action.SHORT_DESCRIPTION,
+                          "Go to ADQL tab and enter query text" );
+        Box buttLine = Box.createHorizontalBox();
+        buttLine.add( Box.createHorizontalGlue() );
+        buttLine.add( new JButton( adqlAct ) );
+        getControlBox().add( buttLine );
+
+        /* Only enable the query tab if a valid service URL has been
+         * selected. */
+        adqlAct.setEnabled( false );
+        tabber.setEnabledAt( adqlTabIndex, false );
+        getServiceUrlField().addCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                boolean hasUrl;
+                try {
+                    checkUrl( getServiceUrl() );
+                    hasUrl = true;
+                }
+                catch ( RuntimeException e ) {
+                    hasUrl = false;
+                }
+                tabber.setEnabledAt( adqlTabIndex, hasUrl );
+                adqlAct.setEnabled( hasUrl );
+            }
+        } );
 
         /* Arrange for the table metadata to get updated when the tab is
          * switched to the ADQL tab. */
