@@ -34,9 +34,8 @@ import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SendActionManager;
 import org.astrogrid.samp.gui.SysTray;
 import org.astrogrid.samp.httpd.ServerResource;
-import org.astrogrid.samp.xmlrpc.HubMode;
-import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
+import org.astrogrid.samp.hub.Hub;
+import org.astrogrid.samp.hub.HubServiceMode;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
@@ -193,13 +192,12 @@ public class SampCommunicator implements TopcatCommunicator {
 
     public void startHub( boolean external ) throws IOException {
         if ( external ) {
-            HubRunner.runExternalHub( HubMode.MESSAGE_GUI );
+            Hub.runExternalHub( HubServiceMode.MESSAGE_GUI );
         }
         else {
-            HubRunner.runHub( SysTray.getInstance().isSupported()
-                                  ? HubMode.CLIENT_GUI
-                                  : HubMode.NO_GUI,
-                              XmlRpcKit.INTERNAL );
+            Hub.runHub( SysTray.getInstance().isSupported()
+                                  ? HubServiceMode.CLIENT_GUI
+                                  : HubServiceMode.NO_GUI );
         }
     }
 

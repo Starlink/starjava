@@ -3737,6 +3737,24 @@ The following ones have special significance within TOPCAT:
     (see <ref id="jelExtend"/>).
     </p></dd>
 
+<dt><code>jsamp.hub.profiles</code></dt>
+<dd><p>This property determines what profiles a SAMP hub will use
+    if you run an internal or external hub from TOPCAT
+    (either with the <code>-hub</code>/<code>-exthub</code> flag or
+    from the GUI).
+    The value is a comma-separated list of profile specifiers;
+    options are
+    "<code>std</code>" for Standard Profile, 
+    "<code>web</code>" for Web Profile or
+    the name of a class implementing the 
+    <code>org.astrogrid.samp.hub.HubProfile</code> interface.
+    The default setting runs just a Standard Profile hub,
+    but, for instance, setting it to "<code>std,web</code>" would run a
+    Web Profile as well.   Note you should include <code>std</code> in
+    the list, otherwise TOPCAT will not be able to talk to the hub.
+    See the JSAMP documentation for more detail.
+    </p></dd>
+
 <dt><code>jsamp.localhost</code></dt>
 <dd><p>Sets the hostname by which the local host is to be identified in
     URLs, for instance server endpoints.
@@ -3747,19 +3765,6 @@ The following ones have special significance within TOPCAT:
     Two special values may also be set:
     "<code>[hostname]</code>" for the host's fully qualified domain name, and
     "<code>[hostnumber]</code>" for the IP number.
-    </p></dd>
-
-<dt><code>jsamp.lockfile</code></dt>
-<dd><p>If set, overrides the location at which the SAMP standard profile
-    lockfile is written 
-    (the default defined by the SAMP Standard Profile is 
-    <code>.samp</code> in the user's home directory).
-    </p></dd>
-
-<dt><code>jsamp.profile</code></dt>
-<dd><p>May be set to the classname of a 
-    <code>org.astrogrid.samp.ClentProfile</code> implementation to use
-    a non-Standard SAMP profile.
     </p></dd>
 
 <dt><code>jsamp.server.port</code></dt>
@@ -14307,6 +14312,7 @@ introduced since the last version:
     <li>Connection button on SAMP panel in Control Window is now always 
         present (not just if a hub exists) and will start a hub if
         necessary.</li>
+    <li>Upgrade to JSAMP v1.2.</li>
     </ul>
     </p></dd>
 
