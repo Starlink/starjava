@@ -35,7 +35,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class TableSetPanel extends JPanel {
 
     private final JComboBox tSelector_;
-    private final JLabel countLabel_;
     private final JTable colTable_;
     private final ArrayTableModel colTableModel_;
     private final MetaColumnModel colModel_;
@@ -72,11 +71,9 @@ public class TableSetPanel extends JPanel {
                 }
             }
         } );
-        countLabel_ = new JLabel();
         JComponent tLine = Box.createHorizontalBox();
         tLine.add( new JLabel( "Table: " ) );
         tLine.add( new ShrinkWrapper( tSelector_ ) );
-        tLine.add( countLabel_ );
         tLine.add( Box.createHorizontalGlue() );
         tLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 5 ) );
         JComponent chLine = Box.createHorizontalBox();
@@ -113,17 +110,14 @@ public class TableSetPanel extends JPanel {
      * Sets the data model for the metadata displayed by this panel.
      * The data is in the form of an array of table metadata objects.
      *
-     * @param  tables  table metadata objects
+     * @param  tables  table metadata objects, null if no metadata available
      */
     public void setTables( TableMeta[] tables ) {
-        tSelector_.setModel( new DefaultComboBoxModel( tables ) );
+        tSelector_.setModel( tables == null
+                                    ? new DefaultComboBoxModel()
+                                    : new DefaultComboBoxModel( tables ) );
         colScroller_.setViewportView( colTable_ );
-        int nTable = tables == null ? 0 : tables.length;
-        String txt = tables == null
-            ? null
-            : " (" + nTable + " table" + ( nTable == 1 ? "" : "s" ) + ")";
-        countLabel_.setText( txt );
-        if ( tables.length > 0 ) {
+        if ( tables != null && tables.length > 0 ) {
             tSelector_.setSelectedIndex( 0 );
             setSelectedTable( tables[ 0 ] );  // should happen automatically?
             StarJTable.configureColumnWidths( colTable_, 360, 9999 );

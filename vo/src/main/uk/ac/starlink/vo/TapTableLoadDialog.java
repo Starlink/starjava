@@ -21,6 +21,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JEditorPane;
@@ -49,6 +50,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
     private JEditorPane adqlPanel_;
     private TableSetPanel tmetaPanel_;
+    private JLabel serviceLabel_;
+    private JLabel countLabel_;
     private final Map<String,TableMeta[]> metaMap_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -90,18 +93,30 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 BorderFactory.createLineBorder( Color.BLACK ),
                 "ADQL Text" ) );
 
+        /* Prepare a panel for the TAP service heading. */
+        serviceLabel_ = new JLabel();
+        countLabel_ = new JLabel();
+        JComponent tableHeading = Box.createHorizontalBox();
+        tableHeading.add( new JLabel( "Service: " ) );
+        tableHeading.add( serviceLabel_ );
+        tableHeading.add( Box.createHorizontalStrut( 10 ) );
+        tableHeading.add( countLabel_ );
+
         /* Prepare a panel for table metadata display. */
         tmetaPanel_ = new TableSetPanel();
-        tmetaPanel_.setBorder(
-            BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder( Color.BLACK ),
-                "Table Metadata" ) );
 
         /* Put the components together in a window. */
         final JTabbedPane tabber = new JTabbedPane();
         tabber.add( "Search", searchPanel );
         final JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
-        splitter.setTopComponent( tmetaPanel_ );
+        JComponent tpanel = new JPanel( new BorderLayout() );
+        tpanel.add( tableHeading, BorderLayout.NORTH );
+        tpanel.add( tmetaPanel_, BorderLayout.CENTER );
+        tpanel.setBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder( Color.BLACK ),
+                "Table Metadata" ) );
+        splitter.setTopComponent( tpanel );
         splitter.setBottomComponent( adqlScroller );
         splitter.setResizeWeight( 0.7 );
         tabber.add( "ADQL", splitter );
@@ -146,9 +161,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         tabber.addChangeListener( new ChangeListener() {
             private boolean shown = false;
             public void stateChanged( ChangeEvent evt ) {
-                String selectedTab =
-                    tabber.getTitleAt( tabber.getSelectedIndex() );
-                if ( "ADQL".equals( selectedTab ) ) {
+                if ( tabber.getSelectedIndex() == adqlTabIndex ) {
                     if ( ! shown ) {
                         splitter.setDividerLocation( 0.5 );
                     }
@@ -217,18 +230,67 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
+     * Sets the metadata panel to display a given set of table metadata.
+     *
+     * @param  tmetas  table metadata list; null if no metadata is available
+     */
+    private void setTables( TableMeta[] tmetas ) {
+        tmetaPanel_.setTables( tmetas );
+        String countText;
+        if ( tmetas == null ) {
+            countText = "";
+        }
+        else if ( tmetas.length == 1 ) {
+            countText = "(1 table)";
+        }
+        else {
+            countText = "(" + tmetas.length + " tables)";
+        }
+        countLabel_.setText( countText );
+    }
+
+    /**
+     * Returns a line of text describing the given service URL.
+     * This is intended to be as human-readable as possible, and will be
+     * taken from the currently selected resource if it appears to be
+     * appropriate for the given URL.
+     *
+     * @param  serviceUrl  service URL of TAP service to find a heading for
+     * @return  human-readable description of service
+     */
+    private String getServiceHeading( String serviceUrl ) {
+        if ( serviceUrl == null && serviceUrl.trim().length() == 0 ) {
+            return "";
+        }
+        RegistryPanel regPanel = getRegistryPanel();
+        RegResource[] resources = regPanel.getSelectedResources();
+        RegCapabilityInterface[] caps = regPanel.getSelectedCapabilities();
+        if ( caps.length == 1 && resources.length == 1 ) {
+            String acref = caps[ 0 ].getAccessUrl();
+            if ( serviceUrl.equals( caps[ 0 ].getAccessUrl() ) ) {
+                String heading = getResourceHeading( resources[ 0 ] );
+                if ( heading != null && heading.trim().length() > 0 ) {
+                    return heading;
+                }
+            }
+        }
+        return serviceUrl;
+    }
+
+    /**
      * Arrange for the table metadata for a given TAP service to
      * get displayed in the table metadata browser.
      *
      * @param  serviceUrl  TAP base service URL
      */
     private void updateTableMetadata( final String serviceUrl ) {
+        serviceLabel_.setText( getServiceHeading( serviceUrl ) );
 
         /* If the metadata for this service is already cached, use the
          * cached copy and install it in the GUI immediately. */ 
         TableMeta[] tmetas = metaMap_.get( serviceUrl );
         if ( tmetas != null ) {
-            tmetaPanel_.setTables( tmetas );
+            setTables( tmetas );
         }
         else {
 
@@ -251,7 +313,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
             /* Dispatch a request to acquire the table metadata from
              * the service. */
-            tmetaPanel_.setTables( new TableMeta[ 0 ] );
+            setTables( null );
             tmetaPanel_.showFetchProgressBar( "Fetching Table Metadata" );
             new Thread( "Table metadata fetcher" ) {
                 public void run() {
@@ -278,12 +340,37 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                         public void run() {
                             metaMap_.put( serviceUrl, tableMetas );
                             if ( serviceUrl.equals( getServiceUrl() ) ) {
-                                tmetaPanel_.setTables( tableMetas );
+                                setTables( tableMetas );
                             }
                         }
                     } );
                 }
             }.start();
         }
+    }
+
+    /**
+     * Returns a line of text describing the given registry resource.
+     * This is intended to be as human-readable as possible.
+     * If the resource contains no appropriate fields however,
+     * null may be returned.
+     *
+     * @param  resource  resourse to describe
+     * @return  human-readable description of resource, or null
+     */
+    private static String getResourceHeading( RegResource resource ) {
+        String title = resource.getTitle();
+        if ( title != null && title.trim().length() > 0 ) {
+            return title;
+        }
+        String shortName = resource.getShortName();
+        if ( shortName != null && shortName.trim().length() > 0 ) {
+            return shortName;
+        }
+        String ident = resource.getIdentifier();
+        if ( ident != null && ident.trim().length() > 0 ) {
+            return ident;
+        }
+        return null;
     }
 }
