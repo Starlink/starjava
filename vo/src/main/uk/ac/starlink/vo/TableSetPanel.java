@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -14,8 +15,10 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
@@ -36,6 +39,7 @@ public class TableSetPanel extends JPanel {
     private final JTable colTable_;
     private final ArrayTableModel colTableModel_;
     private final MetaColumnModel colModel_;
+    private final JScrollPane colScroller_;
 
     /**
      * Constructor.
@@ -90,7 +94,8 @@ public class TableSetPanel extends JPanel {
         colModel_ =
             new MetaColumnModel( colTable_.getColumnModel(), colTableModel_ );
         colTable_.setColumnModel( colModel_ );
-        add( new JScrollPane( colTable_ ), BorderLayout.CENTER );
+        colScroller_ = new JScrollPane();
+        add( colScroller_, BorderLayout.CENTER );
         setSelectedTable( null );
     }
 
@@ -112,6 +117,7 @@ public class TableSetPanel extends JPanel {
      */
     public void setTables( TableMeta[] tables ) {
         tSelector_.setModel( new DefaultComboBoxModel( tables ) );
+        colScroller_.setViewportView( colTable_ );
         int nTable = tables == null ? 0 : tables.length;
         String txt = tables == null
             ? null
@@ -122,6 +128,79 @@ public class TableSetPanel extends JPanel {
             setSelectedTable( tables[ 0 ] );  // should happen automatically?
             StarJTable.configureColumnWidths( colTable_, 360, 9999 );
         }
+    }
+
+    /**
+     * Displays a progress bar to indicate that metadata fetching is going on.
+     *
+     * @param  message  message to display
+     * @return  new progress bar
+     */
+    public JProgressBar showFetchProgressBar( String message ) {
+        JProgressBar progBar = new JProgressBar();
+        progBar.setIndeterminate( true );
+        JComponent msgLine = Box.createHorizontalBox();
+        msgLine.add( Box.createHorizontalGlue() );
+        msgLine.add( new JLabel( message ) );
+        msgLine.add( Box.createHorizontalGlue() );
+        JComponent progLine = Box.createHorizontalBox();
+        progLine.add( Box.createHorizontalGlue() );
+        progLine.add( progBar );
+        progLine.add( Box.createHorizontalGlue() );
+        JComponent workBox = Box.createVerticalBox();
+        workBox.add( Box.createVerticalGlue() );
+        workBox.add( msgLine );
+        workBox.add( Box.createVerticalStrut( 5 ) );
+        workBox.add( progLine );
+        workBox.add( Box.createVerticalGlue() );
+        JComponent workPanel = new JPanel( new BorderLayout() );
+        workPanel.add( workBox, BorderLayout.CENTER );
+        colScroller_.setViewportView( workPanel );
+        return progBar;
+    }
+
+    /**
+     * Displays an indication that metadata fetching failed.
+     *
+     * @param  metaUrl  the tableset metadata acquisition attempted URL
+     * @param  error   error that caused the failure
+     */
+    public void showFetchFailure( URL metaUrl, Throwable error ) {
+        JComponent msgLine = Box.createHorizontalBox();
+        msgLine.setAlignmentX( 0 );
+        msgLine.add( new JLabel( "No table metadata available" ) );
+        JComponent urlLine = Box.createHorizontalBox();
+        urlLine.setAlignmentX( 0 );
+        urlLine.add( new JLabel( "Metadata URL: " ) );
+        JTextField urlField = new JTextField( metaUrl.toString() );
+        urlField.setEditable( false );
+        urlField.setBorder( BorderFactory.createEmptyBorder() );
+        urlLine.add( new ShrinkWrapper( urlField ) );
+        JComponent errLine = Box.createHorizontalBox();
+        errLine.setAlignmentX( 0 );
+        errLine.add( new JLabel( "Error: " ) );
+        String errtxt = error.getMessage();
+        if ( errtxt == null || errtxt.trim().length() == 0 ) {
+            errtxt = error.toString();
+        }
+        JTextField errField = new JTextField( errtxt );
+        errField.setEditable( false );
+        errField.setBorder( BorderFactory.createEmptyBorder() );
+        errLine.add( new ShrinkWrapper( errField ) );
+        JComponent linesVBox = Box.createVerticalBox();
+        linesVBox.add( Box.createVerticalGlue() );
+        linesVBox.add( msgLine );
+        linesVBox.add( Box.createVerticalStrut( 15 ) );
+        linesVBox.add( urlLine );
+        linesVBox.add( errLine );
+        linesVBox.add( Box.createVerticalGlue() );
+        JComponent linesHBox = Box.createHorizontalBox();
+        linesHBox.add( Box.createHorizontalGlue() );
+        linesHBox.add( linesVBox );
+        linesHBox.add( Box.createHorizontalGlue() );
+        JComponent panel = new JPanel( new BorderLayout() );
+        panel.add( linesHBox, BorderLayout.CENTER );
+        colScroller_.setViewportView( panel );
     }
 
     /**

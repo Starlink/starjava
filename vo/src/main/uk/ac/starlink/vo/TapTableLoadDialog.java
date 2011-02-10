@@ -251,6 +251,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
             /* Dispatch a request to acquire the table metadata from
              * the service. */
+            tmetaPanel_.setTables( new TableMeta[ 0 ] );
+            tmetaPanel_.showFetchProgressBar( "Fetching Table Metadata" );
             new Thread( "Table metadata fetcher" ) {
                 public void run() {
                     final TableMeta[] tableMetas;
@@ -258,9 +260,14 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                         logger_.info( "Reading table metadata from " + turl );
                         tableMetas = TableSetSaxHandler.readTableSet( turl );
                     }
-                    catch ( Exception e ) {
-                        logger_.warning( "Couldn't read TableSet metadata"
-                                       + " (" + e + ")" );
+                    catch ( final Exception e ) {
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                if ( serviceUrl.equals( getServiceUrl() ) ) {
+                                    tmetaPanel_.showFetchFailure( turl, e );
+                                }
+                            }
+                        } );
                         return;
                     }
 
