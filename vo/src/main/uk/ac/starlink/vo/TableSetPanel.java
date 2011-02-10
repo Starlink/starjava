@@ -39,7 +39,7 @@ public class TableSetPanel extends JPanel {
     private final ArrayTableModel colTableModel_;
     private final MetaColumnModel colModel_;
     private final JScrollPane colScroller_;
-    private final JLabel colCountLabel_;
+    private final JLabel tableLabel_;
 
     /**
      * Constructor.
@@ -73,11 +73,11 @@ public class TableSetPanel extends JPanel {
             }
         } );
         JComponent tLine = Box.createHorizontalBox();
-        colCountLabel_ = new JLabel();
+        tableLabel_ = new JLabel();
         tLine.add( new JLabel( "Table: " ) );
         tLine.add( new ShrinkWrapper( tSelector_ ) );
         tLine.add( Box.createHorizontalStrut( 5 ) );
-        tLine.add( colCountLabel_ );
+        tLine.add( tableLabel_ );
         tLine.add( Box.createHorizontalGlue() );
         tLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 5 ) );
         JComponent chLine = Box.createHorizontalBox();
@@ -212,12 +212,12 @@ public class TableSetPanel extends JPanel {
     private void setSelectedTable( TableMeta table ) {
         if ( table == null ) {
             colTableModel_.setItems( new ColumnMeta[ 0 ] );
-            colCountLabel_.setText( "" );
+            tableLabel_.setText( "" );
         }
         else {
             ColumnMeta[] cols = table.getColumns();
-            colTableModel_.setItems( cols );
-            colCountLabel_.setText( "(" + cols.length + " columns)" );
+            colTableModel_.setItems( table.getColumns() );
+            tableLabel_.setText( table.getTitle() );
         }
     }
 
