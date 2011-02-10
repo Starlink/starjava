@@ -632,8 +632,6 @@ public class Driver {
            .append( p2 )
            .append( "mark.workaround         work around mark/reset bug" )
            .append( p2 )
-           .append( "myspace.cache           MySpace performance workaround" )
-           .append( p2 )
            .append( "    (see topcat -jsamp -help for more)" )
            .append( "" );
 
