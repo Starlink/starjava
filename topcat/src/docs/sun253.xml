@@ -12228,7 +12228,9 @@ All of this support is gratefully acknowledged.
 </p>
 
 <p>Nearly all of this work has been done in the Astrophysics Group
-of the School of Physics, in the University of Bristol, UK.
+of the School of Physics, in the University of Bristol, UK,
+although the University of Cambridge and the University of Heidelberg
+have also been involved.
 </p>
 
 <p>Inspiration for many of TOPCAT's features has been taken from the
@@ -12293,6 +12295,7 @@ Some of the notable contributers are these:
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
 <li>Luke Davies (Bristol)</li>
 <li>Christoph Deil (MPI Heidelberg)</li>
+<li>Markus Demleitner (ARI Heidelberg)</li>
 <li>Sebastien Derriere (CDS)</li>
 <li>Peter Draper (Starlink, Durham)</li>
 <li>Pierre Fernique (CDS)</li>
