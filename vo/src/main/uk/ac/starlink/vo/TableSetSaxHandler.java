@@ -258,7 +258,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_OK ) {
             throw new IOException( "Table resource access failure (" + code 
-                                 + " " + hconn.getResponseMessage() );
+                                 + " " + hconn.getResponseMessage() + ")" );
         }
         InputStream in = new BufferedInputStream( hconn.getInputStream() );
         try {
