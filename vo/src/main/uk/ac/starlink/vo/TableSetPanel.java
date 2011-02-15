@@ -132,6 +132,16 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Returns the combo box used to select different tables for metadata
+     * display.
+     *
+     * @return   table selector, whose items are {@link TableMeta} objects
+     */
+    public JComboBox getTableSelector() {
+        return tSelector_;
+    }
+
+    /**
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
      * @param  message  message to display
@@ -202,6 +212,15 @@ public class TableSetPanel extends JPanel {
         JComponent panel = new JPanel( new BorderLayout() );
         panel.add( linesHBox, BorderLayout.CENTER );
         colScroller_.setViewportView( panel );
+    }
+
+    /**
+     * Returns the table which is currently selected for metadata display.
+     *
+     * @return   selected table, may be null
+     */
+    public TableMeta getSelectedTable() {
+        return (TableMeta) tSelector_.getSelectedItem();
     }
 
     /**

@@ -2,11 +2,17 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -14,6 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -23,10 +31,12 @@ import javax.swing.SwingUtilities;
  */
 public class TapQueryPanel extends JPanel {
 
-    private final JEditorPane adqlPanel_;
+    private final JEditorPane textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final JLabel serviceLabel_;
     private final JLabel countLabel_;
+    private final AdqlExemplifier exampler_;
+    private final AdqlTextAction exampleAct_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -35,15 +45,69 @@ public class TapQueryPanel extends JPanel {
      */
     public TapQueryPanel() {
         super( new BorderLayout() );
+        exampler_ = new AdqlExemplifier( true );
+
+        /* Prepare a panel for table metadata display. */
+        tmetaPanel_ = new TableSetPanel();
 
         /* Prepare a panel to contain user-entered ADQL text. */
-        adqlPanel_ = new JEditorPane();
-        adqlPanel_.setEditable( true );
-        JComponent adqlScroller = new JScrollPane( adqlPanel_ );
-        adqlScroller.setBorder(
+        textPanel_ = new JEditorPane();
+        textPanel_.setEditable( true );
+        JComponent textScroller = new JScrollPane( textPanel_ );
+        textScroller.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
                 "ADQL Text" ) );
+
+        /* Actions to replace text in ADQL panel. */
+        final AdqlTextAction clearAct =
+                new AdqlTextAction( "Clear",
+                                    "Clear currently visible ADQL text "
+                                  + "from editor" ) {
+            public boolean isEnabled() {
+                return textPanel_.getDocument().getLength() > 0;
+            }
+        };
+        clearAct.setAdqlText( "" );
+        exampleAct_ =
+            new AdqlTextAction( "Example",
+                                "Set ADQL text to an example query "
+                              + "for this service" );
+        textPanel_.getDocument().addDocumentListener( new DocumentListener() {
+            public void changedUpdate( DocumentEvent evt ) {
+            }
+            public void insertUpdate( DocumentEvent evt ) {
+                changed();
+            }
+            public void removeUpdate( DocumentEvent evt ) {
+                changed();
+            }
+            private void changed() {
+                clearAct.setEnabled( clearAct.isEnabled() );
+            }
+        } );
+        tmetaPanel_.getTableSelector().addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                TableMeta table = tmetaPanel_.getSelectedTable();
+                if ( table != null ) {
+                    exampleAct_.setAdqlText( exampler_
+                                            .createSimpleExample( table ) );
+                }
+            }
+        } );
+
+        /* Controls for ADQL text panel. */
+        Box buttLine = Box.createHorizontalBox();
+        buttLine.setBorder( BorderFactory.createEmptyBorder( 2, 2, 0, 2 ) );
+        buttLine.add( Box.createHorizontalGlue() );
+        buttLine.add( new JButton( exampleAct_ ) );
+        buttLine.add( Box.createHorizontalStrut( 5 ) );
+        buttLine.add( new JButton( clearAct ) );
+
+        /* Place components on ADQL panel. */
+        JComponent adqlPanel = new JPanel( new BorderLayout() );
+        adqlPanel.add( buttLine, BorderLayout.NORTH );
+        adqlPanel.add( textScroller, BorderLayout.CENTER );
 
         /* Prepare a panel for the TAP service heading. */
         serviceLabel_ = new JLabel();
@@ -53,9 +117,6 @@ public class TapQueryPanel extends JPanel {
         tableHeading.add( serviceLabel_ );
         tableHeading.add( Box.createHorizontalStrut( 10 ) );
         tableHeading.add( countLabel_ );
-
-        /* Prepare a panel for table metadata display. */
-        tmetaPanel_ = new TableSetPanel();
 
         /* Arrange the components in a split pane. */
         final JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
@@ -67,7 +128,7 @@ public class TapQueryPanel extends JPanel {
                 BorderFactory.createLineBorder( Color.BLACK ),
                 "Table Metadata" ) );
         splitter.setTopComponent( servicePanel );
-        splitter.setBottomComponent( adqlScroller );
+        splitter.setBottomComponent( adqlPanel );
         splitter.setResizeWeight( 0.5 );
         add( splitter, BorderLayout.CENTER );
     }
@@ -78,7 +139,7 @@ public class TapQueryPanel extends JPanel {
      * @return   ADQL text entry component
      */
     public JEditorPane getAdqlPanel() {
-        return adqlPanel_;
+        return textPanel_;
     }
 
     /**
@@ -87,7 +148,7 @@ public class TapQueryPanel extends JPanel {
      * @return  adql text supplied by user
      */
     public String getAdql() {
-        return adqlPanel_.getText();
+        return textPanel_.getText();
     }
 
     /**
@@ -161,7 +222,11 @@ public class TapQueryPanel extends JPanel {
      * @param  tmetas  table metadata list; null if no metadata is available
      */
     private void setTables( TableMeta[] tmetas ) {
+
+        /* Populate table metadata JTable. */
         tmetaPanel_.setTables( tmetas );
+
+        /* Display number of tables. */
         String countText;
         if ( tmetas == null ) {
             countText = "";
@@ -173,5 +238,49 @@ public class TapQueryPanel extends JPanel {
             countText = "(" + tmetas.length + " tables)";
         }
         countLabel_.setText( countText );
+
+        /* Set up example ADQL action. */
+        String exampleText = tmetas == null || tmetas.length == 0
+                           ? null
+                           : exampler_.createSimpleExample( tmetas[ 0 ] );
+        exampleAct_.setAdqlText( exampleText );
+    }
+
+    /**
+     * Action which replaces the current content of the ADQL text entry
+     * area with some fixed string.
+     */
+    private class AdqlTextAction extends AbstractAction {
+        private String text_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  action name
+         * @param  description   action short description
+         */
+        public AdqlTextAction( String name, String description ) {
+            super( name );
+            putValue( SHORT_DESCRIPTION, description );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            textPanel_.setText( text_ );
+        }
+
+        /**
+         * Sets the text which this action will insert.
+         * Enabledness is determined by whether <code>text</code> is null.
+         *
+         * @param  text  ADQL text
+         */
+        public void setAdqlText( String text ) {
+            text_ = text;
+            setEnabled( isEnabled() );
+        }
+
+        public boolean isEnabled() {
+            return text_ != null;
+        }
     }
 }
