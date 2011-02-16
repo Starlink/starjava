@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -124,17 +125,13 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     public TableLoader createTableLoader() {
-        String serviceUrl = getServiceUrl();
-        checkUrl( serviceUrl );
-        final TapQuery query =
-            TapQuery.createAdqlQuery( serviceUrl, tqPanel_.getAdql() );
-        final List metadata = new ArrayList();
-        metadata.addAll( Arrays.asList( query.getQueryMetadata() ) );
-        metadata.addAll( Arrays.asList( getResourceMetadata( serviceUrl ) ) );
-        final UwsJob job = query.getJob();
+        final URL serviceUrl = checkUrl( getServiceUrl() );
+        final String adql = tqPanel_.getAdql();
+        final String summary = TapQuery.summarizeAdqlQuery( serviceUrl, adql );
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
+                TapQuery query = TapQuery.createAdqlQuery( serviceUrl, adql );
                 StarTable st;
                 try {
                     st = query.execute( tfact, 4000, false );
@@ -144,11 +141,15 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                           new InterruptedIOException( "Interrupted" )
                          .initCause( e );
                 }
-                st.getParameters().addAll( metadata );
+                List meta = st.getParameters();
+                meta.addAll( Arrays.asList( query.getQueryMetadata() ) );
+                meta.addAll( Arrays
+                            .asList( getResourceMetadata( serviceUrl
+                                                         .toString() ) ) );
                 return Tables.singleTableSequence( st );
             }
             public String getLabel() {
-                return query.getSummary();
+                return summary;
             }
         };
     }

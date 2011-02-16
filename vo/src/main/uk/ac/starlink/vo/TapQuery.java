@@ -27,10 +27,7 @@ import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Query using the Table Access Protocol.
- * UWS communications are handled by a supplied UwsJob, and the
- * TAP-specific aspects of the protocol are provided by this class.
- * The supplied UwsJob should not in general be invoked by the user of
- * this class.
+ * The work is done by a {@link UwsJob} instance.
  *
  * @see <a href="http://www.ivoa.net/Documents/TAP/">IVOA TAP Recommendation</a>
  */
@@ -43,19 +40,34 @@ public class TapQuery {
     /**
      * Constructor.
      *
-     * @param  uwsJob  UWS job representing the TAP query;
-     *         
+     * @param  serviceUrl  base URL for TAP service (without "/async")
+     * @param  paramMap   parameters to pass for TAP request
      */
-    public TapQuery( UwsJob uwsJob ) {
-        uwsJob_ = uwsJob;
+    public TapQuery( URL serviceUrl, Map<String,String> paramMap )
+            throws IOException {
+        try {
+            uwsJob_ = UwsJob.createJob( serviceUrl + "/async", paramMap );
+        }
+        catch ( UwsJob.UnexpectedResponseException e ) {
+            String errMsg = null;
+            try {
+                errMsg = readErrorInfo( e.getConnection().getInputStream() );
+            }
+            catch ( IOException e2 ) {
+            }
+            if ( errMsg == null || errMsg.length() == 0 ) {
+                errMsg = e.getMessage();
+            }
+            throw (IOException) new IOException( errMsg ).initCause( e );
+        }
     }
 
     /**
-     * Returns the UWS job on which this query is based.
+     * Returns the UwsJob used for this query.
      *
-     * @return   UWS job
+     * @return  UWS job
      */
-    public UwsJob getJob() {
+    public UwsJob getUwsJob() {
         return uwsJob_;
     }
 
@@ -72,14 +84,14 @@ public class TapQuery {
     public StarTable execute( StarTableFactory tfact, long poll,
                               boolean delete )
             throws IOException, InterruptedException {
+        final URL jobUrl = uwsJob_.getJobUrl();
         try {
             String phase = uwsJob_.runToCompletion( poll );
             if ( "COMPLETED".equals( phase ) ) {
-                URL resultUrl =
-                    new URL( uwsJob_.getJobUrl() + "/results/result" );
+                URL resultUrl = new URL( jobUrl + "/results/result" );
                 DataSource datsrc = new URLDataSource( resultUrl );
 
-                /* note this does take steps to follow redirects. */
+                /* Note this does take steps to follow redirects. */
                 return tfact.makeStarTable( datsrc, "votable" );
             }
             else if ( "ABORTED".equals( phase ) ||
@@ -101,9 +113,10 @@ public class TapQuery {
                  * navigate the UWS document in the presence of namespaces
                  * which often refer to different/older versions of the
                  * UWS protocol. */
+                URL errUrl = new URL( jobUrl + "/error" );
+                logger_.info( "Read error VOTable from " + errUrl );
                 try {
-                    errText = readErrorInfo( new URL( uwsJob_.getJobUrl()
-                                                    + "/error" ).openStream() );
+                    errText = readErrorInfo( errUrl.openStream() );
                 }
                 catch ( Throwable e ) {
                     throw (IOException)
@@ -130,9 +143,7 @@ public class TapQuery {
             throw (IOException) new IOException( errMsg ).initCause( e );
         }
         finally {
-            URL jobUrl = uwsJob_.getJobUrl();
-            if ( jobUrl != null && delete ) {
-                final String jobId = String.valueOf( jobUrl );
+            if ( delete ) {
                 new Thread( "UWS Job deletion" ) {
                     public void run() {
                         try {
@@ -141,18 +152,19 @@ public class TapQuery {
                                 HttpURLConnection.HTTP_SEE_OTHER; // 303
                             int code = hconn.getResponseCode();
                             if ( code == tapDeleteCode ) {
-                                logger_.info( "UWS job " + jobId + " deleted" );
+                                logger_.info( "UWS job " + jobUrl
+                                            + " deleted" );
                             }
                             else {
                                 logger_.warning( "UWS job deletion error"
                                                + " - response " + code
                                                + " not " + tapDeleteCode
-                                               + " for job " + jobId );
+                                               + " for job " + jobUrl );
                             }
                         }
                         catch ( IOException e ) {
                             logger_.warning( "UWS job deletion failed for "
-                                           + jobId );
+                                           + jobUrl );
                         }
                     }
                 }.start();
@@ -168,7 +180,7 @@ public class TapQuery {
     public DescribedValue[] getQueryMetadata() {
         List<DescribedValue> metaList = new ArrayList<DescribedValue>();
         for ( Map.Entry<String,String> param :
-              uwsJob_.getParameterMap().entrySet() ) {
+              uwsJob_.getParameters().entrySet() ) {
             String pname = param.getKey();
             String pvalue = param.getValue();
             ValueInfo pinfo =
@@ -180,35 +192,30 @@ public class TapQuery {
     }
 
     /**
-     * Returns a short textual summary of this query.
-     *
-     * @return  query summary
-     */
-    public String getSummary() {
-        return "TAP query";
-    }
-
-    /**
-     * Returns the job list corresponding to a TAP service URL.
-     *
-     * @return  serviceUrl + "/async"
-     */
-    public static String jobListUrl( String serviceUrl ) {
-        return serviceUrl + "/async";
-    }
-
-    /**
      * Returns a TapQuery given a serviceUrl and ADQL text.
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
      * @param  adql   text of ADQL query
+     * @return   new TapQuery
      */
-    public static TapQuery createAdqlQuery( String serviceUrl, String adql ) {
+    public static TapQuery createAdqlQuery( URL serviceUrl, String adql )
+            throws IOException {
         Map<String,String> tapMap = new LinkedHashMap<String,String>();
         tapMap.put( "REQUEST", "doQuery" );
         tapMap.put( "LANG", "ADQL" );
         tapMap.put( "QUERY", adql );
-        return new TapQuery( new UwsJob( jobListUrl( serviceUrl ), tapMap ) );
+        return new TapQuery( serviceUrl, tapMap );
+    }
+
+    /**
+     * Returns a short textual summary of an ADQL query on a given TAP service.
+     *
+     * @param  serviceUrl  base service URL for TAP service (excluding "/async")
+     * @param  adql   text of ADQL query
+     * @return  query summary
+     */
+    static String summarizeAdqlQuery( URL serviceUrl, String adql ) {
+        return "TAP query";
     }
 
     /**

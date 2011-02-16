@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,11 +17,14 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.DOMUtils;
 
 /**
  * Job submitted using the Universal Worker Service pattern.
+ * Instances of this class represent UWS jobs which have been created.
  *
  * @author   Mark Taylor
  * @since    18 Jan 2011
@@ -28,106 +32,109 @@ import uk.ac.starlink.util.CgiQuery;
  */
 public class UwsJob {
 
-    private final String jobListUrl_;
-    private final Map<String,String> paramMap_;
-    private URL jobUrl_;
-    private boolean created_;
+    private final URL jobUrl_;
+    private volatile Map paramMap_;
     private volatile String phase_;
     private volatile long phaseTime_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
-     * Constructs a UWS job with no parameters.
+     * Constructor.
      *
-     * @param  jobListUrl  base URL for UWS service (URL of job list)
+     * @param   jobUrl  the UWS {jobs}/(job-id) URL containing 
+     *                  the details of this job
      */
-    public UwsJob( String jobListUrl ) {
-        this( jobListUrl, new HashMap<String,String>() );
+    public UwsJob( URL jobUrl ) {
+        jobUrl_ = jobUrl;
     }
 
     /**
-     * Constructs a UWS job with a parameter map.
+     * Constructs a UwsJob with information about the submission parameters.
      *
-     * @param  jobListUrl  base URL for UWS service (URL of job list)
-     * @param  paramMap   name-&gt;value map of UWS parameters
+     * @param   jobUrl  the UWS {jobs}/(job-id) URL containing 
+     *                  the details of this job
+     * @param  paramMap  UWS parameters submitted to create this job
      */
-    public UwsJob( String jobListUrl, Map paramMap ) {
-        jobListUrl_ = jobListUrl;
-        paramMap_ = new LinkedHashMap<String,String>();
-        paramMap_.putAll( paramMap );
-    }
-
-    /**
-     * Sets a parameter with a string value.
-     *
-     * @param   name   parameter name
-     * @param   value  parameter value
-     */
-    public void setParameter( String name, String value ) {
-        paramMap_.put( name, value );
-    }
-
-    /**
-     * Sets a parameter with an integer value.
-     *
-     * @param   name  parameter name
-     * @param   value  parameter value
-     */
-    public void setParameter( String name, long value ) {
-        setParameter( name, Long.toString( value ) );
-    }
-
-    /**
-     * Sets a parameter with a double precision floating point value.
-     * An effort is made to encode the value in a way unlikely to be#
-     * misunderstood by the service.
-     *
-     * @param  name   parameter name
-     * @param  value   parameter value
-     */
-    public void setParameter( String name, double value ) {
-        setParameter( name, CgiQuery.formatDouble( value ) );
-    }
-
-    /**
-     * Sets a parameter with a single precision floating point value.
-     * An effort is made to encode the value in a way unlikely to be#
-     * misunderstood by the service.
-     *
-     * @param  name   parameter name
-     * @param  value   parameter value
-     */
-    public void setParameter( String name, float value ) {
-        setParameter( name, CgiQuery.formatFloat( value ) );
-    }
-
-    /**
-     * Returns the current parameter map.  This may be manipulated directly.
-     *
-     * @return  live parameter map
-     */
-    public Map<String,String> getParameterMap() {
-        return paramMap_;
-    }
-
-    /**
-     * Returns the base URL for the UWS service (the job list URL).
-     *
-     * @return  job list URL
-     */
-    public String getJobListUrl() {
-        return jobListUrl_;
+    public UwsJob( URL jobUrl, Map<String,String> paramMap ) {
+        this( jobUrl );
+        setParameters( paramMap );
     }
 
     /**
      * Returns the URL for this job.  This will normally be a child of the
-     * job list URL, and contains a representation of the job state.
+     * job list URL, and contains a representation of the job state,
+     * as well as providing the base URL for further access to the job.
      *
      * @return   job URL
      */
     public URL getJobUrl() {
         return jobUrl_;
+    }
+
+    /**
+     * Returns the currently stored parameter map.  This may be null if
+     * parameters are not known.
+     * Use the {@link #readParameters} method to update the return value
+     * of this method by reading the parameters from the server.
+     * 
+     * @return   name->value map of parameters
+     * @see   #readParameters
+     */
+    public Map<String,String> getParameters() {
+        return paramMap_;
+    }
+
+    /**
+     * Sets the currently known parameter map for this job to a given value.
+     * Invoked at construction time or by {@link #readParameters},
+     * not usually otherwise.
+     *
+     * @param  paramMap  name->value map of parameters
+     */
+    protected void setParameters( Map<String,String> paramMap ) {
+        paramMap_ = paramMap == null
+            ? null
+            : Collections.unmodifiableMap( new LinkedHashMap( paramMap ) );
+    }
+
+    /**
+     * Reads the job parameters from the UWS server record for this job.
+     *
+     * @see  #getParameters
+     */
+    public void readParameters() throws IOException {
+        String paramsUrl = jobUrl_ + "/parameters";
+        logger_.info( "Read job parameters from " + paramsUrl );
+        try {
+            Document paramDoc =
+                DocumentBuilderFactory.newInstance()
+                                      .newDocumentBuilder()
+                                      .parse( paramsUrl );
+            NodeList els = paramDoc.getElementsByTagName( "*" );
+            Map<String,String> paramMap = new LinkedHashMap();
+            for ( int i = 0; i < els.getLength(); i++ ) {
+                Element el = (Element) els.item( i );
+                String tagName = el.getTagName();
+                if ( tagName.equals( "parameter" ) ||
+                     tagName.endsWith( ":parameter" ) ) {
+                    String key = el.getAttribute( "id" );
+                    String value = DOMUtils.getTextContent( el );
+                    if ( key != null && value != null ) {
+                        paramMap.put( key, value );
+                    }
+                }
+            }
+            setParameters( paramMap );
+        }
+        catch ( ParserConfigurationException e ) {
+            throw (IOException) new IOException( "XML parse trouble" )
+                               .initCause( e );
+        }
+        catch ( SAXException e ) {
+            throw (IOException) new IOException( "XML parse trouble" )
+                               .initCause( e );
+        }
     }
 
     /**
@@ -153,45 +160,11 @@ public class UwsJob {
     }
 
     /**
-     * Creates this job within UWS.  The current parameter set is posted
-     * and a job URL is assigned.  No phase is posted.
-     * The phase following this method is expected to be PENDING.
-     *
-     * @throws  IllegalArgumentException  if creation has already occurred
-     * @throws  UnexpectedResponseException  if a non-303 response was received
-     */
-    public void postCreate() throws IOException {
-        synchronized ( this ) {
-            if ( created_ ) {
-                throw new IllegalStateException( "Job already created" );
-            }
-            created_ = true;
-        }
-        HttpURLConnection hconn = postForm( jobListUrl_, paramMap_ );
-        int code = hconn.getResponseCode();
-        if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
-            String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
-                       + " (" + hconn.getResponseCode() + " "
-                       + hconn.getResponseMessage() + ")";
-            throw new UnexpectedResponseException( msg, hconn );
-        }
-        String location = hconn.getHeaderField( "Location" );
-        if ( location == null ) {
-            throw new IOException( "No Location field in 303 response" );
-        }
-        logger_.info( "UWS job at: " + location );
-        jobUrl_ = new URL( location );
-    }
-
-    /**
      * Posts a phase for this job.
-     * The job must have been created first.
      *
      * @param  phase  UWS job phase to assign
      */
     public void postPhase( String phase ) throws IOException {
-        Map paramMap = new HashMap();
-        paramMap.put( "PHASE", phase );
         HttpURLConnection hconn =
             postForm( jobUrl_ + "/phase", "PHASE", phase );
         int code = hconn.getResponseCode();
@@ -202,7 +175,7 @@ public class UwsJob {
     }
 
     /**
-     * Creates, runs this job and blocks until it has completed with
+     * Starts running this job and blocks until it has completed with
      * a success or error code.  This convenience method is a one-stop-shop
      * for running a UWS job.
      *
@@ -213,26 +186,28 @@ public class UwsJob {
      */
     public String runToCompletion( final long poll )
             throws IOException, InterruptedException {
-        postCreate();
         postPhase( "RUN" );
         Object lock = new Object();
         synchronized ( lock ) {
-            while ( ! isCompletionPhase( readPhase() ) ) {
-                lock.wait( poll );
+            while ( ! isCompletionPhase( phase_ ) ) {
+                readPhase();
+                if ( ! isCompletionPhase( phase_ ) ) {
+                    lock.wait( poll );
+                }
             }
         }
         return phase_;
     }
 
     /**
-     * Reads the current UWS phase for this job from the server.
-     * The {@link #getLastPhase lastPhase} and associated
-     * {@link #getLastPhaseTime lastPhaseTime} are also set.
-     *
-     * @return   current phase
+     * Reads the current UWS phase for this job from the server
+     * and stores the result.  The result is available from the
+     * {@link #getLastPhase} method, and the associated
+     * {@link #getLastPhaseTime getLastPhaseTime} value is also set.
      */
-    public String readPhase() throws IOException {
+    public void readPhase() throws IOException {
         URL phaseUrl = new URL( jobUrl_ + "/phase" );
+        logger_.info( "Read job phase from " + phaseUrl );
         InputStream in = new BufferedInputStream( phaseUrl.openStream() );
         StringBuffer sbuf = new StringBuffer();
         for ( int c; ( c = in.read() ) >= 0; ) {
@@ -242,7 +217,6 @@ public class UwsJob {
         String phase = sbuf.toString();
         phase_ = phase;
         phaseTime_ = System.currentTimeMillis();
-        return phase;
     }
 
     /**
@@ -279,6 +253,7 @@ public class UwsJob {
         if ( ! ( connection instanceof HttpURLConnection ) ) {
             throw new IOException( "Not an HTTP URL?" );
         }
+        logger_.info( "DELETE " + jobUrl_ );
         HttpURLConnection hconn = (HttpURLConnection) connection;
         hconn.setRequestMethod( "DELETE" );
         hconn.setInstanceFollowRedirects( false );
@@ -286,7 +261,7 @@ public class UwsJob {
 
         /* Read the response code, otherwise the request doesn't seem
          * to take place. */
-        int code = hconn.getResponseCode();  
+        int code = hconn.getResponseCode();
         return hconn;
     }
 
@@ -303,6 +278,35 @@ public class UwsJob {
             || "ERROR".equals( phase )
             || "ABORTED".equals( phase )
             || "HELD".equals( phase );
+    }
+
+    /**
+     * Submits a job to a UWS service and returns a new UwsJob object.
+     * No status is posted.
+     * The phase following this method is expected to be PENDING.
+     *
+     * @param  jobListUrl  base (job list) URL for UWS service
+     * @param  paramMap  name->value map of UWS parameters
+     * @throws  UnexpectedResponseException  if a non-303 response was received
+     * @throws  IOException  if some other IOException occurs
+     */
+    public static UwsJob createJob( String jobListUrl,
+                                    Map<String,String> paramMap )
+            throws IOException {
+        HttpURLConnection hconn = postForm( jobListUrl, paramMap );
+        int code = hconn.getResponseCode();
+        if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
+            String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
+                       + " (" + hconn.getResponseCode() + " "
+                       + hconn.getResponseMessage() + ")";
+            throw new UnexpectedResponseException( msg, hconn );
+        }
+        String location = hconn.getHeaderField( "Location" );
+        if ( location == null ) {
+            throw new IOException( "No Location field in 303 response" );
+        }
+        logger_.info( "Created UWS job at: " + location );
+        return new UwsJob( new URL( location ), paramMap );
     }
 
     /**
@@ -344,6 +348,12 @@ public class UwsJob {
                                   Integer.toString( postBytes.length ) );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
+        logger_.info( "POST to " + url );
+        logger_.config( "POST content: "
+                              + ( postBytes.length < 200 
+                                    ? new String( postBytes, "utf-8" )
+                                    : new String( postBytes, 0, 200, "utf-8" )
+                                      + "..." ) );
         hconn.connect();
         OutputStream hout = hconn.getOutputStream();
         hout.write( postBytes );
