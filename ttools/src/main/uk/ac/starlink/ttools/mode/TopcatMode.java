@@ -17,10 +17,8 @@ import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.ResourceHandler;
-import org.astrogrid.samp.hub.BasicHubService;
-import org.astrogrid.samp.xmlrpc.HubMode;
-import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
+import org.astrogrid.samp.hub.Hub;
+import org.astrogrid.samp.hub.HubServiceMode;
 import org.votech.plastic.PlasticHubListener;
 import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.table.StarTable;
@@ -212,9 +210,7 @@ public class TopcatMode implements ProcessingMode {
     private void sampHubDisplay( StarTable table ) throws IOException {
 
         /* Start a hub. */
-        XmlRpcKit xmlrpc = XmlRpcKit.getInstance();
-        HubRunner runner =
-            HubRunner.runHub( HubMode.NO_GUI, XmlRpcKit.getInstance() );
+        Hub hub = Hub.runHub( HubServiceMode.NO_GUI );
 
         /* Register with it. */
         HubConnection connection =
@@ -258,7 +254,7 @@ public class TopcatMode implements ProcessingMode {
 
         /* Tidy up. */
         connection.unregister();
-        runner.shutdown();
+        hub.shutdown();
         httpd.stop();
     }
 
