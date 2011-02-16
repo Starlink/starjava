@@ -47,6 +47,7 @@
   <!ENTITY sqlclient-summary SYSTEM 'sqlclient-summary.xml'>
   <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
   <!ENTITY sqlupdate-summary SYSTEM 'sqlupdate-summary.xml'>
+  <!ENTITY tapquery-summary SYSTEM 'tapquery-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
@@ -207,8 +208,9 @@ same ground as the STIL and TOPCAT user documents
     </p></dd>
 <dt>Virtual Observatory access</dt>
 <dd><p>
-    <ref id="regquery"><code>regquery</code></ref> and
-    <ref id="coneskymatch"><code>coneskymatch</code></ref>.
+    <ref id="coneskymatch"><code>coneskymatch</code></ref>,
+    <ref id="tapquery"><code>tapquery</code></ref> and
+    <ref id="regquery"><code>regquery</code></ref>.
     </p></dd>
 <dt>SQL databases</dt>
 <dd><p>
@@ -434,6 +436,7 @@ the available tasks are:
 <li><code>sqlclient</code></li>
 <li><code>sqlskymatch</code></li>
 <li><code>sqlupdate</code></li>
+<li><code>tapquery</code></li>
 <li><code>tcat</code></li>
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
@@ -1743,7 +1746,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
            <ref id="coneskymatch"><code>coneskymatch</code></ref>,
-           <ref id="sqlskymatch"><code>sqlskymatch</code></ref> and
+           <ref id="sqlskymatch"><code>sqlskymatch</code></ref>,
+           <ref id="tapquery"><code>tapquery</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
@@ -3758,12 +3762,15 @@ Detailed descriptions and examples for each command can be found in
 <dt>Virtual Observatory service access:</dt>
 <dd><p>
     <ul>
-    <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
-        &regquery-purpose;
-        </li>
     <li><ref id="coneskymatch"
              plaintextref="yes"><code>coneskymatch</code></ref>:
         &coneskymatch-purpose;
+        </li>
+    <li><ref id="tapquery" plaintextref="yes"><code>tapquery</code></ref>:
+        &tapquery-purpose;
+        </li>
+    <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
+        &regquery-purpose;
         </li>
     </ul>
     </p></dd>
@@ -4650,6 +4657,37 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
     database RADIO, using HTM pixel indices based on the existing 
     right ascension and declination columns in that table.
     The HTMID column must exist prior to executing this command.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="tapquery" tocleaf="yes">
+<subhead><title><code>tapquery</code>: &tapquery-purpose;</title></subhead>
+
+<p><code>tapquery</code> can query Table Access Protocol services.
+TAP is a Virtual Observatory protocol.
+</p>
+
+&tapquery-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tapquery</code>:
+<dl>
+
+<dt><verbatim>
+stilts tapquery tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
+                adql='SELECT TOP 1000 * FROM ppmxl.main'
+                out=ppmxl.fits
+</verbatim></dt>
+<dd><p>Executes the given ADQL/S query on the service referenced by the URL
+    and writes the result to a FITS file.
     </p></dd>
 
 </dl>
@@ -7403,6 +7441,7 @@ but my thanks are especially due to the following:
         BigInteger/BigDecimal types to Long/Double.  
         The PostgreSQL JDBC driver seems to use the Big* types routinely 
         for numeric values (which I don't think it used to do).</li>
+    <li>Add <ref id="tapquery"><code>tapquery</code></ref> command.</li>
     </ul>
     </p></dd>
 
