@@ -137,7 +137,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                     throws IOException {
                 StarTable st;
                 try {
-                    st = query.execute( tfact, 4000 );
+                    st = query.execute( tfact, 4000, false );
                 }
                 catch ( InterruptedException e ) {
                     throw (IOException)

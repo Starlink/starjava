@@ -66,8 +66,11 @@ public class TapQuery {
      *
      * @param   tfact  table factory for table creation from result document
      * @param   poll   polling interval in milliseconds 
+     * @param   delete  true iff job is to be deleted after table is obtained
+     * @return  result table
      */
-    public StarTable execute( StarTableFactory tfact, long poll )
+    public StarTable execute( StarTableFactory tfact, long poll,
+                              boolean delete )
             throws IOException, InterruptedException {
         try {
             String phase = uwsJob_.runToCompletion( poll );
@@ -128,7 +131,7 @@ public class TapQuery {
         }
         finally {
             URL jobUrl = uwsJob_.getJobUrl();
-            if ( jobUrl != null ) {
+            if ( jobUrl != null && delete ) {
                 final String jobId = String.valueOf( jobUrl );
                 new Thread( "UWS Job deletion" ) {
                     public void run() {
