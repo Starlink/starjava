@@ -196,15 +196,16 @@ public abstract class DalTableLoadDialog
      * throws an informative RuntimeException if it is not.
      *
      * @param  url   string to test for URL-ness
+     * @return  the url as URL if correct, never null
      */
-    public void checkUrl( String url ) {
+    public URL checkUrl( String url ) {
         if ( url == null || url.trim().length() == 0 ) {
             throw new IllegalArgumentException( "No " + name_
                                               + " service selected" );
         }
         else {
             try {
-                new URL( url );
+                return new URL( url );
             }
             catch ( MalformedURLException e ) {
                 throw new IllegalArgumentException( "Bad " + name_
