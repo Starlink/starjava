@@ -3,7 +3,7 @@ package uk.ac.starlink.vo;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * Enum for categorising the stage of UWS processing.
@@ -38,7 +38,8 @@ public enum UwsStage {
      */
     private UwsStage( String[] phases ) {
         phaseList_ = Collections
-                    .unmodifiableSet( new HashSet( Arrays.asList( phases ) ) );
+                    .unmodifiableSet( new LinkedHashSet( Arrays
+                                                        .asList( phases ) ) );
     }
 
     /**
@@ -64,6 +65,6 @@ public enum UwsStage {
                 return stages[ i ];
             }
         }
-        return null;
+        return ILLEGAL;
     }
 }
