@@ -207,7 +207,6 @@ public class UwsJob {
      */
     public void readPhase() throws IOException {
         URL phaseUrl = new URL( jobUrl_ + "/phase" );
-        logger_.info( "Read job phase from " + phaseUrl );
         InputStream in = new BufferedInputStream( phaseUrl.openStream() );
         StringBuffer sbuf = new StringBuffer();
         for ( int c; ( c = in.read() ) >= 0; ) {
@@ -215,6 +214,7 @@ public class UwsJob {
         }
         in.close();
         String phase = sbuf.toString();
+        logger_.info( phaseUrl + " phase: " + phase );
         phase_ = phase;
         phaseTime_ = System.currentTimeMillis();
     }
