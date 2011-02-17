@@ -27,7 +27,7 @@ import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Query using the Table Access Protocol.
- * The work is done by a {@link UwsJob} instance.
+ * This class is a TAP-aware decorator for {@link UwsJob}.
  *
  * @see <a href="http://www.ivoa.net/Documents/TAP/">IVOA TAP Recommendation</a>
  */
@@ -41,26 +41,10 @@ public class TapQuery {
     /**
      * Constructor.
      *
-     * @param  serviceUrl  base URL for TAP service (without "/async")
-     * @param  paramMap   parameters to pass for TAP request
+     * @param  uwsJob  UWS job doing the work for this TAP query
      */
-    public TapQuery( URL serviceUrl, Map<String,String> paramMap )
-            throws IOException {
-        try {
-            uwsJob_ = UwsJob.createJob( serviceUrl + "/async", paramMap );
-        }
-        catch ( UwsJob.UnexpectedResponseException e ) {
-            String errMsg = null;
-            try {
-                errMsg = readErrorInfo( e.getConnection().getInputStream() );
-            }
-            catch ( IOException e2 ) {
-            }
-            if ( errMsg == null || errMsg.length() == 0 ) {
-                errMsg = e.getMessage();
-            }
-            throw (IOException) new IOException( errMsg ).initCause( e );
-        }
+    public TapQuery( UwsJob uwsJob ) {
+        uwsJob_ = uwsJob;
     }
 
     /**
@@ -229,7 +213,23 @@ public class TapQuery {
         tapMap.put( "REQUEST", "doQuery" );
         tapMap.put( "LANG", "ADQL" );
         tapMap.put( "QUERY", adql );
-        return new TapQuery( serviceUrl, tapMap );
+        UwsJob uwsJob;
+        try {
+            uwsJob = UwsJob.createJob( serviceUrl + "/async", tapMap );
+        }
+        catch ( UwsJob.UnexpectedResponseException e ) {
+            String errMsg = null;
+            try {
+                errMsg = readErrorInfo( e.getConnection().getInputStream() );
+            }
+            catch ( IOException e2 ) {
+            }
+            if ( errMsg == null || errMsg.length() == 0 ) {
+                errMsg = e.getMessage();
+            }
+            throw (IOException) new IOException( errMsg ).initCause( e );
+        }
+        return new TapQuery( uwsJob );
     }
 
     /**
