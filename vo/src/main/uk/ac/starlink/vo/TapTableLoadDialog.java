@@ -132,9 +132,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 TapQuery query = TapQuery.createAdqlQuery( serviceUrl, adql );
+                query.start();
                 StarTable st;
                 try {
-                    st = query.execute( tfact, 4000, false );
+                    st = query.waitForResult( tfact, 4000, false );
                 }
                 catch ( InterruptedException e ) {
                     throw (IOException)

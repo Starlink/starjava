@@ -57,17 +57,24 @@ public class TapQuery {
     }
 
     /**
-     * Runs the TAP query represented by this object's UWS job, and
-     * returns a table based on the result.  In case of job failure,
-     * an exception will be thrown instead.
+     * Starts the job.
+     */
+    public void start() throws IOException {
+        uwsJob_.start();
+    }
+
+    /**
+     * Blocks until the TAP query represented by this object's UWS job,
+     * has completed, and returns a table based on the result.
+     * In case of job failure, an exception will be thrown instead.
      *
      * @param   tfact  table factory for table creation from result document
      * @param   poll   polling interval in milliseconds 
      * @param   delete  true iff job is to be deleted after table is obtained
      * @return  result table
      */
-    public StarTable execute( StarTableFactory tfact, long poll,
-                              boolean delete )
+    public StarTable waitForResult( StarTableFactory tfact, long poll,
+                                    boolean delete )
             throws IOException, InterruptedException {
         final Thread deleteThread;
         if ( delete ) {
@@ -83,7 +90,8 @@ public class TapQuery {
         }
         URL jobUrl = uwsJob_.getJobUrl();
         try {
-            String phase = uwsJob_.runToCompletion( poll );
+            String phase = uwsJob_.waitForFinish( poll );
+            assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
             if ( "COMPLETED".equals( phase ) ) {
                 URL resultUrl = new URL( jobUrl + "/results/result" );
                 DataSource datsrc = new URLDataSource( resultUrl );
@@ -91,8 +99,7 @@ public class TapQuery {
                 /* Note this does take steps to follow redirects. */
                 return tfact.makeStarTable( datsrc, "votable" );
             }
-            else if ( "ABORTED".equals( phase ) ||
-                      "HELD".equals( phase ) ) {
+            else if ( "ABORTED".equals( phase ) ) {
                 throw new IOException( "TAP query did not complete ("
                                      + phase + ")" );
             }

@@ -175,26 +175,51 @@ public class UwsJob {
     }
 
     /**
-     * Starts running this job and blocks until it has completed with
-     * a success or error code.  This convenience method is a one-stop-shop
-     * for running a UWS job.
+     * Starts the job by posting the RUN phase.
+     *
+     * @throws   UnexpectedResponseException  if HTTP responses other than
+     *           UWS mandated ones occur
+     */
+    public void start() throws IOException {
+        postPhase( "RUN" );
+    }
+
+    /**
+     * Blocks until the job has reached a completion phase.
+     * It is polled at the given interval.
      *
      * @param   poll   polling time in milliseconds to assess job completion
      * @return   final phase
      * @throws   UnexpectedResponseException  if HTTP responses other than
      *           UWS mandated ones occur
      */
-    public String runToCompletion( final long poll )
+    public String waitForFinish( final long poll )
             throws IOException, InterruptedException {
-        postPhase( "RUN" );
-        Object lock = new Object();
-        synchronized ( lock ) {
-            while ( ! isCompletionPhase( phase_ ) ) {
-                readPhase();
-                if ( ! isCompletionPhase( phase_ ) ) {
-                    lock.wait( poll );
-                }
+        if ( phase_ == null ) {
+            readPhase();
+        }
+        while ( UwsStage.forPhase( phase_ ) != UwsStage.FINISHED ) {
+            String phase = phase_;
+            UwsStage stage = UwsStage.forPhase( phase );
+            switch ( stage ) {
+                case UNSTARTED:
+                    throw new IOException( "Job not started"
+                                         + " - phase: " + phase );
+                case UNKNOWN:
+                    logger_.warning( "Unknown UWS phase " + phase );
+                    // fall through
+                case RUNNING:
+                    Thread.sleep( poll );
+                    break;
+                case FINISHED:
+                    return phase;
+                case ILLEGAL:
+                    throw new IOException( "Illegal UWS job phase: " + phase );
+                default:
+                    throw new AssertionError();
             }
+            assert stage == UwsStage.UNKNOWN || stage == UwsStage.RUNNING;
+            readPhase();
         }
         return phase_;
     }
@@ -263,21 +288,6 @@ public class UwsJob {
          * to take place. */
         int code = hconn.getResponseCode();
         return hconn;
-    }
-
-    /**
-     * Convenience method to assess whether a UWS phase is a completion phase.
-     * A completion phase is defined as one which will not change further
-     * without some stimulus from the client.
-     *
-     * @param   phase  phase text
-     * @return   true iff <code>phase</code> is final
-     */
-    public static boolean isCompletionPhase( String phase ) {
-        return "COMPLETED".equals( phase )
-            || "ERROR".equals( phase )
-            || "ABORTED".equals( phase )
-            || "HELD".equals( phase );
     }
 
     /**
