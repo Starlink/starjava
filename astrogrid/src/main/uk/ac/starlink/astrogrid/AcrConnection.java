@@ -9,7 +9,6 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
@@ -44,7 +43,6 @@ public class AcrConnection extends Connection {
 
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.astrogrid" );
-    private static final Method CHUNK_METHOD = getChunkMethod();
 
     /**
      * Constructor.
@@ -165,14 +163,12 @@ public class AcrConnection extends Connection {
         /* Not working, as far as I can see.  From Noel's comments it 
          * looks like the trouble is at the client end though, so 
          * probably fixable. */
-        if ( CHUNK_METHOD != null ) {
-            try {
-                return getHttpOutputStream( outUri );
-            }
-            catch ( IOException e ) {
-                logger_.warning( "Failed to output using HTTP streaming " +
-                                 "try temporary file: " + e );
-            }
+        try {
+            return getHttpOutputStream( outUri );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Failed to output using HTTP streaming " +
+                             "try temporary file: " + e );
         }
 
         /* If we've got here, we haven't managed an output stream any
@@ -213,19 +209,10 @@ public class AcrConnection extends Connection {
         httpConn.setUseCaches( false );
         httpConn.setRequestMethod( "PUT" );
 
-        /* Attempt to configure for a streamed write.  This is only 
-         * available at Java 1.5 and above. */
-        try {
-            CHUNK_METHOD.invoke( httpConn,
-                                 new Object[] { new Integer( HTTP_CHUNK ), } );
-            logger_.config( "Streaming with chunk size " + HTTP_CHUNK 
-                          + "to remote URL " + url );
-        }
-        catch ( Throwable e ) {
-            logger_.warning( "Streamed write to MySpace failed: " + e );
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
+        /* Configure for a streamed write. */
+        httpConn.setChunkedStreamingMode( HTTP_CHUNK );
+        logger_.config( "Streaming with chunk size " + HTTP_CHUNK 
+                      + "to remote URL " + url );
 
         /* Make the connection and return the result. */
         httpConn.connect();
@@ -319,30 +306,6 @@ public class AcrConnection extends Connection {
                     // never mind.
                 }
             }
-        }
-    }
-
-    /**
-     * Returns the <code>HttpURLConnection.getChunkedStreamingMode(int)</code>
-     * method, obtained by reflection.  Will be null on pre-Java 1.5 JVMs.
-     *
-     * @return   method object
-     */
-    private static Method getChunkMethod() {
-        assert logger_ != null;
-        try {
-            return HttpURLConnection.class
-                  .getMethod( "setChunkedStreamingMode",
-                              new Class[] { int.class } );
-        }
-        catch ( NoSuchMethodException e ) {
-            logger_.info( "No chunked streamed writes to MySpace"
-                        + " - requires J2SE1.5" );
-            return null;
-        }
-        catch ( SecurityException e ) {
-            logger_.info( "No chunked streamed writes to MySpace: " + e );
-            return null;
         }
     }
 }
