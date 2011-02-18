@@ -366,7 +366,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         if ( votableVersion != null &&
              votableVersion.matches( "1.[1-9]" ) ) {
             writer.write( VOSerializer.formatAttribute( "version",
-                                                      votableVersion ) );
+                                                        votableVersion ) );
             if ( doctypeDeclaration == null ||
                  doctypeDeclaration.length() == 0 ) {
                 String votableNamespace = "http://www.ivoa.net/xml/VOTable/v"
@@ -559,6 +559,28 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      */
     public String getDoctypeDeclaration() {
         return doctypeDeclaration;
+    }
+
+    /**
+     * Sets the version attribtion of the VOTABLE element written by
+     * this writer.
+     * Note this does not necessarily change the formatting behaviour
+     * to match the stated version.
+     *
+     * @param   votableVersion  version to declare
+     */
+    public void setVotableVersion( String votableVersion ) {
+        this.votableVersion = votableVersion;
+    }
+
+    /**
+     * Returns the value of the version attribute of the VOTABLE element
+     * written by this writer.
+     *
+     * @return  declared votable version
+     */
+    public String getVotableVersion() {
+        return votableVersion;
     }
 
     /**
