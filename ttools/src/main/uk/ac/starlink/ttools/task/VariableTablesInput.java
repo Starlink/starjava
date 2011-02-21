@@ -30,13 +30,28 @@ public class VariableTablesInput implements TablesInput {
     private final IntegerParameter ninParam_;
     private final boolean useInFilters_;
     private final Parameter[] params_;
+    private final Naming inNaming_;
 
     /**
-     * Constructor.
+     * Constructs an input tables parameter with a default base name.
      *
      * @param   useInFilters  whether to use input filter parameters
      */
     public VariableTablesInput( boolean useInFilters ) {
+        this( useInFilters, "in", "input" );
+    }
+
+    /**
+     * Constructs an input tables parameter with a given base name.
+     *
+     * @param   useInFilters  whether to use input filter parameters
+     * @param   inName  base name for parameter
+     * @param   inWord  base word describing parameter content for textual
+     *                  descriptions
+     */
+    public VariableTablesInput( boolean useInFilters,
+                                final String inName, final String inWord ) {
+        inNaming_ = new Naming() {{pName_ = inName; pWord_ = inWord;}};
         useInFilters_ = useInFilters;
         List<Parameter> paramList = new ArrayList<Parameter>();
 
@@ -47,12 +62,13 @@ public class VariableTablesInput implements TablesInput {
          * execution environment is available, and hence we know how
          * many of them there will be. */
         String numLabel = "N";
-        InputTableParameter inParam = createInputParameter( numLabel );
+        InputTableParameter inParam =
+            createInputParameter( numLabel, inNaming_ );
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam );
         FilterParameter filterParam;
         if ( useInFilters ) {
-            filterParam = getFilterParameter( numLabel );
+            filterParam = getFilterParameter( numLabel, inNaming_ );
             paramList.add( filterParam );
         }
         else {
@@ -73,13 +89,13 @@ public class VariableTablesInput implements TablesInput {
                 .append( "</code>" );
         }
         String inParamListing = sbuf.toString();
-        ninParam_ = new IntegerParameter( "nin" );
+        ninParam_ = new IntegerParameter( "n" + inName );
         ninParam_.setMinimum( 1 );
         ninParam_.setUsage( "<count>" );
-        ninParam_.setPrompt( "Number of input tables" );
+        ninParam_.setPrompt( "Number of " + inWord + " tables" );
         ninParam_.setDescription( new String[] {
-            "<p>The number of input tables for this task.",
-            "For each of the input tables " + numLabel,
+            "<p>The number of " + inWord + " tables for this task.",
+            "For each of the " + inWord + " tables " + numLabel,
             "there will be associated parameters",
             inParamListing + ".",
             "</p>",
@@ -87,6 +103,16 @@ public class VariableTablesInput implements TablesInput {
         paramList.add( 0, ninParam_ );
 
         params_ = paramList.toArray( new Parameter[ 0 ] );
+    }
+
+    /**
+     * Returns the parameter which contains the number of input tables that
+     * the user wants to use.
+     *
+     * @return  count parameter
+     */
+    public IntegerParameter getCountParam() {
+        return ninParam_;
     }
 
     public Parameter[] getParameters() {
@@ -99,11 +125,13 @@ public class VariableTablesInput implements TablesInput {
         InputTableSpec[] inSpecs = new InputTableSpec[ nin ];
         for ( int i = 0; i < nin; i++ ) {
             String label = String.valueOf( i + 1 );
-            InputTableParameter inParam = createInputParameter( label );
+            InputTableParameter inParam =
+                createInputParameter( label, inNaming_ );
             StarTable table = inParam.tableValue( env );
             String tName = inParam.stringValue( env );
             ProcessingStep[] steps =
-                useInFilters_ ? getFilterParameter( label ).stepsValue( env )
+                useInFilters_ ? getFilterParameter( label, inNaming_ )
+                               .stepsValue( env )
                               : null;
             inSpecs[ i ] = InputTableSpec.createSpec( tName, steps, table );
         }
@@ -114,19 +142,24 @@ public class VariableTablesInput implements TablesInput {
      * Constructs an input table parameter with a given distinguishing label.
      *
      * @param  label  input identifier - typically "1", "2", etc
+     * @param  naming  parameter naming policy
      * @return  new input parameter
      */
-    private static InputTableParameter createInputParameter( String label ) {
-        InputTableParameter inParam = new InputTableParameter( "in" + label );
+    private static InputTableParameter
+            createInputParameter( String label, Naming naming ) {
+        InputTableParameter inParam =
+            new InputTableParameter( naming.pName_ + label );
         inParam.setUsage( "<table" + label + ">" );
-        inParam.setPrompt( "Location of input table " + label );
+        inParam.setPrompt( "Location of " + naming.pWord_ + " table " + label );
         inParam.setDescription( inParam.getDescription()
                                .replaceFirst( "the input table",
-                                              "input table #" + label ) );
+                                              naming.pWord_
+                                            + " table #" + label ) );
         InputFormatParameter fmtParam = inParam.getFormatParameter();
         fmtParam.setDescription( fmtParam.getDescription()
                                 .replaceFirst( "the input table",
-                                               "input table #" + label ) );
+                                               naming.pWord_
+                                             + " table #" + label ) );
         return inParam;
     }
 
@@ -134,18 +167,34 @@ public class VariableTablesInput implements TablesInput {
      * Constructs an input filter parameter with a given distinguishing label.
      *
      * @param  label  input identifier - typically "1", "2", etc
+     * @param  naming  parameter naming policy
      * @return  new filter parameter
      */
-    private static FilterParameter getFilterParameter( String label ) {
-        FilterParameter filterParam = new FilterParameter( "icmd" + label );
-        filterParam.setPrompt( "Processing command(s) for input table "
-                             + label );
+    private static FilterParameter getFilterParameter( String label,
+                                                       Naming naming ) {
+        FilterParameter filterParam =
+            new FilterParameter( naming.pName_.charAt( 0 ) + "cmd" + label );
+        filterParam.setPrompt( "Processing command(s) for " + naming.pWord_
+                             + " table " + label );
         filterParam.setDescription( new String[] {
-            "<p>Commands to operate on input table #" + label + ",",
+            "<p>Commands to operate on " + naming.pWord_,
+            "table #" + label + ",",
             "before any other processing takes place.",
             "</p>",
             filterParam.getDescription(),
         } );
         return filterParam;
+    }
+
+    /**
+     * Parameter naming policy.
+     */
+    private static class Naming {
+
+        /** Parameter base name. */
+        String pName_;
+
+        /** Word for describing the parameter content in textual description. */
+        String pWord_;
     }
 }

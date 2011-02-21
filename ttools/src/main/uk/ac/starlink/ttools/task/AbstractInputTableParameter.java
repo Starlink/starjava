@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.OnceRowPipe;
 import uk.ac.starlink.table.RowSequence;
@@ -36,6 +37,7 @@ public abstract class AbstractInputTableParameter extends Parameter {
     private BooleanParameter streamParam_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
+    private static final String[] KNOWN_PREFIXES = { "in", "upload", };
     
     /**
      * Constructor. 
@@ -44,9 +46,16 @@ public abstract class AbstractInputTableParameter extends Parameter {
      */
     protected AbstractInputTableParameter( String name ) {
         super( name );
-        String suffix = name.startsWith( "in" ) ? name.substring( 2 ) : "";
-        formatParam_ = new InputFormatParameter( "ifmt" + suffix );
-        streamParam_ = new BooleanParameter( "istream" + suffix );
+        String suffix = "";
+        for ( String prefix : Arrays.asList( KNOWN_PREFIXES ) ) {
+            if ( name.startsWith( prefix ) ) {
+                suffix = name.substring( prefix.length() );
+                break;
+            }
+        }
+        char labelChar = name.charAt( 0 );
+        formatParam_ = new InputFormatParameter( labelChar + "fmt" + suffix );
+        streamParam_ = new BooleanParameter( labelChar + "stream" + suffix );
         streamParam_.setDefault( false );
 
         setDescription( new String[] {
