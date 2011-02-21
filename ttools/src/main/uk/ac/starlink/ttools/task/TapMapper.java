@@ -38,6 +38,9 @@ public class TapMapper implements TableMapper {
     public TapMapper() {
         List<Parameter> paramList = new ArrayList<Parameter>();
 
+        paramList.add( createUploadNameParameter( VariableTablesInput
+                                                 .NUM_SUFFIX ) );
+
         urlParam_ = new Parameter( "tapurl" );
         urlParam_.setPrompt( "Base URL of TAP service" );
         urlParam_.setDescription( new String[] {
@@ -96,7 +99,7 @@ public class TapMapper implements TableMapper {
         return params_;
     }
 
-    public TableMapping createMapping( Environment env, int nin )
+    public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
         String urlText = urlParam_.stringValue( env );
         final URL url;
@@ -110,6 +113,12 @@ public class TapMapper implements TableMapper {
         final String adql = adqlParam_.stringValue( env );
         final int pollMillis = pollParam_.intValue( env );
         final boolean delete = deleteParam_.booleanValue( env );
+        final String[] upnames = new String[ nup ];
+        for ( int iu = 0; iu < nup; iu++ ) {
+            upnames[ iu ] =
+                createUploadNameParameter( Integer.toString( iu + 1 ) )
+               .stringValue( env );
+        }
         final StarTableFactory tfact =
             LineTableEnvironment.getTableFactory( env );
         return new TableMapping() {
@@ -117,9 +126,8 @@ public class TapMapper implements TableMapper {
                     throws TaskException, IOException {
                 Map<String,StarTable> uploadMap =
                     new LinkedHashMap<String,StarTable>();
-                int nup = inSpecs.length;
-                for ( int iu = 0; iu < nup ;iu++ ) {
-                    uploadMap.put( "up" + ( iu + 1 ),
+                for ( int iu = 0; iu < nup; iu++ ) {
+                    uploadMap.put( upnames[ iu ],
                                    inSpecs[ iu ].getWrappedTable() );
                 }
                 TapQuery query =
@@ -142,5 +150,27 @@ public class TapMapper implements TableMapper {
                 }
             }
         };
+    }
+
+    /**
+     * Returns a parameter for acquiring the label under which one of the
+     * uploaded tables should be presented to the TAP server.
+     *
+     * @param   label  parameter suffix 
+     * @return   upload name parameter
+     */
+    private static Parameter createUploadNameParameter( String label ) {
+        Parameter upnameParam = new Parameter( "upname" + label );
+        upnameParam.setPrompt( "Label for uploaded table #" + label );
+        upnameParam.setUsage( "<label>" );
+        upnameParam.setDescription( new String[] {
+            "<p>Identifier to use in server-side expressions for uploaded",
+            "table #" + label + ".",
+            "In ADQL expressions, the table should be referred to as",
+            "\"<code>TAP_UPLOAD.&lt;label&gt;</code>\".",
+            "</p>",
+        } );
+        upnameParam.setDefault( "up" + label );
+        return upnameParam;
     }
 }
