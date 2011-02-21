@@ -32,7 +32,8 @@ public class JoinMapper implements TableMapper {
     public Parameter[] getParameters() {
         return new Parameter[] {
             fixcolParam_,
-            fixcolParam_.createSuffixParameter( "N" ),
+            fixcolParam_.createSuffixParameter( VariableTablesInput
+                                               .NUM_SUFFIX ),
         };
     }
 

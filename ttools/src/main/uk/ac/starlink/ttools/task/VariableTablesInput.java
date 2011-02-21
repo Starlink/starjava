@@ -33,6 +33,12 @@ public class VariableTablesInput implements TablesInput {
     private final Naming inNaming_;
 
     /**
+     * Suffix applied to parameters to denote a symbolic variable part of
+     * the name, where the symbolic part can take integer values.
+     */
+    public static final String NUM_SUFFIX = "N";
+
+    /**
      * Constructs an input tables parameter with a default base name.
      *
      * @param   useInFilters  whether to use input filter parameters
@@ -61,7 +67,7 @@ public class VariableTablesInput implements TablesInput {
          * getting values is constructed in getInputSpecs() when the
          * execution environment is available, and hence we know how
          * many of them there will be. */
-        String numLabel = "N";
+        String numLabel = NUM_SUFFIX;
         InputTableParameter inParam =
             createInputParameter( numLabel, inNaming_ );
         paramList.add( inParam.getFormatParameter() );
