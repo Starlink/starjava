@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * Query using the Table Access Protocol.
@@ -212,17 +215,48 @@ public class TapQuery {
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
      * @param  adql   text of ADQL query
+     * @param  uploadMap  name->table map of tables to be uploaded to
+     *                    the service for the query
      * @return   new TapQuery
      */
-    public static TapQuery createAdqlQuery( URL serviceUrl, String adql )
+    public static TapQuery createAdqlQuery( URL serviceUrl, String adql,
+                                            Map<String,StarTable> uploadMap )
             throws IOException {
-        Map<String,String> tapMap = new LinkedHashMap<String,String>();
-        tapMap.put( "REQUEST", "doQuery" );
-        tapMap.put( "LANG", "ADQL" );
-        tapMap.put( "QUERY", adql );
+
+        /* Prepare basic TAP ADQL parameters. */
+        Map<String,String> stringMap = new LinkedHashMap<String,String>();
+        stringMap.put( "REQUEST", "doQuery" );
+        stringMap.put( "LANG", "ADQL" );
+        stringMap.put( "QUERY", adql );
+
+        /* Prepare upload parameters (UPLOAD itself and any uploaded tables)
+         * if required. */
+        Map<String,HttpStreamParam> streamMap =
+            new LinkedHashMap<String,HttpStreamParam>();
+        if ( uploadMap != null && ! uploadMap.isEmpty() ) {
+            StringBuffer ubuf = new StringBuffer();
+            for ( Map.Entry<String,StarTable> upload : uploadMap.entrySet() ) {
+                String tname = upload.getKey();
+                String tlabel = toParamLabel( tname );
+                StarTable table = upload.getValue();
+                if ( ubuf.length() != 0 ) {
+                    ubuf.append( ';' );
+                }
+                ubuf.append( tname )
+                    .append( ',' )
+                    .append( "param:" )
+                    .append( tlabel );
+                streamMap.put( tlabel,
+                               new UploadStreamParam( upload.getValue() ) );
+            }
+            stringMap.put( "UPLOAD", ubuf.toString() );
+        }
+
+        /* Attempt to create a UWS job corresponding to the query. */
         UwsJob uwsJob;
         try {
-            uwsJob = UwsJob.createJob( serviceUrl + "/async", tapMap );
+            uwsJob = UwsJob.createJob( serviceUrl + "/async",
+                                       stringMap, streamMap );
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
             String errMsg = null;
@@ -276,6 +310,48 @@ public class TapQuery {
         catch ( XPathException e ) {
             throw (IOException) new IOException( "Error doc parse failure" )
                                .initCause( e );
+        }
+    }
+
+    /**
+     * Returns a label to be used for identifying a table which has been
+     * assigned a given name.  This function could return the input string,
+     * but doesn't just to make it clearer what's going on with the POSTed
+     * parameters.
+     *
+     * @param   assigned table name
+     * @return  label for identifying table in posted query
+     */
+    private static String toParamLabel( String tname ) {
+        return "upload_" + tname.replaceAll( "[^a-zA-Z0-9]", "" );
+    }
+
+    /**
+     * HttpStreamParam implementation for uploading tables.
+     */
+    private static class UploadStreamParam implements HttpStreamParam {
+        private final StarTable table_;
+
+        /**
+         * Constructor.
+         *
+         * @param   table  table to upload
+         */
+        public UploadStreamParam( StarTable table ) {
+            table_ = table;
+        }
+
+        public Map<String,String> getHttpHeaders() {
+            Map<String,String> map = new LinkedHashMap<String,String>();
+            map.put( "Content-Type", "application/x-votable+xml" );
+            return map;
+        }
+
+        public void writeContent( OutputStream out ) throws IOException {
+            VOTableWriter vowriter =
+                new VOTableWriter( DataFormat.TABLEDATA, true );
+            vowriter.setVotableVersion( "1.2" );
+            vowriter.writeStarTable( table_, out );
         }
     }
 }

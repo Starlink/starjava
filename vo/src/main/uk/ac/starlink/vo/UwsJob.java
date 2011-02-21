@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,18 +48,6 @@ public class UwsJob {
      */
     public UwsJob( URL jobUrl ) {
         jobUrl_ = jobUrl;
-    }
-
-    /**
-     * Constructs a UwsJob with information about the submission parameters.
-     *
-     * @param   jobUrl  the UWS {jobs}/(job-id) URL containing 
-     *                  the details of this job
-     * @param  paramMap  UWS parameters submitted to create this job
-     */
-    public UwsJob( URL jobUrl, Map<String,String> paramMap ) {
-        this( jobUrl );
-        setParameters( paramMap );
     }
 
     /**
@@ -166,7 +155,7 @@ public class UwsJob {
      */
     public void postPhase( String phase ) throws IOException {
         HttpURLConnection hconn =
-            postForm( jobUrl_ + "/phase", "PHASE", phase );
+            postForm( new URL( jobUrl_ + "/phase" ), "PHASE", phase );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {
             throw new IOException( "Non-303 response: " + code + " " +
@@ -274,12 +263,8 @@ public class UwsJob {
      *           the response code etc
      */
     public HttpURLConnection postDelete() throws IOException {
-        URLConnection connection = jobUrl_.openConnection();
-        if ( ! ( connection instanceof HttpURLConnection ) ) {
-            throw new IOException( "Not an HTTP URL?" );
-        }
+        HttpURLConnection hconn = openHttpConnection( jobUrl_ );
         logger_.info( "DELETE " + jobUrl_ );
-        HttpURLConnection hconn = (HttpURLConnection) connection;
         hconn.setRequestMethod( "DELETE" );
         hconn.setInstanceFollowRedirects( false );
         hconn.connect();
@@ -296,14 +281,18 @@ public class UwsJob {
      * The phase following this method is expected to be PENDING.
      *
      * @param  jobListUrl  base (job list) URL for UWS service
-     * @param  paramMap  name->value map of UWS parameters
+     * @param  stringParamMap  map of text parameters
+     * @param  streamParamMap  map of streamed parameters
+     * @return   new UWS job
      * @throws  UnexpectedResponseException  if a non-303 response was received
      * @throws  IOException  if some other IOException occurs
      */
     public static UwsJob createJob( String jobListUrl,
-                                    Map<String,String> paramMap )
+                                    Map<String,String> stringParamMap,
+                                    Map<String,HttpStreamParam> streamParamMap )
             throws IOException {
-        HttpURLConnection hconn = postForm( jobListUrl, paramMap );
+        HttpURLConnection hconn =
+            postForm( new URL( jobListUrl ), stringParamMap, streamParamMap );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
             String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
@@ -316,46 +305,64 @@ public class UwsJob {
             throw new IOException( "No Location field in 303 response" );
         }
         logger_.info( "Created UWS job at: " + location );
-        return new UwsJob( new URL( location ), paramMap );
+        return new UwsJob( new URL( location ) );
     }
 
     /**
      * Performs an HTTP form POST with a single name, value pair.
-     * This convenience method invokes {@link #postForm}.
+     * This convenience method invokes {@link #postUnipartForm}.
      *
      * @param   url   destination URL
      * @param   name   parameter name
      * @param   value  parameter value
+     * @return   URL connection corresponding to the completed POST
      */
-    private static HttpURLConnection postForm( String url, String name,
+    private static HttpURLConnection postForm( URL url, String name,
                                                String value )
             throws IOException {
-        Map paramMap = new HashMap();
+        Map<String,String> paramMap = new HashMap<String,String>();
         paramMap.put( name, value );
-        return postForm( url, paramMap );
+        return postUnipartForm( url, paramMap );
     }
 
     /**
-     * Performs an HTTP form POST with a name-&gt;value map of parameters.
+     * General form posting method.
+     * It can take zero or more string parameters and zero or more stream
+     * parameters, and posts them in an appropriate way.
+     *
+     * @param   url   destination URL
+     * @param   stringMap  name->value map for POST parameters;
+     *          values will be URL encoded as required
+     * @param   streamMap  name->parameter map for POST parameters
+     * @return   URL connection corresponding to the completed POST
+     */
+    private static HttpURLConnection
+                   postForm( URL url, Map<String,String> stringMap,
+                             Map<String,HttpStreamParam> streamMap )
+            throws IOException {
+        return ( streamMap == null || streamMap.isEmpty() )
+             ? postUnipartForm( url, stringMap )
+             : postMultipartForm( url, stringMap, streamMap, null );
+    }
+
+    /**
+     * Performs an HTTP form POST with a name->value map of parameters.
      * They are posted with MIME type "application/x-www-form-urlencoded".
      *
      * @param   url  destination URL
-     * @param   paramMap   name, value map of parameters
+     * @param   paramMap   name->value map of parameters; values will be
+     *          encoded as required
+     * @return   URL connection corresponding to the completed POST
      */
-    private static HttpURLConnection postForm( String url,
-                                               Map<String,String> paramMap )
+    private static HttpURLConnection
+                   postUnipartForm( URL url, Map<String,String> paramMap )
             throws IOException {
-        URLConnection connection = new URL( url ).openConnection();
-        if ( ! ( connection instanceof HttpURLConnection ) ) {
-            throw new IOException( "Not an HTTP URL?" );
-        }
-        HttpURLConnection hconn = (HttpURLConnection) connection;
+        HttpURLConnection hconn = openHttpConnection( url );
         byte[] postBytes = toPostedBytes( paramMap );
         hconn.setRequestMethod( "POST" );
         hconn.setRequestProperty( "Content-Type",
                                   "application/x-www-form-urlencoded" );
-        hconn.setRequestProperty( "Content-Length",
-                                  Integer.toString( postBytes.length ) );
+        hconn.setFixedLengthStreamingMode( postBytes.length );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
         logger_.info( "POST to " + url );
@@ -372,10 +379,99 @@ public class UwsJob {
     }
 
     /**
-     * Encodes a name-&gt;value mapping as an array of bytes suitable for
+     * Performs an HTTP form POST with a name->value map and a name->stream
+     * map of parameters.  The form is written in multipart/form-data format.
+     *
+     * @param   stringMap   name->value map of parameters
+     * @param   streamMap   name->stream map of parameters
+     * @param  boundary  multipart boundary; if null a default value is used
+     * @return   URL connection corresponding to the completed POST
+     * @see    <a href="http://www.ietf.org/rfc/rfc2046.txt>RFC 2046</a>
+     */
+    private static HttpURLConnection
+                   postMultipartForm( URL url, Map<String,String> stringMap,
+                                      Map<String,HttpStreamParam> streamMap,
+                                      String boundary )
+            throws IOException {
+        if ( boundary == null ) {
+            boundary = "<<<--------------MULTIPART-BOUNDARY------->>>";
+        }
+
+        /* Prepare for multipart/form-data output. */
+        HttpURLConnection hconn = openHttpConnection( url );
+        hconn.setRequestMethod( "POST" );
+        hconn.setRequestProperty( "Content-Type",
+                                  "multipart/form-data"
+                                + "; boundary=\"" + boundary + "\"" );
+        hconn.setInstanceFollowRedirects( false );
+        hconn.setDoOutput( true );
+        logger_.info( "POST params to " + url );
+
+        /* Open and buffer stream for POST content. */
+        hconn.connect();
+        OutputStream hout = new BufferedOutputStream( hconn.getOutputStream() );
+
+        /* Write string parameters. */
+        for ( Map.Entry<String,String> entry : stringMap.entrySet() ) {
+            String pName = entry.getKey();
+            String pValue = entry.getValue();
+            logger_.config( "POST " + pName + "=" + pValue );
+            writeHttpLine( hout, "--" + boundary );
+            writeHttpLine( hout, "Content-Disposition: form-data; "
+                               + "name=\"" + pName + "\"" );
+            writeHttpLine( hout, "" ); 
+            writeHttpLine( hout, pValue );
+        }
+
+        /* Write stream parameters. */
+        for ( Map.Entry<String,HttpStreamParam> entry : streamMap.entrySet() ) {
+            String pName = entry.getKey();
+            HttpStreamParam pStreamer = entry.getValue();
+            logger_.config( "POST " + pName + " (streamed data)" );
+            writeHttpLine( hout, "--" + boundary );
+            writeHttpLine( hout, "Content-Disposition: form-data"
+                               + "; name=\"" + pName + "\"" 
+                               + "; filename=\"" + pName + "\"" );
+            for ( Map.Entry<String,String> header :
+                  pStreamer.getHttpHeaders().entrySet() ) {
+                writeHttpLine( hout,
+                               header.getKey() + ": " + header.getValue() );
+                writeHttpLine( hout, "" ); 
+            }
+            pStreamer.writeContent( hout );
+        }
+
+        /* Write trailing delimiter. */
+        writeHttpLine( hout, "--" + boundary + "--" );
+        hout.close();
+        return hconn;
+    }
+
+    /**
+     * Opens a URL connection as an HttpURLConnection.
+     * If the connection is not HTTP, an IOException is thrown.
+     *
+     * @param   url   URL
+     * @return   typed connection
+     */
+    private static HttpURLConnection openHttpConnection( URL url )
+            throws IOException {
+        URLConnection connection = url.openConnection();
+        try {
+            return (HttpURLConnection) connection;
+        }
+        catch ( ClassCastException e ) {
+            throw (IOException) new IOException( "Not an HTTP URL? " + url )
+                               .initCause( e );
+        }
+    }
+
+    /**
+     * Encodes a name->value mapping as an array of bytes suitable for
      * "application/x-www-form-urlencoded" transmission.
      *
      * @param   paramMap  name-&gt;value mapping
+     * @return   byte array suitable for POSTing
      */
     private static byte[] toPostedBytes( Map<String,String> paramMap ) {
         String utf8 = "UTF-8";
@@ -401,6 +497,30 @@ public class UwsJob {
             bbuf[ i ] = (byte) sbuf.charAt( i );
         }
         return bbuf;
+    }
+
+    /**
+     * Writes a line to an HTTP connection.
+     * The correct line terminator (CRLF) is added.
+     *
+     * @param  out  output stream
+     * @param   line  line of text
+     */
+    private static void writeHttpLine( OutputStream out, String line )
+            throws IOException {
+        int leng = line.length();
+        byte[] buf = new byte[ leng + 2 ];
+        for ( int i = 0; i < leng; i++ ) {
+            int c = line.charAt( i );
+            if ( c < 32 || c > 126 ) {
+                throw new IOException( "Bad character for HTTP "
+                                     + "0x" + Integer.toHexString( c ) );
+            }
+            buf[ i ] = (byte) c;
+        }
+        buf[ leng + 0 ] = (byte) '\r';
+        buf[ leng + 1 ] = (byte) '\n';
+        out.write( buf );
     }
 
     /**

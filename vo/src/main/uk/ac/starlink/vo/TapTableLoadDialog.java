@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
@@ -131,7 +132,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
-                TapQuery query = TapQuery.createAdqlQuery( serviceUrl, adql );
+                Map<String,StarTable> uploadMap =
+                    new LinkedHashMap<String,StarTable>();
+                TapQuery query =
+                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap );
                 query.start();
                 StarTable st;
                 try {
