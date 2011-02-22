@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,6 +16,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
@@ -39,6 +42,7 @@ public class UwsJob {
     private volatile long phaseTime_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
+    private static final String UTF8 = "UTF-8";
 
     /**
      * Constructor.
@@ -381,12 +385,12 @@ public class UwsJob {
     /**
      * Performs an HTTP form POST with a name->value map and a name->stream
      * map of parameters.  The form is written in multipart/form-data format.
+     * See <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a> Sec 5.1.
      *
      * @param   stringMap   name->value map of parameters
      * @param   streamMap   name->stream map of parameters
      * @param  boundary  multipart boundary; if null a default value is used
      * @return   URL connection corresponding to the completed POST
-     * @see    <a href="http://www.ietf.org/rfc/rfc2046.txt>RFC 2046</a>
      */
     private static HttpURLConnection
                    postMultipartForm( URL url, Map<String,String> stringMap,
@@ -395,6 +399,10 @@ public class UwsJob {
             throws IOException {
         if ( boundary == null ) {
             boundary = "<<<--------------MULTIPART-BOUNDARY------->>>";
+        }
+        if ( boundary.length() > 70 ) {
+            throw new IllegalArgumentException( "Boundary >70 chars"
+                                              + " (see RFC 2046 sec 5.1.1)" );
         }
 
         /* Prepare for multipart/form-data output. */
@@ -411,19 +419,21 @@ public class UwsJob {
         hconn.connect();
         OutputStream hout = new BufferedOutputStream( hconn.getOutputStream() );
 
-        /* Write string parameters. */
+        /* Write string parameters.  See RFC 2046 Sec 4.1. */
         for ( Map.Entry<String,String> entry : stringMap.entrySet() ) {
             String pName = entry.getKey();
             String pValue = entry.getValue();
             logger_.config( "POST " + pName + "=" + pValue );
             writeHttpLine( hout, "--" + boundary );
+            writeHttpLine( hout, "Content-Type: text/plain; charset=" + UTF8 );
             writeHttpLine( hout, "Content-Disposition: form-data; "
                                + "name=\"" + pName + "\"" );
             writeHttpLine( hout, "" ); 
-            writeHttpLine( hout, pValue );
+            hout.write( toTextPlain( pValue, UTF8 ) );
+            writeHttpLine( hout, "" );
         }
 
-        /* Write stream parameters. */
+        /* Write stream parameters.  See RFC 2388. */
         for ( Map.Entry<String,HttpStreamParam> entry : streamMap.entrySet() ) {
             String pName = entry.getKey();
             HttpStreamParam pStreamer = entry.getValue();
@@ -473,20 +483,19 @@ public class UwsJob {
      * @param   paramMap  name-&gt;value mapping
      * @return   byte array suitable for POSTing
      */
-    private static byte[] toPostedBytes( Map<String,String> paramMap ) {
-        String utf8 = "UTF-8";
+    static byte[] toPostedBytes( Map<String,String> paramMap ) {
         StringBuffer sbuf = new StringBuffer();
         for ( Map.Entry<String,String> entry : paramMap.entrySet() ) {
             if ( sbuf.length() != 0 ) {
                 sbuf.append( '&' );
             }
             try {
-                sbuf.append( URLEncoder.encode( entry.getKey(), utf8 ) )
+                sbuf.append( URLEncoder.encode( entry.getKey(), UTF8 ) )
                     .append( '=' )
-                    .append( URLEncoder.encode( entry.getValue(), utf8 ) );
+                    .append( URLEncoder.encode( entry.getValue(), UTF8 ) );
             }
             catch ( UnsupportedEncodingException e ) {
-                throw new AssertionError( "No " + utf8 + "??" );
+                throw new AssertionError( "No " + UTF8 + "??" );
             }
         }
         int nc = sbuf.length();
@@ -500,13 +509,46 @@ public class UwsJob {
     }
 
     /**
+     * Turns a string into text/plain content using a given character set.
+     * As well as charset issues, this makes sure that all line breaks
+     * are CRLF, as required by RFC 2046 sec 4.1.1.
+     *
+     * @param  text  input string
+     * @param  charset  character set name
+     * @return  output string
+     */
+    static byte[] toTextPlain( String text, String charset )
+            throws IOException {
+
+        /* Surprisingly fiddly to get right; see Goldfarb's First Law of
+         * Text Processing. */
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        String[] lines =
+            Pattern.compile( "$", Pattern.MULTILINE ).split( text );
+        Pattern contentPattern = Pattern.compile( "(.+)" );
+        for ( int i = 0; i < lines.length; i++ ) {
+            String lineWithDelim = lines[ i ];
+            Matcher contentMatcher = contentPattern.matcher( lineWithDelim );
+            String lineContent = contentMatcher.find()
+                               ? contentMatcher.group( 1 )
+                               : "";
+            if ( lineContent.length() < lineWithDelim.length() ) {
+                bos.write( '\r' );
+                bos.write( '\n' );
+            }
+            bos.write( lineContent.getBytes( charset ) );
+        }
+        return bos.toByteArray();
+    }
+
+    /**
      * Writes a line to an HTTP connection.
      * The correct line terminator (CRLF) is added.
      *
      * @param  out  output stream
      * @param   line  line of text
      */
-    private static void writeHttpLine( OutputStream out, String line )
+    static void writeHttpLine( OutputStream out, String line )
             throws IOException {
         int leng = line.length();
         byte[] buf = new byte[ leng + 2 ];
