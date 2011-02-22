@@ -198,14 +198,16 @@ public class TapQuery {
      */
     public DescribedValue[] getQueryMetadata() {
         List<DescribedValue> metaList = new ArrayList<DescribedValue>();
-        for ( Map.Entry<String,String> param :
-              uwsJob_.getParameters().entrySet() ) {
-            String pname = param.getKey();
-            String pvalue = param.getValue();
-            ValueInfo pinfo =
-                new DefaultValueInfo( pname, String.class,
-                                      "TAP " + pname + " parameter" );
-            metaList.add( new DescribedValue( pinfo, pvalue ) );
+        Map<String,String> jobParams = uwsJob_.getParameters();
+        if ( jobParams != null ) {
+            for ( Map.Entry<String,String> param : jobParams.entrySet() ) {
+                String pname = param.getKey();
+                String pvalue = param.getValue();
+                ValueInfo pinfo =
+                    new DefaultValueInfo( pname, String.class,
+                                          "TAP " + pname + " parameter" );
+                metaList.add( new DescribedValue( pinfo, pvalue ) );
+            }
         }
         return metaList.toArray( new DescribedValue[ 0 ] );
     }
@@ -270,6 +272,7 @@ public class TapQuery {
             }
             throw (IOException) new IOException( errMsg ).initCause( e );
         }
+        uwsJob.setParameters( stringMap );
         return new TapQuery( uwsJob );
     }
 
