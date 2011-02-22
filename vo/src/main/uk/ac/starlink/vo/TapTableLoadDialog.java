@@ -9,9 +9,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -43,6 +47,13 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
     private CaretListener adqlListener_;
+
+    // This is an expression designed to pick up things that the user might
+    // have entered as an upload table identifier.  It intentionally includes
+    // illegal TAP upload strings, so that the getUploadTable method
+    // has a chance to emit a helpful error message.
+    private static final Pattern UPLOAD_REGEX =
+        Pattern.compile( "TAP_UPLOAD\\.([^ ()*+-,/;<=>&?|\t\n\r]*)" );
 
     /**
      * Constructor.
@@ -125,15 +136,44 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return tabber_;
     }
 
+    /**
+     * Returns a table named by an upload specifier in an ADQL query.
+     * The TapTableLoadDialog implementation of this throws an exception,
+     * but subclasses may override this if they are capable of providing
+     * uploadable tables.
+     * If no table named by the given label is available, it is good
+     * practice to throw an IllegalArgumentException with an informative
+     * message, though returning null is also acceptable.
+     *
+     * @param  upLabel  name part of an uploaded table specification,
+     *                  that is the part following the "TAP_UPLOAD." part
+     * @return  table named by <code>upLabel</code>
+     */
+    protected StarTable getUploadTable( String upLabel ) {
+        throw new IllegalArgumentException( "Upload tables not supported" );
+    }
+
     public TableLoader createTableLoader() {
         final URL serviceUrl = checkUrl( getServiceUrl() );
         final String adql = tqPanel_.getAdql();
         final String summary = TapQuery.summarizeAdqlQuery( serviceUrl, adql );
+        final Map<String,StarTable> uploadMap =
+            new LinkedHashMap<String,StarTable>();
+        Set<String> uploadLabels = getUploadLabels( adql );
+        for ( String upLabel : uploadLabels ) {
+            StarTable upTable = getUploadTable( upLabel );
+            if ( upTable != null ) {
+                uploadMap.put( upLabel, upTable );
+            }
+            else {
+                throw new IllegalArgumentException( "No known table \"" 
+                                                  + upLabel + "\" for upload" );
+            }
+            
+        }
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
-                Map<String,StarTable> uploadMap =
-                    new LinkedHashMap<String,StarTable>();
                 TapQuery query =
                     TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap );
                 query.start();
@@ -168,6 +208,27 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             String adql = tqPanel_.getAdql();
             return super.isReady() && adql != null && adql.trim().length() > 0;
         }
+    }
+
+    /**
+     * Returns a set of table identifers which are required for upload.
+     * This is the set of any [identifier]s in the query of the form
+     * TAP_UPLOAD.[identifier].
+     *
+     * @param   adql  ADQL/S text
+     * @return   collection of upload identifiers
+     */
+    private static Set<String> getUploadLabels( String adql ) {
+
+        /* Use of a regex for this partial parse is not bulletproof,
+         * but you would have to have quite contrived ADQL to get a
+         * false match here. */
+        Set<String> labelSet = new HashSet<String>();
+        Matcher matcher = UPLOAD_REGEX.matcher( adql );
+        while ( matcher.find() ) {
+            labelSet.add( matcher.group( 1 ) );
+        }
+        return labelSet;
     }
 
     /**
