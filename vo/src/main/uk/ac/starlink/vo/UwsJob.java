@@ -40,6 +40,8 @@ public class UwsJob {
     private volatile Map paramMap_;
     private volatile String phase_;
     private volatile long phaseTime_;
+    private boolean deleteAttempted_;
+    private Thread deleteThread_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
     private static final String UTF8 = "UTF-8";
@@ -262,21 +264,76 @@ public class UwsJob {
     /**
      * Posts deletion of this job to the server.
      *
-     * @return   the URL connection corresponding to the DELETE request;
-     *           it is possible, but not required, to query this for
-     *           the response code etc
+     * @throws  IOException  if job deletion failed for some reason
      */
-    public HttpURLConnection postDelete() throws IOException {
+    public void postDelete() throws IOException {
         HttpURLConnection hconn = openHttpConnection( jobUrl_ );
         logger_.info( "DELETE " + jobUrl_ );
         hconn.setRequestMethod( "DELETE" );
         hconn.setInstanceFollowRedirects( false );
-        hconn.connect();
+        final int response;
+        try {
+            hconn.connect();
+            response = hconn.getResponseCode();
+        }
+        finally {
+            synchronized ( this ) {
+                deleteAttempted_ = true;
+            }
+        }
+        int tapDeleteCode = HttpURLConnection.HTTP_SEE_OTHER; // 303
+        if ( response != tapDeleteCode ) {
+            throw new IOException( "Response " + response + " not "
+                                 + tapDeleteCode );
+        }
+    }
 
-        /* Read the response code, otherwise the request doesn't seem
-         * to take place. */
-        int code = hconn.getResponseCode();
-        return hconn;
+    /**
+     * Attempts to delete this query's UWS job.
+     * This may harmlessly be called multiple times; calls following the
+     * first one have no effect.
+     * In case of failure a message is logged through the logging system.
+     */
+    public void attemptDelete() {
+        synchronized ( this ) {
+            if ( deleteAttempted_ ) {
+                return;
+            }
+            else {
+                deleteAttempted_ = true;
+            }
+            setDeleteOnExit( false );
+        }
+        try {
+            postDelete();
+            logger_.info( "UWS job " + jobUrl_ + " deleted" );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "UWS job deletion failed for " + jobUrl_
+                           + " - " + e.toString() );
+        }
+    }
+
+    /**
+     * Determines whether this job will be deleted when the JVM exits,
+     * if it has not been deleted before.
+     *
+     * @param  delete  true to delete on exit, false otherwise
+     */
+    public synchronized void setDeleteOnExit( boolean delete ) {
+        if ( delete && deleteThread_ == null && ! deleteAttempted_ ) {
+            deleteThread_ = new Thread( "UWS job deletion" ) {
+                public void run() {
+                    attemptDelete();
+                }
+            };
+            Runtime.getRuntime().addShutdownHook( deleteThread_ );
+        }
+        else if ( ! delete && deleteThread_ != null ) {
+            Runtime.getRuntime().removeShutdownHook( deleteThread_ );
+            deleteThread_ = null;
+        }
+        assert ( deleteThread_ != null || deleteAttempted_ ) == delete;
     }
 
     /**

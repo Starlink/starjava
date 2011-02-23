@@ -37,7 +37,6 @@ import uk.ac.starlink.votable.VOTableWriter;
 public class TapQuery {
 
     private final UwsJob uwsJob_;
-    private boolean deleteAttempted_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -73,24 +72,10 @@ public class TapQuery {
      *
      * @param   tfact  table factory for table creation from result document
      * @param   poll   polling interval in milliseconds 
-     * @param   delete  true iff job is to be deleted after table is obtained
      * @return  result table
      */
-    public StarTable waitForResult( StarTableFactory tfact, long poll,
-                                    boolean delete )
+    public StarTable waitForResult( StarTableFactory tfact, long poll )
             throws IOException, InterruptedException {
-        final Thread deleteThread;
-        if ( delete ) {
-            deleteThread = new Thread( "UWS Job deletion" ) {
-                public void run() {
-                    attemptDelete();
-                }
-            };
-            Runtime.getRuntime().addShutdownHook( deleteThread );
-        }
-        else {
-            deleteThread = null;
-        }
         URL jobUrl = uwsJob_.getJobUrl();
         try {
             String phase = uwsJob_.waitForFinish( poll );
@@ -148,46 +133,6 @@ public class TapQuery {
                 errMsg = e.getMessage();
             }
             throw (IOException) new IOException( errMsg ).initCause( e );
-        }
-        finally {
-            if ( deleteThread != null ) {
-                Runtime.getRuntime().removeShutdownHook( deleteThread );
-                deleteThread.start();
-            }
-        }
-    }
-
-    /**
-     * Attempts to delete this query's UWS job.
-     * This may harmlessly be called multiple times; calls following the
-     * first one have no effect.
-     */
-    public void attemptDelete() {
-        synchronized ( this ) {
-            if ( deleteAttempted_ ) {
-                return;
-            }
-            else {
-                deleteAttempted_ = true;
-            }
-        }
-        URL jobUrl = uwsJob_.getJobUrl();
-        try {
-            HttpURLConnection hconn = uwsJob_.postDelete();
-            int tapDeleteCode = HttpURLConnection.HTTP_SEE_OTHER; // 303
-            int code = hconn.getResponseCode();
-            if ( code == tapDeleteCode ) {
-                logger_.info( "UWS job " + jobUrl + " deleted" );
-            }
-            else {
-                logger_.warning( "UWS job deletion error - response " + code
-                               + " not " + tapDeleteCode
-                               + " for job " + jobUrl );
-            }
-        }
-        catch ( IOException e ) {
-            logger_.warning( "UWS job deletion failed for "
-                           + jobUrl );
         }
     }
 

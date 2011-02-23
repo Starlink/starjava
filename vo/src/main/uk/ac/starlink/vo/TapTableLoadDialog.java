@@ -179,7 +179,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 query.start();
                 StarTable st;
                 try {
-                    st = query.waitForResult( tfact, 4000, false );
+                    st = query.waitForResult( tfact, 4000 );
                 }
                 catch ( InterruptedException e ) {
                     throw (IOException)
