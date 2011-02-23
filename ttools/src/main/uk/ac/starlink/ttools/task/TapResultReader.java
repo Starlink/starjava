@@ -92,20 +92,14 @@ public class TapResultReader {
         return new TapResultProducer() {
             public StarTable waitForResult( TapQuery query )
                     throws IOException {
+                query.getUwsJob().setDeleteOnExit( delete );
                 try {
-                    return query.waitForResult( tfact, pollMillis, delete );
+                    return query.waitForResult( tfact, pollMillis );
                 }
                 catch ( InterruptedException e ) {
                     throw (IOException)
                           new InterruptedIOException( "Interrupted" )
                          .initCause( e );
-                }
-                finally {
-                    if ( ! delete ) {
-                        logger_.warning( "UWS job "
-                                       + query.getUwsJob().getJobUrl()
-                                       + " not deleted" );
-                    }
                 }
             }
         };
