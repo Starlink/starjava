@@ -3,16 +3,20 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.UwsJob;
+import uk.ac.starlink.vo.UwsStage;
 
 /**
  * Aggregates parameters used for recovering and delivering the result
@@ -24,7 +28,7 @@ import uk.ac.starlink.vo.TapQuery;
 public class TapResultReader {
 
     private final IntegerParameter pollParam_;
-    private final BooleanParameter deleteParam_;
+    private final ChoiceParameter deleteParam_;
     private final Parameter[] parameters_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -53,16 +57,22 @@ public class TapResultReader {
         pollParam_.setDefault( "5000" );
         paramList.add( pollParam_ );
 
-        deleteParam_ = new BooleanParameter( "delete" );
-        deleteParam_.setPrompt( "Delete job when complete?" );
+        deleteParam_ = new ChoiceParameter( "delete", DeleteMode.values() );
+        deleteParam_.setPrompt( "Delete job on exit?" );
         deleteParam_.setDescription( new String[] {
-            "<p>If true, the UWS job is deleted when complete.",
-            "If false, the job is left on the server, and it can be",
-            "access via the normal UWS REST endpoints after the completion",
-            "of this command.",
+            "<p>Determines under what circumstances the UWS job is to be",
+            "deleted from the server when its data is no longer required.",
+            "If it is not deleted, then the job is left on the TAP server",
+            "and it can be accessed via the normal UWS REST endpoints",
+            "until it is destroyed by the server.",
+            "</p>",
+            "<p>Possible values:",
+            "<ul>",
+            DeleteMode.getListItems(),
+            "</ul>",
             "</p>",
         } );
-        deleteParam_.setDefault( "true" );
+        deleteParam_.setDefault( DeleteMode.finished.toString() );
         paramList.add( deleteParam_ );
 
         parameters_ = paramList.toArray( new Parameter[ 0 ] );
@@ -86,22 +96,168 @@ public class TapResultReader {
     public TapResultProducer createResultProducer( Environment env )
             throws TaskException {
         final int pollMillis = pollParam_.intValue( env );
-        final boolean delete = deleteParam_.booleanValue( env );
+        final DeleteMode delete = (DeleteMode) deleteParam_.objectValue( env );
         final StarTableFactory tfact =
             LineTableEnvironment.getTableFactory( env );
+
+        /* Most of the complication here is to do with if/when the UWS job
+         * corresponding to the query should be deleted.  It's deleted
+         * if/when BOTH any non-random table resulting from the query is 
+         * no longer in use AND the deletion mode says it's OK.
+         * The former condition arises from the fact that the table URL,
+         * which lives on the TAP server, may need to get read at any time
+         * in the future to stream the data if the data has not been cached
+         * locally.  No-longer-in-use-ness of such a table will happen
+         * either on table finalization or on JVM exit. */
         return new TapResultProducer() {
-            public StarTable waitForResult( TapQuery query )
+            private Thread deleteThread;
+
+            public StarTable waitForResult( final TapQuery query )
                     throws IOException {
-                query.getUwsJob().setDeleteOnExit( delete );
+                final StarTable table;
+                if ( delete.isDeletionPossible() ) {
+                    deleteThread = new Thread( "UWS job deleter" ) {
+                        public void run() {
+                            considerDeletion( query );
+                        }
+                    };
+                    Runtime.getRuntime().addShutdownHook( deleteThread );
+                }
                 try {
-                    return query.waitForResult( tfact, pollMillis );
+                    table = query.waitForResult( tfact, pollMillis );
                 }
                 catch ( InterruptedException e ) {
+                    considerDeletionEarly( query );
                     throw (IOException)
                           new InterruptedIOException( "Interrupted" )
                          .initCause( e );
                 }
+                catch ( IOException e ) {
+                    considerDeletionEarly( query );
+                    throw e;
+                }
+                assert "COMPLETED".equals( query.getUwsJob().getLastPhase() );
+                if ( ! delete.isDeletionPossible() ) {
+                    return table;
+                }
+                else if ( table.isRandom() ) {
+                    considerDeletionEarly( query );
+                    return table;
+                }
+                else {
+                    return new WrapperStarTable( table ) {
+                        protected void finalize() throws Throwable {
+                            try {
+                                considerDeletionEarly( query );
+                            }
+                            finally {
+                                super.finalize();
+                            }
+                        }
+                    };
+                }
+            }
+
+            /**
+             * Examines the query, and if suitable for deletion, delete it.
+             * Should be called from a non-shutdown hook thread.
+             *
+             * @param  query  query to delete
+             */
+            private void considerDeletionEarly( TapQuery query ) {
+                if ( deleteThread != null ) {
+                    Runtime.getRuntime().removeShutdownHook( deleteThread );
+                }
+                considerDeletion( query );
+            }
+
+            /**
+             * Examine the given query, and if it is suitable for deletion,
+             * delete it.  May be called from any thread.
+             *
+             * @param  query  query to delete
+             */
+            private void considerDeletion( TapQuery query ) {
+                UwsJob job = query.getUwsJob();
+                UwsStage stage = UwsStage.forPhase( job.getLastPhase() );
+                if ( delete.shouldDelete( stage ) ) {
+                    job.attemptDelete();
+                }
             }
         };
+    }
+
+    /**
+     * Enumeration of UWS job deletion modes.
+     */
+    private static enum DeleteMode {
+
+        finished( "delete only if the job finished, successfully or not",
+                  true ) {
+            public boolean shouldDelete( UwsStage stage ) {
+                return stage == UwsStage.FINISHED;
+            }
+        },
+        never( "do not delete", false ) {
+            public boolean shouldDelete( UwsStage stage ) {
+                return false;
+            }
+        },
+        always( "delete in any case", true ) {
+            public boolean shouldDelete( UwsStage stage ) {
+                return true;
+            }
+        };
+
+        private final String description_;
+        private final boolean isDeletionPossible_;
+
+        /**
+         * Constructor.
+         *
+         * @param  description   short XML description
+         * @param  isDeletionPossible  whether shouldDelete can ever return true
+         */
+        private DeleteMode( String description, boolean isDeletionPossible ) {
+            description_ = description;
+            isDeletionPossible_ = isDeletionPossible;
+        }
+
+        /**
+         * Indicates whether a job with the given UWS stage should be deleted.
+         *
+         * @param   stage  UWS stage
+         */
+        public abstract boolean shouldDelete( UwsStage stage );
+
+        /**
+         * Whether this this mode ever recommends deletion.
+         *
+         * @param  true iff {@link #shouldDelete} can ever return true
+         */
+        public boolean isDeletionPossible() {
+            return isDeletionPossible_;
+        }
+
+        /**
+         * Returns an XML string containing &lt;li&gt; items describing
+         * all the items in this enumeration.
+         *
+         * @return  XML documentation string
+         */
+        public static String getListItems() {
+            StringBuffer sbuf = new StringBuffer();
+            for ( DeleteMode dMode : Arrays.asList( values() ) ) {
+                sbuf.append( "<li>" )
+                    .append( "<code>" )
+                    .append( dMode.toString() )
+                    .append( "</code>" )
+                    .append( ": " )
+                    .append( dMode.description_ )
+                    .append( "</li>" )
+                    .append( '\n' );
+            }
+            return sbuf.toString();
+        }
     }
 }
