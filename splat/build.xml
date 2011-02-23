@@ -368,9 +368,9 @@
   <path id="jni-ldpath.id">
     <pathelement path="${java.library.path}"/>
     <pathelement path="${dist.lib.arch}"/>
+    <pathelement path="${star.jar.dir}/${os.arch}"/>
     <pathelement path="${star.build.dir}/jniast/lib/${os.arch}"/>
     <pathelement path="${star.build.dir}/jnihds/lib/${os.arch}"/>
-    <pathelement path="${star.jar.dir}/${os.arch}"/>
   </path>
   <property name="jni-ldpath" refid="jni-ldpath.id"/>
 
@@ -659,7 +659,7 @@
               value="-L${star.jar.dir}/${os.arch} -ljniast"/>
     <!-- OSX needs the full path, as JNI uses .jnilib not .dylib so -l fails-->
     <property name="jniast.share.osx"
-              value="${star.build.dir}/jniast/build/lib/${os.arch}/libjniast.jnilib"/>
+              value="${star.jar.dir}/${os.arch}/libjniast.jnilib"/>
 
     <property name="java.shareables" value="${jniast.share}"/>
     <property name="java.shareables.osx" value="${jniast.share.osx}"/>
@@ -707,6 +707,7 @@
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables.osx}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
+      <env key="STARJAVA_LIB" value="${star.install}/lib/${os.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
