@@ -1,22 +1,18 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
-import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.vo.TapQuery;
 
 /**
@@ -27,13 +23,10 @@ import uk.ac.starlink.vo.TapQuery;
  */
 public class TapMapper implements TableMapper {
 
-    private final Parameter urlParam_;
+    private final URLParameter urlParam_;
     private final Parameter adqlParam_;
-    private final IntegerParameter pollParam_;
-    private final BooleanParameter deleteParam_;
+    private final TapResultReader resultReader_;
     private final Parameter[] params_;
-    private final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     public TapMapper() {
         List<Parameter> paramList = new ArrayList<Parameter>();
@@ -41,7 +34,7 @@ public class TapMapper implements TableMapper {
         paramList.add( createUploadNameParameter( VariableTablesInput
                                                  .NUM_SUFFIX ) );
 
-        urlParam_ = new Parameter( "tapurl" );
+        urlParam_ = new URLParameter( "tapurl" );
         urlParam_.setPrompt( "Base URL of TAP service" );
         urlParam_.setDescription( new String[] {
             "<p>The base URL of a Table Access Protocol service.",
@@ -61,36 +54,8 @@ public class TapMapper implements TableMapper {
         } );
         paramList.add( adqlParam_ );
 
-        pollParam_ = new IntegerParameter( "poll" );
-        pollParam_.setPrompt( "Polling interval in milliseconds" );
-        int minPoll = 50;
-        pollParam_.setMinimum( minPoll );
-        pollParam_.setDescription( new String[] {
-            "<p>Interval to wait between polling attempts, in milliseconds.",
-            "Asynchronous TAP queries can only find out when they are",
-            "complete by repeatedly polling the server to find out the",
-            "job's status.  This parameter allows you to set how often",
-            "that happens.",
-            "Attempts to set it too low (&lt;" + minPoll + ")",
-            "will be rejected on the assumption that you're thinking in",
-            "seconds.",
-            "</p>",
-        } );
-        pollParam_.setMinimum( 50 );
-        pollParam_.setDefault( "5000" );
-        paramList.add( pollParam_ );
-
-        deleteParam_ = new BooleanParameter( "delete" );
-        deleteParam_.setPrompt( "Delete job when complete?" );
-        deleteParam_.setDescription( new String[] {
-            "<p>If true, the UWS job is deleted when complete.",
-            "If false, the job is left on the server, and it can be",
-            "access via the normal UWS REST endpoints after the completion",
-            "of this command.",
-            "</p>",
-        } );
-        deleteParam_.setDefault( "true" );
-        paramList.add( deleteParam_ );
+        resultReader_ = new TapResultReader();
+        paramList.addAll( Arrays.asList( resultReader_.getParameters() ) );
 
         params_ = paramList.toArray( new Parameter[ 0 ] );
     }
@@ -101,26 +66,16 @@ public class TapMapper implements TableMapper {
 
     public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
-        String urlText = urlParam_.stringValue( env );
-        final URL url;
-        try {
-            url = new URL( urlText );
-        }
-        catch ( MalformedURLException e ) {
-            throw new ParameterValueException( urlParam_, "Bad URL: " + urlText,
-                                               e );
-        }
+        final URL url = urlParam_.urlValue( env );
         final String adql = adqlParam_.stringValue( env );
-        final int pollMillis = pollParam_.intValue( env );
-        final boolean delete = deleteParam_.booleanValue( env );
+        final TapResultProducer resultProducer =
+            resultReader_.createResultProducer( env );
         final String[] upnames = new String[ nup ];
         for ( int iu = 0; iu < nup; iu++ ) {
             upnames[ iu ] =
                 createUploadNameParameter( Integer.toString( iu + 1 ) )
                .stringValue( env );
         }
-        final StarTableFactory tfact =
-            LineTableEnvironment.getTableFactory( env );
         return new TableMapping() {
             public StarTable mapTables( InputTableSpec[] inSpecs )
                     throws TaskException, IOException {
@@ -133,21 +88,7 @@ public class TapMapper implements TableMapper {
                 TapQuery query =
                     TapQuery.createAdqlQuery( url, adql, uploadMap );
                 query.start();
-                try {
-                    return query.waitForResult( tfact, pollMillis, delete );
-                }
-                catch ( InterruptedException e ) {
-                    throw (IOException)
-                          new InterruptedIOException( "Interrupted" )
-                         .initCause( e );
-                }
-                finally {
-                    if ( ! delete ) {
-                        logger_.warning( "UWS job "
-                                       + query.getUwsJob().getJobUrl()
-                                       + " not deleted" );
-                    }
-                }
+                return resultProducer.waitForResult( query );
             }
         };
     }
