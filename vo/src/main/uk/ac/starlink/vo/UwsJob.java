@@ -324,6 +324,9 @@ public class UwsJob {
         if ( delete && deleteThread_ == null && ! deleteAttempted_ ) {
             deleteThread_ = new Thread( "UWS job deletion" ) {
                 public void run() {
+                    synchronized ( UwsJob.this ) {
+                        deleteThread_ = null;
+                    }
                     attemptDelete();
                 }
             };
