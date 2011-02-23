@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.task;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +11,7 @@ import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.util.Destination;
 import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryStarTable;
@@ -25,7 +25,7 @@ import uk.ac.starlink.vo.RegistryStarTable;
 public class RegQuery extends ConsumerTask {
 
     private final Parameter queryParam_;
-    private final Parameter urlParam_;
+    private final URLParameter urlParam_;
     private final OutputStreamParameter soapoutParam_;
     private final static String ALL_RECORDS = "ALL";
 
@@ -69,7 +69,7 @@ public class RegQuery extends ConsumerTask {
         } );
         paramList.add( queryParam_ );
 
-        urlParam_ = new Parameter( "regurl" );
+        urlParam_ = new URLParameter( "regurl" );
         urlParam_.setPrompt( "URL of registry service" );
         urlParam_.setDefault( RegistryQuery.AG_REG );
         urlParam_.setDescription( new String[] {
@@ -108,15 +108,7 @@ public class RegQuery extends ConsumerTask {
             queryText = null;
         }
         final String qText = queryText;
-        String urlText = urlParam_.stringValue( env );
-        final URL regURL;
-        try {
-            regURL = new URL( urlText );
-        }
-        catch ( MalformedURLException e ) {
-            throw new ParameterValueException( urlParam_, "Bad URL: " + urlText,
-                                               e );
-        }
+        final URL regURL = urlParam_.urlValue( env );
         final Destination soapdest = soapoutParam_.destinationValue( env );
         return new TableProducer() {
             public StarTable getTable() throws TaskException {
