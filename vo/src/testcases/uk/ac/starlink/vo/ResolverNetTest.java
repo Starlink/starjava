@@ -4,9 +4,9 @@ import java.net.ConnectException;
 import junit.framework.TestCase;
 import org.apache.axis.AxisFault;
 
-public class ResolverTest extends TestCase {
+public class ResolverNetTest extends TestCase {
 
-    public ResolverTest( String name ) {
+    public ResolverNetTest( String name ) {
         super( name );
     }
 

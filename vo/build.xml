@@ -1019,8 +1019,39 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
-          depends="compile-tests, run-net-tests"
+          depends="compile-tests, run-normal-tests, run-net-tests"
           if="junit.present"/>
+
+  <target name="run-normal-tests"
+          depends="compile-tests"
+          if="junit.present">
+
+    <junit printsummary="${junit.summary}" haltonfailure="yes"
+           filtertrace="${junit.filtertrace}"
+           fork="${junit.fork}">
+
+      <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="basedir" value="${basedir}"/>
+      <formatter type="brief" usefile="false"/>
+
+      <batchtest>
+        <fileset dir="${tests.dir}">
+          <include name="**/*Test.java"/>
+          <exclude name="**/*NetTest.java"/>
+        </fileset>
+      </batchtest>
+
+    </junit>
+
+  </target>
+
+  
 
   <!--
    !  Runs network-based testcases; currently a no-op unless 
@@ -1037,23 +1068,19 @@
            fork="${junit.fork}">
 
       <classpath refid="tests-classpath"/>
-
       <jvmarg value="${junit.assertions}"/>
-
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
-
       <sysproperty key="http.proxyHost" value="${http.proxyHost}"/>
       <sysproperty key="http.proxyPort" value="${http.proxyPort}"/>
-
       <formatter type="brief" usefile="false"/>
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/*Test*"/>
+          <include name="**/*NetTest.java*"/>
         </fileset>
       </batchtest>
 

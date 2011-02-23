@@ -5,9 +5,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 
-public class RegistryTest extends TestCase {
+public class RegistryNetTest extends TestCase {
 
-    public RegistryTest( String name ) {
+    public RegistryNetTest( String name ) {
         super( name );
         Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
         Logger.getLogger( "org.apache.axis.utils" ).setLevel( Level.SEVERE );
