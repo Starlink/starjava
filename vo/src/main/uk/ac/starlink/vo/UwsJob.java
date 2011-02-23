@@ -336,7 +336,6 @@ public class UwsJob {
             Runtime.getRuntime().removeShutdownHook( deleteThread_ );
             deleteThread_ = null;
         }
-        assert ( deleteThread_ != null || deleteAttempted_ ) == delete;
     }
 
     /**
