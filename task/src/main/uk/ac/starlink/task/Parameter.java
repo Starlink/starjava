@@ -26,6 +26,7 @@ package uk.ac.starlink.task;
  *         private int intval;
  *
  *         public IntegerParameter( String name ) {
+ *             setUsage( "&lt;int-value&gt;" );
  *             super( name );
  *         }
  *
