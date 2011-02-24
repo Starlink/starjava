@@ -27,6 +27,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
@@ -169,34 +170,65 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 throw new IllegalArgumentException( "No known table \"" 
                                                   + upLabel + "\" for upload" );
             }
-            
         }
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
-                TapQuery query =
+                List<DescribedValue> metaList =
+                    new ArrayList<DescribedValue>();
+                TapQuery tapQuery =
                     TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap );
-                query.start();
-                StarTable st;
-                try {
-                    st = query.waitForResult( tfact, 4000 );
-                }
-                catch ( InterruptedException e ) {
-                    throw (IOException)
-                          new InterruptedIOException( "Interrupted" )
-                         .initCause( e );
-                }
-                List meta = st.getParameters();
-                meta.addAll( Arrays.asList( query.getQueryMetadata() ) );
-                meta.addAll( Arrays
-                            .asList( getResourceMetadata( serviceUrl
-                                                         .toString() ) ) );
-                return Tables.singleTableSequence( st );
+                metaList.addAll( Arrays.asList( tapQuery.getQueryMetadata() ) );
+                metaList.addAll( Arrays
+                                .asList( getResourceMetadata( serviceUrl
+                                                             .toString() ) ) );
+                DescribedValue[] metas =
+                    metaList.toArray( new DescribedValue[ 0 ] );
+                return createTableSequence( tfact, tapQuery, metas );
             }
             public String getLabel() {
                 return summary;
             }
         };
+    }
+
+    /**
+     * Returns a table sequence constructed from a given TAP query.
+     * This method marks each TapQuery for deletion on JVM shutdown,
+     * or if the query fails.
+     * Subclass implementations may override this method to perform
+     * different job deletion behaviour.
+     *
+     * @param   tfact  table factory
+     * @param   tapQuery  TAP query
+     * @param   tapMetadata  metadata describing the query suitable for
+     *          decorating the resulting table
+     * @return  table sequence suitable for a successful return from
+     *          this dialog's TableLoader
+     */
+    protected TableSequence createTableSequence( StarTableFactory tfact,
+                                                 TapQuery tapQuery,
+                                                 DescribedValue[] tapMetadata )
+            throws IOException {
+        UwsJob uwsJob = tapQuery.getUwsJob();
+        uwsJob.setDeleteOnExit( true );
+        tapQuery.start();
+        StarTable st;
+        try {
+            st = tapQuery.waitForResult( tfact, 4000 );
+        }
+        catch ( InterruptedException e ) {
+            uwsJob.attemptDelete();
+            throw (IOException)
+                  new InterruptedIOException( "Interrupted" )
+                 .initCause( e );
+        }
+        catch ( IOException e ) {
+            uwsJob.attemptDelete();
+            throw e;
+        }
+        st.getParameters().addAll( Arrays.asList( tapMetadata ) );
+        return Tables.singleTableSequence( st );
     }
 
     public boolean isReady() {

@@ -1,9 +1,14 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import java.io.IOException;
 import javax.swing.ListModel;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.vo.TapTableLoadDialog;
+import uk.ac.starlink.vo.TapQuery;
 
 /**
  * TapTableLoadDialog subclass customised for use with TOPCAT.
@@ -82,5 +87,17 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             sbuf.append( "Use either T<n> or <alphanumeric_name>" );
         }
         throw new IllegalArgumentException( sbuf.toString() );
+    }
+
+    protected TableSequence createTableSequence( StarTableFactory tfact,
+                                                 TapQuery tapQuery,
+                                                 DescribedValue[] tapMetadata )
+            throws IOException {
+
+        // Currently this just does the same as the superclass, which is
+        // effectively delete jobs on JVM exit (actually quite useful for
+        // TAP service debugging).  I may want to do something
+        // smarter than that.
+        return super.createTableSequence( tfact, tapQuery, tapMetadata );
     }
 }
