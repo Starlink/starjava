@@ -48,6 +48,7 @@
   <!ENTITY sqlskymatch-summary SYSTEM 'sqlskymatch-summary.xml'>
   <!ENTITY sqlupdate-summary SYSTEM 'sqlupdate-summary.xml'>
   <!ENTITY tapquery-summary SYSTEM 'tapquery-summary.xml'>
+  <!ENTITY tapresume-summary SYSTEM 'tapresume-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
@@ -209,7 +210,8 @@ same ground as the STIL and TOPCAT user documents
 <dt>Virtual Observatory access</dt>
 <dd><p>
     <ref id="coneskymatch"><code>coneskymatch</code></ref>,
-    <ref id="tapquery"><code>tapquery</code></ref> and
+    <ref id="tapquery"><code>tapquery</code></ref>
+    <ref id="tapresume"><code>tapresume</code></ref> and
     <ref id="regquery"><code>regquery</code></ref>.
     </p></dd>
 <dt>SQL databases</dt>
@@ -437,6 +439,7 @@ the available tasks are:
 <li><code>sqlskymatch</code></li>
 <li><code>sqlupdate</code></li>
 <li><code>tapquery</code></li>
+<li><code>tapresume</code></li>
 <li><code>tcat</code></li>
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
@@ -1747,7 +1750,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="plothist"><code>plothist</code></ref>,
            <ref id="coneskymatch"><code>coneskymatch</code></ref>,
            <ref id="sqlskymatch"><code>sqlskymatch</code></ref>,
-           <ref id="tapquery"><code>tapquery</code></ref> and
+           <ref id="tapquery"><code>tapquery</code></ref>,
+           <ref id="tapresume"><code>tapresume</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
@@ -3769,6 +3773,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tapquery" plaintextref="yes"><code>tapquery</code></ref>:
         &tapquery-purpose;
         </li>
+    <li><ref id="tapresume" plaintextref="yes"><code>tapresume</code></ref>:
+        &tapresume-purpose;
+        </li>
     <li><ref id="regquery" plaintextref="yes"><code>regquery</code></ref>:
         &regquery-purpose;
         </li>
@@ -4688,6 +4695,45 @@ stilts tapquery tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
 </verbatim></dt>
 <dd><p>Executes the given ADQL/S query on the service referenced by the URL
     and writes the result to a FITS file.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="tapresume" tocleaf="yes">
+<subhead><title><code>tapresume</code>: &tapresume-purpose;</title></subhead>
+
+<p><code>tapresume</code> can resume data retrieval from an asynchronous
+Table Access Protocol query which is already in progress.
+TAP is a Virtual Observatory protocol.
+Such a pre-existing query may have been submitted
+by the <ref id="tapquery"><code>tapquery</code></ref> command or
+by some completely different mechanism.
+It waits until the query has completed, and then retrieves the table
+result and processes it in accordance with the supplied parameters.
+The query may or may not be deleted from the server as part of the operation.
+</p>
+
+&tapresume-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tapresume</code>:
+<dl>
+
+<dt><verbatim>
+stilts tapresume joburl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap/async/d4ENGR'
+                 out=result.csv ofmt=csv
+</verbatim></dt>
+<dd><p>Resumes waiting for the output of a query on a job with ID
+    <code>d4ENGR</code> which was previously started on the GAVO TAP server.
+    When it has completed the output table will be written as a
+    comma-separated value file.
     </p></dd>
 
 </dl>
@@ -7441,7 +7487,8 @@ but my thanks are especially due to the following:
         BigInteger/BigDecimal types to Long/Double.  
         The PostgreSQL JDBC driver seems to use the Big* types routinely 
         for numeric values (which I don't think it used to do).</li>
-    <li>Add <ref id="tapquery"><code>tapquery</code></ref> command.</li>
+    <li>Add <ref id="tapquery"><code>tapquery</code></ref> and
+        <ref id="tapresume"><code>tapresume</code></ref> commands.</li>
     <li>Upgrade to JSAMP v1.2.</li>
     </ul>
     </p></dd>
