@@ -123,16 +123,7 @@ public class TapQuery {
             }
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
-            String errMsg = null;
-            try {
-                errMsg = readErrorInfo( e.getConnection().getInputStream() );
-            }
-            catch ( IOException e2 ) {
-            }
-            if ( errMsg == null || errMsg.length() == 0 ) {
-                errMsg = e.getMessage();
-            }
-            throw (IOException) new IOException( errMsg ).initCause( e );
+            throw asIOException( e );
         }
     }
 
@@ -206,16 +197,7 @@ public class TapQuery {
                                        stringMap, streamMap );
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
-            String errMsg = null;
-            try {
-                errMsg = readErrorInfo( e.getConnection().getInputStream() );
-            }
-            catch ( IOException e2 ) {
-            }
-            if ( errMsg == null || errMsg.length() == 0 ) {
-                errMsg = e.getMessage();
-            }
-            throw (IOException) new IOException( errMsg ).initCause( e );
+            throw asIOException( e );
         }
         uwsJob.setParameters( stringMap );
         return new TapQuery( uwsJob );
@@ -259,6 +241,49 @@ public class TapQuery {
             throw (IOException) new IOException( "Error doc parse failure" )
                                .initCause( e );
         }
+    }
+
+    /**
+     * Takes an UnexpectedResponseException generated in response to a TAP
+     * query and turns it into an IOException with a helpful error message.
+     * The main thing to do is to take the body content, which ought(?) to
+     * be an error-bearing VOTable, and extract the error text.
+     *
+     * @param  error  input error
+     * @return   better error
+     */
+    private static IOException
+            asIOException( UwsJob.UnexpectedResponseException error ) {
+        HttpURLConnection hconn = error.getConnection();
+
+        /* Get an input stream for the response body.  Depending on the
+         * response code HttpURLConnection may make this avaiable as
+         * the input or error stream. */
+        InputStream bodyIn;
+        try {
+            bodyIn = hconn.getInputStream();
+        }
+        catch ( IOException e ) {
+            bodyIn = hconn.getErrorStream();
+        }
+
+        /* Try to turn the response body into an intelligible error
+         * message */
+        String errMsg = null;
+        if ( bodyIn != null ) {
+            try {
+                errMsg = readErrorInfo( bodyIn );
+            }
+            catch ( IOException e ) {
+            }
+        }
+
+        /* Fall back to the cause's message if necessary. */
+        if ( errMsg == null || errMsg.length() == 0 ) {
+            errMsg = error.getMessage();
+        }
+
+        return (IOException) new IOException( errMsg ).initCause( error );
     }
 
     /**
