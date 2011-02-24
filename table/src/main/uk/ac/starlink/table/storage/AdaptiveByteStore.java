@@ -49,6 +49,7 @@ public class AdaptiveByteStore implements ByteStore {
     private AdaptiveOutputStream out_;
     private OutputStream baseOut_;
     private int count_;
+    private long length_;
     private File file_;
 
     /** Fraction of total maximum memory for default memory limit. */
@@ -90,6 +91,10 @@ public class AdaptiveByteStore implements ByteStore {
 
     public OutputStream getOutputStream() {
         return out_;
+    }
+
+    public long getLength() {
+        return length_;
     }
 
     public void copy( OutputStream out ) throws IOException {
@@ -217,16 +222,19 @@ public class AdaptiveByteStore implements ByteStore {
         public void write( int b ) throws IOException {
             prepareToWrite( 1 );
             baseOut_.write( b );
+            length_++;
         }
 
         public void write( byte[] bs, int off, int len ) throws IOException {
             prepareToWrite( len );
             baseOut_.write( bs, off, len );
+            length_ += len;
         }
 
         public void write( byte[] bs ) throws IOException {
             prepareToWrite( bs.length );
             baseOut_.write( bs );
+            length_ += bs.length;
         }
 
         public void flush() throws IOException {

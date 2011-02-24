@@ -24,6 +24,7 @@ public class FileByteStore implements ByteStore {
     private final File file_;
     private final OutputStream out_;
     private final int maxBufLen_;
+    private long length_;
     private final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.storage" );
 
@@ -39,7 +40,20 @@ public class FileByteStore implements ByteStore {
      */
     public FileByteStore( File file ) throws IOException {
         file_ = file;
-        out_ = new FileOutputStream( file_ );
+        out_ = new FileOutputStream( file_ ) {
+            public void write( int b ) throws IOException {
+                super.write( b );
+                length_++;
+            }
+            public void write( byte[] b ) throws IOException {
+                super.write( b );
+                length_ += b.length;
+            }
+            public void write( byte[] b, int off, int len ) throws IOException {
+                super.write( b, off, len );
+                length_ += len;
+            }
+        };
         maxBufLen_ = Integer.MAX_VALUE;
     }
 
@@ -72,6 +86,10 @@ public class FileByteStore implements ByteStore {
 
     public OutputStream getOutputStream() {
         return out_;
+    }
+
+    public long getLength() {
+        return length_;
     }
 
     public void copy( OutputStream out ) throws IOException {

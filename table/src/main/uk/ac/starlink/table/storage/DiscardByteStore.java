@@ -33,6 +33,10 @@ public class DiscardByteStore implements ByteStore {
         return devnull_;
     }
 
+    public long getLength() {
+        return 0L;
+    }
+
     public void copy( OutputStream out ) {
     }
 

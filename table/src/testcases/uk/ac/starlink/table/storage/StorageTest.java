@@ -189,11 +189,16 @@ public class StorageTest extends TestCase {
         System.arraycopy( buf, 0, buf1, 0, 333 );
         OutputStream out = bs.getOutputStream();
         out.write( buf1 );
+        assertEquals( 333, bs.getLength() );
         out.write( buf, 333, 333 );
+        assertEquals( 666, bs.getLength() );
         for ( int i = 0; i < 333; i++ ) {
+            assertEquals( 666 + i, bs.getLength() );
             out.write( buf[ 666 + i ] );
         }
+        assertEquals( 999, bs.getLength() );
         out.flush();
+        assertEquals( 999, bs.getLength() );
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bs.copy( bos );
         assertArrayEquals( buf, bos.toByteArray() );

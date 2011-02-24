@@ -23,6 +23,13 @@ public interface ByteStore {
      */
     OutputStream getOutputStream();
 
+    /**
+     * Returns the number of bytes currently stored in this object.
+     *
+     * @return   byte count
+     */
+    long getLength();
+
     /** 
      * Takes all the data written so far into this store's sink stream
      * and copies it to a destination stream.  The output stream is not

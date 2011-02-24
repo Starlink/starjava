@@ -27,6 +27,10 @@ public class MemoryByteStore extends ByteArrayOutputStream
         out.write( this.buf, 0, this.count );
     }
 
+    public long getLength() {
+        return this.count;
+    }
+
     public ByteBuffer[] toByteBuffers() {
         byte[] buf2 = new byte[ count ];
         System.arraycopy( buf, 0, buf2, 0, count );
