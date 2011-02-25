@@ -24,6 +24,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.ByteStore;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DOMUtils;
 
 /**
@@ -474,9 +476,14 @@ public class UwsJob {
         hconn.setDoOutput( true );
         logger_.info( "POST params to " + url );
 
-        /* Open and buffer stream for POST content. */
-        hconn.connect();
-        OutputStream hout = new BufferedOutputStream( hconn.getOutputStream() );
+        /* Open and buffer stream for POST content.  If we write this
+         * directly to the HTTP connection output stream it will get
+         * buffered in memory.  Better to manage the buffering ourselves
+         * using a StoragePolicy.  An alternative would be chunked output
+         * (HttpURLConnection.setChunkedStreamingMode) but not all servers
+         * seem to support this. */
+        ByteStore hbuf = StoragePolicy.getDefaultPolicy().makeByteStore();
+        OutputStream hout = new BufferedOutputStream( hbuf.getOutputStream() );
 
         /* Write string parameters.  See RFC 2046 Sec 4.1. */
         for ( Map.Entry<String,String> entry : stringMap.entrySet() ) {
@@ -513,6 +520,19 @@ public class UwsJob {
         /* Write trailing delimiter. */
         writeHttpLine( hout, "--" + boundary + "--" );
         hout.close();
+
+        /* Stream the request body from the buffer to the HTTP connection. */
+        long hleng = hbuf.getLength();
+        if ( hleng > Integer.MAX_VALUE ) {
+            // Could be worked round, but TAP service providers wouldn't
+            // thank me for it.
+            throw new IOException( "Uploads are too big" );
+        }
+        hconn.setFixedLengthStreamingMode( (int) hleng );
+        hconn.connect();
+        OutputStream hcout = hconn.getOutputStream();
+        hbuf.copy( hcout );
+        hcout.close();
         return hconn;
     }
 
