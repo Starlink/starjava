@@ -11,9 +11,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -44,6 +46,7 @@ public class UwsJob {
     private volatile long phaseTime_;
     private boolean deleteAttempted_;
     private Thread deleteThread_;
+    private List<Runnable> phaseWatcherList_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
     private static final String UTF8 = "UTF-8";
@@ -56,6 +59,7 @@ public class UwsJob {
      */
     public UwsJob( URL jobUrl ) {
         jobUrl_ = jobUrl;
+        phaseWatcherList_ = new ArrayList<Runnable>();
     }
 
     /**
@@ -239,6 +243,30 @@ public class UwsJob {
         logger_.info( phaseUrl + " phase: " + phase );
         phase_ = phase;
         phaseTime_ = System.currentTimeMillis();
+        for ( Runnable watcher : phaseWatcherList_ ) {
+            watcher.run();
+        }
+    }
+
+    /**
+     * Adds a callback which will be invoked whenever this job's phase
+     * is read by {@link #readPhase}.  Note that the runnable will not
+     * in general be invoked from the AWT event dispatch thread.
+     *
+     * @param  watcher  runnable to be notified on job phase change
+     */
+    public void addPhaseWatcher( Runnable watcher ) {
+        phaseWatcherList_.add( watcher );
+    }
+
+    /**
+     * Removes a callback previously added by {@link #addPhaseWatcher}.
+     * Has no effect if <code>watcher</code> is not currently registered.
+     *
+     * @param   watcher  runnable to be removed
+     */
+    public void removePhaseWatcher( Runnable watcher ) {
+        phaseWatcherList_.remove( watcher );
     }
 
     /**
@@ -338,6 +366,20 @@ public class UwsJob {
             Runtime.getRuntime().removeShutdownHook( deleteThread_ );
             deleteThread_ = null;
         }
+    }
+
+    /**
+     * Returns the server-assigned job-id for this job.
+     * It is the final part of the Job URL.
+     *
+     * @return   job ID
+     */
+    public String getJobId() {
+        return jobUrl_.getPath().replaceAll( "^.*/", "" );
+    }
+
+    public String toString() {
+        return getJobId();
     }
 
     /**
