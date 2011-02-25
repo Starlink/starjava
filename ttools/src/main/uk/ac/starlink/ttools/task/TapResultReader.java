@@ -107,7 +107,7 @@ public class TapResultReader {
      *
      * @return  progress parameter
      */
-    public BooleanParameter getProgessParameter() {
+    public BooleanParameter getProgressParameter() {
         return progressParam_;
     }
 
@@ -173,11 +173,6 @@ public class TapResultReader {
                     considerDeletionEarly( query );
                     throw e;
                 }
-                finally {
-                    if ( progress ) {
-                        logPhase( null );
-                    }
-                }
                 assert "COMPLETED".equals( query.getUwsJob().getLastPhase() );
                 if ( ! delete.isDeletionPossible() ) {
                     return table;
@@ -224,25 +219,25 @@ public class TapResultReader {
                 UwsStage stage = UwsStage.forPhase( job.getLastPhase() );
                 if ( delete.shouldDelete( stage ) ) {
                     job.attemptDelete();
+                    if ( progress ) {
+                        errStream.println( "DELETED" );
+                        errStream.flush();
+                    }
                 }
             }
 
             /**
              * Logs the current job phase to standard error in some compact way.
              *
-             * @param  phase  UWS job phase, or phase-like string, or null
-             *                to indicate that processing has finished
+             * @param  phase  UWS job phase
              */
             private void logPhase( String phase ) {
-                if ( phase == null ) {
-                    errStream.println();
-                    errStream.flush();
-                }
-                else if ( ! phase.equals( lastPhase ) ) {
-                    if ( lastPhase != null ) {
-                        errStream.print( " ... " );
+                if ( ! phase.equals( lastPhase ) ) {
+                    String txt = phase;
+                    if ( UwsStage.forPhase( phase ) != UwsStage.FINISHED ) {
+                        txt += " ...";
                     }
-                    errStream.print( phase );
+                    errStream.println( txt );
                     errStream.flush();
                 }
                 lastPhase = phase;

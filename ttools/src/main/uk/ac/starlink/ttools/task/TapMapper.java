@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,6 +71,9 @@ public class TapMapper implements TableMapper {
         final String adql = adqlParam_.stringValue( env );
         final TapResultProducer resultProducer =
             resultReader_.createResultProducer( env );
+        final boolean progress =
+            resultReader_.getProgressParameter().booleanValue( env );
+        final PrintStream errStream = env.getErrorStream();
         final String[] upnames = new String[ nup ];
         for ( int iu = 0; iu < nup; iu++ ) {
             upnames[ iu ] =
@@ -85,8 +89,14 @@ public class TapMapper implements TableMapper {
                     uploadMap.put( upnames[ iu ],
                                    inSpecs[ iu ].getWrappedTable() );
                 }
+                if ( progress ) {
+                    errStream.println( "SUBMITTED ..." );
+                }
                 TapQuery query =
                     TapQuery.createAdqlQuery( url, adql, uploadMap );
+                if ( progress ) {
+                    errStream.println( query.getUwsJob().getJobUrl() );
+                }
                 query.start();
                 return resultProducer.waitForResult( query );
             }
