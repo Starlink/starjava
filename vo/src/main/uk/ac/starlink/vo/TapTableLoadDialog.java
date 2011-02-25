@@ -23,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
@@ -47,7 +48,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
+    private UwsJobPanel jobPanel_;
     private CaretListener adqlListener_;
+    private int jobTabIndex_;
 
     // This is an expression designed to pick up things that the user might
     // have entered as an upload table identifier.  It intentionally includes
@@ -71,6 +74,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         /* Prepare a panel to search the registry for TAP services. */
         final Component searchPanel = super.createQueryComponent();
 
+        /* Prepare a panel for monitoring running jobs. */
+        jobPanel_ = new UwsJobPanel();
+
         /* Prepare a tabbed panel to contain the components. */
         tabber_ = new JTabbedPane();
         tabber_.add( "Select Service", searchPanel );
@@ -78,6 +84,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         String tqTitle = "Enter Query";
         tabber_.add( tqTitle, tqContainer_ );
         final int tqTabIndex = tabber_.getTabCount() - 1;
+        tabber_.add( jobPanel_, "Running Jobs" );
+        jobTabIndex_ = tabber_.getTabCount() - 1;
 
         /* Provide a button to move to the query tab.
          * Placing it near the service selector makes it more obvious that
@@ -174,10 +182,16 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
+                final TapQuery tapQuery =
+                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        jobPanel_.addJob( tapQuery.getUwsJob(), true );
+                        tabber_.setSelectedIndex( jobTabIndex_ );
+                    }
+                } );
                 List<DescribedValue> metaList =
                     new ArrayList<DescribedValue>();
-                TapQuery tapQuery =
-                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap );
                 metaList.addAll( Arrays.asList( tapQuery.getQueryMetadata() ) );
                 metaList.addAll( Arrays
                                 .asList( getResourceMetadata( serviceUrl
