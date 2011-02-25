@@ -516,6 +516,7 @@ public class LineInvoker {
         }
         else {
             StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "Error: " );
             int i = 0;
             for ( ; e != null; e = e.getCause() ) {
                 String msg = e.getMessage();
