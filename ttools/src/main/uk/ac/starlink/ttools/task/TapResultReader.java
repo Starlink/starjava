@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
@@ -28,6 +30,7 @@ import uk.ac.starlink.vo.UwsStage;
 public class TapResultReader {
 
     private final IntegerParameter pollParam_;
+    private final BooleanParameter progressParam_;
     private final ChoiceParameter deleteParam_;
     private final Parameter[] parameters_;
     private static final Logger logger_ =
@@ -38,6 +41,7 @@ public class TapResultReader {
      */
     public TapResultReader() {
         List<Parameter> paramList = new ArrayList<Parameter>();
+
         pollParam_ = new IntegerParameter( "poll" );
         pollParam_.setPrompt( "Polling interval in milliseconds" );
         int minPoll = 50;
@@ -56,6 +60,16 @@ public class TapResultReader {
         pollParam_.setMinimum( 50 );
         pollParam_.setDefault( "5000" );
         paramList.add( pollParam_ );
+
+        progressParam_ = new BooleanParameter( "progress" );
+        progressParam_.setPrompt( "Report on query progress" );
+        progressParam_.setDescription( new String[] {
+            "<p>If this parameter is set true, progress of the job is",
+            "reported to standard output as it happens.",
+            "</p>",
+        } );
+        progressParam_.setDefault( "true" );
+        paramList.add( progressParam_ );
 
         deleteParam_ = new ChoiceParameter( "delete", DeleteMode.values() );
         deleteParam_.setPrompt( "Delete job on exit?" );
@@ -88,6 +102,16 @@ public class TapResultReader {
     }
 
     /**
+     * Returns the parameter which indicates whether progress should be
+     * logged to the user.
+     *
+     * @return  progress parameter
+     */
+    public BooleanParameter getProgessParameter() {
+        return progressParam_;
+    }
+
+    /**
      * Returns an object which can acquire a table from a TAP query object.
      *
      * @param  env  execution environment
@@ -96,6 +120,8 @@ public class TapResultReader {
     public TapResultProducer createResultProducer( Environment env )
             throws TaskException {
         final int pollMillis = pollParam_.intValue( env );
+        final boolean progress = progressParam_.booleanValue( env );
+        final PrintStream errStream = env.getErrorStream();
         final DeleteMode delete = (DeleteMode) deleteParam_.objectValue( env );
         final StarTableFactory tfact =
             LineTableEnvironment.getTableFactory( env );
@@ -111,9 +137,20 @@ public class TapResultReader {
          * either on table finalization or on JVM exit. */
         return new TapResultProducer() {
             private Thread deleteThread;
+            private String lastPhase;
 
             public StarTable waitForResult( final TapQuery query )
                     throws IOException {
+                Runnable progger = null;
+                final UwsJob uwsJob = query.getUwsJob();
+                if ( progress ) {
+                    progger = new Runnable() {
+                        public void run() {
+                            logPhase( uwsJob.getLastPhase() );
+                        }
+                    };
+                    uwsJob.addPhaseWatcher( progger );
+                }
                 final StarTable table;
                 if ( delete.isDeletionPossible() ) {
                     deleteThread = new Thread( "UWS job deleter" ) {
@@ -135,6 +172,11 @@ public class TapResultReader {
                 catch ( IOException e ) {
                     considerDeletionEarly( query );
                     throw e;
+                }
+                finally {
+                    if ( progress ) {
+                        logPhase( null );
+                    }
                 }
                 assert "COMPLETED".equals( query.getUwsJob().getLastPhase() );
                 if ( ! delete.isDeletionPossible() ) {
@@ -183,6 +225,27 @@ public class TapResultReader {
                 if ( delete.shouldDelete( stage ) ) {
                     job.attemptDelete();
                 }
+            }
+
+            /**
+             * Logs the current job phase to standard error in some compact way.
+             *
+             * @param  phase  UWS job phase, or phase-like string, or null
+             *                to indicate that processing has finished
+             */
+            private void logPhase( String phase ) {
+                if ( phase == null ) {
+                    errStream.println();
+                    errStream.flush();
+                }
+                else if ( ! phase.equals( lastPhase ) ) {
+                    if ( lastPhase != null ) {
+                        errStream.print( " ... " );
+                    }
+                    errStream.print( phase );
+                    errStream.flush();
+                }
+                lastPhase = phase;
             }
         };
     }
