@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
+import java.net.URL;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -7,6 +8,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.vo.ConeSearch;
 
@@ -20,7 +22,7 @@ import uk.ac.starlink.vo.ConeSearch;
  */
 public class ConeSearchConer implements Coner {
 
-    private final Parameter urlParam_;
+    private final URLParameter urlParam_;
     private final ChoiceParameter verbParam_;
     private final ChoiceParameter serviceParam_;
     private final BooleanParameter believeemptyParam_;
@@ -37,7 +39,7 @@ public class ConeSearchConer implements Coner {
             new SsaServiceType(),
         };
 
-        urlParam_ = new Parameter( "serviceurl" );
+        urlParam_ = new URLParameter( "serviceurl" );
         urlParam_.setPrompt( "Base URL for query returning VOTable" );
         urlParam_.setDescription( new String[] {
             "<p>The base part of a URL which defines the queries to be made.",
@@ -169,16 +171,11 @@ public class ConeSearchConer implements Coner {
             throws TaskException {
         ServiceType serviceType =
             (ServiceType) serviceParam_.objectValue( env );
-        String url;
-        try {
-            url = urlParam_.stringValue( env );
-        }
-        catch ( IllegalArgumentException e ) {
-            throw new ParameterValueException( urlParam_, e.getMessage(), e );
-        }
+        URL url = urlParam_.urlValue( env );
         boolean believeEmpty = believeemptyParam_.booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
-        return serviceType.createSearcher( env, url, believeEmpty, tfact );
+        return serviceType
+              .createSearcher( env, url.toString(), believeEmpty, tfact );
     }
 
     /**
