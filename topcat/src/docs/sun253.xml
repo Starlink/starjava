@@ -9794,7 +9794,9 @@ of a metric on that space to count as a match.
     this might typically be an object name or index number.
     Two rows count as matching if they have exactly the same entry in
     the specified field, except rows with a null value in that column,
-    which don't match any other row.
+    which don't match any other row.  Note that the values must also
+    be of the same type, so for instance a Long (64-bit) integer 
+    value will not match an Integer (32-bit) value.
     </p></dd>
 
 <dt>N-dimensional Cartesian</dt>

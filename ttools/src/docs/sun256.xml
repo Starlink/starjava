@@ -2513,6 +2513,8 @@ These values can be strings, numbers, or anything else.
 A blank value never matches, not even with another blank one.
 Since the <code>params</code> parameter holds no values, 
 it does not have to be specified.
+Note that the values must also be of the same type, so for instance
+a Long (64-bit) integer value will not match an Integer (32-bit) value.
 </p>
 
 </subsubsect>
