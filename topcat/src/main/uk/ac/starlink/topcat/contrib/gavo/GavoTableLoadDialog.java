@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.contrib.gavo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -96,6 +97,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
         passField_ = new JPasswordField();
         sqlField_ = new JEditorPane();
         sqlField_.setEditable( true );
+        sqlField_.setFont( Font.decode( "Monospaced" ) );
 
         /* Arrange them in a GUI container. */
         LabelledComponentStack stack = new LabelledComponentStack();

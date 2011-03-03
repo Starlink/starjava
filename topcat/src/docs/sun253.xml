@@ -14315,6 +14315,7 @@ introduced since the last version:
         present (not just if a hub exists) and will start a hub if
         necessary.</li>
     <li>Upgrade to JSAMP v1.2.</li>
+    <li>GAVO load dialogue now uses fixed-width font for SQL entry.</li>
     </ul>
     </p></dd>
 

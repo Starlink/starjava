@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -53,6 +54,7 @@ public class TapQueryPanel extends JPanel {
         /* Prepare a panel to contain user-entered ADQL text. */
         textPanel_ = new JEditorPane();
         textPanel_.setEditable( true );
+        textPanel_.setFont( Font.decode( "Monospaced" ) );
         JComponent textScroller = new JScrollPane( textPanel_ );
         textScroller.setBorder(
             BorderFactory.createTitledBorder(
