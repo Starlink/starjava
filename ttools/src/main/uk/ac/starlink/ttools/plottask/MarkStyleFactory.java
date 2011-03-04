@@ -64,6 +64,8 @@ public class MarkStyleFactory extends StyleFactory {
         paramList.add( createSizeParameter( stSuffix ) );
         paramList.add( createTransparencyParameter( stSuffix ) );
         paramList.add( createLineParameter( stSuffix ) );
+        paramList.add( createLineWidthParameter( stSuffix ) );
+        paramList.add( createDashParameter( stSuffix ) );
         paramList.add( createHidePointsParameter( stSuffix ) );
         if ( errNdim_ > 0 ) {
             paramList.add( createErrorRendererParameter( stSuffix ) );
@@ -109,6 +111,9 @@ public class MarkStyleFactory extends StyleFactory {
         ChoiceParameter lineParam = createLineParameter( stSuffix );
         lineParam.setDefaultOption( style0.getLine() );
         style.setLine( (MarkStyle.Line) lineParam.objectValue( env ) );
+        style.setDash( createDashParameter( stSuffix ).dashValue( env ) );
+        style.setLineWidth( createLineWidthParameter( stSuffix )
+                           .intValue( env ) );
 
         /* Configure point hide flag. */
         BooleanParameter hideParam = createHidePointsParameter( stSuffix );
@@ -292,6 +297,53 @@ public class MarkStyleFactory extends StyleFactory {
             "Note that the regression coefficients take no account of",
             "points out of the visible range.</li>",
             "</ul>",
+            "</p>",
+        } );
+        return param;
+    }
+
+    /**
+     * Constructs a a parameter for determining line width.
+     *
+     * @param  stSuffix  label identifying dataset
+     * @return   parameter returning line width
+     */
+    private IntegerParameter createLineWidthParameter( String stSuffix ) {
+        IntegerParameter param =
+            new IntegerParameter( paramName( "linewidth", stSuffix ) );
+        param.setPrompt( "Line width for lines in data set " + stSuffix );
+        param.setDescription( new String[] {
+            "<p>Sets the line width in pixels for any lines drawn in data set",
+            stSuffix + ".",
+            "</p>",
+            "<p>Only has an effect if the",
+            "<code>" + createLineParameter( stSuffix ).getName() + "</code>",
+            "parameter is set to draw lines.",
+            "</p>",
+        } );
+        param.setDefault( "1" );
+        param.setMinimum( 1 );
+        return param;
+    }
+
+    /**
+     * Constructs a parameter for determining dash style.
+     *
+     * @param  stSuffix  label identifying suffix
+     * @return  parameter returning dash style
+     */
+    private DashParameter createDashParameter( String stSuffix ) {
+        DashParameter param =
+            new DashParameter( paramName( "dash", stSuffix ) );
+        param.setPrompt( "Dash style for lines in data set " + stSuffix );
+        param.setDescription( new String[] {
+            "<p>Defines the dash style for any lines drawn in data set",
+            stSuffix,
+            param.getFormatDescription(),
+            "</p>",
+            "<p>Only has an effect if the",
+            "<code>" + createLineParameter( stSuffix ).getName() + "</code>",
+            "parameter is set to draw lines.",
             "</p>",
         } );
         return param;

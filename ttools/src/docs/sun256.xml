@@ -7492,6 +7492,8 @@ but my thanks are especially due to the following:
     <li>Add <ref id="tapquery"><code>tapquery</code></ref> and
         <ref id="tapresume"><code>tapresume</code></ref> commands.</li>
     <li>Upgrade to JSAMP v1.2.</li>
+    <li>Add missing parameters <code>dashNS</code> and <code>linewidthNS</code>
+        to <code>plot2d</code> task.</li>
     </ul>
     </p></dd>
 
