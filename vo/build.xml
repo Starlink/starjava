@@ -433,6 +433,7 @@
            source="${source.version}"
            optimize="${optimize}">
       <compilerarg value="-proc:none" compiler="javac1.6"/>
+      <!-- <compilerarg value="-Xlint:unchecked"/> -->
       <classpath refid="classpath"/>
       <include name="**/*.java"/>
     </javac>
