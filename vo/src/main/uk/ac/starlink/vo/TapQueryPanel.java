@@ -173,19 +173,12 @@ public class TapQueryPanel extends JPanel {
     public void setServiceUrl( final String serviceUrl ) {
 
         /* Prepare the URL where we can find the TableSet document. */
-        URL url;
+        final URL url;
         try {
             url = new URL( serviceUrl );
         }
         catch ( MalformedURLException e ) {
             return;
-        }
-        final URL turl;
-        try {
-            turl = new URL( serviceUrl + "/tables" );
-        }
-        catch ( MalformedURLException e ) {
-            throw new AssertionError( e );
         }
 
         /* Dispatch a request to acquire the table metadata from
@@ -196,13 +189,12 @@ public class TapQueryPanel extends JPanel {
             public void run() {
                 final TableMeta[] tableMetas;
                 try {
-                    logger_.info( "Reading table metadata from " + turl );
-                    tableMetas = TableSetSaxHandler.readTableSet( turl );
+                    tableMetas = TapQuery.readTableMetadata( url );
                 }
                 catch ( final Exception e ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            tmetaPanel_.showFetchFailure( turl, e );
+                            tmetaPanel_.showFetchFailure( url, e );
                         }
                     } );
                     return;

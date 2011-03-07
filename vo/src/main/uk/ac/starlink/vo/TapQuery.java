@@ -204,6 +204,19 @@ public class TapQuery {
     }
 
     /**
+     * Reads table metadata from a TAP service.
+     *
+     * @param  serviceUrl  base TAP service URL
+     * @return   table metadata
+     */
+    public static TableMeta[] readTableMetadata( URL serviceUrl )
+            throws IOException, SAXException {
+        URL turl = new URL( serviceUrl + "/tables" );
+        logger_.info( "Reading table metadata from " + turl );
+        return TableSetSaxHandler.readTableSet( turl );
+    }
+
+    /**
      * Returns a short textual summary of an ADQL query on a given TAP service.
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
