@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +42,7 @@ import uk.ac.starlink.util.DOMUtils;
 public class UwsJob {
 
     private final URL jobUrl_;
-    private volatile Map paramMap_;
+    private volatile Map<String,String> paramMap_;
     private volatile String phase_;
     private volatile long phaseTime_;
     private boolean deleteAttempted_;
@@ -50,6 +51,9 @@ public class UwsJob {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
     private static final String UTF8 = "UTF-8";
+
+    /** Chunk size for HTTP transfer encoding; if &lt;=0, don't chunk. */
+    public static int HTTP_CHUNK_SIZE = 1024 * 1024;
 
     /**
      * Constructor.
@@ -96,7 +100,8 @@ public class UwsJob {
     protected void setParameters( Map<String,String> paramMap ) {
         paramMap_ = paramMap == null
             ? null
-            : Collections.unmodifiableMap( new LinkedHashMap( paramMap ) );
+            : Collections
+             .unmodifiableMap( new LinkedHashMap<String,String>( paramMap ) );
     }
 
     /**
@@ -113,7 +118,7 @@ public class UwsJob {
                                       .newDocumentBuilder()
                                       .parse( paramsUrl );
             NodeList els = paramDoc.getElementsByTagName( "*" );
-            Map<String,String> paramMap = new LinkedHashMap();
+            Map<String,String> paramMap = new LinkedHashMap<String,String>();
             for ( int i = 0; i < els.getLength(); i++ ) {
                 Element el = (Element) els.item( i );
                 String tagName = el.getTagName();
@@ -518,14 +523,22 @@ public class UwsJob {
         hconn.setDoOutput( true );
         logger_.info( "POST params to " + url );
 
-        /* Open and buffer stream for POST content.  If we write this
-         * directly to the HTTP connection output stream it will get
-         * buffered in memory.  Better to manage the buffering ourselves
-         * using a StoragePolicy.  An alternative would be chunked output
-         * (HttpURLConnection.setChunkedStreamingMode) but not all servers
-         * seem to support this. */
-        ByteStore hbuf = StoragePolicy.getDefaultPolicy().makeByteStore();
-        OutputStream hout = new BufferedOutputStream( hbuf.getOutputStream() );
+        /* Open and buffer stream for POST content.  If we simply write to
+         * the connection's output stream, the content will be buffered
+         * in memory by the HttpURLConnection implementation, which may 
+         * cause an OutOfMemoryError in the case of large uploads.
+         * So arrange to stream the data by doing one of two things: 
+         * either use chunked HTTP transfer encoding, or buffer the 
+         * data up front using a StoragePolicy prior to the write.
+         * Chunking is generally preferable, but it's possible that some
+         * servers don't support it (though RFC2616 sec 3.6.1 says they
+         * should do for HTTP 1.1). */
+        OutputStream hout =
+            HTTP_CHUNK_SIZE > 0
+                ? createChunkedHttpStream( hconn, HTTP_CHUNK_SIZE )
+                : createStoredHttpStream( hconn,
+                                          StoragePolicy.getDefaultPolicy() );
+        hout = new BufferedOutputStream( hout );
 
         /* Write string parameters.  See RFC 2046 Sec 4.1. */
         for ( Map.Entry<String,String> entry : stringMap.entrySet() ) {
@@ -562,19 +575,6 @@ public class UwsJob {
         /* Write trailing delimiter. */
         writeHttpLine( hout, "--" + boundary + "--" );
         hout.close();
-
-        /* Stream the request body from the buffer to the HTTP connection. */
-        long hleng = hbuf.getLength();
-        if ( hleng > Integer.MAX_VALUE ) {
-            // Could be worked round, but TAP service providers wouldn't
-            // thank me for it.
-            throw new IOException( "Uploads are too big" );
-        }
-        hconn.setFixedLengthStreamingMode( (int) hleng );
-        hconn.connect();
-        OutputStream hcout = hconn.getOutputStream();
-        hbuf.copy( hcout );
-        hcout.close();
         return hconn;
     }
 
@@ -684,6 +684,61 @@ public class UwsJob {
         buf[ leng + 0 ] = (byte) '\r';
         buf[ leng + 1 ] = (byte) '\n';
         out.write( buf );
+    }
+
+    /**
+     * Returns a new output stream for writing to a URL connection,
+     * with chunking.
+     * The connection must be unconnected when this is called.
+     * A chunked transfer encoding will be used, with the chunk size
+     * as given.
+     *
+     * @param   hconn  unconnected URL connection
+     * @param   chunkSize  chunk size in bytes
+     * @return  destination stream for HTTP content
+     */
+    private static OutputStream
+                   createChunkedHttpStream( HttpURLConnection hconn,
+                                            int chunkSize )
+            throws IOException { 
+        hconn.setChunkedStreamingMode( chunkSize );
+        hconn.connect();
+        return hconn.getOutputStream();
+    }
+
+    /**
+     * Returns a new output stream for writing to a URL connection,
+     * with buffering managed by a given storage policy.
+     * The connection must be unconnected when this is called.
+     * The content will be buffered using a ByteStore obtained from the
+     * supplied storage profile, and the actual write (as for an 
+     * unstreamed HttpURLConnection) will be done only when the returned
+     * output stream is closed.
+     *
+     * @param  hconn  unconnected URL connection
+     * @param  storage   storage policy used for buffering content
+     * @return  destination stream for HTTP content
+     */
+    private static OutputStream
+                   createStoredHttpStream( final HttpURLConnection hconn,
+                                           StoragePolicy storage ) {
+        final ByteStore hbuf = storage.makeByteStore();
+        return new FilterOutputStream( hbuf.getOutputStream() ) {
+            public void close() throws IOException {
+                super.close();
+                long hleng = hbuf.getLength();
+                if ( hleng > Integer.MAX_VALUE ) {
+                    // Could be worked round, but TAP service providers wouldn't
+                    // thank me for it.
+                    throw new IOException( "Uploads are too big" );
+                }
+                hconn.setFixedLengthStreamingMode( (int) hleng );
+                hconn.connect();
+                OutputStream hcout = hconn.getOutputStream();
+                hbuf.copy( hcout );
+                hcout.close();
+            }
+        };
     }
 
     /**
