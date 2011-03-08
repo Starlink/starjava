@@ -182,8 +182,19 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
+                Map<String,String> extraParams =
+                    new LinkedHashMap<String,String>();
+                String language = tqPanel_.getCapabilityPanel().getLanguage();
+                if ( language != null && language.trim().length() > 0 ) {
+                    extraParams.put( "LANG", language );
+                }
+                Long maxrec = tqPanel_.getCapabilityPanel().getMaxrec();
+                if ( maxrec != null ) {
+                    extraParams.put( "MAXREC", maxrec.toString() );
+                }
                 final TapQuery tapQuery =
-                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap );
+                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap,
+                                              extraParams );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         jobPanel_.addJob( tapQuery.getUwsJob(), true );

@@ -155,10 +155,15 @@ public class TapQuery {
      * @param  adql   text of ADQL query
      * @param  uploadMap  name->table map of tables to be uploaded to
      *                    the service for the query
+     * @param  extraParams  key->value map for optional parameters;
+     *                      if any of these match the names of standard
+     *                      parameters (upper case) the standard values will
+     *                      be overwritten, so use with care
      * @return   new TapQuery
      */
     public static TapQuery createAdqlQuery( URL serviceUrl, String adql,
-                                            Map<String,StarTable> uploadMap )
+                                            Map<String,StarTable> uploadMap,
+                                            Map<String,String> extraParams )
             throws IOException {
 
         /* Prepare basic TAP ADQL parameters. */
@@ -166,6 +171,9 @@ public class TapQuery {
         stringMap.put( "REQUEST", "doQuery" );
         stringMap.put( "LANG", "ADQL" );
         stringMap.put( "QUERY", adql );
+        if ( extraParams != null ) {
+            stringMap.putAll( extraParams );
+        }
 
         /* Prepare upload parameters (UPLOAD itself and any uploaded tables)
          * if required. */
