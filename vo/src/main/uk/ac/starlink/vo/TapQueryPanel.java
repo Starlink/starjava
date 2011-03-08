@@ -34,6 +34,7 @@ public class TapQueryPanel extends JPanel {
 
     private final JEditorPane textPanel_;
     private final TableSetPanel tmetaPanel_;
+    private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
     private final JLabel countLabel_;
     private final AdqlExemplifier exampler_;
@@ -50,6 +51,9 @@ public class TapQueryPanel extends JPanel {
 
         /* Prepare a panel for table metadata display. */
         tmetaPanel_ = new TableSetPanel();
+
+        /* Prepare a panel to contain service capability information. */
+        tcapPanel_ = new TapCapabilityPanel();
 
         /* Prepare a panel to contain user-entered ADQL text. */
         textPanel_ = new JEditorPane();
@@ -110,6 +114,9 @@ public class TapQueryPanel extends JPanel {
         JComponent adqlPanel = new JPanel( new BorderLayout() );
         adqlPanel.add( buttLine, BorderLayout.NORTH );
         adqlPanel.add( textScroller, BorderLayout.CENTER );
+        JComponent qPanel = new JPanel( new BorderLayout() );
+        qPanel.add( tcapPanel_, BorderLayout.NORTH );
+        qPanel.add( adqlPanel, BorderLayout.CENTER );
 
         /* Prepare a panel for the TAP service heading. */
         serviceLabel_ = new JLabel();
@@ -129,10 +136,18 @@ public class TapQueryPanel extends JPanel {
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
                 "Table Metadata" ) );
+        tcapPanel_.setBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder( Color.BLACK ),
+                "Service Capabilities" ) );
         splitter.setTopComponent( servicePanel );
-        splitter.setBottomComponent( adqlPanel );
+        splitter.setBottomComponent( qPanel );
         splitter.setResizeWeight( 0.5 );
         add( splitter, BorderLayout.CENTER );
+    }
+
+    public TapCapabilityPanel getCapabilityPanel() {
+        return tcapPanel_;
     }
 
     /**
@@ -204,6 +219,28 @@ public class TapQueryPanel extends JPanel {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         setTables( tableMetas );
+                    }
+                } );
+            }
+        }.start();
+
+        /* Dispatch a request to acquire the service capability information
+         * from the service. */
+        tcapPanel_.setCapability( null );
+        new Thread( "Table capability fetcher" ) {
+            public void run() {
+                final TapCapability cap;
+                try {
+                    cap = TapQuery.readTapCapability( url );
+                }
+                catch ( final Exception e ) {
+                    logger_.warning( "Failed to acquire TAP service capability "
+                                   + "information" );
+                    return;
+                }
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        tcapPanel_.setCapability( cap );
                     }
                 } );
             }

@@ -184,11 +184,12 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                     throws IOException {
                 Map<String,String> extraParams =
                     new LinkedHashMap<String,String>();
-                String language = tqPanel_.getCapabilityPanel().getLanguage();
+                TapCapabilityPanel tcapPanel = tqPanel_.getCapabilityPanel();
+                String language = tcapPanel.getQueryLanguage();
                 if ( language != null && language.trim().length() > 0 ) {
                     extraParams.put( "LANG", language );
                 }
-                Long maxrec = tqPanel_.getCapabilityPanel().getMaxrec();
+                Long maxrec = tcapPanel.getMaxrec();
                 if ( maxrec != null ) {
                     extraParams.put( "MAXREC", maxrec.toString() );
                 }

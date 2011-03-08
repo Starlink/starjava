@@ -225,6 +225,19 @@ public class TapQuery {
     }
 
     /**
+     * Reads capability information from a TAP service.
+     *
+     * @param  serviceUrl  base TAP service URL
+     * @return   capability information
+     */
+    public static TapCapability readTapCapability( URL serviceUrl )
+            throws IOException, SAXException {
+        URL curl = new URL( serviceUrl + "/capabilities" );
+        logger_.info( "Reading capability metadata from " + curl );
+        return TapCapability.readTapCapability( curl );
+    }
+
+    /**
      * Returns a short textual summary of an ADQL query on a given TAP service.
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
