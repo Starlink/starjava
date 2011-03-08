@@ -60,10 +60,6 @@ public class TapQueryPanel extends JPanel {
         textPanel_.setEditable( true );
         textPanel_.setFont( Font.decode( "Monospaced" ) );
         JComponent textScroller = new JScrollPane( textPanel_ );
-        textScroller.setBorder(
-            BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder( Color.BLACK ),
-                "ADQL Text" ) );
 
         /* Actions to replace text in ADQL panel. */
         final AdqlTextAction clearAct =
@@ -104,7 +100,7 @@ public class TapQueryPanel extends JPanel {
 
         /* Controls for ADQL text panel. */
         Box buttLine = Box.createHorizontalBox();
-        buttLine.setBorder( BorderFactory.createEmptyBorder( 2, 2, 0, 2 ) );
+        buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( Box.createHorizontalGlue() );
         buttLine.add( new JButton( exampleAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
@@ -132,6 +128,10 @@ public class TapQueryPanel extends JPanel {
         JComponent servicePanel = new JPanel( new BorderLayout() );
         servicePanel.add( tableHeading, BorderLayout.NORTH );
         servicePanel.add( tmetaPanel_, BorderLayout.CENTER );
+        adqlPanel.setBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder( Color.BLACK ),
+                "ADQL Text" ) );
         servicePanel.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
