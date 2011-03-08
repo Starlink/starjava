@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.net.URL;
+import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -256,6 +257,13 @@ public class TableSetPanel extends JPanel {
             new ArrayTableColumn( "DataType", String.class ) {
                 public Object getValue( Object item ) {
                     return getCol( item ).getDataType();
+                }
+            },
+            new ArrayTableColumn( "Indexed", Boolean.class ) {
+                public Object getValue( Object item ) {
+                    return Boolean
+                          .valueOf( Arrays.asList( getCol( item ).getFlags() )
+                                          .indexOf( "indexed" ) >= 0 );
                 }
             },
             new ArrayTableColumn( "Unit", String.class ) {
