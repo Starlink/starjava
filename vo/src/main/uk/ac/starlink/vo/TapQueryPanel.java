@@ -146,6 +146,12 @@ public class TapQueryPanel extends JPanel {
         add( splitter, BorderLayout.CENTER );
     }
 
+    /**
+     * Returns the panel used to hold and display the TAP capability
+     * information.
+     *
+     * @return  capability display panel
+     */
     public TapCapabilityPanel getCapabilityPanel() {
         return tcapPanel_;
     }
