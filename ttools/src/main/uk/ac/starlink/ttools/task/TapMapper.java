@@ -26,6 +26,8 @@ public class TapMapper implements TableMapper {
 
     private final URLParameter urlParam_;
     private final Parameter adqlParam_;
+    private final Parameter langParam_;
+    private final Parameter maxrecParam_;
     private final TapResultReader resultReader_;
     private final Parameter[] params_;
 
@@ -55,6 +57,33 @@ public class TapMapper implements TableMapper {
         } );
         paramList.add( adqlParam_ );
 
+        maxrecParam_ = new Parameter( "maxrec" );
+        maxrecParam_.setPrompt( "Maximum number of records in output table" );
+        maxrecParam_.setDescription( new String[] {
+            "<p>Sets the requested maximum row count for the result of",
+            "the query.",
+            "The service is not obliged to respect this, but in the case",
+            "that it has a default maximum record count, setting this value",
+            "may raise the limit.",
+            "If no value is set, the service's default policy will be used.",
+            "</p>",
+        } );
+        maxrecParam_.setNullPermitted( true );
+
+        langParam_ = new Parameter( "language" );
+        langParam_.setPrompt( "TAP query language" );
+        langParam_.setDescription( new String[] {
+            "<p>Language to use for the ADQL-like query.",
+            "This will usually be \"ADQL\" (the default),",
+            "but may be set to some other value supported by the service,",
+            "for instance a variant indicating a different ADQL version.",
+            "Note that at present, setting it to \"PQL\" is not sufficient",
+            "to submit a PQL query.",
+            "</p>",
+        } );
+        langParam_.setDefault( "ADQL" );
+        paramList.add( langParam_ );
+
         resultReader_ = new TapResultReader();
         paramList.addAll( Arrays.asList( resultReader_.getParameters() ) );
 
@@ -69,6 +98,23 @@ public class TapMapper implements TableMapper {
             throws TaskException {
         final URL url = urlParam_.urlValue( env );
         final String adql = adqlParam_.stringValue( env );
+        final Map<String,String> extraParams =
+            new LinkedHashMap<String,String>();
+        String lang = langParam_.stringValue( env );
+        if ( ! "ADQL".equals( lang ) ) {
+            extraParams.put( "LANG", lang );
+        }
+        String sMaxrec = maxrecParam_.stringValue( env );
+        if ( sMaxrec != null && sMaxrec.trim().length() > 0 ) {
+            try {
+                long maxrec = Long.parseLong( sMaxrec.trim() );
+                extraParams.put( "MAXREC", Long.toString( maxrec ) );
+            }
+            catch ( NumberFormatException e ) {
+                throw new ParameterValueException( maxrecParam_,
+                                                   "Not an integer", e );
+            }
+        }
         final TapResultProducer resultProducer =
             resultReader_.createResultProducer( env );
         final boolean progress =
@@ -93,7 +139,8 @@ public class TapMapper implements TableMapper {
                     errStream.println( "SUBMITTED ..." );
                 }
                 TapQuery query =
-                    TapQuery.createAdqlQuery( url, adql, uploadMap );
+                    TapQuery.createAdqlQuery( url, adql, uploadMap,
+                                              extraParams );
                 if ( progress ) {
                     errStream.println( query.getUwsJob().getJobUrl() );
                 }
