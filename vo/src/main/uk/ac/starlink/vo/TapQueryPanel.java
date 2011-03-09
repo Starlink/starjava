@@ -215,7 +215,7 @@ public class TapQueryPanel extends JPanel {
                 catch ( final Exception e ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            tmetaPanel_.showFetchFailure( url, e );
+                            tmetaPanel_.showFetchFailure( url + "/tables", e );
                         }
                     } );
                     return;

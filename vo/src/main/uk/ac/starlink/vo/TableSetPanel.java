@@ -177,14 +177,14 @@ public class TableSetPanel extends JPanel {
      * @param  metaUrl  the tableset metadata acquisition attempted URL
      * @param  error   error that caused the failure
      */
-    public void showFetchFailure( URL metaUrl, Throwable error ) {
+    public void showFetchFailure( String metaUrl, Throwable error ) {
         JComponent msgLine = Box.createHorizontalBox();
         msgLine.setAlignmentX( 0 );
         msgLine.add( new JLabel( "No table metadata available" ) );
         JComponent urlLine = Box.createHorizontalBox();
         urlLine.setAlignmentX( 0 );
         urlLine.add( new JLabel( "Metadata URL: " ) );
-        JTextField urlField = new JTextField( metaUrl.toString() );
+        JTextField urlField = new JTextField( metaUrl );
         urlField.setEditable( false );
         urlField.setBorder( BorderFactory.createEmptyBorder() );
         urlLine.add( new ShrinkWrapper( urlField ) );
