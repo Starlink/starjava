@@ -30,18 +30,25 @@ public class TapCapabilityPanel extends JPanel {
     public TapCapabilityPanel() {
         super( new BorderLayout() );
         langSelector_ = new JComboBox();
+        langSelector_.setToolTipText( "Selects which supported query "
+                                    + "language/version to use" );
         uploadFlagger_ = new JCheckBox();
         uploadFlagger_.setEnabled( false );
+        uploadFlagger_.setToolTipText( "Indicates whether the service supports "
+                                     + "table uploads" );
         maxrecSelector_ = new JComboBox();
         maxrecSelector_.setEditable( true );
+        maxrecSelector_.setToolTipText( "Indicates and allows to set MAXREC, "
+                                      + "the maximum row count for result "
+                                      + "tables" );
         JComponent line = Box.createHorizontalBox();
-        line.add( new JLabel( "Query Language: " ) );
+        line.add( createJLabel( "Query Language: ", langSelector_ ) );
         line.add( new ShrinkWrapper( langSelector_ ) );
         line.add( Box.createHorizontalStrut( 10 ) );
-        line.add( new JLabel( "Max Rows: " ) );
+        line.add( createJLabel( "Max Rows: ", maxrecSelector_ ) );
         line.add( new ShrinkWrapper( maxrecSelector_ ) );
         line.add( Box.createHorizontalStrut( 10 ) );
-        line.add( new JLabel( "Uploads: " ) );
+        line.add( createJLabel( "Uploads: ", uploadFlagger_ ) );
         line.add( uploadFlagger_ );
         line.add( Box.createHorizontalGlue() );
         add( line, BorderLayout.NORTH );
@@ -178,5 +185,19 @@ public class TapCapabilityPanel extends JPanel {
             }
         }
         return langs.length > 0 ? langs[ 0 ] : "ADQL";
+    }
+
+    /**
+     * Creates and returns a label associated with a given component.
+     * Tool tip text is copied.
+     *
+     * @param  text  label text
+     * @param  comp  associated component
+     * @return   new JLabel
+     */
+    private static JLabel createJLabel( String text, JComponent comp ) {
+        JLabel label = new JLabel( text );
+        label.setToolTipText( comp.getToolTipText() );
+        return label;
     }
 }
