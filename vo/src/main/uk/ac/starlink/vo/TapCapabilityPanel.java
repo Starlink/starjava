@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.util.Arrays;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -20,7 +21,7 @@ public class TapCapabilityPanel extends JPanel {
 
     private TapCapability capability_;
     private final JComboBox langSelector_;
-    private final JLabel uploadLabel_;
+    private final JCheckBox uploadFlagger_;
     private final JComboBox maxrecSelector_;
 
     /**
@@ -29,7 +30,8 @@ public class TapCapabilityPanel extends JPanel {
     public TapCapabilityPanel() {
         super( new BorderLayout() );
         langSelector_ = new JComboBox();
-        uploadLabel_ = new JLabel();
+        uploadFlagger_ = new JCheckBox();
+        uploadFlagger_.setEnabled( false );
         maxrecSelector_ = new JComboBox();
         maxrecSelector_.setEditable( true );
         JComponent line = Box.createHorizontalBox();
@@ -40,7 +42,7 @@ public class TapCapabilityPanel extends JPanel {
         line.add( new ShrinkWrapper( maxrecSelector_ ) );
         line.add( Box.createHorizontalStrut( 10 ) );
         line.add( new JLabel( "Uploads: " ) );
-        line.add( uploadLabel_ );
+        line.add( uploadFlagger_ );
         line.add( Box.createHorizontalGlue() );
         add( line, BorderLayout.NORTH );
         setCapability( null );
@@ -58,7 +60,7 @@ public class TapCapabilityPanel extends JPanel {
         /* No capability to display. */
         if ( capability == null ) {
             langSelector_.setModel( new DefaultComboBoxModel() );
-            uploadLabel_.setText( "" );
+            uploadFlagger_.setSelected( false );
             langSelector_.setEnabled( false );
             maxrecModel = new DefaultComboBoxModel( new String[ 1 ] );
         }
@@ -69,7 +71,7 @@ public class TapCapabilityPanel extends JPanel {
             langSelector_
                .setModel( new DefaultComboBoxModel( new String[] { "ADQL" } ) );
             langSelector_.setSelectedIndex( 0 );
-            uploadLabel_.setText( "" );
+            uploadFlagger_.setSelected( false );
             langSelector_.setEnabled( false );
             maxrecModel = new DefaultComboBoxModel( new String[ 1 ] );
         }
@@ -84,7 +86,7 @@ public class TapCapabilityPanel extends JPanel {
             boolean canUpload =
                 Arrays.asList( capability.getUploadMethods() )
                .indexOf( TapCapability.UPLOADS_URI + "#inline" ) >= 0;
-            uploadLabel_.setText( canUpload ? "supported" : "unsupported" );
+            uploadFlagger_.setSelected( canUpload );
 
             TapLimit[] outLimits = capability.getOutputLimits();
             maxrecModel = new DefaultComboBoxModel();

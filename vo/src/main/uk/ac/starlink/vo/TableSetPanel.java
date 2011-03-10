@@ -373,6 +373,8 @@ public class TableSetPanel extends JPanel {
     /**
      * Constructs an array of columns which define the table model
      * to use for displaying foreign key information.
+     *
+     * @return  column descriptions
      */
     private static ArrayTableColumn[] createForeignMetaColumns() {
         return new ArrayTableColumn[] {
