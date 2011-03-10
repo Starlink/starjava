@@ -18,6 +18,7 @@ import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -37,9 +38,13 @@ public class TableSetPanel extends JPanel {
 
     private final JComboBox tSelector_;
     private final JTable colTable_;
+    private final JTable foreignTable_;
     private final ArrayTableModel colTableModel_;
-    private final MetaColumnModel colModel_;
-    private final JScrollPane colScroller_;
+    private final ArrayTableModel foreignTableModel_;
+    private final MetaColumnModel colColModel_;
+    private final MetaColumnModel foreignColModel_;
+    private final JComponent metaPanel_;
+    private final JSplitPane metaSplitter_;
     private final JLabel tableLabel_;
 
     /**
@@ -81,23 +86,49 @@ public class TableSetPanel extends JPanel {
         tLine.add( tableLabel_ );
         tLine.add( Box.createHorizontalGlue() );
         tLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 5 ) );
-        JComponent chLine = Box.createHorizontalBox();
-        chLine.add( new JLabel( "Columns:" ) );
-        chLine.add( Box.createHorizontalGlue() );
-        JComponent topBox = Box.createVerticalBox();
-        topBox.add( tLine );
-        topBox.add( chLine );
-        add( topBox, BorderLayout.NORTH );
+        add( tLine, BorderLayout.NORTH );
+
         colTableModel_ = new ArrayTableModel( createColumnMetaColumns(),
                                               new ColumnMeta[ 0 ] );
         colTable_ = new JTable( colTableModel_ );
         colTable_.setColumnSelectionAllowed( false );
         colTable_.setRowSelectionAllowed( false );
-        colModel_ =
+        colColModel_ =
             new MetaColumnModel( colTable_.getColumnModel(), colTableModel_ );
-        colTable_.setColumnModel( colModel_ );
-        colScroller_ = new JScrollPane();
-        add( colScroller_, BorderLayout.CENTER );
+        colTable_.setColumnModel( colColModel_ );
+
+        foreignTableModel_ = new ArrayTableModel( createForeignMetaColumns(),
+                                                  new ColumnMeta[ 0 ] );
+        foreignTable_ = new JTable( foreignTableModel_ );
+        foreignTable_.setColumnSelectionAllowed( false );
+        foreignTable_.setRowSelectionAllowed( false );
+        foreignColModel_ =
+            new MetaColumnModel( foreignTable_.getColumnModel(),
+                                 foreignTableModel_ );
+        foreignTable_.setColumnModel( foreignColModel_ );
+
+        metaSplitter_ = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+        metaSplitter_.setResizeWeight( 0.8 );
+        metaSplitter_.setBorder( BorderFactory.createEmptyBorder() );
+        JComponent colPanel = new JPanel( new BorderLayout() );
+        JComponent chBox = Box.createHorizontalBox();
+        chBox.add( new JLabel( "Columns:" ) );
+        chBox.add( Box.createHorizontalGlue() );
+        colPanel.add( chBox, BorderLayout.NORTH );
+        colPanel.add( new JScrollPane( colTable_ ), BorderLayout.CENTER );
+        metaSplitter_.setTopComponent( colPanel );
+        JComponent foreignPanel = new JPanel( new BorderLayout() );
+        JComponent fhBox = Box.createHorizontalBox();
+        fhBox.add( new JLabel( "Foreign Keys:" ) );
+        fhBox.add( Box.createHorizontalGlue() );
+        foreignPanel.add( fhBox, BorderLayout.NORTH );
+        foreignPanel.add( new JScrollPane( foreignTable_ ),
+                          BorderLayout.CENTER );
+        metaSplitter_.setBottomComponent( foreignPanel );
+
+        metaPanel_ = new JPanel( new BorderLayout() );
+        metaPanel_.add( metaSplitter_, BorderLayout.CENTER );
+        add( metaPanel_, BorderLayout.CENTER );
         setSelectedTable( null );
     }
 
@@ -108,7 +139,7 @@ public class TableSetPanel extends JPanel {
      * @param  name  menu name
      */
     public JMenu makeColumnDisplayMenu( String name ) {
-        return colModel_.makeCheckBoxMenu( name );
+        return colColModel_.makeCheckBoxMenu( name );
     }
 
     /**
@@ -121,11 +152,12 @@ public class TableSetPanel extends JPanel {
         tSelector_.setModel( tables == null
                                     ? new DefaultComboBoxModel()
                                     : new DefaultComboBoxModel( tables ) );
-        colScroller_.setViewportView( colTable_ );
+        metaPanel_.removeAll();
+        metaPanel_.add( metaSplitter_ );
+        metaPanel_.revalidate();
         if ( tables != null && tables.length > 0 ) {
             tSelector_.setSelectedIndex( 0 );
             setSelectedTable( tables[ 0 ] );  // should happen automatically?
-            StarJTable.configureColumnWidths( colTable_, 360, 9999 );
         }
         else {
             setSelectedTable( null );
@@ -167,7 +199,9 @@ public class TableSetPanel extends JPanel {
         workBox.add( Box.createVerticalGlue() );
         JComponent workPanel = new JPanel( new BorderLayout() );
         workPanel.add( workBox, BorderLayout.CENTER );
-        colScroller_.setViewportView( workPanel );
+        metaPanel_.removeAll();
+        metaPanel_.add( workPanel, BorderLayout.CENTER );
+        metaPanel_.revalidate();
         return progBar;
     }
 
@@ -212,7 +246,9 @@ public class TableSetPanel extends JPanel {
         linesHBox.add( Box.createHorizontalGlue() );
         JComponent panel = new JPanel( new BorderLayout() );
         panel.add( linesHBox, BorderLayout.CENTER );
-        colScroller_.setViewportView( panel );
+        metaPanel_.removeAll();
+        metaPanel_.add( panel, BorderLayout.CENTER );
+        metaPanel_.revalidate();
     }
 
     /**
@@ -232,13 +268,40 @@ public class TableSetPanel extends JPanel {
     private void setSelectedTable( TableMeta table ) {
         if ( table == null ) {
             colTableModel_.setItems( new ColumnMeta[ 0 ] );
+            foreignTableModel_.setItems( new ForeignMeta[ 0 ] );
             tableLabel_.setText( "" );
         }
         else {
-            ColumnMeta[] cols = table.getColumns();
-            colTableModel_.setItems( table.getColumns() );
             tableLabel_.setText( table.getTitle() );
+            colTableModel_.setItems( table.getColumns() );
+            foreignTableModel_.setItems( table.getForeignKeys() );
+            if ( metaSplitter_.getSize().width > 0 ) {
+                StarJTable.configureColumnWidths( colTable_, 360, 9999 );
+                StarJTable.configureColumnWidths( foreignTable_, 360, 9999 );
+            }
         }
+    }
+
+    /**
+     * Returns the ColumnMeta object associated with a given item
+     * in the column metadata table model.  It's just a cast.
+     *
+     * @param   item  table cell contents
+     * @return   column metadata object associated with <code>item</code>
+     */
+    private static ColumnMeta getCol( Object item ) {
+        return (ColumnMeta) item;
+    }
+
+    /**
+     * Returns the ForeignMeta object associated with a given item
+     * in the foreign key table model.  It's just a cast.
+     *
+     * @param  item   table cell contents
+     * @return   foreign key object associated with <code>item</code>
+     */
+    private static ForeignMeta getForeign( Object item ) {
+        return (ForeignMeta) item;
     }
 
     /**
@@ -308,13 +371,42 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Returns the ColumnMeta object associated with a given item
-     * in the column metadata table model.  It's just a cast.
-     *
-     * @param   item  table cell contents
-     * @return   column metadata object associated with <code>item</code>
+     * Constructs an array of columns which define the table model
+     * to use for displaying foreign key information.
      */
-    private static ColumnMeta getCol( Object item ) {
-        return (ColumnMeta) item;
+    private static ArrayTableColumn[] createForeignMetaColumns() {
+        return new ArrayTableColumn[] {
+            new ArrayTableColumn( "Target Table", String.class ) {
+                public Object getValue( Object item ) {
+                    return getForeign( item ).getTargetTable();
+                }
+            },
+            new ArrayTableColumn( "Links", String.class ) {
+                public Object getValue( Object item ) {
+                    ForeignMeta.Link[] links = getForeign( item ).getLinks();
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int i = 0; i < links.length; i++ ) {
+                        ForeignMeta.Link link = links[ i ];
+                        if ( i > 0 ) {
+                            sbuf.append( "; " );
+                        }
+                        sbuf.append( link.getFrom() )
+                            .append( "->" )
+                            .append( link.getTarget() );
+                    }
+                    return sbuf.toString();
+                }
+            },
+            new ArrayTableColumn( "Description", String.class ) {
+                public Object getValue( Object item ) {
+                    return getForeign( item ).getDescription();
+                }
+            },
+            new ArrayTableColumn( "Utype", String.class ) {
+                public Object getValue( Object item ) {
+                    return getForeign( item ).getUtype();
+                }
+            },
+        };
     }
 }

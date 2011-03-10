@@ -27,6 +27,10 @@ public class ForeignMeta {
         return utype_;
     }
 
+    public Link[] getLinks() {
+        return links_;
+    }
+
     /**
      * Represents a linkage from a column in the source table to a column
      * in the target table.
