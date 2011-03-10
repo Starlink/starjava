@@ -142,7 +142,7 @@ public class TapQueryPanel extends JPanel {
                 "Service Capabilities" ) );
         splitter.setTopComponent( servicePanel );
         splitter.setBottomComponent( qPanel );
-        splitter.setResizeWeight( 0.5 );
+        splitter.setResizeWeight( 0.8 );
         add( splitter, BorderLayout.CENTER );
     }
 

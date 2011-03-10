@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -140,6 +141,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 updateReady();
             }
         };
+
+        /* It's big. */
+        tabber_.setPreferredSize( new Dimension( 600, 550 ) );
 
         /* Return the tabbed pane which is the main query component. */
         return tabber_;
