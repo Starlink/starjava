@@ -372,10 +372,23 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      *          false if it may contain more
      */
     private static boolean isEof( ArrayDataInput in ) throws IOException {
-        if ( in instanceof InputStream && ((InputStream) in).available() > 0 ) {
-            return false;
-        }
-        else if ( in instanceof RandomAccess ) {
+
+        /* The following test is commented out because there is a bug
+         * in java.util.zip.InflaterInputStream that makes it dangerously
+         * unusable.  Compressed input streams can report available bytes
+         * even when the end of stream has been reached.
+         * Sun's bug ID is 4795134 - they fixed it, then the fix caused
+         * problems so they re-assessed the behaviour as not a bug, so 
+         * it's unlikely to be fixed again.  A belt'n'braces fix has
+         * also been applied to the compression stream used by
+         * uk.ac.starlink.util.DataSource, but the assessment appears 
+         * to be that available() is not reliable. */
+        //  if ( in instanceof InputStream &&
+        //       ((InputStream) in).available() > 0 ) {
+        //      return false;
+        //  }
+
+        if ( in instanceof RandomAccess ) {
             RandomAccess rin = (RandomAccess) in;
             long pos = rin.getFilePointer();
             boolean eof;

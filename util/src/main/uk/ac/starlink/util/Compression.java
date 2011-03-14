@@ -116,19 +116,34 @@ public abstract class Compression {
      */
     public static final Compression GZIP = new Compression( "gzip" ) {
         public InputStream decompress( InputStream raw ) throws IOException {
-
-            /* This is a workaround for a bug in GZIPInputStream in J2SE1.4.0
-             * GZIPInputStream.markSupported() returns true; however
-             * instances of this class do not support marking, which
-             * screws up some things that the DataSource class tries to do.
-             * So we fiddle the inflating stream to tell the truth. */
-            /* Note this seems to be not uncommon in decompression streams
-             * (had to fix the same bug in the UncompressInputStream 
-             * implementation used here too). */
-            /* (bug ID 4812237 submitted to developer.java.sun.com by mbt) */
             return new GZIPInputStream( raw ) {
+
+                /* This is a workaround for a bug in GZIPInputStream in
+                 * J2SE1.4.0.
+                 * GZIPInputStream.markSupported() returns true; however
+                 * instances of this class do not support marking, which
+                 * screws up some things that the DataSource class tries to do.
+                 * So we fiddle the inflating stream to tell the truth. */
+                /* Note this seems to be not uncommon in decompression streams
+                 * (had to fix the same bug in the UncompressInputStream 
+                 * implementation used here too). */
+                /* (bug ID 4812237 submitted to 
+                 * developer.java.sun.com by mbt) */
                 public boolean markSupported() {
                     return false;
+                }
+
+                /* This is a workaround for a different bug, ID 4795134
+                 * at bugs.sun.com.  Though that bug report claims it's not
+                 * a defect, I disagree.
+                 * InflaterInputStream (hence GZIPInputStream) can return 1
+                 * even when the end of stream has been reached.  It is less
+                 * damaging to report available as 0 when the real answer
+                 * is non-zero than the other way around.  But it's probably
+                 * a good idea to avoid relying on available() in any case. */
+                public int available() throws IOException {
+                    int avail = super.available();
+                    return avail > 1 ? avail : 0;
                 }
             };
         }

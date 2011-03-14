@@ -7494,6 +7494,10 @@ but my thanks are especially due to the following:
     <li>Upgrade to JSAMP v1.2.</li>
     <li>Add missing parameters <code>dashNS</code> and <code>linewidthNS</code>
         to <code>plot2d</code> task.</li>
+    <li>Add workaround for J2SE bug
+        <webref url='http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4795134'
+                >#4795134</webref>,
+        which could cause errors when reading compressed FITS files.</li>
     </ul>
     </p></dd>
 
