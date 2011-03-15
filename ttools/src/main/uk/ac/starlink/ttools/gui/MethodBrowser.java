@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -136,7 +139,21 @@ public class MethodBrowser extends JPanel {
         treeScroller.setPreferredSize( new Dimension( 350, 450 ) );
 
         /* Set up a documentation viewer. */
-        docPane_ = new JEditorPane();
+        docPane_ = new JEditorPane() {
+            boolean fontSet;
+            public void paint( Graphics g ) {
+                if ( ! fontSet ) {
+                    fontSet = true;
+                    setFont( Font.decode( "SansSerif" ) );
+                }
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
+                                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
+                super.paint( g2 );
+            }
+        };
+        docPane_.putClientProperty( JEditorPane.HONOR_DISPLAY_PROPERTIES,
+                                    Boolean.TRUE );
         docPane_.setEditable( false );
         docPane_.setEditorKit( new HTMLEditorKit() );
         docPane_.setText( getInstructions() );

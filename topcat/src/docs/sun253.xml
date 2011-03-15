@@ -14319,6 +14319,7 @@ introduced since the last version:
     <li>Add workaround for J2SE bug
         <webref url='http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4795134'                >#4795134</webref>,
         which could cause errors when reading compressed FITS files.</li>
+    <li>Improve text rendering in Available Functions window.</li>
     </ul>
     </p></dd>
 
