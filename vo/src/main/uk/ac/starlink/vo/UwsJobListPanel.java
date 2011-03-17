@@ -35,7 +35,7 @@ import javax.swing.event.ListSelectionListener;
  * @author   Mark Taylor
  * @since    25 Feb 2011
  */
-public class UwsJobPanel extends JPanel {
+public class UwsJobListPanel extends JPanel {
 
     private final DefaultListModel listModel_;
     private final JList jlist_;
@@ -47,7 +47,7 @@ public class UwsJobPanel extends JPanel {
     /**
      * Constructor.
      */
-    public UwsJobPanel() {
+    public UwsJobListPanel() {
         super( new BorderLayout() );
         listModel_ = new DefaultListModel();
         phaseWatcherMap_ = new HashMap<UwsJob,Runnable>();

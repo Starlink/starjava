@@ -49,7 +49,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
-    private UwsJobPanel jobPanel_;
+    private UwsJobListPanel jobPanel_;
     private CaretListener adqlListener_;
     private int tqTabIndex_;
     private int jobTabIndex_;
@@ -77,7 +77,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         final Component searchPanel = super.createQueryComponent();
 
         /* Prepare a panel for monitoring running jobs. */
-        jobPanel_ = new UwsJobPanel() {
+        jobPanel_ = new UwsJobListPanel() {
             public void addJob( UwsJob job, boolean select ) {
                 super.addJob( job, select );
                 tabber_.setEnabledAt( jobTabIndex_, true );
