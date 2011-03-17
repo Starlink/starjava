@@ -5,7 +5,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -122,6 +124,22 @@ public class UwsJobPanel extends JPanel {
         if ( detail_.getJob() == job ) {
             detail_.setJob( null );
         }
+    }
+
+    /**
+     * Returns an array of jobs currently visible in this panel.
+     *
+     * @return  visible jobs
+     */
+    public UwsJob[] getJobs() {
+        List<UwsJob> jobList = new ArrayList<UwsJob>();
+        for ( int i = 0; i < listModel_.getSize(); i++ ) {
+            Object item = listModel_.getElementAt( i );
+            if ( item instanceof UwsJob ) {
+                jobList.add( (UwsJob) item );
+            }
+        }
+        return jobList.toArray( new UwsJob[ 0 ] );
     }
 
     /**

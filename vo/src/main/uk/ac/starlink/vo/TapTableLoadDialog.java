@@ -51,6 +51,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private TapQueryPanel tqPanel_;
     private UwsJobPanel jobPanel_;
     private CaretListener adqlListener_;
+    private int tqTabIndex_;
     private int jobTabIndex_;
 
     // This is an expression designed to pick up things that the user might
@@ -76,7 +77,19 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         final Component searchPanel = super.createQueryComponent();
 
         /* Prepare a panel for monitoring running jobs. */
-        jobPanel_ = new UwsJobPanel();
+        jobPanel_ = new UwsJobPanel() {
+            public void addJob( UwsJob job, boolean select ) {
+                super.addJob( job, select );
+                tabber_.setEnabledAt( jobTabIndex_, true );
+            }
+            public void removeJob( UwsJob job ) {
+                super.removeJob( job );
+                if ( getJobs().length == 0 ) {
+                    tabber_.setEnabledAt( jobTabIndex_, false );
+                    tabber_.setSelectedIndex( tqTabIndex_ );
+                }
+            }
+        };
 
         /* Prepare a tabbed panel to contain the components. */
         tabber_ = new JTabbedPane();
@@ -84,8 +97,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         tqContainer_ = new JPanel( new BorderLayout() );
         String tqTitle = "Enter Query";
         tabber_.add( tqTitle, tqContainer_ );
-        final int tqTabIndex = tabber_.getTabCount() - 1;
-        tabber_.add( jobPanel_, "Running Jobs" );
+        tqTabIndex_ = tabber_.getTabCount() - 1;
+        tabber_.add( "Running Jobs", jobPanel_ );
         jobTabIndex_ = tabber_.getTabCount() - 1;
 
         /* Provide a button to move to the query tab.
@@ -93,7 +106,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
          * that is what you need to do after selecting a TAP service. */
         final Action tqAct = new AbstractAction( tqTitle ) {
             public void actionPerformed( ActionEvent evt ) {
-                tabber_.setSelectedIndex( tqTabIndex );
+                tabber_.setSelectedIndex( tqTabIndex_ );
             }
         };
         tqAct.putValue( Action.SHORT_DESCRIPTION,
@@ -107,7 +120,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         /* Only enable the query tab if a valid service URL has been
          * selected. */
         tqAct.setEnabled( false );
-        tabber_.setEnabledAt( tqTabIndex, false );
+        tabber_.setEnabledAt( tqTabIndex_, false );
+        tabber_.setEnabledAt( jobTabIndex_, false );
         getServiceUrlField().addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
                 boolean hasUrl;
@@ -118,7 +132,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 catch ( RuntimeException e ) {
                     hasUrl = false;
                 }
-                tabber_.setEnabledAt( tqTabIndex, hasUrl );
+                tabber_.setEnabledAt( tqTabIndex_, hasUrl );
                 tqAct.setEnabled( hasUrl );
             }
         } );
@@ -127,7 +141,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
          * the visible tab. */
         tabber_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                if ( tabber_.getSelectedIndex() == tqTabIndex ) {
+                if ( tabber_.getSelectedIndex() == tqTabIndex_ ) {
                     setSelectedService( getServiceUrl() );
                 }
                 updateReady();
@@ -167,6 +181,22 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     public TableLoader createTableLoader() {
+        int itab = tabber_.getSelectedIndex();
+        if ( itab == tqTabIndex_ ) {
+            return createQueryPanelLoader();
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a new query TableLoader for the case when the QueryPanel
+     * is the currently visible tab.
+     *
+     * @return   new loader
+     */
+    private TableLoader createQueryPanelLoader() {
         final URL serviceUrl = checkUrl( getServiceUrl() );
         final String adql = tqPanel_.getAdql();
         final String summary = TapQuery.summarizeAdqlQuery( serviceUrl, adql );
@@ -231,14 +261,14 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      *
      * @param   tfact  table factory
      * @param   tapQuery  TAP query
-     * @param   tapMetadata  metadata describing the query suitable for
+     * @param   tapMeta  metadata describing the query suitable for
      *          decorating the resulting table
      * @return  table sequence suitable for a successful return from
      *          this dialog's TableLoader
      */
     protected TableSequence createTableSequence( StarTableFactory tfact,
                                                  TapQuery tapQuery,
-                                                 DescribedValue[] tapMetadata )
+                                                 DescribedValue[] tapMeta )
             throws IOException {
         UwsJob uwsJob = tapQuery.getUwsJob();
         uwsJob.setDeleteOnExit( true );
@@ -257,13 +287,12 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             uwsJob.attemptDelete();
             throw e;
         }
-        st.getParameters().addAll( Arrays.asList( tapMetadata ) );
+        st.getParameters().addAll( Arrays.asList( tapMeta ) );
         return Tables.singleTableSequence( st );
     }
 
     public boolean isReady() {
-        if ( tqPanel_ == null ||
-             tabber_.getSelectedComponent() != tqContainer_ ) {
+        if ( tqPanel_ == null || tabber_.getSelectedIndex() != tqTabIndex_ ) {
             return false;
         }
         else {
