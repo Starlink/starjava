@@ -50,9 +50,11 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
     private UwsJobListPanel jobsPanel_;
+    private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
+    private int resumeTabIndex_;
 
     // This is an expression designed to pick up things that the user might
     // have entered as an upload table identifier.  It intentionally includes
@@ -91,6 +93,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             }
         };
 
+        /* Prepare a panel for resuming previously started jobs. */
+        resumePanel_ = new ResumeTapQueryPanel( this );
+
         /* Prepare a tabbed panel to contain the components. */
         tabber_ = new JTabbedPane();
         tabber_.add( "Select Service", searchPanel );
@@ -98,6 +103,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         String tqTitle = "Enter Query";
         tabber_.add( tqTitle, tqContainer_ );
         tqTabIndex_ = tabber_.getTabCount() - 1;
+        tabber_.add( "Resume Job", resumePanel_ );
+        resumeTabIndex_ = tabber_.getTabCount() - 1;
         tabber_.add( "Running Jobs", jobsPanel_ );
         jobsTabIndex_ = tabber_.getTabCount() - 1;
 
@@ -185,9 +192,23 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         if ( itab == tqTabIndex_ ) {
             return createQueryPanelLoader();
         }
+        else if ( itab == resumeTabIndex_ ) {
+            return resumePanel_.createTableLoader();
+        }
         else {
             return null;
         }
+    }
+
+    /**
+     * Adds a running TAP query to the list of queries this dialogue
+     * is currently aware of.
+     *
+     * @param  tapQuery  query to add
+     */
+    public void addRunningQuery( TapQuery tapQuery ) {
+        jobsPanel_.addJob( tapQuery.getUwsJob(), true );
+        tabber_.setSelectedIndex( jobsTabIndex_ );
     }
 
     /**
@@ -232,8 +253,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                                               extraParams );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        jobsPanel_.addJob( tapQuery.getUwsJob(), true );
-                        tabber_.setSelectedIndex( jobsTabIndex_ );
+                        addRunningQuery( tapQuery );
                     }
                 } );
                 List<DescribedValue> metaList =

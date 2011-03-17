@@ -195,7 +195,7 @@ public class UwsJobListPanel extends JPanel {
 
     /**
      * Signals that the state of a job may have changed and should be
-     * reflected in the UUI.
+     * reflected in the UI.
      *
      * @param   job   job to update
      */
@@ -205,7 +205,7 @@ public class UwsJobListPanel extends JPanel {
             listModel_.set( iJob, job );
         }
         if ( detail_.getJob() == job ) {
-            detail_.update();
+            detail_.updatePhase();
         }
     }
 

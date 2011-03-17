@@ -76,16 +76,11 @@ public class TapQuery {
      */
     public StarTable waitForResult( StarTableFactory tfact, long poll )
             throws IOException, InterruptedException {
-        URL jobUrl = uwsJob_.getJobUrl();
         try {
             String phase = uwsJob_.waitForFinish( poll );
             assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
             if ( "COMPLETED".equals( phase ) ) {
-                URL resultUrl = new URL( jobUrl + "/results/result" );
-                DataSource datsrc = new URLDataSource( resultUrl );
-
-                /* Note this does take steps to follow redirects. */
-                return tfact.makeStarTable( datsrc, "votable" );
+                return getResult( tfact );
             }
             else if ( "ABORTED".equals( phase ) ) {
                 throw new IOException( "TAP query did not complete ("
@@ -105,7 +100,7 @@ public class TapQuery {
                  * navigate the UWS document in the presence of namespaces
                  * which often refer to different/older versions of the
                  * UWS protocol. */
-                URL errUrl = new URL( jobUrl + "/error" );
+                URL errUrl = new URL( uwsJob_.getJobUrl() + "/error" );
                 logger_.info( "Read error VOTable from " + errUrl );
                 try {
                     errText = readErrorInfo( errUrl.openStream() );
@@ -125,6 +120,20 @@ public class TapQuery {
         catch ( UwsJob.UnexpectedResponseException e ) {
             throw asIOException( e );
         }
+    }
+
+    /**
+     * Returns the table that resulted from a successful TAP query.
+     * If the job has not reached COMPLETED phase, an IOException will result.
+     *
+     * @return  reads the TAP result as a table
+     */
+    public StarTable getResult( StarTableFactory tfact ) throws IOException {
+        URL resultUrl = new URL( uwsJob_.getJobUrl() + "/results/result" );
+        DataSource datsrc = new URLDataSource( resultUrl );
+
+        /* Note this does take steps to follow redirects. */
+        return tfact.makeStarTable( datsrc, "votable" );
     }
 
     /**

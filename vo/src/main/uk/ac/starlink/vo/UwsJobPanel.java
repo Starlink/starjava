@@ -58,16 +58,16 @@ public class UwsJobPanel extends JPanel {
      */
     public void setJob( UwsJob job ) {
         job_ = job;
-        update();
+        urlField_.setText( job_ == null ? null
+                                        : job_.getJobUrl().toString() );
+        urlField_.setCaretPosition( 0 );
+        updatePhase();
     }
 
     /**
      * Ensures that the GUI is up to date.
      */
-    public void update() {
-        urlField_.setText( job_ == null ? null
-                                        : job_.getJobUrl().toString() );
-        urlField_.setCaretPosition( 0 );
+    public void updatePhase() {
         phaseLabel_.setText( job_ == null ? null : job_.getLastPhase() );
     }
 }
