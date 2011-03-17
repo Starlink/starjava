@@ -21,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
@@ -275,9 +276,19 @@ public class TableSetPanel extends JPanel {
             tableLabel_.setText( table.getTitle() );
             colTableModel_.setItems( table.getColumns() );
             foreignTableModel_.setItems( table.getForeignKeys() );
+            final JTable ct = colTable_;
+            final JTable ft = foreignTable_;
+            Runnable configer = new Runnable() {
+                public void run() {
+                    StarJTable.configureColumnWidths( ct, 360, 9999 );
+                    StarJTable.configureColumnWidths( ft, 360, 9999 );
+                }
+            };
             if ( metaSplitter_.getSize().width > 0 ) {
-                StarJTable.configureColumnWidths( colTable_, 360, 9999 );
-                StarJTable.configureColumnWidths( foreignTable_, 360, 9999 );
+                configer.run();
+            }
+            else {
+                SwingUtilities.invokeLater( configer );
             }
         }
     }
