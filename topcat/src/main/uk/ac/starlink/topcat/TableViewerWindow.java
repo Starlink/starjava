@@ -154,22 +154,27 @@ public class TableViewerWindow extends AuxWindow
 
                 /* If the selection consists of a single row, construe this
                  * as a row activation request. */
-                if ( hasSelection && ! evt.getValueIsAdjusting() ) {
-                    int first = selectionModel.getMinSelectionIndex();
-                    if ( selectionModel.getMaxSelectionIndex() == first ) {
-                        long active = viewModel.getBaseRow( first );
-                        if ( active != lastActive ) {
-                            lastActive = active;
+                if ( evt != null && ! evt.getValueIsAdjusting() ) {
+                    if ( hasSelection ) {
+                        int first = selectionModel.getMinSelectionIndex();
+                        if ( selectionModel.getMaxSelectionIndex() == first ) {
+                            long active = viewModel.getBaseRow( first );
+                            if ( active != lastActive ) {
+                                lastActive = active;
 
-                            /* Unless this call was initiated by a call to
-                             * rowHighlight, message the topcat model that 
-                             * row has been highlighted. */
-                            if ( ! selfHighlighting ) {
-                                selfHighlighting = true;
-                                tcModel.highlightRow( active );
-                                selfHighlighting = false;
+                                /* Unless this call was initiated by a call to
+                                 * rowHighlight, message the topcat model that 
+                                 * row has been highlighted. */
+                                if ( ! selfHighlighting ) {
+                                    selfHighlighting = true;
+                                    tcModel.highlightRow( active );
+                                    selfHighlighting = false;
+                                }
                             }
                         }
+                    }
+                    else {
+                        lastActive = -1;
                     }
                 }
             }

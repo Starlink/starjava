@@ -14320,6 +14320,8 @@ introduced since the last version:
         <webref url='http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4795134'                >#4795134</webref>,
         which could cause errors when reading compressed FITS files.</li>
     <li>Improve text rendering in Available Functions window.</li>
+    <li>You can now re-activate a row in the table viewer window by
+        deselecting and then re-selecting it.</li>
     </ul>
     </p></dd>
 
