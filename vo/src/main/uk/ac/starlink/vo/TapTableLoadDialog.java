@@ -49,10 +49,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
-    private UwsJobListPanel jobPanel_;
+    private UwsJobListPanel jobsPanel_;
     private CaretListener adqlListener_;
     private int tqTabIndex_;
-    private int jobTabIndex_;
+    private int jobsTabIndex_;
 
     // This is an expression designed to pick up things that the user might
     // have entered as an upload table identifier.  It intentionally includes
@@ -77,15 +77,15 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         final Component searchPanel = super.createQueryComponent();
 
         /* Prepare a panel for monitoring running jobs. */
-        jobPanel_ = new UwsJobListPanel() {
+        jobsPanel_ = new UwsJobListPanel() {
             public void addJob( UwsJob job, boolean select ) {
                 super.addJob( job, select );
-                tabber_.setEnabledAt( jobTabIndex_, true );
+                tabber_.setEnabledAt( jobsTabIndex_, true );
             }
             public void removeJob( UwsJob job ) {
                 super.removeJob( job );
                 if ( getJobs().length == 0 ) {
-                    tabber_.setEnabledAt( jobTabIndex_, false );
+                    tabber_.setEnabledAt( jobsTabIndex_, false );
                     tabber_.setSelectedIndex( tqTabIndex_ );
                 }
             }
@@ -98,8 +98,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         String tqTitle = "Enter Query";
         tabber_.add( tqTitle, tqContainer_ );
         tqTabIndex_ = tabber_.getTabCount() - 1;
-        tabber_.add( "Running Jobs", jobPanel_ );
-        jobTabIndex_ = tabber_.getTabCount() - 1;
+        tabber_.add( "Running Jobs", jobsPanel_ );
+        jobsTabIndex_ = tabber_.getTabCount() - 1;
 
         /* Provide a button to move to the query tab.
          * Placing it near the service selector makes it more obvious that
@@ -121,7 +121,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
          * selected. */
         tqAct.setEnabled( false );
         tabber_.setEnabledAt( tqTabIndex_, false );
-        tabber_.setEnabledAt( jobTabIndex_, false );
+        tabber_.setEnabledAt( jobsTabIndex_, false );
         getServiceUrlField().addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
                 boolean hasUrl;
@@ -232,8 +232,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                                               extraParams );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        jobPanel_.addJob( tapQuery.getUwsJob(), true );
-                        tabber_.setSelectedIndex( jobTabIndex_ );
+                        jobsPanel_.addJob( tapQuery.getUwsJob(), true );
+                        tabber_.setSelectedIndex( jobsTabIndex_ );
                     }
                 } );
                 List<DescribedValue> metaList =
