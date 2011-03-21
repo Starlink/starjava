@@ -281,7 +281,9 @@ public class AxisDataSelector extends JPanel {
         int bestScore = 0;
         ColumnData bestCol = null;
         for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnData auxCol = (ColumnData) selector.getItemAt( icol );
+            Object dat = selector.getItemAt( icol );
+            ColumnData auxCol = dat instanceof ColumnData ? (ColumnData) dat
+                                                          : null;
             if ( auxCol == null ) {
             }
             else if ( auxCol.equals( mainCol ) ) {
@@ -383,7 +385,9 @@ public class AxisDataSelector extends JPanel {
 
         public void actionPerformed( ActionEvent evt ) {
             JComboBox src = (JComboBox) evt.getSource();
-            ColumnData col = (ColumnData) src.getSelectedItem();
+            Object dat = src.getSelectedItem();
+            ColumnData col = dat instanceof ColumnData ? (ColumnData) dat
+                                                       : null;
             if ( col == lastCol_ ) {
                 return;
             }
@@ -510,10 +514,9 @@ public class AxisDataSelector extends JPanel {
          */
         public void auxSelected( AxisDataSelector axSel, ErrorType type,
                                  ColumnData col ) {
-            ColumnData mainCol =
-                (ColumnData) axSel.atSelector_.getSelectedItem();
-            if ( mainCol != null ) {
-                Object key = getKey( mainCol, type );
+            Object mainDat = axSel.atSelector_.getSelectedItem();
+            if ( mainDat instanceof ColumnData ) {
+                Object key = getKey( (ColumnData) mainDat, type );
                 if ( col != null || errColMap_.containsKey( key ) ) {
                     errColMap_.put( key, col );
                 }

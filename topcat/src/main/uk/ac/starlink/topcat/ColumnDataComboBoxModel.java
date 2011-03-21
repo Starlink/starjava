@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
@@ -34,8 +35,11 @@ import uk.ac.starlink.util.gui.WeakTableColumnModelListener;
  * ComboBoxModel for holding table per-row expressions.
  * These may represent either actual columns or JEL expressions 
  * evaluated against columns.
- * All members of the model are {@link uk.ac.starlink.table.ColumnData}
- * objects.
+ * Elements of the model which contain usable data are instances of
+ * {@link uk.ac.starlink.table.ColumnData}.
+ * The selected item may be of some other type (currently String),
+ * and this should be ignored (treated as null) for the purposes
+ * of data access.
  * 
  * <p>The {@link #createComboBox} method provides a JComboBox which is a
  * suitable host for instances of this class.
@@ -54,7 +58,7 @@ public class ColumnDataComboBoxModel
     private final Class dataClazz_;
     private List activeColumns_;
     private List modelColumns_;
-    private ColumnData selected_;
+    private Object selected_;
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -181,7 +185,7 @@ public class ColumnDataComboBoxModel
     public void setSelectedItem( Object item ) {
         if ( item == null ? selected_ != null 
                           : ! item.equals( selected_ ) ) {
-            selected_ = (ColumnData) item;
+            selected_ = item;
 
             /* This bit of magic is copied from the J2SE1.4
              * DefaultComboBoxModel implementation - seems to be necessary
@@ -393,6 +397,9 @@ public class ColumnDataComboBoxModel
         private final ColumnDataComboBoxModel model_;
         private final Component parent_;
         private final ComboBoxEditor base_;
+        private final Color okColor_;
+        private final Color errColor_;
+        private String text_;
         private ColumnData data_;
 
         /**
@@ -405,43 +412,78 @@ public class ColumnDataComboBoxModel
             model_ = model;
             parent_ = parent;
             base_ = new JComboBox().getEditor();
+            Component editor = base_.getEditorComponent();
+            okColor_ = editor.getForeground();
+            errColor_ = Color.GRAY;
         }
 
         public void setItem( Object obj ) {
-            base_.setItem( obj == null ? null : obj.toString() );
-            ColumnData colData;
-            if ( obj instanceof String ) {
-                try {
-                    colData = model_.stringToColumnData( (String) obj );
-                }
-                catch ( CompilationException e ) {
-                    logger.warning( "Bad expression: " + obj + "(" + e + ")" );
-                    colData = null;
-                }
-            }
-            else {
-                colData = (ColumnData) obj;
-            }
-            data_ = colData;
+            base_.setItem( toStringOrData( obj ) );
         }
 
         public Object getItem() {
-            String txt = (String) base_.getItem();
-            if ( data_ != null && txt.equals( data_.toString() ) ) {
-                return data_;
+            return toStringOrData( base_.getItem() );
+        }
+
+        /**
+         * Configures the editor component to give a visual indication
+         * of whether a legal column data object is currently visible.
+         *
+         * @param  isOK  true for usable data, false for not
+         */
+        private void setOk( boolean isOk ) {
+            base_.getEditorComponent()
+                 .setForeground( isOk ? okColor_ : errColor_ );
+        }
+
+        /**
+         * Takes an object which is a possible content of this editor and
+         * returns a corresponding ColumnData object if possible,
+         * otherwise a string.
+         * This method informs the user via a popup if a string cannot
+         * be converted to data.  It caches values so that it does not
+         * keep showing the same popup for the same string.
+         *
+         * @param  item   input object
+         * @return   output object, should be of type String or
+         *           (preferably) ColumnData
+         */
+        private Object toStringOrData( Object item ) {
+            if ( item instanceof ColumnData ) {
+                text_ = null;
+                data_ = (ColumnData) item;
             }
-            else {
-                try {
-                    return model_.stringToColumnData( txt );
-                }
-                catch ( CompilationException e ) {
-                    base_.setItem( null );
-                    JOptionPane.showMessageDialog( parent_, e.getMessage(),
-                                                   "Evaluation error",
-                                                   JOptionPane.ERROR_MESSAGE );
-                    return null;
+            else if ( item instanceof String ) {
+                String txt = (String) item;
+                if ( ! txt.equals( text_ ) ) {
+                    ColumnData colData;
+                    CompilationException err;
+                    try {
+                        colData = model_.stringToColumnData( txt );
+                        err = null;
+                    }
+                    catch ( CompilationException e ) {
+                        colData = null;
+                        err = e;
+                    }
+                    text_ = txt;
+                    data_ = colData;
+                    if ( err != null ) {
+                        setOk( false );
+                        JOptionPane
+                       .showMessageDialog( parent_, err.getMessage(),
+                                           "Evaluation Error",
+                                           JOptionPane.ERROR_MESSAGE );
+                    }
                 }
             }
+            else if ( item == null ) {
+                data_ = null;
+                text_ = null;
+            }
+            setOk( data_ != null || text_ == null
+                                 || text_.trim().length() == 0 );
+            return data_ != null ? data_ : text_;
         }
 
         public Component getEditorComponent() {
@@ -579,7 +621,7 @@ public class ColumnDataComboBoxModel
             ColumnInfo cinfo = new ColumnInfo( conv.getOutputInfo() );
             cinfo.setAuxDatum( new DescribedValue( TopcatUtils
                                                   .NUMERIC_CONVERTER_INFO,
-                                                   conv ) );
+                                                  conv ) );
             setColumnInfo( cinfo );
             conv_ = conv;
         }

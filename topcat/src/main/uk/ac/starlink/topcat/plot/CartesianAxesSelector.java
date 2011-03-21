@@ -144,8 +144,9 @@ public class CartesianAxesSelector implements AxesSelector {
             JComboBox[] errorSelectors =
                 dataSelectors_[ idim ].getErrorSelectors();
             for ( int isel = 0; isel < errorSelectors.length; isel++ ) {
-                colList.add( (ColumnData)
-                             errorSelectors[ isel ].getSelectedItem() );
+                Object dat = errorSelectors[ isel ].getSelectedItem();
+                colList.add( dat instanceof ColumnData ? (ColumnData) dat
+                                                       : null );
             }
         }
         ColumnData[] cols =
@@ -198,9 +199,10 @@ public class CartesianAxesSelector implements AxesSelector {
             final JComboBox csel = dataSelectors_[ i ].getMainSelector();
             csel.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
-                    ColumnData cdata = (ColumnData) csel.getSelectedItem();
-                    axed.setAxis( cdata == null ? null
-                                                : cdata.getColumnInfo() );
+                    Object dat = csel.getSelectedItem();
+                    axed.setAxis( dat instanceof ColumnData
+                                      ? ((ColumnData) dat).getColumnInfo()
+                                      : null );
                 }
             } );
             eds[ i ] = axed;
@@ -280,9 +282,10 @@ public class CartesianAxesSelector implements AxesSelector {
     private ColumnData[] getColumns() {
         ColumnData[] cols = new ColumnData[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            ColumnData cdata = (ColumnData) dataSelectors_[ i ]
-                                           .getMainSelector().getSelectedItem();
-            cols[ i ] = cdata == null ? ConstantColumnData.NAN : cdata;
+            Object dat = dataSelectors_[ i ].getMainSelector()
+                                            .getSelectedItem();
+            cols[ i ] = dat instanceof ColumnData ? (ColumnData) dat
+                                                  : ConstantColumnData.NAN;
         }
         return cols;
     }

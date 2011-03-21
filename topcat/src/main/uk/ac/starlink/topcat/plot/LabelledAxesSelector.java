@@ -112,8 +112,9 @@ public class LabelledAxesSelector implements AxesSelector, Wrapper {
 
     public StarTable getLabelData() {
         if ( labelsEnabled_ ) {
-            ColumnData col = (ColumnData) labelSelector_.getSelectedItem();
-            if ( col != null ) {
+            Object item = labelSelector_.getSelectedItem();
+            if ( item instanceof ColumnData ) {
+                ColumnData col = (ColumnData) item;
                 return new ColumnDataTable( tcModel_,
                                             new ColumnData[] { col } );
             }

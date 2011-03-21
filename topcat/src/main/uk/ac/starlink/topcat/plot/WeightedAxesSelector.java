@@ -161,7 +161,8 @@ public class WeightedAxesSelector implements AxesSelector {
      */
     public boolean hasWeights() {
         return weightEnabled_ 
-            && weightSelector_.getColumnSelector( 0 ).getSelectedItem() != null;
+            && weightSelector_.getColumnSelector( 0 )
+                              .getSelectedItem() instanceof ColumnData;
     }
 
     /**

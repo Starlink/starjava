@@ -1252,10 +1252,9 @@ public abstract class GraphicsWindow extends AuxWindow {
                                                    .getAxesSelector(),
                                     AugmentedAxesSelector.class );
                     CartesianAxesSelector auxSel = augSel.getAuxSelector();
-                    ColumnData auxCol =
-                        (ColumnData) auxSel.getColumnSelector( ivis )
+                    Object auxItem = auxSel.getColumnSelector( ivis )
                                            .getSelectedItem();
-                    isActive = isActive || ( auxCol != null );
+                    isActive = isActive || ( auxItem instanceof ColumnData );
                 }
                 activeShaders.set( ivis, isActive );
             }

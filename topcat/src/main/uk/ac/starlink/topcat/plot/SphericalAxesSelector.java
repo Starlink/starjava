@@ -215,9 +215,11 @@ public class SphericalAxesSelector implements AxesSelector {
         if ( radialMode != ErrorMode.NONE ) {
             JComboBox[] rErrorSelectors = rSelector_.getErrorSelectors();
             for ( int isel = 0; isel < rErrorSelectors.length; isel++ ) {
-                ColumnData rData =
-                    (ColumnData) rErrorSelectors[ isel ].getSelectedItem();
-                colList.add( rData == null ? ConstantColumnData.ZERO : rData );
+                Object rItem = rErrorSelectors[ isel ].getSelectedItem();
+                ColumnData rData = rItem instanceof ColumnData
+                                 ? (ColumnData) rItem
+                                 : ConstantColumnData.ZERO;
+                colList.add( rData );
             }
         }
         ColumnData[] eCols =
@@ -279,9 +281,11 @@ public class SphericalAxesSelector implements AxesSelector {
 
         rSelector_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                ColumnData cdata =
-                    (ColumnData) rSelector_.getMainSelector().getSelectedItem();
-                ed.setAxis( cdata == null ? null : cdata.getColumnInfo() );
+                Object cItem = rSelector_.getMainSelector().getSelectedItem();
+                ColumnInfo cInfo = cItem instanceof ColumnData
+                                 ? ((ColumnData) cItem).getColumnInfo()
+                                 : null;
+                ed.setAxis( cInfo );
             }
         } );
         return new AxisEditor[] { ed };
@@ -373,16 +377,15 @@ public class SphericalAxesSelector implements AxesSelector {
         if ( ! radialVisible_ ) {
             return null;
         }
-        ColumnData cdata =
-            (ColumnData) rSelector_.getMainSelector().getSelectedItem();
-        if ( cdata == null ) {
-            return null;
-        }
-        else if ( logToggler_.isSelected() ) {
-            return new LogColumnData( cdata ).getColumnInfo();
+        Object citem = rSelector_.getMainSelector().getSelectedItem();
+        if ( citem instanceof ColumnData ) {
+            ColumnData cdata = (ColumnData) citem;
+            return logToggler_.isSelected()
+                 ? new LogColumnData( cdata ).getColumnInfo()
+                 : cdata.getColumnInfo();
         }
         else {
-            return cdata.getColumnInfo();
+            return null;
         }
     }
 
@@ -415,16 +418,14 @@ public class SphericalAxesSelector implements AxesSelector {
         if ( ! radialVisible_ ) {
             return ConstantColumnData.ONE;
         }
-        ColumnData cdata =
-            (ColumnData) rSelector_.getMainSelector().getSelectedItem();
-        if ( cdata == null ) {
-            return ConstantColumnData.ONE;
-        }
-        else if ( logToggler_.isSelected() ) {
-            return new LogColumnData( cdata );
+        Object citem = rSelector_.getMainSelector().getSelectedItem();
+        if ( citem instanceof ColumnData ) {
+            ColumnData cdata = (ColumnData) citem;
+            return logToggler_.isSelected() ? new LogColumnData( cdata )
+                                            : cdata;
         }
         else {
-            return cdata;
+            return ConstantColumnData.ONE;
         }
     }
 
@@ -441,8 +442,9 @@ public class SphericalAxesSelector implements AxesSelector {
         ColumnData bestCol = null;
         int bestScore = 0;
         for ( int icol = 0; icol < colModel.getSize(); icol++ ) {
-            ColumnData colData = (ColumnData) colModel.getElementAt( icol );
-            if ( colData != null ) {
+            Object colItem = colModel.getElementAt( icol );
+            if ( colItem instanceof ColumnData ) {
+                ColumnData colData = (ColumnData) colItem;
                 int score = getTanerrLikeness( colData.getColumnInfo() );
                 if ( score > bestScore ) {
                     bestScore = score;

@@ -14322,6 +14322,8 @@ introduced since the last version:
     <li>Improve text rendering in Available Functions window.</li>
     <li>You can now re-activate a row in the table viewer window by
         deselecting and then re-selecting it.</li>
+    <li>Expressions in column selectors are now left (and coloured grey)
+        rather than deleted in the case of a syntax error.</li>
     </ul>
     </p></dd>
 

@@ -78,9 +78,9 @@ public class ColumnSelectorModel {
 
         /* Force an update to make sure that the correct converter for any
          * currently-selected column is selected. */
-        ColumnData cdata = (ColumnData) colChooser_.getSelectedItem();
-        if ( cdata != null ) {
-            columnSelected( cdata );
+        Object item = colChooser_.getSelectedItem();
+        if ( item instanceof ColumnData ) {
+            columnSelected( (ColumnData) item );
         }
     }
 
@@ -109,9 +109,12 @@ public class ColumnSelectorModel {
 
     /**
      * Returns the model used for choosing columns.
-     * The elements of this model will be 
-     * {@link uk.ac.starlink.table.ColumnData} instances (or null),
+     * Elements of the model which contain usable data will be instances of
+     * {@link uk.ac.starlink.table.ColumnData}
      * and will not take account of any selected converter.
+     * The selected item may be of some other type (currently String),
+     * and this should be ignored (treated as null) for the purposes
+     * of data access.
      *
      * @return  columns combo box model
      */
@@ -143,10 +146,10 @@ public class ColumnSelectorModel {
      *          or null if none is selected
      */
     public ColumnData getColumnData() {
-        ColumnData cdata = (ColumnData) colChooser_.getSelectedItem();
-        ColumnConverter conv = getConverter();
-        return cdata == null ? null
-                             : new ConvertedColumnData( cdata, conv );
+        Object item = colChooser_.getSelectedItem();
+        return item instanceof ColumnData
+             ? new ConvertedColumnData( (ColumnData) item, getConverter() )
+             : null;
     }
 
     /**
@@ -297,8 +300,9 @@ public class ColumnSelectorModel {
         String ucd = argInfo.getUCD();
         if ( ucd != null ) {
             for ( int i = 0; i < model.getSize() && selected == null; i++ ) {
-                ColumnData cdata = (ColumnData) model.getElementAt( i );
-                if ( cdata != null ) {
+                Object item = model.getElementAt( i );
+                if ( item instanceof ColumnData ) {
+                    ColumnData cdata = (ColumnData) item;
                     ColumnInfo info = cdata.getColumnInfo();
                     if ( info.getUCD() != null && 
                          matchUcds( info.getUCD(), ucd ) ) {
@@ -310,8 +314,9 @@ public class ColumnSelectorModel {
         String name = argInfo.getName().toLowerCase();
         if ( name != null ) {
             for ( int i = 0; i < model.getSize() && selected == null; i++ ) {
-                ColumnData cdata = (ColumnData) model.getElementAt( i );
-                if ( cdata != null ) {
+                Object item = model.getElementAt( i );
+                if ( item instanceof ColumnData ) {
+                    ColumnData cdata = (ColumnData) item;
                     ColumnInfo info = cdata.getColumnInfo();
                     String cname = info.getName();
                     if ( cname != null &&
@@ -358,9 +363,9 @@ public class ColumnSelectorModel {
             /* Contrary to API documentation, this is called when the selection
              * on a ComboBoxModel is changed. */
             if ( evt.getSource() == colChooser_ ) {
-                ColumnData cdata = (ColumnData) colChooser_.getSelectedItem();
-                if ( cdata != null ) {
-                    columnSelected( cdata );
+                Object item = colChooser_.getSelectedItem();
+                if ( item instanceof ColumnData ) {
+                    columnSelected( (ColumnData) item );
                 }
             }
             else if ( evt.getSource() == convChooser_ ) {
