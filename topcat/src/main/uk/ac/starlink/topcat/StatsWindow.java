@@ -80,7 +80,7 @@ public class StatsWindow extends AuxWindow {
                               "were gathered" );
     private static final Map QUANTILE_NAMES = quantileNames();
     private static final double[] QUANTILES =
-        { 0.001, 0.01, 0.25, 0.5, 0.75, 0.99, 0.999, };
+        { 0.001, 0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 0.999, };
 
     /**
      * Constructs a StatsWindow to report on the statistics of data in a
@@ -742,6 +742,8 @@ public class StatsWindow extends AuxWindow {
         map.put( new Double( 0.75 ), "Quartile3" );
         map.put( new Double( 0.001 ), "Q001" );
         map.put( new Double( 0.01 ), "Q01" );
+        map.put( new Double( 0.1 ), "Q10" );
+        map.put( new Double( 0.9 ), "Q90" );
         map.put( new Double( 0.99 ), "Q99" );
         map.put( new Double( 0.999 ), "Q999" );
         return map;
