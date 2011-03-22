@@ -161,8 +161,15 @@ public class ColumnDataComboBoxModel
             return null;
         }
 
-        /* See if the string is a column name. */
+        /* See if the string is a column name.  Try case-sensitive first,
+         * then case-insensitive. */
         int ncol = getSize();
+        for ( int i = 0; i < ncol; i++ ) {
+            ColumnData item = (ColumnData) getElementAt( i );
+            if ( item != null && txt.equals( item.toString() ) ) {
+                return item;
+            }
+        }
         for ( int i = 0; i < ncol; i++ ) {
             ColumnData item = (ColumnData) getElementAt( i );
             if ( item != null && txt.equalsIgnoreCase( item.toString() ) ) {

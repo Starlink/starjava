@@ -7499,6 +7499,8 @@ but my thanks are especially due to the following:
                 >#4795134</webref>,
         which could cause errors when reading compressed FITS files.</li>
     <li>Improve text rendering in <code>funcs</code> window display.</li>
+    <li>Attempt case-sensitive matching before case-insensitive for
+        column names.</li>
     </ul>
     </p></dd>
 

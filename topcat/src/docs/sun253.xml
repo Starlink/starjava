@@ -14324,6 +14324,8 @@ introduced since the last version:
         deselecting and then re-selecting it.</li>
     <li>Expressions in column selectors are now left (and coloured grey)
         rather than deleted in the case of a syntax error.</li>
+    <li>Attempt case-sensitive matching before case-insensitive for
+        column names.</li>
     </ul>
     </p></dd>
 

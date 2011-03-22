@@ -164,7 +164,13 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             }
         }
 
-        /* Try the column name. */
+        /* Try the column name.  Try case-sensitive first,
+         * then case-insensitive. */
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            if ( colInfos[ icol ].getName().equals( name ) ) {
+                return icol;
+            }
+        }
         for ( int icol = 0; icol < ncol; icol++ ) {
             if ( colInfos[ icol ].getName().equalsIgnoreCase( name ) ) {
                 return icol;
@@ -212,9 +218,16 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             return null;
         }
 
-        /* Try it as a named parameter. */
+        /* Try it as a named parameter.  Try case-sensitive first, then
+         * case-insensitive. */
         String pname = stripPrefix( name, PARAM_PREFIX );
         if ( pname != null ) {
+            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+                DescribedValue dval = (DescribedValue) it.next();
+                if ( pname.equals( dval.getInfo().getName() ) ) {
+                    return createDescribedValueConstant( dval );
+                }
+            }
             for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
                 DescribedValue dval = (DescribedValue) it.next();
                 if ( pname.equalsIgnoreCase( dval.getInfo().getName() ) ) {
