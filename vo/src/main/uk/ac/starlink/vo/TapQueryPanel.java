@@ -37,7 +37,6 @@ public class TapQueryPanel extends JPanel {
     private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
     private final JLabel countLabel_;
-    private final AdqlExemplifier exampler_;
     private final AdqlTextAction exampleAct_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -47,7 +46,6 @@ public class TapQueryPanel extends JPanel {
      */
     public TapQueryPanel() {
         super( new BorderLayout() );
-        exampler_ = new AdqlExemplifier( true );
 
         /* Prepare a panel for table metadata display. */
         tmetaPanel_ = new TableSetPanel();
@@ -90,11 +88,7 @@ public class TapQueryPanel extends JPanel {
         } );
         tmetaPanel_.getTableSelector().addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
-                TableMeta table = tmetaPanel_.getSelectedTable();
-                if ( table != null ) {
-                    exampleAct_.setAdqlText( exampler_
-                                            .createSimpleExample( table ) );
-                }
+                configureExamples();
             }
         } );
 
@@ -247,6 +241,7 @@ public class TapQueryPanel extends JPanel {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         tcapPanel_.setCapability( cap );
+                        configureExamples();
                     }
                 } );
             }
@@ -275,12 +270,21 @@ public class TapQueryPanel extends JPanel {
             countText = "(" + tmetas.length + " tables)";
         }
         countLabel_.setText( countText );
+        configureExamples();
+    }
 
-        /* Set up example ADQL action. */
-        String exampleText = tmetas == null || tmetas.length == 0
-                           ? null
-                           : exampler_.createSimpleExample( tmetas[ 0 ] );
-        exampleAct_.setAdqlText( exampleText );
+    /**
+     * Works with the known table and service metadata currently displayed
+     * to set up example queries.
+     */
+    private void configureExamples() {
+        TableMeta table = tmetaPanel_.getSelectedTable();
+        if ( table != null ) {
+            AdqlExemplifier exampler =
+                AdqlExemplifier
+               .createExemplifier( tcapPanel_.getQueryLanguage(), true );
+            exampleAct_.setAdqlText( exampler.createSimpleExample( table ) );
+        }
     }
 
     /**
@@ -299,6 +303,7 @@ public class TapQueryPanel extends JPanel {
         public AdqlTextAction( String name, String description ) {
             super( name );
             putValue( SHORT_DESCRIPTION, description );
+            setAdqlText( null );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -313,11 +318,7 @@ public class TapQueryPanel extends JPanel {
          */
         public void setAdqlText( String text ) {
             text_ = text;
-            setEnabled( isEnabled() );
-        }
-
-        public boolean isEnabled() {
-            return text_ != null;
+            setEnabled( text != null );
         }
     }
 }
