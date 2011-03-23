@@ -64,11 +64,9 @@ public class TapQueryPanel extends JPanel {
                 new AdqlTextAction( "Clear",
                                     "Clear currently visible ADQL text "
                                   + "from editor" ) {
-            public boolean isEnabled() {
-                return textPanel_.getDocument().getLength() > 0;
-            }
         };
         clearAct.setAdqlText( "" );
+        clearAct.setEnabled( false );
         exampleAct_ =
             new AdqlTextAction( "Example",
                                 "Set ADQL text to an example query "
@@ -83,7 +81,7 @@ public class TapQueryPanel extends JPanel {
                 changed();
             }
             private void changed() {
-                clearAct.setEnabled( clearAct.isEnabled() );
+                clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
             }
         } );
         tmetaPanel_.getTableSelector().addItemListener( new ItemListener() {
@@ -165,7 +163,7 @@ public class TapQueryPanel extends JPanel {
      * @return  adql text supplied by user
      */
     public String getAdql() {
-        return textPanel_.getText();
+        return textPanel_.getText().replaceFirst( "\\s*\\Z", "" );
     }
 
     /**
