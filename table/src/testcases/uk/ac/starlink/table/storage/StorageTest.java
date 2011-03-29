@@ -180,6 +180,36 @@ public class StorageTest extends TestCase {
         }
     }
 
+    public void testLimitByteStore() throws IOException {
+        StoragePolicy policy = StoragePolicy.PREFER_MEMORY;
+        testByteStore( new LimitByteStore( policy.makeByteStore(), 65536 ) );
+        ByteStore lbs = new LimitByteStore( policy.makeByteStore(), 16 );
+        OutputStream lout = lbs.getOutputStream();
+        lout.write( new byte[ 15 ] );
+        assertEquals( 15, lbs.getLength() );
+        try {
+            lout.write( new byte[ 100 ] );
+            fail();
+        }
+        catch ( IOException e ) {
+        }
+        assertEquals( 15, lbs.getLength() );
+        try {
+            lout.write( new byte[ 100 ], 10, 2 );
+            fail();
+        }
+        catch ( IOException e ) {
+        }
+        assertEquals( 15, lbs.getLength() );
+        lout.write( 99 );
+        try {
+            lout.write( 100 );
+            fail();
+        }
+        catch ( IOException e ) {
+        }
+    }
+
     private void testByteStore( ByteStore bs ) throws IOException {
         byte[] buf = new byte[ 999 ];
         for ( int i = 0; i < buf.length; i++ ) {
