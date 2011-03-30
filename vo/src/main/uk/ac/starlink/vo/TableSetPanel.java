@@ -47,6 +47,7 @@ public class TableSetPanel extends JPanel {
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
     private final JLabel tableLabel_;
+    private TableMeta[] tables_;
 
     /**
      * Constructor.
@@ -150,6 +151,7 @@ public class TableSetPanel extends JPanel {
      * @param  tables  table metadata objects, null if no metadata available
      */
     public void setTables( TableMeta[] tables ) {
+        tables_ = tables;
         tSelector_.setModel( tables == null
                                     ? new DefaultComboBoxModel()
                                     : new DefaultComboBoxModel( tables ) );
@@ -163,6 +165,15 @@ public class TableSetPanel extends JPanel {
         else {
             setSelectedTable( null );
         }
+    }
+
+    /**
+     * Returns the most recently set table metadata set.
+     *
+     * @return   current table metadata array
+     */
+    public TableMeta[] getTables() {
+        return tables_;
     }
 
     /**
