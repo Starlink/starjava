@@ -146,7 +146,7 @@ public class TapCapabilityPanel extends JPanel {
      * Returns the query language currently selected in this panel.
      * If none has been explicitly selected, "ADQL" will be returned.
      *
-     * @return  selected query languagte
+     * @return  selected query language
      */
     public String getQueryLanguage() {
         Object lang = langSelector_.getSelectedItem();
