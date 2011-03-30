@@ -9,6 +9,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -304,7 +307,7 @@ public class TapQueryPanel extends JPanel {
         for ( int ie = 0; ie < exampleActs_.length; ie++ ) {
             AdqlExampleAction exAct = exampleActs_[ ie ];
             String adql =
-                exAct.getExample().getText( lang, tcap, tables, table );
+                exAct.getExample().getText( true, lang, tcap, tables, table );
             exAct.setAdqlText( adql );
         }
     }
@@ -315,23 +318,10 @@ public class TapQueryPanel extends JPanel {
      * @return  example list
      */
     private static AdqlExample[] createExamples() {
-        return new AdqlExample[] {
-            new AdqlExample( "Simple Example", "Simple ADQL example" ) {
-                public String getText( String lang, TapCapability tcap,
-                                       TableMeta[] tables, TableMeta table ) {
-                    return table == null
-                         ? null
-                         : AdqlExemplifier.createExemplifier( lang, true )
-                                          .createSimpleExample( table );
-                }
-            },
-            new AdqlExample( "Dummy", "Never enabled" ) {
-                public String getText( String lang, TapCapability tcap,
-                                       TableMeta[] tables, TableMeta table ) {
-                    return null;
-                }
-            },
-        };
+        List<AdqlExample> exList = new ArrayList<AdqlExample>();
+        exList.addAll( Arrays
+                      .asList( AbstractAdqlExample.createSomeExamples() ) );
+        return exList.toArray( new AdqlExample[ 0 ] );
     }
 
     /**

@@ -7,49 +7,33 @@ package uk.ac.starlink.vo;
  * @author   Mark Taylor
  * @since    29 Mar 2011
  */
-abstract class AdqlExample {
-
-    private final String name_;
-    private final String description_;
-
-    /**
-     * Constructor.
-     *
-     * @param   name  example name
-     * @param   descripton   example short description
-     */
-    protected AdqlExample( String name, String description ) {
-        name_ = name;
-        description_ = description;
-    }
+public interface AdqlExample {
 
     /**
      * Produces ADQL text for a query of the type represented by this object,
      * for a given set of service details.
      *
+     * @param  lineBreaks  whether output ADQL should include multiline
+     *                     formatting
      * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
      * @param  tcap  TAP capability object
-     * @param  tables  table metadata set 
+     * @param  tables  table metadata set
      * @param  table  currently selected table
      */
-    public abstract String getText( String lang, TapCapability tcap,
-                                    TableMeta[] tables, TableMeta table );
+    String getText( boolean lineBreaks, String lang, TapCapability tcap,
+                    TableMeta[] tables, TableMeta table );
 
     /**
      * Returns this example's name.
      *
      * @return   name
      */
-    public String getName() {
-        return name_;
-    }
+    String getName();
 
     /**
      * Returns this example's description.
      *
      * @return   short description
      */
-    public String getDescription() {
-        return description_;
-    }
+    String getDescription();
 }
