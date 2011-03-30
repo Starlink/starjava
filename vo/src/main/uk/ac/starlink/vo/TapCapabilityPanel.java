@@ -4,11 +4,11 @@ import java.awt.BorderLayout;
 import java.util.Arrays;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -21,7 +21,7 @@ public class TapCapabilityPanel extends JPanel {
 
     private TapCapability capability_;
     private final JComboBox langSelector_;
-    private final JCheckBox uploadFlagger_;
+    private final JTextField uploadField_;
     private final JComboBox maxrecSelector_;
 
     /**
@@ -32,10 +32,11 @@ public class TapCapabilityPanel extends JPanel {
         langSelector_ = new JComboBox();
         langSelector_.setToolTipText( "Selects which supported query "
                                     + "language/version to use" );
-        uploadFlagger_ = new JCheckBox();
-        uploadFlagger_.setEnabled( false );
-        uploadFlagger_.setToolTipText( "Indicates whether the service supports "
-                                     + "table uploads" );
+        uploadField_ = new JTextField();
+        uploadField_.setEditable( false );
+        uploadField_.setToolTipText( "Indicates whether the service supports "
+                                   + "table uploads and if so "
+                                   + "what limits apply" );
         maxrecSelector_ = new JComboBox();
         maxrecSelector_.setEditable( true );
         maxrecSelector_.setToolTipText( "Indicates and allows to set MAXREC, "
@@ -48,8 +49,8 @@ public class TapCapabilityPanel extends JPanel {
         line.add( createJLabel( "Max Rows: ", maxrecSelector_ ) );
         line.add( new ShrinkWrapper( maxrecSelector_ ) );
         line.add( Box.createHorizontalStrut( 10 ) );
-        line.add( createJLabel( "Uploads: ", uploadFlagger_ ) );
-        line.add( uploadFlagger_ );
+        line.add( createJLabel( "Uploads: ", uploadField_ ) );
+        line.add( uploadField_ );
         line.add( Box.createHorizontalGlue() );
         add( line, BorderLayout.NORTH );
         setCapability( null );
@@ -67,7 +68,7 @@ public class TapCapabilityPanel extends JPanel {
         /* No capability to display. */
         if ( capability == null ) {
             langSelector_.setModel( new DefaultComboBoxModel() );
-            uploadFlagger_.setSelected( false );
+            uploadField_.setText( null );
             langSelector_.setEnabled( false );
             maxrecModel = new DefaultComboBoxModel( new String[ 1 ] );
         }
@@ -78,7 +79,7 @@ public class TapCapabilityPanel extends JPanel {
             langSelector_
                .setModel( new DefaultComboBoxModel( new String[] { "ADQL" } ) );
             langSelector_.setSelectedIndex( 0 );
-            uploadFlagger_.setSelected( false );
+            uploadField_.setText( null );
             langSelector_.setEnabled( false );
             maxrecModel = new DefaultComboBoxModel( new String[ 1 ] );
         }
@@ -93,7 +94,18 @@ public class TapCapabilityPanel extends JPanel {
             boolean canUpload =
                 Arrays.asList( capability.getUploadMethods() )
                .indexOf( TapCapability.UPLOADS_URI + "#inline" ) >= 0;
-            uploadFlagger_.setSelected( canUpload );
+            if ( canUpload ) {
+                StringBuffer sbuf = new StringBuffer();
+                sbuf.append( getUploadLimitString( TapLimit.ROWS ) )
+                    .append( sbuf.length() > 0 ? "/" : "" )
+                    .append( getUploadLimitString( TapLimit.BYTES ) );
+                String limitString = sbuf.toString();
+                uploadField_.setText( limitString.length() > 0 ? limitString
+                                                               : "available" );
+            }
+            else {
+                uploadField_.setText( "unavailable" );
+            }
 
             TapLimit[] outLimits = capability.getOutputLimits();
             maxrecModel = new DefaultComboBoxModel();
@@ -143,27 +155,104 @@ public class TapCapabilityPanel extends JPanel {
 
     /**
      * Returns the maximum record value selected in this panel.
-     * If none has been explicitly selected, null is returned.
+     * If none has been explicitly selected, -1 is returned.
      *
-     * @return   maxrec value, or null
+     * @return   maxrec value, or -1
      */
-    public Long getMaxrec() {
+    public long getMaxrec() {
         Object oMaxrec = maxrecSelector_.getSelectedItem();
         if ( oMaxrec instanceof TapLimit ) {
             TapLimit limit = (TapLimit) oMaxrec;
-            return limit.isHard() ? new Long( limit.getValue() )
-                                  : null;
+            return limit.isHard() ? limit.getValue()
+                                  : -1;
         }
         else if ( oMaxrec instanceof String ) {
             try {
                 return Long.parseLong( (String) oMaxrec );
             }
             catch ( NumberFormatException e ) {
-                return null;
+                return -1;
             }
         }
         else {
-            return null;
+            return -1;
+        }
+    }
+
+    /**
+     * Returns an upload limit for the currently displayed capability.
+     * A particular unit is specified
+     * (normally {@link TapLimit#ROWS} or {@link TapLimit#BYTES})
+     * and the corresponding value is returned.
+     * If no limit with the given unit has been specified
+     * (including if no capability is currently displayed), -1 is returned.
+     *
+     * @param   units  limit unit string
+     * @return   limit value, or -1
+     */
+    public long getUploadLimit( String units ) {
+        TapLimit[] limits = capability_ == null
+                          ? null
+                          : capability_.getUploadLimits();
+        if ( limits == null ) {
+            return -1;
+        }
+        for ( int i = 0; i < limits.length; i++ ) {
+            TapLimit limit = limits[ i ];
+            if ( limit.isHard() && units.equals( limit.getUnit() ) ) {
+                return limit.getValue();
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns a reasonably compact string indicating an upload limit for
+     * the currently displayed capability; some indication of the unit
+     * is included in the result.
+     * A particular unit is specified
+     * (normally {@link TapLimit#ROWS} or {@link TapLimit#BYTES})
+     * and the corresponding value is returned.
+     * If no limit with the given unit has been specified
+     * (including if no capability is currently displayed),
+     * an empty string is returned.
+     *
+     * @param   units  limit unit string
+     * @return   limit string, or ""
+     */
+    private String getUploadLimitString( String units ) {
+        long value = getUploadLimit( units );
+        if ( value < 0 ) {
+            return "";
+        }
+        else {
+            int kilo = 1000;
+            int mega = 1000 * kilo;
+            int giga = 1000 * mega;
+            final String snum;
+            if ( value >= giga * 10 ) {
+                snum = ( value / giga ) + "G";
+            }
+            else if ( value >= 1e7 ) {
+                snum = ( value / mega ) + "M";
+            }
+            else if ( value >= 1e4 ) {
+                snum = ( value / kilo ) + "k";
+            }
+            else {
+                snum = Long.toString( value );
+            }
+            final String u;
+            if ( TapLimit.ROWS.equals( units ) ) {
+                u = "row";
+            }
+            else if ( TapLimit.BYTES.equals( units ) ) {
+                u = "b";
+            }
+            else {
+                u = "";
+            }
+            return snum + u;
         }
     }
 

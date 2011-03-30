@@ -223,10 +223,19 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         final String summary = TapQuery.summarizeAdqlQuery( serviceUrl, adql );
         final Map<String,StarTable> uploadMap =
             new LinkedHashMap<String,StarTable>();
+        TapCapabilityPanel tcapPanel = tqPanel_.getCapabilityPanel();
+        long rowUploadLimit = tcapPanel.getUploadLimit( TapLimit.ROWS );
+        final long byteUploadLimit = tcapPanel.getUploadLimit( TapLimit.BYTES );
         Set<String> uploadLabels = getUploadLabels( adql );
         for ( String upLabel : uploadLabels ) {
             StarTable upTable = getUploadTable( upLabel );
             if ( upTable != null ) {
+                long nrow = upTable.getRowCount();
+                if ( rowUploadLimit >= 0 && nrow > rowUploadLimit ) {
+                    throw new IllegalArgumentException(
+                        "Table " + upLabel + " too many rows for upload "
+                      + " (" + nrow + ">" + rowUploadLimit + ")" );
+                }
                 uploadMap.put( upLabel, upTable );
             }
             else {
@@ -234,23 +243,23 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                                                   + upLabel + "\" for upload" );
             }
         }
+        final Map<String,String> extraParams =
+            new LinkedHashMap<String,String>();
+        String language = tcapPanel.getQueryLanguage();
+        if ( language != null && language.trim().length() > 0 ) {
+            extraParams.put( "LANG", language );
+        }
+        long maxrec = tcapPanel.getMaxrec();
+        if ( maxrec > 0 ) {
+            extraParams.put( "MAXREC", Long.toString( maxrec ) );
+        }
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
-                Map<String,String> extraParams =
-                    new LinkedHashMap<String,String>();
-                TapCapabilityPanel tcapPanel = tqPanel_.getCapabilityPanel();
-                String language = tcapPanel.getQueryLanguage();
-                if ( language != null && language.trim().length() > 0 ) {
-                    extraParams.put( "LANG", language );
-                }
-                Long maxrec = tcapPanel.getMaxrec();
-                if ( maxrec != null ) {
-                    extraParams.put( "MAXREC", maxrec.toString() );
-                }
                 final TapQuery tapQuery =
                     TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap,
-                                              extraParams );
+                                              extraParams, byteUploadLimit,
+                                              tfact.getStoragePolicy() );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         addRunningQuery( tapQuery );

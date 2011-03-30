@@ -18,11 +18,14 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.storage.LimitByteStore;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.DataFormat;
@@ -168,11 +171,17 @@ public class TapQuery {
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care
+     * @param  uploadLimit  maximum number of bytes that may be uploaded;
+     *                      if negative, no limit is applied
+     * @param  storage    storage policy which may be needed for buffering
+     *                    output
      * @return   new TapQuery
      */
     public static TapQuery createAdqlQuery( URL serviceUrl, String adql,
                                             Map<String,StarTable> uploadMap,
-                                            Map<String,String> extraParams )
+                                            Map<String,String> extraParams,
+                                            long uploadLimit,
+                                            StoragePolicy storage )
             throws IOException {
 
         /* Prepare basic TAP ADQL parameters. */
@@ -202,7 +211,9 @@ public class TapQuery {
                     .append( "param:" )
                     .append( tlabel );
                 streamMap.put( tlabel,
-                               new UploadStreamParam( upload.getValue() ) );
+                               createUploadStreamParam( upload.getValue(),
+                                                        uploadLimit,
+                                                        storage ) );
             }
             stringMap.put( "UPLOAD", ubuf.toString() );
         }
@@ -342,32 +353,57 @@ public class TapQuery {
         return "upload_" + tname.replaceAll( "[^a-zA-Z0-9]", "" );
     }
 
+
     /**
-     * HttpStreamParam implementation for uploading tables.
+     * Creates a new stream parameter based on a given table.
+     *
+     * @param   table  table to upload
+     * @param   uploadLimit  maximum number of bytes permitted; -1 if no limit
+     * @param   storage  storage policy for buffering bytes
+     * @return  stream parameter
      */
-    private static class UploadStreamParam implements HttpStreamParam {
-        private final StarTable table_;
-
-        /**
-         * Constructor.
-         *
-         * @param   table  table to upload
-         */
-        public UploadStreamParam( StarTable table ) {
-            table_ = table;
+    private static HttpStreamParam
+                   createUploadStreamParam( final StarTable table,
+                                            long uploadLimit,
+                                            StoragePolicy storage )
+            throws IOException {
+        final Map<String,String> headerMap = new LinkedHashMap<String,String>();
+        final VOTableWriter vowriter =
+            new VOTableWriter( DataFormat.BINARY, true );
+        vowriter.setVotableVersion( "1.2" );
+        headerMap.put( "Content-Type", "application/x-votable+xml" );
+        if ( uploadLimit < 0 ) {
+            return new HttpStreamParam() {
+                public Map<String,String> getHttpHeaders() {
+                    return headerMap;
+                }
+                public void writeContent( OutputStream out )
+                        throws IOException {
+                    vowriter.writeStarTable( table, out );
+                }
+                public long getContentLength() {
+                    return -1;
+                }
+            };
         }
-
-        public Map<String,String> getHttpHeaders() {
-            Map<String,String> map = new LinkedHashMap<String,String>();
-            map.put( "Content-Type", "application/x-votable+xml" );
-            return map;
-        }
-
-        public void writeContent( OutputStream out ) throws IOException {
-            VOTableWriter vowriter =
-                new VOTableWriter( DataFormat.TABLEDATA, true );
-            vowriter.setVotableVersion( "1.2" );
-            vowriter.writeStarTable( table_, out );
+        else {
+            final ByteStore hbuf =
+                new LimitByteStore( storage.makeByteStore(), uploadLimit );
+            OutputStream tout = hbuf.getOutputStream();
+            vowriter.writeStarTable( table, tout );
+            tout.close();
+            return new HttpStreamParam() {
+                public Map<String,String> getHttpHeaders() {
+                    return headerMap;
+                }
+                public void writeContent( OutputStream out )
+                        throws IOException {
+                    hbuf.copy( out );
+                }
+                public long getContentLength() {
+                    return hbuf.getLength();
+                }
+            };
         }
     }
 }

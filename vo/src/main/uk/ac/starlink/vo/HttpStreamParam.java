@@ -28,4 +28,12 @@ public interface HttpStreamParam {
      * @param   out  destination stream
      */
     void writeContent( OutputStream out ) throws IOException;
+
+    /**
+     * Returns the number of bytes that will be written to the output stream,
+     * if konwn.  If not known, -1 may be returned.
+     *
+     * @return   content length, or -1 if not known
+     */
+    long getContentLength();
 }
