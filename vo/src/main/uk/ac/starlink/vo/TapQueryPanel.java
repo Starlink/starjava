@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -18,11 +19,13 @@ import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -37,7 +40,8 @@ public class TapQueryPanel extends JPanel {
     private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
     private final JLabel countLabel_;
-    private final AdqlTextAction exampleAct_;
+    private final Action examplesAct_;
+    private final AdqlExampleAction[] exampleActs_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -59,7 +63,7 @@ public class TapQueryPanel extends JPanel {
         textPanel_.setFont( Font.decode( "Monospaced" ) );
         JComponent textScroller = new JScrollPane( textPanel_ );
 
-        /* Actions to replace text in ADQL panel. */
+        /* Action to clear text in ADQL panel. */
         final AdqlTextAction clearAct =
                 new AdqlTextAction( "Clear",
                                     "Clear currently visible ADQL text "
@@ -67,10 +71,6 @@ public class TapQueryPanel extends JPanel {
         };
         clearAct.setAdqlText( "" );
         clearAct.setEnabled( false );
-        exampleAct_ =
-            new AdqlTextAction( "Example",
-                                "Set ADQL text to an example query "
-                              + "for this service" );
         textPanel_.getDocument().addDocumentListener( new DocumentListener() {
             public void changedUpdate( DocumentEvent evt ) {
             }
@@ -84,6 +84,27 @@ public class TapQueryPanel extends JPanel {
                 clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
             }
         } );
+
+        /* Action for examples menu. */
+        final JPopupMenu examplesMenu = new JPopupMenu( "Examples" );
+        AdqlExample[] examples = createExamples();
+        int nex = examples.length;
+        exampleActs_ = new AdqlExampleAction[ nex ];
+        for ( int ie = 0; ie < nex; ie++ ) {
+            exampleActs_[ ie ] = new AdqlExampleAction( examples[ ie ] );
+            examplesMenu.add( exampleActs_[ ie ] );
+        }
+        examplesAct_ = new AbstractAction( "Examples" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                Object src = evt.getSource();
+                if ( src instanceof Component ) {
+                    Component comp = (Component) src;
+                    examplesMenu.show( comp, 0, 0 );
+                }
+            }
+        };
+        examplesAct_.putValue( Action.SHORT_DESCRIPTION,
+                               "Choose from example ADQL quries" );
         tmetaPanel_.getTableSelector().addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
                 configureExamples();
@@ -94,7 +115,7 @@ public class TapQueryPanel extends JPanel {
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( exampleAct_ ) );
+        buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( clearAct ) );
 
@@ -276,13 +297,41 @@ public class TapQueryPanel extends JPanel {
      * to set up example queries.
      */
     private void configureExamples() {
+        String lang = tcapPanel_.getQueryLanguage();
+        TapCapability tcap = tcapPanel_.getCapability();
+        TableMeta[] tables = tmetaPanel_.getTables();
         TableMeta table = tmetaPanel_.getSelectedTable();
-        if ( table != null ) {
-            AdqlExemplifier exampler =
-                AdqlExemplifier
-               .createExemplifier( tcapPanel_.getQueryLanguage(), true );
-            exampleAct_.setAdqlText( exampler.createSimpleExample( table ) );
+        for ( int ie = 0; ie < exampleActs_.length; ie++ ) {
+            AdqlExampleAction exAct = exampleActs_[ ie ];
+            String adql =
+                exAct.getExample().getText( lang, tcap, tables, table );
+            exAct.setAdqlText( adql );
         }
+    }
+
+    /**
+     * Creates a list of actions which supply example ADQL query text.
+     *
+     * @return  example list
+     */
+    private static AdqlExample[] createExamples() {
+        return new AdqlExample[] {
+            new AdqlExample( "Simple Example", "Simple ADQL example" ) {
+                public String getText( String lang, TapCapability tcap,
+                                       TableMeta[] tables, TableMeta table ) {
+                    return table == null
+                         ? null
+                         : AdqlExemplifier.createExemplifier( lang, true )
+                                          .createSimpleExample( table );
+                }
+            },
+            new AdqlExample( "Dummy", "Never enabled" ) {
+                public String getText( String lang, TapCapability tcap,
+                                       TableMeta[] tables, TableMeta table ) {
+                    return null;
+                }
+            },
+        };
     }
 
     /**
@@ -317,6 +366,32 @@ public class TapQueryPanel extends JPanel {
         public void setAdqlText( String text ) {
             text_ = text;
             setEnabled( text != null );
+        }
+    }
+
+    /**
+     * AdqlTextAction based on an AdqlExample.
+     */
+    private class AdqlExampleAction extends AdqlTextAction {
+        private final AdqlExample example_;
+
+        /**
+         * Constructor.
+         *
+         * @param   example  the example which this action will display
+         */
+        public AdqlExampleAction( AdqlExample example ) {
+            super( example.getName(), example.getDescription() );
+            example_ = example;
+        }
+
+        /**
+         * Returns this action's example.
+         *
+         * @return  example
+         */
+        public AdqlExample getExample() {
+            return example_;
         }
     }
 }
