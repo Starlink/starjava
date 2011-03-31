@@ -392,7 +392,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "FROM " )
                         .append( tref.getIntroName() )
                         .append( breaker.level( 1 ) )
-                        .append( "WHERE " )
+                        .append( "WHERE" )
                         .append( breaker.level( 2 ) )
                         .append( tref.getColumnName( raCol ) )
                         .append( " BETWEEN 189.1 AND 189.3" )  // HDF
@@ -401,6 +401,52 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( breaker.level( 2 ) )
                         .append( tref.getColumnName( decCol ) )
                         .append( " BETWEEN 62.18 AND 62.25" )  // HDF
+                        .toString();
+                }
+            },
+
+            new AbstractAdqlExample( "Cone selection",
+                                     "Select rows within a given radius of "
+                                   + "a sky position" ) {
+                public String getText( boolean lineBreaks, String lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table ) {
+                    if ( isAdql1( lang ) ) {
+                        return null;
+                    }
+                    TableWithCols[] rdTabs =
+                        getRaDecTables( toTables( table, tables ), 1 );
+                    if ( rdTabs.length == 0 ) {
+                        return null;
+                    }
+                    TableMeta rdTab = rdTabs[ 0 ].table_;
+                    String[] radec = rdTabs[ 0 ].cols_;
+                    String raCol = radec[ 0 ];
+                    String decCol = radec[ 1 ];
+                    Breaker breaker = createBreaker( lineBreaks );
+                    TableRef tref = createTableRef( rdTab, lang );
+                    return new StringBuffer()
+                        .append( "SELECT" )
+                        .append( breaker.level( 1 ) )
+                        .append( "TOP " )
+                        .append( ROW_COUNT )
+                        .append( breaker.level( 1 ) )
+                        .append( "*" )
+                        .append( breaker.level( 1 ) )
+                        .append( "FROM " )
+                        .append( tref.getIntroName() )
+                        .append( breaker.level( 1 ) )
+                        .append( "WHERE " )
+                        .append( breaker.level( 2 ) )
+                        .append( "1=CONTAINS(POINT('ICRS', " )
+                        .append( tref.getColumnName( raCol ) )
+                        .append( ", " )
+                        .append( tref.getColumnName( decCol ) )
+                        .append( ")," )
+                        .append( breaker.level( 2 ) )
+                        .append( "           " )
+                        .append( "CIRCLE('ICRS', 189.2, 62.21, 0.05 )" )
+                        .append( ")" )
                         .toString();
                 }
             },
