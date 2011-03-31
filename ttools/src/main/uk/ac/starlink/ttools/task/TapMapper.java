@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -126,6 +127,8 @@ public class TapMapper implements TableMapper {
                 createUploadNameParameter( Integer.toString( iu + 1 ) )
                .stringValue( env );
         }
+        final StoragePolicy storage =
+            LineTableEnvironment.getStoragePolicy( env );
         return new TableMapping() {
             public StarTable mapTables( InputTableSpec[] inSpecs )
                     throws TaskException, IOException {
@@ -140,7 +143,7 @@ public class TapMapper implements TableMapper {
                 }
                 TapQuery query =
                     TapQuery.createAdqlQuery( url, adql, uploadMap,
-                                              extraParams );
+                                              extraParams, -1, storage );
                 if ( progress ) {
                     errStream.println( query.getUwsJob().getJobUrl() );
                 }
