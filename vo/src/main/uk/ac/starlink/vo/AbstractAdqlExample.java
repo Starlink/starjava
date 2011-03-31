@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -98,16 +99,52 @@ public abstract class AbstractAdqlExample implements AdqlExample {
             };
         }
         else {
-            final String nick = getNickName( table );
-            return new TableRef() {
-                public String getColumnName( String rawName ) {
-                    return nick + "." + rawName;
-                }
-                public String getIntroName() {
-                    return table.getName() + " AS " + nick;
-                }
-            };
+            return createAliasedTableRef( table, getAlias( table ) );
         }
+    }
+
+    /**
+     * Returns multiple table refs for a given list of tables.
+     *
+     * @param  tables  tables to reference
+     * @return   table refs
+     */
+    private static TableRef[] createTableRefs( final TableMeta[] tables ) {
+        int nt = tables.length;
+        String[] aliases = new String[ nt ];
+        for ( int i = 0; i < nt; i++ ) {
+            aliases[ i ] = getAlias( tables[ i ] );
+        }
+        if ( new HashSet( Arrays.asList( aliases ) ).size() < nt ) {
+            for ( int i = 0; i < nt; i++ ) {
+                aliases[ i ] = new StringBuffer().append( 'a' + (char) i )
+                                                 .toString();
+            }
+        }
+        TableRef[] trefs = new TableRef[ nt ];
+        for ( int i = 0; i < nt; i++ ) {
+            trefs[ i ] = createAliasedTableRef( tables[ i ], aliases[ i ] );
+        }
+        return trefs;
+    }
+
+    /**
+     * Returns a table ref with a given alias.
+     *
+     * @param  table  table
+     * @param  alias  table alias
+     * @return  table ref
+     */
+    private static TableRef createAliasedTableRef( final TableMeta table,
+                                                   final String alias ) {
+        return new TableRef() {
+            public String getColumnName( String rawName ) {
+                return alias + "." + rawName;
+            }
+            public String getIntroName() {
+                return table.getName() + " AS " + alias;
+            }
+        };
     }
 
     /**
@@ -173,7 +210,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @param  table  table being referenced
      * @return  alias
      */
-    private static String getNickName( TableMeta table ) {
+    private static String getAlias( TableMeta table ) {
         String subname = table.getName().replaceFirst( "^[^\\.]*\\.", "" );
         char letter = '\0';
         if ( subname.length() > 0 ) {
@@ -421,8 +458,6 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     }
                     TableMeta rdTab = rdTabs[ 0 ].table_;
                     String[] radec = rdTabs[ 0 ].cols_;
-                    String raCol = radec[ 0 ];
-                    String decCol = radec[ 1 ];
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( rdTab, lang );
                     return new StringBuffer()
@@ -439,14 +474,69 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "WHERE " )
                         .append( breaker.level( 2 ) )
                         .append( "1=CONTAINS(POINT('ICRS', " )
-                        .append( tref.getColumnName( raCol ) )
+                        .append( tref.getColumnName( radec[ 0 ] ) )
                         .append( ", " )
-                        .append( tref.getColumnName( decCol ) )
+                        .append( tref.getColumnName( radec[ 1 ] ) )
                         .append( ")," )
                         .append( breaker.level( 2 ) )
                         .append( "           " )
                         .append( "CIRCLE('ICRS', 189.2, 62.21, 0.05 )" )
                         .append( ")" )
+                        .toString();
+                }
+            },
+
+            new AbstractAdqlExample( "Sky pair match",
+                                     "Join two tables on sky position" ) {
+                public String getText( boolean lineBreaks, String lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table ) {
+                    if ( isAdql1( lang ) ) {
+                        return null;
+                    }
+                    TableWithCols[] rdTabs =
+                        getRaDecTables( toTables( table, tables ), 2 );
+                    if ( rdTabs.length < 2 ) {
+                        return null;
+                    }
+                    TableRef[] trefs =
+                        createTableRefs( new TableMeta[] {
+                            rdTabs[ 0 ].table_,
+                            rdTabs[ 1 ].table_ } );
+                    TableRef tref1 = trefs[ 0 ];
+                    TableRef tref2 = trefs[ 1 ];
+                    String[] radec1 = rdTabs[ 0 ].cols_;
+                    String[] radec2 = rdTabs[ 1 ].cols_;
+                    Breaker breaker = createBreaker( lineBreaks );
+                    return new StringBuffer()
+                        .append( "SELECT" )
+                        .append( breaker.level( 1 ) )
+                        .append( "TOP " )
+                        .append( ROW_COUNT )
+                        .append( breaker.level( 1 ) )
+                        .append( "*" )
+                        .append( breaker.level( 1 ) )
+                        .append( "FROM " )
+                        .append( tref1.getIntroName() )
+                        .append( breaker.level( 1 ) )
+                        .append( "JOIN " )
+                        .append( tref2.getIntroName() )
+                        .append( breaker.level( 1 ) )
+                        // CONTAINS is not mandatory, though INTERSECTS is.
+                        // However, Markus has problems with INTERSECTS and
+                        // POINTs, so avoid it here.
+                        .append( "ON 1=CONTAINS(POINT('ICRS', " )
+                        .append( tref1.getColumnName( radec1[ 0 ] ) )
+                        .append( ", " )
+                        .append( tref1.getColumnName( radec1[ 1 ] ) )
+                        .append( ")," )
+                        .append( breaker.level( 1 ) )
+                        .append( "              CIRCLE('ICRS', " )
+                        .append( tref2.getColumnName( radec2[ 0 ] ) )
+                        .append( ", " )
+                        .append( tref2.getColumnName( radec2[ 1 ] ) )
+                        .append( ", 5./3600." )
+                        .append( "))" )
                         .toString();
                 }
             },
