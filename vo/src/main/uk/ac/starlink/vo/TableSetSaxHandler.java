@@ -251,16 +251,15 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         TableSetSaxHandler tsHandler = new TableSetSaxHandler();
         URLConnection conn = url.openConnection();
-        if ( ! ( conn instanceof HttpURLConnection ) ) {
-            throw new IOException( "Table metadata not from HTTP? " + url );
+        if ( conn instanceof HttpURLConnection ) {
+            HttpURLConnection hconn = (HttpURLConnection) conn;
+            int code = hconn.getResponseCode();
+            if ( code != HttpURLConnection.HTTP_OK ) {
+                throw new IOException( "Table resource access failure (" + code 
+                                     + " " + hconn.getResponseMessage() + ")" );
+            }
         }
-        HttpURLConnection hconn = (HttpURLConnection) conn;
-        int code = hconn.getResponseCode();
-        if ( code != HttpURLConnection.HTTP_OK ) {
-            throw new IOException( "Table resource access failure (" + code 
-                                 + " " + hconn.getResponseMessage() + ")" );
-        }
-        InputStream in = new BufferedInputStream( hconn.getInputStream() );
+        InputStream in = new BufferedInputStream( conn.getInputStream() );
         try {
             parser.parse( in, tsHandler );
             return tsHandler.getTables();
