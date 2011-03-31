@@ -1,0 +1,706 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href='/static/xsl/vosi.xsl' type='text/xsl'?>
+<tableset xmlns:vs1="http://www.ivoa.net/xml/VODataService/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VODataService/v1.1 http://vo.ari.uni-heidelberg.de/docs/schemata/VODataService-v1.1.xsd" xsi:type="vs1:TableSet">
+  <schema>
+    <name>veronqsos</name>
+    <description>A table of quasars and AGNs due to Veron-Cetty and Veron,
+1998yCat.7207....0V</description>
+    <table>
+      <name>veronqsos.data</name>
+      <column>
+        <name>notRadio</name>
+        <description>'*' if not detected in radio</description>
+        <ucd>meta.note</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>Name</name>
+        <description>Most common name of the object</description>
+        <ucd>meta.id</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>raj2000</name>
+        <description>Right Ascension J2000</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.ra;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">double</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>dej2000</name>
+        <description>Declination J2000</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.dec;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">double</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>n_RAh</name>
+        <description>Position origin: O=optical, R=radio, A=approximative</description>
+        <ucd>meta.note</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>l_z</name>
+        <description>*=redshift from slitless spectroscopy</description>
+        <ucd>meta.code.error</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>z</name>
+        <description>Redshift</description>
+        <ucd>src.redshift</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>Sp</name>
+        <description>Spectrum classification</description>
+        <ucd>src.spType</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>n_Vmag</name>
+        <description>'*' for photographic, 'R' for red Vmag</description>
+        <ucd>meta.note</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>Vmag</name>
+        <description>magnitude, V or other (see n_Vmag)</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.opt.V</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>r_z</name>
+        <description>Reference of the redshift</description>
+        <ucd>meta.ref</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">short</dataType>
+        <flag>nullable</flag>
+      </column>
+    </table>
+  </schema>
+  <schema>
+    <name>ppmxl</name>
+    <description> PPMXL is a catalog of positions, proper motions, 2MASS- and optical
+photometry of 900 million stars and galaxies, aiming to be complete
+down to about V=20 full-sky. It is the result of a re-reduction of
+USNO-B1 together with 2MASS to the ICRS as represented by PPMX.</description>
+    <table>
+      <name>ppmxl.main</name>
+      <column>
+        <name>ipix</name>
+        <description>Identifier (Q3C ipix of the USNO-B 1.0 object)</description>
+        <ucd>meta.id;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">long</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>raj2000</name>
+        <description>Right Ascension J2000.0, epoch 2000.0</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.ra;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">double</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>dej2000</name>
+        <description>Declination J2000.0, epoch 2000.0</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.dec;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">double</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_raepRA</name>
+        <description>Mean error in RA*cos(delta) at mean epoch</description>
+        <unit>deg</unit>
+        <ucd>stat.error;pos.eq.ra;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_deepDE</name>
+        <description>Mean error in Dec at mean epoch</description>
+        <unit>deg</unit>
+        <ucd>stat.error;pos.eq.dec;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>pmRA</name>
+        <description>Proper Motion in RA*cos(delta)</description>
+        <unit>deg/yr</unit>
+        <ucd>pos.pm;pos.eq.ra</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>pmDE</name>
+        <description>Proper Motion in Dec</description>
+        <unit>deg/yr</unit>
+        <ucd>pos.pm;pos.eq.dec</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_pmRA</name>
+        <description>Mean error in pmRA*cos(delta)</description>
+        <unit>deg/yr</unit>
+        <ucd>stat.error;pos.pm;pos.eq.ra</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_pmDE</name>
+        <description>Mean error in pmRA*cos(delta)</description>
+        <unit>deg/yr</unit>
+        <ucd>stat.error;pos.pm;pos.eq.dec</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>nobs</name>
+        <description>Number of observations used</description>
+        <ucd>meta.number;obs</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">short</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>epRA</name>
+        <description>Mean Epoch (RA)</description>
+        <unit>yr</unit>
+        <ucd>time.epoch;pos.eq.ra</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>epDE</name>
+        <description>Mean Epoch (Dec)</description>
+        <unit>yr</unit>
+        <ucd>time.epoch;pos.eq.dec</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>Jmag</name>
+        <description>J selected default magnitude from 2MASS</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.IR.J</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_Jmag</name>
+        <description>J total magnitude uncertainty</description>
+        <unit>mag</unit>
+        <ucd>stat.error;phot.mag;em.IR.J</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>Hmag</name>
+        <description>H selected default magnitude from 2MASS</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.IR.H</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_Hmag</name>
+        <description>H total magnitude uncertainty</description>
+        <unit>mag</unit>
+        <ucd>stat.error;phot.mag;em.IR.H</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>Kmag</name>
+        <description>K_s selected default magnitude from 2MASS</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.IR.K</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>e_Kmag</name>
+        <description>K_s total magnitude uncertainty</description>
+        <unit>mag</unit>
+        <ucd>stat.error;phot.mag;em.IR.K</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>b1mag</name>
+        <description>B mag from USNO-B, first epoch</description>
+        <ucd>phot.mag;em.opt.B</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>b2mag</name>
+        <description>B mag from USNO-B, second epoch</description>
+        <ucd>phot.mag;em.opt.B</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>r1mag</name>
+        <description>R mag from USNO-B, first epoch</description>
+        <ucd>phot.mag;em.opt.R</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>r2mag</name>
+        <description>R mag from USNO-B, second epoch</description>
+        <ucd>phot.mag;em.opt.R</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>imag</name>
+        <description>I mag from USNO-B</description>
+        <ucd>phot.mag;em.opt.I</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>magSurveys</name>
+        <description>Surveys the USNO-B magnitudes are taken from</description>
+        <ucd>meta.code</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>flags</name>
+        <description>Flags</description>
+        <ucd>meta.code</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">short</dataType>
+        <flag>nullable</flag>
+      </column>
+    </table>
+  </schema>
+  <schema>
+    <name>browndwarfs</name>
+    <description>A catalogue of brown dwarfs produced by 
+Gelino et al.  The database reflects the state of
+http://www.dwarfArchives.org on 2010-06-18.</description>
+    <table>
+      <name>browndwarfs.cat</name>
+      <column>
+        <name>designation</name>
+        <description>Designation, typically from 2MASS</description>
+        <ucd>meta.id;meta.main</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>alpha</name>
+        <description>RA J2000.0</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.ra;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>delta</name>
+        <description>Dec J2000.0</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.dec;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>jmag</name>
+        <description>Magnitude in the J band</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.IR.J</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>errjmag</name>
+        <description>Error in magnitude in the J band</description>
+        <unit>mag</unit>
+        <ucd>stat.error;phot.mag;em.IR.J</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>hmag</name>
+        <description>Magnitude in the H band</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.IR.H</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>errhmag</name>
+        <description>Error in magnitude in the H band</description>
+        <unit>mag</unit>
+        <ucd>stat.error;phot.mag;em.IR.H</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>kmag</name>
+        <description>Magnitude in the K band</description>
+        <unit>mag</unit>
+        <ucd>phot.mag;em.IR.K</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>errkmag</name>
+        <description>Error in magnitude in the K band</description>
+        <unit>mag</unit>
+        <ucd>stat.error;phot.mag;em.IR.K</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>pmVal</name>
+        <description>Total proper motion</description>
+        <unit>deg/yr</unit>
+        <ucd>pos.pm</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>pmErr</name>
+        <description>Error in total proper motion</description>
+        <unit>deg/yr</unit>
+        <ucd>stat.error;pos.pm</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>pmPA</name>
+        <description>Position angle of proper motion</description>
+        <unit>deg</unit>
+        <ucd>pos.posAng;pos.pm</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>pmPAErr</name>
+        <description>Error in the position angle of the proper motion</description>
+        <unit>deg</unit>
+        <ucd>stat.error;pos.posAng;pos.pm</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>spectral_opt</name>
+        <description>Spectral type inferred from observation in visible light</description>
+        <ucd>src.spType;em.opt</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>spectral_ir</name>
+        <description>Spectral type inferred from observation in infrared</description>
+        <ucd>src.spType;em.IR</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+    </table>
+  </schema>
+  <schema>
+    <name>ohmaser</name>
+    <title>Database of Circumstellar Masers</title>
+    <description>A compilation of galactic stellar sources observed for OH maser
+emission in the transition at 1612, 1665, and 1667 MHz. The database
+contains 12725 OH maser observations at frequencies 1612, 1665, and
+1667 MHz selected from the literature . These observations belong to
+6245 different objects.</description>
+    <table>
+      <name>ohmaser.bibrefs</name>
+      <title>Bibliographic and other metadata on the sources of the data in the
+masers table.</title>
+      <column>
+        <name>refKey</name>
+        <description>Internal key for the paper</description>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>indexed</flag>
+        <flag>primary</flag>
+      </column>
+      <column>
+        <name>bibcode</name>
+        <description>Bibliographic reference to the data source</description>
+        <ucd>meta.bib</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>modifications</name>
+        <description>Modifications applied to data given in paper</description>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>comments</name>
+        <description>Compilators' Comments</description>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>textref</name>
+        <description>Human-readable reference to work</description>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>det1612</name>
+        <description>Sources detected at 1612 MHz</description>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>ndet1612</name>
+        <description>Sources not detected at 1612 MHz</description>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>det1665</name>
+        <description>Sources detected at 1665 MHz</description>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>ndet1665</name>
+        <description>Sources not detected at 1665 MHz</description>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>det1667</name>
+        <description>Sources detected at 1667 MHz</description>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>ndet1667</name>
+        <description>Sources not detected at 1667 MHz</description>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>cooSrc</name>
+        <description>Source of coordinates given in Paper</description>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>inputtables</name>
+        <description>Tables evaluated from cited paper</description>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+    </table>
+    <table>
+      <name>ohmaser.masers</name>
+      <title>Maser data proper.</title>
+      <column>
+        <name>measure_no</name>
+        <description>Unique measurement identifier</description>
+        <ucd>meta.id;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>source_no</name>
+        <description>Unique source identifier</description>
+        <ucd>meta.code</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>primflag</name>
+        <description>Non-null if this measurement is considered the best available at a particular frequency. Lower means higher priority.</description>
+        <ucd>meta.code</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">short</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>source_name</name>
+        <description>Name of the observed source. Name given in the reference is taken.</description>
+        <ucd>meta.id</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+      </column>
+      <column>
+        <name>frequency</name>
+        <description>Observed frequency</description>
+        <unit>MHz</unit>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">int</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>spec_type</name>
+        <description>S -- Single peak of maser emission; D -- Double peak of maser emission; I -- Irregular spectral profile, multiple emission peaks; NULL means a non-detection</description>
+        <ucd>meta.code;src.spType</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>ra_raw</name>
+        <description>J2000 RA sexagesimal</description>
+        <unit>hms</unit>
+        <ucd>pos.eq.ra</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>de_raw</name>
+        <description>J2000 Dec sexagesimal</description>
+        <unit>dms</unit>
+        <ucd>pos.eq.dec</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>veloc_shell</name>
+        <description>Outflow Velocity of the shell. If vexp is not given in the reference it is calculated.</description>
+        <unit>km/s</unit>
+        <ucd>phys.veloc.expansion;pos.bodyrc</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>veloc_blue</name>
+        <description>Velocity of the blue-shifted maser peak. For single-peak masers it contains the line velocity.</description>
+        <unit>km/s</unit>
+        <ucd>phys.veloc.expansion;pos.bodyrc</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>veloc_red</name>
+        <description>Velocity of the red-shifted maser peak in km/s. It contains the line velocity for a single peak maser, if it corresponds to the red-shifted peak in other observations.</description>
+        <unit>km/s</unit>
+        <ucd>phys.veloc.expansion;pos.bodyrc</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>veloc_central</name>
+        <description>Radial velocity of the central star. If veloc_central is not given in the reference, it is calculated.</description>
+        <unit>km/s</unit>
+        <ucd>phys.veloc.expansion;pos.bodyrc</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>veloc_err</name>
+        <description>Uncertainty of velocity values. Taken from the velocity resolution of the observation. It is actually a lower limit of the uncertainty, because the lines are usually much broader than velocity resolution of the observing equipment.</description>
+        <unit>km/s</unit>
+        <ucd>stat.error;phys.veloc.expansion;pos.bodyrc</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>flux_dens_blue</name>
+        <description>Flux Density of the blue-shifted maser peak. For single-peak masers it contains its flux density.</description>
+        <unit>Jy</unit>
+        <ucd>phot.flux.density;em.radio.1500-3000MHz</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>flux_dens_red</name>
+        <description>Flux Density of the red-shifted maser peak. It contains the flux density for a single peak maser, if it corresponds to the red-shifted peak in other observations.</description>
+        <unit>Jy</unit>
+        <ucd>phot.flux.density;em.radio.1500-3000MHz</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>flux_dens_flag</name>
+        <description>NULL -- flux density columns contain detections; &lt; -- non-detection at level flux density blue (3 sigma); &gt; -- flux density blue contains a lower limit for the flux; = -- source only gives fluxes; . -- flux density blue contains probable detection; : -- flux density red contains probable detection; &amp; -- both flux densities contain probable detections</description>
+        <ucd>meta.code</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>int_flux_red</name>
+        <description>Integrated flux of red peak</description>
+        <unit>10-22Wm-2</unit>
+        <ucd>phot.flux.density;em.radio.1500-3000MHz</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>int_flux_blue</name>
+        <description>Integrated flux of blue peak</description>
+        <unit>10-22Wm-2</unit>
+        <ucd>phot.flux.density;em.radio.1500-3000MHz</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>refKey</name>
+        <description>Internal key for the originating paper, see ohmasers.bibrefs.</description>
+        <ucd>meta.bib</ucd>
+        <dataType arraysize="*" xsi:type="vs1:VOTableType">char</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>rapub</name>
+        <description>RA of object, from source</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.ra</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>depub</name>
+        <description>Dec of object, from source</description>
+        <unit>deg</unit>
+        <ucd>pos.eq.dec</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">float</dataType>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>raj2000</name>
+        <description>Selected best RA, J2000</description>
+        <ucd>pos.eq.ra;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">double</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <column>
+        <name>dej2000</name>
+        <description>Selected best Dec, J2000</description>
+        <ucd>pos.eq.dec;meta.main</ucd>
+        <dataType arraysize="1" xsi:type="vs1:VOTableType">double</dataType>
+        <flag>indexed</flag>
+        <flag>nullable</flag>
+      </column>
+      <foreignKey>
+        <targetTable>ohmaser.bibrefs</targetTable>
+        <fkColumn>
+          <fromColumn>refKey</fromColumn>
+          <targetColumn>refKey</targetColumn>
+        </fkColumn>
+      </foreignKey>
+    </table>
+  </schema>
+</tableset>

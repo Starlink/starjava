@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<cap:capabilities xmlns:cap="http://www.ivoa.net/xml/VOSICapabilities/v1.0" xmlns:tr="http://www.ivoa.net/xml/TAP/v0.1" xmlns:vg="http://www.ivoa.net/xml/VORegistry/v1.0" xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0" xmlns:vs="http://www.ivoa.net/xml/VODataService/v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOResource/v1.0 http://vo.ari.uni-heidelberg.de/docs/schemata/VOResource-v1.0.xsd http://www.ivoa.net/xml/VODataService/v1.0 http://vo.ari.uni-heidelberg.de/docs/schemata/VODataService-v1.0.xsd http://www.ivoa.net/xml/VORegistry/v1.0 http://vo.ari.uni-heidelberg.de/docs/schemata/VORegistry-v1.0.xsd http://www.ivoa.net/xml/VOSICapabilities/v1.0 http://vo.ari.uni-heidelberg.de/docs/schemata/VOSICapabilities-v1.0.xsd http://www.ivoa.net/xml/TAP/v0.1 http://vo.ari.uni-heidelberg.de/docs/schemata/TAPRegExt-v0.1.xsd">
+  <capability standardID="ivo://ivoa.net/std/TAP" xsi:type="tr:TableAccess">
+    <interface role="std" xsi:type="vs:ParamHTTP">
+      <accessURL use="base">http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap</accessURL>
+    </interface>
+    <dataModel ivo-id="ivo://ivoa.net/std/ObsCore-1.0">ObsCore 1.0</dataModel>
+    <language>
+      <name>ADQL</name>
+      <version>2.0</version>
+      <description>ADQL 2.0</description>
+      <userDefinedFunction>
+        <signature>gavo_match(pattern TEXT, string TEXT) -&gt; INTEGER</signature>
+        <description>gavo_match returns 1 if the POSIX regular expression pattern
+matches anything in string, 0 otherwise.</description>
+      </userDefinedFunction>
+    </language>
+    <outputFormat>
+      <mime>text/xml</mime>
+      <description>VOTable, binary</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>application/x-votable+xml;encoding=tabledata</mime>
+      <alias>votable/td</alias>
+      <description>VOTable, tabledata</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>text/html</mime>
+      <alias>html</alias>
+      <description>HTML table</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>application/fits</mime>
+      <alias>fits</alias>
+      <description>FITS binary table</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>text/csv</mime>
+      <description>CSV without column labels</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>text/csv;header=present</mime>
+      <alias>csv</alias>
+      <description>CSV with column labels</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>text/tab-separated-values</mime>
+      <alias>tsv</alias>
+      <description>Tab separated values</description>
+    </outputFormat>
+    <outputFormat>
+      <mime>application/x-votable+xml</mime>
+      <alias>votable</alias>
+      <description>VOTable, binary</description>
+    </outputFormat>
+    <uploadMethod ivo-id="ivo://ivoa.org/tap/uploadmethods#inline"/>
+    <uploadMethod ivo-id="ivo://ivoa.org/tap/uploadmethods#http"/>
+    <uploadMethod ivo-id="ivo://ivoa.org/tap/uploadmethods#https"/>
+    <uploadMethod ivo-id="ivo://ivoa.org/tap/uploadmethods#ftp"/>
+    <retentionPeriod>
+      <default>172800</default>
+    </retentionPeriod>
+    <executionDuration>
+      <default>3600</default>
+    </executionDuration>
+    <outputLimit>
+      <default unit="rows">2000</default>
+      <hard unit="rows">20000000</hard>
+    </outputLimit>
+  </capability>
+  <capability standardID="ivo://ivoa.net/std/VOSI#availability">
+    <interface xsi:type="vs:ParamHTTP">
+      <accessURL use="full">http://dc.zah.uni-heidelberg.de/__system__/tap/run/availability</accessURL>
+    </interface>
+  </capability>
+  <capability standardID="ivo://ivoa.net/std/VOSI#capabilities">
+    <interface xsi:type="vs:ParamHTTP">
+      <accessURL use="full">http://dc.zah.uni-heidelberg.de/__system__/tap/run/capabilities</accessURL>
+    </interface>
+  </capability>
+  <capability standardID="ivo://ivoa.net/std/VOSI#tables">
+    <interface xsi:type="vs:ParamHTTP">
+      <accessURL use="full">http://dc.zah.uni-heidelberg.de/__system__/tap/run/tableMetadata</accessURL>
+    </interface>
+  </capability>
+</cap:capabilities>
