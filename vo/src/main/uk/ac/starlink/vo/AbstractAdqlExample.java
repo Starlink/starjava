@@ -1,5 +1,11 @@
 package uk.ac.starlink.vo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Represents a type of example ADQL query.
  * The query text can be generated as a function of given service metadata.
@@ -13,6 +19,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     private final String description_;
     private static final int COL_COUNT = 3;
     private static final int ROW_COUNT = 1000;
+    private static final Pattern[] RADEC_UCD_REGEXES = new Pattern[] {
+        Pattern.compile( "^pos.eq.ra[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
+        Pattern.compile( "^pos.eq.dec[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
+    };
 
     /**
      * Constructor.
@@ -139,6 +149,25 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
+     * Encapsulates metadata for a table and a selection of colum names from it.
+     */
+    private static class TableWithCols {
+        TableMeta table_;
+        String[] cols_;
+
+        /**
+         * Constructor.
+         *
+         * @param  table   table metadata
+         * @param  cols   column names from table
+         */
+        TableWithCols( TableMeta table, String[] cols ) {
+            table_ = table;
+            cols_ = cols;
+        }
+    }
+
+    /**
      * Returns a suitable ADQL alias for a given table.
      *
      * @param  table  table being referenced
@@ -157,6 +186,100 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         else {
             return "t";
         }
+    }
+
+    /**
+     * Utility function to turn a single table and a table array into a
+     * single array.  The input single table may or may not appear in the
+     * input table array; it will not appear twice in the output array.
+     *
+     * @param  table  single input table, or null
+     * @param  tables  input table array
+     * @return  output table array
+     */
+    private static TableMeta[] toTables( TableMeta table, TableMeta[] tables ) {
+        List<TableMeta> tlist = new ArrayList<TableMeta>();
+        if ( table != null ) {
+            tlist.add( table );
+        }
+        if ( tables != null ) {
+            for ( int i = 0; i < tables.length; i++ ) {
+                if ( tables[ i ] != table ) {
+                    tlist.add( tables[ i ] );
+                }
+            }
+        }
+        return (TableMeta[]) tlist.toArray( new TableMeta[ 0 ] );
+    }
+
+    /**
+     * Identifies tables in a given array which contain RA/Dec positional
+     * columns.
+     *
+     * @param  tables  candidate table list
+     * @param  max   the maximum number of output tables required
+     * @return  array of tables with RA/Dec columns
+     */
+    private static TableWithCols[] getRaDecTables( TableMeta[] tables,
+                                                   int max ) {
+        List<TableWithCols> tlist = new ArrayList<TableWithCols>();
+        for ( int i = 0; i < tables.length && tlist.size() < max; i++ ) {
+            TableMeta table = tables[ i ];
+            String[] radec = getRaDecDegreesNames( tables[ i ] );
+            if ( radec != null ) {
+                tlist.add( new TableWithCols( table, radec ) );
+            }
+        }
+        return tlist.toArray( new TableWithCols[ 0 ] );
+    }
+
+    /**
+     * Returns the names for suitable RA/Dec columns in degrees from a table.
+     * If no such column pair can be found, null is returned.
+     *
+     * @param   table  table to investiate
+     * @return  2-element array with column names for RA, Dec respectively,
+     *          or null if nothing suitable
+     */
+    private static String[] getRaDecDegreesNames( TableMeta table ) {
+        ColumnMeta[] cols = table.getColumns();
+        String[] coords = new String[ 2 ];
+        int[] scores = new int[ 2 ];
+        for ( int ic = 0; ic < cols.length; ic++ ) {
+            ColumnMeta col = cols[ ic ];
+            String ucd = col.getUcd();
+            String unit = col.getUnit();
+            String name = col.getName();
+            if ( name != null && name.trim().length() > 0 &&
+                 ucd != null && ucd.trim().length() > 0 &&
+                 ( unit == null || unit.trim().length() == 0
+                                || unit.toLowerCase().startsWith( "deg" ) ) ) {
+                for ( int id = 0; id < 2; id++ ) {
+                    Matcher matcher = RADEC_UCD_REGEXES[ id ].matcher( ucd );
+                    if ( matcher.matches() ) {
+                        int score = 1;
+                        String trailer = matcher.group( 1 );
+                        if ( trailer == null || trailer.trim().length() == 0 ) {
+                            score = 2;
+                        }
+                        else if ( trailer.toLowerCase().equals( "main" ) ) {
+                            score = 4;
+                        }
+                        else if ( trailer.toLowerCase().startsWith( "main" ) ) {
+                            score = 3;
+                        }
+                        if ( col.isIndexed() ) {
+                            score += 2;
+                        }
+                        if ( score > scores[ id ] ) {
+                            scores[ id ] = score;
+                            coords[ id ] = name;
+                        }
+                    }
+                }
+            }
+        }
+        return scores[ 0 ] > 0 && scores[ 1 ] > 0 ? coords : null;
     }
 
     /**
@@ -181,6 +304,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      */
     public static AdqlExample[] createSomeExamples() {
         return new AdqlExample[] {
+
             new AbstractAdqlExample( "Full table",
                                      "All columns from a single table" ) {
                 public String getText( boolean lineBreaks, String lang,
@@ -189,9 +313,15 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     if ( table == null ) {
                         return null;
                     }
-                    return "SELECT * FROM " + table.getName();
+                    return new StringBuffer()
+                        .append( "SELECT TOP " )
+                        .append( ROW_COUNT )
+                        .append( " * FROM " )
+                        .append( table.getName() )
+                        .toString();
                 }
             },
+
             new AbstractAdqlExample( "Columns from table",
                                      "Selection of columns from "
                                    + "a single table" ) {
@@ -230,6 +360,47 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "FROM" )
                         .append( ' ' )
                         .append( tref.getIntroName() )
+                        .toString();
+                }
+            },
+
+            new AbstractAdqlExample( "Box selection",
+                                     "Select rows based on rectangular "
+                                   + "RA/Dec position constraints" ) {
+                public String getText( boolean lineBreaks, String lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table ) {
+                    TableWithCols[] rdTabs =
+                        getRaDecTables( toTables( table, tables ), 1 );
+                    if ( rdTabs.length == 0 ) {
+                        return null;
+                    }
+                    TableMeta rdTab = rdTabs[ 0 ].table_;
+                    String[] radec = rdTabs[ 0 ].cols_;
+                    String raCol = radec[ 0 ];
+                    String decCol = radec[ 1 ];
+                    Breaker breaker = createBreaker( lineBreaks );
+                    TableRef tref = createTableRef( rdTab, lang );
+                    return new StringBuffer()
+                        .append( "SELECT" )
+                        .append( breaker.level( 1 ) )
+                        .append( "TOP " )
+                        .append( ROW_COUNT )
+                        .append( breaker.level( 1 ) )
+                        .append( "*" )
+                        .append( breaker.level( 1 ) )
+                        .append( "FROM " )
+                        .append( tref.getIntroName() )
+                        .append( breaker.level( 1 ) )
+                        .append( "WHERE " )
+                        .append( breaker.level( 2 ) )
+                        .append( tref.getColumnName( raCol ) )
+                        .append( " BETWEEN 189.1 AND 189.3" )  // HDF
+                        .append( breaker.level( 2 ) )
+                        .append( "AND" )
+                        .append( breaker.level( 2 ) )
+                        .append( tref.getColumnName( decCol ) )
+                        .append( " BETWEEN 62.18 AND 62.25" )  // HDF
                         .toString();
                 }
             },
