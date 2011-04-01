@@ -7501,6 +7501,8 @@ but my thanks are especially due to the following:
     <li>Improve text rendering in <code>funcs</code> window display.</li>
     <li>Attempt case-sensitive matching before case-insensitive for
         column names.</li>
+    <li>Fix FITS character handling bug which could cause corrupted FITS
+        files on output in presence of non-ASCII characters.</li>
     </ul>
     </p></dd>
 

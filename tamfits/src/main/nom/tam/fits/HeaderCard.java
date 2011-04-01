@@ -452,6 +452,23 @@ public class HeaderCard
         return comment;
     }
 
+    /** Takes an arbitrary String object and turns it into a string with
+      * characters than can be harmlessly output to a FITS header.
+      * The FITS standard excludes certain characters; moreover writing
+      * non-7-bit characters can end up producing multiple bytes per
+      * character in some text encodings, leading to a corrupted header.
+      * @param str input string
+      */
+    private static String sanitize( String str ) {
+        int nc = str.length();
+        char[] cbuf = new char[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            char c = str.charAt( ic );
+            cbuf[ ic ] = ( c >= 0x20 && c <= 0x7e ) ? c : '?';
+        }
+        return new String( cbuf );
+    }
+
     /** Return the 80 character card image
       */
     public String toString()
@@ -461,7 +478,8 @@ public class HeaderCard
         // start with the keyword, if there is one
         if (key != null) {
 	    if (key.length() > 9 && key.substring(0,9).equals("HIERARCH.")){
-		return hierarchToString();
+                // MBT (01-APR-2011): sanitize output string
+		return sanitize(hierarchToString());
 	    }
             buf.append(key);
 	    if (key.length() < 8) {
@@ -523,7 +541,8 @@ public class HeaderCard
             }
         }
 
-        return buf.toString();
+        // MBT (01-APR-2011): sanitize output string
+        return sanitize(buf.toString());
     }
     private String hierarchToString() {
 	
