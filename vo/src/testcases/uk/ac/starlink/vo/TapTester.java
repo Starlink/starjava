@@ -10,11 +10,11 @@ public class TapTester extends TestCase {
         AdqlExample[] examples = AbstractAdqlExample.createSomeExamples();
         TableMeta[] tables =
             TableSetSaxHandler
-           .readTableSet( TapTest.class
+           .readTableSet( TapTester.class
                          .getResource( "gavo_tables.xml" ) );
         TapCapability tcap =
             TapCapability
-           .readTapCapability( TapTest.class
+           .readTapCapability( TapTester.class
                               .getResource( "gavo_capabilities.xml" ) );
         showExamples( examples, tables, tcap );
     }
