@@ -172,12 +172,12 @@ public class TapQuery {
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
      * @param  adql   text of ADQL query
-     * @param  uploadMap  name->table map of tables to be uploaded to
-     *                    the service for the query
      * @param  extraParams  key->value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care
+     * @param  uploadMap  name->table map of tables to be uploaded to
+     *                    the service for the query
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied
      * @param  storage    storage policy which may be needed for buffering
@@ -185,8 +185,8 @@ public class TapQuery {
      * @return   new TapQuery
      */
     public static TapQuery createAdqlQuery( URL serviceUrl, String adql,
-                                            Map<String,StarTable> uploadMap,
                                             Map<String,String> extraParams,
+                                            Map<String,StarTable> uploadMap,
                                             long uploadLimit,
                                             StoragePolicy storage )
             throws IOException {
@@ -219,12 +219,12 @@ public class TapQuery {
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
      * @param  adql   text of ADQL query
-     * @param  uploadMap  name->table map of tables to be uploaded to
-     *                    the service for the query
      * @param  extraParams  key->value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care
+     * @param  uploadMap  name->table map of tables to be uploaded to
+     *                    the service for the query
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied
      * @param  storage    storage policy which may be needed for buffering
@@ -233,8 +233,8 @@ public class TapQuery {
      */
     public static HttpURLConnection
                   postSyncAdqlQuery( URL serviceUrl, String adql,
-                                     Map<String,StarTable> uploadMap,
                                      Map<String,String> extraParams,
+                                     Map<String,StarTable> uploadMap,
                                      long uploadLimit, StoragePolicy storage )
             throws IOException {
         Map<String,String> stringMap =

@@ -236,8 +236,8 @@ public class TapMapper implements TableMapper {
                 Map<String,StarTable> uploadMap =
                     createUploadMap( upNames, inSpecs );
                 HttpURLConnection hconn =
-                    TapQuery.postSyncAdqlQuery( serviceUrl, adql, uploadMap,
-                                                extraParams, uploadLimit,
+                    TapQuery.postSyncAdqlQuery( serviceUrl, adql, extraParams,
+                                                uploadMap, uploadLimit,
                                                 tfact.getStoragePolicy() );
                 InputStream in = hconn.getInputStream();
                 StarTable result =
@@ -285,8 +285,8 @@ public class TapMapper implements TableMapper {
                     errStream.println( "SUBMITTED ..." );
                 }
                 TapQuery query =
-                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap,
-                                              extraParams, uploadLimit,
+                    TapQuery.createAdqlQuery( serviceUrl, adql, extraParams,
+                                              uploadMap, uploadLimit,
                                               tfact.getStoragePolicy() );
                 if ( progress ) {
                     errStream.println( query.getUwsJob().getJobUrl() );

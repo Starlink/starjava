@@ -257,8 +257,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
                 final TapQuery tapQuery =
-                    TapQuery.createAdqlQuery( serviceUrl, adql, uploadMap,
-                                              extraParams, byteUploadLimit,
+                    TapQuery.createAdqlQuery( serviceUrl, adql, extraParams,
+                                              uploadMap, byteUploadLimit,
                                               tfact.getStoragePolicy() );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
