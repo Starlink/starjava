@@ -448,9 +448,8 @@ public class UwsJob {
      * @param   streamMap  name->parameter map for POST parameters
      * @return   URL connection corresponding to the completed POST
      */
-    private static HttpURLConnection
-                   postForm( URL url, Map<String,String> stringMap,
-                             Map<String,HttpStreamParam> streamMap )
+    static HttpURLConnection postForm( URL url, Map<String,String> stringMap,
+                                       Map<String,HttpStreamParam> streamMap )
             throws IOException {
         return ( streamMap == null || streamMap.isEmpty() )
              ? postUnipartForm( url, stringMap )

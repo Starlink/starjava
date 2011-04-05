@@ -35,6 +35,12 @@ import uk.ac.starlink.votable.VOTableWriter;
  * Query using the Table Access Protocol.
  * This class is a TAP-aware decorator for {@link UwsJob}.
  *
+ * <p>The most straightforward way to query a TAP service
+ * is using this class's static
+ * {@link #createAdqlQuery createAdqlQuery} (async) or
+ * {@link #postSyncAdqlQuery postSyncAdqlQuery} (sync) 
+ * methods.
+ *
  * @see <a href="http://www.ivoa.net/Documents/TAP/">IVOA TAP Recommendation</a>
  */
 public class TapQuery {
@@ -161,7 +167,8 @@ public class TapQuery {
     }
 
     /**
-     * Returns a TapQuery given a serviceUrl and ADQL text.
+     * Returns a TapQuery object representing an asynchronous TAP query
+     * given a service URL and ADQL text.
      *
      * @param  serviceUrl  base service URL for TAP service (excluding "/async")
      * @param  adql   text of ADQL query
@@ -184,7 +191,74 @@ public class TapQuery {
                                             StoragePolicy storage )
             throws IOException {
 
-        /* Prepare basic TAP ADQL parameters. */
+        /* Set up UWS job parameters. */
+        Map<String,String> stringMap =
+            createAdqlStringMap( adql, extraParams );
+        Map<String,HttpStreamParam> streamMap =
+            createAdqlStreamMap( uploadMap, stringMap, uploadLimit, storage );
+
+        /* Attempt to create a UWS job corresponding to the query. */
+        UwsJob uwsJob;
+        try {
+            uwsJob = UwsJob.createJob( serviceUrl + "/async",
+                                       stringMap, streamMap );
+        }
+        catch ( UwsJob.UnexpectedResponseException e ) {
+            throw asIOException( e );
+        }
+        uwsJob.setParameters( stringMap );
+        return new TapQuery( uwsJob );
+    }
+
+    /**
+     * Returns an open HTTP connection for a synchronous TAP query
+     * given a service URL and ADQL text.
+     * This static method has nothing to do with {@link TapQuery} or
+     * {@link UwsJob} objects, but is present in this class because
+     * it uses much of the same infrastructure to query a TAP service.
+     *
+     * @param  serviceUrl  base service URL for TAP service (excluding "/async")
+     * @param  adql   text of ADQL query
+     * @param  uploadMap  name->table map of tables to be uploaded to
+     *                    the service for the query
+     * @param  extraParams  key->value map for optional parameters;
+     *                      if any of these match the names of standard
+     *                      parameters (upper case) the standard values will
+     *                      be overwritten, so use with care
+     * @param  uploadLimit  maximum number of bytes that may be uploaded;
+     *                      if negative, no limit is applied
+     * @param  storage    storage policy which may be needed for buffering
+     *                    output
+     * @return  open HTTP connection
+     */
+    public static HttpURLConnection
+                  postSyncAdqlQuery( URL serviceUrl, String adql,
+                                     Map<String,StarTable> uploadMap,
+                                     Map<String,String> extraParams,
+                                     long uploadLimit, StoragePolicy storage )
+            throws IOException {
+        Map<String,String> stringMap =
+            createAdqlStringMap( adql, extraParams );
+        Map<String,HttpStreamParam> streamMap =
+            createAdqlStreamMap( uploadMap, stringMap, uploadLimit, storage );
+        return UwsJob.postForm( new URL( serviceUrl + "/sync" ),
+                                stringMap, streamMap );
+    }
+
+    /**
+     * Returns the key->value map for string parameters to be sent
+     * to a TAP server representing a TAP query.
+     *
+     * @param  adql   text of ADQL query
+     * @param  extraParams  key->value map for optional parameters;
+     *                      if any of these match the names of standard
+     *                      parameters (upper case) the standard values will
+     *                      be overwritten, so use with care
+     * @return  string parameter map
+     */
+    private static Map<String,String>
+                   createAdqlStringMap( String adql,
+                                        Map<String,String> extraParams ) {
         Map<String,String> stringMap = new LinkedHashMap<String,String>();
         stringMap.put( "REQUEST", "doQuery" );
         stringMap.put( "LANG", "ADQL" );
@@ -192,9 +266,31 @@ public class TapQuery {
         if ( extraParams != null ) {
             stringMap.putAll( extraParams );
         }
+        return stringMap;
+    }
 
-        /* Prepare upload parameters (UPLOAD itself and any uploaded tables)
-         * if required. */
+    /**
+     * Returns the key->stream map for stream parameters to be sent
+     * to a TAP server representing the upload part of a TAP query.
+     * The <code>stringMap</code> containing string parameters is 
+     * supplied and may be modified by this method.
+     *
+     * @param  uploadMap  name->table map of tables to be uploaded to
+     *                    the service for the query
+     * @param  stringMap  mutable name->value map of string parameters to
+     *                    send to the service; may be modified on exit
+     * @param  uploadLimit  maximum number of bytes that may be uploaded;
+     *                      if negative, no limit is applied
+     * @param  storage    storage policy which may be needed for buffering
+     *                    output
+     * @return   name->stream map of parameters to send to the TAP service
+     */
+    private static Map<String,HttpStreamParam>
+                   createAdqlStreamMap( Map<String,StarTable> uploadMap,
+                                        Map<String,String> stringMap,
+                                        long uploadLimit,
+                                        StoragePolicy storage )
+            throws IOException {
         Map<String,HttpStreamParam> streamMap =
             new LinkedHashMap<String,HttpStreamParam>();
         if ( uploadMap != null && ! uploadMap.isEmpty() ) {
@@ -217,18 +313,7 @@ public class TapQuery {
             }
             stringMap.put( "UPLOAD", ubuf.toString() );
         }
-
-        /* Attempt to create a UWS job corresponding to the query. */
-        UwsJob uwsJob;
-        try {
-            uwsJob = UwsJob.createJob( serviceUrl + "/async",
-                                       stringMap, streamMap );
-        }
-        catch ( UwsJob.UnexpectedResponseException e ) {
-            throw asIOException( e );
-        }
-        uwsJob.setParameters( stringMap );
-        return new TapQuery( uwsJob );
+        return streamMap;
     }
 
     /**
