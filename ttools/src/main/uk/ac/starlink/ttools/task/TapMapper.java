@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
+import java.net.URLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -235,13 +235,13 @@ public class TapMapper implements TableMapper {
                     throws TaskException, IOException {
                 Map<String,StarTable> uploadMap =
                     createUploadMap( upNames, inSpecs );
-                HttpURLConnection hconn =
+                URLConnection conn =
                     TapQuery.postSyncAdqlQuery( serviceUrl, adql, extraParams,
                                                 uploadMap, uploadLimit,
                                                 tfact.getStoragePolicy() );
-                InputStream in = hconn.getInputStream();
+                InputStream in = conn.getInputStream();
                 StarTable result =
-                    tfact.makeStarTable( hconn.getInputStream(),
+                    tfact.makeStarTable( in,
                                          tfact.getTableBuilder( "votable" ) );
                 in.close();
                 return result;
