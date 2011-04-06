@@ -284,7 +284,7 @@ public class TableSetPanel extends JPanel {
             tableLabel_.setText( "" );
         }
         else {
-            tableLabel_.setText( table.getTitle() );
+            configureTableLabel( table.getTitle(), table.getDescription() );
             colTableModel_.setItems( table.getColumns() );
             foreignTableModel_.setItems( table.getForeignKeys() );
             final JTable ct = colTable_;
@@ -302,6 +302,39 @@ public class TableSetPanel extends JPanel {
                 SwingUtilities.invokeLater( configer );
             }
         }
+    }
+
+    /**
+     * Configures the table label given a table title and description.
+     *
+     * @param  title  table title (should be short)
+     * @param  desc   table description (may be long)
+     */
+    private void configureTableLabel( String title, String desc ) {
+        boolean hasTitle = title != null && title.trim().length() > 0;
+        boolean hasDesc = desc != null && desc.trim().length() > 0;
+        final String heading;
+        if ( hasTitle ) {
+            heading = title.trim().replaceAll( "\\s+", " " );
+        }
+        else if ( hasDesc ) {
+            heading = desc.trim().replaceFirst( "(?s)[.,;]\\s.*", " ..." )
+                                 .replaceAll( "\\s+", " " );
+        }
+        else {
+            heading = null;
+        }
+        String note = null;
+        if ( hasDesc ) {
+            note = desc.trim().matches( "(?s).*[\n\r]+.*" ) 
+                 ? "<html>" + desc.replaceAll( "[\r\n]+", "<br>" ) + "</html>"
+                 : desc;
+        }
+        else {
+            note = null;
+        }
+        tableLabel_.setText( heading );
+        tableLabel_.setToolTipText( note );
     }
 
     /**
