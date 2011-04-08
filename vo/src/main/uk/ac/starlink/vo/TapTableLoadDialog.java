@@ -5,7 +5,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.net.URLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -204,10 +206,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * Adds a running TAP query to the list of queries this dialogue
      * is currently aware of.
      *
-     * @param  tapQuery  query to add
+     * @param  tapJob  UWS job representing TAP query
      */
-    public void addRunningQuery( TapQuery tapQuery ) {
-        jobsPanel_.addJob( tapQuery.getUwsJob(), true );
+    public void addRunningQuery( UwsJob tapJob ) {
+        jobsPanel_.addJob( tapJob, true );
         tabber_.setSelectedIndex( jobsTabIndex_ );
     }
 
@@ -220,9 +222,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private TableLoader createQueryPanelLoader() {
         final URL serviceUrl = checkUrl( getServiceUrl() );
         final String adql = tqPanel_.getAdql();
-        final String summary = TapQuery.summarizeAdqlQuery( serviceUrl, adql );
+        final boolean sync = tqPanel_.isSynchronous();
         final Map<String,StarTable> uploadMap =
             new LinkedHashMap<String,StarTable>();
+        final String summary = "TAP query";
         TapCapabilityPanel tcapPanel = tqPanel_.getCapabilityPanel();
         long rowUploadLimit = tcapPanel.getUploadLimit( TapLimit.ROWS );
         final long byteUploadLimit = tcapPanel.getUploadLimit( TapLimit.BYTES );
@@ -253,27 +256,31 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         if ( maxrec > 0 ) {
             extraParams.put( "MAXREC", Long.toString( maxrec ) );
         }
+        List<DescribedValue> metaList = new ArrayList<DescribedValue>();
+        metaList.addAll( Arrays.asList( getResourceMetadata( serviceUrl
+                                                            .toString() ) ) );
+        final DescribedValue[] metas =
+            metaList.toArray( new DescribedValue[ 0 ] );
         return new TableLoader() {
             public TableSequence loadTables( StarTableFactory tfact )
                     throws IOException {
-                final TapQuery tapQuery =
-                    TapQuery.createAdqlQuery( serviceUrl, adql, extraParams,
-                                              uploadMap, byteUploadLimit,
-                                              tfact.getStoragePolicy() );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        addRunningQuery( tapQuery );
-                    }
-                } );
-                List<DescribedValue> metaList =
-                    new ArrayList<DescribedValue>();
-                metaList.addAll( Arrays.asList( tapQuery.getQueryMetadata() ) );
-                metaList.addAll( Arrays
-                                .asList( getResourceMetadata( serviceUrl
-                                                             .toString() ) ) );
-                DescribedValue[] metas =
-                    metaList.toArray( new DescribedValue[ 0 ] );
-                return createTableSequence( tfact, tapQuery, metas );
+                TapQuery tq =
+                    new TapQuery( serviceUrl, adql, extraParams, uploadMap,
+                                  byteUploadLimit, tfact );
+                if ( sync ) {
+                    StarTable table = tq.executeSync();
+                    table.getParameters().addAll( Arrays.asList( metas ) );
+                    return Tables.singleTableSequence( table );
+                }
+                else {
+                    final UwsJob tapJob = tq.submitAsync();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            addRunningQuery( tapJob );
+                        }
+                    } );
+                    return createTableSequence( tfact, tapJob, metas );
+                }
             }
             public String getLabel() {
                 return summary;
@@ -289,35 +296,34 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * different job deletion behaviour.
      *
      * @param   tfact  table factory
-     * @param   tapQuery  TAP query
+     * @param   tapJob   UWS job representing async TAP query
      * @param   tapMeta  metadata describing the query suitable for
      *          decorating the resulting table
      * @return  table sequence suitable for a successful return from
      *          this dialog's TableLoader
      */
     protected TableSequence createTableSequence( StarTableFactory tfact,
-                                                 TapQuery tapQuery,
+                                                 UwsJob tapJob,
                                                  DescribedValue[] tapMeta )
             throws IOException {
-        UwsJob uwsJob = tapQuery.getUwsJob();
-        uwsJob.setDeleteOnExit( true );
-        tapQuery.start();
-        StarTable st;
+        tapJob.setDeleteOnExit( true );
+        tapJob.start();
+        StarTable table;
         try {
-            st = tapQuery.waitForResult( tfact, 4000 );
+            table = TapQuery.waitForResult( tapJob, tfact, 4000 );
         }
         catch ( InterruptedException e ) {
-            uwsJob.attemptDelete();
+            tapJob.attemptDelete();
             throw (IOException)
                   new InterruptedIOException( "Interrupted" )
                  .initCause( e );
         }
         catch ( IOException e ) {
-            uwsJob.attemptDelete();
+            tapJob.attemptDelete();
             throw e;
         }
-        st.getParameters().addAll( Arrays.asList( tapMeta ) );
-        return Tables.singleTableSequence( st );
+        table.getParameters().addAll( Arrays.asList( tapMeta ) );
+        return Tables.singleTableSequence( table );
     }
 
     public boolean isReady() {

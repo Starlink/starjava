@@ -8,7 +8,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.vo.TapTableLoadDialog;
-import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.UwsJob;
 
 /**
  * TapTableLoadDialog subclass customised for use with TOPCAT.
@@ -90,7 +90,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     }
 
     protected TableSequence createTableSequence( StarTableFactory tfact,
-                                                 TapQuery tapQuery,
+                                                 UwsJob tapJob,
                                                  DescribedValue[] tapMetadata )
             throws IOException {
 
@@ -98,6 +98,6 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         // effectively delete jobs on JVM exit (actually quite useful for
         // TAP service debugging).  I may want to do something
         // smarter than that.
-        return super.createTableSequence( tfact, tapQuery, tapMetadata );
+        return super.createTableSequence( tfact, tapJob, tapMetadata );
     }
 }

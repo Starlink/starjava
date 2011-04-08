@@ -248,7 +248,6 @@ class ResumeTapQueryPanel extends JPanel {
         }
         String phase = job.getLastPhase();
         UwsStage stage = UwsStage.forPhase( phase );
-        final TapQuery tapQuery = new TapQuery( job );
         final String summary = "Resumed TAP Query";
 
         /* If the query is completed, return a loader which loads the table
@@ -260,7 +259,7 @@ class ResumeTapQueryPanel extends JPanel {
             return new TableLoader() {
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
-                    StarTable table = tapQuery.getResult( tfact );
+                    StarTable table = TapQuery.getResult( job, tfact );
                     return Tables.singleTableSequence( table );
                 }
                 public String getLabel() {
@@ -280,17 +279,17 @@ class ResumeTapQueryPanel extends JPanel {
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
                     if ( unstarted ) {
-                        tapQuery.start();
-                        tapQuery.getUwsJob().readPhase();
+                        job.start();
+                        job.readPhase();
                     }
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            tld_.addRunningQuery( tapQuery );
+                            tld_.addRunningQuery( job );
                         }
                     } );
                     StarTable table;
                     try {
-                       table = tapQuery.waitForResult( tfact, 4000 );
+                       table = TapQuery.waitForResult( job, tfact, 4000 );
                     }
                     catch ( InterruptedException e ) {
                         if ( deleteOnError ) {

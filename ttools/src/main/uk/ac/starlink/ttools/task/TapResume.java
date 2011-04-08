@@ -11,7 +11,6 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
-import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.vo.UwsStage;
 
@@ -60,7 +59,6 @@ public class TapResume extends ConsumerTask {
         return new TableProducer() {
             public StarTable getTable() throws IOException {
                 UwsJob uwsJob = new UwsJob( jobUrl );
-                TapQuery query = new TapQuery( uwsJob );
                 try {
                     uwsJob.readPhase();
                 }
@@ -73,7 +71,7 @@ public class TapResume extends ConsumerTask {
                 if ( stage == UwsStage.UNSTARTED ) {
                     uwsJob.start();
                 }
-                return resultProducer.waitForResult( query );
+                return resultProducer.waitForResult( uwsJob );
             }
         };
     }

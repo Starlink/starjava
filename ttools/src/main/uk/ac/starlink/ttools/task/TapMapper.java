@@ -19,6 +19,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.UwsJob;
 
 /**
  * Mapper that does the work for {@link TapQuerier}.
@@ -46,7 +47,7 @@ public class TapMapper implements TableMapper {
         urlParam_.setPrompt( "Base URL of TAP service" );
         urlParam_.setDescription( new String[] {
             "<p>The base URL of a Table Access Protocol service.",
-            "This is the bare URL without a trailing \"/async\".",
+            "This is the bare URL without a trailing \"/[a]sync\".",
             "</p>",
         } );
         paramList.add( urlParam_ );
@@ -124,10 +125,11 @@ public class TapMapper implements TableMapper {
 
     public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
-        URL serviceUrl = urlParam_.urlValue( env );
-        String adql = adqlParam_.stringValue( env );
+        final URL serviceUrl = urlParam_.urlValue( env );
+        final String adql = adqlParam_.stringValue( env );
         boolean sync = syncParam_.booleanValue( env );
-        Map<String,String> extraParams = new LinkedHashMap<String,String>();
+        final Map<String,String> extraParams =
+            new LinkedHashMap<String,String>();
         String lang = langParam_.stringValue( env );
         if ( ! "ADQL".equals( lang ) ) {
             extraParams.put( "LANG", lang );
@@ -143,47 +145,81 @@ public class TapMapper implements TableMapper {
                                                    "Not an integer", e );
             }
         }
-        String[] upNames = new String[ nup ];
+        final String[] upNames = new String[ nup ];
         for ( int iu = 0; iu < nup; iu++ ) {
             upNames[ iu ] =
                 createUploadNameParameter( Integer.toString( iu + 1 ) )
                .stringValue( env );
         }
-        StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
-        long uploadLimit = -1;
+        final StarTableFactory tfact =
+            LineTableEnvironment.getTableFactory( env );
+        final long uploadLimit = -1;
         if ( sync ) {
-            return createSyncTapMapping( serviceUrl, adql, extraParams,
-                                         upNames, uploadLimit, tfact );
+            return new TableMapping() {
+                public StarTable mapTables( InputTableSpec[] inSpecs )
+                        throws TaskException, IOException {
+                    TapQuery tq =
+                        createTapQuery( serviceUrl, adql, extraParams, upNames,
+                                        inSpecs, uploadLimit, tfact );
+                    return tq.executeSync();
+                }
+            };
         }
         else {
-            TapResultProducer resultProducer =
+            final TapResultProducer resultProducer =
                 resultReader_.createResultProducer( env );
-            boolean progress =
+            final boolean progress =
                 resultReader_.getProgressParameter().booleanValue( env );
             final PrintStream errStream = env.getErrorStream();
-            return createAsyncTapMapping( serviceUrl, adql, extraParams,
-                                          upNames, uploadLimit, tfact,
-                                          resultProducer, progress, errStream );
+            return new TableMapping() {
+                public StarTable mapTables( InputTableSpec[] inSpecs )
+                        throws TaskException, IOException {
+                    TapQuery tq =
+                        createTapQuery( serviceUrl, adql, extraParams, upNames,
+                                        inSpecs, uploadLimit, tfact );
+                    UwsJob tapJob = tq.submitAsync();
+                    if ( progress ) {
+                        errStream.println( "SUBMITTED ..." );
+                        errStream.println( tapJob.getJobUrl() );
+                    }
+                    tapJob.start();
+                    return resultProducer.waitForResult( tapJob );
+                }
+            };
         }
     }
 
     /**
-     * Returns a new key->stream map for use with TAP queries.
+     * Returns a new TapQuery object from values available at execution time.
      *
-     * @param  upNames   upload table name array
+     * @param  serviceUrl  base service URL for TAP service (excluding "/async")
+     * @param  adql   text of ADQL query
+     * @param  extraParams  key->value map for optional parameters;
+     *                      if any of these match the names of standard
+     *                      parameters (upper case) the standard values will
+     *                      be overwritten, so use with care
+     * @param  upNames  name array for tables to be uploaded
      * @param  inSpecs   upload input table specifier array
      *                   (must be same size as <code>upNames</code>)
-     * @return  upload parameter map for use with POST
+     * @param  uploadLimit  maximum number of bytes that may be uploaded;
+     *                      if negative, no limit is applied
+     * @param  tfact  table factory
+     * @return   new TAP query object
      */
-    private static Map<String,StarTable>
-                   createUploadMap( String[] upNames, InputTableSpec[] inSpecs )
-            throws TaskException, IOException {
-        int nup = upNames.length;
+    private static TapQuery createTapQuery( URL serviceUrl, String adql,
+                                            Map<String,String> extraParams,
+                                            String[] upNames,
+                                            InputTableSpec[] inSpecs,
+                                            long uploadLimit,
+                                            StarTableFactory tfact )
+            throws IOException, TaskException {
+        int nup = upNames.length; 
         Map<String,StarTable> uploadMap = new LinkedHashMap<String,StarTable>();
         for ( int iu = 0; iu < nup; iu++ ) {
             uploadMap.put( upNames[ iu ], inSpecs[ iu ].getWrappedTable() );
         }
-        return uploadMap;
+        return new TapQuery( serviceUrl, adql, extraParams, uploadMap, 
+                             uploadLimit, tfact );
     }
 
     /**
@@ -206,94 +242,5 @@ public class TapMapper implements TableMapper {
         } );
         upnameParam.setDefault( "up" + label );
         return upnameParam;
-    }
-
-    /**
-     * Returns a mapping to a table from the result of a synchronous TAP query
-     * using given parameters.
-     *
-     * @param  serviceUrl  base service URL for TAP service (excluding "/async")
-     * @param  adql   text of ADQL query
-     * @param  extraParams  key->value map for optional parameters;
-     *                      if any of these match the names of standard
-     *                      parameters (upper case) the standard values will
-     *                      be overwritten, so use with care
-     * @param  upNames  name array for tables to be uploaded
-     * @param  uploadLimit  maximum number of bytes that may be uploaded;
-     *                      if negative, no limit is applied
-     * @param  tfact  table factory
-     * @return  table mapping
-     */
-    private static TableMapping
-            createSyncTapMapping( final URL serviceUrl, final String adql,
-                                  final Map<String,String> extraParams,
-                                  final String[] upNames,
-                                  final long uploadLimit,
-                                  final StarTableFactory tfact ) {
-        return new TableMapping() {
-            public StarTable mapTables( InputTableSpec[] inSpecs )
-                    throws TaskException, IOException {
-                Map<String,StarTable> uploadMap =
-                    createUploadMap( upNames, inSpecs );
-                URLConnection conn =
-                    TapQuery.postSyncAdqlQuery( serviceUrl, adql, extraParams,
-                                                uploadMap, uploadLimit,
-                                                tfact.getStoragePolicy() );
-                InputStream in = conn.getInputStream();
-                StarTable result =
-                    tfact.makeStarTable( in,
-                                         tfact.getTableBuilder( "votable" ) );
-                in.close();
-                return result;
-            }
-        };
-    }
-
-    /**
-     * Returns a mapping to a table from the result of an asynchronous TAP query
-     * using given parameters.
-     *
-     * @param  serviceUrl  base service URL for TAP service (excluding "/async")
-     * @param  adql   text of ADQL query
-     * @param  extraParams  key->value map for optional parameters;
-     *                      if any of these match the names of standard
-     *                      parameters (upper case) the standard values will
-     *                      be overwritten, so use with care
-     * @param  upNames  name array for tables to be uploaded
-     * @param  uploadLimit  maximum number of bytes that may be uploaded;
-     *                      if negative, no limit is applied
-     * @param  resultProducer  object which can turn a TAP UWS job into a table
-     * @param  progress  true iff progress should be logged
-     * @parma  errStream   destination stream for progress text
-     * @param  tfact  table factory
-     */
-    private static TableMapping
-            createAsyncTapMapping( final URL serviceUrl, final String adql,
-                                   final Map<String,String> extraParams,
-                                   final String[] upNames,
-                                   final long uploadLimit,
-                                   final StarTableFactory tfact,
-                                   final TapResultProducer resultProducer,
-                                   final boolean progress,
-                                   final PrintStream errStream ) {
-        return new TableMapping() {
-            public StarTable mapTables( InputTableSpec[] inSpecs )
-                    throws TaskException, IOException {
-                Map<String,StarTable> uploadMap =
-                    createUploadMap( upNames, inSpecs );
-                if ( progress ) {
-                    errStream.println( "SUBMITTED ..." );
-                }
-                TapQuery query =
-                    TapQuery.createAdqlQuery( serviceUrl, adql, extraParams,
-                                              uploadMap, uploadLimit,
-                                              tfact.getStoragePolicy() );
-                if ( progress ) {
-                    errStream.println( query.getUwsJob().getJobUrl() );
-                }
-                query.start();
-                return resultProducer.waitForResult( query );
-            }
-        };
     }
 }
