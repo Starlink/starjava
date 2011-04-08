@@ -46,6 +46,7 @@ public class URLDataSource extends DataSource {
         if ( connection instanceof HttpURLConnection ) {
             int code = ((HttpURLConnection)connection).getResponseCode();
             if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
+                 code == HttpURLConnection.HTTP_SEE_OTHER ||
                  code == HttpURLConnection.HTTP_MOVED_TEMP ) {
                 String newloc = connection.getHeaderField( "Location" );
                 URL newurl = new URL( newloc );
