@@ -139,53 +139,52 @@ public class TapResultReader {
             private Thread deleteThread;
             private String lastPhase;
 
-            public StarTable waitForResult( final TapQuery query )
+            public StarTable waitForResult( final UwsJob tapJob )
                     throws IOException {
                 Runnable progger = null;
-                final UwsJob uwsJob = query.getUwsJob();
                 if ( progress ) {
                     progger = new Runnable() {
                         public void run() {
-                            logPhase( uwsJob.getLastPhase() );
+                            logPhase( tapJob.getLastPhase() );
                         }
                     };
-                    uwsJob.addPhaseWatcher( progger );
+                    tapJob.addPhaseWatcher( progger );
                 }
                 final StarTable table;
                 if ( delete.isDeletionPossible() ) {
                     deleteThread = new Thread( "UWS job deleter" ) {
                         public void run() {
-                            considerDeletion( query );
+                            considerDeletion( tapJob );
                         }
                     };
                     Runtime.getRuntime().addShutdownHook( deleteThread );
                 }
                 try {
-                    table = query.waitForResult( tfact, pollMillis );
+                    table = TapQuery.waitForResult( tapJob, tfact, pollMillis );
                 }
                 catch ( InterruptedException e ) {
-                    considerDeletionEarly( query );
+                    considerDeletionEarly( tapJob );
                     throw (IOException)
                           new InterruptedIOException( "Interrupted" )
                          .initCause( e );
                 }
                 catch ( IOException e ) {
-                    considerDeletionEarly( query );
+                    considerDeletionEarly( tapJob );
                     throw e;
                 }
-                assert "COMPLETED".equals( query.getUwsJob().getLastPhase() );
+                assert "COMPLETED".equals( tapJob.getLastPhase() );
                 if ( ! delete.isDeletionPossible() ) {
                     return table;
                 }
                 else if ( table.isRandom() ) {
-                    considerDeletionEarly( query );
+                    considerDeletionEarly( tapJob );
                     return table;
                 }
                 else {
                     return new WrapperStarTable( table ) {
                         protected void finalize() throws Throwable {
                             try {
-                                considerDeletionEarly( query );
+                                considerDeletionEarly( tapJob );
                             }
                             finally {
                                 super.finalize();
@@ -196,29 +195,28 @@ public class TapResultReader {
             }
 
             /**
-             * Examines the query, and if suitable for deletion, delete it.
+             * Examines a UWS job, and if suitable for deletion, delete it.
              * Should be called from a non-shutdown hook thread.
              *
-             * @param  query  query to delete
+             * @param  uwsJob   job to delete
              */
-            private void considerDeletionEarly( TapQuery query ) {
+            private void considerDeletionEarly( UwsJob uwsJob ) {
                 if ( deleteThread != null ) {
                     Runtime.getRuntime().removeShutdownHook( deleteThread );
                 }
-                considerDeletion( query );
+                considerDeletion( uwsJob );
             }
 
             /**
-             * Examine the given query, and if it is suitable for deletion,
+             * Examine a UWS job, and if it is suitable for deletion,
              * delete it.  May be called from any thread.
              *
-             * @param  query  query to delete
+             * @param  uwsJob  job to delete
              */
-            private void considerDeletion( TapQuery query ) {
-                UwsJob job = query.getUwsJob();
-                UwsStage stage = UwsStage.forPhase( job.getLastPhase() );
+            private void considerDeletion( UwsJob uwsJob ) {
+                UwsStage stage = UwsStage.forPhase( uwsJob.getLastPhase() );
                 if ( delete.shouldDelete( stage ) ) {
-                    job.attemptDelete();
+                    uwsJob.attemptDelete();
                     if ( progress ) {
                         errStream.println( "DELETED" );
                         errStream.flush();
