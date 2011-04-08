@@ -266,9 +266,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                     throws IOException {
                 TapQuery tq =
                     new TapQuery( serviceUrl, adql, extraParams, uploadMap,
-                                  byteUploadLimit, tfact );
+                                  byteUploadLimit );
                 if ( sync ) {
-                    StarTable table = tq.executeSync();
+                    StarTable table =
+                        tq.executeSync( tfact.getStoragePolicy() );
                     table.getParameters().addAll( Arrays.asList( metas ) );
                     return Tables.singleTableSequence( table );
                 }
@@ -310,7 +311,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         tapJob.start();
         StarTable table;
         try {
-            table = TapQuery.waitForResult( tapJob, tfact, 4000 );
+            table = TapQuery
+                   .waitForResult( tapJob, tfact.getStoragePolicy(), 4000 );
         }
         catch ( InterruptedException e ) {
             tapJob.attemptDelete();

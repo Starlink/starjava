@@ -160,8 +160,8 @@ public class TapMapper implements TableMapper {
                         throws TaskException, IOException {
                     TapQuery tq =
                         createTapQuery( serviceUrl, adql, extraParams, upNames,
-                                        inSpecs, uploadLimit, tfact );
-                    return tq.executeSync();
+                                        inSpecs, uploadLimit );
+                    return tq.executeSync( tfact.getStoragePolicy() );
                 }
             };
         }
@@ -176,7 +176,7 @@ public class TapMapper implements TableMapper {
                         throws TaskException, IOException {
                     TapQuery tq =
                         createTapQuery( serviceUrl, adql, extraParams, upNames,
-                                        inSpecs, uploadLimit, tfact );
+                                        inSpecs, uploadLimit );
                     UwsJob tapJob = tq.submitAsync();
                     if ( progress ) {
                         errStream.println( "SUBMITTED ..." );
@@ -203,15 +203,13 @@ public class TapMapper implements TableMapper {
      *                   (must be same size as <code>upNames</code>)
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied
-     * @param  tfact  table factory
      * @return   new TAP query object
      */
     private static TapQuery createTapQuery( URL serviceUrl, String adql,
                                             Map<String,String> extraParams,
                                             String[] upNames,
                                             InputTableSpec[] inSpecs,
-                                            long uploadLimit,
-                                            StarTableFactory tfact )
+                                            long uploadLimit ) 
             throws IOException, TaskException {
         int nup = upNames.length; 
         Map<String,StarTable> uploadMap = new LinkedHashMap<String,StarTable>();
@@ -219,7 +217,7 @@ public class TapMapper implements TableMapper {
             uploadMap.put( upNames[ iu ], inSpecs[ iu ].getWrappedTable() );
         }
         return new TapQuery( serviceUrl, adql, extraParams, uploadMap, 
-                             uploadLimit, tfact );
+                             uploadLimit );
     }
 
     /**

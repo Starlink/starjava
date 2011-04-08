@@ -23,8 +23,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.votable.DataFormat;
@@ -52,7 +52,6 @@ public class TapQuery {
     private final Map<String,String> stringMap_;
     private final Map<String,HttpStreamParam> streamMap_;
     private final long uploadLimit_;
-    private final StarTableFactory tfact_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -71,17 +70,14 @@ public class TapQuery {
      *                    the service for the query
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied
-     * @param  tfact   table factory
      */
     public TapQuery( URL serviceUrl, String adql,
                      Map<String,String> extraParams,
-                     Map<String,StarTable> uploadMap,
-                     long uploadLimit, StarTableFactory tfact )
+                     Map<String,StarTable> uploadMap, long uploadLimit )
             throws IOException {
         serviceUrl_ = serviceUrl;
         adql_ = adql;
         uploadLimit_ = uploadLimit;
-        tfact_ = tfact;
 
         /* Prepare the map of string parameters. */
         stringMap_ = new LinkedHashMap<String,String>();
@@ -108,8 +104,7 @@ public class TapQuery {
                     .append( ',' )
                     .append( tlabel );
                 HttpStreamParam streamParam =
-                    createUploadStreamParam( table, uploadLimit,
-                                             tfact_.getStoragePolicy() );
+                    createUploadStreamParam( table, uploadLimit );
                 streamMap_.put( tlabel, streamParam );
             }
         }
@@ -121,13 +116,14 @@ public class TapQuery {
     /**
      * Executes this query synchronously and returns the resulting table.
      *
+     * @param  storage  storage policy for caching table data
      * @return   result table
      */
-    public StarTable executeSync() throws IOException {
+    public StarTable executeSync( StoragePolicy storage ) throws IOException {
         HttpURLConnection hconn =
             UwsJob.postForm( new URL( serviceUrl_ + "/sync" ),
                              stringMap_, streamMap_ );
-        return readResultVOTable( hconn, tfact_.getStoragePolicy() );
+        return readResultVOTable( hconn, storage );
     }
 
     /**
@@ -152,19 +148,18 @@ public class TapQuery {
      * In case of job failure, an exception will be thrown instead.
      *
      * @param  uwsJob  started UWS job representing an async TAP query
-     * @param  tfact  table factory
+     * @param  storage  storage policy for caching table data
      * @param  pollMillis  polling interval in milliseconds
      * @return  result table
      */
-    public static StarTable waitForResult( UwsJob uwsJob,
-                                           StarTableFactory tfact,
+    public static StarTable waitForResult( UwsJob uwsJob, StoragePolicy storage,
                                            long pollMillis )
             throws IOException, InterruptedException {
         try {
             String phase = uwsJob.waitForFinish( pollMillis );
             assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
             if ( "COMPLETED".equals( phase ) ) {
-                return getResult( uwsJob, tfact );
+                return getResult( uwsJob, storage );
             }
             else if ( "ABORTED".equals( phase ) ) {
                 throw new IOException( "TAP query did not complete ("
@@ -214,14 +209,13 @@ public class TapQuery {
      *
      * @param  uwsJob  successfully completed UWS job representing 
      *                 an async TAP query
-     * @param  tfact  table factory
+     * @param  storage  storage policy for caching table data
      * @return   the result of reading the TAP result as a table
      */
-    public static StarTable getResult( UwsJob uwsJob, StarTableFactory tfact )
+    public static StarTable getResult( UwsJob uwsJob, StoragePolicy storage )
             throws IOException {
         URL url = new URL( uwsJob.getJobUrl() + "/results/result" );
-        return readResultVOTable( url.openConnection(),
-                                  tfact.getStoragePolicy() );
+        return readResultVOTable( url.openConnection(), storage );
     }
 
     /**
@@ -341,13 +335,11 @@ public class TapQuery {
      *
      * @param   table  table to upload
      * @param   uploadLimit  maximum number of bytes permitted; -1 if no limit
-     * @param   storage  storage policy for buffering bytes
      * @return  stream parameter
      */
     private static HttpStreamParam
                    createUploadStreamParam( final StarTable table,
-                                            long uploadLimit,
-                                            StoragePolicy storage )
+                                            long uploadLimit )
             throws IOException {
         final Map<String,String> headerMap = new LinkedHashMap<String,String>();
         final VOTableWriter vowriter =
@@ -368,22 +360,32 @@ public class TapQuery {
                 }
             };
         }
+
+        /* If there's an upload limit, write the data to a limited-size
+         * buffer which will throw an IOException if the limit is exceeded.
+         * The written bytes are discarded at this stage.  We could take
+         * the opportunity to cache the resulting output so we didn't
+         * have to regenerate it later, but likely the effort taken to
+         * regenerate it is not enough to warrant the potential
+         * inconvenience of caching the bytes. */
         else {
             final ByteStore hbuf =
-                new LimitByteStore( storage.makeByteStore(), uploadLimit );
+                new LimitByteStore( new DiscardByteStore(), uploadLimit );
             OutputStream tout = hbuf.getOutputStream();
             vowriter.writeStarTable( table, tout );
             tout.close();
+            final long count = hbuf.getLength();
+            assert count <= uploadLimit;
             return new HttpStreamParam() {
                 public Map<String,String> getHttpHeaders() {
                     return headerMap;
                 }
                 public void writeContent( OutputStream out )
                         throws IOException {
-                    hbuf.copy( out );
+                    vowriter.writeStarTable( table, out );
                 }
                 public long getContentLength() {
-                    return hbuf.getLength();
+                    return count;
                 }
             };
         }

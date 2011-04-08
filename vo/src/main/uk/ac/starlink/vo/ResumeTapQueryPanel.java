@@ -259,7 +259,8 @@ class ResumeTapQueryPanel extends JPanel {
             return new TableLoader() {
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
-                    StarTable table = TapQuery.getResult( job, tfact );
+                    StarTable table =
+                        TapQuery.getResult( job, tfact.getStoragePolicy() );
                     return Tables.singleTableSequence( table );
                 }
                 public String getLabel() {
@@ -289,7 +290,9 @@ class ResumeTapQueryPanel extends JPanel {
                     } );
                     StarTable table;
                     try {
-                       table = TapQuery.waitForResult( job, tfact, 4000 );
+                       table = TapQuery
+                              .waitForResult( job, tfact.getStoragePolicy(),
+                                              4000 );
                     }
                     catch ( InterruptedException e ) {
                         if ( deleteOnError ) {

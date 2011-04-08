@@ -160,7 +160,9 @@ public class TapResultReader {
                     Runtime.getRuntime().addShutdownHook( deleteThread );
                 }
                 try {
-                    table = TapQuery.waitForResult( tapJob, tfact, pollMillis );
+                    table = TapQuery
+                           .waitForResult( tapJob, tfact.getStoragePolicy(),
+                                           pollMillis );
                 }
                 catch ( InterruptedException e ) {
                     considerDeletionEarly( tapJob );
