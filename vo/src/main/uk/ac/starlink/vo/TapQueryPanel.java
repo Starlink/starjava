@@ -18,6 +18,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -25,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -43,6 +45,7 @@ public class TapQueryPanel extends JPanel {
     private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
     private final JLabel countLabel_;
+    private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final AdqlExampleAction[] exampleActs_;
     private static final Logger logger_ =
@@ -65,6 +68,12 @@ public class TapQueryPanel extends JPanel {
         textPanel_.setEditable( true );
         textPanel_.setFont( Font.decode( "Monospaced" ) );
         JComponent textScroller = new JScrollPane( textPanel_ );
+
+        /* Button for selecting sync/async mode of query. */
+        syncToggle_ = new JCheckBox( "Synchronous", false );
+        syncToggle_.setToolTipText( "Determines whether the TAP query will "
+                                  + "be carried out in synchronous (selected) "
+                                  + "or asynchronous (unselected) mode" );
 
         /* Action to clear text in ADQL panel. */
         final AdqlTextAction clearAct =
@@ -117,6 +126,7 @@ public class TapQueryPanel extends JPanel {
         /* Controls for ADQL text panel. */
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
+        buttLine.add( syncToggle_ );
         buttLine.add( Box.createHorizontalGlue() );
         buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
@@ -188,6 +198,15 @@ public class TapQueryPanel extends JPanel {
      */
     public String getAdql() {
         return textPanel_.getText().replaceFirst( "\\s*\\Z", "" );
+    }
+
+    /**
+     * Indicates whether synchronous operation has been selected.
+     *
+     * @return   true for sync, false for async
+     */
+    public boolean isSynchronous() {
+        return syncToggle_.isSelected();
     }
 
     /**
