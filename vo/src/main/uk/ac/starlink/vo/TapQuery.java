@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,16 +20,18 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathFactory;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.storage.LimitByteStore;
-import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.votable.DataFormat;
-import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.votable.TableElement;
+import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOElementFactory;
+import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -121,17 +127,7 @@ public class TapQuery {
         HttpURLConnection hconn =
             UwsJob.postForm( new URL( serviceUrl_ + "/sync" ),
                              stringMap_, streamMap_ );
-        InputStream in = hconn.getInputStream();
-        TableBuilder votBuilder = tfact_.getTableBuilder( "votable" );
-        if ( votBuilder == null ) {
-            votBuilder = new VOTableBuilder();
-        }
-        try {
-            return tfact_.makeStarTable( in, votBuilder );
-        }
-        finally {
-            in.close();
-        }
+        return readResultVOTable( hconn, tfact_.getStoragePolicy() );
     }
 
     /**
@@ -212,7 +208,8 @@ public class TapQuery {
 
     /**
      * Reads and returns the table that resulted from a successful TAP query,
-     * represented by a given UWS job.
+     * represented by a given UWS job.  The query is assumed to have
+     * requested output in VOTable format.
      * If the job has not reached COMPLETED phase, an IOException will result.
      *
      * @param  uwsJob  successfully completed UWS job representing 
@@ -222,11 +219,9 @@ public class TapQuery {
      */
     public static StarTable getResult( UwsJob uwsJob, StarTableFactory tfact )
             throws IOException {
-        URL resultUrl = new URL( uwsJob.getJobUrl() + "/results/result" );
-        DataSource datsrc = new URLDataSource( resultUrl );
-
-        /* Note this does take steps to follow redirects. */
-        return tfact.makeStarTable( datsrc, "votable" );
+        URL url = new URL( uwsJob.getJobUrl() + "/results/result" );
+        return readResultVOTable( url.openConnection(),
+                                  tfact.getStoragePolicy() );
     }
 
     /**
@@ -392,5 +387,143 @@ public class TapQuery {
                 }
             };
         }
+    }
+
+    /**
+     * Reads a VOTable which may represent a successful result or an error.
+     * If it represents an error (in accordance with the TAP rules for
+     * expressing this), an exception will be thrown.
+     *
+     * @param   conn  connection to table resource
+     * @param  storage  storage policy
+     */
+    private static StarTable readResultVOTable( URLConnection conn,
+                                                StoragePolicy storage )
+            throws IOException {
+
+        /* Follow 303 redirects as required. */
+        conn = followRedirects( conn );
+
+        /* Get an input stream representing the content of the resource.
+         * HttpURLConnection may provide this from the getInputStream or
+         * getErrorStream method, depending on the response code. */
+        InputStream in = null;
+        try { 
+            in = conn.getInputStream();
+        }
+        catch ( IOException e ) {
+            if ( conn instanceof HttpURLConnection ) {
+                in = ((HttpURLConnection) conn).getErrorStream();
+            }
+            if ( in == null ) {
+                throw e;
+            }
+        }
+
+        /* Read the result as a VOTable DOM. */
+        VOElement voEl;
+        try {
+            voEl = new VOElementFactory( storage )
+                  .makeVOElement( in, conn.getURL().toString() );
+        }
+        catch ( SAXException e ) {
+            throw (IOException)
+                  new IOException( "TAP response is not a VOTable" )
+                 .initCause( e );
+        }
+
+        /* Navigate the DOM to find the status and table of interest. */
+        VOElement[] resourceEls = voEl.getChildrenByName( "RESOURCE" );
+        VOElement resultsEl = null;
+        for ( int ie = 0; ie < resourceEls.length; ie++ ) {
+            VOElement el = resourceEls[ ie ];
+            if ( "results".equals( el.getAttribute( "type" ) ) ) {
+                resultsEl = el;
+            }
+        }
+        if ( resultsEl == null ) {
+            if ( resourceEls.length == 1 ) {
+                resultsEl = resourceEls[ 0 ];
+                logger_.warning( "TAP response document RESOURCE element "
+                               + "not marked type='results'" );
+            }
+            else {
+                throw new IOException( "No RESOURCE with type='results'" );
+            }
+        }
+        VOElement[] infoEls = resultsEl.getChildrenByName( "INFO" );
+        VOElement statusEl = null;
+        for ( int ie = 0; ie < infoEls.length; ie++ ) {
+            VOElement el = infoEls[ ie ];
+            if ( "QUERY_STATUS".equals( el.getAttribute( "name" ) ) ) {
+                statusEl = el;
+            }
+        }
+        if ( statusEl == null ) {
+            throw new IOException( "No INFO with name='QUERY_STATUS'" );
+        }
+        String status = statusEl.getAttribute( "value" );
+        if ( "OK".equals( status ) ) {
+            TableElement tableEl =
+                (TableElement) resultsEl.getChildByName( "TABLE" );
+            if ( tableEl == null ) {
+                throw new IOException( "No TABLE in results resource" );
+            }
+            return new VOStarTable( tableEl );
+        }
+        else if ( "ERROR".equals( status ) ) {
+            throw new IOException( DOMUtils.getTextContent( statusEl ) );
+        }
+        else {
+            throw new IOException( "Unknown TAP error status " + status );
+        }
+    }
+
+    /**
+     * Takes a URLConnection and repeatedly follows 303 redirects
+     * until a non-303 status is achieved.  Infinite loops are defended
+     * against.
+     *
+     * @param  hconn   initial URL connection
+     * @return   target URL connection
+     *           (if no redirects, the same as <code>hconn</code>)
+     */
+    private static URLConnection followRedirects( URLConnection conn )
+            throws IOException {
+        if ( ! ( conn instanceof HttpURLConnection ) ) {
+            return conn;
+        }
+        HttpURLConnection hconn = (HttpURLConnection) conn;
+        Set urlSet = new HashSet<String>();
+        urlSet.add( hconn.getURL() );
+        while ( hconn.getResponseCode() ==
+                HttpURLConnection.HTTP_SEE_OTHER ) {   // 303
+            URL url0 = hconn.getURL();
+            String loc = hconn.getHeaderField( "Location" );
+            if ( loc == null || loc.trim().length() == 0 ) {
+                throw new IOException( "No Location field for 303 response"
+                                     + " from " + url0 );
+            }
+            URL url1;
+            try {
+                url1 = new URL( loc );
+            }
+            catch ( MalformedURLException e ) {
+                throw (IOException)
+                      new IOException( "Bad Location field for 303 response"
+                                     + " from " + url0 )
+                     .initCause( e );
+            }
+            if ( ! urlSet.add( url1 ) ) {
+                throw new IOException( "Recursive 303 redirect at " + url1 );
+            }
+            logger_.info( "HTTP 303 redirect to " + url1 );
+            URLConnection conn1 = url1.openConnection();
+            if ( ! ( conn1 instanceof HttpURLConnection ) ) {
+                return conn1;
+            }
+            hconn = (HttpURLConnection) conn1; 
+        }
+        return hconn;
     }
 }
