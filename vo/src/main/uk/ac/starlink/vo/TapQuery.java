@@ -455,29 +455,28 @@ public class TapQuery {
         }
         VOElement[] infoEls = resultsEl.getChildrenByName( "INFO" );
         VOElement statusEl = null;
-        for ( int ie = 0; ie < infoEls.length; ie++ ) {
+        for ( int ie = 0; statusEl == null && ie < infoEls.length; ie++ ) {
             VOElement el = infoEls[ ie ];
             if ( "QUERY_STATUS".equals( el.getAttribute( "name" ) ) ) {
                 statusEl = el;
             }
         }
-        if ( statusEl == null ) {
-            throw new IOException( "No INFO with name='QUERY_STATUS'" );
+        String status = statusEl != null ? statusEl.getAttribute( "value" )
+                                         : null;
+        if ( "ERROR".equals( status ) ) {
+            throw new IOException( DOMUtils.getTextContent( statusEl ) );
         }
-        String status = statusEl.getAttribute( "value" );
-        if ( "OK".equals( status ) ) {
+        else {
+            if ( ! "OK".equals( status ) ) {
+                logger_.warning( "Missing/incorrect <INFO name='QUERY_STATUS'>"
+                               + " element in TAP response" );
+            }
             TableElement tableEl =
                 (TableElement) resultsEl.getChildByName( "TABLE" );
             if ( tableEl == null ) {
                 throw new IOException( "No TABLE in results resource" );
             }
             return new VOStarTable( tableEl );
-        }
-        else if ( "ERROR".equals( status ) ) {
-            throw new IOException( DOMUtils.getTextContent( statusEl ) );
-        }
-        else {
-            throw new IOException( "Unknown TAP error status " + status );
         }
     }
 
