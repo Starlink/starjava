@@ -5868,8 +5868,8 @@ stilts tpipe ifmt=ascii survey.txt \
 stilts -classpath lib/drivers/mysql-connector-java.jar \
        -Djdbc.drivers=com.mysql.jdbc.Driver \
        tpipe in=x.fits cmd="explodeall" omode=tosql \
-             protocol=mysql host=localhost database=ASTRO1 newtable=TABLEX \
-             user=mbt
+             protocol=mysql host=localhost db=ASTRO1 dbtable=TABLEX \
+             write=dropcreate user=mbt
 </verbatim></dt>
 <dd><p>Writes a FITS table to an SQL table, converting array-valued columns
     to scalar ones.
