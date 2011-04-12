@@ -102,6 +102,7 @@ public class TapQuery {
                 }
                 ubuf.append( tname )
                     .append( ',' )
+                    .append( "param:" )
                     .append( tlabel );
                 HttpStreamParam streamParam =
                     createUploadStreamParam( table, uploadLimit );
