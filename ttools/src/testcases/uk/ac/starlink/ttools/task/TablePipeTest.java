@@ -449,6 +449,16 @@ public class TablePipeTest extends TableTestCase {
            getColData( apply( "replacecol b (float)b;"
                             + "replaceval null " + Math.PI + " b;"
                             + "replaceval " + Math.PI + " 40 b" ), 1 ) );
+
+        assertArrayEquals(
+           box( new double[] { 99, 1, 0.5, 1./3. } ),
+           getColData( apply( "addcol r_a 1.0/(a-1);"
+                            + "replaceval Infinity 99 r_a" ), 4 ) );
+
+        assertArrayEquals(
+           box( new float[] { -99f, -1f, -0.5f, -1f/3f } ),
+           getColData( apply( "addcol mr_a -1f/(a-1);"
+                            + "replaceval -Infinity -99 mr_a" ), 4 ) );
     }
 
     public void testSetparam() throws Exception {

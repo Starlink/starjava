@@ -149,9 +149,11 @@ public class ReplaceValueTable extends WrapperStarTable {
                 return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         if ( obj instanceof Double ) {
-                            double diff = ((Double) obj).doubleValue() - oldVal;
-                            return ( Math.abs( diff ) <= DOUBLE_TOL ) ? newValue
-                                                                      : obj;
+                            double value = ((Double) obj).doubleValue();
+                            return ( value == oldVal ||
+                                     Math.abs( value - oldVal ) <= DOUBLE_TOL )
+                                 ? newValue
+                                 : obj;
                         }
                         else {
                             return obj;
@@ -164,9 +166,11 @@ public class ReplaceValueTable extends WrapperStarTable {
                 return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         if ( obj instanceof Float ) {
-                            float diff = ((Float) obj).floatValue() - oldVal;
-                            return ( Math.abs( diff ) <= FLOAT_TOL ) ? newValue
-                                                                     : obj;
+                            float value = ((Float) obj).floatValue();
+                            return ( value == oldVal ||
+                                     Math.abs( value - oldVal ) <= FLOAT_TOL )
+                                 ? newValue
+                                 : obj;
                         }
                         else {
                             return obj;
