@@ -4699,6 +4699,30 @@ stilts tapquery tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
     and writes the result to a FITS file.
     </p></dd>
 
+<dt><verbatim><![CDATA[
+stilts tapquery
+       tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
+       adql="SELECT *
+                FROM twomass.data AS t
+                JOIN TAP_UPLOAD.up1 AS s
+                ON 1=CONTAINS(POINT('ICRS', t.RAJ2000, t.DEJ2000),
+                              CIRCLE('ICRS', s.ra2000, s.dec2000, 5./3600.))"
+       nupload=1 upload1=6dfgs_E7.fits ucmd1='select BMAG-RMAG<0'
+       maxrec=20000
+       ocmd='tablename 2mass_x_6df' omode=topcat
+]]></verbatim></dt>
+<dd><p>The local table <code>6dfgs_E7</code> is filtered to contain only
+    rather blue objects, and the resulting selection is uploaded to the
+    TAP server.  A positional crossmatch with 5 arcsec tolerance 
+    is then performed on the server between this uploaded table and the
+    <code>twomass.data</code> table held by the service.
+    The adjusted <code>maxrec</code> parameter ensures that the result
+    will not be artificially truncated to shorter than 20000 rows
+    (assuming the service limits permit this).
+    When the result is received, it is loaded directly into TOPCAT with
+    the name "2mass_x_6df".
+    </p></dd>
+
 </dl>
 </p>
 
