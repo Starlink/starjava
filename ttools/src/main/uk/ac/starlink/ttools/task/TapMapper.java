@@ -98,6 +98,7 @@ public class TapMapper implements TableMapper {
             "</p>",
         } );
         maxrecParam_.setNullPermitted( true );
+        paramList.add( maxrecParam_ );
 
         langParam_ = new Parameter( "language" );
         langParam_.setPrompt( "TAP query language" );
