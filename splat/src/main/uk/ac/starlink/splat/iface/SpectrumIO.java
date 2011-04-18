@@ -328,6 +328,7 @@ public class SpectrumIO
         progressFrame.setTitle( "Saving spectrum..." );
         progressFrame.setMessage( "as " + target );
         progressFrame.start();
+        this.browser = browser;
         browser.setWaitCursor();
 
         //  Set up thread to save the spectrum.
