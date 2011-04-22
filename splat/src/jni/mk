@@ -16,6 +16,7 @@
 #  Java system exports (set by build.xml).
       export JAVA_SYSTEM
       export JAVA_HOME
+      export STARJAVA_LIB
 
       echo "Running MK script..."
 
@@ -81,10 +82,10 @@
                   LDFLAGS="$LDFLAGS -m64"
                fi
                export LDFLAGS
-               BLD_SHR='f() { $(FC) $(LDFLAGS) -framework JavaVM -dynamiclib -single_module -undefined dynamic_lookup -o $$1 $$2 -lm -lgcc -lc; }; f'
+               BLD_SHR='f() { $(FC) $(LDFLAGS) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module -undefined dynamic_lookup -o $$1 $$2 -lm -lgcc -lc; }; f'
                CC='gcc'
                FC=${FC:=g77}
-               CFLAGS='-framework JavaVM -I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
+               CFLAGS='-I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g -fPIC'
                SHARE='.jnilib'
                JAVA_INCLUDE='$(JAVA_HOME)/Headers'
                echo "mk: Environment variables defined for $SYSTEM system"

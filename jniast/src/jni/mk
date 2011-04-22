@@ -222,6 +222,7 @@
       export SHARE
       export TAR_IN
       export TAR_OUT
+      export STARJAVA_LIB
 
 #  Check that the SYSTEM environment variable is defined.
       if test "$SYSTEM" = ""; then
@@ -285,9 +286,9 @@
 #  -----------------------
             MacOSX)
                AR_IN='ar r'
-               BLD_SHR='f() { gcc -arch $(JAVA_SYSTEM) -framework JavaVM -dynamiclib -single_module $(ADDCFLAGS) -o $$1 $$2 ;}; f'
+               BLD_SHR='f() { gcc -arch $(JAVA_SYSTEM) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module $(ADDCFLAGS) -o $$1 $$2 ;}; f'
                CC='gcc'
-               CFLAGS='-framework JavaVM -I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O $(ADDCFLAGS)'
+               CFLAGS='-I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O $(ADDCFLAGS)'
                LINK='ln -s'
                RANLIB='ranlib'
                SHARE='.jnilib'
