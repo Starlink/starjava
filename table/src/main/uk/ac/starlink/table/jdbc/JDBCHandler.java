@@ -146,7 +146,12 @@ public class JDBCHandler {
         Connection conn = getConnection( url );
  
         /* And write the data to the table. */
-        new JDBCFormatter( conn, startab ).createJDBCTable( frag, mode );
+        try {
+            new JDBCFormatter( conn, startab ).createJDBCTable( frag, mode );
+        }
+        finally {
+            conn.close();
+        }
     }
 
     private Connection getConnection( String url )

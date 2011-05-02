@@ -14328,6 +14328,7 @@ introduced since the last version:
         column names.</li>
     <li>Fix FITS character handling bug which could cause corrupted FITS
         files on output in presence of non-ASCII characters.</li>
+    <li>Fix (some) JDBC connection leaks.</li>
     </ul>
     </p></dd>
 

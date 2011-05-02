@@ -441,6 +441,7 @@ public class JDBCFormatter {
             Connection conn = DriverManager.getConnection( jdbcUrl );
             new JDBCFormatter( conn, intab )
                .createJDBCTable( tableName, WriteMode.CREATE );
+            conn.close();
         }
         catch ( SQLException e ) {
             if ( e.getNextException() != null ) {

@@ -7528,6 +7528,7 @@ but my thanks are especially due to the following:
     <li>Fix FITS character handling bug which could cause corrupted FITS
         files on output in presence of non-ASCII characters.</li>
     <li>Fix <code>replaceval</code> filter to work with Infinities.</li>
+    <li>Fix (some) JDBC connection leaks.</li>
     </ul>
     </p></dd>
 
