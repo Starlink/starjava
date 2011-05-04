@@ -383,6 +383,7 @@ class ResumeTapQueryPanel extends JPanel {
             phaseTimer_.stop();
         }
         jobPanel_.setJob( job );
+        updateJobState();
         if ( jobPanel_.getJob() != null ) {
             phaseTimer_.start();
         }
