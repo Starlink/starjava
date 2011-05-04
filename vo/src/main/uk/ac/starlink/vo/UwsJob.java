@@ -13,23 +13,15 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.util.DOMUtils;
 
 /**
  * Job submitted using the Universal Worker Service pattern.
@@ -42,7 +34,6 @@ import uk.ac.starlink.util.DOMUtils;
 public class UwsJob {
 
     private final URL jobUrl_;
-    private volatile Map<String,String> paramMap_;
     private volatile String phase_;
     private volatile long phaseTime_;
     private boolean deleteAttempted_;
@@ -75,72 +66,6 @@ public class UwsJob {
      */
     public URL getJobUrl() {
         return jobUrl_;
-    }
-
-    /**
-     * Returns the currently stored parameter map.  This may be null if
-     * parameters are not known.
-     * Use the {@link #readParameters} method to update the return value
-     * of this method by reading the parameters from the server.
-     * 
-     * @return   name->value map of parameters
-     * @see   #readParameters
-     */
-    public Map<String,String> getParameters() {
-        return paramMap_;
-    }
-
-    /**
-     * Sets the currently known parameter map for this job to a given value.
-     * Invoked at construction time or by {@link #readParameters},
-     * not usually otherwise.
-     *
-     * @param  paramMap  name->value map of parameters
-     */
-    protected void setParameters( Map<String,String> paramMap ) {
-        paramMap_ = paramMap == null
-            ? null
-            : Collections
-             .unmodifiableMap( new LinkedHashMap<String,String>( paramMap ) );
-    }
-
-    /**
-     * Reads the job parameters from the UWS server record for this job.
-     *
-     * @see  #getParameters
-     */
-    public void readParameters() throws IOException {
-        String paramsUrl = jobUrl_ + "/parameters";
-        logger_.info( "Read job parameters from " + paramsUrl );
-        try {
-            Document paramDoc =
-                DocumentBuilderFactory.newInstance()
-                                      .newDocumentBuilder()
-                                      .parse( paramsUrl );
-            NodeList els = paramDoc.getElementsByTagName( "*" );
-            Map<String,String> paramMap = new LinkedHashMap<String,String>();
-            for ( int i = 0; i < els.getLength(); i++ ) {
-                Element el = (Element) els.item( i );
-                String tagName = el.getTagName();
-                if ( tagName.equals( "parameter" ) ||
-                     tagName.endsWith( ":parameter" ) ) {
-                    String key = el.getAttribute( "id" );
-                    String value = DOMUtils.getTextContent( el );
-                    if ( key != null && value != null ) {
-                        paramMap.put( key, value );
-                    }
-                }
-            }
-            setParameters( paramMap );
-        }
-        catch ( ParserConfigurationException e ) {
-            throw (IOException) new IOException( "XML parse trouble" )
-                               .initCause( e );
-        }
-        catch ( SAXException e ) {
-            throw (IOException) new IOException( "XML parse trouble" )
-                               .initCause( e );
-        }
     }
 
     /**
@@ -275,25 +200,15 @@ public class UwsJob {
     }
 
     /**
-     * Returns the DOM document representing the current state of this job.
-     * This is read from the XML text at the job URL.
+     * Reads XML text from the job URL which describes the server's
+     * record of the current state of the job, and returns the result
+     * as a UwsJobInfo object.
      *
      * @return  job status
      */
-    public Document readJob() throws IOException {
-        try {
-            return DocumentBuilderFactory.newInstance()
-                                         .newDocumentBuilder()
-                                         .parse( jobUrl_.toString() );
-        }
-        catch ( SAXException e ) {
-            throw (IOException) new IOException( "Job document parse failure" )
-                               .initCause( e );
-        }
-        catch ( ParserConfigurationException e ) {
-            throw (IOException) new IOException( "Job document parse failure" )
-                               .initCause( e );
-        }
+    public UwsJobInfo readJob() throws IOException, SAXException {
+        UwsJobInfo[] infos = JobSaxHandler.readJobInfos( jobUrl_ );
+        return infos != null && infos.length > 0 ? infos[ 0 ] : null;
     }
 
     /**
