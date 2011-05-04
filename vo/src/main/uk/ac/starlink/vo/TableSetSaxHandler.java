@@ -225,7 +225,9 @@ public class TableSetSaxHandler extends DefaultHandler {
      * @param   qName  qualified name, if available
      */
     private String getTagName( String uri, String localName, String qName ) {
-        return qName == null ? localName : qName;
+        return localName != null && localName.length() > 0
+             ? localName
+             : qName.replaceFirst( ".*:", "" );
     }
 
     /**
