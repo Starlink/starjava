@@ -30,7 +30,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @see  <a href="http://www.ivoa.net/Documents/VODataService/"
  *          >IVOA VODataService Recommendation</a>
  */
-public class TableSetSaxHandler extends DefaultHandler {
+class TableSetSaxHandler extends DefaultHandler {
 
     private TableMeta[] tables_;
     private List<TableMeta> tableList_;
