@@ -1,13 +1,10 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.net.URL;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -20,8 +17,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
-import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.util.IOUtils;
 
 /**
  * Panel which displays the details for a single UWS job.
@@ -40,8 +35,8 @@ public class UwsJobPanel extends JPanel {
     private final ValueField startField_;
     private final ValueField endField_;
     private final ValueField destructionField_;
+    private final ValueField errorField_;
     private final JComponent paramPanel_;
-    private final JComponent errorPanel_;
     private UwsJob job_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -63,21 +58,21 @@ public class UwsJobPanel extends JPanel {
         startField_ = new ValueField();
         endField_ = new ValueField();
         destructionField_ = new ValueField();
+        errorField_ = new ValueField( true );
         paramPanel_ = Box.createVerticalBox();
-        errorPanel_ = Box.createVerticalBox();
 
-        LabelledComponentStack stack = new LabelledComponentStack();
-        stack.addLine( "URL", urlField_ );
-        stack.addLine( "Phase", phaseField_ );
-        stack.addLine( "Job ID", idField_ );
-        stack.addLine( "Run ID", runField_ );
-        stack.addLine( "Owner ID", ownerField_ );
-        stack.addLine( "Max Duration", durationField_ );
-        stack.addLine( "Start Time", startField_ );
-        stack.addLine( "End Time", endField_ );
-        stack.addLine( "Destruction Time", destructionField_ );
-        stack.addLine( "Parameters", paramPanel_ );
-        stack.addLine( "Errors", errorPanel_ );
+        Stack stack = new Stack();
+        stack.addItem( "URL", urlField_ );
+        stack.addItem( "Phase", phaseField_ );
+        stack.addItem( "Job ID", idField_ );
+        stack.addItem( "Run ID", runField_ );
+        stack.addItem( "Owner ID", ownerField_ );
+        stack.addItem( "Max Duration", durationField_ );
+        stack.addItem( "Start Time", startField_ );
+        stack.addItem( "End Time", endField_ );
+        stack.addItem( "Destruction Time", destructionField_ );
+        stack.addItem( "Error", errorField_ );
+        stack.addItem( "Parameters", paramPanel_ );
         main.add( stack );
     }
 
@@ -99,11 +94,11 @@ public class UwsJobPanel extends JPanel {
         job_ = job;
         if ( job_ == null ) {
             urlField_.setText( null );
-            setJobInfo( null, null );
         }
         else {
             urlField_.setText( job.getJobUrl().toString() );
         }
+        setJobInfo( null );
         updatePhase();
     }
 
@@ -113,36 +108,12 @@ public class UwsJobPanel extends JPanel {
     public void updatePhase() {
         phaseField_.setText( job_ == null ? null : job_.getLastPhase() );
         if ( job_ == null ) {
-            setJobInfo( null, null );
+            setJobInfo( null );
         }
         else {
             updateJobInfo( job_ );
         }
         revalidate();
-    }
-
-    /**
-     * Turns the detail message from an error (from the job/error resource)
-     * into a string for display.  May be overridden by concrete subclasses.
-     *
-     * @param  errDetail  error detail content in bytes
-     * @return  error detail string for display
-     */
-    protected String formatErrorDetail( byte[] errDetail ) {
-        try {
-            Reader rdr = new BufferedReader(
-                             new InputStreamReader(
-                                 new ByteArrayInputStream( errDetail ) ) );
-            StringBuffer sbuf = new StringBuffer();
-            for ( char c; ( c = (char) rdr.read() ) >= 0; ) {
-                sbuf.append( c );
-            }
-            return sbuf.toString();
-        }
-        catch ( IOException e ) {
-            logger_.warning( "Unexpected string processing error: " + e );
-            return "";
-        }
     }
 
     /**
@@ -166,26 +137,10 @@ public class UwsJobPanel extends JPanel {
                 }
                 final UwsJobInfo jobInfo = info;
                 if ( jobInfo != null && job == job_ ) {
-                    UwsJobInfo.Error error = jobInfo.getError();
-                    byte[] errDetail = null;
-                    if ( error != null && error.hasDetail() ) {
-                        try {
-                            ByteArrayOutputStream bout =
-                                new ByteArrayOutputStream();
-                            IOUtils.copy( new URL( url + "/error" )
-                                         .openStream(), bout );
-                            errDetail = bout.toByteArray();
-                        }
-                        catch ( IOException e ) {
-                            logger_.warning( "Couldn't get error details: "
-                                           + e );
-                        }
-                    }
-                    final byte[] errDetail1 = errDetail;
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
                             if ( job == job_ ) {
-                                setJobInfo( jobInfo, errDetail1 );
+                                setJobInfo( jobInfo );
                             }
                         }
                     } );
@@ -200,10 +155,8 @@ public class UwsJobPanel extends JPanel {
      * Updates the display with a given job info object, which may be null.
      *
      * @param  jobInfo  job information
-     * @param  bytes containing additional error detail message if any,
-     *         as retrieved from the job-id/error resource
      */
-    private void setJobInfo( UwsJobInfo jobInfo, byte[] errDetail ) {
+    private void setJobInfo( UwsJobInfo jobInfo ) {
         if ( jobInfo == null ) {
             idField_.setText( null );
             runField_.setText( null );
@@ -212,6 +165,8 @@ public class UwsJobPanel extends JPanel {
             startField_.setText( null );
             endField_.setText( null );
             destructionField_.setText( null );
+            errorField_.setText( null );
+            paramPanel_.removeAll();
         }
         else {
             idField_.setText( jobInfo.getJobId() );
@@ -227,31 +182,27 @@ public class UwsJobPanel extends JPanel {
             destructionField_.setText( jobInfo.getDestruction() );
 
             UwsJobInfo.Parameter[] params = jobInfo.getParameters();
-            JComponent pBox = Box.createVerticalBox();
+            if ( params == null ) {
+                params = new UwsJobInfo.Parameter[ 0 ];
+            }
+            Stack pStack = new Stack();
+            pStack.setBorder( params.length > 0
+                            ? BorderFactory.createEtchedBorder()
+                            : BorderFactory.createEmptyBorder() );
             for ( int ip = 0; ip < params.length; ip++ ) {
                 UwsJobInfo.Parameter param = params[ ip ];
                 ValueField pField = new ValueField( true );
                 pField.setText( param.getValue() );
                 pField.setEmph( param.isByReference() );
-                pBox.add( createTitledField( param.getId(), pField ) );
+                pStack.addItem( param.getId(), pField );
             }
             paramPanel_.removeAll();
-            paramPanel_.add( pBox );
+            paramPanel_.add( pStack );
 
             UwsJobInfo.Error error = jobInfo.getError();
-            JComponent eBox = Box.createVerticalBox();
             if ( error != null ) {
-                ValueField messageField = new ValueField( true );
-                messageField.setText( error.getMessage() );
-                eBox.add( createTitledField( "Message", messageField ) );
-                if ( errDetail != null && errDetail.length > 0 ) {
-                    ValueField detailField = new ValueField( true );
-                    detailField.setText( formatErrorDetail( errDetail ) );
-                    eBox.add( createTitledField( "Detail", detailField ) );
-                }
+                errorField_.setText( error.getMessage() );
             }
-            errorPanel_.removeAll();
-            errorPanel_.add( eBox );
         }
         revalidate();
     }
@@ -278,6 +229,58 @@ public class UwsJobPanel extends JPanel {
     }
 
     /**
+     * Utility component to lay out two columns of components aligned.
+     */
+    private static class Stack extends JPanel {
+        private final GridBagLayout layer_;
+        private final GridBagConstraints cons_;
+
+        /**
+         * Constructor.
+         */
+        public Stack() {
+            super( new GridBagLayout() );
+            layer_ = (GridBagLayout) getLayout();
+            cons_ = new GridBagConstraints();
+            cons_.gridy = 0;
+        }
+
+        /**
+         * Adds a labelled item to this panel.
+         *
+         * @param  title  label string
+         * @param  field  item to display under label
+         */
+        public void addItem( String title, JComponent field ) {
+            if ( cons_.gridy > 0 ) {
+                cons_.gridx = 0;
+                Component strut = Box.createVerticalStrut( 4 );
+                layer_.setConstraints( strut, cons_ );
+                add( strut );
+                cons_.gridy++;
+            }
+
+            JComponent titleLabel = new JLabel( title + ": " );
+            GridBagConstraints cons1 = (GridBagConstraints) cons_.clone();
+            cons1.gridx = 0;
+            cons1.anchor = GridBagConstraints.NORTHWEST;
+            layer_.setConstraints( titleLabel, cons1 );
+            add( titleLabel );
+
+            GridBagConstraints cons2 = (GridBagConstraints) cons_.clone();
+            cons2.gridx = 1;
+            cons2.anchor = GridBagConstraints.NORTHWEST;
+            cons2.weightx = 1.0;
+            cons2.fill = GridBagConstraints.HORIZONTAL;
+            cons2.gridwidth = GridBagConstraints.REMAINDER;
+            layer_.setConstraints( field, cons2 );
+            add( field );
+
+            cons_.gridy++;
+        }
+    }
+
+    /**
      * Utility class for display of textual information.
      */
     private static class ValueField extends Box {
@@ -300,8 +303,12 @@ public class UwsJobPanel extends JPanel {
             super( BoxLayout.X_AXIS );
             textField_ = multiLine ? new JTextArea() : new JTextField();
             textField_.setEditable( false );
-            textField_.setBorder( BorderFactory.createEmptyBorder() );
-            textField_.setOpaque( false );
+            if ( multiLine ) {
+                textField_.setOpaque( false );
+            }
+            else {
+                textField_.setBorder( BorderFactory.createEmptyBorder() );
+            }
             add( textField_ );
         }
 
