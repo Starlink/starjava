@@ -239,7 +239,6 @@ class ResumeTapQueryPanel extends JPanel {
      */
     public TableLoader createTableLoader() {
         final boolean deleteOnExit = false;
-        final boolean deleteOnError = false;
 
         /* Prepare a TAP query based on the currently visible job, if any. */
         final UwsJob job = jobPanel_.getJob();
@@ -295,18 +294,9 @@ class ResumeTapQueryPanel extends JPanel {
                                               4000 );
                     }
                     catch ( InterruptedException e ) {
-                        if ( deleteOnError ) {
-                            job.attemptDelete();
-                        }
                         throw (IOException)
                               new InterruptedIOException( "Interrupted" )
                              .initCause( e );
-                    }
-                    catch ( IOException e ) {
-                        if ( deleteOnError ) {
-                            job.attemptDelete();
-                        }
-                        throw e;
                     }
                     return Tables.singleTableSequence( table );
                 }

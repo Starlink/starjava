@@ -291,8 +291,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
     /**
      * Returns a table sequence constructed from a given TAP query.
-     * This method marks each TapQuery for deletion on JVM shutdown,
-     * or if the query fails.
+     * This method marks each TapQuery for deletion on JVM shutdown.
      * Subclass implementations may override this method to perform
      * different job deletion behaviour.
      *
@@ -315,14 +314,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                    .waitForResult( tapJob, tfact.getStoragePolicy(), 4000 );
         }
         catch ( InterruptedException e ) {
-            tapJob.attemptDelete();
             throw (IOException)
                   new InterruptedIOException( "Interrupted" )
                  .initCause( e );
-        }
-        catch ( IOException e ) {
-            tapJob.attemptDelete();
-            throw e;
         }
         table.getParameters().addAll( Arrays.asList( tapMeta ) );
         return Tables.singleTableSequence( table );
