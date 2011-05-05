@@ -41,7 +41,8 @@ public class RegistryTableLoadDialog extends AbstractTableLoadDialog {
     public RegistryTableLoadDialog() {
         super( "Registry Query", 
                "Imports a table describing the result of querying a registry" );
-        setIconUrl( getClass().getResource( "registry.gif" ) );
+        setIconUrl( RegistryTableLoadDialog.class
+                                           .getResource( "registry.gif" ) );
     }
 
     protected Component createQueryComponent() {
