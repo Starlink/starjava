@@ -58,13 +58,21 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
+    private int iseq_;
 
     // This is an expression designed to pick up things that the user might
     // have entered as an upload table identifier.  It intentionally includes
     // illegal TAP upload strings, so that the getUploadTable method
     // has a chance to emit a helpful error message.
     private static final Pattern UPLOAD_REGEX =
-        Pattern.compile( "TAP_UPLOAD\\.([^ ()*+-,/;<=>&?|\t\n\r]*)" );
+        Pattern.compile( "TAP_UPLOAD\\.([^ ()*+-,/;<=>&?|\t\n\r]*)",
+                         Pattern.CASE_INSENSITIVE );
+
+    // Pattern for locating table names in ADQL, used for generating terse
+    // query summaries; doesn't need to be very good.
+    private static final Pattern TNAME_REGEX =
+        Pattern.compile( "(FROM|JOIN)\\s+([a-z][a-z0-9._]*)",
+                         Pattern.CASE_INSENSITIVE );
 
     /**
      * Constructor.
@@ -262,7 +270,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         final boolean sync = tqPanel_.isSynchronous();
         final Map<String,StarTable> uploadMap =
             new LinkedHashMap<String,StarTable>();
-        final String summary = "TAP query";
+        final String summary = createLoadLabel( adql );
         TapCapabilityPanel tcapPanel = tqPanel_.getCapabilityPanel();
         long rowUploadLimit = tcapPanel.getUploadLimit( TapLimit.ROWS );
         final long byteUploadLimit = tcapPanel.getUploadLimit( TapLimit.BYTES );
@@ -367,6 +375,28 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             String adql = tqPanel_.getAdql();
             return super.isReady() && adql != null && adql.trim().length() > 0;
         }
+    }
+
+    /**
+     * Generates a short summary string to use as a loading label for a table
+     * loaded by TAP.  An half-hearted attempt is made to construct the
+     * string by parsing the provided ADQL.
+     *
+     * @param  adql  ADQL text
+     * @return  summary string
+     */
+    private String createLoadLabel( String adql ) {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "TAP_" )
+            .append( ++iseq_ );
+        if ( adql != null ) {
+            Matcher matcher = TNAME_REGEX.matcher( adql );
+            for ( boolean more = false; matcher.find(); more = true ) {
+                sbuf.append( more ? ',' : '_' )
+                    .append( matcher.group( 2 ) );
+            }
+        }
+        return sbuf.toString();
     }
 
     /**
