@@ -40,9 +40,11 @@ class ResumeTapQueryPanel extends JPanel {
     private final TapTableLoadDialog tld_;
     private final UwsJobPanel jobPanel_;
     private final JComponent mainBox_;
+    private final JTextField urlField_;
     private final Action resumeAct_;
     private final Action loadResultAct_;
     private final Timer phaseTimer_;
+    private Thread fetcher_;
 
     /**
      * Constructor.
@@ -55,60 +57,34 @@ class ResumeTapQueryPanel extends JPanel {
 
         /* Set up components for the user to enter a URL corresponding
          * to a running TAP query. */
-        final JTextField urlField = new JTextField();
+        urlField_ = new JTextField();
         jobPanel_ = new UwsJobPanel();
         Action clearAct = new AbstractAction( "Clear" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setStatus( "" );
-                urlField.setText( "" );
+                urlField_.setText( "" );
             }
         };
         final Action jobAct = new AbstractAction( "View" ) {
             public void actionPerformed( ActionEvent evt ) {
-                final String urlTxt = urlField.getText();
+                final String urlTxt = urlField_.getText();
                 final UwsJob job;
                 try {
-                    job = new UwsJob( new URL( urlTxt ) );
+                    viewJob( new UwsJob( new URL( urlTxt ) ) );
                 }
                 catch ( MalformedURLException e ) {
                     assert false;
                     return;
                 }
-                setStatus( "Examining Job " + urlTxt + "..." );
-                new Thread( "read UWS phase " + urlTxt ) {
-                    public void run() {
-                        try {
-                            job.readPhase();
-                        }
-                        catch ( IOException e ) {
-                            final String msg =
-                                e instanceof FileNotFoundException
-                                    ? "No such job"
-                                    : e.toString();
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    setStatus( "Job not available: " + msg );
-                                }
-                            } );
-                            return;
-                        }
-                        SwingUtilities.invokeLater( new Runnable() {
-                            public void run() {
-                                setStatus( null );
-                                setJob( job );
-                            }
-                        } );
-                    }
-                }.start();
             }
         };
-        urlField.addActionListener( jobAct );
-        urlField.addCaretListener( new CaretListener() {
+        urlField_.addActionListener( jobAct );
+        urlField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
-                String txt = urlField.getText();
+                String txt = urlField_.getText();
                 if ( txt != null && txt.trim().length() > 0 ) {
                     try {
-                        new URL( urlField.getText() );
+                        new URL( urlField_.getText() );
                         jobAct.setEnabled( true );
                         return;
                     }
@@ -129,14 +105,14 @@ class ResumeTapQueryPanel extends JPanel {
         resumeAct_ = new AbstractAction( "Resume" ) {
             public void actionPerformed( ActionEvent evt ) {
                 tld_.getSubmitAction().actionPerformed( dummyEvt );
-                urlField.setText( "" );
+                urlField_.setText( "" );
                 setJob( null );
             }
         };
         loadResultAct_ = new AbstractAction( "Load Result" ) {
             public void actionPerformed( ActionEvent evt ) {
                 tld_.getSubmitAction().actionPerformed( dummyEvt );
-                urlField.setText( "" );
+                urlField_.setText( "" );
                 setJob( null );
             }
         };
@@ -201,7 +177,7 @@ class ResumeTapQueryPanel extends JPanel {
         urlBox.add( Box.createVerticalStrut( 5 ) );
         JComponent entryLine = Box.createHorizontalBox();
         entryLine.add( new JLabel( "URL: " ) );
-        entryLine.add( urlField );
+        entryLine.add( urlField_ );
         urlBox.add( entryLine );
         urlBox.add( Box.createVerticalStrut( 5 ) );
         JComponent ubuttLine = Box.createHorizontalBox();
@@ -315,6 +291,63 @@ class ResumeTapQueryPanel extends JPanel {
             assert false;
             return null;
         }
+    }
+
+    /**
+     * Reloads information from the server about the currently displayed
+     * job, if any.
+     */
+    public void reload() {
+        String urlTxt = urlField_.getText();
+        if ( urlTxt != null ) {
+            try {
+                viewJob( new UwsJob( new URL( urlTxt ) ) );
+            }
+            catch ( MalformedURLException e ) {
+            }
+        }
+    }
+
+    /**
+     * Causes a given UWS job to have its details retrieved and displayed.
+     * The details will be updated periodically.
+     *
+     * @param  job  job to display
+     */
+    private void viewJob( final UwsJob job ) {
+        String urlTxt = job.getJobUrl().toString();
+        setStatus( "Examining Job " + urlTxt + "..." );
+        fetcher_ = new Thread( "read UWS phase " + urlTxt ) {
+            public void run() {
+                final Thread fetcher = this;
+                try {
+                    job.readPhase();
+                }
+                catch ( IOException e ) {
+                    final String msg = e instanceof FileNotFoundException
+                                     ? "No such job"
+                                     : e.toString();
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            if ( fetcher_ == fetcher ) {
+                                setStatus( "Job not available: " + msg );
+                            }
+                        }
+                    } );
+                    return;
+                }
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        if ( fetcher == fetcher ) {
+                            setStatus( null );
+                            setJob( job );
+                        }
+                    }
+                } );
+            }
+        };
+        fetcher_.setDaemon( true );
+        fetcher_.start();
     }
 
     /**

@@ -194,6 +194,35 @@ public class UwsJobListPanel extends JPanel {
     }
 
     /**
+     * Reload job detail information from the server for the currently
+     * displayed job.
+     */
+    public void reload() {
+        final UwsJob job = detail_.getJob();
+        if ( job != null ) {
+            Thread phaser = new Thread( "UWS Phase reader" ) {
+                public void run() {
+                    try {
+                        job.readPhase();
+                    }
+                    catch ( IOException e ) {
+                        logger_.warning( "Phase read fail for UWS job "
+                                       + job.getJobUrl() + ": " + e );
+                        return;
+                    }
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            updateJob( job );
+                        }
+                    } );
+                }
+            };
+            phaser.setDaemon( true );
+            phaser.start();
+        }
+    }
+
+    /**
      * Signals that the state of a job may have changed and should be
      * reflected in the UI.
      *

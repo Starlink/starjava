@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -164,6 +165,42 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 updateReady();
             }
         };
+
+        /* Reload action. */
+        final Action reloadAct = new AbstractAction( "Reload" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                int itab = tabber_.getSelectedIndex();
+                if ( itab == tqTabIndex_ ) {
+                    tqPanel_.reload();
+                }
+                else if ( itab == resumeTabIndex_ ) {
+                    resumePanel_.reload();
+                }
+                else if ( itab == jobsTabIndex_ ) {
+                    jobsPanel_.reload();
+                }
+            }
+        };
+        ChangeListener reloadEnabler = new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                int itab = tabber_.getSelectedIndex();
+                reloadAct.setEnabled( itab == tqTabIndex_
+                                   || itab == resumeTabIndex_
+                                   || itab == jobsTabIndex_ );
+            }
+        };
+        tabber_.addChangeListener( reloadEnabler );
+        reloadEnabler.stateChanged( null );
+        reloadAct.putValue( Action.SMALL_ICON, 
+                            new ImageIcon( TapTableLoadDialog.class
+                                          .getResource( "reload.gif" ) ) );
+        reloadAct.putValue( Action.SHORT_DESCRIPTION,
+              "Reload information displayed in this panel from the server; "
+            + "exact behaviour depends on which panel is visible" );
+        List<Action> actList =
+            new ArrayList<Action>( Arrays.asList( super.getToolbarActions() ) );
+        actList.add( reloadAct );
+        setToolbarActions( actList.toArray( new Action[ 0 ] ) );
 
         /* It's big. */
         tabber_.setPreferredSize( new Dimension( 600, 550 ) );

@@ -40,6 +40,9 @@ import javax.swing.text.JTextComponent;
  */
 public class TapQueryPanel extends JPanel {
 
+    private URL serviceUrl_;
+    private Thread metaFetcher_;
+    private Thread capFetcher_;
     private final JEditorPane textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
@@ -220,6 +223,15 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Reload table and capability metadata from the server.
+     */
+    public void reload() {
+        if ( serviceUrl_ != null ) {
+            setServiceUrl( serviceUrl_.toString() );
+        }
+    }
+
+    /**
      * Sets the service URL for the TAP service used by this panel.
      * Calling this will initiate an asynchronous attempt to fill in
      * service metadata from the service at the given URL.
@@ -236,13 +248,15 @@ public class TapQueryPanel extends JPanel {
         catch ( MalformedURLException e ) {
             return;
         }
+        serviceUrl_ = url;
 
         /* Dispatch a request to acquire the table metadata from
          * the service. */
         setTables( null );
         tmetaPanel_.showFetchProgressBar( "Fetching Table Metadata" );
-        new Thread( "Table metadata fetcher" ) {
+        metaFetcher_ = new Thread( "Table metadata fetcher" ) {
             public void run() {
+                final Thread fetcher = this;
                 final TableMeta[] tableMetas;
                 try {
                     tableMetas = TapQuery.readTableMetadata( url );
@@ -250,7 +264,10 @@ public class TapQueryPanel extends JPanel {
                 catch ( final Exception e ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            tmetaPanel_.showFetchFailure( url + "/tables", e );
+                            if ( fetcher == metaFetcher_ ) {
+                                tmetaPanel_.showFetchFailure( url + "/tables",
+                                                              e );
+                            }
                         }
                     } );
                     return;
@@ -259,17 +276,22 @@ public class TapQueryPanel extends JPanel {
                 /* On success, install this information in the GUI. */
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        setTables( tableMetas );
+                        if ( fetcher == metaFetcher_ ) {
+                            setTables( tableMetas );
+                        }
                     }
                 } );
             }
-        }.start();
+        };
+        metaFetcher_.setDaemon( true );
+        metaFetcher_.start();
 
         /* Dispatch a request to acquire the service capability information
          * from the service. */
         tcapPanel_.setCapability( null );
-        new Thread( "Table capability fetcher" ) {
+        capFetcher_ = new Thread( "Table capability fetcher" ) {
             public void run() {
+                final Thread fetcher = this;
                 final TapCapability cap;
                 try {
                     cap = TapQuery.readTapCapability( url );
@@ -281,12 +303,16 @@ public class TapQueryPanel extends JPanel {
                 }
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        tcapPanel_.setCapability( cap );
-                        configureExamples();
+                        if ( fetcher == capFetcher_ ) {
+                            tcapPanel_.setCapability( cap );
+                            configureExamples();
+                        }
                     }
                 } );
             }
-        }.start();
+        };
+        capFetcher_.setDaemon( true );
+        capFetcher_.start();
     }
 
     /**
