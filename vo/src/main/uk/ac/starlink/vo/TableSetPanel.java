@@ -165,6 +165,7 @@ public class TableSetPanel extends JPanel {
         else {
             setSelectedTable( null );
         }
+        repaint();
     }
 
     /**
