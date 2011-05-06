@@ -78,7 +78,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * Constructor.
      */
     public TapTableLoadDialog() {
-        super( "TAP", "Query remote databases using SQL-like language",
+        super( "Table Access Protocol (TAP) Query", "TAP",
+               "Query remote databases using SQL-like language",
                Capability.TAP, false, false );
         tqMap_ = new HashMap<String,TapQueryPanel>();
         setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );

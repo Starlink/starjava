@@ -13,13 +13,14 @@ import javax.swing.JPanel;
  */
 public abstract class SkyDalTableLoadDialog extends DalTableLoadDialog {
 
-    private final String name_;
+    private final String protoName_;
     private SkyPositionEntry skyEntry_;
 
     /**
      * Constructor.
      *
      * @param   name  dialogue name
+     * @param   protoName   short name (perhaps acronym) for protocol
      * @param   description  dialogue description
      * @param   capability   service capability type
      * @param   showCapabilities  true to display the capabilities JTable as
@@ -28,12 +29,13 @@ public abstract class SkyDalTableLoadDialog extends DalTableLoadDialog {
      * @param   autoQuery  populate service table with full registry query
      *          on initial display
      */
-    protected SkyDalTableLoadDialog( String name, String description,
-                                     Capability capability,
+    protected SkyDalTableLoadDialog( String name, String protoName,
+                                     String description, Capability capability,
                                      boolean showCapabilities,
                                      boolean autoQuery ) {
-        super( name, description, capability, showCapabilities, autoQuery );
-        name_ = name;
+        super( name, protoName, description, capability,
+               showCapabilities, autoQuery );
+        protoName_ = protoName;
     }
 
     protected Component createQueryComponent() {
@@ -110,7 +112,7 @@ public abstract class SkyDalTableLoadDialog extends DalTableLoadDialog {
             }
         }
         if ( shortName == null || shortName.trim().length() == 0 ) {
-            shortName = name_.replaceFirst( " .*", "" );
+            shortName = protoName_;
         }
 
         /* Get a short string summarising the query spatial extent. */

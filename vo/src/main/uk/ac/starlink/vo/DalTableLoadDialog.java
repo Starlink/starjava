@@ -36,7 +36,7 @@ import uk.ac.starlink.table.ValueInfo;
 public abstract class DalTableLoadDialog
         extends RegistryServiceTableLoadDialog {
 
-    private final String name_;
+    private final String protoName_;
     private final Capability capability_;
     private final boolean autoQuery_;
     private final RegistryQueryFactory queryFactory_;
@@ -48,6 +48,7 @@ public abstract class DalTableLoadDialog
      * Constructor.
      *
      * @param  name  dialogue name
+     * @param  protoName   short name (perhaps acronym) for protocol
      * @param  description  dialogue description
      * @param  capability   service capability type
      * @param  showCapabilities  true to display the capabilities JTable as
@@ -56,13 +57,13 @@ public abstract class DalTableLoadDialog
      * @param  autoQuery  populate service table with full registry query
      *         on initial display
      */
-    protected DalTableLoadDialog( String name, String description,
-                                  Capability capability,
+    protected DalTableLoadDialog( String name, String protoName,
+                                  String description, Capability capability,
                                   boolean showCapabilities,
                                   boolean autoQuery ) {
-        super( name, description, new KeywordServiceQueryFactory( capability ),
-               showCapabilities );
-        name_ = name;
+        super( name, protoName, description,
+               new KeywordServiceQueryFactory( capability ), showCapabilities );
+        protoName_ = protoName;
         capability_ = capability;
         autoQuery_ = autoQuery;
         queryFactory_ = (KeywordServiceQueryFactory) getQueryFactory();
@@ -83,7 +84,7 @@ public abstract class DalTableLoadDialog
          * user typing (or cut'n'pasting) into it. */
         urlField_ = new JTextField();
         JComponent urlBox = Box.createHorizontalBox();
-        urlBox.add( new JLabel( name_ + " URL: " ) );
+        urlBox.add( new JLabel( protoName_ + " URL: " ) );
         urlBox.add( urlField_ );
         getControlBox().add( urlBox );
         getControlBox().add( Box.createVerticalStrut( 5 ) );
@@ -132,17 +133,17 @@ public abstract class DalTableLoadDialog
          * advice about what to do now. */
         if ( autoQuery_ ) {
             regPanel.performAutoQuery( "Searching registry for all known "
-                                     + name_ + " services" );
+                                     + protoName_ + " services" );
         }
         else {
             regPanel.displayAdviceMessage( new String[] {
-                "Query registry for " + name_ + " services:",
+                "Query registry for " + protoName_ + " services:",
                 "enter keywords like \"2mass qso\" and click "
                 + getRegistryPanel().getSubmitQueryAction()
                                     .getValue( Action.NAME )
                 + ".",
                 " ",
-                "Alternatively, enter " + name_ + " URL in field below.",
+                "Alternatively, enter " + protoName_ + " URL in field below.",
             } );
         }
         return queryPanel;
@@ -200,7 +201,7 @@ public abstract class DalTableLoadDialog
      */
     public URL checkUrl( String url ) {
         if ( url == null || url.trim().length() == 0 ) {
-            throw new IllegalArgumentException( "No " + name_
+            throw new IllegalArgumentException( "No " + protoName_
                                               + " service selected" );
         }
         else {
@@ -208,7 +209,7 @@ public abstract class DalTableLoadDialog
                 return new URL( url );
             }
             catch ( MalformedURLException e ) {
-                throw new IllegalArgumentException( "Bad " + name_
+                throw new IllegalArgumentException( "Bad " + protoName_
                                                   + " service URL" );
             }
         }
@@ -244,16 +245,16 @@ public abstract class DalTableLoadDialog
         List metadata = new ArrayList();
         addMetadatum( metadata, resource.getShortName(),
                       "Service short name",
-                      "Short name for " + name_ + " service" );
+                      "Short name for " + protoName_ + " service" );
         addMetadatum( metadata, resource.getTitle(),
                       "Service title",
-                      name_ + " service title" );
+                      protoName_ + " service title" );
         addMetadatum( metadata, resource.getIdentifier(),
                       "Identifier",
                       "Unique resource registry identifier" );
         addMetadatum( metadata, resource.getPublisher(),
                       "Service publisher",
-                      "Publisher for " + name_ + " service" );
+                      "Publisher for " + protoName_ + " service" );
         addMetadatum( metadata, resource.getReferenceUrl(),
                       "Service reference URL",
                       "Descriptive URL for search resource" );

@@ -41,7 +41,7 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
      * Constructor.
      */
     public SsapTableLoadDialog() {
-        super( "SSA Query",
+        super( "Simple Spectral Access (SSA) Query", "SSA",
                "Get results of a Simple Spectrum Access Protocol query",
                Capability.SSA, true, true );
         setIconUrl( SsapTableLoadDialog.class.getResource( "ssa.gif" ) );

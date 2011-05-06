@@ -33,7 +33,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
      * Constructor.
      */
     public ConeSearchDialog() {
-        super( "Cone Search",
+        super( "Cone Search", "Cone",
                "Obtain source catalogues using cone search web services",
                Capability.CONE, true, false );
         setIconUrl( ConeSearchDialog.class.getResource( "cone.gif" ) );

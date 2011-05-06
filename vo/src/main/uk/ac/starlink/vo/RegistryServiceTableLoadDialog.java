@@ -34,7 +34,7 @@ import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 public abstract class RegistryServiceTableLoadDialog 
                       extends AbstractTableLoadDialog {
 
-    private final String name_;
+    private final String protoName_;
     private final RegistryQueryFactory queryFactory_;
     private final boolean showCapabilities_;
     private JComponent controlBox_;
@@ -46,17 +46,19 @@ public abstract class RegistryServiceTableLoadDialog
      * Constructor.
      *
      * @param  name  dialogue name
+     * @param  protoName   short name (perhaps acronym) for protocol
      * @param  description  dialogue description
      * @param  queryFactory  source of registry query definition
      * @param  showCapabilities  true to display the capabilities JTable as
      *         well as the Resource one; sensible if resource:capabilities
      *         relationship may not be 1:1
      */
-    public RegistryServiceTableLoadDialog( String name, String description,
+    public RegistryServiceTableLoadDialog( String name, String protoName,
+                                           String description,
                                            RegistryQueryFactory queryFactory,
                                            boolean showCapabilities ) {
         super( name, description );
-        name_ = name;
+        protoName_ = protoName;
         queryFactory_ = queryFactory;
         showCapabilities_ = showCapabilities;
     }
@@ -121,7 +123,7 @@ public abstract class RegistryServiceTableLoadDialog
 
         /* Initiate default query if appropriate. */
         if ( queryFactory_.getComponent() == null ) {
-            String msg = "Searching registry for " + name_ + " services";
+            String msg = "Searching registry for " + protoName_ + " services";
             regPanel_.performAutoQuery( msg );
         }
 
@@ -137,11 +139,11 @@ public abstract class RegistryServiceTableLoadDialog
         regPanel_.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
-                "Available " + name_ + " Services" ) );
+                "Available " + protoName_ + " Services" ) );
         controlBox_.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
-                name_ + " Parameters" ) );
+                protoName_ + " Parameters" ) );
         queryPanel.setBorder( gapBorder );
         Dimension prefSize = new Dimension( 600, 400 );
         if ( showCapabilities_ ) {

@@ -42,7 +42,7 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
      * Constructor.
      */
     public SiapTableLoadDialog() {
-        super( "SIA Query",
+        super( "Simple Image Access (SIA) Query", "SIA",
                "Get results of a Simple Image Access Protocol query",
                Capability.SIA, true, true );
         setIconUrl( SiapTableLoadDialog.class.getResource( "sia.gif" ) );
