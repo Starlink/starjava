@@ -216,12 +216,12 @@ public class Driver {
             cmdname = "topcat";
         }
         String pre = "Usage: " + cmdname;
-        String pad = pre.replaceAll( ".", " " );
+        String pad = "\n" + pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-version] [-stilts <stilts-args>]"
-                  + " [-jsamp <jsamp-args>]\n"
-            + pad + " [-verbose] [-demo] [-memory] [-disk]\n"
-            + pad + " [-hub] [-exthub] [-samp] [-plastic] [-noserv]\n"
+              pre + " [-help] [-version]"
+            + pad + " [-stilts <stilts-args>|-jsamp <jsamp-args>]"
+            + pad + " [-verbose] [-demo] [-memory|-disk]"
+            + pad + " [-[no]hub|-exthub|-noserv] [-samp|-plastic]"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -234,6 +234,7 @@ public class Driver {
         boolean interopServe = true;
         boolean internalHub = false;
         boolean externalHub = false;
+        boolean noHub = false;
         boolean stiltsMode = false;
         boolean checkVersion = true;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -283,6 +284,10 @@ public class Driver {
             else if ( arg.equals( "-hub" ) ) {
                 it.remove();
                 internalHub = true;
+            }
+            else if ( arg.equals( "-nohub" ) ) {
+                it.remove();
+                noHub = true;
             }
             else if ( arg.equals( "-exthub" ) ) {
                 it.remove();
@@ -411,35 +416,29 @@ public class Driver {
             }
         }
 
-        /* Downgrade this thread's priority now; anything done after this 
-         * point is done at a lower priority so as not to impact GUI setup
-         * too much. */
-        Thread here = Thread.currentThread();
-        try {
-            here.setPriority( ( here.getPriority() + Thread.MIN_PRIORITY )
-                              / 2 );
-        }
-        catch ( SecurityException e ) {
-            // never mind.
-        }
+        /* Anything after this point does not delay GUI startup. */
        
-        /* Start up remote services.  Do it in a separate, low-priority
-         * thread to avoid impact on startup time. */
-        if ( internalHub || externalHub ) {
+        /* Start up remote services. */
+        if ( interopServe ) {
             TopcatCommunicator communicator =
                 getControlWindow().getCommunicator();
-            boolean isExternal = externalHub;
+
+            /* Start SAMP/PLASTIC hub if requested. */
             try {
-                communicator.startHub( isExternal );
+                if ( internalHub || externalHub ) {
+                    boolean isExternal = externalHub;
+                    communicator.startHub( isExternal );
+                }
+                else if ( ! noHub ) {
+                    communicator.maybeStartHub();
+                }
             }
             catch ( IOException e ) {
                 logger.warning( "Can't start " + communicator.getProtocolName()
                               + " hub: " + e );
             }
-        }
-        if ( interopServe ) {
-            TopcatCommunicator communicator =
-                getControlWindow().getCommunicator();
+
+            /* Start SAMP/PLASTIC client. */
             boolean isReg = communicator.setActive();
             if ( isReg ) {
                 logger.info( "Registered as " + communicator.getProtocolName()
@@ -567,7 +566,8 @@ public class Driver {
            .append( p2 + "-samp          use SAMP for tool interoperability" )
            .append( p2 + "-plastic       use PLASTIC for "
                                          + "tool interoperability" )
-           .append( p2 + "-hub           run internal SAMP/PLASTIC hub" )
+           .append( p2 + "-[no]hub       [don't] run internal "
+                                         + "SAMP/PLASTIC hub" )
            .append( p2 + "-exthub        run external SAMP/PLASTIC hub" )
            .append( p2 + "-noserv        don't run any services"
                                          + " (PLASTIC or SAMP)" )

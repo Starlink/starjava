@@ -134,6 +134,12 @@ public interface TopcatCommunicator {
     void startHub( boolean external ) throws IOException;
 
     /**
+     * According to the policy of this communicator, this method may
+     * start a hub if none is already running.
+     */
+    void maybeStartHub() throws IOException;
+
+    /**
      * Optionally returns a panel which can be displayed in the control
      * window to show communications status.
      *

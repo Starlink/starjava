@@ -3506,10 +3506,13 @@ The meaning of the flags is as follows:
     interoperability (see <ref id="interop"/>).
     </p></dd>
 
-<dt>-hub</dt>
-<dd><p>Causes TOPCAT to run an internal SAMP or PLASTIC hub
-    (SAMP by default), if no hub is already
-    running.  The hub will terminate when TOPCAT does.
+<dt>-[no]hub</dt>
+<dd><p>The <code>-hub</code> flag causes TOPCAT to run an internal
+    SAMP or PLASTIC hub (SAMP by default), if no hub is already
+    running, and the <code>-nohub</code> flag prevents this from happening.
+    The default behaviour, when neither of these flags is given,
+    is currently (since v3.8) to start a hub automatically for
+    SAMP but not for PLASTIC.  The hub will terminate when TOPCAT does.
     See <ref id="interop"/>.
     </p></dd>
 
@@ -14329,6 +14332,7 @@ introduced since the last version:
     <li>Fix FITS character handling bug which could cause corrupted FITS
         files on output in presence of non-ASCII characters.</li>
     <li>Fix (some) JDBC connection leaks.</li>
+    <li>Starts SAMP hub by default on startup if none is present.</li>
     </ul>
     </p></dd>
 

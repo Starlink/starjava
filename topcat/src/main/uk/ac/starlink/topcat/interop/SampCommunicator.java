@@ -28,6 +28,7 @@ import javax.swing.event.ChangeListener;
 import nom.tam.fits.FitsException;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.gui.UniformCallActionManager;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.MessageTrackerHubConnector;
@@ -55,6 +56,7 @@ import uk.ac.starlink.vo.RegistryPanel;
  */
 public class SampCommunicator implements TopcatCommunicator {
 
+    private final ClientProfile clientProfile_;
     private final GuiHubConnector hubConnector_;
     private final TopcatSampControl sampControl_;
     private final Transmitter tableTransmitter_;
@@ -68,9 +70,8 @@ public class SampCommunicator implements TopcatCommunicator {
      * @param   controlWindow   TOPCAT control window
      */
     public SampCommunicator( ControlWindow controlWindow ) throws IOException {
-        hubConnector_ =
-            new MessageTrackerHubConnector( TopcatServer.getInstance()
-                                                        .getProfile() );
+        clientProfile_ = TopcatServer.getInstance().getProfile();
+        hubConnector_ = new MessageTrackerHubConnector( clientProfile_ );
         sampControl_ = new TopcatSampControl( hubConnector_, controlWindow );
         tableTransmitter_ =
             new TableSendActionManager( hubConnector_, sampControl_ );
@@ -198,6 +199,13 @@ public class SampCommunicator implements TopcatCommunicator {
             Hub.runHub( SysTray.getInstance().isSupported()
                                   ? HubServiceMode.CLIENT_GUI
                                   : HubServiceMode.NO_GUI );
+        }
+    }
+
+    public void maybeStartHub() throws IOException {
+        if ( ! clientProfile_.isHubRunning() ) {
+            logger_.info( "No SAMP hub running; attempting to start one" );
+            startHub( false );
         }
     }
 

@@ -137,6 +137,9 @@ public class PlasticCommunicator implements TopcatCommunicator {
         }
     }
 
+    public void maybeStartHub() {
+    }
+
     public SkyPointActivity createSkyPointActivity() {
         final ComboBoxModel selector =
             plasticServer_.createPlasticComboBoxModel( MessageId.SKY_POINT );
