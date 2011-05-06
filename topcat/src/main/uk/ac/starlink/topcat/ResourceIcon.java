@@ -216,6 +216,7 @@ public class ResourceIcon implements Icon {
         RADIAL = makeIcon( "clock1.gif" ),
         CONNECT = makeIcon( "connected-24.gif" ),
         DISCONNECT = makeIcon( "disconnected-24.gif" ),
+        NO_HUB = makeIcon( "nohub.gif" ),
         PDF = makeIcon( "pdf3.gif" ),
         TUNING = makeIcon( "TuningFork.gif" ),
         PROFILE = makeIcon( "vu-meter.gif" ),

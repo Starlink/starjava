@@ -2875,27 +2875,26 @@ way are
 image analysis tools
 (<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
  <webref url="http://www.starlink.ac.uk/gaia/">GAIA</webref>,
- [<webref url="http://hea-www.harvard.edu/RD/ds9/">DS9</webref> expected soon])
+ <webref url="http://hea-www.harvard.edu/RD/ds9/">ds9</webref>)
 table analysis tools
 (<webref url="http://visivo.cineca.it/">VisIVO</webref>,
  <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>,
  other instances of TOPCAT itself),
 spectrum analysis tools
 (<webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref>,
- <webref url="http://esavo.esa.int/vospec/">VOSpec</webref>)
+ <webref url="http://esavo.esa.int/vospec/">VOSpec</webref>),
+sky visualisation tools
+(<webref url="http://www.worldwidetelescope.org/">World Wide Telescope</webref>,
+ <webref url="http://archive.eso.org/cms/virgo/">VirGO</webref>),
 scripting languages
-(<webref url="http://cosmos.iasf-milano.inaf.it/luigi/projects/vo/samp/latest/"
-         >SAMPy</webref>,
- <webref url="http://www.babilim.co.uk/software/">Perl SAMP</webref>)
+(<webref url="http://pypi.python.org/pypi/sampy/">SAMPy</webref>),
 and others.
 </p>
 
 <p>SAMP and PLASTIC do much the same job as each other, and work in much
 the same way.  SAMP is an evolution of PLASTIC with a number of
-technical improvements, and so PLASTIC is somewhat deprecated in favour
-of SAMP.  At time of writing (December 2008) more tools speak PLASTIC
-than SAMP, but it is hoped that this will change over the next few months,
-and that SAMP will come to replace PLASTIC across the astronomical toolbase.
+technical improvements, and so PLASTIC is now deprecated in favour
+of SAMP.
 It is not necessary for users to understand the differences between the two, 
 but in general a tool using SAMP can communicate with other tools using SAMP,
 and the same with PLASTIC, but in most cases interoperation between
@@ -2973,6 +2972,15 @@ features several ways to view and control SAMP status.
     Note they will only be enabled if the hub is running, and there is at 
     least one connected client which knows how to receive a table.
     The <label>Broadcast</label> option is also available on the toolbar.
+    </p></dd>
+
+<dt>Stop Internal Hub (&IMG.NO_HUB;) menu option</dt>
+<dd><p>By default, when TOPCAT starts up, it will look for a SAMP hub,
+    and if none appears to be running it will start one internally,
+    which will normally run until TOPCAT exits.
+    This is usually not problematic, but if you would prefer to run a
+    hub external to TOPCAT, then you may need to shut down TOPCAT's before 
+    starting a new one.  Using this option shuts down TOPCAT's internal hub.
     </p></dd>
 
 </dl>
@@ -3512,7 +3520,9 @@ The meaning of the flags is as follows:
     running, and the <code>-nohub</code> flag prevents this from happening.
     The default behaviour, when neither of these flags is given,
     is currently (since v3.8) to start a hub automatically for
-    SAMP but not for PLASTIC.  The hub will terminate when TOPCAT does.
+    SAMP but not for PLASTIC.  The hub will terminate when TOPCAT does,
+    or can be shut down manually with the 
+    <label>Interop|Stop Internal Hub</label> (&IMG.NO_HUB;) menu item.
     See <ref id="interop"/>.
     </p></dd>
 

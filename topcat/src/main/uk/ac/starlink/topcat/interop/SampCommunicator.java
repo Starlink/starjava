@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -60,6 +61,8 @@ public class SampCommunicator implements TopcatCommunicator {
     private final GuiHubConnector hubConnector_;
     private final TopcatSampControl sampControl_;
     private final Transmitter tableTransmitter_;
+    private final Action stopHubAct_;
+    private Hub internalHub_;
     private int imageCount_;
     private static final Logger logger_ =
         Logger.getLogger( SampCommunicator.class.getName() );
@@ -75,6 +78,27 @@ public class SampCommunicator implements TopcatCommunicator {
         sampControl_ = new TopcatSampControl( hubConnector_, controlWindow );
         tableTransmitter_ =
             new TableSendActionManager( hubConnector_, sampControl_ );
+        stopHubAct_ = new AbstractAction( "Stop Internal Hub",
+                                          ResourceIcon.NO_HUB ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( internalHub_ != null ) {
+                    final Hub condemnedHub = internalHub_;
+                    internalHub_ = null;
+                    stopHubAct_.setEnabled( internalHub_ != null );
+                    Thread shutter = new Thread( "Hub shutdown" ) {
+                        public void run() {
+                            condemnedHub.shutdown();
+                        }
+                    };
+                    shutter.setDaemon( true );
+                    shutter.start();
+                }
+            }
+        };
+        stopHubAct_.putValue( Action.SHORT_DESCRIPTION,
+                              "Shuts down the internal SAMP hub running "
+                            + "within TOPCAT" );
+        stopHubAct_.setEnabled( internalHub_ != null );
     }
 
     public String getProtocolName() {
@@ -188,7 +212,9 @@ public class SampCommunicator implements TopcatCommunicator {
     }
 
     public Action[] getInteropActions() {
-        return new Action[ 0 ];
+        return new Action[] {
+            stopHubAct_,
+        };
     }
 
     public void startHub( boolean external ) throws IOException {
@@ -196,9 +222,10 @@ public class SampCommunicator implements TopcatCommunicator {
             Hub.runExternalHub( HubServiceMode.MESSAGE_GUI );
         }
         else {
-            Hub.runHub( SysTray.getInstance().isSupported()
-                                  ? HubServiceMode.CLIENT_GUI
-                                  : HubServiceMode.NO_GUI );
+            internalHub_ = Hub.runHub( SysTray.getInstance().isSupported()
+                                     ? HubServiceMode.CLIENT_GUI
+                                     : HubServiceMode.NO_GUI );
+            stopHubAct_.setEnabled( internalHub_ != null );
         }
     }
 
