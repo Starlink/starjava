@@ -82,6 +82,7 @@
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
   <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
   <!ENTITY FIG.SsapTableLoadDialog '&figs;SsapTableLoadDialog.gif'>
+  <!ENTITY FIG.TapTableLoadDialog '&figs;TapTableLoadDialog.gif'>
   <!ENTITY FIG.columnSelector '&figs;columnSelector.gif'>
   <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.gif'>
   <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.gif'>
@@ -1979,8 +1980,7 @@ these services:
 <li>Query that registry for services of interest</li>
 <li>From the returned list of services,
     select one that you wish to query for data</li>
-<li>Specify the query to send to the data service
-    (single or multiple positional queries)</li>
+<li>Specify the query to send to the data service</li>
 <li>Start the query and wait for the result</li>
 </ol>
 </p>
@@ -2011,7 +2011,7 @@ to advertise that it has certain datasets available for access.
 
 <p>Several registries exist; they tend to be maintained by different
 regional VO organisations.  At the time of writing, there are 
-registries maintained for public access by the UK's AstroGrid, 
+registries maintained for public access by (remnants of) the UK's AstroGrid, 
 the USA's NVO/VAO, and ESA, amongst others.
 Particular projects may also maintain their own registries with
 limited holdings for internal use.
@@ -2047,23 +2047,33 @@ TOPCAT currently knows how to access are the following:
 <dd><p>find spectral data, usually in a certain region of the sky,
     from a remote archive of spectral observations or theoretical models
     </p></dd>
+<dt>Table Access Protocol (TAP):</dt>
+<dd><p>make free-form queries to a remote database using an SQL-like
+    query language
+    </p></dd>
 </dl>
 Detailed technical information about these protocols can be found
 at the IVOA web site (<webref url="http://www.ivoa.net/"/>) in the
 <webref url="http://www.ivoa.net/Documents/latest/ConeSearch.html"
         >Cone Search</webref>,
-<webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref> and
+<webref url="http://www.ivoa.net/Documents/latest/SIA.html">SIA</webref>,
 <webref url="http://www.ivoa.net/Documents/latest/SSA.html">SSA</webref>
+and
+<webref url="http://www.ivoa.net/Documents/latest/TAP.html">TAP</webref>
 documents, but these are by no means required reading for users of the
 services.
-These protocols, especially SSA and SIA, are quite complex,
+These protocols (apart from Cone Search) are quite complex
 and have many specialised and optional features.
-Note that TOPCAT provides only a fairly basic level of interaction with
-them, and many features (for instance SSA queries by wavelength, 
+The options offered for Cone Search and TAP are
+reasonably complete, but for SIA and SSA
+TOPCAT only provides a fairly basic level of interaction,
+and many features (for instance SSA queries by wavelength, 
 or non-positional queries for theoretical data) are not accessible from it.
 </p>
 
-<p>TOPCAT provides access to these service types in two main ways:
+<p>Cone Search, SIA and SSA are <em>positional</em> protocols meaning
+that they query a single region of the sky.
+TOPCAT provides access to these service types in two main ways:
 <dl>
 <dt>Single positional query</dt>
 <dd><p>If you enter by hand a sky position (RA, Dec) and radius,
@@ -2090,6 +2100,11 @@ or non-positional queries for theoretical data) are not accessible from it.
     multiple query windows in <ref id="vo-windows"/>.
     </p></dd>
 </dl>
+</p>
+
+<p>TAP is not restricted to positional queries and has its own interface.
+See the <ref id="TapTableLoadDialog">TAP</ref> load dialogue section
+in <ref id="vo-windows"/>.
 </p>
 
 </subsect>
@@ -8509,9 +8524,11 @@ though others may be available in your installation.
 <li>&IMG.CONE_DIALOG;
     <ref id="ConeSearchDialog">Cone Search</ref></li>
 <li>&IMG.SIAP_DIALOG;
-    <ref id="SiapTableLoadDialog">Simple Image Access Query</ref></li>
+    <ref id="SiapTableLoadDialog">Simple Image Access (SIA) Query</ref></li>
 <li>&IMG.SSAP_DIALOG;
-    <ref id="SsapTableLoadDialog">Simple Spectral Access Query</ref></li>
+    <ref id="SsapTableLoadDialog">Simple Spectral Access (SSA) Query</ref></li>
+<li>&IMG.TAP_DIALOG;
+    <ref id="TapTableLoadDialog">Table Access Protocol (TAP) Query</ref></li>
 <li>&IMG.VIZIER;
     <ref id="VizierTableLoadDialog">VizieR Catalogue Service Query</ref></li>
 <li>&IMG.GAVO;
@@ -8875,6 +8892,12 @@ these steps, this dialogue may be inaccessible.
 <subsubsect>
 <subhead><title>SSA Query</title></subhead>
 <p>See <ref id="SsapTableLoadDialog"/> for details.
+</p>
+</subsubsect>
+
+<subsubsect>
+<subhead><title>TAP Query</title></subhead>
+<p>See <ref id="TapTableLoadDialog"/> for details.
 </p>
 </subsubsect>
 
@@ -10574,11 +10597,13 @@ tabular result.
 These ideas are explained in more detail in <ref id="vo"/>,
 while the current section describes the windows.
 The <ref id="vo-windows-common">next subsection</ref> 
-describes the components from which these windows are put together;
-all the windows contain a <ref id="RegistryPanel">registry query panel</ref>
-to select a suitable data access service, and they also contain either a
+describes the components from which these windows are put together.
+All the windows contain a <ref id="RegistryPanel">registry query panel</ref>
+to select a suitable data access service. 
+The positional query windows also contain either a
 <ref id="DalQueryLoadDialog">single</ref> or a
-<ref id="DalMultiPanel">multiple</ref> search panel
+<ref id="DalMultiPanel">multiple</ref> search panel,
+and the TAP window contains its own custom panel,
 to define the actual query or queries to submit to the selected service.
 The windows themselves are described in the following subsections.
 </p>
@@ -11000,7 +11025,7 @@ with sky position columns.
 </subsubsect>
 
 <subsubsect id="SiapTableLoadDialog">
-<subhead><title>Simple Image Access Query</title></subhead>
+<subhead><title>Simple Image Access (SIA) Query</title></subhead>
 
 <figure>
 <caption><px>SIA query load dialog</px></caption>
@@ -11044,7 +11069,7 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 </subsubsect>
 
 <subsubsect id="SsapTableLoadDialog">
-<subhead><title>Simple Spectral Access Query</title></subhead>
+<subhead><title>Simple Spectral Access (SSA) Query</title></subhead>
 
 <figure>
 <caption><px>SSA query load dialog</px></caption>
@@ -11088,7 +11113,7 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 </subsubsect>
 
 <subsubsect id="ConeMultiWindow">
-<subhead><title>Multiple Cone Search Window</title></subhead>
+<subhead><title>Multiple Cone Search</title></subhead>
 
 <figure>
 <caption><px>Multiple cone search window</px></caption>
@@ -11121,7 +11146,7 @@ or wider tables respectively, and others will ignore it.
 </subsubsect>
 
 <subsubsect id="SiaMultiWindow">
-<subhead><title>Multiple SIA Window</title></subhead>
+<subhead><title>Multiple SIA Query</title></subhead>
 
 <figure>
 <caption><px>Multiple SIA window</px></caption>
@@ -11179,7 +11204,7 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 
 
 <subsubsect id="SsaMultiWindow">
-<subhead><title>Multiple SSA Window</title></subhead>
+<subhead><title>Multiple SSA Query</title></subhead>
 
 <figure>
 <caption><px>Multiple SSA window</px></caption>
@@ -11223,6 +11248,24 @@ sky positions of those rows.
 Having done this you might want to set the resulting table's
 Activation Action to the <label>View URL as Spectrum</label> option
 using the <ref id="ActivationQueryWindow">Activation Window</ref>.
+</p>
+
+</subsubsect>
+
+<subsubsect id="TapTableLoadDialog">
+<subhead><title>Table Access Protocol (TAP) Query</title></subhead>
+
+<figure>
+<caption><px>Table Access Protocol Window</px></caption>
+<figureimage src="&FIG.TapTableLoadDialog;"/>
+</figure>
+
+<p>The Table Access Protocol (TAP) load window can be opened using the
+<label>TAP Query</label> button (&IMG.TAP_DIALOG;)
+from the Load Window's toolbar or the Control Window's
+<label>VO</label> menu.
+It allows you to make freeform queries of remote database services 
+using an SQL-like language.
 </p>
 
 </subsubsect>
@@ -14316,7 +14359,9 @@ introduced since the last version:
 <dd><p>
     <dl>
     <dt>TAP</dt>
-    <dd><p>A new load dialogue supporting data retrieval using 
+    <dd><p>A new <ref plaintextref="yes" id="TapTableLoadDialog"
+                      >TAP load dialogue</ref>
+        supporting data retrieval using 
         the Table Access Protocol (TAP) has been introduced.
         </p>
         </dd>
