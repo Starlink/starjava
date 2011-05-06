@@ -139,7 +139,7 @@ public class TapQuery {
                                      stringMap_, streamMap_ );
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
-            throw asIOException( e );
+            throw asIOException( e, "Synchronous might work?" );
         }
     }
 
@@ -198,7 +198,7 @@ public class TapQuery {
             }
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
-            throw asIOException( e );
+            throw asIOException( e, null );
         }
     }
 
@@ -281,14 +281,16 @@ public class TapQuery {
      * be an error-bearing VOTable, and extract the error text.
      *
      * @param  error  input error
+     * @param  extra   extra text to append to message; may be null
      * @return   better error
      */
     private static IOException
-            asIOException( UwsJob.UnexpectedResponseException error ) {
+            asIOException( UwsJob.UnexpectedResponseException error,
+                           String extra ) {
         HttpURLConnection hconn = error.getConnection();
 
         /* Get an input stream for the response body.  Depending on the
-         * response code HttpURLConnection may make this avaiable as
+         * response code HttpURLConnection may make this available as
          * the input or error stream. */
         InputStream bodyIn;
         try {
@@ -312,6 +314,11 @@ public class TapQuery {
         /* Fall back to the cause's message if necessary. */
         if ( errMsg == null || errMsg.length() == 0 ) {
             errMsg = error.getMessage();
+        }
+
+        /* Add extra text if requested. */
+        if ( extra != null && extra.length() > 0 ) {
+            errMsg += " -  " + extra;
         }
 
         /* Return an exception with the correct type, message and cause. */
