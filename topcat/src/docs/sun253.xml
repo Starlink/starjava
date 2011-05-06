@@ -82,7 +82,11 @@
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
   <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
   <!ENTITY FIG.SsapTableLoadDialog '&figs;SsapTableLoadDialog.gif'>
-  <!ENTITY FIG.TapTableLoadDialog '&figs;TapTableLoadDialog.gif'>
+  <!ENTITY FIG.TapTableLoadDialog_service
+           '&figs;TapTableLoadDialog_service.gif'>
+  <!ENTITY FIG.TapTableLoadDialog_query '&figs;TapTableLoadDialog_query.gif'>
+  <!ENTITY FIG.TapTableLoadDialog_jobs '&figs;TapTableLoadDialog_jobs.gif'>
+  <!ENTITY FIG.TapTableLoadDialog_resume '&figs;TapTableLoadDialog_resume.gif'>
   <!ENTITY FIG.columnSelector '&figs;columnSelector.gif'>
   <!ENTITY FIG.RegistryPanel '&figs;RegistryPanel.gif'>
   <!ENTITY FIG.DalTableLoadDialog '&figs;DalTableLoadDialog.gif'>
@@ -11257,16 +11261,367 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 
 <figure>
 <caption><px>Table Access Protocol Window</px></caption>
-<figureimage src="&FIG.TapTableLoadDialog;"/>
+<figureimage src="&FIG.TapTableLoadDialog_query;"/>
 </figure>
 
 <p>The Table Access Protocol (TAP) load window can be opened using the
 <label>TAP Query</label> button (&IMG.TAP_DIALOG;)
 from the Load Window's toolbar or the Control Window's
 <label>VO</label> menu.
-It allows you to make freeform queries of remote database services 
+It allows you to use the TAP protocol to
+make freeform queries of remote database services 
 using an SQL-like language.
+This is a powerful capability, giving you full access to
+remote data holdings; it's very similar to systems like SDSS's
+<webref url="http://cas.sdss.org/CasJobs/">CasJobs</webref>,
+but using the IVOA-endorsed TAP standard means that you can use
+the same interface for many different remote datasets.
 </p>
+
+<p>TAP is not so simple as the other VO protocols implemented by TOPCAT,
+and this window is correspondingly more complicated than the Cone, SIA
+and SSA dialogues, though it does share some features with them.
+In particular TAP caters specifically for long-running queries by
+allowing <em>asynchronous</em> submission in which you submit a job to
+the server, it runs for a potentially long time, and when it finishes
+the result can be collected from the server.
+</p>
+
+<p>In order to interrogate the remote database you will have to
+write queries in Astronomical Data Query Language (ADQL).
+This is a powerful tool, but to do complicated things in it 
+is not trivial.  ADQL is essentially a particular dialect of SQL,
+so if you know SQL already, you should be able to write ADQL queries.
+If you are familiar with systems like SDSS's CasJobs, the concept
+should be 
+A tutorial on writing ADQL/SQL is beyond the scope of this manual,
+but this window provides an <label>Examples</label> which
+will give you a good start in using it.
+</p>
+
+<p>The window is composed of four tabs, of which you can see one at a time.
+You will use two or three of them when submitting a TAP query.
+Each tab is described in more detail in the following subsections,
+but an overview of their operation is like this:
+<dl>
+<dt><ref id="TapTableLoadDialog_service">Select Service</ref></dt>
+<dd><p>Chooses the TAP service you wish to query, either using a registry
+    search or by enterin the service URL directly.
+    Once you have chosen a service you can move to the
+    <label>Enter Query</label> tab.
+    </p></dd>
+<dt><ref id="TapTableLoadDialog_query">Enter Query</ref></dt>
+<dd><p>Displays information about the service and the tables it holds,
+    and allows you to enter the text of the query and submit the job.
+    When the job is submitted you will move to the
+    <label>Running Jobs</label> tab.
+    </p></dd>
+<dt><ref id="TapTableLoadDialog_jobs">Running Jobs</ref></dt>
+<dd><p>Shows a list of the query jobs you have submitted, with details on
+    their progress.
+    </p></dd>
+<dt><ref id="TapTableLoadDialog_resume">Resume Job</ref></dt>
+<dd><p>Optionally allows you to resume a query started in some earlier session.
+    </p></dd>
+</dl>
+</p>
+
+<p>When you first visit this window, the <label>Select Service</label>
+tab will be visible, and when your query has been submitted the
+<label>Running Jobs</label> tab will be visible.
+If you want to submit another query to the same service,
+or use a different service
+just select the <label>Enter Query</label> or 
+<label>Select Service</label> tab manually.
+</p>
+
+<p><strong>Note:</strong> The TAP dialogue has been introduced at version
+3.8 of TOPCAT, at a time
+when most available TAP services are quite new and may not fully conform
+to the standard, and usage patterns are still settling down.
+For this reason you may find that some TAP services visible do not
+behave quite as expected; it is also possible that in future versions
+the user interface will change in line with changing service profiles
+or in the light of user experience.
+</p>
+
+<subsubsubsect id="TapTableLoadDialog_service">
+<subhead><title>Select Service tab</title></subhead>
+
+<figure>
+<caption><px>TAP window with Select Service tab visible</px></caption>
+<figureimage src="&FIG.TapTableLoadDialog_service;"/>
+</figure>
+
+<p>The <label>Select Service</label> tab of the TAP load dialogue
+allows you to choose which TAP service you wish to query.
+You need to do this before submitting a new TAP query.
+This tab is essentially the same as the 
+<ref id="RegistryPanel">Registry Query Panel</ref> of the other
+VO query windows.
+Having queried the registry, click on one of the rows to enter its
+service URL in the <label>TAP URL</label> field at the bottom.
+</p>
+
+<p>If you know the URL of the TAP service you wish to query, you can
+enter it directly into the <label>TAP URL</label> field without a 
+registry search.
+</p>
+
+<p>At time of writing, there are only a couple of dozen TAP services 
+registered, and it is feasible to query the registry for them all,
+by clicking the <label>Submit Query</label> button without entering
+any search terms.
+Note however that for technical reasons (the registry records for 
+some of these services are large) the search can take a while.
+</p>
+
+<p>Once a service URL has been chosen in one of these ways, you can
+click the <label>Enter Query</label> button at the bottom 
+(or equivalently the tab header at the top), 
+and you will be moved to the
+<ref id="TapTableLoadDialog_query">Enter Query</ref> tab.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="TapTableLoadDialog_query">
+<subhead><title>Enter Query tab</title></subhead>
+
+<figure>
+<caption><px>TAP window with Enter Query tab visible</px></caption>
+<figureimage src="&FIG.TapTableLoadDialog_query;"/>
+</figure>
+
+<p>The <label>Enter Query</label> tab of the TAP load dialogue
+displays information about the service you have selected to query,
+and allows you to enter the query text and some additional options
+about how the query is to be executed.
+The panel has three parts: 
+<label>Table Metadata</label>,
+<label>Service Capabilities</label>, and
+<label>ADQL Text</label>.
+</p>
+
+<p>The <label>Table Metadata</label> panel displays information about
+the tables held by the selected service.
+When the panel is first displayed the service is contacted to obtain
+this information, and a progress bar will appear until it has arrived.
+If the service does not provide it in an appropriate form, nothing
+can be shown; it's still possible to submit a query, but you'll need
+some other way of knowing what tables and columns are available.
+Once the metadata has loaded, the following information will be
+available:
+<dl>
+<dt>Service</dt>
+<dd><p>The service URL selected in the Select Service tab.
+    </p></dd>
+<dt>Table</dt>
+<dd><p>This selector contains an entry for all the tables contained in the
+    remote database.  There may be just one, or there may be hundreds.
+    When you select one, information about it is displayed below.
+    </p></dd>
+<dt>Columns</dt>
+<dd><p>Tabulates metadata about each of the columns in the remote
+    table selected in the Table selector above.
+    Column names, types, descriptions, UCDs etc are shown.
+    Columns which are known to be indexed within the remote database
+    have the "Indexed" column ticked; this may help to to formulate
+    efficient queries.
+    </p></dd>
+<dt>Foreign Keys</dt>
+<dd><p>If the service provides information about foreign keys
+    (links between fields in different tables in the database)
+    they will be tabulated here.  They may help you to formulate
+    efficient queries.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Service Capabilities</label> panel shows capability
+metadata that the service provides about itself; again, this has to
+be loaded from the server and may not appear immediately.
+It contains the following information:
+<dl>
+<dt>Query Language</dt>
+<dd><p>Shows what query languages, and what versions, are available.
+    If there is more than one listed, you can choose which language
+    you want to submit your query in, but if you choose something
+    which is not a variant of ADQL it may not work.
+    </p></dd>
+<dt>Max Rows</dt>
+<dd><p>Selector which shows the maximum number of output rows 
+    that the service is
+    willing to deliver as the result of a query under normal circumstances.
+    Entries in this list value may be marked "(default)" or "(max)".
+    You can change this value by typing in a different number, as long as
+    it does not exceed any supplied maximum.
+    This value is here to protect the user, as well as the service, from
+    inadvertently requesting an unduly large output table.
+    Note that if the construction "<code>TOP nnn</code>" is used in the ADQL,
+    this may override the value supplied here.
+    </p></dd>
+<dt>Uploads</dt>
+<dd><p>Indicates if table uploads are permitted, and perhaps what is the
+    largest upload size (in terms of rows and/or bytes) which will be
+    accepted.
+    See below for more about table uploads.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>ADQL Text</label> panel is where you can enter the actual
+query text for the request.
+It has the following parts:
+<dl>
+<dt>Synchronous checkbox</dt>
+<dd><p>Determines whether your job will be executed on the server in
+    synchronous or asychronous mode (check the box for synchronous).
+    Synchronous means that TOPCAT sends the query to the server and
+    waits for the result as the response of the same HTTP request.
+    It's simpler and faster, but if the job takes a long time,
+    the request may time out and the results be lost.
+    In asynchronous mode TOPCAT sends the query to the server and gets
+    a message back telling it where to look for information about the
+    job's progress; TOPCAT then keeps polling the server to find out 
+    when it has completed.
+    Synchronous is suitable for short jobs (it may typically execute
+    with a few seconds less delay), but for longer jobs aysnchronous is
+    more reliable.  It is possible to submit an asynchronous job
+    on one day from one machine, and pick up the results on a different
+    day from another machine, using another invocation of TOPCAT or of
+    a different application altogther.
+    Note however if you want an asychronous job to outlast a TOPCAT session,
+    you should select the <label>Deletion|Never</label> menu option.
+    </p></dd>
+<dt>Examples menu</dt>
+<dd><p>This button presents you with a short list of example queries.
+    These are tailored to the table metadata obtained for this service,
+    and where appropriate to the table currently selected by the
+    Table selector, so they should be runnable as they stand
+    (though there is no guarantee they will produce useful results).
+    A better idea though is to use them as starting points for your
+    own queries.  By picking one which is something like what you want
+    to do, you can hopefully work out the syntax for the query you need
+    without having to read the ADQL specification.
+    Some of the options in the list may be disabled,
+    depending on what capabilities the service has declared.
+    </p></dd>
+<dt>Clear button</dt>
+<dd><p>Clicking this button clears any text currently shown in the
+    text entry field.
+    </p></dd>
+<dt>Text entry field</dt>
+<dd><p>This is where you enter the text of the ADQL query you wish to make.
+    </p></dd>
+</dl>
+</p>
+
+<p>Some services permit <label>Table Uploads</label>
+(at time of writing only the GAVO service implements this capability,
+but hopefully more will do so in future).
+What this means is that you can upload tables from TOPCAT into the
+remote database and perform queries on your table directly.
+In this way you can perform joins between your own tables
+(anything loaded into TOPCAT) and any of the tables in the remote
+database.  This is extremely powerful feature.
+To take advantage of it, you just need to use a special form for
+the table name to reference a TOPCAT-based table:
+you write "<code>TAP_UPLOAD.t&lt;n&gt;</code>", where
+<code>&lt;n&gt;</code> is the ID number of the table in TOPCAT,
+that is the number before the colon in the 
+<ref id="ControlWindow">Control Window</ref> Table List.
+So, if a table identified as "<code>1: messier.xml</code>"
+in the table list, you can reference it in ADQL as
+"<code>TAP_UPLOAD.t1</code>".
+</p>
+
+<p>Having entered suitable query text, 
+click the <label>OK</label> button at the bottom of the window
+to submit the job.  When you do this, one of two things will happen.
+In synchronous mode, the <ref id="LoadWindow">Load Window</ref> will appear,
+and the progress will indicate when loading is complete in the normal way.
+In asynchronous mode, you will be taken to the
+<ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab
+where you can see the progress of your submitted job.
+</p>
+
+
+</subsubsubsect>
+
+<subsubsubsect id="TapTableLoadDialog_jobs">
+<subhead><title>Running Jobs tab</title></subhead>
+
+<figure>
+<caption><px>TAP window with Running Jobs tab visible</px></caption>
+<figureimage src="&FIG.TapTableLoadDialog_jobs;"/>
+</figure>
+
+<p>The <label>Running Jobs</label> tab of the TAP load dialogue
+shows a list of the asynchronous jobs you have submitted,
+with information about their current progress.
+</p>
+
+<p>The upper part of the screen shows a list of the jobs submitted,
+along with a one-word summary of their status (their <em>Phase</em>).
+If one of these jobs is selected, its details will be shown in the 
+lower part.  By default the most recently submitted job will be shown,
+but you can select a job by clicking on it.
+</p>
+
+<p>The information displayed is retrieved from the server, and
+can only be seen as long as the job has not been deleted,
+either by you the user, or as a result of server policy
+(for instance a maximum job lifetime).
+The following items, if provided by the service, are shown:
+<dl>
+<dt>URL</dt>
+<dt>Phase</dt>
+<dt>Job ID</dt>
+<dt>Run ID</dt>
+<dt>Owner Id</dt>
+<dt>Max Duration</dt>
+<dt>Start Time</dt>
+<dt>End Time</dt>
+<dt>Destruction Time</dt>
+<dt>Error</dt>
+<dt>Parameters</dt>
+</dl>
+</p>
+
+<p>There are two buttons at the bottom of the screen which affect the
+status of the currently displayed job:
+<dl>
+<dt>Abort</dt>
+<dd><p>Stops the job from executing.  It cannot be restarted.
+    The job still exists on the server however, so it can be examined
+    in this window.
+    </p></dd>
+<dt>Delete</dt>
+<dd><p>Stops the job as for Abort, but also removes all trace of it
+    from the server.  No details can be seen any more.
+    </p></dd>
+</dl>
+</p>
+
+<p>If no jobs are currently visible, this tab is inaccessible.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="TapTableLoadDialog_resume">
+<subhead><title>Resume Job tab</title></subhead>
+
+<figure>
+<caption><px>TAP window with Resume Job tab visible</px></caption>
+<figureimage src="&FIG.TapTableLoadDialog_resume;"/>
+</figure>
+
+    <p>This tab can optionally be used to resume waiting
+    for the result of a long-running query submitted earlier.
+    </p>
+
+</subsubsubsect>
 
 </subsubsect>
 
