@@ -108,9 +108,9 @@ public class UwsJobListPanel extends JPanel {
         };
         JComponent controlLine = Box.createHorizontalBox();
         controlLine.add( Box.createHorizontalGlue() );
-        controlLine.add( new JButton( deleteAction_ ) );
-        controlLine.add( Box.createHorizontalStrut( 10 ) );
         controlLine.add( new JButton( abortAction_ ) );
+        controlLine.add( Box.createHorizontalStrut( 10 ) );
+        controlLine.add( new JButton( deleteAction_ ) );
         controlLine.add( Box.createHorizontalGlue() );
         updateActions();
 
