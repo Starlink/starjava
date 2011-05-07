@@ -11278,7 +11278,7 @@ but using the IVOA-endorsed TAP standard means that you can use
 the same interface for many different remote datasets.
 </p>
 
-<p>TAP is not so simple as the other VO protocols implemented by TOPCAT,
+<p>TAP is more involved than the other VO protocols implemented by TOPCAT,
 and this window is correspondingly more complicated than the Cone, SIA
 and SSA dialogues, though it does share some features with them.
 In particular TAP caters specifically for long-running queries by
@@ -11292,10 +11292,11 @@ write queries in Astronomical Data Query Language (ADQL).
 This is a powerful tool, but to do complicated things in it 
 is not trivial.  ADQL is essentially a particular dialect of SQL,
 so if you know SQL already, you should be able to write ADQL queries.
-If you are familiar with systems like SDSS's CasJobs, the concept
-should be 
+If you have used systems like SDSS's CasJobs, the concept
+should be quite familiar.
 A tutorial on writing ADQL/SQL is beyond the scope of this manual,
-but this window provides an <label>Examples</label> which
+but the <ref id="TapTableLoadDialog_query">Enter Query</ref> tab
+provides an <label>Examples</label> menu which
 will give you a good start in using it.
 </p>
 
@@ -11304,23 +11305,23 @@ You will use two or three of them when submitting a TAP query.
 Each tab is described in more detail in the following subsections,
 but an overview of their operation is like this:
 <dl>
-<dt><ref id="TapTableLoadDialog_service">Select Service</ref></dt>
+<dt><ref id="TapTableLoadDialog_service">Select Service</ref> tab</dt>
 <dd><p>Chooses the TAP service you wish to query, either using a registry
-    search or by enterin the service URL directly.
+    search or by entering the service URL directly.
     Once you have chosen a service you can move to the
     <label>Enter Query</label> tab.
     </p></dd>
-<dt><ref id="TapTableLoadDialog_query">Enter Query</ref></dt>
+<dt><ref id="TapTableLoadDialog_query">Enter Query</ref> tab</dt>
 <dd><p>Displays information about the service and the tables it holds,
     and allows you to enter the text of the query and submit the job.
     When the job is submitted you will move to the
     <label>Running Jobs</label> tab.
     </p></dd>
-<dt><ref id="TapTableLoadDialog_jobs">Running Jobs</ref></dt>
+<dt><ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab</dt>
 <dd><p>Shows a list of the query jobs you have submitted, with details on
     their progress.
     </p></dd>
-<dt><ref id="TapTableLoadDialog_resume">Resume Job</ref></dt>
+<dt><ref id="TapTableLoadDialog_resume">Resume Job</ref> tab</dt>
 <dd><p>Optionally allows you to resume a query started in some earlier session.
     </p></dd>
 </dl>
@@ -11330,9 +11331,52 @@ but an overview of their operation is like this:
 tab will be visible, and when your query has been submitted the
 <label>Running Jobs</label> tab will be visible.
 If you want to submit another query to the same service,
-or use a different service
+or use a different service,
 just select the <label>Enter Query</label> or 
-<label>Select Service</label> tab manually.
+<label>Select Service</label> respectively,
+by clicking on the appropriate tab at the top.
+</p>
+
+<p>This window offers one menu additional to the standard
+<ref id="RegistryPanel">VO windows</ref> menus:
+<dl>
+<dt>Deletion menu</dt>
+<dd><p>Allows you to choose when asynchronously submitted jobs will be
+    deleted from the server.  Once they are deleted they will no longer
+    be visible in the <label>Running Jobs</label> tab.  If they are not
+    deleted in this way, they will stay on the server until they are
+    deleted according to the server's deletion policy.  Choose one of
+    the available options:
+    <ul>
+    <li><strong>On Completion:</strong>
+        deleted when it has completed with either success or error status
+        </li>
+    <li><strong>On Exit:</strong>
+        deleted when TOPCAT shuts down
+        </li>
+    <li><strong>Never:</strong>
+        not deleted (except according to server policy)
+        </li>
+    </ul>
+    If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
+    the job in a later session, you'll have to choose <label>Never</label>.
+    </p></dd>
+</dl>
+</p>
+
+<p>The additional menu items are:
+<dl>
+<dt>&IMG.KEEP_OPEN;: Stay Open</dt>
+<dd><p>Makes sure that the window is not automatically closed after it
+    loads a table.
+    </p></dd>
+<dt>&IMG.REDO;: Reload</dt>
+<dd><p>Reloads information displayed in the window from the server.
+    This may be updating job status information or reloading table
+    or service metadata; the exact behaviour depends on which tab
+    is currently visible.
+    </p></dd>
+</dl>
 </p>
 
 <p><strong>Note:</strong> The TAP dialogue has been introduced at version
@@ -11415,11 +11459,15 @@ available:
 <dl>
 <dt>Service</dt>
 <dd><p>The service URL selected in the Select Service tab.
+    It also notes the number of tables available from this service.
     </p></dd>
 <dt>Table</dt>
 <dd><p>This selector contains an entry for all the tables contained in the
     remote database.  There may be just one, or there may be hundreds.
     When you select one, information about it is displayed below.
+    An expanded title or description may also be displayed next to the
+    selector - hovering over this description with the mouse 
+    may provide further detail in a tool tip.
     </p></dd>
 <dt>Columns</dt>
 <dd><p>Tabulates metadata about each of the columns in the remote
@@ -11455,11 +11503,11 @@ It contains the following information:
     willing to deliver as the result of a query under normal circumstances.
     Entries in this list value may be marked "(default)" or "(max)".
     You can change this value by typing in a different number, as long as
-    it does not exceed any supplied maximum.
+    it does not exceed the server's maximum.
     This value is here to protect the user, as well as the service, from
     inadvertently requesting an unduly large output table.
     Note that if the construction "<code>TOP nnn</code>" is used in the ADQL,
-    this may override the value supplied here.
+    the <code>nnn</code> limit may override the value supplied here.
     </p></dd>
 <dt>Uploads</dt>
 <dd><p>Indicates if table uploads are permitted, and perhaps what is the
@@ -11491,13 +11539,11 @@ It has the following parts:
     on one day from one machine, and pick up the results on a different
     day from another machine, using another invocation of TOPCAT or of
     a different application altogther.
-    Note however if you want an asychronous job to outlast a TOPCAT session,
-    you should select the <label>Deletion|Never</label> menu option.
     </p></dd>
 <dt>Examples menu</dt>
 <dd><p>This button presents you with a short list of example queries.
     These are tailored to the table metadata obtained for this service,
-    and where appropriate to the table currently selected by the
+    and, where appropriate, to the table currently selected by the
     Table selector, so they should be runnable as they stand
     (though there is no guarantee they will produce useful results).
     A better idea though is to use them as starting points for your
@@ -11576,17 +11622,52 @@ either by you the user, or as a result of server policy
 The following items, if provided by the service, are shown:
 <dl>
 <dt>URL</dt>
+<dd><p>The URL at which the job information is held on the server.
+    This value can be used later in the 
+    <ref id="TapTableLoadDialog_resume">Resume Job</ref> tab,
+    or entered directly into a web browser to see job information.
+    </p></dd>
 <dt>Phase</dt>
+<dd><p>The current stage of job processing.
+    This usually progresses in the sequence QUEUED, EXECUTING, COMPLETED
+    (or ERROR).
+    </p></dd>
 <dt>Job ID</dt>
+<dd><p>Job identifier, unique to the server.   Forms part of the URL.
+    </p></dd>
 <dt>Run ID</dt>
+<dd><p>Run identifier, often blank.
+    </p></dd>
 <dt>Owner Id</dt>
+<dd><p>Owner identifier, blank unless user authentication is in use.
+    </p></dd>
 <dt>Max Duration</dt>
+<dd><p>The maximum amount of time in seconds that the server will allow
+    the job to run for.  This is "wall-clock" time rather than CPU time.
+    </p></dd>
 <dt>Start Time</dt>
+<dd><p>Time at which actual processing of the job (as opposed to queuing)
+    started.
+    </p></dd>
 <dt>End Time</dt>
+<dd><p>Time at which processing of the job finished.
+    </p></dd>
 <dt>Destruction Time</dt>
+<dd><p>Time in the future at which the server will delete the job,
+    if it has not been manually removed by then.
+    </p></dd>
 <dt>Error</dt>
+<dd><p>Message and possibly other information about error status if an
+    error occurred during processing.  This will normally be blank
+    unless <label>Phase</label> has the value "ERROR".
+    </p></dd>
 <dt>Parameters</dt>
+<dd><p>Displays parameters which were supplied to define the job to the server.
+    This will normally include the text of the ADQL being executed.
+    </p></dd>
 </dl>
+You can cut and paste from these items, so for instance if you 
+want to take the URL and paste it into a web browser you can do.
 </p>
 
 <p>There are two buttons at the bottom of the screen which affect the
@@ -11617,9 +11698,28 @@ status of the currently displayed job:
 <figureimage src="&FIG.TapTableLoadDialog_resume;"/>
 </figure>
 
-    <p>This tab can optionally be used to resume waiting
-    for the result of a long-running query submitted earlier.
-    </p>
+<p>The <label>Resume Job</label> tab of the TAP load dialogue
+allows you to continue execution of an asynchronous job which was started
+outside of this run of TOPCAT, either during an earlier TOPCAT run,
+or using some other mechanism.
+This may be useful if you have submitted a long-running job
+on an earlier day or on a different machine and want to monitor
+its progress or pick up the results.
+</p>
+
+<p>To use it, enter the Job URL into the <label>URL</label> field
+at the top and click the <label>View</label> button.
+If a job with that URL exists, its details will be displayed 
+in the panel below, in the same format as for the 
+<ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab.
+</p>
+
+<p>Depending on whether the job has completed or not, either the
+<label>Resume</label> or <label>Load Result</label> button at the
+bottom of the window will be enabled.
+You can click the appropriate one either to monitor its progress
+further or to pick up the completed result.
+</p>
 
 </subsubsubsect>
 
@@ -14718,6 +14818,8 @@ introduced since the last version:
                       >TAP load dialogue</ref>
         supporting data retrieval using 
         the Table Access Protocol (TAP) has been introduced.
+        This provides SQL-like free-form access to any remote databases
+        exposed with the TAP protocol.
         </p>
         </dd>
     <dt>SAMP changes</dt>
