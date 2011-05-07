@@ -59,7 +59,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
             delButtGroup.add( menuItem );
             delMenu.add( menuItem );
-            if ( policy == DeletionPolicy.EXIT ) { // default
+            if ( policy == DeletionPolicy.DEFAULT ) { // default
                 menuItem.doClick();
             }
         }
@@ -181,7 +181,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     private static enum DeletionPolicy {
 
         /** Delete when the job has finished. */
-        FINISHED( "On completion",
+        FINISHED( "On Completion",
                   "Delete jobs on completion, either successful or failed",
                   true, false ),
 
@@ -190,6 +190,9 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
         /** Delete never. */
         NEVER( "Never", "Do not delete jobs", false, false );
+
+        /** Default policy. */
+        public static final DeletionPolicy DEFAULT = NEVER;
 
         private final String name_;
         private final String description_;
