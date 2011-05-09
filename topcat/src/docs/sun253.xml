@@ -125,7 +125,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>23 December 2010</docdate>
+<docdate>9 May 2011</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -11272,7 +11272,7 @@ It allows you to use the TAP protocol to
 make freeform queries of remote database services 
 using an SQL-like language.
 This is a powerful capability, giving you full access to
-remote data holdings; it's very similar to systems like SDSS's
+remote data holdings; it's similar to systems like SDSS's
 <webref url="http://cas.sdss.org/CasJobs/">CasJobs</webref>,
 but using the IVOA-endorsed TAP standard means that you can use
 the same interface for many different remote datasets.
@@ -11332,7 +11332,7 @@ tab will be visible, and when your query has been submitted the
 <label>Running Jobs</label> tab will be visible.
 If you want to submit another query to the same service,
 or use a different service,
-just select the <label>Enter Query</label> or 
+just select <label>Enter Query</label> or 
 <label>Select Service</label> respectively,
 by clicking on the appropriate tab at the top.
 </p>
@@ -11417,7 +11417,8 @@ registered, and it is feasible to query the registry for them all,
 by clicking the <label>Submit Query</label> button without entering
 any search terms.
 Note however that for technical reasons (the registry records for 
-some of these services are large) the search can take a while.
+some of these services are large) the search can take a while
+(typically 30sec on a fast link).
 </p>
 
 <p>Once a service URL has been chosen in one of these ways, you can
@@ -11439,6 +11440,7 @@ and you will be moved to the
 
 <p>The <label>Enter Query</label> tab of the TAP load dialogue
 displays information about the service you have selected to query,
+principally what tables are available and what columns they have,
 and allows you to enter the query text and some additional options
 about how the query is to be executed.
 The panel has three parts: 
@@ -11462,7 +11464,7 @@ available:
     It also notes the number of tables available from this service.
     </p></dd>
 <dt>Table</dt>
-<dd><p>This selector contains an entry for all the tables contained in the
+<dd><p>This selector contains an entry for each table contained in the
     remote database.  There may be just one, or there may be hundreds.
     When you select one, information about it is displayed below.
     An expanded title or description may also be displayed next to the
@@ -11540,11 +11542,11 @@ It has the following parts:
     day from another machine, using another invocation of TOPCAT or of
     a different application altogther.
     </p></dd>
-<dt>Examples menu</dt>
-<dd><p>This button presents you with a short list of example queries.
+<dt>Examples button</dt>
+<dd><p>This button presents you with a short menu of example queries.
     These are tailored to the table metadata obtained for this service,
     and, where appropriate, to the table currently selected by the
-    Table selector, so they should be runnable as they stand
+    Table selector, so they should in most cases be runnable as they stand
     (though there is no guarantee they will produce useful results).
     A better idea though is to use them as starting points for your
     own queries.  By picking one which is something like what you want
@@ -11552,6 +11554,9 @@ It has the following parts:
     without having to read the ADQL specification.
     Some of the options in the list may be disabled,
     depending on what capabilities the service has declared.
+    In some cases, especially ones using geometric functions, the
+    service may reject the example, since TOPCAT can't always tell
+    which functions are supported by the server.
     </p></dd>
 <dt>Clear button</dt>
 <dd><p>Clicking this button clears any text currently shown in the
@@ -11685,7 +11690,8 @@ status of the currently displayed job:
 </dl>
 </p>
 
-<p>If no jobs are currently visible, this tab is inaccessible.
+<p>If no jobs are currently visible (none have been submitted or they
+have all been deleted), this tab is inaccessible.
 </p>
 
 </subsubsubsect>
