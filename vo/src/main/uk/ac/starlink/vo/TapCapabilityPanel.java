@@ -91,10 +91,7 @@ public class TapCapabilityPanel extends JPanel {
             langSelector_.setSelectedItem( getDefaultLanguage( langs ) );
             langSelector_.setEnabled( true );
 
-            boolean canUpload =
-                Arrays.asList( capability.getUploadMethods() )
-               .indexOf( TapCapability.UPLOADS_URI + "#inline" ) >= 0;
-            if ( canUpload ) {
+            if ( canUpload( capability ) ) {
                 StringBuffer sbuf = new StringBuffer();
                 sbuf.append( getUploadLimitString( TapLimit.ROWS ) )
                     .append( sbuf.length() > 0 ? "/" : "" )
@@ -254,6 +251,20 @@ public class TapCapabilityPanel extends JPanel {
             }
             return snum + u;
         }
+    }
+
+    /**
+     * Indicates whether the TAP load dialogue is capable of uploads
+     * for a given capability object.
+     *
+     * @param   tcap  capability metadata
+     * @return  true iff tcap permits inline uploads
+     */
+    public static boolean canUpload( TapCapability tcap ) {
+        String[] upMethods = tcap == null ? null : tcap.getUploadMethods();
+        return upMethods != null
+            && Arrays.asList( upMethods )
+                     .contains( TapCapability.UPLOADS_URI + "#inline" );
     }
 
     /**
