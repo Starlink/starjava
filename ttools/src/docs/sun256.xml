@@ -101,7 +101,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>23 December 2010</docdate>
+<docdate>9 May 2011</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -7499,37 +7499,54 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.3 (9 May 2011)</dt>
 <dd><p>
-    <ul>
-    <li>Random Groups HDUs are now tolerated, though not interpreted, 
-        within FITS files.</li>
-    <li>Added <code>soapout</code> parameter to <code>regquery</code>
-        command.</li>
-    <li>Added <code>count</code>, <code>variance</code> and <code>stdev</code>
-        functions to 
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
-    <li>JDBC table input handler now effectively downcasts
-        BigInteger/BigDecimal types to Long/Double.  
-        The PostgreSQL JDBC driver seems to use the Big* types routinely 
-        for numeric values (which I don't think it used to do).</li>
-    <li>Add <ref id="tapquery"><code>tapquery</code></ref> and
-        <ref id="tapresume"><code>tapresume</code></ref> commands.</li>
-    <li>Upgrade to JSAMP v1.2.</li>
-    <li>Add missing parameters <code>dashNS</code> and <code>linewidthNS</code>
-        to <code>plot2d</code> task.</li>
-    <li>Add workaround for J2SE bug
-        <webref url='http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4795134'
-                >#4795134</webref>,
-        which could cause errors when reading compressed FITS files.</li>
-    <li>Improve text rendering in <code>funcs</code> window display.</li>
-    <li>Attempt case-sensitive matching before case-insensitive for
-        column names.</li>
-    <li>Fix FITS character handling bug which could cause corrupted FITS
-        files on output in presence of non-ASCII characters.</li>
-    <li>Fix <code>replaceval</code> filter to work with Infinities.</li>
-    <li>Fix (some) JDBC connection leaks.</li>
-    </ul>
+    <dl>
+    <dt>TAP</dt>
+    <dd><p>The new commands
+        <ref id="tapquery"><code>tapquery</code></ref> and
+        <ref id="tapresume"><code>tapresume</code></ref> have been introduced.
+        These provide support for the Table Access Protocol (TAP),
+        and allow freeform queries in an SQL-like language to be
+        made to remote databases.
+        </p></dd>
+    <dt>Minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Random Groups HDUs are now tolerated, though not interpreted, 
+            within FITS files.</li>
+        <li>Added <code>soapout</code> parameter to <code>regquery</code>
+            command.</li>
+        <li>Added <code>count</code>, <code>variance</code> and
+            <code>stdev</code> functions to 
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref>.</li>
+        <li>Upgrade to JSAMP v1.2.</li>
+        <li>Improve text rendering in <code>funcs</code> window display.</li>
+        <li>Attempt case-sensitive matching before case-insensitive for
+            column names.</li>
+        <li>Fix <code>replaceval</code> filter to work with Infinities.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes and workarounds</dt>
+    <dd><p>
+        <ul>
+        <li>JDBC table input handler now effectively downcasts
+            BigInteger/BigDecimal types to Long/Double.  
+            The PostgreSQL JDBC driver seems to use the Big* types routinely 
+            for numeric values (which I don't think it used to do).</li>
+        <li>Add workaround for J2SE bug
+            <webref
+             url='http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4795134'
+                   >#4795134</webref>,
+             which could cause errors when reading compressed FITS files.</li>
+        <li>Fix FITS character handling bug which could cause corrupted FITS
+            files on output in presence of non-ASCII characters.</li>
+        <li>Fix (some) JDBC connection leaks.</li>
+        <li>Add missing parameters <code>dashNS</code> and
+            <code>linewidthNS</code> to <code>plot2d</code> task.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
