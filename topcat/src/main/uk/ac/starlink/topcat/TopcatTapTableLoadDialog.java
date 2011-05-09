@@ -14,6 +14,10 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -178,9 +182,31 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected AdqlExample[] createAdqlExamples() {
+
+        /* The text of the upload examples will be dependent on the
+         * current content and selection of the application main table list.
+         * So make sure they are reconfigured when that changes. */
+        JList tablesList = ControlWindow.getInstance().getTablesList();
+        tablesList.addListSelectionListener( new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                configureExamples();
+            }
+        } );
+        tablesList.getModel().addListDataListener( new ListDataListener() {
+            public void contentsChanged( ListDataEvent evt ) {
+                configureExamples();
+            }
+            public void intervalAdded( ListDataEvent evt ) {
+                configureExamples();
+            }
+            public void intervalRemoved( ListDataEvent evt ) {
+                configureExamples();
+            }
+        } );
+
+        /* Prepare the new examples and add them to the inherited list. */
         List<AdqlExample> exampleList =
             new ArrayList( Arrays.asList( super.createAdqlExamples( ) ) );
-        JList tablesList = ControlWindow.getInstance().getTablesList();
         exampleList.addAll( Arrays.asList( UploadAdqlExample
                                           .createSomeExamples( tablesList ) ) );
         return exampleList.toArray( new AdqlExample[ 0 ] );

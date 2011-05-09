@@ -11546,7 +11546,8 @@ It has the following parts:
 <dd><p>This button presents you with a short menu of example queries.
     These are tailored to the table metadata obtained for this service,
     and, where appropriate, to the table currently selected by the
-    Table selector, so they should in most cases be runnable as they stand
+    Table selector and/or the table list in the Control Window,
+    so they should in most cases be runnable as they stand
     (though there is no guarantee they will produce useful results).
     A better idea though is to use them as starting points for your
     own queries.  By picking one which is something like what you want
