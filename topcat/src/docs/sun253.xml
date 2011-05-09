@@ -11564,6 +11564,12 @@ It has the following parts:
     </p></dd>
 <dt>Text entry field</dt>
 <dd><p>This is where you enter the text of the ADQL query you wish to make.
+    The syntax of ADQL (Astronomical Data Query Language) is defined by an
+    <webref url="http://www.ivoa.net/Documents/latest/ADQL.html"
+            >IVOA Recommendation</webref>;
+    it is effectively a dialect of SQL, but a good way to write a query
+    is to start with one of the examples from the <label>Examples</label>
+    button above.
     </p></dd>
 </dl>
 </p>
