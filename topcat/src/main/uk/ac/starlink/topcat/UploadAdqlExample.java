@@ -120,7 +120,6 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             .append( "FROM " )
             .append( "TAP_UPLOAD.t" )
             .append( tcid );
-        }
         return sbuf.toString();
     }
 
