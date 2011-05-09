@@ -14866,6 +14866,7 @@ introduced since the last version:
             rather than deleted in the case of a syntax error.</li>
         <li>Improve text rendering in Available Functions window.</li>
         <li>GAVO load dialogue now uses fixed-width font for SQL entry.</li>
+        <li>Registry search now includes Publisher field by default.</li>
         </ul>
         </p></dd>
     <dt>Bug fixes and workarounds</dt>
