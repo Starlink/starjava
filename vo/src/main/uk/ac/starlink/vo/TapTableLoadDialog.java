@@ -215,6 +215,17 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         actList.add( reloadAct );
         setToolbarActions( actList.toArray( new Action[ 0 ] ) );
 
+        /* Adjust message. */
+        RegistryPanel regPanel = getRegistryPanel();
+        regPanel.displayAdviceMessage( new String[] {
+            "Query registry for TAP services:",
+            "Enter search terms in Keywords field or leave it blank,",
+            "then click "
+            + regPanel.getSubmitQueryAction().getValue( Action.NAME ) + ".",
+            " ",
+            "Alternatively, enter TAP URL in field below.",
+        } );
+
         /* It's big. */
         tabber_.setPreferredSize( new Dimension( 600, 550 ) );
 
