@@ -346,7 +346,7 @@ public class TapQueryPanel extends JPanel {
      * Works with the known table and service metadata currently displayed
      * to set up example queries.
      */
-    private void configureExamples() {
+    public void configureExamples() {
         String lang = tcapPanel_.getQueryLanguage();
         TapCapability tcap = tcapPanel_.getCapability();
         TableMeta[] tables = tmetaPanel_.getTables();

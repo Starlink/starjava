@@ -381,6 +381,16 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return AbstractAdqlExample.createSomeExamples();
     }
 
+    /**
+     * May be called to ensure that the text of queries in the Examples menu
+     * is reconfigured by calling the examples' getText method.
+     */
+    public void configureExamples() {
+        if ( tqPanel_ != null ) {
+            tqPanel_.configureExamples();
+        }
+    }
+
     public boolean isReady() {
         if ( tqPanel_ == null || tabber_.getSelectedIndex() != tqTabIndex_ ) {
             return false;
