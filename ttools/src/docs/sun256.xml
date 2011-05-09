@@ -4678,8 +4678,41 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
 <subsect id="tapquery" tocleaf="yes">
 <subhead><title><code>tapquery</code>: &tapquery-purpose;</title></subhead>
 
-<p><code>tapquery</code> can query Table Access Protocol services.
-TAP is a Virtual Observatory protocol.
+<p><code>tapquery</code> can query remote databases using the
+Table Access Protocol (TAP) services by submitting 
+Astronomical Data Query Language queries to them and retrieving
+the results.
+<webref url="http://www.ivoa.net/Documents/TAP/">TAP</webref> and
+<webref url="http://www.ivoa.net/Documents/latest/ADQL.html">ADQL</webref>
+are Virtual Observatory protocols.
+</p>
+
+<p>Queries can be submitted in either synchronous or asynchronous mode,
+as determined by the <code>sync</code> parameter.
+In asynchronous mode, if the query has not been deleted by the time the 
+command exits (see the <code>delete</code> parameter),
+the result can be picked up at a later stage using the
+<ref id="tapresume"><code>tapresume</code></ref> command.
+Table uploads are supported, so it is possible (if the service supports
+this functionality), to upload a local table to the remote database,
+perform a query involving it, such as a join with a remote table of some sort, 
+and receive the result.  This powerful facility gives you crossmatches
+between local and remote tables.
+</p>
+
+<p>This command does not provide any facility for querying the service
+for either table or capability metadata, so you will need to know about
+the service capabilities and database structure from some other source
+(possibly TOPCAT).
+</p>
+
+<p><strong>Note:</strong> this command has been introduced at STILTS version
+2.3, at which time most available TAP services are quite new and may not
+fully conform to the standards, and usage patterns are still settling down.
+For this reason you may find that some TAP services do not behave
+quite as expected; it is also possible that in future versions the
+command behaviour or parameters will change in line with changing
+service profiles or in the light of user experience.
 </p>
 
 &tapquery-summary;
@@ -4695,7 +4728,7 @@ stilts tapquery tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
                 adql='SELECT TOP 1000 * FROM ppmxl.main'
                 out=ppmxl.fits
 </verbatim></dt>
-<dd><p>Executes the given ADQL/S query on the service referenced by the URL
+<dd><p>Executes the given ADQL query on the service referenced by the URL
     and writes the result to a FITS file.
     </p></dd>
 
@@ -4733,12 +4766,15 @@ stilts tapquery
 <subsect id="tapresume" tocleaf="yes">
 <subhead><title><code>tapresume</code>: &tapresume-purpose;</title></subhead>
 
-<p><code>tapresume</code> can resume data retrieval from an asynchronous
-Table Access Protocol query which is already in progress.
+<p><code>tapresume</code> can resume monitoring and data retrieval 
+from an asynchronous Table Access Protocol query which has already
+been submitted.
 TAP is a Virtual Observatory protocol.
 Such a pre-existing query may have been submitted
 by the <ref id="tapquery"><code>tapquery</code></ref> command or
 by some completely different mechanism.
+It essentially does the same job as <code>tapquery</code> but without
+the job submission stage.
 It waits until the query has completed, and then retrieves the table
 result and processes it in accordance with the supplied parameters.
 The query may or may not be deleted from the server as part of the operation.
