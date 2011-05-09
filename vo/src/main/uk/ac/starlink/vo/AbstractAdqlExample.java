@@ -61,7 +61,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @param  lineBreaks  whether line breaks are required
      * @return   breaker instance
      */
-    private static Breaker createBreaker( boolean lineBreaks ) {
+    public static Breaker createBreaker( boolean lineBreaks ) {
         return lineBreaks
              ? new Breaker() {
                    public String level( int ilev ) {
@@ -150,7 +150,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     /**
      * Interface for configurable line breaking.
      */
-    private static abstract class Breaker {
+    public static abstract class Breaker {
 
         /**
          * Returns a string which can be used to separate parts of an output
@@ -188,9 +188,9 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     /**
      * Encapsulates metadata for a table and a selection of colum names from it.
      */
-    private static class TableWithCols {
-        TableMeta table_;
-        String[] cols_;
+    public static class TableWithCols {
+        private final TableMeta table_;
+        private final String[] cols_;
 
         /**
          * Constructor.
@@ -201,6 +201,24 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         TableWithCols( TableMeta table, String[] cols ) {
             table_ = table;
             cols_ = cols;
+        }
+
+        /**
+         * Returns the table object.
+         *
+         * @return  table
+         */
+        public TableMeta getTable() {
+            return table_;
+        }
+
+        /**
+         * Returns the columns array.
+         *
+         * @return  array of column names of interest
+         */
+        public String[] getColumns() {
+            return cols_;
         }
     }
 
@@ -234,7 +252,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @param  tables  input table array
      * @return  output table array
      */
-    private static TableMeta[] toTables( TableMeta table, TableMeta[] tables ) {
+    public static TableMeta[] toTables( TableMeta table, TableMeta[] tables ) {
         List<TableMeta> tlist = new ArrayList<TableMeta>();
         if ( table != null ) {
             tlist.add( table );
@@ -257,8 +275,8 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @param  max   the maximum number of output tables required
      * @return  array of tables with RA/Dec columns
      */
-    private static TableWithCols[] getRaDecTables( TableMeta[] tables,
-                                                   int max ) {
+    public static TableWithCols[] getRaDecTables( TableMeta[] tables,
+                                                  int max ) {
         List<TableWithCols> tlist = new ArrayList<TableWithCols>();
         for ( int i = 0; i < tables.length && tlist.size() < max; i++ ) {
             TableMeta table = tables[ i ];
@@ -412,8 +430,8 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     if ( rdTabs.length == 0 ) {
                         return null;
                     }
-                    TableMeta rdTab = rdTabs[ 0 ].table_;
-                    String[] radec = rdTabs[ 0 ].cols_;
+                    TableMeta rdTab = rdTabs[ 0 ].getTable();
+                    String[] radec = rdTabs[ 0 ].getColumns();
                     String raCol = radec[ 0 ];
                     String decCol = radec[ 1 ];
                     Breaker breaker = createBreaker( lineBreaks );
@@ -456,8 +474,8 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     if ( rdTabs.length == 0 ) {
                         return null;
                     }
-                    TableMeta rdTab = rdTabs[ 0 ].table_;
-                    String[] radec = rdTabs[ 0 ].cols_;
+                    TableMeta rdTab = rdTabs[ 0 ].getTable();
+                    String[] radec = rdTabs[ 0 ].getColumns();
                     Breaker breaker = createBreaker( lineBreaks );
                     TableRef tref = createTableRef( rdTab, lang );
                     return new StringBuffer()
@@ -501,12 +519,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                     }
                     TableRef[] trefs =
                         createTableRefs( new TableMeta[] {
-                            rdTabs[ 0 ].table_,
-                            rdTabs[ 1 ].table_ } );
+                            rdTabs[ 0 ].getTable(),
+                            rdTabs[ 1 ].getTable() } );
                     TableRef tref1 = trefs[ 0 ];
                     TableRef tref2 = trefs[ 1 ];
-                    String[] radec1 = rdTabs[ 0 ].cols_;
-                    String[] radec2 = rdTabs[ 1 ].cols_;
+                    String[] radec1 = rdTabs[ 0 ].getColumns();
+                    String[] radec2 = rdTabs[ 1 ].getColumns();
                     Breaker breaker = createBreaker( lineBreaks );
                     return new StringBuffer()
                         .append( "SELECT" )
