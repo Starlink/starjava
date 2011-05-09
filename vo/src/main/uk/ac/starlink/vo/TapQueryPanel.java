@@ -56,8 +56,11 @@ public class TapQueryPanel extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param   examples   list of example queries to be made available
+     *          from the examples menu
      */
-    public TapQueryPanel() {
+    public TapQueryPanel( AdqlExample[] examples ) {
         super( new BorderLayout() );
 
         /* Prepare a panel for table metadata display. */
@@ -102,7 +105,6 @@ public class TapQueryPanel extends JPanel {
 
         /* Action for examples menu. */
         final JPopupMenu examplesMenu = new JPopupMenu( "Examples" );
-        AdqlExample[] examples = createExamples();
         int nex = examples.length;
         exampleActs_ = new AdqlExampleAction[ nex ];
         for ( int ie = 0; ie < nex; ie++ ) {
@@ -355,18 +357,6 @@ public class TapQueryPanel extends JPanel {
                 exAct.getExample().getText( true, lang, tcap, tables, table );
             exAct.setAdqlText( adql );
         }
-    }
-
-    /**
-     * Creates a list of actions which supply example ADQL query text.
-     *
-     * @return  example list
-     */
-    private static AdqlExample[] createExamples() {
-        List<AdqlExample> exList = new ArrayList<AdqlExample>();
-        exList.addAll( Arrays
-                      .asList( AbstractAdqlExample.createSomeExamples() ) );
-        return exList.toArray( new AdqlExample[ 0 ] );
     }
 
     /**

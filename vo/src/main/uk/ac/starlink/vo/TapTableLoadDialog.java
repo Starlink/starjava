@@ -58,6 +58,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
+    private AdqlExample[] examples_;
     private int iseq_;
 
     // This is an expression designed to pick up things that the user might
@@ -174,6 +175,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 updateReady();
             }
         };
+
+        /* ADQL query examples. */
+        examples_ = createAdqlExamples();
 
         /* Reload action. */
         final Action reloadAct = new AbstractAction( "Reload" ) {
@@ -368,6 +372,15 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return Tables.singleTableSequence( table );
     }
 
+    /**
+     * Creates a list of actions which supply example ADQL query text.
+     *
+     * @return  example list
+     */
+    protected AdqlExample[] createAdqlExamples() {
+        return AbstractAdqlExample.createSomeExamples();
+    }
+
     public boolean isReady() {
         if ( tqPanel_ == null || tabber_.getSelectedIndex() != tqTabIndex_ ) {
             return false;
@@ -441,7 +454,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             /* Construct, configure and cache a suitable query panel
              * if we haven't seen this service URL before now. */
             if ( ! tqMap_.containsKey( serviceUrl ) ) {
-                TapQueryPanel tqPanel = new TapQueryPanel();
+                TapQueryPanel tqPanel = new TapQueryPanel( examples_ );
                 tqPanel.setServiceHeading( getServiceHeading( serviceUrl ) );
                 tqPanel.setServiceUrl( serviceUrl );
                 tqMap_.put( serviceUrl, tqPanel );
