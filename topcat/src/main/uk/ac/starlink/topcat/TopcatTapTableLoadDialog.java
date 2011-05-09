@@ -10,6 +10,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
@@ -19,6 +20,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.vo.UwsJob;
@@ -172,6 +174,16 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 delThread.start();
             }
         }
+    }
+
+    @Override
+    protected AdqlExample[] createAdqlExamples() {
+        List<AdqlExample> exampleList =
+            new ArrayList( Arrays.asList( super.createAdqlExamples( ) ) );
+        JList tablesList = ControlWindow.getInstance().getTablesList();
+        exampleList.addAll( Arrays.asList( UploadAdqlExample
+                                          .createSomeExamples( tablesList ) ) );
+        return exampleList.toArray( new AdqlExample[ 0 ] );
     }
 
     /**
