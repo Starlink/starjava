@@ -120,10 +120,6 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             .append( "FROM " )
             .append( "TAP_UPLOAD.t" )
             .append( tcid );
-        if ( lineBreaks ) {
-            sbuf.append( "   -- Local table \"" )
-                .append( tcModel.toString() )
-                .append( "\"" );
         }
         return sbuf.toString();
     }
