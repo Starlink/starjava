@@ -198,10 +198,10 @@ public class UnitUtilities
         }
 
         //  Single A. Taken as angstroms, but could be Ampere. Unlikely for
-        //  spectra.
-        if ( lunit.equals( "a" ) ) {
-            return "Angstrom";
-        }
+        //  spectra. 10/05/2011: removed to keep in sync with AST.
+        //if ( lunit.equals( "a" ) ) {
+        //    return "Angstrom";
+        //}
 
         //  Missing powers or case problems (CM^2).
         if ( lunit.equals( "cm2" ) || lunit.equals( "cm^2" ) ) {
