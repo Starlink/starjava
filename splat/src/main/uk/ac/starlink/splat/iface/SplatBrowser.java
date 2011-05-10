@@ -2834,10 +2834,10 @@ public class SplatBrowser
      */
     protected void applyRenderingDefaults( SpecData spectrum )
     {
-        if ( colourAsLoaded ) {
-            spectrum.setLineColour( MathUtils.getRandomRGB() );
-        }
         selectedProperties.applyRenderingProps( spectrum );
+        if ( colourAsLoaded ) {
+            spectrum.setLineColour( MathUtils.getRandomRGB());
+        }
     }
 
     /**
