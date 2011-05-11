@@ -11,6 +11,12 @@
    meaning "Angstrom". This follows the FITS standard where "A" is
    "Ampere".
 
+   The flip toolbox now correctly records the SPEFO log option RV.
+   The current status of the redshift option is also recorded to the 
+   SPEFO log.
+
+   The auto-colourize option when loading spectra has been enabled again.
+
    Post Namaka
 
    3.9-6
