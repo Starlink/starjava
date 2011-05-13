@@ -1338,8 +1338,10 @@ returned by <code>columns()</code>.
 
 <p>Sometimes, the result of a table operation will be a table which
 does not have random access.  For such tables you can iterate over
-the rows, but not get their row values by indexing.  In order to
-take a table which may not have random access and make it capable
+the rows, but not get their row values by indexing.
+Non-random-access tables are also peculiar in that <code>getRowCount</code>
+returns a negative value.
+To take a table which may not have random access and make it capable
 of random access, use the <ref id="random"><code>random</code></ref>
 filter: "<code>table=table.cmd_random()</code>".
 </p>
