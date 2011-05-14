@@ -1115,7 +1115,7 @@ and here is what it might look like in JyStilts:
    >>> t1 = t1.cmd_addskycoords(t1, 'fk4', 'fk5', 'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
    >>> t2 = tread('mycat.csv', 'csv')
    >>> t2 = t2.cmd_select('VMAG>18')
-   >>> tm = skymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA', error=10, join='2not1')
+   >>> tm = tskymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA', error=10, join='2not1')
    >>> tm.write('matched.fits')
 ]]></verbatim>
 </p>
