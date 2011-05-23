@@ -2,6 +2,7 @@ package uk.ac.starlink.table.formats;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.TableFormatException;
@@ -42,6 +43,12 @@ public class RowEvaluator {
     );
     private static final Pattern DMS_REGEX = Pattern.compile(
         "[-+][ 0-9]?[0-9][:d ][ 0-6][0-9][:m ][0-6][0-9](\\.[0-9]*)?"
+    );
+    private static final Pattern NAN_REGEX = Pattern.compile(
+        "NaN", Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern INFINITY_REGEX = Pattern.compile(
+        "([+-]?)(Infinity|inf)", Pattern.CASE_INSENSITIVE
     );
 
     /** Decoder for booleans. */
@@ -118,7 +125,7 @@ public class RowEvaluator {
     /** Decoder for floats. */
     private static Decoder FLOAT_DECODER = new Decoder( Float.class ) {
         public Object decode( String value ) {
-            return new Float( Float.parseFloat( value.trim() ) );
+            return new Float( (float) parseFloating( value.trim() ).dValue );
         }
         public boolean isValid( String value ) {
             try {
@@ -139,7 +146,7 @@ public class RowEvaluator {
     /** Decoder for doubles. */
     private static Decoder DOUBLE_DECODER = new Decoder( Double.class ) {
         public Object decode( String value ) {
-            return new Double( Double.parseDouble( value.trim() ) );
+            return new Double( parseFloating( value.trim() ).dValue );
         }
         public boolean isValid( String value ) {
             try {
@@ -417,6 +424,20 @@ public class RowEvaluator {
      */
     private static ParsedFloat parseFloating( String item ) {
 
+        /* Check for special values.  Although parseDouble picks up 
+         * some of these, it only works with java-friendly forms like
+         * "NaN" and not (e.g.) python-friendly ones like "nan". */
+        if ( NAN_REGEX.matcher( item ).matches() ) {
+            return ParsedFloat.NaN;
+        }
+        Matcher infMatcher = INFINITY_REGEX.matcher( item );
+        if ( infMatcher.matches() ) {
+            String sign = infMatcher.group( 1 );
+            return sign.length() > 0 && sign.charAt( 0 ) == '-'
+                 ? ParsedFloat.NEGATIVE_INFINITY
+                 : ParsedFloat.POSITIVE_INFINITY;
+        }
+
         /* Do a couple of jobs by looking at the string directly:
          * Substitute 'd' or 'D' which may indicate an exponent in
          * FORTRAN77-style output for an 'e', and count the number of
@@ -560,6 +581,12 @@ public class RowEvaluator {
 
         /** Value of the number. */
         final double dValue;
+
+        static final ParsedFloat NaN = new ParsedFloat( 0, Double.NaN );
+        static final ParsedFloat POSITIVE_INFINITY =
+            new ParsedFloat( 0, Double.POSITIVE_INFINITY );
+        static final ParsedFloat NEGATIVE_INFINITY =
+            new ParsedFloat( 0, Double.NEGATIVE_INFINITY );
 
         /**
          * Constructor.

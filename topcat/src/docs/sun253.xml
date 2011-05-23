@@ -966,6 +966,11 @@ interpreted:
        <code>Double</code>,
        <code>String</code>
     </li>
+<li>Some special values are permitted for floating point columns:
+    <code>NaN</code> for not-a-number, which is treated the same as a
+    null value for most purposes, and <code>Infinity</code> or <code>inf</code>
+    for infinity (with or without a preceding +/- sign).
+    These values are matched case-insensitively.</li>
 <li>Empty lines are ignored</li>
 <li>Anything after a hash character "#" (except one in a quoted string)
     on a line is ignored as far as table data goes;
@@ -12836,6 +12841,7 @@ Some of the notable contributers are these:
 <li>Norman Gray (Starlink, Glasgow)</li>
 <li>Haggis Harris (Bath)</li>
 <li>Evanthia Hatziminaoglou (ESO)</li>
+<li>Avon Huxor (Bristol/ARI)</li>
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
@@ -14890,6 +14896,14 @@ introduced since the last version:
         </p>
         </dd>
     </dl>
+    </p></dd>
+
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>ASCII table parsers now understand python-friendly
+        <code>nan</code> and <code>inf</code> representations.</li>
+    </ul>
     </p></dd>
 
 </dl>

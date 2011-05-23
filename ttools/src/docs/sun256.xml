@@ -7587,6 +7587,14 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>ASCII table parsers now understand python-friendly
+        <code>nan</code> and <code>inf</code> representations.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
