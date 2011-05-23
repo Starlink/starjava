@@ -462,7 +462,7 @@ public class RowEvaluator {
 
         /* Parse the number. */
         double dvalue = Double.parseDouble( item );
-        return ParsedFloat.getInstance( sigFig, dvalue );
+        return new ParsedFloat( sigFig, dvalue );
     }
 
     /**
@@ -555,24 +555,21 @@ public class RowEvaluator {
      */
     private static class ParsedFloat {
 
-        /** Singleton instance. */
-        static ParsedFloat instance = new ParsedFloat();
-
         /** Number of significant figures. */
-        int sigFig;
+        final int sigFig;
 
         /** Value of the number. */
-        double dValue;
+        final double dValue;
 
         /**
-         * Returns an instance with given values.  This is always the
-         * same instance - cheap, and possible, because we happen to know
-         * only one instance is ever considered at once.
+         * Constructor.
+         *
+         * @param  sigFig  number of significant figures
+         * @param  dValue  floating point value
          */
-        static ParsedFloat getInstance( int sigFig, double dValue ) {
-            instance.sigFig = sigFig;
-            instance.dValue = dValue;
-            return instance;
+        ParsedFloat( int sigFig, double dValue ) {
+            this.sigFig = sigFig;
+            this.dValue = dValue;
         }
     }
 }
