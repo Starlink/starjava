@@ -224,11 +224,30 @@ public abstract class SkyMatchEngine implements MatchEngine {
         double dMinOut = dMinIn - separation_;
         double dMaxOut = dMaxIn + separation_;
         if ( ! Double.isNaN( dMinOut ) && ! Double.isNaN( dMaxOut ) ) {
+
+            /* Use trig to adjust right ascension limits correctly. */
             double rDiffMax =
                 Math.max( Math.abs( separation_ / Math.cos( dMinOut ) ),
                           Math.abs( separation_ / Math.cos( dMaxOut ) ) );
             rMinOut = rMinIn - rDiffMax;
             rMaxOut = rMaxIn + rDiffMax;
+
+            /* Check that the RA limits are in the range 0-360 degrees.
+             * If not, the range may be straddling RA=0, or may be using
+             * an unconventional range for RA.  In either case, attempting
+             * to use box-like bounds to confine the possible match range
+             * may do the wrong thing.  There's nothing magic about the
+             * range 0..360 (as opposed to, e.g., -180..180), but it is
+             * necessary that all the datasets for a given match use the
+             * same range convention.  If any of the limits are out of
+             * range in this way, give up on attempting to provide
+             * bounding values for RA.  Note this test will catch values
+             * which are infinite or NaN as well. */
+            if ( ! ( rMinOut >= 0 && rMinOut <= 2 * Math.PI &&
+                     rMaxOut >= 0 && rMaxOut <= 2 * Math.PI ) ) {
+                rMinOut = Double.NaN;
+                rMaxOut = Double.NaN;
+            }
         }
         else {
             rMinOut = Double.NaN;

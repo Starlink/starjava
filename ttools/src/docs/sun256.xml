@@ -7590,6 +7590,15 @@ but my thanks are especially due to the following:
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Fixed a significant bug in sky crossmatching.
+        If all points in a table were on one side of the RA=0 line,
+        but the error radius extended across that line, matches on the
+        other side could be missed.  Matches could also be missed if
+        different tables used different conventional ranges for RA
+        (e.g. -180..180 in one case and 0..360 in another).
+        This fix may in some, but not most, cases result in slower matching
+        than previously.
+        </li>
     <li>ASCII table parsers now understand python-friendly
         <code>nan</code> and <code>inf</code> representations.</li>
     </ul>

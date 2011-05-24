@@ -14,6 +14,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.ExecutionException;
+import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.func.Coords;
 
@@ -117,6 +118,35 @@ public class SkyMatchTest extends TableTestCase {
         ra2col.setUnitString( "radians" );
         assertEquals( 0, skyCount( ta, "ra1", "dec1",
                                    tb, "", "", 5 ) );
+    }
+
+    public void testRoundZero() throws Exception {
+        StarTable ta = new QuickTable( 5, new ColumnData[] {
+            col( "a_ra", new double[] { 359.8, 359.9, 0, 0.1, 0.2 } ),
+            col( "a_dec", new double[] { 45, 45, 45, 45, 45 } ),
+        } );
+        for ( int i = -1; i < 2; i++ ) {
+            StarTable tb = new QuickTable( 1, new ColumnData[] {
+                col( "b_ra", new double[] { 0 + ( i * 0.001 ) } ),
+                col( "b_dec", new double[] { 45 } ),
+            } );
+
+            MapEnvironment sky3dEnv = new MapEnvironment()
+                .setValue( "params", "3600" )
+                .setValue( "matcher", "sky3d" )
+                .setValue( "find", "all" );
+            StarTable sky3dResult =
+                tmatch2( sky3dEnv, ta, "a_ra a_dec 1", tb, "b_ra b_dec 1" );
+            assertEquals( 5, sky3dResult.getRowCount() );
+
+            MapEnvironment skyEnv = new MapEnvironment()
+                .setValue( "params", "3600" )
+                .setValue( "matcher", "sky" )
+                .setValue( "find", "all" );
+            StarTable skyResult =
+                tmatch2( skyEnv, ta, "a_ra a_dec", tb, "b_ra b_dec" );
+            assertEquals( 5, skyResult.getRowCount() ); 
+        }
     }
 
     private int skyCount( StarTable table1, String ra1, String dec1,
