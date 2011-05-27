@@ -87,7 +87,7 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
         private static final String ACCESSURL_PATH =
             CAPINTERFACE_PATH + "/accessURL";
         private static final String VERSION_PATH =
-            CAPINTERFACE_PATH + "interface/@version";
+            CAPINTERFACE_PATH + "/@version";
     
         private Store resourceStore_;
         private Store capabilityStore_;
