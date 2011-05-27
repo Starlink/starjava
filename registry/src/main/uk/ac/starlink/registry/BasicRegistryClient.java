@@ -247,22 +247,22 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
          * @param  capabilities  capabilities of this resource
          */
         private static BasicResource
-             createBasicResource( final Store rStore,
-                                  final BasicCapability[] caps ) {
-            return new BasicResource() {{
-                capabilities_ = caps;
-                title_ = rStore.removeScalar( TITLE_PATH );
-                identifier_ = rStore.removeScalar( IDENTIFIER_PATH );
-                shortName_ = rStore.removeScalar( SHORTNAME_PATH );
-                publisher_ = rStore.removeScalar( PUBLISHER_PATH );
-                contact_ =
-                    makeContact( rStore.removeScalar( CONTACTNAME_PATH ),
-                                 rStore.removeScalar( CONTACTEMAIL_PATH ) );
-                referenceUrl_ = rStore.removeScalar( REFURL_PATH );
-                subjects_ = rStore.removeArray( SUBJECT_PATH );
-                String status = rStore.removeScalar( STATUS_PATH );
-                assert rStore.keySet().isEmpty();
-            }};
+                createBasicResource( final Store rStore,
+                                     final BasicCapability[] caps ) {
+            BasicResource resource = new BasicResource();
+            resource.setCapabilities( caps );
+            resource.setTitle( rStore.removeScalar( TITLE_PATH ) );
+            resource.setIdentifier( rStore.removeScalar( IDENTIFIER_PATH ) );
+            resource.setShortName( rStore.removeScalar( SHORTNAME_PATH ) );
+            resource.setPublisher( rStore.removeScalar( PUBLISHER_PATH ) );
+            resource.setContact( makeContact(
+                                   rStore.removeScalar( CONTACTNAME_PATH ),
+                                   rStore.removeScalar( CONTACTEMAIL_PATH ) ) );
+            resource.setReferenceUrl( rStore.removeScalar( REFURL_PATH ) );
+            resource.setSubjects( rStore.removeArray( SUBJECT_PATH ) );
+            String status = rStore.removeScalar( STATUS_PATH );
+            assert rStore.keySet().isEmpty();
+            return resource;
         }
     
         /**
@@ -272,14 +272,14 @@ public class BasicRegistryClient extends AbstractRegistryClient<BasicResource> {
          */
         private static BasicCapability
                 createBasicCapability( final Store cStore ) {
-            return new BasicCapability() {{
-                accessUrl_ = cStore.removeScalar( ACCESSURL_PATH );
-                description_ = cStore.removeScalar( DESCRIPTION_PATH );
-                standardId_ = cStore.removeScalar( STDID_PATH );
-                version_ = cStore.removeScalar( VERSION_PATH );
-                xsiType_ = cStore.removeScalar( XSITYPE_PATH );
-                assert cStore.keySet().isEmpty();
-            }};
+            BasicCapability cap = new BasicCapability();
+            cap.setAccessUrl( cStore.removeScalar( ACCESSURL_PATH ) );
+            cap.setDescription( cStore.removeScalar( DESCRIPTION_PATH ) );
+            cap.setStandardId( cStore.removeScalar( STDID_PATH ) );
+            cap.setVersion( cStore.removeScalar( VERSION_PATH ) );
+            cap.setXsiType( cStore.removeScalar( XSITYPE_PATH ) );
+            assert cStore.keySet().isEmpty();
+            return cap;
         }
     
         /**

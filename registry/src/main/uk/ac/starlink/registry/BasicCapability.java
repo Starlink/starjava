@@ -16,11 +16,20 @@ package uk.ac.starlink.registry;
  */
 public class BasicCapability {
 
-    String accessUrl_;
-    String description_;
-    String standardId_;
-    String version_;
-    String xsiType_;
+    private String accessUrl_;
+    private String description_;
+    private String standardId_;
+    private String version_;
+    private String xsiType_;
+
+    /**
+     * Sets the access URL.
+     *
+     * @param  accessUrl  access URL
+     */
+    public void setAccessUrl( String accessUrl ) {
+        accessUrl_ = accessUrl;
+    }
 
     /**
      * Returns the access URL.
@@ -32,6 +41,15 @@ public class BasicCapability {
     }
 
     /**
+     * Sets the standard ID.
+     *
+     * @param  standardId  standard ID identifier URI
+     */
+    public void setStandardId( String standardId ) {
+        standardId_ = standardId;
+    }
+
+    /**
      * Returns the standard ID which defines what sort of service this 
      * capability is offering.
      *
@@ -39,6 +57,15 @@ public class BasicCapability {
      */
     public String getStandardId() {
         return standardId_;
+    }
+
+    /**
+     * Sets the xsi:type.
+     *
+     * @param  xsiType  capability/@xsi:type
+     */
+    public void setXsiType( String xsiType ) {
+        xsiType_ = xsiType;
     }
 
     /**
@@ -53,12 +80,30 @@ public class BasicCapability {
     }
 
     /**
+     * Sets the description.
+     *
+     * @param  description  description
+     */
+    public void setDescription( String description ) {
+        description_ = description;
+    }
+
+    /**
      * Returns a textual description of this capability.
      *
      * @return  description
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Sets the version.
+     *
+     * @param  version   version string
+     */
+    public void setVersion( String version ) {
+        version_ = version;
     }
 
     /**

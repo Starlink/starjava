@@ -9,14 +9,23 @@ package uk.ac.starlink.registry;
  * @author   Mark Taylor
  */
 public class BasicResource {
-    String title_;
-    String identifier_;
-    String shortName_;
-    String publisher_;
-    String contact_;
-    String[] subjects_;
-    String referenceUrl_;
-    BasicCapability[] capabilities_;
+    private String title_;
+    private String identifier_;
+    private String shortName_;
+    private String publisher_;
+    private String contact_;
+    private String[] subjects_;
+    private String referenceUrl_;
+    private BasicCapability[] capabilities_;
+
+    /**
+     * Sets the resource title.
+     *
+     * @param  title  title
+     */
+    public void setTitle( String title ) {
+        title_ = title;
+    }
 
     /**
      * Returns the resource title.
@@ -28,12 +37,30 @@ public class BasicResource {
     }
 
     /**
+     * Sets the resource short name.
+     *
+     * @param  shortName  short name
+     */
+    public void setShortName( String shortName ) {
+        shortName_ = shortName;
+    }
+
+    /**
      * Returns the resource short name.
      *
      * @return   short name
      */
     public String getShortName() {
         return shortName_;
+    }
+
+    /**
+     * Sets the resource unique identifier.
+     *
+     * @param  identifier   identifier URI
+     */
+    public void setIdentifier( String identifier ) {
+        identifier_ = identifier;
     }
 
     /**
@@ -47,12 +74,30 @@ public class BasicResource {
     }
 
     /**
+     * Sets the resource publisher.
+     *
+     * @param  publisher  publisher
+     */
+    public void setPublisher( String publisher ) {
+        publisher_ = publisher;
+    }
+
+    /**
      * Returns the resource publisher.
      *
      * @return  publisher
      */
     public String getPublisher() {
         return publisher_;
+    }
+
+    /**
+     * Sets the contact information.
+     *
+     * @param  contact  contact string
+     */
+    public void setContact( String contact ) {
+        contact_ = contact;
     }
 
     /**
@@ -65,6 +110,15 @@ public class BasicResource {
     }
 
     /**
+     * Sets the subject strings.
+     *
+     * @param  subjects  array of subject strings
+     */
+    public void setSubjects( String[] subjects ) {
+        subjects_ = subjects;
+    }
+
+    /**
      * Returns an array of subject strings for this resource.
      *
      * @return  subject array
@@ -74,12 +128,30 @@ public class BasicResource {
     }
 
     /**
+     * Sets the reference URL.
+     *
+     * @param  referenceUrl   reference URL
+     */
+    public void setReferenceUrl( String referenceUrl ) {
+        referenceUrl_ = referenceUrl;
+    }
+
+    /**
      * Returns the reference URL for this resource.
      *
      * @return   reference URL
      */
     public String getReferenceUrl() {
         return referenceUrl_;
+    }
+
+    /**
+     * Sets the capability interface array.
+     *
+     * @param  capabilities   capability array
+     */
+    public void setCapabilities( BasicCapability[] capabilities ) {
+        capabilities_ = capabilities;
     }
 
     /**
