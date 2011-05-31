@@ -121,31 +121,35 @@ public class SkyMatchTest extends TableTestCase {
     }
 
     public void testRoundZero() throws Exception {
-        StarTable ta = new QuickTable( 5, new ColumnData[] {
-            col( "a_ra", new double[] { 359.8, 359.9, 0, 0.1, 0.2 } ),
-            col( "a_dec", new double[] { 45, 45, 45, 45, 45 } ),
-        } );
-        for ( int i = -1; i < 2; i++ ) {
-            StarTable tb = new QuickTable( 1, new ColumnData[] {
-                col( "b_ra", new double[] { 0 + ( i * 0.001 ) } ),
-                col( "b_dec", new double[] { 45 } ),
+        double[] decs = new double[] { 0, 45, -30, -1, -89, 89.9, 90 };
+        for ( int idec = 0; idec < decs.length; idec++ ) {
+            double dec = decs[ idec ];
+            StarTable ta = new QuickTable( 5, new ColumnData[] {
+                col( "a_ra", new double[] { 359.8, 359.9, 0, 0.1, 0.2 } ),
+                col( "a_dec", new double[] { dec, dec, dec, dec, dec } ),
             } );
-
-            MapEnvironment sky3dEnv = new MapEnvironment()
-                .setValue( "params", "3600" )
-                .setValue( "matcher", "sky3d" )
-                .setValue( "find", "all" );
-            StarTable sky3dResult =
-                tmatch2( sky3dEnv, ta, "a_ra a_dec 1", tb, "b_ra b_dec 1" );
-            assertEquals( 5, sky3dResult.getRowCount() );
-
-            MapEnvironment skyEnv = new MapEnvironment()
-                .setValue( "params", "3600" )
-                .setValue( "matcher", "sky" )
-                .setValue( "find", "all" );
-            StarTable skyResult =
-                tmatch2( skyEnv, ta, "a_ra a_dec", tb, "b_ra b_dec" );
-            assertEquals( 5, skyResult.getRowCount() ); 
+            for ( int i = -1; i < 2; i++ ) {
+                StarTable tb = new QuickTable( 1, new ColumnData[] {
+                    col( "b_ra", new double[] { 0 + ( i * 0.001 ) } ),
+                    col( "b_dec", new double[] { dec } ),
+                } );
+    
+                MapEnvironment sky3dEnv = new MapEnvironment()
+                    .setValue( "params", "3600" )
+                    .setValue( "matcher", "sky3d" )
+                    .setValue( "find", "all" );
+                StarTable sky3dResult =
+                    tmatch2( sky3dEnv, ta, "a_ra a_dec 1", tb, "b_ra b_dec 1" );
+                assertEquals( 5, sky3dResult.getRowCount() );
+    
+                MapEnvironment skyEnv = new MapEnvironment()
+                    .setValue( "params", "3600" )
+                    .setValue( "matcher", "sky" )
+                    .setValue( "find", "all" );
+                StarTable skyResult =
+                    tmatch2( skyEnv, ta, "a_ra a_dec", tb, "b_ra b_dec" );
+                assertEquals( 5, skyResult.getRowCount() ); 
+            }
         }
     }
 
