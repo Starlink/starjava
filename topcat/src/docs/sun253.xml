@@ -11346,7 +11346,8 @@ by clicking on the appropriate tab at the top.
 <ref id="RegistryPanel">VO windows</ref> menus:
 <dl>
 <dt>Deletion menu</dt>
-<dd><p>Allows you to choose when asynchronously submitted jobs will be
+<dd><p>Allows you to choose when asynchronously submitted jobs will
+    by default be
     deleted from the server.  Once they are deleted they will no longer
     be visible in the <label>Running Jobs</label> tab.  If they are not
     deleted in this way, they will stay on the server until they are
@@ -11363,8 +11364,14 @@ by clicking on the appropriate tab at the top.
         not deleted (except according to server policy)
         </li>
     </ul>
+    You can override these settings once a job has started
+    by using the controls at the bottom of the 
+    <ref id="TapTableLoadDialog_jobs">running jobs</ref> tab.
+    The settings in this menu affect the default value of the
+    <label>Delete On Exit</label> checkbox.
     If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
-    the job in a later session, you'll have to choose <label>Never</label>.
+    the job in a later session, you'll have to make sure that the
+    job is not deleted on completion or exit.
     </p></dd>
 </dl>
 </p>
@@ -11687,17 +11694,26 @@ You can cut and paste from these items, so for instance if you
 want to take the URL and paste it into a web browser you can do.
 </p>
 
-<p>There are two buttons at the bottom of the screen which affect the
+<p>There are three buttons at the bottom of the screen which affect the
 status of the currently displayed job:
 <dl>
 <dt>Abort</dt>
-<dd><p>Stops the job from executing.  It cannot be restarted.
+<dd><p>This button stops the job from executing.  It cannot be restarted.
     The job still exists on the server however, so it can be examined
     in this window.
     </p></dd>
 <dt>Delete</dt>
-<dd><p>Stops the job as for Abort, but also removes all trace of it
+<dd><p>This button stops the job as for Abort, but also removes all trace of it
     from the server.  No details can be seen any more.
+    </p></dd>
+<dt>Delete On Exit</dt>
+<dd><p>This checkbox determines whether the job will be deleted from the server
+    when TOPCAT exits.  If you want to come back to a long-running job
+    in a later session, you should uncheck this so that the job
+    remains on the server.
+    The default action is normally that jobs are deleted on exit
+    (i.e. this box starts off checked), but you can change the default
+    by using the <label>Deletion</label> menu.
     </p></dd>
 </dl>
 </p>
@@ -14913,6 +14929,9 @@ introduced since the last version:
         </li>
     <li>ASCII table parsers now understand python-friendly
         <code>nan</code> and <code>inf</code> representations.</li>
+    <li>Add "Delete On Exit" checkbox to Running Jobs tab of TAP load
+        dialogue.  Jobs are now created by default with Delete On Exit
+        set true (you can change the default with the Deletion menu).</li>
     </ul>
     </p></dd>
 

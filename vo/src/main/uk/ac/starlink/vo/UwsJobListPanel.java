@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,11 +18,13 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
@@ -40,6 +43,7 @@ public class UwsJobListPanel extends JPanel {
     private final UwsJobPanel detail_;
     private final Action deleteAction_;
     private final Action abortAction_;
+    private final JToggleButton.ToggleButtonModel delOnExitModel_;
     private final Map<UwsJob,Runnable> phaseWatcherMap_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -106,15 +110,33 @@ public class UwsJobListPanel extends JPanel {
                 }
             }
         };
+        delOnExitModel_ = new JToggleButton.ToggleButtonModel();
+        delOnExitModel_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                boolean delOnExit = delOnExitModel_.isSelected();
+                UwsJob job = detail_.getJob();
+                if ( job != null ) {
+                    if ( job.getDeleteOnExit() != delOnExit ) {
+                        job.setDeleteOnExit( delOnExit );
+                    }
+                }
+            }
+        } );
+        JToggleButton delOnExitButton = new JCheckBox( "Delete On Exit" );
+        delOnExitButton.setModel( delOnExitModel_ );
+
+        /* Arrange the controls. */
         JComponent controlLine = Box.createHorizontalBox();
         controlLine.add( Box.createHorizontalGlue() );
         controlLine.add( new JButton( abortAction_ ) );
         controlLine.add( Box.createHorizontalStrut( 10 ) );
         controlLine.add( new JButton( deleteAction_ ) );
+        controlLine.add( Box.createHorizontalStrut( 20 ) );
+        controlLine.add( delOnExitButton );
         controlLine.add( Box.createHorizontalGlue() );
         updateActions();
 
-        /* Arrange them in this component. */
+        /* Place the subcomponents. */
         JPanel listContainer = new JPanel( new BorderLayout() );
         listContainer.add( new JScrollPane( jlist_ ), BorderLayout.CENTER );
         listContainer.setBorder(
@@ -243,11 +265,15 @@ public class UwsJobListPanel extends JPanel {
         if ( job == null ) {
             deleteAction_.setEnabled( false );
             abortAction_.setEnabled( false );
+            delOnExitModel_.setEnabled( false );
+            delOnExitModel_.setSelected( false );
         }
         else {
             deleteAction_.setEnabled( true );
             abortAction_.setEnabled( UwsStage.forPhase( job.getLastPhase() )
                                          != UwsStage.FINISHED );
+            delOnExitModel_.setEnabled( true );
+            delOnExitModel_.setSelected( job.getDeleteOnExit() );
         }
     }
 

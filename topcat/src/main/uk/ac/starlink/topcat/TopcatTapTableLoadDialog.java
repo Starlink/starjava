@@ -230,7 +230,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         NEVER( "Never", "Do not delete jobs", false, false );
 
         /** Default policy. */
-        public static final DeletionPolicy DEFAULT = NEVER;
+        public static final DeletionPolicy DEFAULT = EXIT;
 
         private final String name_;
         private final String description_;

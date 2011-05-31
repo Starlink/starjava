@@ -289,6 +289,16 @@ public class UwsJob {
     }
 
     /**
+     * Indicates whether this job will be deleted when the JVM exits,
+     * if it has not been deleted before.
+     *
+     * @return   true iff delete on exit
+     */
+    public boolean getDeleteOnExit() {
+        return deleteThread_ != null;
+    }
+
+    /**
      * Returns the server-assigned job-id for this job.
      * It is the final part of the Job URL.
      *
