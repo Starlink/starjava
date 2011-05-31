@@ -157,7 +157,7 @@ even with modest memory and CPU resources.
 <px>It offers a variety of ways to view and analyse the data,
 including a browser for the cell data themselves, 
 viewers for information about table and column metadata,
-tools for joining table using flexible matching algorithms,
+tools for joining tables using flexible matching algorithms,
 and visualisation facilities including histograms, 2- and 3-dimensional
 scatter plots, and density maps.
 Using a powerful and extensible Java-based expression language
@@ -166,6 +166,12 @@ Selecting a row can be configured to trigger an action, for instance
 displaying an image of the catalogue object in an external viewer.
 Table data and metadata can be edited and the resulting modified table
 can be written out in a wide range of output formats.
+</px>
+
+<px>A number of options are provided for loading data from external
+sources, including Virtual Observatory (VO) services, thus providing
+a gateway to many remote archives of astronomical data.
+It can also interoperate with other desktop tools using the SAMP protocol.
 </px>
 
 <px>TOPCAT is written in pure Java and is available under the 
@@ -212,6 +218,7 @@ Here is a summary of its main capabilities:
 <li>Acquire tables from web services, external filestores or other 
     customisable sources</li>
 <li>Perform single and multiple queries to Virtual Observatory services</li>
+<li>Interoperate with other desktop tools using SAMP</li>
 <li>Write modified tables out in original or different format</li>
 </ul>
 </p>
@@ -264,8 +271,10 @@ and has subsequently been supported by PPARC grant PP/D002486/1,
 <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
 <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
         >AIDA</webref>,
+STFC grant ST/H008470/1,
+GAVO (BMBF Biwilligungsnummer 05A08VHA)
 and
-STFC grant ST/H008470/1.
+STFC grant ST/I00176X/1.
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
