@@ -38,6 +38,10 @@ public class Reporter {
         scode_ = scode;
     }
 
+    public String getSectionCode() {
+        return scode_;
+    }
+
     public void summariseUnreportedMessages( String scode ) {
         String dscode = "-" + scode + "-";
         int lds = dscode.length();
@@ -60,6 +64,11 @@ public class Reporter {
     }
 
     public void report( Type type, String code, String message ) {
+        report( type, code, message, null );
+    }
+
+    public void report( Type type, String code, String message,
+                        Throwable err ) {
         if ( message == null || message.trim().length() == 0 ) {
             message = "?";
         }
@@ -146,7 +155,8 @@ public class Reporter {
         SUMMARY( 'S' ),
         INFO( 'I' ),
         WARNING( 'W' ),
-        ERROR( 'E' );
+        ERROR( 'E' ),
+        FAILURE( 'F' );
 
         private final char chr_;
 
