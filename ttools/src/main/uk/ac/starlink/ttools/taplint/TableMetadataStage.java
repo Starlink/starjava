@@ -23,10 +23,20 @@ import uk.ac.starlink.vo.TapQuery;
  */
 public class TableMetadataStage implements Stage {
 
+    private TableMeta[] tmetas_;
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
 
     public TableMetadataStage() {
+    }
+
+    /**
+     * Returns the table metadata obtained by the last run of this stage.
+     *
+     * @return  table metadata array
+     */
+    public TableMeta[] getTableMetadata() {
+        return tmetas_;
     }
 
     public String getDescription() {
@@ -50,6 +60,7 @@ public class TableMetadataStage implements Stage {
             return;
         }
         checkTables( tmetas, reporter );
+        tmetas_ = tmetas;
     }
 
     private void checkTables( TableMeta[] tmetas, Reporter reporter ) { 

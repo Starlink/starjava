@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.task.Executable;
+import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.TapCapability;
 
 /**
  * Performs TAP validation.
@@ -37,13 +39,19 @@ public class TapLintExecutable implements Executable {
             XsdStage.createXsdStage( VODATASERVICE_XSD, "/tables", false,
                                      "table metadata" );
         runStage( tmXsdStage, "TMV" );
+        TableMeta[] tmetas = null;
         if ( tmXsdStage.getResult() != XsdStage.Result.NOT_FOUND ) {
-            runStage( new TableMetadataStage(), "TMC" );
+            TableMetadataStage tmStage = new TableMetadataStage();
+            runStage( tmStage, "TMC" );
+            tmetas = tmStage.getTableMetadata();
         }
         XsdStage capXsdStage =
             XsdStage.createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
                                      "capabilities" );
     //  runStage( capXsdStage, "CPV" );
+        CapabilityStage capStage = new CapabilityStage();
+        runStage( capStage, "CPC" );
+        TapCapability tcap = capStage.getCapability();
         XsdStage availXsdStage =
             XsdStage.createXsdStage( AVAILABILITY_XSD, "/availability", false,
                                      "availability" );
