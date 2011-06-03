@@ -26,6 +26,9 @@ public abstract class SkyMatchEngine implements MatchEngine {
     private static final double ARC_SECOND = Math.PI / 180 / 60 / 60;
     private static final DefaultValueInfo SEP_INFO =
         new DefaultValueInfo( "Max Error", Number.class,
+                              "Maximum separation along a great circle" );
+    private static final DefaultValueInfo SEPERR_INFO =
+        new DefaultValueInfo( "Max Error", Number.class,
                               "Maximum separation along a great circle"
                             + " - additional constraint to per-object errors" );
     private static final DefaultValueInfo ERR_INFO =
@@ -38,6 +41,9 @@ public abstract class SkyMatchEngine implements MatchEngine {
     static {
         SEP_INFO.setUnitString( "radians" );
         SEP_INFO.setNullable( false );
+
+        SEPERR_INFO.setUnitString( "radians" );
+        SEPERR_INFO.setNullable( false );
 
         ERR_INFO.setUnitString( "radians" );
         ERR_INFO.setNullable( true );
@@ -96,6 +102,7 @@ public abstract class SkyMatchEngine implements MatchEngine {
      */
     public void setUseErrors( boolean use ) {
         useErrors_ = use;
+        sepValue_ = new SkySeparationValue();
     }
 
     /**
@@ -364,7 +371,7 @@ public abstract class SkyMatchEngine implements MatchEngine {
      */
     private class SkySeparationValue extends DescribedValue {
         SkySeparationValue() {
-            super( SEP_INFO );
+            super( useErrors_ ? SEPERR_INFO : SEP_INFO );
         }
         public Object getValue() {
             return new Double( getSeparation() );
