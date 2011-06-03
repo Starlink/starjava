@@ -84,4 +84,14 @@ public class ColumnMeta {
     public boolean hasFlag( String flagTxt ) {
         return flags_ != null && Arrays.asList( flags_ ).contains( flagTxt );
     }
+
+    /**
+     * Returns this column's name.
+     *
+     * @return  name
+     */
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

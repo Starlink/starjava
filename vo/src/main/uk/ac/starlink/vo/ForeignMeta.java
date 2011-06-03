@@ -1,5 +1,7 @@
 package uk.ac.starlink.vo;
 
+import java.util.Arrays;
+
 /**
  * Represents foreign key information from a TableSet document.
  *
@@ -31,6 +33,11 @@ public class ForeignMeta {
         return links_;
     }
 
+    @Override
+    public String toString() {
+        return "Link to " + targetTable_ + Arrays.asList( links_ );
+    }
+
     /**
      * Represents a linkage from a column in the source table to a column
      * in the target table.
@@ -45,6 +52,11 @@ public class ForeignMeta {
 
         public String getTarget() {
             return target_;
+        }
+
+        @Override
+        public String toString() {
+            return from_ + "->" + target_;
         }
     }
 }

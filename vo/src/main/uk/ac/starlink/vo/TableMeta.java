@@ -44,4 +44,14 @@ public class TableMeta {
     public ForeignMeta[] getForeignKeys() {
         return foreignKeys_;
     }
+
+    /**
+     * Returns this table's name.
+     *
+     * @return  name
+     */
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
