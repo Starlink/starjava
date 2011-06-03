@@ -37,15 +37,8 @@ public abstract class XsdStage implements Stage {
      *
      * @param  schemaUrl  URL of schema to validate against
      */
-    protected XsdStage( String schemaUrl ) {
-        try {
-            schemaUrl_ = new URL( schemaUrl );
-        }
-        catch ( MalformedURLException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Bad URL " + schemaUrl )
-                 .initCause( e );
-        }
+    protected XsdStage( URL schemaUrl ) {
+        schemaUrl_ = schemaUrl;
     }
 
     /**
@@ -110,7 +103,7 @@ public abstract class XsdStage implements Stage {
         }
         catch ( SAXException e ) {
             reporter.report( Reporter.Type.FAILURE, "SCHM",
-                             "Can't get/parse schema " + schemaUrl_ );
+                             "Can't get/parse schema " + schemaUrl_, e );
             return Result.FAILURE;
         }
         ReporterErrorHandler errHandler = new ReporterErrorHandler( reporter );
@@ -167,6 +160,48 @@ public abstract class XsdStage implements Stage {
             schemaMap_.put( url, schema );
         }
         return schemaMap_.get( url );
+    }
+
+    /**
+     * Returns a new XsdStage suitable for one of the standard TAP XML
+     * endpoints.
+     *
+     * @param  schemaUrl  URL of XML schema to validate against
+     * @param  docUrlSuffix   suffix (include leading /) of TAP service URL
+     *                        giving resource endpoint
+     * @param  mandatory   true iff resource is REQUIRED by standard
+     * @param  resourceDescription  short description of what resource contains
+     * @return   new stage for XSD validation
+     */
+    public static XsdStage createXsdStage( final URL schemaUrl,
+                                           final String docUrlSuffix,
+                                           final boolean mandatory,
+                                           final String resourceDescription ) {
+        return new XsdStage( schemaUrl ) {
+            public String getDescription() {
+                return "Validate " + resourceDescription
+                     + " against XML schema";
+            }
+            public String getDocumentUrl( URL serviceUrl ) {
+                return serviceUrl + docUrlSuffix;
+            }
+            public void run( URL serviceUrl, Reporter reporter ) {
+                super.run( serviceUrl, reporter );
+                Result result = getResult();
+                if ( result == Result.NOT_FOUND ) {
+                    if ( mandatory ) {
+                        reporter.report( Reporter.Type.ERROR, "GONE",
+                                         "Mandatory resource " + docUrlSuffix
+                                       + " not present" );
+                    }
+                    else {
+                        reporter.report( Reporter.Type.WARNING, "GONE",
+                                         "Optional resource " + docUrlSuffix
+                                       + " not present" );
+                    }
+                }
+            }
+        };
     }
 
     /**

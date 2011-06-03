@@ -15,6 +15,7 @@ public class Reporter {
 
     private final PrintStream out_;
     private final int maxRepeat_;
+    private final boolean debug_;
     private final CountMap<String> codeMap_;
     private final CountMap<Type> typeMap_;
     private final NumberFormat countFormat_;
@@ -22,9 +23,10 @@ public class Reporter {
     private String scode_;
     private static final int CODE_LENGTH = 4;
 
-    public Reporter( PrintStream out, int maxRepeat ) {
+    public Reporter( PrintStream out, int maxRepeat, boolean debug ) {
         out_ = out;
         maxRepeat_ = maxRepeat;
+        debug_ = debug;
         int maxDigit = (int) Math.ceil( Math.log10( maxRepeat_ + 1 ) );
         countFormat_ = new DecimalFormat( repeatChar( '0', maxDigit ) );
         countXx_ = repeatChar( 'x', maxDigit );
@@ -108,6 +110,9 @@ public class Reporter {
                     out_.println( sbuf.toString() );
                 }
             }
+        }
+        if ( debug_ && err != null ) {
+            err.printStackTrace( out_ );
         }
     }
 

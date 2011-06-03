@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,23 +19,52 @@ public class TapLintExecutable implements Executable {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.taplint" );
 
+    private static final String XSDS = "http://www.ivoa.net/xml";
+    private static final URL VODATASERVICE_XSD =
+        toUrl( XSDS + "/VODataService/VODataService-v1.1.xsd" );
+    private static final URL CAPABILITIES_XSD =
+        TapLintExecutable.class.getResource( "VOSICapabilities-v1.0.xsd" );
+    private static final URL AVAILABILITY_XSD =
+        TapLintExecutable.class.getResource( "VOSIAvailability-v1.0.xsd" );
+
     public TapLintExecutable( URL serviceUrl, Reporter reporter ) {
         serviceUrl_ = serviceUrl;
         reporter_ = reporter;
     }
 
     public void execute() {
-        XsdStage tmXsdStage = new TableMetadataXsdStage();
+        XsdStage tmXsdStage =
+            XsdStage.createXsdStage( VODATASERVICE_XSD, "/tables", false,
+                                     "table metadata" );
         runStage( tmXsdStage, "TMV" );
         if ( tmXsdStage.getResult() != XsdStage.Result.NOT_FOUND ) {
             runStage( new TableMetadataStage(), "TMC" );
         }
+        XsdStage capXsdStage =
+            XsdStage.createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
+                                     "capabilities" );
+    //  runStage( capXsdStage, "CPV" );
+        XsdStage availXsdStage =
+            XsdStage.createXsdStage( AVAILABILITY_XSD, "/availability", false,
+                                     "availability" );
+        runStage( availXsdStage, "AVV" );
     }
 
     private void runStage( Stage stage, String code ) {
         reporter_.startSection( code, stage.getDescription() );
         stage.run( serviceUrl_, reporter_ );
         reporter_.endSection();
+    }
+
+    private static URL toUrl( String url ) {
+        try {
+            return new URL( url );
+        }
+        catch ( MalformedURLException e ) {
+            throw (IllegalArgumentException)
+                  new IllegalArgumentException( "Bad URL " + url )
+                 .initCause( e );
+        }
     }
 
     public static void main( String[] args ) throws Exception {
@@ -44,7 +74,8 @@ public class TapLintExecutable implements Executable {
                     ? args[ 0 ]
                     : "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap";
         Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
-        new TapLintExecutable( new URL( surl ), new Reporter( System.out, 4 ) )
+        new TapLintExecutable( new URL( surl ),
+                               new Reporter( System.out, 4, true ) )
            .execute();
     }
 }
