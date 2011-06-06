@@ -1,0 +1,51 @@
+<xsd:schema targetNamespace="http://www.ivoa.net/xml/VOSICapabilities/v1.0"
+            xmlns:tns="http://www.ivoa.net/xml/VOSICapabilities/v1.0"
+            xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.0rc1">
+
+  <xsd:annotation>
+     <xsd:documentation>
+       A schema for formatting service capabilities as returned by a 
+       capabilities resource, defined by the IVOA Support Interfaces 
+       specification (VOSI). 
+       See http://www.ivoa.net/Documents/latest/VOSI.html.  
+     </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:import namespace="http://www.ivoa.net/xml/VOResource/v1.0"
+              schemaLocation="http://www.ivoa.net/xml/VOResource/v1.0" />
+
+  <!--
+    -  the root element for a VOSI capabilities metadata (section 3.1)
+    -->
+
+  <xsd:element name="capabilities">
+     <xsd:annotation>
+       <xsd:documentation>
+         A listing of capabilities supported by a service
+       </xsd:documentation>
+     </xsd:annotation>
+     <xsd:complexType>
+        <xsd:sequence>
+           <xsd:element name="capability" type="vr:Capability" 
+                        form="unqualified" minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  A capability supported by the service.  
+                </xsd:documentation>
+                <xsd:documentation>
+                  A protocol-specific capability is included by specifying a
+                  vr:Capability sub-type via an xsi:type attribute on this 
+                  element.
+                </xsd:documentation>
+              </xsd:annotation>
+         </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
+
