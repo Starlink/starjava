@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -8,26 +7,41 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.xml.sax.SAXException;
 import uk.ac.starlink.util.CountMap;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.TableMeta;
-import uk.ac.starlink.vo.TapQuery;
 
 /**
  * Validation stage for checking the content of parsed Table metadata.
+ * Concrete subclasses must provide a method to acquire the metadata
+ * as an array of TableMeta objects.
  *
  * @author   Mark Taylor
  * @since    3 Jun 2011
  */
-public class TableMetadataStage implements Stage {
+public abstract class TableMetadataStage implements Stage {
 
+    private final String srcDescription_;
+    private final boolean reportFlags_;
     private TableMeta[] tmetas_;
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
 
-    public TableMetadataStage() {
+    /**
+     * Constructor.
+     *
+     * @param   srcDescription  short text description of table metadata source
+     * @param   reportFlags  if true, counts of all flags are reported;
+     *                       if false, only the indexed flag is reported
+     */
+    public TableMetadataStage( String srcDescription, boolean reportFlags ) {
+        srcDescription_ = srcDescription;
+        reportFlags_ = reportFlags;
+    }
+
+    public String getDescription() {
+        return "Check content of tables metadata from " + srcDescription_;
     }
 
     /**
@@ -38,35 +52,33 @@ public class TableMetadataStage implements Stage {
     public TableMeta[] getTableMetadata() {
         return tmetas_;
     }
-
-    public String getDescription() {
-        return "Check content of tables metadata";
-    }
+   
+    /**
+     * Returns an array providing table metadata to check.
+     *
+     * @param  serviceUrl  TAP service URL
+     * @param  reporter   destination for validation messages
+     */
+    protected abstract TableMeta[] readTableMetadata( URL serviceUrl,
+                                                      Reporter reporter );
 
     public void run( URL serviceUrl, Reporter reporter ) {
-        TableMeta[] tmetas;
-        try {
-            tmetas = TapQuery.readTableMetadata( serviceUrl );
-        }
-        catch ( SAXException e ) {
-            reporter.report( Reporter.Type.ERROR, "FLSX",
-                             "Can't parse table metadata well enough "
-                            + "to check it", e );
-            return;
-        }
-        catch ( IOException e ) {
-            reporter.report( Reporter.Type.ERROR, "FLIO",
-                             "Error reading table metadata", e );
-            return;
-        }
-        checkTables( tmetas, reporter );
+        TableMeta[] tmetas = readTableMetadata( serviceUrl, reporter );
+        checkTables( reporter, tmetas );
         tmetas_ = tmetas;
     }
 
-    private void checkTables( TableMeta[] tmetas, Reporter reporter ) { 
+    /**
+     * Performs the checking and reporting for a given table metadata set.
+     *
+     * @param  reporter  destination for validation messages
+     * @param  tmetas   table metadata to check
+     */
+    private void checkTables( Reporter reporter, TableMeta[] tmetas ) { 
         if ( tmetas == null ) {
             reporter.report( Reporter.Type.WARNING, "GONE",
                              "Table metadata absent" );
+            return;
         }
         int nTable = tmetas.length;
         int nCol = 0;
@@ -135,14 +147,28 @@ public class TableMetadataStage implements Stage {
                          "Tables: " + nTable + ", "
                        + "Columns: " + nCol + ", "
                        + "Foreign Keys: " + nForeign );
-        reporter.report( Reporter.Type.SUMMARY, "FLGS",
-                         "Standard column flags: "
-                       + summariseCounts( flagMap, KNOWN_COL_FLAGS ) );
-        reporter.report( Reporter.Type.SUMMARY, "FLGO",
-                         "Other column flags: "
-                       + summariseCounts( flagMap, otherFlags ) );
+        if ( reportFlags_ ) {
+            reporter.report( Reporter.Type.SUMMARY, "FLGS",
+                             "Standard column flags: "
+                           + summariseCounts( flagMap, KNOWN_COL_FLAGS ) );
+            reporter.report( Reporter.Type.SUMMARY, "FLGO",
+                             "Other column flags: "
+                           + summariseCounts( flagMap, otherFlags ) );
+        }
+        else {
+            reporter.report( Reporter.Type.SUMMARY, "FLGI",
+                             "Indexed columns: " + nIndex );
+        }
     }
 
+    /**
+     * Summarises how many entries in a given map there are for each of
+     * a given set of keys.
+     *
+     * @param  countMap   map containing counts
+     * @param  keys   keys to be summarised
+     * @return   summary string
+     */
     private String summariseCounts( CountMap<String> countMap, String[] keys ) {
         if ( keys.length == 0 ) {
             return "none";
@@ -160,6 +186,18 @@ public class TableMetadataStage implements Stage {
         return sbuf.toString();
     }
 
+    /**
+     * Creates a map from an array of objects.
+     * The map keys are the results of calling <code>toString</code> on the
+     * objects.  Any duplicates will be reported through the supplied
+     * reporter.
+     *
+     * @param   dName  descriptive name of type of thing in map
+     * @param   dChr   single character labelling type of thing
+     * @param   values  objects to populate map
+     * @param   reporter   destination for validation messages
+     * @return   name -> value map
+     */
     private <V> Map<String,V> createNameMap( String dName, char dChr,
                                              V[] values, Reporter reporter ) {
         Map<String,V> map = new LinkedHashMap<String,V>();

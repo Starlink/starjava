@@ -39,12 +39,15 @@ public class TapLintExecutable implements Executable {
             XsdStage.createXsdStage( VODATASERVICE_XSD, "/tables", false,
                                      "table metadata" );
         runStage( tmXsdStage, "TMV" );
-        TableMeta[] tmetas = null;
+        TableMeta[] tmetas1 = null;
         if ( tmXsdStage.getResult() != XsdStage.Result.NOT_FOUND ) {
-            TableMetadataStage tmStage = new TableMetadataStage();
-            runStage( tmStage, "TMC" );
-            tmetas = tmStage.getTableMetadata();
+            TablesEndpointStage tmStage = new TablesEndpointStage();
+            runStage( tmStage, "TME" );
+            tmetas1 = tmStage.getTableMetadata();
         }
+        TapSchemaStage tSchemaStage = new TapSchemaStage();
+        runStage( tSchemaStage, "TMS" );
+        TableMeta[] tmetas2 = tSchemaStage.getTableMetadata();
         XsdStage capXsdStage =
             XsdStage.createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
                                      "capabilities" );
