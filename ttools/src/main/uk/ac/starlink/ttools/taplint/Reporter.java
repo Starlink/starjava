@@ -100,7 +100,15 @@ public class Reporter {
         int count = codeMap_.addItem( ecode );
         if ( count < maxRepeat_ ) {
             String fcount = countFormat_.format( count );
-            String[] lines = message.trim().split( "[\\n\\r]+" );
+            StringBuffer mbuf = new StringBuffer( message.trim() );
+            if ( err != null ) {
+                String emsg = err.getMessage();
+                mbuf.append( " [" )
+                    .append( emsg == null || emsg.trim().length() == 0 
+                           ? err.toString() : emsg )
+                    .append( "]" );
+            }
+            String[] lines = mbuf.toString().split( "[\\n\\r]+" );
             for ( int il = 0; il < lines.length; il++ ) {
                 String line = lines[ il ];
                 if ( line.trim().length() > 0 ) {
