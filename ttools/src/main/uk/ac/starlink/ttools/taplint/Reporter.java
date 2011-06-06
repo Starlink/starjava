@@ -16,6 +16,7 @@ public class Reporter {
     private final PrintStream out_;
     private final int maxRepeat_;
     private final boolean debug_;
+    private final int maxChar_;
     private final CountMap<String> codeMap_;
     private final CountMap<Type> typeMap_;
     private final NumberFormat countFormat_;
@@ -23,10 +24,12 @@ public class Reporter {
     private String scode_;
     private static final int CODE_LENGTH = 4;
 
-    public Reporter( PrintStream out, int maxRepeat, boolean debug ) {
+    public Reporter( PrintStream out, int maxRepeat, boolean debug,
+                     int maxChar ) {
         out_ = out;
         maxRepeat_ = maxRepeat;
         debug_ = debug;
+        maxChar_ = maxChar;
         int maxDigit = (int) Math.ceil( Math.log10( maxRepeat_ + 1 ) );
         countFormat_ = new DecimalFormat( repeatChar( '0', maxDigit ) );
         countXx_ = repeatChar( 'x', maxDigit );
@@ -35,8 +38,8 @@ public class Reporter {
     }
 
     public void startSection( String scode, String message ) {
-        out_.println();
-        out_.println( "Section " + scode + ": " + message );
+        println();
+        println( "Section " + scode + ": " + message );
         scode_ = scode;
     }
 
@@ -53,7 +56,7 @@ public class Reporter {
             if ( dscode.equals( ecode.substring( 1, 1 + lds ) ) ) {
                 int count = codeMap_.getCount( ecode );
                 if ( count > maxRepeat_ ) {
-                    out_.println( ecode + "-" + countXx_
+                    println( ecode + "-" + countXx_
                                 + " (" + count + " more)" );
                 }
                 it.remove();
@@ -107,7 +110,7 @@ public class Reporter {
                         .append( fcount )
                         .append( ' ' )
                         .append( lines[ il ] );
-                    out_.println( sbuf.toString() );
+                    println( sbuf.toString() );
                 }
             }
         }
@@ -145,6 +148,18 @@ public class Reporter {
             hash >>= 5;
         }
         return new String( chrs );
+    }
+
+    private void println() {
+        println( "" );
+    }
+
+    private void println( String line ) {
+        int leng = line.length();
+        if ( leng > maxChar_ - 3 ) {
+            line = line.substring( 0, maxChar_ - 3 ) + "...";
+        }
+        out_.println( line );
     }
 
     private static String repeatChar( char chr, int count ) {

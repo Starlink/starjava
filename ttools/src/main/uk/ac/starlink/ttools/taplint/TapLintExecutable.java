@@ -83,7 +83,7 @@ public class TapLintExecutable implements Executable {
                     : "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap";
         Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
         new TapLintExecutable( new URL( surl ),
-                               new Reporter( System.out, 4, true ) )
+                               new Reporter( System.out, 4, true, 80 ) )
            .execute();
     }
 }
