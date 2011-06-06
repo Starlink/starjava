@@ -164,8 +164,10 @@ public class Reporter {
 
     private void println( String line ) {
         int leng = line.length();
-        if ( leng > maxChar_ - 3 ) {
-            line = line.substring( 0, maxChar_ - 3 ) + "...";
+        if ( leng > maxChar_ ) {
+            String ellipsis = "...";
+            line = line.substring( 0, maxChar_ - ellipsis.length() )
+                 + ellipsis;
         }
         out_.println( line );
     }
