@@ -21,7 +21,7 @@ public class TapSchemaStage extends TableMetadataStage {
     private TableMeta[] tmetas_;
 
     public TapSchemaStage() {
-        super( "TAP_SCHEMA tables", false );
+        super( "TAP_SCHEMA", false );
     }
 
     protected TableMeta[] readTableMetadata( URL serviceUrl,
@@ -50,6 +50,7 @@ public class TapSchemaStage extends TableMetadataStage {
         Map<String,List<ForeignMeta>> fMap;
         try {
             fMap = tsi.readForeignKeys( lMap );
+            checkEmpty( reporter, lMap, "FLUN", "key_columns" );
         }
         catch ( IOException e ) {
             reporter.report( Reporter.Type.ERROR, "FKIO",
@@ -60,6 +61,8 @@ public class TapSchemaStage extends TableMetadataStage {
         List<TableMeta> tList;
         try {
             tList = tsi.readTables( cMap, fMap );
+            checkEmpty( reporter, cMap, "CLUN", "columns" );
+            checkEmpty( reporter, fMap, "FKUN", "keys" );
         }
         catch ( IOException e ) {
             tList = null;
@@ -67,9 +70,6 @@ public class TapSchemaStage extends TableMetadataStage {
                              "Error reading TAP_SCHEMA.tables table", e );
         }
 
-        checkEmpty( reporter, cMap, "CLUN", "columns" );
-        checkEmpty( reporter, fMap, "FKUN", "keys" );
-        checkEmpty( reporter, lMap, "FLUN", "key_columns" );
         return tList == null ? null
                              : tList.toArray( new TableMeta[ 0 ] );
     }
