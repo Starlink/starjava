@@ -35,7 +35,7 @@ public class ForeignMeta {
 
     @Override
     public String toString() {
-        return "Link to " + targetTable_ + Arrays.asList( links_ );
+        return "->" + targetTable_ + Arrays.asList( links_ );
     }
 
     /**
