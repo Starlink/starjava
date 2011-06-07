@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.TableMeta;
@@ -23,6 +25,8 @@ public abstract class CompareMetadataStage implements Stage {
     private final String srcDesc2_;
     private TableMeta[] tmetas1_;
     private TableMeta[] tmetas2_;
+    private static Pattern ADQLTYPE_REGEX =
+        Pattern.compile( "^(adql:)?([^(]*)(\\(.*\\))?$" );
 
     /**
      * Constructor.
@@ -104,8 +108,8 @@ public abstract class CompareMetadataStage implements Stage {
             ColumnMeta cm2 = cmMap2.get( cname );
             Checker checker =
                 new Checker( reporter, "Column", tableName + ":" + cname );
-            checker.check( "Datatype", "CDTP",
-                           cm1.getDataType(), cm2.getDataType() );
+            checker.checkDataTypes( "CTYP",
+                                    cm1.getDataType(), cm2.getDataType() );
             checker.check( "UCD", "CUCD", cm1.getUcd(), cm2.getUcd() );
             checker.check( "Utype", "CUTP", cm1.getUtype(), cm2.getUtype() );
             checker.check( "Unit", "CUNI", cm1.getUnit(), cm2.getUnit() );
@@ -180,6 +184,61 @@ public abstract class CompareMetadataStage implements Stage {
         List<String> intersect = new ArrayList( names1 );
         intersect.retainAll( names2 );
         return intersect;
+    }
+
+    /**
+     * Indicates whether two datatypes are compatible with each other.
+     * Datatypes may be either VOTable or TAP/adql type.
+     * See VODataService v1.1 section 3.5.3 and TAP v1.0 section 2.5.
+     * The logic is somewhat sloppy.
+     *
+     * @param  dt1  first data type
+     * @param  dt2  second data type
+     * @return  true iff it looks like the submitted types are compatible
+     */
+    public static boolean compatibleDataTypes( String dt1, String dt2 ) {
+        return compatibleDataTypesOneWay( dt1, dt2 ) ||
+               compatibleDataTypesOneWay( dt2, dt1 );
+    }
+
+    /**
+     * Service method used by {@link #compatibleDataTypes}.
+     *
+     * @param  dt1  first data type
+     * @param  dt2  second data type
+     * @return  true iff it looks like the submitted types are compatible
+     */
+    private static boolean compatibleDataTypesOneWay( String dt1, String dt2 ) {
+        Matcher atm1 = ADQLTYPE_REGEX.matcher( dt1 );
+        if ( atm1.matches() ) {
+            dt1 = atm1.group( 2 );
+        }
+        if ( dt1.equals( dt2 ) ) {
+            return true;
+        }
+        if ( dt1.equals( "SMALLINT" ) && dt2.equals( "short" ) ||
+             dt1.equals( "INTEGER" ) && dt2.equals( "int" ) ||
+             dt1.equals( "BIGINT" ) && dt2.equals( "long" ) ||
+             dt1.equals( "REAL" ) && dt2.equals( "float" ) ||
+             dt1.equals( "DOUBLE" ) && dt2.equals( "double" ) ||
+             dt1.equals( "VARBINARY" ) && ( dt2.equals( "short" ) ||
+                                            dt2.equals( "int" ) ||
+                                            dt2.equals( "long" ) ||
+                                            dt2.equals( "float" ) ||
+                                            dt2.equals( "double" ) ||
+                                            dt2.equals( "unsignedByte" ) ) ||
+             dt1.equals( "BLOB" ) && dt2.equals( "unsignedByte" ) ||
+             ( dt1.equals( "CHAR" ) ||
+               dt1.equals( "VARCHAR" ) ||
+               dt1.equals( "CLOB" ) ||
+               dt1.equals( "TIMESTAMP" ) ||
+               dt1.equals( "POINT" ) ||
+               dt1.equals( "REGION" ) ) && dt2.equals( "char" ) ||
+             ( dt1.equals( "SMALLINT" ) ||
+               dt1.equals( "INTEGER" ) ) && dt2.equals( "boolean" ) ) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -272,6 +331,29 @@ public abstract class CompareMetadataStage implements Stage {
                     .append( q2 )
                     .append( item2 )
                     .append( q2 )
+                    .toString();
+                reporter_.report( Reporter.Type.WARNING, code, msg );
+            }
+        }
+
+        /**
+         * Check compatibility of two datatypes.
+         *
+         * @param  code  error code
+         * @param  dt1  first data type
+         * @param  dt2  second data type
+         */
+        void checkDataTypes( String code, String dt1, String dt2 ) {
+            if ( ! compatibleDataTypes( dt1, dt2 ) ) {
+                String msg = new StringBuffer()
+                    .append( "Incompatible datatypes for " )
+                    .append( objectType_ )
+                    .append( " " )
+                    .append( objectName_ )
+                    .append( "; " )
+                    .append( dt1 )
+                    .append( " vs. " )
+                    .append( dt2 )
                     .toString();
                 reporter_.report( Reporter.Type.WARNING, code, msg );
             }

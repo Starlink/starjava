@@ -144,6 +144,22 @@ public abstract class TableMetadataStage implements Stage {
                                              "Broken link " + link
                                            + " in foreign key " + fkey );
                         }
+                        String fromType = fromCol.getDataType();
+                        String toType = toCol.getDataType();
+                        if ( fromType == null || ! fromType.equals( toType ) ) {
+                            String msg = new StringBuffer()
+                                .append( "Type mismatch for link " )
+                                .append( link )
+                                .append( " in foreign key " )
+                                .append( fkey )
+                                .append( "; " )
+                                .append( fromType )
+                                .append( " vs. " )
+                                .append( toType )
+                                .toString();
+                            reporter.report( Reporter.Type.WARNING,
+                                             "FTYP", msg );
+                        }
                     }
                 }
             }
