@@ -45,6 +45,15 @@ public abstract class TableMetadataStage implements Stage {
     }
 
     /**
+     * Returns a short text description of table metadata source.
+     * 
+     * @return  metadata source description
+     */
+    public String getSourceDescription() {
+        return srcDescription_;
+    }
+
+    /**
      * Returns the table metadata obtained by the last run of this stage.
      *
      * @return  table metadata array

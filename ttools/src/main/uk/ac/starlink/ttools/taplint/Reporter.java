@@ -37,6 +37,13 @@ public class Reporter {
         typeMap_ = new CountMap<Type>();
     }
 
+    public void start() {
+    }
+
+    public void end() {
+        println();
+    }
+
     public void startSection( String scode, String message ) {
         println();
         println( "Section " + scode + ": " + message );

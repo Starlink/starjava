@@ -146,10 +146,13 @@ public class TapLint implements Task {
         int maxChar = truncParam_.intValue( env );
         Set<String> stageSet = new HashSet<String>();
         Collection<String> knownStages = tapLinter_.getKnownStages().keySet();
+        for ( String s : knownStages ) {
+            assert s.equals( s.toUpperCase() );
+        }
         String[] stages = stagesParam_.stringsValue( env );
         for ( int is = 0; is < stages.length; is++ ) {
             String sc = stages[ is ];
-            if ( ! knownStages.contains( sc ) ) {
+            if ( ! knownStages.contains( sc.toUpperCase() ) ) {
                 throw new ParameterValueException( stagesParam_,
                                                    "Unknown stage " + sc );
             }

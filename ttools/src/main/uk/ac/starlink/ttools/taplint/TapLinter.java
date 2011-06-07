@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class TapLinter {
     private final XsdStage tmetaXsdStage_;
     private final TablesEndpointStage tmetaStage_;
     private final TapSchemaStage tapSchemaStage_;
+    private final CompareMetadataStage cfTmetaStage_;
     private final XsdStage tcapXsdStage_;
     private final CapabilityStage tcapStage_;
     private final XsdStage availXsdStage_;
@@ -48,6 +50,8 @@ public class TapLinter {
                                          "table metadata" );
         tmetaStage_ = new TablesEndpointStage();
         tapSchemaStage_ = new TapSchemaStage();
+        cfTmetaStage_ = CompareMetadataStage
+                       .createStage( tmetaStage_, tapSchemaStage_ );
         tcapXsdStage_ = XsdStage
                        .createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
                                         "capabilities" );
@@ -61,6 +65,7 @@ public class TapLinter {
         stageSet_.add( "TMV", tmetaXsdStage_, true );
         stageSet_.add( "TME", tmetaStage_, true );
         stageSet_.add( "TMS", tapSchemaStage_, true );
+        stageSet_.add( "TMC", cfTmetaStage_, true );
         stageSet_.add( "CPV", tcapXsdStage_, false );
         stageSet_.add( "CPC", tcapStage_, true );
         stageSet_.add( "AVV", availXsdStage_, true );
@@ -104,27 +109,40 @@ public class TapLinter {
         /* Prepare a checked and ordered sequence of codes determining
          * which stages will be executed.  Note the order is that defined
          * by the list of known codes, not that defined by the input set. */
-        List<String> knownCodes = new ArrayList( stageSet_.stageMap_.keySet() );
-        if ( ! knownCodes.containsAll( stageCodeSet ) ) {
-            Set remainder = new HashSet( stageCodeSet );
-            remainder.removeAll( knownCodes );
-            throw new TaskException( "Unknown stage codes " + remainder );
+        List<String> selectedCodeList = new ArrayList<String>();
+        for ( String knownCode : stageSet_.stageMap_.keySet() ) {
+            boolean selected = false;
+            for ( Iterator<String> sit = stageCodeSet.iterator();
+                  ! selected && sit.hasNext(); ) {
+                if ( knownCode.equalsIgnoreCase( sit.next() ) ) {
+                    sit.remove();
+                    selected = true;
+                }
+            }
+            if ( selected ) {
+                selectedCodeList.add( knownCode );
+            }
         }
-        knownCodes.retainAll( stageCodeSet );
-        final String[] codes = knownCodes.toArray( new String[ 0 ] );
+        if ( ! stageCodeSet.isEmpty() ) {
+            throw new TaskException( "Unknown stage codes " + stageCodeSet );
+        }
+        final String[] codes = selectedCodeList.toArray( new String[ 0 ] );
 
         /* Create and return an executable which will run the
          * requested stages. */
         return new Executable() {
             public void execute() {
+                reporter.start();
                 for ( int ic = 0; ic < codes.length; ic++ ) {
                     String code = codes[ ic ];
                     Stage stage = stageSet_.getStage( code );
                     assert stage != null;
                     reporter.startSection( code, stage.getDescription() );
                     stage.run( serviceUrl, reporter );
+                    reporter.summariseUnreportedMessages( code );
                     reporter.endSection();
                 }
+                reporter.end();
             }
         };
     }
