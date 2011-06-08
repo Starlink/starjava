@@ -169,13 +169,13 @@ public class TapSchemaInterrogator {
         int iccUtype = ccList.add( "utype" );
         int iccDatatype = ccList.add( "datatype" );
         int iccIndexed = ccList.add( "indexed" );
+        int iccPrincipal = ccList.add( "principal" );
+        int iccStd = ccList.add( "std" );
         StarTable cTable = ccList.query( "TAP_SCHEMA.columns" );
 
         Map<String,List<ColumnMeta>> cMap =
             new LinkedHashMap<String,List<ColumnMeta>>();
         RowSequence cSeq = cTable.getRowSequence();
-        String[] indexedFlags = new String[] { "indexed" };
-        String[] notIndexedFlags = new String[ 0 ];
         try {
             while ( cSeq.next() ) {
                 Object[] row = cSeq.getRow();
@@ -187,8 +187,17 @@ public class TapSchemaInterrogator {
                 cmeta.ucd_ = (String) row[ iccUcd ];
                 cmeta.utype_ = (String) row[ iccUtype ];
                 cmeta.dataType_ = (String) row[ iccDatatype ];
-                cmeta.flags_ = (((Number) row[ iccIndexed ]).intValue() > 0)
-                             ? indexedFlags : notIndexedFlags;
+                List<String> flagList = new ArrayList<String>();
+                if ( isTrue( row[ iccIndexed ] ) ) {
+                    flagList.add( "indexed" );
+                }
+                if ( isTrue( row[ iccPrincipal ] ) ) {
+                    flagList.add( "principal" );
+                }
+                if ( isTrue( row[ iccStd ] ) ) {
+                    flagList.add( "std" );
+                }
+                cmeta.flags_ = flagList.toArray( new String[ 0 ] );
                 if ( ! cMap.containsKey( tname ) ) {
                     cMap.put( tname, new ArrayList<ColumnMeta>() );
                 }
@@ -262,6 +271,17 @@ public class TapSchemaInterrogator {
         TapQuery tq =
             new TapQuery( serviceUrl_, adql, extraParams_, uploadMap_, 0 );
         return tq.executeSync( StoragePolicy.getDefaultPolicy() );
+    }
+
+    /**
+     * Indicates whether an TAP output value represents a boolean True.
+     *
+     * @param   entry   table entry
+     * @return  true iff entry is a Number with a non-zero value
+     */
+    private boolean isTrue( Object entry ) {
+        return entry instanceof Number
+            && ((Number) entry).intValue() != 0;
     }
 
     /**
