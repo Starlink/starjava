@@ -30,6 +30,7 @@ public class TapLinter {
     private final XsdStage tcapXsdStage_;
     private final CapabilityStage tcapStage_;
     private final XsdStage availXsdStage_;
+    private final QueryStage syncQueryStage_;
 
     private static final String XSDS = "http://www.ivoa.net/xml";
     private static final URL VODATASERVICE_XSD =
@@ -50,8 +51,9 @@ public class TapLinter {
                                          "table metadata" );
         tmetaStage_ = new TablesEndpointStage();
         tapSchemaStage_ = new TapSchemaStage();
+        TableMetadataStage[] tmStages = { tmetaStage_, tapSchemaStage_ };
         cfTmetaStage_ = CompareMetadataStage
-                       .createStage( tmetaStage_, tapSchemaStage_ );
+                       .createStage( tmStages[ 0 ], tmStages[ 1 ] );
         tcapXsdStage_ = XsdStage
                        .createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
                                         "capabilities" );
@@ -59,6 +61,7 @@ public class TapLinter {
         availXsdStage_ = XsdStage
                         .createXsdStage( AVAILABILITY_XSD, "/availability",
                                          false, "availability" );
+        syncQueryStage_ = QueryStage.createStage( tmStages );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
@@ -69,6 +72,7 @@ public class TapLinter {
         stageSet_.add( "CPV", tcapXsdStage_, false );
         stageSet_.add( "CPC", tcapStage_, true );
         stageSet_.add( "AVV", availXsdStage_, true );
+        stageSet_.add( "QSY", syncQueryStage_, true );
     }
 
     /**
