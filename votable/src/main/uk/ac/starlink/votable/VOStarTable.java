@@ -91,12 +91,14 @@ public class VOStarTable extends AbstractStarTable {
     public final static ValueInfo TYPE_INFO = new DefaultValueInfo(
         "Type", String.class, "VOTable type attribute" );
 
-    private final static ValueInfo datatypeInfo = new DefaultValueInfo(
+    /** ValueInfo for VOTable <tt>datatype</tt> attribute. */
+    public final static ValueInfo DATATYPE_INFO = new DefaultValueInfo(
         "Datatype", String.class, "VOTable data type name" );
+
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
 
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        ID_INFO, datatypeInfo, nullInfo, XTYPE_INFO,
+        ID_INFO, DATATYPE_INFO, nullInfo, XTYPE_INFO,
         WIDTH_INFO, PRECISION_INFO, REF_INFO, TYPE_INFO,
     } );
 
@@ -158,7 +160,8 @@ public class VOStarTable extends AbstractStarTable {
 
                 if ( field.hasAttribute( "datatype" ) ) {
                     String datatype = field.getAttribute( "datatype" );
-                    auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
+                    auxdata.add( new DescribedValue( DATATYPE_INFO,
+                                                     datatype ) );
                 }
 
                 String blankstr = field.getNull();
