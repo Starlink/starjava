@@ -21,7 +21,8 @@ public class TapSchemaStage extends TableMetadataStage {
     private TableMeta[] tmetas_;
 
     public TapSchemaStage() {
-        super( "TAP_SCHEMA", false );
+        super( "TAP_SCHEMA",
+               new String[] { "indexed", "principal", "std", }, false );
     }
 
     protected TableMeta[] readTableMetadata( URL serviceUrl,

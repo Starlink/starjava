@@ -23,7 +23,8 @@ import uk.ac.starlink.vo.TableMeta;
 public abstract class TableMetadataStage implements Stage {
 
     private final String srcDescription_;
-    private final boolean reportFlags_;
+    private final String[] knownColFlags_;
+    private final boolean reportOtherFlags_;
     private TableMeta[] tmetas_;
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
@@ -32,12 +33,15 @@ public abstract class TableMetadataStage implements Stage {
      * Constructor.
      *
      * @param   srcDescription  short text description of table metadata source
-     * @param   reportFlags  if true, counts of all flags are reported;
-     *                       if false, only the indexed flag is reported
+     * @param   standard column flag values to report counts for
+     * @param   reportOtherFlags  whether to report counts for non-standard
+     *                            column flag values
      */
-    public TableMetadataStage( String srcDescription, boolean reportFlags ) {
+    public TableMetadataStage( String srcDescription, String[] knownColFlags,
+                               boolean reportOtherFlags ) {
         srcDescription_ = srcDescription;
-        reportFlags_ = reportFlags;
+        knownColFlags_ = knownColFlags;
+        reportOtherFlags_ = reportOtherFlags;
     }
 
     public String getDescription() {
@@ -166,23 +170,19 @@ public abstract class TableMetadataStage implements Stage {
         }
         Collection<String> otherFlagList =
             new HashSet<String>( flagMap.keySet() );
-        otherFlagList.removeAll( Arrays.asList( KNOWN_COL_FLAGS ) );
+        otherFlagList.removeAll( Arrays.asList( knownColFlags_ ) );
         String[] otherFlags = otherFlagList.toArray( new String[ 0 ] );
         reporter.report( Reporter.Type.SUMMARY, "SUMM",
                          "Tables: " + nTable + ", "
                        + "Columns: " + nCol + ", "
                        + "Foreign Keys: " + nForeign );
-        if ( reportFlags_ ) {
-            reporter.report( Reporter.Type.SUMMARY, "FLGS",
-                             "Standard column flags: "
-                           + summariseCounts( flagMap, KNOWN_COL_FLAGS ) );
+        reporter.report( Reporter.Type.SUMMARY, "FLGS",
+                         "Standard column flags: "
+                       + summariseCounts( flagMap, knownColFlags_ ) );
+        if ( reportOtherFlags_ ) {
             reporter.report( Reporter.Type.SUMMARY, "FLGO",
                              "Other column flags: "
                            + summariseCounts( flagMap, otherFlags ) );
-        }
-        else {
-            reporter.report( Reporter.Type.SUMMARY, "FLGI",
-                             "Indexed columns: " + nIndex );
         }
     }
 

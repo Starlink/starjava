@@ -16,7 +16,8 @@ import uk.ac.starlink.vo.TapQuery;
 public class TablesEndpointStage extends TableMetadataStage {
 
     public TablesEndpointStage() {
-        super( "/tables", true );
+        super( "/tables",
+               new String[] { "indexed", "primary", "nullable" }, true );
     }
 
     protected TableMeta[] readTableMetadata( URL serviceUrl,
