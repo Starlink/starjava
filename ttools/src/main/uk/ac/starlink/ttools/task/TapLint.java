@@ -105,7 +105,7 @@ public class TapLint implements Task {
             "repetitions of essentially the same error.",
             "</p>",
         } );
-        repeatParam_.setDefault( "4" );
+        repeatParam_.setDefault( "9" );
         paramList.add( repeatParam_ );
 
         truncParam_ = new IntegerParameter( "truncate" );

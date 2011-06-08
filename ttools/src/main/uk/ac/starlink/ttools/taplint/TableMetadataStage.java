@@ -130,10 +130,13 @@ public abstract class TableMetadataStage implements Stage {
                 String targetTableName = fkey.getTargetTable();
                 TableMeta targetTable = tableMap.get( targetTableName );
                 if ( targetTable == null ) {
-                    reporter.report( Reporter.Type.ERROR, "FKNT",
-                                     "Foreign Key using non-existent "
-                                   + "target table "
-                                   + '"' + fkey.getTargetTable() + '"' );
+                    String msg = new StringBuffer()
+                       .append( "Non-existent target table " )
+                       .append( fkey.getTargetTable() )
+                       .append( " for foreign key in table " )
+                       .append( tmeta )
+                       .toString();
+                    reporter.report( Reporter.Type.ERROR, "FKNT", msg );
                 }
                 else {
                     Map<String,ColumnMeta> targetCmap =
