@@ -65,11 +65,12 @@ public class TapQuery {
      * @param  extraParams  key->value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
-     *                      be overwritten, so use with care
+     *                      be overwritten, so use with care (may be null)
      * @param  uploadMap  name->table map of tables to be uploaded to
-     *                    the service for the query
+     *                    the service for the query (may be null)
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
-     *                      if negative, no limit is applied
+     *                      if negative, no limit is applied,
+     *                      ignored if <code>uploadMap</code> null or empty
      */
     public TapQuery( URL serviceUrl, String adql,
                      Map<String,String> extraParams,
@@ -112,6 +113,24 @@ public class TapQuery {
         if ( ubuf.length() > 0 ) {
             stringMap_.put( "UPLOAD", ubuf.toString() );
         }
+    }
+
+    /**
+     * Returns the text of the ADQL query for this object.
+     *
+     * @return  ADQL query text
+     */
+    public String getAdql() {
+        return adql_;
+    }
+
+    /**
+     * Returns the TAP service URL to which this query will be submitted.
+     *
+     * @return  serviceUrl
+     */
+    public URL getServiceUrl() {
+        return serviceUrl_;
     }
 
     /**
