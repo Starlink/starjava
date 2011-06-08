@@ -33,7 +33,7 @@ public abstract class TableMetadataStage implements Stage {
      * Constructor.
      *
      * @param   srcDescription  short text description of table metadata source
-     * @param   standard column flag values to report counts for
+     * @param   knownColFlags  standard column flag values to report counts for
      * @param   reportOtherFlags  whether to report counts for non-standard
      *                            column flag values
      */
