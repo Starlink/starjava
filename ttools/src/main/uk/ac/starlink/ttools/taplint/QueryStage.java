@@ -142,7 +142,7 @@ public abstract class QueryStage implements Stage {
             String name1 = tmeta1_.getName();
             runCheckedQuery( "SELECT * FROM " + name1, 10,
                              tmeta1_.getColumns(), -1 );
-            runCheckedQuery( "SELECT TOP 4 * FROM " + name1, -1,
+            runCheckedQuery( "SELECT TOP 3 * FROM " + name1, -1,
                              tmeta1_.getColumns(), 3 );
         }
 
