@@ -78,7 +78,7 @@ public abstract class CompareMetadataStage implements Stage {
         Map<String,TableMeta> tmMap1 = createNameMap( tmetas1 );
         Map<String,TableMeta> tmMap2 = createNameMap( tmetas2 );
         Collection<String> tNames =
-            getIntersection( reporter, 'T', "Table", tmetas1, tmetas2 );
+            getIntersection( reporter, 'T', "Table", null, tmetas1, tmetas2 );
         for ( String tname : tNames ) {
             TableMeta tm1 = tmMap1.get( tname );
             TableMeta tm2 = tmMap2.get( tname );
@@ -102,7 +102,8 @@ public abstract class CompareMetadataStage implements Stage {
         Map<String,ColumnMeta> cmMap1 = createNameMap( cmetas1 );
         Map<String,ColumnMeta> cmMap2 = createNameMap( cmetas2 );
         Collection<String> cNames =
-            getIntersection( reporter, 'C', "Column", cmetas1, cmetas2 );
+            getIntersection( reporter, 'C', "Column", "table " + tableName,
+                             cmetas1, cmetas2 );
         for ( String cname : cNames ) {
             ColumnMeta cm1 = cmMap1.get( cname );
             ColumnMeta cm2 = cmMap2.get( cname );
@@ -134,7 +135,8 @@ public abstract class CompareMetadataStage implements Stage {
          * much everything required.  Also, there is no identifier field
          * for foreign keys, so apart from that content, it's not clear
          * how you would work out which pairs are supposed to correspond. */
-        getIntersection( reporter, 'F', "Foreign key", fmetas1, fmetas2 );
+        getIntersection( reporter, 'F', "Foreign key", "table " + tableName,
+                         fmetas1, fmetas2 );
     }
 
     /**
@@ -145,12 +147,13 @@ public abstract class CompareMetadataStage implements Stage {
      * @param  reporter  destination for validation messages
      * @param  lchr  labelling character for object type
      * @param  ltype  labelling name for object type
+     * @param  context  location of items for reporting
      * @param  items1  array of items with toString methods indicating identity
      * @param  items2  array of items with toString methods indicating identity
      * @return  collection of common toString values between input item sets
      */
     private Collection<String> getIntersection( Reporter reporter, char lchr,
-                                                String ltype,
+                                                String ltype, String context,
                                                 Object[] items1,
                                                 Object[] items2 ) {
 
@@ -169,15 +172,32 @@ public abstract class CompareMetadataStage implements Stage {
         List<String> extras2 = new ArrayList( names2 );
         extras1.removeAll( names2 );
         extras2.removeAll( names1 );
+        String contextString = context == null ? "" : " from " + context;
         for ( String ex1 : extras1 ) {
-            reporter.report( Reporter.Type.ERROR, "" + lchr + "M12",
-                             ltype + " " + ex1 + " in " + srcDesc1_
-                           + " not " + srcDesc2_ );
+            String msg = new StringBuffer()
+               .append( ltype )
+               .append( " " )
+               .append( ex1 )
+               .append( contextString )
+               .append( " exists in " )
+               .append( srcDesc1_ )
+               .append( " but not in " )
+               .append( srcDesc2_ )
+               .toString();
+            reporter.report( Reporter.Type.ERROR, "" + lchr + "M12", msg );
         }
         for ( String ex2 : extras2 ) {
-            reporter.report( Reporter.Type.ERROR, "" + lchr + "M21",
-                             ltype + " " + ex2 + " in " + srcDesc2_
-                           + " not " + srcDesc1_ );
+            String msg = new StringBuffer()
+               .append( ltype )
+               .append( " " )
+               .append( ex2 )
+               .append( contextString )
+               .append( " exists in " )
+               .append( srcDesc2_ )
+               .append( " but not " )
+               .append( srcDesc1_ )
+               .toString();
+            reporter.report( Reporter.Type.ERROR, "" + lchr + "M21", msg );
         }
 
         /* Calculate and return intersection set. */
