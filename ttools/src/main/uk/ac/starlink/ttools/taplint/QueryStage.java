@@ -131,16 +131,17 @@ public abstract class QueryStage implements Stage {
          * Runs some tests using all the columns in an example table.
          */
         private void runAllColumns() {
+            int nr0 = 10;
             String name1 = tmeta1_.getName();
-            StarTable t1 = runCheckedQuery( "SELECT * FROM " + name1, 10,
-                                               tmeta1_.getColumns(), -1 );
+            StarTable t1 = runCheckedQuery( "SELECT * FROM " + name1, nr0,
+                                            tmeta1_.getColumns(), -1 );
             long nr1 = t1 != null ? t1.getRowCount() : 0;
             assert nr1 >= 0;
             final boolean over;
             long nr2;
             if ( nr1 > 0 ) {
                 over = true;
-                nr2 = nr1 - 1;
+                nr2 = Math.min( nr1 - 1, nr0 );
             }
             else {
                 over = false;
