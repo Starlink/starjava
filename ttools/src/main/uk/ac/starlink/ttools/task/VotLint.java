@@ -17,10 +17,10 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.lint.DoctypeInterpolator;
-import uk.ac.starlink.ttools.lint.LintContext;
-import uk.ac.starlink.ttools.lint.Linter;
-import uk.ac.starlink.ttools.lint.VotableVersion;
+import uk.ac.starlink.ttools.votlint.DoctypeInterpolator;
+import uk.ac.starlink.ttools.votlint.VotLintContext;
+import uk.ac.starlink.ttools.votlint.VotLinter;
+import uk.ac.starlink.ttools.votlint.VotableVersion;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -121,7 +121,7 @@ public class VotLint implements Task {
 
         /* Create a lint context. */
         boolean validate = validParam_.booleanValue( env );
-        final LintContext context = new LintContext( version );
+        final VotLintContext context = new VotLintContext( version );
         context.setValidating( validate );
         if ( env instanceof TableEnvironment ) {
             context.setDebug( ((TableEnvironment) env).isDebug() );
@@ -151,11 +151,11 @@ public class VotLint implements Task {
 
         final InputStream baseIn_;
         final boolean validate_;
-        final LintContext context_;
+        final VotLintContext context_;
         final String sysid_;
 
         VotLintExecutable( InputStream in, boolean validate, 
-                           LintContext context, String sysid ) {
+                           VotLintContext context, String sysid ) {
             baseIn_ = in;
             validate_ = validate;
             context_ = context;
@@ -195,8 +195,9 @@ public class VotLint implements Task {
 
             /* Perform the parse. */
             try {
-                new Linter( context_ ).createParser( context_.isValidating() )
-                                      .parse( sax );
+                new VotLinter( context_ )
+                   .createParser( context_.isValidating() )
+                   .parse( sax );
             }
             catch ( SAXException e ) {
                 throw new ExecutionException( e.getMessage(), e );
