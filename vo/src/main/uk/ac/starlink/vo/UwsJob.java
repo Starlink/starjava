@@ -368,17 +368,18 @@ public class UwsJob {
      * parameters, and posts them in an appropriate way.
      *
      * @param   url   destination URL
-     * @param   stringMap  name->value map for POST parameters;
+     * @param   stringParams  name->value map for POST parameters;
      *          values will be URL encoded as required
-     * @param   streamMap  name->parameter map for POST parameters
+     * @param   streamParams  name->parameter map for POST parameters
      * @return   URL connection corresponding to the completed POST
      */
-    static HttpURLConnection postForm( URL url, Map<String,String> stringMap,
-                                       Map<String,HttpStreamParam> streamMap )
+    public static HttpURLConnection
+                  postForm( URL url, Map<String,String> stringParams,
+                            Map<String,HttpStreamParam> streamParams )
             throws IOException {
-        return ( streamMap == null || streamMap.isEmpty() )
-             ? postUnipartForm( url, stringMap )
-             : postMultipartForm( url, stringMap, streamMap, null );
+        return ( streamParams == null || streamParams.isEmpty() )
+             ? postUnipartForm( url, stringParams )
+             : postMultipartForm( url, stringParams, streamParams, null );
     }
 
     /**

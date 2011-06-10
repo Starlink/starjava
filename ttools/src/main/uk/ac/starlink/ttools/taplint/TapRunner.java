@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.vo.TapQuery;
 
@@ -44,14 +45,18 @@ public abstract class TapRunner {
      * @return  result table, or null if there was an error
      */
     public StarTable getResultTable( Reporter reporter, TapQuery tq ) {
-        reporter.report( Reporter.Type.INFO, "QTXT",
-                         "Submitting query: " + tq.getAdql() );
         try {
             return attemptGetResultTable( reporter, tq );
         }
         catch ( IOException e ) {
             reporter.report( Reporter.Type.ERROR, "QERR",
                              "TAP query failed: " + tq.getAdql(), e );
+            return null;
+        }
+        catch ( SAXException e ) {
+            reporter.report( Reporter.Type.ERROR, "QERX",
+                             "TAP query result parse failed: " + tq.getAdql(),
+                             e );
             return null;
         }
     }
@@ -65,9 +70,9 @@ public abstract class TapRunner {
      * @return  result table, not null
      */
     public StarTable attemptGetResultTable( Reporter reporter, TapQuery tq )
-            throws IOException {
+            throws IOException, SAXException {
         reporter.report( Reporter.Type.INFO, "QSUB",
-                         "Executing query: " + tq.getAdql() );
+                         "Submitting query: " + tq.getAdql() );
         nQuery_++;
         StarTable table = executeQuery( reporter, tq );
         nResult_++;
@@ -85,7 +90,7 @@ public abstract class TapRunner {
      */
     protected abstract StarTable executeQuery( Reporter reporter,
                                                TapQuery query )
-        throws IOException;
+        throws IOException, SAXException;
 
     /**
      * Reports a summary of the queries executed by this object.

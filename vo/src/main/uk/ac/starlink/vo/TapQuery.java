@@ -530,11 +530,11 @@ public class TapQuery {
      * until a non-303 status is achieved.  Infinite loops are defended
      * against.
      *
-     * @param  hconn   initial URL connection
+     * @param  conn   initial URL connection
      * @return   target URL connection
      *           (if no redirects, the same as <code>hconn</code>)
      */
-    private static URLConnection followRedirects( URLConnection conn )
+    public static URLConnection followRedirects( URLConnection conn )
             throws IOException {
         if ( ! ( conn instanceof HttpURLConnection ) ) {
             return conn;

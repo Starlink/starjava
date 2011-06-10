@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -153,8 +154,16 @@ public class TapSchemaStage extends TableMetadataStage {
         }
 
         @Override
-        protected StarTable executeQuery( TapQuery tq ) throws IOException {
-            return tapRunner_.attemptGetResultTable( reporter_, tq );
+        protected StarTable executeQuery( TapQuery tq )
+                throws IOException {
+            try {
+                return tapRunner_.attemptGetResultTable( reporter_, tq );
+            }
+            catch ( SAXException e ) {
+                throw (IOException)
+                      new IOException( "Result parse error: " + e.getMessage() )
+                     .initCause( e );
+            }
         }
 
         /**

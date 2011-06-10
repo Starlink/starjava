@@ -38,7 +38,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
      *
      * @param   context  context
      */
-    VotLintContentHandler( VotLintContext context ) {
+    public VotLintContentHandler( VotLintContext context ) {
         context_ = context;
         stack_ = new HandlerStack();
         namespaceSet_ = new HashSet();
