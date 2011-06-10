@@ -134,6 +134,24 @@ public class TapQuery {
     }
 
     /**
+     * Returns the map of string parameters to be passed to the TAP service.
+     *
+     * @return   name->value map for TAP string parameters
+     */
+    public Map<String,String> getStringParams() {
+        return stringMap_;
+    }
+
+    /**
+     * Returns the map of streamed parameters to be passed to the TAP service.
+     *
+     * @return  name->value map for TAP stream parameters
+     */
+    public Map<String,HttpStreamParam> getStreamParams() {
+        return streamMap_;
+    }
+
+    /**
      * Executes this query synchronously and returns the resulting table.
      *
      * @param  storage  storage policy for caching table data
