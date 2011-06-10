@@ -11,6 +11,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapSchemaInterrogator;
 import uk.ac.starlink.votable.VOStarTable;
 
@@ -22,17 +23,30 @@ import uk.ac.starlink.votable.VOStarTable;
  */
 public class TapSchemaStage extends TableMetadataStage {
 
+    private final TapRunner tapRunner_;
     private TableMeta[] tmetas_;
 
-    public TapSchemaStage() {
+    /**
+     * Constructor.
+     *
+     * @param  tapRunner  object to perform TAP queries
+     */
+    public TapSchemaStage( TapRunner tapRunner ) {
         super( "TAP_SCHEMA",
                new String[] { "indexed", "principal", "std", }, false );
+        tapRunner_ = tapRunner;
+    }
+
+    @Override
+    public void run( URL serviceUrl, Reporter reporter ) {
+        super.run( serviceUrl, reporter );
+        tapRunner_.reportSummary( reporter );
     }
 
     protected TableMeta[] readTableMetadata( URL serviceUrl,
                                              Reporter reporter ) {
         TapSchemaInterrogator tsi =
-            new LintTapSchemaInterrogator( serviceUrl, reporter ); 
+            new LintTapSchemaInterrogator( serviceUrl, reporter, tapRunner_ );
         Map<String,List<ColumnMeta>> cMap;
         try {
             cMap = tsi.readColumns();
@@ -107,6 +121,7 @@ public class TapSchemaStage extends TableMetadataStage {
     private static class LintTapSchemaInterrogator
            extends TapSchemaInterrogator {
         private final Reporter reporter_;
+        private final TapRunner tapRunner_;
         private static Integer BOOL_TRUE = new Integer( 1 );
         private static Integer BOOL_FALSE = new Integer( 0 );
 
@@ -115,10 +130,13 @@ public class TapSchemaStage extends TableMetadataStage {
          *
          * @param  serviceUrl  TAP service URL
          * @param  reporter  validation message destination
+         * @param  tapRunner  object to perform TAP queries
          */
-        public LintTapSchemaInterrogator( URL serviceUrl, Reporter reporter ) {
+        public LintTapSchemaInterrogator( URL serviceUrl, Reporter reporter,
+                                          TapRunner tapRunner ) {
             super( serviceUrl );
             reporter_ = reporter;
+            tapRunner_ = tapRunner;
         }
 
         @Override
@@ -132,6 +150,11 @@ public class TapSchemaStage extends TableMetadataStage {
                                   "Error reading TAP_SCHEMA.columns data", e );
             }
             return cMap;
+        }
+
+        @Override
+        protected StarTable executeQuery( TapQuery tq ) throws IOException {
+            return tapRunner_.attemptGetResultTable( reporter_, tq );
         }
 
         /**
@@ -150,7 +173,7 @@ public class TapSchemaStage extends TableMetadataStage {
              * an ADQL reserved word. */
             String adql = "SELECT principal, indexed, std, \"size\" "
                         + "FROM TAP_SCHEMA.columns";
-            StarTable table = query( adql );
+            StarTable table = executeQuery( createTapQuery( adql ) );
             int ncol = Math.min( colNames.length, table.getColumnCount() );
 
             /* Check column types - they should all be integers. */

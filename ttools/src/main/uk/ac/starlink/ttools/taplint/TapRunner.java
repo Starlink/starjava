@@ -47,16 +47,31 @@ public abstract class TapRunner {
         reporter.report( Reporter.Type.INFO, "QTXT",
                          "Submitting query: " + tq.getAdql() );
         try {
-            nQuery_++;
-            StarTable table = executeQuery( reporter, tq );
-            nResult_++;
-            return table;
+            return attemptGetResultTable( reporter, tq );
         }
         catch ( IOException e ) {
             reporter.report( Reporter.Type.ERROR, "QERR",
                              "TAP query failed: " + tq.getAdql(), e );
             return null;
         }
+    }
+
+    /**
+     * Attempts to execute a TAP query and returns the result table,
+     * or throws an exception if the query failed for some reason.
+     *
+     * @param  reporter  validation message destination
+     * @param  tq  TAP query specification
+     * @return  result table, not null
+     */
+    public StarTable attemptGetResultTable( Reporter reporter, TapQuery tq )
+            throws IOException {
+        reporter.report( Reporter.Type.INFO, "QSUB",
+                         "Executing query: " + tq.getAdql() );
+        nQuery_++;
+        StarTable table = executeQuery( reporter, tq );
+        nResult_++;
+        return table;
     }
 
     /**

@@ -24,7 +24,6 @@ public class TapSchemaInterrogator {
 
     private final URL serviceUrl_;
     private final Map<String,String> extraParams_;
-    private final Map<String,StarTable> uploadMap_;
     private final int maxrec_;
 
     /**
@@ -45,7 +44,6 @@ public class TapSchemaInterrogator {
     public TapSchemaInterrogator( URL serviceUrl, int maxrec ) {
         serviceUrl_ = serviceUrl;
         maxrec_ = maxrec;
-        uploadMap_ = new HashMap<String,StarTable>();
         extraParams_ = new HashMap<String,String>();
         if ( maxrec > 0 ) {
             extraParams_.put( "MAXREC", Integer.toString( maxrec_ ) );
@@ -262,14 +260,22 @@ public class TapSchemaInterrogator {
     }
 
     /**
+     * Constructs a TAP query for a given ADQL string.
+     *
+     * @param  adql  query text
+     * @return  query to execute
+     */
+    protected TapQuery createTapQuery( String adql ) throws IOException {
+        return new TapQuery( serviceUrl_, adql, extraParams_, null, 0 );
+    }
+
+    /**
      * Performs an ADQL TAP query to this interrogator's service.
      *
-     * @param  adql  ADQL query text
+     * @param  tq   tap query
      * @return  output table
      */
-    protected StarTable query( String adql ) throws IOException {
-        TapQuery tq =
-            new TapQuery( serviceUrl_, adql, extraParams_, uploadMap_, 0 );
+    protected StarTable executeQuery( TapQuery tq ) throws IOException {
         return tq.executeSync( StoragePolicy.getDefaultPolicy() );
     }
 
@@ -326,7 +332,7 @@ public class TapSchemaInterrogator {
             }
             sbuf.append( " FROM " )
                 .append( table );
-            return TapSchemaInterrogator.this.query( sbuf.toString() );
+            return executeQuery( createTapQuery( sbuf.toString() ) );
         }
     }
 

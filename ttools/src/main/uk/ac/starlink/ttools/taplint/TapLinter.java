@@ -50,7 +50,7 @@ public class TapLinter {
                         .createXsdStage( VODATASERVICE_XSD, "/tables", false,
                                          "table metadata" );
         tmetaStage_ = new TablesEndpointStage();
-        tapSchemaStage_ = new TapSchemaStage();
+        tapSchemaStage_ = new TapSchemaStage( new BasicTapRunner() );
         TableMetadataStage[] tmStages = { tmetaStage_, tapSchemaStage_ };
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmStages[ 0 ], tmStages[ 1 ] );
