@@ -22,19 +22,20 @@ import uk.ac.starlink.votable.VOStarTable;
  */
 public abstract class QueryStage implements Stage {
 
-    private final String modeDescription_;
+    private final TapRunner tapRunner_;
 
     /**
      * Constructor.
      *
-     * @param  modeDescription  short note of query mode
+     * @param  tapRunner  object that can run TAP queries
      */
-    protected QueryStage( String modeDescription ) {
-        modeDescription_ = modeDescription;
+    protected QueryStage( TapRunner tapRunner ) {
+        tapRunner_ = tapRunner;
     }
 
     public String getDescription() {
-        return "Make ADQL queries in " + modeDescription_ + " mode";
+        return "Make ADQL queries in " + tapRunner_.getDescription()
+             + " mode";
     }
 
     /**
@@ -54,24 +55,7 @@ public abstract class QueryStage implements Stage {
             return;
         }
         new Querier( reporter, serviceUrl, tmetas ).run();
-    }
-
-    /**
-     * Executes a given TapQuery and returns the result as a table.
-     *
-     * @param  reporter  validation message destination
-     * @param  tq  TAP query specification
-     * @return  result table, or null if there was an error
-     */
-    private StarTable runQuery( Reporter reporter, TapQuery tq ) {
-        try {
-            return tq.executeSync( StoragePolicy.getDefaultPolicy() );
-        }
-        catch ( IOException e ) {
-            reporter.report( Reporter.Type.ERROR, "QERR",
-                             "Sync TAP query failed: " + tq.getAdql(), e );
-            return null;
-        }
+        tapRunner_.reportSummary( reporter );
     }
 
     /**
@@ -97,9 +81,10 @@ public abstract class QueryStage implements Stage {
      *
      * @param  metaStages  metadata generating stages
      */
-    public static QueryStage createStage( final TableMetadataStage[]
+    public static QueryStage createStage( TapRunner tapRunner,
+                                          final TableMetadataStage[]
                                           metaStages ) {
-        return new QueryStage( "sync" ) {
+        return new QueryStage( tapRunner ) {
             protected TableMeta[] getTableMetadata() {
                 for ( int is = 0; is < metaStages.length; is++ ) {
                     TableMeta[] tmetas = metaStages[ is ].getTableMetadata();
@@ -169,7 +154,7 @@ public abstract class QueryStage implements Stage {
                                   "TAP job creation failed for " + adql, e );
                 return;
             }
-            StarTable table = runQuery( reporter_, tq );
+            StarTable table = tapRunner_.getResultTable( reporter_, tq );
             if ( table != null ) {
                 int nrow = (int) table.getRowCount();
                 if ( maxrec >=0 && nrow > maxrec ) {

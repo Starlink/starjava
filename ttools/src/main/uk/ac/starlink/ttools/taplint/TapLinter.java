@@ -61,7 +61,8 @@ public class TapLinter {
         availXsdStage_ = XsdStage
                         .createXsdStage( AVAILABILITY_XSD, "/availability",
                                          false, "availability" );
-        syncQueryStage_ = QueryStage.createStage( tmStages );
+        syncQueryStage_ = QueryStage
+                         .createStage( new BasicTapRunner(), tmStages );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
