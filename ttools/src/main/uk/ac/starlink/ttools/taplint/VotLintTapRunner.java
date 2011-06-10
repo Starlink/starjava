@@ -76,6 +76,25 @@ public class VotLintTapRunner extends TapRunner {
     }
 
     /**
+     * Indicates if the given table, which must have been retrieved from
+     * this object's {@link #readResultVOTable} method, was marked as
+     * an overflow result.
+     *
+     * @param   table  TAP result table read by this object
+     * @return  true iff overflow
+     */
+    public boolean isOverflow( StarTable table ) {
+        DescribedValue ovParam =
+            table.getParameterByName( OVERFLOW_INFO.getName() );
+        if ( ovParam != null && ovParam.getValue() instanceof Boolean ) {
+            return ((Boolean) ovParam.getValue()).booleanValue();
+        }
+        else {
+            throw new IllegalArgumentException( "Not produced by me!" );
+        }
+    }
+
+    /**
      * Reads a TAP result VOTable from an input stream, checking it and
      * reporting messages as appropriate.
      * The resulting table will have the {@link #OVERFLOW_INFO} parameter

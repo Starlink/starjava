@@ -22,14 +22,14 @@ import uk.ac.starlink.votable.VOStarTable;
  */
 public abstract class QueryStage implements Stage {
 
-    private final TapRunner tapRunner_;
+    private final VotLintTapRunner tapRunner_;
 
     /**
      * Constructor.
      *
      * @param  tapRunner  object that can run TAP queries
      */
-    protected QueryStage( TapRunner tapRunner ) {
+    protected QueryStage( VotLintTapRunner tapRunner ) {
         tapRunner_ = tapRunner;
     }
 
@@ -81,7 +81,7 @@ public abstract class QueryStage implements Stage {
      *
      * @param  metaStages  metadata generating stages
      */
-    public static QueryStage createStage( TapRunner tapRunner,
+    public static QueryStage createStage( VotLintTapRunner tapRunner,
                                           final TableMetadataStage[]
                                           metaStages ) {
         return new QueryStage( tapRunner ) {
@@ -124,11 +124,39 @@ public abstract class QueryStage implements Stage {
          * Invoked to perform queries.
          */
         public void run() {
+            runAllColumns();
+        }
+
+        /**
+         * Runs some tests using all the columns in an example table.
+         */
+        private void runAllColumns() {
             String name1 = tmeta1_.getName();
-            runCheckedQuery( "SELECT * FROM " + name1, 10,
-                             tmeta1_.getColumns(), -1 );
-            runCheckedQuery( "SELECT TOP 3 * FROM " + name1, -1,
-                             tmeta1_.getColumns(), 3 );
+            StarTable t1 = runCheckedQuery( "SELECT * FROM " + name1, 10,
+                                               tmeta1_.getColumns(), -1 );
+            long nr1 = t1 != null ? t1.getRowCount() : 0;
+            assert nr1 >= 0;
+            final boolean over;
+            long nr2;
+            if ( nr1 > 0 ) {
+                over = true;
+                nr2 = nr1 - 1;
+            }
+            else {
+                over = false;
+                nr2 = 3;
+            }
+            StarTable t2 =
+                runCheckedQuery( "SELECT TOP " + nr2 + " * FROM " + name1, -1,
+                                 tmeta1_.getColumns(), (int) nr2 );
+            if ( t2 != null && over && ! tapRunner_.isOverflow( t2 ) ) {
+                String msg = new StringBuffer()
+                   .append( "Overflow not marked - " )
+                   .append( "no <INFO name='QUERY_STATUS' value='OVERFLOW'/> " )
+                   .append( "after TABLE" )
+                   .toString();
+                reporter_.report( Reporter.Type.ERROR, "OVNO", msg );
+            }
         }
 
         /**
@@ -139,8 +167,8 @@ public abstract class QueryStage implements Stage {
          * @param  colMetas  expected column metadata of result
          * @param  maxrow  expected maximum row count, different from MAXREC
          */
-        private void runCheckedQuery( String adql, int maxrec,
-                                      ColumnMeta[] colMetas, int maxrow ) {
+        private StarTable runCheckedQuery( String adql, int maxrec,
+                                           ColumnMeta[] colMetas, int maxrow ) {
             Map<String,String> extraParams = new HashMap<String,String>();
             if ( maxrec >= 0 ) {
                 extraParams.put( "MAXREC", Integer.toString( maxrec ) );
@@ -152,7 +180,7 @@ public abstract class QueryStage implements Stage {
             catch ( IOException e ) {
                 reporter_.report( Reporter.Type.ERROR, "TSER",
                                   "TAP job creation failed for " + adql, e );
-                return;
+                return null;
             }
             StarTable table = tapRunner_.getResultTable( reporter_, tq );
             if ( table != null ) {
@@ -181,6 +209,7 @@ public abstract class QueryStage implements Stage {
                 }
                 checkMeta( adql, colMetas, table );
             }
+            return table;
         }
 
         /**
