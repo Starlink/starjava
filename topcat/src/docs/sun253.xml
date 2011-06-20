@@ -14941,6 +14941,10 @@ introduced since the last version:
     <li>Add "Delete On Exit" checkbox to Running Jobs tab of TAP load
         dialogue.  Jobs are now created by default with Delete On Exit
         set true (you can change the default with the Deletion menu).</li>
+    <li>Added new constants to expression language
+        <code>POSITIVE_INFINITY</code>, 
+        <code>NEGATIVE_INFINITY</code> and 
+        <code>NaN</code>.</li>
     </ul>
     </p></dd>
 

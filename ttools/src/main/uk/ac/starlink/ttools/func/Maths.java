@@ -24,6 +24,24 @@ public class Maths {
     public static final double PI = 3.14159265358979323846;
 
     /**
+     * Positive infinite floating point value.
+     */
+    public static final double POSITIVE_INFINITY = Double.POSITIVE_INFINITY;
+
+    /**
+     * Negative infinite floating point value.
+     */
+    public static final double NEGATIVE_INFINITY = Double.NEGATIVE_INFINITY;
+
+    /**
+     * Not-a-Number floating point value.
+     * Use with care; arithmetic and logical operations behave in strange
+     * ways near NaN (for instance, <code>NaN!=NaN</code>).
+     * For most purposes this is equivalent to the blank value.
+     */
+    public static final double NaN = Double.NaN;
+
+    /**
      * Evaluates to a random number in the range 0&lt;=x&lt;1.  
      * This is different for each cell of the table.
      * The quality of the randomness may not be particularly good.

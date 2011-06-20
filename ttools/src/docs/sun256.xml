@@ -7601,6 +7601,10 @@ but my thanks are especially due to the following:
         </li>
     <li>ASCII table parsers now understand python-friendly
         <code>nan</code> and <code>inf</code> representations.</li>
+    <li>Added new constants to expression language
+        <code>POSITIVE_INFINITY</code>,
+        <code>NEGATIVE_INFINITY</code> and
+        <code>NaN</code>.</li>
     </ul>
     </p></dd>
 
