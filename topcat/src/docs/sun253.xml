@@ -3746,15 +3746,24 @@ The following ones have special significance within TOPCAT:
 <dt><code>apple.laf.useScreenMenuBar</code></dt>
 <dd><p>On the Apple Macintosh platform only, this property controls whether
     menus appear at the top of the screen as usual for Mac, or at the
-    top of individual windows as usual for Java.  By default when using
-    Java 1.5 or later it is set to <code>true</code> for TOPCAT, 
+    top of individual windows as usual for Java.  By default
+    it is set to <code>true</code> for TOPCAT, 
     so menus mostly appear at the top of the screen (though it's not 
     true to say that TOPCAT obeys the Mac look and feel completely); 
     if you prefer the more Java-like look and feel, set it to 
     <code>false</code>.
-    There are bugs with this feature in Apple's Java 1.4 JRE, so it's
-    set false by default in that case, but you can try setting it true 
-    at your own risk if you like.
+    </p></dd>
+
+<dt><code>http.proxyHost</code></dt>
+<dd><p>If you are operating inside a firewall which prohibits direct
+    HTTP connections, you can set this to the name of an HTTP proxy server
+    in order to access remote servers as required for VO functionality etc.
+    There are a number of related system properties which you may or may
+    not need to use in this case:
+    <code>http.proxyPort</code>,
+    <code>https.proxyHost</code> etc.
+    See the appropriate java documentation
+    (e.g. by googling for "http.proxyHost") for details.
     </p></dd>
 
 <dt><code>java.io.tmpdir</code></dt>

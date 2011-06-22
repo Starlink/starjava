@@ -842,6 +842,13 @@ on the command line is equivalent to having the following in your
 <p>The following system properties have special significance to STILTS:
 <dl>
 
+<dt><code>http.proxyHost</code></dt>
+<dd><p>Can be used to force HTTP access to go via a named proxy;
+    may be required if you are attempting access to remote data or services
+    from behind a firewall configured to block direct HTTP connections.
+    See java documentation for this property for more details.
+    </p></dd>
+
 <dt><code>java.awt.headless</code></dt>
 <dd><p>May need to be set to "<code>true</code>" if running the 
     plotting tasks on a headless server.  
