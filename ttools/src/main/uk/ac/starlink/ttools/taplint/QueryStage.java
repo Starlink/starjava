@@ -12,6 +12,7 @@ import java.util.Map;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
@@ -135,7 +136,7 @@ public abstract class QueryStage implements Stage {
          */
         private void runAllColumns( TableMeta tmeta ) {
             int nr0 = 10;
-            String name1 = tmeta.getName();
+            String tname = tmeta.getName();
 
             /* Prepare an array of column specifiers corresponding to all
              * the columns in the table. */
@@ -147,7 +148,7 @@ public abstract class QueryStage implements Stage {
             }
 
             /* Check that MAXREC limit works. */
-            StarTable t1 = runCheckedQuery( "SELECT * FROM " + name1, nr0,
+            StarTable t1 = runCheckedQuery( "SELECT * FROM " + tname, nr0,
                                             cspecs, -1 );
 
             /* Get a lower bound for the number of rows in the result. */
@@ -166,7 +167,7 @@ public abstract class QueryStage implements Stage {
 
             /* Check that limiting using TOP works. */
             StarTable t2 =
-                runCheckedQuery( "SELECT TOP " + nr2 + " * FROM " + name1, -1,
+                runCheckedQuery( "SELECT TOP " + nr2 + " * FROM " + tname, -1,
                                  cspecs, (int) nr2 );
             if ( t2 != null && over && ! tapRunner_.isOverflow( t2 ) ) {
                 String msg = new StringBuffer()
@@ -442,18 +443,18 @@ public abstract class QueryStage implements Stage {
          * @return  query column specifier
          */
         String getQueryText() {
+            AdqlSyntax syntax = AdqlSyntax.getInstance();
             StringBuffer sbuf = new StringBuffer();
-            String q = quote_ ? "\"" : "";
-            sbuf.append( q );
             if ( talias_ != null ) {
-                sbuf.append( talias_ )
+                sbuf.append( syntax.quoteIfNecessary( talias_ ) )
                     .append( "." );
             }
-            sbuf.append( cmeta_.getName() );
-            sbuf.append( q );
+            String cname = cmeta_.getName();
+            sbuf.append( quote_ ? syntax.quote( cname )
+                                : syntax.quoteIfNecessary( cname ) );
             if ( rename_ != null ) {
                 sbuf.append( " AS " )
-                    .append( rename_ );
+                    .append( syntax.quoteIfNecessary( rename_ ) );
             }
             return sbuf.toString();
         }
