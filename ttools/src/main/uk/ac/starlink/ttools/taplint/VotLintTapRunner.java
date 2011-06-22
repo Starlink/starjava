@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -37,7 +38,7 @@ import uk.ac.starlink.votable.VOTableDOMBuilder;
  * @author   Mark Taylor
  * @since    10 Jun 2011
  */
-public class VotLintTapRunner extends TapRunner {
+public abstract class VotLintTapRunner extends TapRunner {
 
     /** Result table parameter set if table was marked overflowed. */
     public static ValueInfo OVERFLOW_INFO =
@@ -47,16 +48,25 @@ public class VotLintTapRunner extends TapRunner {
     /**
      * Constructor.
      */
-    public VotLintTapRunner() {
-        super( "sync" );
+    protected VotLintTapRunner( String name ) {
+        super( name );
     }
+
+    /**
+     * Execute a TAP query and return a URL connection giving its result.
+     *
+     * @param  reporter  validation message destination
+     * @param  tq  query
+     * @return   result data source
+     */
+    protected abstract URLConnection getResultConnection( Reporter reporter,
+                                                          TapQuery tq )
+            throws IOException;
 
     @Override
     protected StarTable executeQuery( Reporter reporter, TapQuery tq )
             throws IOException, SAXException {
-        URLConnection conn =
-            UwsJob.postForm( new URL( tq.getServiceUrl() + "/sync" ),
-                             tq.getStringParams(), tq.getStreamParams() );
+        URLConnection conn = getResultConnection( reporter, tq );
         conn = TapQuery.followRedirects( conn );
 
         InputStream in = null;
@@ -71,7 +81,6 @@ public class VotLintTapRunner extends TapRunner {
                 throw e;
             }
         }
-
         return readResultVOTable( reporter, in );
     }
 
@@ -325,5 +334,97 @@ public class VotLintTapRunner extends TapRunner {
 
         /* Return. */
         return parser;
+    }
+
+    /**
+     * Returns a new instance which uses HTTP POST to make synchronous queries.
+     *
+     * @return  new TapRunner
+     */
+    public static VotLintTapRunner createPostSyncRunner() {
+        return new VotLintTapRunner( "sync POST" ) {
+            @Override
+            protected URLConnection getResultConnection( Reporter reporter,
+                                                         TapQuery tq )
+                    throws IOException {
+                return UwsJob.postForm( new URL( tq.getServiceUrl() + "/sync" ),
+                                        tq.getStringParams(),
+                                        tq.getStreamParams() );
+            }
+        };
+    }
+
+    /**
+     * Returns a new instance which uses HTTP GET to make synchronous queries.
+     *
+     * @return  new TapRunner
+     */
+    public static VotLintTapRunner createGetSyncRunner() {
+        return new VotLintTapRunner( "sync GET" ) {
+            @Override
+            protected URLConnection getResultConnection( Reporter reporter,
+                                                         TapQuery tq )
+                    throws IOException {
+                if ( tq.getStreamParams() == null ||
+                     tq.getStreamParams().isEmpty() ) {
+                    String ptxt =
+                        new String( UwsJob
+                                   .toPostedBytes( tq.getStringParams() ),
+                                    "utf-8" );
+                    URL qurl = new URL( tq.getServiceUrl() + "/sync?" + ptxt );
+                    reporter.report( Reporter.Type.INFO, "QGET",
+                                     "Query GET URL: " + qurl );
+                    return qurl.openConnection();
+                }
+                else {
+                    return UwsJob
+                          .postForm( new URL( tq.getServiceUrl() + "/sync" ),
+                                     tq.getStringParams(),
+                                     tq.getStreamParams() );
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a new instance which makes asynchronous queries.
+     * This instance does not do exhaustive validation.
+     *
+     * @param  pollMillis  polling interval in milliseconds
+     * @return  new TapRunner
+     */
+    public static VotLintTapRunner createAsyncRunner( final long pollMillis ) {
+        return new VotLintTapRunner( "async" ) {
+            @Override
+            protected URLConnection getResultConnection( Reporter reporter,
+                                                         TapQuery tq )
+                    throws IOException {
+                UwsJob uwsJob = tq.submitAsync();
+                URL jobUrl = uwsJob.getJobUrl();
+                reporter.report( Reporter.Type.INFO, "QJOB",
+                                 "Submitted query at " + jobUrl );
+                uwsJob.start();
+                String phase;
+                try {
+                    phase = uwsJob.waitForFinish( pollMillis );
+                }
+                catch ( InterruptedException e ) {
+                    throw (IOException)
+                          new InterruptedIOException( "interrupted" )
+                         .initCause( e );
+                }
+                if ( "COMPLETED".equals( phase ) ) {
+                    uwsJob.setDeleteOnExit( true );
+                    return new URL( jobUrl + "/results/result" )
+                          .openConnection();
+                }
+                else if ( "ERROR".equals( phase ) ) {
+                    return new URL( jobUrl + "/error" ).openConnection();
+                }
+                else {
+                    throw new IOException( "Unexpected UWS phase " + phase );
+                }
+            }
+        };
     }
 }

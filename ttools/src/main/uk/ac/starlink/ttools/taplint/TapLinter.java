@@ -30,7 +30,9 @@ public class TapLinter {
     private final XsdStage tcapXsdStage_;
     private final CapabilityStage tcapStage_;
     private final XsdStage availXsdStage_;
-    private final QueryStage syncQueryStage_;
+    private final QueryStage getQueryStage_;
+    private final QueryStage postQueryStage_;
+    private final QueryStage asyncQueryStage_;
 
     private static final String XSDS = "http://www.ivoa.net/xml";
     private static final URL VODATASERVICE_XSD =
@@ -50,7 +52,8 @@ public class TapLinter {
                         .createXsdStage( VODATASERVICE_XSD, "/tables", false,
                                          "table metadata" );
         tmetaStage_ = new TablesEndpointStage();
-        tapSchemaStage_ = new TapSchemaStage( new VotLintTapRunner() );
+        tapSchemaStage_ =
+            new TapSchemaStage( VotLintTapRunner.createGetSyncRunner() );
         TableMetadataStage[] tmStages = { tmetaStage_, tapSchemaStage_ };
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmStages[ 0 ], tmStages[ 1 ] );
@@ -61,8 +64,15 @@ public class TapLinter {
         availXsdStage_ = XsdStage
                         .createXsdStage( AVAILABILITY_XSD, "/availability",
                                          false, "availability" );
-        syncQueryStage_ = QueryStage
-                         .createStage( new VotLintTapRunner(), tmStages );
+        getQueryStage_ = QueryStage
+                        .createStage( VotLintTapRunner.createGetSyncRunner(),
+                                      tmStages );
+        postQueryStage_ = QueryStage
+                         .createStage( VotLintTapRunner.createPostSyncRunner(),
+                                       tmStages );
+        asyncQueryStage_ = QueryStage
+                          .createStage( VotLintTapRunner
+                                       .createAsyncRunner( 500 ), tmStages );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
@@ -73,7 +83,9 @@ public class TapLinter {
         stageSet_.add( "CPV", tcapXsdStage_, false );
         stageSet_.add( "CPC", tcapStage_, true );
         stageSet_.add( "AVV", availXsdStage_, true );
-        stageSet_.add( "QSY", syncQueryStage_, true );
+        stageSet_.add( "QGE", getQueryStage_, true );
+        stageSet_.add( "QPO", postQueryStage_, true );
+        stageSet_.add( "QAS", asyncQueryStage_, true );
     }
 
     /**
