@@ -529,7 +529,7 @@ public class UwsJob {
      * @param   paramMap  name-&gt;value mapping
      * @return   byte array suitable for POSTing
      */
-    static byte[] toPostedBytes( Map<String,String> paramMap ) {
+    public static byte[] toPostedBytes( Map<String,String> paramMap ) {
         StringBuffer sbuf = new StringBuffer();
         for ( Map.Entry<String,String> entry : paramMap.entrySet() ) {
             if ( sbuf.length() != 0 ) {
