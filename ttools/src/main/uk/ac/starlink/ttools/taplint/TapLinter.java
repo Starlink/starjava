@@ -34,6 +34,7 @@ public class TapLinter {
     private final QueryStage getQueryStage_;
     private final QueryStage postQueryStage_;
     private final QueryStage asyncQueryStage_;
+    private final JobStage jobStage_;
 
     private static final String XSDS = "http://www.ivoa.net/xml";
     private static final URL VODATASERVICE_XSD =
@@ -75,6 +76,7 @@ public class TapLinter {
         asyncQueryStage_ =
             new QueryStage( VotLintTapRunner.createAsyncRunner( 500 ),
                             metaHolder );
+        jobStage_ = new JobStage( metaHolder, 500 );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
@@ -88,6 +90,7 @@ public class TapLinter {
         stageSet_.add( "QGE", getQueryStage_, true );
         stageSet_.add( "QPO", postQueryStage_, true );
         stageSet_.add( "QAS", asyncQueryStage_, true );
+        stageSet_.add( "UWS", jobStage_, true );
     }
 
     /**
