@@ -14,7 +14,7 @@ import org.xml.sax.SAXException;
  * @author   Mark Taylor
  * @since    3 Jun 2011
  */
-public class CapabilityStage implements Stage {
+public class CapabilityStage implements Stage, CapabilityHolder {
 
     private TapCapability tcap_;
 
