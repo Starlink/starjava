@@ -46,7 +46,7 @@ public class JobStage implements Stage {
         return "Test asynchronous UWS/TAP behaviour";
     }
 
-    public void run( URL serviceUrl, Reporter reporter ) {
+    public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( Reporter.Type.WARNING, "NOTM",

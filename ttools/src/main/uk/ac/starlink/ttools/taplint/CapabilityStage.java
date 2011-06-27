@@ -31,7 +31,7 @@ public class CapabilityStage implements Stage {
         return tcap_;
     }
 
-    public void run( URL serviceUrl, Reporter reporter ) {
+    public void run( Reporter reporter, URL serviceUrl ) {
         final TapCapability tcap;
         try {
             tcap = TapQuery.readTapCapability( serviceUrl );
@@ -46,11 +46,11 @@ public class CapabilityStage implements Stage {
                              "Error reading capabilities metadata", e );
             return;
         }
-        checkCapability( tcap, reporter );
+        checkCapability( reporter, tcap );
         tcap_ = tcap;
     }
 
-    private void checkCapability( TapCapability tcap, Reporter reporter ) {
+    private void checkCapability( Reporter reporter, TapCapability tcap ) {
 
         /* Check query languages. */
         String[] languages = tcap.getLanguages();

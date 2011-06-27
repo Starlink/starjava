@@ -20,8 +20,8 @@ public interface Stage {
     /**
      * Performs the validation checks for this stage.
      *
-     * @param  serviceUrl  TAP service URL
      * @param  reporter   destination for validation messages
+     * @param  serviceUrl  TAP service URL
      */
-    void run( URL serviceUrl, Reporter reporter );
+    void run( Reporter reporter, URL serviceUrl );
 }

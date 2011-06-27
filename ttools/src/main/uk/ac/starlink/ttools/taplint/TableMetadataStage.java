@@ -69,14 +69,14 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     /**
      * Returns an array providing table metadata to check.
      *
-     * @param  serviceUrl  TAP service URL
      * @param  reporter   destination for validation messages
+     * @param  serviceUrl  TAP service URL
      */
-    protected abstract TableMeta[] readTableMetadata( URL serviceUrl,
-                                                      Reporter reporter );
+    protected abstract TableMeta[] readTableMetadata( Reporter reporter,
+                                                      URL serviceUrl );
 
-    public void run( URL serviceUrl, Reporter reporter ) {
-        TableMeta[] tmetas = readTableMetadata( serviceUrl, reporter );
+    public void run( Reporter reporter, URL serviceUrl ) {
+        TableMeta[] tmetas = readTableMetadata( reporter, serviceUrl );
         checkTables( reporter, tmetas );
         tmetas_ = tmetas;
     }
@@ -96,7 +96,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
         int nTable = tmetas.length;
         int nCol = 0;
         Map<String,TableMeta> tableMap = 
-            createNameMap( "table", 'T', tmetas, reporter );
+            createNameMap( reporter, "table", 'T', tmetas );
         Map<String,Map<String,ColumnMeta>> colsMap =
             new HashMap<String,Map<String,ColumnMeta>>();
         for ( String tname : tableMap.keySet() ) {
@@ -104,7 +104,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             ColumnMeta[] cols = tmeta.getColumns();
             nCol += cols.length; 
             Map<String,ColumnMeta> cmap =
-                createNameMap( "column", 'C', cols, reporter );
+                createNameMap( reporter, "column", 'C', cols );
             colsMap.put( tname, cmap );
         }
         int nForeign = 0;
@@ -220,14 +220,14 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      * objects.  Any duplicates will be reported through the supplied
      * reporter.
      *
+     * @param   reporter   destination for validation messages
      * @param   dName  descriptive name of type of thing in map
      * @param   dChr   single character labelling type of thing
      * @param   values  objects to populate map
-     * @param   reporter   destination for validation messages
      * @return   name -> value map
      */
-    private <V> Map<String,V> createNameMap( String dName, char dChr,
-                                             V[] values, Reporter reporter ) {
+    private <V> Map<String,V> createNameMap( Reporter reporter, String dName,
+                                             char dChr, V[] values ) {
         Map<String,V> map = new LinkedHashMap<String,V>();
         for ( int iv = 0; iv < values.length; iv++ ) {
             V value = values[ iv ];

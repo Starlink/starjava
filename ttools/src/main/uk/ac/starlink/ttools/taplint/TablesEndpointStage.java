@@ -20,8 +20,8 @@ public class TablesEndpointStage extends TableMetadataStage {
                new String[] { "indexed", "primary", "nullable" }, true );
     }
 
-    protected TableMeta[] readTableMetadata( URL serviceUrl,
-                                             Reporter reporter ) {
+    protected TableMeta[] readTableMetadata( Reporter reporter,
+                                             URL serviceUrl ) {
         try {
             return TapQuery.readTableMetadata( serviceUrl );
         }

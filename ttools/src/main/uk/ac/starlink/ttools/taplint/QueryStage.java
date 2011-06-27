@@ -45,7 +45,7 @@ public class QueryStage implements Stage {
              + " mode";
     }
 
-    public void run( URL serviceUrl, Reporter reporter ) {
+    public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( Reporter.Type.WARNING, "NOTM",

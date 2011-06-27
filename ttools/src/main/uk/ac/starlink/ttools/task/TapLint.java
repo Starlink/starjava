@@ -159,6 +159,6 @@ public class TapLint implements Task {
             stageSet.add( sc );
         }
         Reporter reporter = new Reporter( out, maxRepeat, debug, maxChar );
-        return tapLinter_.createExecutable( serviceUrl, reporter, stageSet );
+        return tapLinter_.createExecutable( reporter, serviceUrl, stageSet );
     }
 }

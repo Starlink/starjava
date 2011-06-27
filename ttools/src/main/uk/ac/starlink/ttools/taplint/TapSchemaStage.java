@@ -39,15 +39,15 @@ public class TapSchemaStage extends TableMetadataStage {
     }
 
     @Override
-    public void run( URL serviceUrl, Reporter reporter ) {
-        super.run( serviceUrl, reporter );
+    public void run( Reporter reporter, URL serviceUrl ) {
+        super.run( reporter, serviceUrl );
         tapRunner_.reportSummary( reporter );
     }
 
-    protected TableMeta[] readTableMetadata( URL serviceUrl,
-                                             Reporter reporter ) {
+    protected TableMeta[] readTableMetadata( Reporter reporter,
+                                             URL serviceUrl ) {
         TapSchemaInterrogator tsi =
-            new LintTapSchemaInterrogator( serviceUrl, reporter, tapRunner_ );
+            new LintTapSchemaInterrogator( reporter, serviceUrl, tapRunner_ );
         Map<String,List<ColumnMeta>> cMap;
         try {
             cMap = tsi.readColumns();
@@ -129,11 +129,11 @@ public class TapSchemaStage extends TableMetadataStage {
         /**
          * Constructor.
          *
-         * @param  serviceUrl  TAP service URL
          * @param  reporter  validation message destination
+         * @param  serviceUrl  TAP service URL
          * @param  tapRunner  object to perform TAP queries
          */
-        public LintTapSchemaInterrogator( URL serviceUrl, Reporter reporter,
+        public LintTapSchemaInterrogator( Reporter reporter, URL serviceUrl,
                                           TapRunner tapRunner ) {
             super( serviceUrl );
             reporter_ = reporter;

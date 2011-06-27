@@ -50,7 +50,7 @@ public abstract class XsdStage implements Stage {
      */
     public abstract String getDocumentUrl( URL serviceUrl );
 
-    public void run( URL serviceUrl, Reporter reporter ) {
+    public void run( Reporter reporter, URL serviceUrl ) {
         String durl = getDocumentUrl( serviceUrl );
         URL docUrl;
         try {
@@ -62,7 +62,7 @@ public abstract class XsdStage implements Stage {
             result_ = Result.FAILURE;
             return;
         }
-        result_ = validateDoc( docUrl, reporter );
+        result_ = validateDoc( reporter, docUrl );
     }
 
     /**
@@ -77,10 +77,10 @@ public abstract class XsdStage implements Stage {
     /**
      * Validates a given document against this stage's schema.
      *
-     * @param  docUrl   URL of XML document to validate
      * @param  reporter  destination for validation messages
+     * @param  docUrl   URL of XML document to validate
      */
-    private Result validateDoc( URL docUrl, Reporter reporter ) {
+    private Result validateDoc( Reporter reporter, URL docUrl ) {
 
         /* Open the document. */
         final InputStream docStream;
@@ -185,8 +185,8 @@ public abstract class XsdStage implements Stage {
             public String getDocumentUrl( URL serviceUrl ) {
                 return serviceUrl + docUrlSuffix;
             }
-            public void run( URL serviceUrl, Reporter reporter ) {
-                super.run( serviceUrl, reporter );
+            public void run( Reporter reporter, URL serviceUrl ) {
+                super.run( reporter, serviceUrl );
                 Result result = getResult();
                 if ( result == Result.NOT_FOUND ) {
                     if ( mandatory ) {

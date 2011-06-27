@@ -49,7 +49,7 @@ public class CompareMetadataStage implements Stage {
         return "Compare table metadata from " + srcDesc1_ + " and " + srcDesc2_;
     }
 
-    public void run( URL serviceUrl, Reporter reporter ) {
+    public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas1 = metaHolder1_.getTableMetadata();
         TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
         if ( tmetas1 == null || tmetas2 == null ) {

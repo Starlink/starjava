@@ -117,14 +117,14 @@ public class TapLinter {
     /**
      * Creates and returns an executable for TAP validation.
      *
-     * @param  serviceUrl  TAP service URL
      * @param  reporter  validation message destination
+     * @param  serviceUrl  TAP service URL
      * @param  stageCodeSet  unordered collection of code strings indicating
      *         which stages should be run
      * @return   tap validator executable
      */
-    public Executable createExecutable( final URL serviceUrl,
-                                        final Reporter reporter,
+    public Executable createExecutable( final Reporter reporter,
+                                        final URL serviceUrl,
                                         Set<String> stageCodeSet )
             throws TaskException {
 
@@ -160,7 +160,7 @@ public class TapLinter {
                     Stage stage = stageSet_.getStage( code );
                     assert stage != null;
                     reporter.startSection( code, stage.getDescription() );
-                    stage.run( serviceUrl, reporter );
+                    stage.run( reporter, serviceUrl );
                     reporter.summariseUnreportedMessages( code );
                     reporter.endSection();
                 }
