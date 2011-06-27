@@ -44,7 +44,7 @@ public class UploadStage implements Stage {
     }
 
     public String getDescription() {
-        return "Check table uploads";
+        return "Make queries with table uploads";
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {

@@ -6,7 +6,7 @@ import uk.ac.starlink.vo.TapCapability;
  * Provides TAP service capability information.
  *
  * @author   Mark Taylor
- * @sine     27 Jun 2011
+ * @since     27 Jun 2011
  */
 public interface CapabilityHolder {
 
