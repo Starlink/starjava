@@ -14954,6 +14954,8 @@ introduced since the last version:
         <code>POSITIVE_INFINITY</code>, 
         <code>NEGATIVE_INFINITY</code> and 
         <code>NaN</code>.</li>
+    <li>Fix cone search verbosity parameter so that VERB=3 is not erroneously
+        ignored.</li>
     </ul>
     </p></dd>
 

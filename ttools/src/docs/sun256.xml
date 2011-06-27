@@ -7612,6 +7612,8 @@ but my thanks are especially due to the following:
         <code>POSITIVE_INFINITY</code>,
         <code>NEGATIVE_INFINITY</code> and
         <code>NaN</code>.</li>
+    <li>Fix <code>coneskymatch</code> cone search verbosity parameter so that
+        VERB=3 is not erroneously ignored.</li>
     </ul>
     </p></dd>
 
