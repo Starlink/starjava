@@ -19,12 +19,12 @@ import uk.ac.starlink.vo.TableMeta;
  * @author   Mark Taylor
  * @since    7 Jun 2011
  */
-public abstract class CompareMetadataStage implements Stage {
+public class CompareMetadataStage implements Stage {
 
     private final String srcDesc1_;
     private final String srcDesc2_;
-    private TableMeta[] tmetas1_;
-    private TableMeta[] tmetas2_;
+    private final MetadataHolder metaHolder1_;
+    private final MetadataHolder metaHolder2_;
     private static Pattern ADQLTYPE_REGEX =
         Pattern.compile( "^(adql:)?([^(]*)(\\(.*\\))?$" );
 
@@ -33,31 +33,25 @@ public abstract class CompareMetadataStage implements Stage {
      *
      * @param  srcDesc1  short description of source of first metadata set
      * @param  srcDesc2  short description of source of second metadata set
+     * @param  metaHolder1  supplies first metadata set at comparison time
+     * @param  metaHolder2  supplies second metadata set at comparison time
      */
-    protected CompareMetadataStage( String srcDesc1, String srcDesc2 ) {
+    public CompareMetadataStage( String srcDesc1, String srcDesc2,
+                                 MetadataHolder metaHolder1,
+                                 MetadataHolder metaHolder2 ) {
         srcDesc1_ = srcDesc1;
         srcDesc2_ = srcDesc2;
+        metaHolder1_ = metaHolder1;
+        metaHolder2_ = metaHolder2;
     }
 
     public String getDescription() {
         return "Compare table metadata from " + srcDesc1_ + " and " + srcDesc2_;
     }
 
-    /**
-     * Returns first metadata set.
-     * Called from {@link #run} method.
-     */
-    protected abstract TableMeta[] getMetas1();
-
-    /**
-     * Returns second metadata set.
-     * Called from {@link #run} method.
-     */
-    protected abstract TableMeta[] getMetas2();
-
     public void run( URL serviceUrl, Reporter reporter ) {
-        TableMeta[] tmetas1 = getMetas1();
-        TableMeta[] tmetas2 = getMetas2();
+        TableMeta[] tmetas1 = metaHolder1_.getTableMetadata();
+        TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
         if ( tmetas1 == null || tmetas2 == null ) {
             reporter.report( Reporter.Type.WARNING, "NOTM",
                              "Don't have two metadata sets to compare" );
@@ -290,7 +284,8 @@ public abstract class CompareMetadataStage implements Stage {
             createStage( final TableMetadataStage stage1,
                          final TableMetadataStage stage2 ) {
         return new CompareMetadataStage( stage1.getSourceDescription(),
-                                         stage2.getSourceDescription() ) {
+                                         stage2.getSourceDescription(),
+                                         stage1, stage2 ) {
             protected TableMeta[] getMetas1() {
                 return stage1.getTableMetadata();
             }

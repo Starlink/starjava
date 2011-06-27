@@ -24,17 +24,20 @@ import uk.ac.starlink.votable.VOStarTable;
  * @author   Mark Taylor
  * @since    8 Jun 2011
  */
-public abstract class QueryStage implements Stage {
+public class QueryStage implements Stage {
 
     private final VotLintTapRunner tapRunner_;
+    private final MetadataHolder metaHolder_;
 
     /**
      * Constructor.
      *
-     * @param  tapRunner  object that can run TAP queries
+     * @param  tapRunner    object that can run TAP queries
+     * @param  metaHolder   provides table metadata at run time
      */
-    protected QueryStage( VotLintTapRunner tapRunner ) {
+    public QueryStage( VotLintTapRunner tapRunner, MetadataHolder metaHolder ) {
         tapRunner_ = tapRunner;
+        metaHolder_ = metaHolder;
     }
 
     public String getDescription() {
@@ -42,16 +45,8 @@ public abstract class QueryStage implements Stage {
              + " mode";
     }
 
-    /**
-     * Returns the table metadata which will be used to frame example
-     * ADQL queries.
-     *
-     * @return   table metadata array
-     */
-    protected abstract TableMeta[] getTableMetadata();
-
     public void run( URL serviceUrl, Reporter reporter ) {
-        TableMeta[] tmetas = getTableMetadata();
+        TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( Reporter.Type.WARNING, "NOTM",
                              "No table metadata available"
@@ -60,28 +55,6 @@ public abstract class QueryStage implements Stage {
         }
         new Querier( reporter, serviceUrl, tmetas ).run();
         tapRunner_.reportSummary( reporter );
-    }
-
-    /**
-     * Service method to create an instance of this class given some
-     * previously-run stages which might have acquired table metadata.
-     *
-     * @param  metaStages  metadata generating stages
-     */
-    public static QueryStage createStage( VotLintTapRunner tapRunner,
-                                          final TableMetadataStage[]
-                                          metaStages ) {
-        return new QueryStage( tapRunner ) {
-            protected TableMeta[] getTableMetadata() {
-                for ( int is = 0; is < metaStages.length; is++ ) {
-                    TableMeta[] tmetas = metaStages[ is ].getTableMetadata();
-                    if ( tmetas != null ) {
-                        return tmetas;
-                    }
-                }
-                return null;
-            }
-        };
     }
 
     /**

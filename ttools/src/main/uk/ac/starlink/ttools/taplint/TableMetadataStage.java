@@ -20,7 +20,7 @@ import uk.ac.starlink.vo.TableMeta;
  * @author   Mark Taylor
  * @since    3 Jun 2011
  */
-public abstract class TableMetadataStage implements Stage {
+public abstract class TableMetadataStage implements Stage, MetadataHolder {
 
     private final String srcDescription_;
     private final String[] knownColFlags_;

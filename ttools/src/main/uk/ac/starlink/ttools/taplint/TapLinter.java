@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.vo.TableMeta;
 
 /**
  * Organises validation stages for TAP validator.
@@ -55,6 +56,7 @@ public class TapLinter {
         tapSchemaStage_ =
             new TapSchemaStage( VotLintTapRunner.createGetSyncRunner() );
         TableMetadataStage[] tmStages = { tmetaStage_, tapSchemaStage_ };
+        MetadataHolder metaHolder = new AnyMetadataHolder( tmStages );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmStages[ 0 ], tmStages[ 1 ] );
         tcapXsdStage_ = XsdStage
@@ -64,15 +66,15 @@ public class TapLinter {
         availXsdStage_ = XsdStage
                         .createXsdStage( AVAILABILITY_XSD, "/availability",
                                          false, "availability" );
-        getQueryStage_ = QueryStage
-                        .createStage( VotLintTapRunner.createGetSyncRunner(),
-                                      tmStages );
-        postQueryStage_ = QueryStage
-                         .createStage( VotLintTapRunner.createPostSyncRunner(),
-                                       tmStages );
-        asyncQueryStage_ = QueryStage
-                          .createStage( VotLintTapRunner
-                                       .createAsyncRunner( 500 ), tmStages );
+        getQueryStage_ =
+            new QueryStage( VotLintTapRunner.createGetSyncRunner(),
+                            metaHolder );
+        postQueryStage_ =
+            new QueryStage( VotLintTapRunner.createPostSyncRunner(),
+                            metaHolder );
+        asyncQueryStage_ =
+            new QueryStage( VotLintTapRunner.createAsyncRunner( 500 ),
+                            metaHolder );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
@@ -180,6 +182,33 @@ public class TapLinter {
             throw (IllegalArgumentException)
                   new IllegalArgumentException( "Bad URL " + url )
                  .initCause( e );
+        }
+    }
+
+    /**
+     * MetadataHolder implementation which delegates operations to any
+     * of those it owns.
+     */
+    private static class AnyMetadataHolder implements MetadataHolder {
+        final MetadataHolder[] holders_;
+
+        /**
+         * Constructor.
+         *
+         * @param  holders  subordinate candidate metadata suppliers
+         */
+        AnyMetadataHolder( MetadataHolder[] holders ) {
+            holders_ = holders;
+        }
+
+        public TableMeta[] getTableMetadata() {
+            for ( int ih = 0; ih < holders_.length; ih++ ) {
+                TableMeta[] tmetas = holders_[ ih ].getTableMetadata();
+                if ( tmetas != null ) {
+                    return tmetas;
+                }
+            }
+            return null;
         }
     }
 
