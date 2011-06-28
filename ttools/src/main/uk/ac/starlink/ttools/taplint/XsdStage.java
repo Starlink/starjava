@@ -62,8 +62,8 @@ public abstract class XsdStage implements Stage {
             result_ = Result.FAILURE;
             return;
         }
-        reporter.report( Reporter.Type.INFO, "XURL",
-                         "Validating " + serviceUrl + " against "
+        reporter.report( Reporter.Type.INFO, "VURL",
+                         "Validating " + docUrl + " against "
                        + schemaUrl_ );
         result_ = validateDoc( reporter, docUrl );
     }
