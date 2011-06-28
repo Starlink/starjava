@@ -264,7 +264,7 @@ public class TapCapabilityPanel extends JPanel {
         String[] upMethods = tcap == null ? null : tcap.getUploadMethods();
         return upMethods != null
             && Arrays.asList( upMethods )
-                     .contains( TapCapability.UPLOADS_URI + "#inline" );
+                     .contains( TapCapability.UPLOADS_URI + "inline" );
     }
 
     /**

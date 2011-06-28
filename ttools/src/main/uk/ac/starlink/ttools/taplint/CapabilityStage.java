@@ -82,7 +82,9 @@ public class CapabilityStage implements Stage, CapabilityHolder {
 
         /* Check upload methods. */
         String[] upMethods = tcap.getUploadMethods();
-        String stdPrefix = TapCapability.UPLOADS_URI + "#";
+        String stdPrefix = TapCapability.UPLOADS_URI;
+        Collection<String> mandatorySuffixList =
+            Arrays.asList( new String[] { "inline", "http" } ); // TAP 2.5.{1,2}
         Collection<String> stdSuffixList =
             Arrays.asList( new String[] { "inline", "http", "https", "ftp" } );
         for ( int iu = 0; iu < upMethods.length; iu++ ) {
@@ -98,6 +100,20 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             else {
                 reporter.report( Reporter.Type.WARNING, "UPCS",
                                  "Custom upload method \"" + upMethod + "\"" );
+            }
+        }
+        if ( upMethods.length > 0 ) {
+            for ( String msuff : mandatorySuffixList ) {
+                String mmeth = stdPrefix + msuff;
+                if ( ! Arrays.asList( upMethods ).contains( mmeth ) ) {
+                    String msg = new StringBuilder()
+                       .append( "Mandatory upload method " )
+                       .append( mmeth )
+                       .append( " not declared" )
+                       .append( ", though uploads are apparently supported" )
+                       .toString();
+                    reporter.report( Reporter.Type.ERROR, "MUPM", msg );
+                }
             }
         }
     }

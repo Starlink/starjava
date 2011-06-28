@@ -28,8 +28,13 @@ import uk.ac.starlink.util.DOMUtils;
  */
 public abstract class TapCapability {
 
-    /** Base (fragment-less) URI for uploads string. */
-    public static final String UPLOADS_URI = "ivo://ivoa.org/tap/uploadmethods";
+    /**
+     * Base URI for standard uploads string {@value}.
+     * Standard upload methods are formed by appending the upload type,
+     * for instance the HTTP upload capability is indicated by the
+     * string <code>TapCapability.UPLOADS_URL+"http"</code>.
+     */ 
+    public static final String UPLOADS_URI = "ivo://ivoa.net/TapRegExt#upload-";
 
     /**
      * Returns an array of upload methods known by this capability.
