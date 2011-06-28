@@ -21,7 +21,7 @@ import uk.ac.starlink.util.DOMUtils;
 
 /**
  * Describes the capabilities of a TAP service as serialized by the
- * TapRegExt schema.
+ * TAPRegExt schema.
  *
  * @author   Mark Taylor
  * @since    7 Mar 2011
@@ -34,7 +34,7 @@ public abstract class TapCapability {
      * for instance the HTTP upload capability is indicated by the
      * string <code>TapCapability.UPLOADS_URL+"http"</code>.
      */ 
-    public static final String UPLOADS_URI = "ivo://ivoa.net/TapRegExt#upload-";
+    public static final String UPLOADS_URI = "ivo://ivoa.net/TAPRegExt#upload-";
 
     /**
      * Returns an array of upload methods known by this capability.
@@ -94,7 +94,7 @@ public abstract class TapCapability {
     public abstract TapLimit[] getRetentionLimits();
 
     /**
-     * Reads a TapRegExt document from a given URL and returns a TapCapability
+     * Reads a TAPRegExt document from a given URL and returns a TapCapability
      * object based on it.
      *
      * @param   url   location of document
@@ -116,7 +116,7 @@ public abstract class TapCapability {
     }
 
     /**
-     * Attempts to read a TapRegExt document from a given URL.
+     * Attempts to read a TAPRegExt document from a given URL.
      *
      * @param   url   location of document
      * @return  capability object
@@ -231,7 +231,7 @@ public abstract class TapCapability {
     }
 
     /**
-     * Reads a list of nodes representing limits in TapRegExt format
+     * Reads a list of nodes representing limits in TAPRegExt format
      * and returns an array of corresponding objects.
      *
      * @param  nodeList  list of <code>hard</code> or <code>default</code>

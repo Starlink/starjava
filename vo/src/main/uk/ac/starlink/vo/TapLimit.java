@@ -2,7 +2,7 @@ package uk.ac.starlink.vo;
 
 /**
  * Characterises a limit which applies to a TAP service.
- * This class can represent values encoded by the TapRegExt
+ * This class can represent values encoded by the TAPRegExt
  * DataLimits and TimeLimits element types.
  *
  * @author   Mark Taylor
