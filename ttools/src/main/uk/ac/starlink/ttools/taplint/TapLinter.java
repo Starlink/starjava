@@ -221,7 +221,7 @@ public class TapLinter {
         public TableMeta[] getTableMetadata() {
             for ( int ih = 0; ih < holders_.length; ih++ ) {
                 TableMeta[] tmetas = holders_[ ih ].getTableMetadata();
-                if ( tmetas != null ) {
+                if ( tmetas != null && tmetas.length > 0 ) {
                     return tmetas;
                 }
             }

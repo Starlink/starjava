@@ -223,6 +223,9 @@ public class CompareMetadataStage implements Stage {
      * @return  true iff it looks like the submitted types are compatible
      */
     private static boolean compatibleDataTypesOneWay( String dt1, String dt2 ) {
+        if ( dt1 == null || dt1.trim().length() == 0 ) {
+            return dt2 == null || dt2.trim().length() == 0;
+        }
         Matcher atm1 = ADQLTYPE_REGEX.matcher( dt1 );
         if ( atm1.matches() ) {
             dt1 = atm1.group( 2 );

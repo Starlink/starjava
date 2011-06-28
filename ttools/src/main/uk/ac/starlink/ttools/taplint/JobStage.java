@@ -66,6 +66,8 @@ public class JobStage implements Stage {
         private final TableMeta tmeta_;
         private final long poll_;
         private final String shortAdql_;
+        private final String runId1_;
+        private final String runId2_;
   
         /**
          * Constructor.
@@ -82,6 +84,8 @@ public class JobStage implements Stage {
             tmeta_ = tmeta;
             poll_ = poll;
             shortAdql_ = "SELECT TOP 100 * FROM " + tmeta.getName();
+            runId1_ = "TAPLINT-001";
+            runId2_ = "TAPLINT-002";
         }
 
         /**
@@ -106,10 +110,9 @@ public class JobStage implements Stage {
             URL jobUrl = job.getJobUrl();
             checkPhase( job, "PENDING" );
             checkParameter( job, "REQUEST", "doQuery" );
-            checkParameter( job, "RUNID", null );
-            String runId = "TAPLINT-001";
-            if ( postParameter( job, "runId", runId ) ) {
-                checkParameter( job, "RUNID", runId );
+            checkParameter( job, "RUNID", runId1_ );
+            if ( postParameter( job, "runId", runId2_ ) ) {
+                checkParameter( job, "RUNID", runId2_ );
             }
             if ( postPhase( job, "ABORT" ) ) {
                 checkPhase( job, "ABORTED" );
@@ -568,8 +571,10 @@ public class JobStage implements Stage {
          */
         private UwsJob createJob( String adql ) {
             TapQuery tq;
+            Map<String,String> paramMap = new LinkedHashMap<String,String>();
+            paramMap.put( "RUNID", runId1_ );
             try {
-                tq = new TapQuery( serviceUrl_, adql, null, null, 0 );
+                tq = new TapQuery( serviceUrl_, adql, paramMap, null, 0 );
             }
             catch ( IOException e ) {
                 throw new AssertionError( "no upload!" );
