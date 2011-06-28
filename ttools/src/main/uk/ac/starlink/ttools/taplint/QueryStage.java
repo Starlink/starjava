@@ -48,7 +48,7 @@ public class QueryStage implements Stage {
     public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
-            reporter.report( Reporter.Type.WARNING, "NOTM",
+            reporter.report( Reporter.Type.FAILURE, "NOTM",
                              "No table metadata available"
                            + " - will not run test queries" );
             return;

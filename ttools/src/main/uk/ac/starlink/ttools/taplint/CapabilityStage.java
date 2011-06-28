@@ -40,7 +40,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             tcap = TapQuery.readTapCapability( serviceUrl );
         }
         catch ( SAXException e ) {
-            reporter.report( Reporter.Type.WARNING, "FLSX",
+            reporter.report( Reporter.Type.ERROR, "FLSX",
                              "Error parsing capabilities metadata", e );
             return;
         }

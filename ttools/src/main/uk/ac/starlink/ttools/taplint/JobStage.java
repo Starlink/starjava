@@ -49,7 +49,7 @@ public class JobStage implements Stage {
     public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
-            reporter.report( Reporter.Type.WARNING, "NOTM",
+            reporter.report( Reporter.Type.FAILURE, "NOTM",
                              "No table metadata available"
                            + " - will not attempt UWS tests" );
             return;
@@ -144,7 +144,7 @@ public class JobStage implements Stage {
                 return;
             }
             if ( ! ( conn instanceof HttpURLConnection ) ) {
-                reporter_.report( Reporter.Type.WARNING, "NOHT",
+                reporter_.report( Reporter.Type.ERROR, "NOHT",
                                   "Job url " + jobUrl + " not HTTP?" );
                 return;
             }
@@ -341,7 +341,7 @@ public class JobStage implements Stage {
                 }
             }
             else {
-                reporter_.report( Reporter.Type.WARNING, "NOHT",
+                reporter_.report( Reporter.Type.ERROR, "NOHT",
                                   "Job " + jobUrl + " not HTTP?" );
             }
         }

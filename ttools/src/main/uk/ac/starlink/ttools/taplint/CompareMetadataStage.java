@@ -53,7 +53,7 @@ public class CompareMetadataStage implements Stage {
         TableMeta[] tmetas1 = metaHolder1_.getTableMetadata();
         TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
         if ( tmetas1 == null || tmetas2 == null ) {
-            reporter.report( Reporter.Type.WARNING, "NOTM",
+            reporter.report( Reporter.Type.FAILURE, "NOTM",
                              "Don't have two metadata sets to compare" );
             return;
         }

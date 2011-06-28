@@ -89,7 +89,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      */
     private void checkTables( Reporter reporter, TableMeta[] tmetas ) { 
         if ( tmetas == null ) {
-            reporter.report( Reporter.Type.WARNING, "GONE",
+            reporter.report( Reporter.Type.FAILURE, "GONE",
                              "Table metadata absent" );
             return;
         }

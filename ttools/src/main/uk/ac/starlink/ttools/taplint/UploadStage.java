@@ -51,7 +51,7 @@ public class UploadStage implements Stage {
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null && ( tcap.getUploadMethods() == null ||
                                tcap.getUploadMethods().length == 0 ) ) {
-            reporter.report( Reporter.Type.WARNING, "NOUP",
+            reporter.report( Reporter.Type.FAILURE, "NOUP",
                              "Table capabilities lists no upload methods - "
                            + "will not attempt upload tests" );
             return;
@@ -104,8 +104,6 @@ public class UploadStage implements Stage {
             }
             StarTable resultTable = tRunner_.getResultTable( reporter_, tq );
             if ( resultTable == null ) {
-                reporter_.report( Reporter.Type.WARNING, "UPNO",
-                                  "Upload query failed" );
                 return;
             }
             try {

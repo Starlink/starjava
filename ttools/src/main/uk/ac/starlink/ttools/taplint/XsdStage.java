@@ -193,12 +193,12 @@ public abstract class XsdStage implements Stage {
                 Result result = getResult();
                 if ( result == Result.NOT_FOUND ) {
                     if ( mandatory ) {
-                        reporter.report( Reporter.Type.ERROR, "GONE",
+                        reporter.report( Reporter.Type.ERROR, "GONM",
                                          "Mandatory resource " + docUrlSuffix
                                        + " not present" );
                     }
                     else {
-                        reporter.report( Reporter.Type.WARNING, "GONE",
+                        reporter.report( Reporter.Type.WARNING, "GONO",
                                          "Optional resource " + docUrlSuffix
                                        + " not present" );
                     }
