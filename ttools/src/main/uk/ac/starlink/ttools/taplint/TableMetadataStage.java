@@ -147,25 +147,47 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
                         ColumnMeta fromCol = cmap.get( link.getFrom() );
                         ColumnMeta toCol = targetCmap.get( link.getTarget() );
                         if ( fromCol == null || toCol == null ) {
+                            StringBuilder mbuf = new StringBuilder()
+                               .append( "Broken link " )
+                               .append( link )
+                               .append( " in foreign key " )
+                               .append( tname )
+                               .append( fkey );
+                            if ( fromCol == null ) {
+                                mbuf.append( " (no column " )
+                                    .append( tname )
+                                    .append( '.' )
+                                    .append( link.getFrom() )
+                                    .append( ')' );
+                            }
+                            if ( toCol == null ) {
+                                mbuf.append( " (no column " )
+                                    .append( targetTableName )
+                                    .append( '.' )
+                                    .append( link.getTarget() )
+                                    .append( ')' );
+                            }
                             reporter.report( Reporter.Type.ERROR, "FKLK",
-                                             "Broken link " + link
-                                           + " in foreign key " + fkey );
+                                             mbuf.toString() );
                         }
-                        String fromType = fromCol.getDataType();
-                        String toType = toCol.getDataType();
-                        if ( fromType == null || ! fromType.equals( toType ) ) {
-                            String msg = new StringBuffer()
-                                .append( "Type mismatch for link " )
-                                .append( link )
-                                .append( " in foreign key " )
-                                .append( fkey )
-                                .append( "; " )
-                                .append( fromType )
-                                .append( " vs. " )
-                                .append( toType )
-                                .toString();
-                            reporter.report( Reporter.Type.WARNING,
-                                             "FTYP", msg );
+                        else {
+                            String fromType = fromCol.getDataType();
+                            String toType = toCol.getDataType();
+                            if ( fromType == null ||
+                                 ! fromType.equals( toType ) ) {
+                                String msg = new StringBuffer()
+                                    .append( "Type mismatch for link " )
+                                    .append( link )
+                                    .append( " in foreign key " )
+                                    .append( fkey )
+                                    .append( "; " )
+                                    .append( fromType )
+                                    .append( " vs. " )
+                                    .append( toType )
+                                    .toString();
+                                reporter.report( Reporter.Type.WARNING,
+                                                 "FTYP", msg );
+                            }
                         }
                     }
                 }

@@ -50,12 +50,12 @@ public abstract class TapRunner {
         }
         catch ( IOException e ) {
             reporter.report( Reporter.Type.ERROR, "QERR",
-                             "TAP query failed: " + tq.getAdql(), e );
+                             "TAP query failed", e );
             return null;
         }
         catch ( SAXException e ) {
             reporter.report( Reporter.Type.ERROR, "QERX",
-                             "TAP query result parse failed: " + tq.getAdql(),
+                             "TAP query result parse failed",
                              e );
             return null;
         }

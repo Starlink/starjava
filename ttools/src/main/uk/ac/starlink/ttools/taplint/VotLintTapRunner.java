@@ -399,7 +399,10 @@ public abstract class VotLintTapRunner extends TapRunner {
             protected URLConnection getResultConnection( Reporter reporter,
                                                          TapQuery tq )
                     throws IOException {
-                UwsJob uwsJob = tq.submitAsync();
+                UwsJob uwsJob =
+                    UwsJob.createJob( tq.getServiceUrl()+ "/async",
+                                      tq.getStringParams(),
+                                      tq.getStreamParams() );
                 URL jobUrl = uwsJob.getJobUrl();
                 reporter.report( Reporter.Type.INFO, "QJOB",
                                  "Submitted query at " + jobUrl );

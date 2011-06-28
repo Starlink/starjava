@@ -22,6 +22,9 @@ public class TablesEndpointStage extends TableMetadataStage {
 
     protected TableMeta[] readTableMetadata( Reporter reporter,
                                              URL serviceUrl ) {
+        reporter.report( Reporter.Type.INFO, "TURL",
+                         "Reading table metadata from "
+                       + serviceUrl + "/tables" );
         try {
             return TapQuery.readTableMetadata( serviceUrl );
         }

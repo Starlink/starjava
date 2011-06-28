@@ -33,6 +33,9 @@ public class CapabilityStage implements Stage, CapabilityHolder {
 
     public void run( Reporter reporter, URL serviceUrl ) {
         final TapCapability tcap;
+        reporter.report( Reporter.Type.INFO, "CURL",
+                         "Reading capability metadata from "
+                       + serviceUrl + "/capabilities" );
         try {
             tcap = TapQuery.readTapCapability( serviceUrl );
         }
