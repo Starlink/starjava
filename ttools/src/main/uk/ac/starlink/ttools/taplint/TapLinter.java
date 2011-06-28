@@ -36,6 +36,7 @@ public class TapLinter {
     private final QueryStage asyncQueryStage_;
     private final JobStage jobStage_;
     private final UploadStage uploadStage_;
+    private final TapSchemaMetadataHolder tapSchemaMetadata_;
 
     private static final String XSDS = "http://www.ivoa.net/xml";
     private static final URL VODATASERVICE_XSD =
@@ -57,10 +58,15 @@ public class TapLinter {
         tmetaStage_ = new TablesEndpointStage();
         tapSchemaStage_ =
             new TapSchemaStage( VotLintTapRunner.createGetSyncRunner() );
-        TableMetadataStage[] tmStages = { tmetaStage_, tapSchemaStage_ };
-        MetadataHolder metaHolder = new AnyMetadataHolder( tmStages );
+        tapSchemaMetadata_ = new TapSchemaMetadataHolder();
+        MetadataHolder metaHolder =
+                new AnyMetadataHolder( new MetadataHolder[] {
+            tmetaStage_,
+            tapSchemaStage_,
+            tapSchemaMetadata_,
+        } );
         cfTmetaStage_ = CompareMetadataStage
-                       .createStage( tmStages[ 0 ], tmStages[ 1 ] );
+                       .createStage( tmetaStage_, tapSchemaStage_ );
         tcapXsdStage_ = XsdStage
                        .createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
                                         "capabilities" );
@@ -154,6 +160,9 @@ public class TapLinter {
             throw new TaskException( "Unknown stage codes " + stageCodeSet );
         }
         final String[] codes = selectedCodeList.toArray( new String[ 0 ] );
+
+        /* Other initialisation. */
+        tapSchemaMetadata_.setReporter( reporter );
 
         /* Create and return an executable which will run the
          * requested stages. */

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vosi:tableset xmlns:vosi="http://www.ivoa.net/xml/VOSITables/v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:vod="http://www.ivoa.net/xml/VODataService/v1.1">
+  <schema>
+    <name>TAP_SCHEMA</name>
+    <table type="output">
+      <name>TAP_SCHEMA.schemas</name>
+      <column>
+        <name>schema_name</name>
+        <description>schema name for reference to TAP_SCHEMA.schemas</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>utype</name>
+        <description>lists the utypes of schemas in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>description</name>
+        <description>describes schemas in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+    </table>
+    <table type="output">
+      <name>TAP_SCHEMA.tables</name>
+      <column>
+        <name>schema_name</name>
+        <description>the schema this table belongs to</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>table_name</name>
+        <description>the fully qualified table name</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>table_type</name>
+        <description>one of: table view</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>utype</name>
+        <description>lists the utype of tables in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>description</name>
+        <description>describes tables in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <foreignKey>
+        <targetTable>TAP_SCHEMA.schemas</targetTable>
+        <fkColumn>
+          <fromColumn>schema_name</fromColumn>
+          <targetColumn>schema_name</targetColumn>
+        </fkColumn>
+      </foreignKey>
+    </table>
+    <table type="output">
+      <name>TAP_SCHEMA.columns</name>
+      <column>
+        <name>table_name</name>
+        <description>the table this column belongs to</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>column_name</name>
+        <description>the column name</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>utype</name>
+        <description>lists the utypes of columns in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>ucd</name>
+        <description>lists the UCDs of columns in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>unit</name>
+        <description>lists the unit used for column values in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>description</name>
+        <description>describes the columns in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>datatype</name>
+        <description>lists the ADQL datatype of columns in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>size</name>
+        <description>lists the size of variable-length columns in the tableset</description>
+        <dataType xsi:type="vod:TAPType">INTEGER</dataType>
+      </column>
+      <column>
+        <name>principal</name>
+        <description>a principal column; 1 means 1, 0 means 0</description>
+        <dataType xsi:type="vod:TAPType">INTEGER</dataType>
+      </column>
+      <column>
+        <name>indexed</name>
+        <description>an indexed column; 1 means 1, 0 means 0</description>
+        <dataType xsi:type="vod:TAPType">INTEGER</dataType>
+      </column>
+      <column>
+        <name>std</name>
+        <description>a standard column; 1 means 1, 0 means 0</description>
+        <dataType xsi:type="vod:TAPType">INTEGER</dataType>
+      </column>
+      <foreignKey>
+        <targetTable>TAP_SCHEMA.tables</targetTable>
+        <fkColumn>
+          <fromColumn>table_name</fromColumn>
+          <targetColumn>table_name</targetColumn>
+        </fkColumn>
+      </foreignKey>
+    </table>
+    <table type="output">
+      <name>TAP_SCHEMA.keys</name>
+      <column>
+        <name>key_id</name>
+        <description>unique key to join to TAP_SCHEMA.key_columns</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>from_table</name>
+        <description>the table with the foreign key</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>target_table</name>
+        <description>the table with the primary key</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>utype</name>
+        <description>lists the utype of keys in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>description</name>
+        <description>describes keys in the tableset</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <foreignKey>
+        <targetTable>TAP_SCHEMA.tables</targetTable>
+        <fkColumn>
+          <fromColumn>from_table</fromColumn>
+          <targetColumn>table_name</targetColumn>
+        </fkColumn>
+      </foreignKey>
+      <foreignKey>
+        <targetTable>TAP_SCHEMA.tables</targetTable>
+        <fkColumn>
+          <fromColumn>target_table</fromColumn>
+          <targetColumn>table_name</targetColumn>
+        </fkColumn>
+      </foreignKey>
+    </table>
+    <table type="output">
+      <name>TAP_SCHEMA.key_columns</name>
+      <column>
+        <name>key_id</name>
+        <description>key to join to TAP_SCHEMA.keys</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>from_column</name>
+        <description>column in the from_table</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <column>
+        <name>target_column</name>
+        <description>column in the target_table</description>
+        <dataType xsi:type="vod:TAPType">VARCHAR</dataType>
+      </column>
+      <foreignKey>
+        <targetTable>TAP_SCHEMA.keys</targetTable>
+        <fkColumn>
+          <fromColumn>key_id</fromColumn>
+          <targetColumn>key_id</targetColumn>
+        </fkColumn>
+      </foreignKey>
+    </table>
+  </schema>
+</vosi:tableset>

@@ -30,7 +30,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @see  <a href="http://www.ivoa.net/Documents/VODataService/"
  *          >IVOA VODataService Recommendation</a>
  */
-class TableSetSaxHandler extends DefaultHandler {
+public class TableSetSaxHandler extends DefaultHandler {
 
     private TableMeta[] tables_;
     private List<TableMeta> tableList_;
@@ -63,15 +63,18 @@ class TableSetSaxHandler extends DefaultHandler {
         return tables_;
     }
 
+    @Override
     public void startDocument() {
         tableList_ = new ArrayList<TableMeta>();
     }
 
+    @Override
     public void endDocument() {
         tables_ = tableList_.toArray( new TableMeta[ 0 ] );
         tableList_ = null;
     }
 
+    @Override
     public void startElement( String uri, String localName, String qName,
                               Attributes atts ) {
         txtbuf_.setLength( 0 );
@@ -98,6 +101,7 @@ class TableSetSaxHandler extends DefaultHandler {
         }
     }
 
+    @Override
     public void endElement( String uri, String localName, String qName ) {
         String txt = txtbuf_.toString();
         txtbuf_.setLength( 0 );
@@ -194,25 +198,32 @@ class TableSetSaxHandler extends DefaultHandler {
         }
     }
 
+    @Override
     public void characters( char[] ch, int start, int length ) {
         txtbuf_.append( ch, start, length );
     }
 
+    @Override
     public void ignorableWhitespace( char[] ch, int start, int length ) {
     }
 
+    @Override
     public void startPrefixMapping( String prefix, String uri ) {
     }
 
+    @Override
     public void endPrefixMapping( String prefix ) {
     }
 
+    @Override
     public void processingInstruction( String target, String data ) {
     }
 
+    @Override
     public void skippedEntity( String name ) {
     }
 
+    @Override
     public void setDocumentLocator( Locator locator ) {
     }
 
