@@ -110,7 +110,7 @@ public class Reporter {
                 int count = codeMap_.getCount( ecode );
                 if ( count > maxRepeat_ ) {
                     println( ecode + "-" + countXx_
-                                + " (" + count + " more)" );
+                                + " (" + ( count - maxRepeat_ ) + " more)" );
                 }
                 it.remove();
             }
@@ -179,7 +179,7 @@ public class Reporter {
         String ecode = codeBuf.toString();
         typeMap_.addItem( type );
         int count = codeMap_.addItem( ecode );
-        if ( count < maxRepeat_ ) {
+        if ( count <= maxRepeat_ ) {
             String fcount = countFormat_.format( count );
             StringBuffer mbuf = new StringBuffer( message.trim() );
             if ( err != null ) {
