@@ -68,11 +68,16 @@ public abstract class VotLintTapRunner extends TapRunner {
             throws IOException, SAXException {
         URLConnection conn = getResultConnection( reporter, tq );
         conn = TapQuery.followRedirects( conn );
+        conn.connect();
         String ctype = conn.getContentType();
-        if ( ! ( ctype.startsWith( "text/xml" ) ||
-                 ctype.startsWith( "application/xml" ) ||
-                 ctype.startsWith( "application/x-votable+xml" ) ||
-                 ctype.startsWith( "text/x-votable+xml" ) ) ) {
+        if ( ctype == null || ctype.trim().length() == 0 ) {
+            reporter.report( ReportType.WARNING, "NOCT",
+                             "No Content-Type header for " + conn.getURL() );
+        }
+        else if ( ! ( ctype.startsWith( "text/xml" ) ||
+                      ctype.startsWith( "application/xml" ) ||
+                      ctype.startsWith( "application/x-votable+xml" ) ||
+                      ctype.startsWith( "text/x-votable+xml" ) ) ) {
             String msg = new StringBuilder()
                .append( "Bad content type " )
                .append( ctype )
@@ -82,7 +87,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                .append( conn.getURL() )
                .append( ")" )
                .toString();
-            reporter.report( ReportType.ERROR, "VMIM", msg );
+            reporter.report( ReportType.ERROR, "VOCT", msg );
         }
 
         InputStream in = null;

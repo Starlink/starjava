@@ -4758,7 +4758,9 @@ where the parts have the following meanings:
 <webref url="http://www.ivoa.net/Documents/latest/VOResource.html"
         >VOResource</webref>,
 <webref url="http://www.ivoa.net/Documents/VOSI/">VOSI</webref>,
-<webref url="http://www.ivoa.net/Documents/TAPRegExt/">TAPRegExt</webref>),
+<webref url="http://www.ivoa.net/Documents/TAPRegExt/">TAPRegExt</webref>,
+<webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
+<webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>),
 and it is hard to write a validator which comprehensive, especially
 one which can provide useful output for services with a range of 
 compliance levels.

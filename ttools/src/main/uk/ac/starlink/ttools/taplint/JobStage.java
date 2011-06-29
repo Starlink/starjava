@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
@@ -33,6 +33,19 @@ public class JobStage implements Stage {
 
     private final MetadataHolder metaHolder_;
     private final long pollMillis_;
+
+    // This expression pinched at random without testing from
+    // "http://www.pelagodesign.com/blog/2009/05/20/" +
+    // "iso-8601-date-validation-that-doesnt-suck/"
+    private final static Pattern ISO8601_REGEX = Pattern.compile(
+        "^([\\+-]?\\d{4}(?!\\d{2}\\b))"
+      + "((-?)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))?"
+      + "|W([0-4]\\d|5[0-2])(-?[1-7])?"
+      + "|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6])))"
+      + "([T\\s]((([01]\\d|2[0-3])((:?)[0-5]\\d)?|24\\:?00)"
+      + "([\\.,]\\d+(?!:))?)?(\\17[0-5]\\d([\\.,]\\d+)?)?"
+      + "([zZ]|([\\+-])([01]\\d|2[0-3]):?([0-5]\\d)?)?)?)?$"
+    );
 
     /**
      * Constructor.
@@ -752,19 +765,18 @@ public class JobStage implements Stage {
          * @param  txt  text content
          */
         private void checkDateTime( URL url, String txt ) {
-            try {
-                Times.isoToMjd( txt );
-            }
-            catch ( IllegalArgumentException e ) {
-                String msg = new StringBuilder()
-                   .append( "Not ISO-8601 content " )
-                   .append( '"' )
-                   .append( txt )
-                   .append( '"' )
-                   .append( " from " )
-                   .append( url )
-                   .toString();
-                reporter_.report( ReportType.WARNING, "TFMT", msg );
+            if ( txt != null ) {
+                if ( ! ISO8601_REGEX.matcher( txt ).matches() ) {
+                    String msg = new StringBuilder()
+                       .append( "Not ISO-8601 content " )
+                       .append( '"' )
+                       .append( txt )
+                       .append( '"' )
+                       .append( " from " )
+                       .append( url )
+                       .toString();
+                    reporter_.report( ReportType.WARNING, "TFMT", msg );
+                }
             }
         }
 
@@ -862,10 +874,15 @@ public class JobStage implements Stage {
                     }
                 }
             }
-            if ( ! hconn.getContentType().startsWith( mimeType ) ) {
+            String ctype = hconn.getContentType();
+            if ( ctype == null && ctype.trim().length() == 0 ) {
+                reporter_.report( ReportType.WARNING, "NOCT",
+                                  "No Content-Type header for " + url );
+            }
+            else if ( ! ctype.startsWith( mimeType ) ) {
                 String msg = new StringBuilder()
                    .append( "Incorrect Content-Type " )
-                   .append( hconn.getContentType() )
+                   .append( ctype )
                    .append( " != " )
                    .append( mimeType )
                    .append( " for " )
