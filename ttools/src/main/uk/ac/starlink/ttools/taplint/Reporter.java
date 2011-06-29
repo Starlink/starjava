@@ -1,6 +1,11 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -17,6 +22,7 @@ import uk.ac.starlink.util.CountMap;
 public class Reporter {
 
     private final PrintStream out_;
+    private final Collection<Reporter.Type> typeList_;
     private final int maxRepeat_;
     private final boolean debug_;
     private final int maxChar_;
@@ -31,15 +37,17 @@ public class Reporter {
      * Constructor.
      *
      * @param  out  destination stream
+     * @param  types  message types to report; others are discarded
      * @param  maxRepeat  maximum number of times any given message
      *                    may be repeated; subsequent instances are suppressed
      * @param  debug  true iff you want to see full stacktraces for
      *                exceptions etc
      * @param  maxChar  maximum number of total characters per line of output
      */
-    public Reporter( PrintStream out, int maxRepeat, boolean debug,
-                     int maxChar ) {
+    public Reporter( PrintStream out, Type[] types, int maxRepeat,
+                     boolean debug, int maxChar ) {
         out_ = out;
+        typeList_ = new HashSet( Arrays.asList( types ) );
         maxRepeat_ = maxRepeat;
         debug_ = debug;
         maxChar_ = maxChar;
@@ -60,6 +68,8 @@ public class Reporter {
      * Signals end of reporting.
      */
     public void end() {
+        println();
+        reportTotals();
         println();
     }
 
@@ -144,6 +154,9 @@ public class Reporter {
      */
     public void report( Type type, String code, String message,
                         Throwable err ) {
+        if ( ! typeList_.contains( type ) ) {
+            return;
+        }
         if ( message == null || message.trim().length() == 0 ) {
             message = "?";
         }
@@ -243,6 +256,27 @@ public class Reporter {
     }
 
     /**
+     * Prints the total number of each report type reported by this object.
+     */
+    public void reportTotals() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "Totals: " );
+        Type[] types = typeList_.toArray( new Type[ 0 ] );
+        Arrays.sort( types );
+        for ( int i = 0; i < types.length; i++ ) {
+            Type type = types[ i ];
+            if ( i > 0 ) {
+                sbuf.append( "; " );
+            }
+            sbuf.append( type.getName() )
+                .append( "s" )
+                .append( ": " )
+                .append( typeMap_.getCount( type ) );
+        }
+        println( sbuf.toString() );
+    }
+
+    /**
      * Generates a short string describing a throwable.
      *
      * @param  err  throwable
@@ -313,33 +347,38 @@ public class Reporter {
      */
     public static enum Type {
 
-        SUMMARY( 'S',
-            "Summary of previous successful/unsuccessful reports." ),
-        INFO( 'I',
+        ERROR( 'E', "Error",
+            "Error in operation or standard compliance of the service." ),
+        WARNING( 'W', "Warning",
+            "Warning that service behaviour is questionable, "
+          + "or contravenes a standard recommendation, "
+          + "but is not in actual violation of the standard." ),
+        INFO( 'I', "Info",
             "Information about progress, "
           + "for instance details of queries made." ),
-        WARNING( 'W',
-            "Warning that service behaviour is questionable, "
-          + "or contravenes a standard recommendation, ",
-          + "but is not in actual violation of the standard." ),
-        ERROR( 'E',
-            "Error in operation or standard compliance of the service." ),
-        FAILURE( 'F',
-            "The validator is unable to perform some testing. "
+        SUMMARY( 'S', "Summary",
+            "Summary of previous successful/unsuccessful reports." ),
+        FAILURE( 'F', "Failure",
+            "Failure of the validator to perform some testing. "
           + "The cause is either some error internal to the validator, "
           + "or some error or missing functionality in the service which "
           + "has already been reported." );
 
         private final char chr_;
+        private final String name_;
         private final String description_;
+        private static Map<Character,Type> charMap_;
 
         /**
          * Constructor.
          *
          * @param   chr  character distinguishing this type
+         * @param  name  human-readable name
+         * @param  description  short description
          */
-        private Type( char chr, String description ) {
+        private Type( char chr, String name, String description ) {
             chr_ = chr;
+            name_ = name;
             description_ = description;
         }
 
@@ -352,6 +391,15 @@ public class Reporter {
             return chr_;
         }
 
+        /** 
+         * Returns the human-readable name.
+         *
+         * @return  name
+         */
+        public String getName() {
+            return name_;
+        }
+
         /**
          * Returns the description text for this type.
          *
@@ -359,6 +407,28 @@ public class Reporter {
          */
         public String getDescription() {
             return description_;
+        }
+
+        /**
+         * Returns the type instance corresponding to a given character.
+         *
+         * @param  chr  case-insensitive character
+         * @return  type for which <code>type.getChar()==chr</code>
+         */
+        public static Type forChar( char chr ) {
+            if ( charMap_ == null ) {
+                Map map = new HashMap<Character,Type>();
+                Type[] types = values();
+                for ( int i = 0; i < types.length; i++ ) {
+                    Type type = types[ i ];
+                    map.put( Character.valueOf( Character
+                                               .toUpperCase( type.getChar() ) ),
+                             type );
+                }
+                charMap_ = map;
+            }
+            return charMap_.get( Character.valueOf( Character
+                                                   .toUpperCase( chr ) ) );
         }
     }
 }

@@ -35,6 +35,7 @@ public class TapLint implements Task {
     private final IntegerParameter repeatParam_;
     private final IntegerParameter truncParam_;
     private final BooleanParameter debugParam_;
+    private final Parameter reportParam_;
     private final Parameter[] params_;
 
     /**
@@ -95,6 +96,40 @@ public class TapLint implements Task {
         } );
         paramList.add( stagesParam_ );
 
+        reportParam_ = new Parameter( "report" );
+        reportParam_.setPrompt( "Message types to report" );
+        Reporter.Type[] types = Reporter.Type.values();
+        StringBuilder dbuf = new StringBuilder();
+        StringBuilder cbuf = new StringBuilder();
+        dbuf.append( "Each character of the string is one of the letters " );
+        for ( int it = 0; it < types.length; it++ ) {
+            char tchr = types[ it ].getChar();
+            if ( it > 0 ) {
+                dbuf.append( ", " );
+            }
+            cbuf.append( tchr );
+        }
+        String tchrs = cbuf.toString();
+        dbuf.append( " with the following meanings:\n" )
+            .append( "<ul>\n" );
+        for ( int it = 0; it < types.length; it++ ) {
+            Reporter.Type type = types[ it ];
+            dbuf.append( "<li><code>" )
+                .append( type.getChar() )
+                .append( "</code>: " )
+                .append( type.getDescription() )
+                .append( "</li>\n" );
+        }
+        dbuf.append( "</ul>" );
+        reportParam_.setUsage( "[" + tchrs + "]+" );
+        reportParam_.setDescription( new String[] {
+            "<p>Letters indicating which message types should be listed.",
+            dbuf.toString(),
+            "</p>",
+        } );
+        reportParam_.setDefault( tchrs );
+        paramList.add( reportParam_ );
+
         repeatParam_ = new IntegerParameter( "maxrepeat" );
         repeatParam_.setPrompt( "Maximum repeat count per message" );
         repeatParam_.setDescription( new String[] {
@@ -114,7 +149,7 @@ public class TapLint implements Task {
             "<p>Limits the line length written to the output.",
             "</p>",
         } );
-        truncParam_.setDefault( "320" );
+        truncParam_.setDefault( "640" );
         paramList.add( truncParam_ );
 
         debugParam_ = new BooleanParameter( "debug" );
@@ -141,6 +176,19 @@ public class TapLint implements Task {
     public Executable createExecutable( Environment env ) throws TaskException {
         URL serviceUrl = urlParam_.urlValue( env );
         PrintStream out = env.getOutputStream();
+        String typeStr = reportParam_.stringValue( env );
+        List<Reporter.Type> typeList = new ArrayList<Reporter.Type>();
+        for ( int ic = 0; ic < typeStr.length(); ic++ ) {
+            char c = typeStr.charAt( ic );
+            Reporter.Type type = Reporter.Type.forChar( c );
+            if ( type == null ) {
+                throw new ParameterValueException( reportParam_,
+                                                   "Bad message type character"
+                                                 + " '" + c + "'" );
+            }
+            typeList.add( type );
+        }
+        Reporter.Type[] types = typeList.toArray( new Reporter.Type[ 0 ] );
         int maxRepeat = repeatParam_.intValue( env );;
         boolean debug = debugParam_.booleanValue( env );
         int maxChar = truncParam_.intValue( env );
@@ -158,7 +206,8 @@ public class TapLint implements Task {
             }
             stageSet.add( sc );
         }
-        Reporter reporter = new Reporter( out, maxRepeat, debug, maxChar );
+        Reporter reporter =
+            new Reporter( out, types, maxRepeat, debug, maxChar );
         return tapLinter_.createExecutable( reporter, serviceUrl, stageSet );
     }
 }
