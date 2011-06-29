@@ -391,8 +391,8 @@ public class UwsJob {
      *          encoded as required
      * @return   URL connection corresponding to the completed POST
      */
-    private static HttpURLConnection
-                   postUnipartForm( URL url, Map<String,String> paramMap )
+    public static HttpURLConnection
+                  postUnipartForm( URL url, Map<String,String> paramMap )
             throws IOException {
         HttpURLConnection hconn = openHttpConnection( url );
         byte[] postBytes = toPostedBytes( paramMap );
@@ -425,10 +425,10 @@ public class UwsJob {
      * @param  boundary  multipart boundary; if null a default value is used
      * @return   URL connection corresponding to the completed POST
      */
-    private static HttpURLConnection
-                   postMultipartForm( URL url, Map<String,String> stringMap,
-                                      Map<String,HttpStreamParam> streamMap,
-                                      String boundary )
+    public static HttpURLConnection
+                  postMultipartForm( URL url, Map<String,String> stringMap,
+                                     Map<String,HttpStreamParam> streamMap,
+                                     String boundary )
             throws IOException {
         if ( boundary == null ) {
             boundary = "<<<--------------MULTIPART-BOUNDARY------->>>";
