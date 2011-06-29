@@ -3,9 +3,7 @@ package uk.ac.starlink.ttools.taplint;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -22,12 +20,12 @@ import uk.ac.starlink.util.CountMap;
 public class Reporter {
 
     private final PrintStream out_;
-    private final Collection<Reporter.Type> typeList_;
+    private final Collection<ReportType> typeList_;
     private final int maxRepeat_;
     private final boolean debug_;
     private final int maxChar_;
     private final CountMap<String> codeMap_;
-    private final CountMap<Type> typeMap_;
+    private final CountMap<ReportType> typeMap_;
     private final NumberFormat countFormat_;
     private final String countXx_;
     private String scode_;
@@ -44,7 +42,7 @@ public class Reporter {
      *                exceptions etc
      * @param  maxChar  maximum number of total characters per line of output
      */
-    public Reporter( PrintStream out, Type[] types, int maxRepeat,
+    public Reporter( PrintStream out, ReportType[] types, int maxRepeat,
                      boolean debug, int maxChar ) {
         out_ = out;
         typeList_ = new HashSet( Arrays.asList( types ) );
@@ -55,7 +53,7 @@ public class Reporter {
         countFormat_ = new DecimalFormat( repeatChar( '0', maxDigit ) );
         countXx_ = repeatChar( 'x', maxDigit );
         codeMap_ = new CountMap<String>();
-        typeMap_ = new CountMap<Type>();
+        typeMap_ = new CountMap<ReportType>();
     }
 
     /**
@@ -136,7 +134,7 @@ public class Reporter {
      * @param    message  free-text message; it may be multi-line and/or
      *                    longish, but may in practice be truncated on output
      */
-    public void report( Type type, String code, String message ) {
+    public void report( ReportType type, String code, String message ) {
         report( type, code, message, null );
     }
 
@@ -152,7 +150,7 @@ public class Reporter {
      *                    longish, but may in practice be truncated on output
      * @param    err    throwable
      */
-    public void report( Type type, String code, String message,
+    public void report( ReportType type, String code, String message,
                         Throwable err ) {
         if ( ! typeList_.contains( type ) ) {
             return;
@@ -214,13 +212,13 @@ public class Reporter {
      * @param  code  message code for this summary
      * @param  types  array of types to report on, or null for all types
      */
-    public void summariseUnreportedTypes( String code, Type[] types ) {
+    public void summariseUnreportedTypes( String code, ReportType[] types ) {
         if ( types == null ) {
-            types = typeMap_.keySet().toArray( new Type[ 0 ] );
+            types = typeMap_.keySet().toArray( new ReportType[ 0 ] );
         }
         StringBuffer sbuf = new StringBuffer();
         for ( int it = 0; it < types.length; it++ ) {
-            Type type = types[ it ];
+            ReportType type = types[ it ];
             if ( it > 0 ) {
                 sbuf.append( ", " );
             }
@@ -228,7 +226,7 @@ public class Reporter {
                 .append( ": " )
                 .append( typeMap_.getCount( type ) );
         }
-        report( Type.SUMMARY, code, sbuf.toString() );
+        report( ReportType.SUMMARY, code, sbuf.toString() );
     }
 
     /**
@@ -261,10 +259,10 @@ public class Reporter {
     public void reportTotals() {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "Totals: " );
-        Type[] types = typeList_.toArray( new Type[ 0 ] );
+        ReportType[] types = typeList_.toArray( new ReportType[ 0 ] );
         Arrays.sort( types );
         for ( int i = 0; i < types.length; i++ ) {
-            Type type = types[ i ];
+            ReportType type = types[ i ];
             if ( i > 0 ) {
                 sbuf.append( "; " );
             }
@@ -340,95 +338,5 @@ public class Reporter {
             chrs[ i ] = chr;
         }
         return new String( chrs );
-    }
-
-    /**
-     * Message types for use with a Reporter.
-     */
-    public static enum Type {
-
-        ERROR( 'E', "Error",
-            "Error in operation or standard compliance of the service." ),
-        WARNING( 'W', "Warning",
-            "Warning that service behaviour is questionable, "
-          + "or contravenes a standard recommendation, "
-          + "but is not in actual violation of the standard." ),
-        INFO( 'I', "Info",
-            "Information about progress, "
-          + "for instance details of queries made." ),
-        SUMMARY( 'S', "Summary",
-            "Summary of previous successful/unsuccessful reports." ),
-        FAILURE( 'F', "Failure",
-            "Failure of the validator to perform some testing. "
-          + "The cause is either some error internal to the validator, "
-          + "or some error or missing functionality in the service which "
-          + "has already been reported." );
-
-        private final char chr_;
-        private final String name_;
-        private final String description_;
-        private static Map<Character,Type> charMap_;
-
-        /**
-         * Constructor.
-         *
-         * @param   chr  character distinguishing this type
-         * @param  name  human-readable name
-         * @param  description  short description
-         */
-        private Type( char chr, String name, String description ) {
-            chr_ = chr;
-            name_ = name;
-            description_ = description;
-        }
-
-        /**
-         * Returns the single-character identifier for this type.
-         *
-         * @return   identifier character
-         */
-        public char getChar() {
-            return chr_;
-        }
-
-        /** 
-         * Returns the human-readable name.
-         *
-         * @return  name
-         */
-        public String getName() {
-            return name_;
-        }
-
-        /**
-         * Returns the description text for this type.
-         *
-         * @return  description
-         */
-        public String getDescription() {
-            return description_;
-        }
-
-        /**
-         * Returns the type instance corresponding to a given character.
-         *
-         * @param  chr  case-insensitive character
-         * @return  type for which <code>type.getChar()==chr</code>
-         */
-        public static Type forChar( char chr ) {
-            if ( charMap_ == null ) {
-                Map map = new HashMap<Character,Type>();
-                Type[] types = values();
-                for ( int i = 0; i < types.length; i++ ) {
-                    Type type = types[ i ];
-                    map.put( Character.valueOf( Character
-                                               .toUpperCase( type.getChar() ) ),
-                             type );
-                }
-                charMap_ = map;
-            }
-            return charMap_.get( Character.valueOf( Character
-                                                   .toUpperCase( chr ) ) );
-        }
     }
 }

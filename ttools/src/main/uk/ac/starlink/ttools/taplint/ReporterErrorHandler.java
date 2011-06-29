@@ -54,17 +54,17 @@ public class ReporterErrorHandler implements ErrorHandler {
 
     public void warning( SAXParseException err ) {
         warningCount_++;
-        report( Reporter.Type.WARNING, err );
+        report( ReportType.WARNING, err );
     }
 
     public void error( SAXParseException err ) {
         errorCount_++;
-        report( Reporter.Type.ERROR, err );
+        report( ReportType.ERROR, err );
     }
 
     public void fatalError( SAXParseException err ) {
         fatalCount_++;
-        report( Reporter.Type.ERROR, err );
+        report( ReportType.ERROR, err );
     }
 
     /**
@@ -73,7 +73,7 @@ public class ReporterErrorHandler implements ErrorHandler {
      * @param   type   message type
      * @param   err    SAX error
      */
-    private void report( Reporter.Type type, SAXParseException err ) {
+    private void report( ReportType type, SAXParseException err ) {
         String msg = err.getMessage();
         if ( msg == null ) {
             msg = err.toString();

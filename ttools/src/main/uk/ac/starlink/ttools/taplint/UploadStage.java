@@ -51,7 +51,7 @@ public class UploadStage implements Stage {
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null && ( tcap.getUploadMethods() == null ||
                                tcap.getUploadMethods().length == 0 ) ) {
-            reporter.report( Reporter.Type.FAILURE, "NOUP",
+            reporter.report( ReportType.FAILURE, "NOUP",
                              "Table capabilities lists no upload methods - "
                            + "will not attempt upload tests" );
             return;
@@ -98,7 +98,7 @@ public class UploadStage implements Stage {
                 tq = new TapQuery( serviceUrl_, adql, null, upMap, -1 );
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "UPER",
+                reporter_.report( ReportType.ERROR, "UPER",
                                   "Upload error failed", e );
                 return;
             }
@@ -111,7 +111,7 @@ public class UploadStage implements Stage {
                 resultTable = Tables.randomTable( resultTable );
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.FAILURE, "TRND",
+                reporter_.report( ReportType.FAILURE, "TRND",
                                   "Unexpected error randomising tables", e );
             }
             compareTables( upTable, resultTable );
@@ -138,7 +138,7 @@ public class UploadStage implements Stage {
                    .append( " != " )
                    .append( t1.getRowCount() )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "TMNR", msg );
+                reporter_.report( ReportType.ERROR, "TMNR", msg );
             }
 
             /* Check column counts match. */
@@ -151,7 +151,7 @@ public class UploadStage implements Stage {
                    .append( " != " )
                    .append( t1.getColumnCount() )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "TMNC", msg );
+                reporter_.report( ReportType.ERROR, "TMNC", msg );
             }
             else {
 
@@ -168,7 +168,7 @@ public class UploadStage implements Stage {
                            .append( " != " )
                            .append( name1 )
                            .toString();
-                        reporter_.report( Reporter.Type.ERROR, "TMCN", msg );
+                        reporter_.report( ReportType.ERROR, "TMCN", msg );
                     }
                     Class clazz1 = c1.getContentClass();
                     Class clazz2 = c2.getContentClass();
@@ -179,7 +179,7 @@ public class UploadStage implements Stage {
                            .append( " != " )
                            .append( clazz2.getName() )
                            .toString();
-                        reporter_.report( Reporter.Type.ERROR, "TMCC", msg );
+                        reporter_.report( ReportType.ERROR, "TMCC", msg );
                     }
                     DescribedValue xtype1 =
                         c1.getAuxDatum( VOStarTable.XTYPE_INFO );
@@ -194,8 +194,7 @@ public class UploadStage implements Stage {
                                .append( " != " )
                                .append( xtype1.getValue() )
                                .toString();
-                            reporter_.report( Reporter.Type.ERROR, "TMCX",
-                                              msg );
+                            reporter_.report( ReportType.ERROR, "TMCX", msg );
                                              
                         }
                     }
@@ -225,14 +224,13 @@ public class UploadStage implements Stage {
                                .append( " != " )
                                .append( v1 )
                                .toString();
-                            reporter_.report( Reporter.Type.ERROR, "TMCD",
-                                              msg );
+                            reporter_.report( ReportType.ERROR, "TMCD", msg );
                         }
                     }
                 }
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.FAILURE, "DTIO",
+                reporter_.report( ReportType.FAILURE, "DTIO",
                                   "Unexpected IO error reading table", e );
             }
         }

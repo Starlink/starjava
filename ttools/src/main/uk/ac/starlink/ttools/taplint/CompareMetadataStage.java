@@ -53,7 +53,7 @@ public class CompareMetadataStage implements Stage {
         TableMeta[] tmetas1 = metaHolder1_.getTableMetadata();
         TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
         if ( tmetas1 == null || tmetas2 == null ) {
-            reporter.report( Reporter.Type.FAILURE, "NOTM",
+            reporter.report( ReportType.FAILURE, "NOTM",
                              "Don't have two metadata sets to compare" );
             return;
         }
@@ -178,7 +178,7 @@ public class CompareMetadataStage implements Stage {
                .append( " but not in " )
                .append( srcDesc2_ )
                .toString();
-            reporter.report( Reporter.Type.ERROR, "" + lchr + "M12", msg );
+            reporter.report( ReportType.ERROR, "" + lchr + "M12", msg );
         }
         for ( String ex2 : extras2 ) {
             String msg = new StringBuffer()
@@ -191,7 +191,7 @@ public class CompareMetadataStage implements Stage {
                .append( " but not " )
                .append( srcDesc1_ )
                .toString();
-            reporter.report( Reporter.Type.ERROR, "" + lchr + "M21", msg );
+            reporter.report( ReportType.ERROR, "" + lchr + "M21", msg );
         }
 
         /* Calculate and return intersection set. */
@@ -350,7 +350,7 @@ public class CompareMetadataStage implements Stage {
                     .append( item2 )
                     .append( q2 )
                     .toString();
-                reporter_.report( Reporter.Type.WARNING, code, msg );
+                reporter_.report( ReportType.WARNING, code, msg );
             }
         }
 
@@ -373,7 +373,7 @@ public class CompareMetadataStage implements Stage {
                     .append( " vs. " )
                     .append( dt2 )
                     .toString();
-                reporter_.report( Reporter.Type.WARNING, code, msg );
+                reporter_.report( ReportType.WARNING, code, msg );
             }
         }
     }

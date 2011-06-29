@@ -57,12 +57,11 @@ public abstract class XsdStage implements Stage {
             docUrl = new URL( durl );
         }
         catch ( MalformedURLException e ) {
-            reporter.report( Reporter.Type.FAILURE, "XURL",
-                             "Bad document URL" );
+            reporter.report( ReportType.FAILURE, "XURL", "Bad document URL" );
             result_ = Result.FAILURE;
             return;
         }
-        reporter.report( Reporter.Type.INFO, "VURL",
+        reporter.report( ReportType.INFO, "VURL",
                          "Validating " + docUrl + " against "
                        + schemaUrl_ );
         result_ = validateDoc( reporter, docUrl );
@@ -94,7 +93,7 @@ public abstract class XsdStage implements Stage {
             return Result.NOT_FOUND;
         }
         catch ( IOException e ) {
-            reporter.report( Reporter.Type.ERROR, "DCER",
+            reporter.report( ReportType.ERROR, "DCER",
                              "Error reading document", e );
             return Result.FAILURE;
         }
@@ -105,7 +104,7 @@ public abstract class XsdStage implements Stage {
             val = getSchema( schemaUrl_ ).newValidator();
         }
         catch ( SAXException e ) {
-            reporter.report( Reporter.Type.FAILURE, "SCHM",
+            reporter.report( ReportType.FAILURE, "SCHM",
                              "Can't get/parse schema " + schemaUrl_, e );
             return Result.FAILURE;
         }
@@ -121,7 +120,7 @@ public abstract class XsdStage implements Stage {
         }
 
         catch ( IOException e ) {
-            reporter.report( Reporter.Type.ERROR, "IOER",
+            reporter.report( ReportType.ERROR, "IOER",
                              "Error reading document to parse" );
             return Result.FAILURE;
         }
@@ -130,7 +129,7 @@ public abstract class XsdStage implements Stage {
          * a fatal parse error. */
         catch ( SAXException e ) {
             if ( errHandler.getFatalCount() == 0 ) {
-                reporter.report( Reporter.Type.FAILURE, "SXER",
+                reporter.report( ReportType.FAILURE, "SXER",
                                  "Unexpected document parse error", e );
                 return Result.SUCCESS;
             }
@@ -140,7 +139,7 @@ public abstract class XsdStage implements Stage {
         /* Summarise results. */
         finally {
             reporter.summariseUnreportedMessages( reporter.getSectionCode() );
-            reporter.report( Reporter.Type.SUMMARY, "VALI",
+            reporter.report( ReportType.SUMMARY, "VALI",
                              errHandler.getSummary() );
         }
     }
@@ -193,12 +192,12 @@ public abstract class XsdStage implements Stage {
                 Result result = getResult();
                 if ( result == Result.NOT_FOUND ) {
                     if ( mandatory ) {
-                        reporter.report( Reporter.Type.ERROR, "GONM",
+                        reporter.report( ReportType.ERROR, "GONM",
                                          "Mandatory resource " + docUrlSuffix
                                        + " not present" );
                     }
                     else {
-                        reporter.report( Reporter.Type.WARNING, "GONO",
+                        reporter.report( ReportType.WARNING, "GONO",
                                          "Optional resource " + docUrlSuffix
                                        + " not present" );
                     }

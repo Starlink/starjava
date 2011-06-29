@@ -54,7 +54,7 @@ public class JobStage implements Stage {
     public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
-            reporter.report( Reporter.Type.FAILURE, "NOTM",
+            reporter.report( ReportType.FAILURE, "NOTM",
                              "No table metadata available"
                            + " - will not attempt UWS tests" );
             return;
@@ -146,12 +146,12 @@ public class JobStage implements Stage {
                 conn = jobUrl.openConnection();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "HTOF",
+                reporter_.report( ReportType.ERROR, "HTOF",
                                   "Failed to contact " + jobUrl, e );
                 return;
             }
             if ( ! ( conn instanceof HttpURLConnection ) ) {
-                reporter_.report( Reporter.Type.ERROR, "NOHT",
+                reporter_.report( ReportType.ERROR, "NOHT",
                                   "Job url " + jobUrl + " not HTTP?" );
                 return;
             }
@@ -164,7 +164,7 @@ public class JobStage implements Stage {
                 response = hconn.getResponseCode();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "HTDE",
+                reporter_.report( ReportType.ERROR, "HTDE",
                                   "Failed to perform HTTP DELETE to " + jobUrl,
                                   e );
                 return;
@@ -194,7 +194,7 @@ public class JobStage implements Stage {
                 phase = job.getLastPhase();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "RDPH",
+                reporter_.report( ReportType.ERROR, "RDPH",
                                   "Can't read phase for job " + jobUrl, e );
                 return;
             }
@@ -208,10 +208,10 @@ public class JobStage implements Stage {
                    .append( " for started job " )
                    .append( jobUrl )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "BAPH", msg );
+                reporter_.report( ReportType.ERROR, "BAPH", msg );
             }
             if ( UwsStage.FINISHED == UwsStage.forPhase( phase ) ) {
-                reporter_.report( Reporter.Type.INFO, "JOFI",
+                reporter_.report( ReportType.INFO, "JOFI",
                                   "Job completed immediately - "
                                 + "can't test phase progression" );
                 delete( job );
@@ -240,7 +240,7 @@ public class JobStage implements Stage {
                         .append( " != " )
                         .append( mustPhase )
                         .toString();
-                    reporter_.report( Reporter.Type.ERROR, "PHUR", msg );
+                    reporter_.report( ReportType.ERROR, "PHUR", msg );
                 }
             }
             if ( infoPhase != null && resourcePhase != null &&
@@ -254,7 +254,7 @@ public class JobStage implements Stage {
                             .append( resourcePhase )
                             .append( ')' )
                             .toString();
-                reporter_.report( Reporter.Type.ERROR, "JDPH", msg );
+                reporter_.report( ReportType.ERROR, "JDPH", msg );
             }
         }
 
@@ -289,7 +289,7 @@ public class JobStage implements Stage {
                        .append( actualValue )
                        .append( " not blank in job document" ) 
                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "PANZ", msg );
+                    reporter_.report( ReportType.ERROR, "PANZ", msg );
                 }
             }
             else if ( actualValue == null && ! mandatory ) {
@@ -305,7 +305,7 @@ public class JobStage implements Stage {
                     .append( mustValue )
                     .append( " in job document" )
                     .toString();
-                reporter_.report( Reporter.Type.ERROR, "PAMM", msg );
+                reporter_.report( ReportType.ERROR, "PAMM", msg );
             }
         }
 
@@ -325,17 +325,17 @@ public class JobStage implements Stage {
                 jobInfo = job.readJob();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "JDIO",
+                reporter_.report( ReportType.ERROR, "JDIO",
                                   "Error reading job document " + jobUrl, e );
                 return;
             }
             catch ( SAXException e ) {
-                reporter_.report( Reporter.Type.ERROR, "JDSX",
+                reporter_.report( ReportType.ERROR, "JDSX",
                                   "Error parsing job document " + jobUrl, e );
                 return;
             }
             if ( jobInfo == null ) {
-                reporter_.report( Reporter.Type.ERROR, "JDNO",
+                reporter_.report( ReportType.ERROR, "JDNO",
                                   "No job document found " + jobUrl );
                 return;
             }
@@ -349,7 +349,7 @@ public class JobStage implements Stage {
                    .append( " is not final path element of " )
                    .append( jobUrl )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "JDID", msg );
+                reporter_.report( ReportType.ERROR, "JDID", msg );
             }
 
             /* Check the type of the quote resource. */
@@ -371,7 +371,7 @@ public class JobStage implements Stage {
                    .append( duration )
                    .append( ')' )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "JDED", msg );
+                reporter_.report( ReportType.ERROR, "JDED", msg );
             }
 
             /* Check the type and content of the destruction time, and
@@ -389,7 +389,7 @@ public class JobStage implements Stage {
                    .append( destruct )
                    .append( ')' )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "JDDE", msg );
+                reporter_.report( ReportType.ERROR, "JDDE", msg );
             }
         }
 
@@ -406,7 +406,7 @@ public class JobStage implements Stage {
                 conn.connect();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "DEOP",
+                reporter_.report( ReportType.ERROR, "DEOP",
                                   "Can't open connection to " + jobUrl, e );
                 return;
             }
@@ -416,7 +416,7 @@ public class JobStage implements Stage {
                     code = ((HttpURLConnection) conn).getResponseCode();
                 }
                 catch ( IOException e ) {
-                    reporter_.report( Reporter.Type.ERROR, "DEHT",
+                    reporter_.report( ReportType.ERROR, "DEHT",
                                       "Bad HTTP connection to " + jobUrl, e );
                     return;
                 }
@@ -429,11 +429,11 @@ public class JobStage implements Stage {
                         .append( " for " )
                         .append( jobUrl )
                         .toString();
-                    reporter_.report( Reporter.Type.ERROR, "DENO", msg );
+                    reporter_.report( ReportType.ERROR, "DENO", msg );
                 }
             }
             else {
-                reporter_.report( Reporter.Type.ERROR, "NOHT",
+                reporter_.report( ReportType.ERROR, "NOHT",
                                   "Job " + jobUrl + " not HTTP?" );
             }
         }
@@ -451,7 +451,7 @@ public class JobStage implements Stage {
                 return new URL( urlStr );
             }
             catch ( MalformedURLException e ) {
-                reporter_.report( Reporter.Type.FAILURE, "MURL",
+                reporter_.report( ReportType.FAILURE, "MURL",
                                   "Bad URL " + urlStr + "??", e );
                 return null;
             }
@@ -517,7 +517,7 @@ public class JobStage implements Stage {
                    .append( " to " )
                    .append( url )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "POER", msg, e );
+                reporter_.report( ReportType.ERROR, "POER", msg, e );
                 return false;
             }
             if ( code >= 400 ) {
@@ -533,7 +533,7 @@ public class JobStage implements Stage {
                    .append( " to " )
                    .append( url )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "PORE", msg );
+                reporter_.report( ReportType.ERROR, "PORE", msg );
                 return false;
             }
             String msg = new StringBuilder()
@@ -544,7 +544,7 @@ public class JobStage implements Stage {
                .append( " to " )
                .append( url )
                .toString();
-            reporter_.report( Reporter.Type.INFO, "POPA", msg );
+            reporter_.report( ReportType.INFO, "POPA", msg );
             return true;
         }
 
@@ -558,7 +558,7 @@ public class JobStage implements Stage {
                 job.postDelete();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "DENO",
+                reporter_.report( ReportType.ERROR, "DENO",
                                   "Failed to delete job " + job.getJobUrl(),
                                   e );
                 return;
@@ -579,13 +579,13 @@ public class JobStage implements Stage {
                 UwsStage stage = UwsStage.forPhase( phase );
                 switch ( stage ) {
                     case UNSTARTED:
-                        reporter_.report( Reporter.Type.ERROR, "RUPH",
+                        reporter_.report( ReportType.ERROR, "RUPH",
                                           "Incorrect phase " + phase
                                         + " for started job " + jobUrl );
                         return;
                     case ILLEGAL:
                     case UNKNOWN:
-                        reporter_.report( Reporter.Type.ERROR, "BAPH",
+                        reporter_.report( ReportType.ERROR, "BAPH",
                                           "Bad phase " + phase
                                         + " for job " + jobUrl );
                         return;
@@ -594,7 +594,7 @@ public class JobStage implements Stage {
                             Thread.sleep( poll_ );
                         }
                         catch ( InterruptedException e ) {
-                            reporter_.report( Reporter.Type.FAILURE, "INTR",
+                            reporter_.report( ReportType.FAILURE, "INTR",
                                               "Interrupted??" );
                             return;
                         }
@@ -608,7 +608,7 @@ public class JobStage implements Stage {
                     job.readPhase();
                 }
                 catch ( IOException e ) {
-                    reporter_.report( Reporter.Type.ERROR, "RDPH",
+                    reporter_.report( ReportType.ERROR, "RDPH",
                                       "Can't read phase for job " + jobUrl );
                     return;
                 }
@@ -631,7 +631,7 @@ public class JobStage implements Stage {
                     UwsJobInfo.Parameter param = params[ ip ];
                     String name = param.getId();
                     if ( name == null || name.length() == 0 ) {
-                        reporter_.report( Reporter.Type.ERROR, "PANO",
+                        reporter_.report( ReportType.ERROR, "PANO",
                                           "Parameter with no name" );
                     }
                     else {
@@ -642,7 +642,7 @@ public class JobStage implements Stage {
                                .append( upName )
                                .append( " in job parameters list" )
                                .toString();
-                            reporter_.report( Reporter.Type.ERROR, "PADU",
+                            reporter_.report( ReportType.ERROR, "PADU",
                                               msg );
                         }
                         else {
@@ -665,12 +665,12 @@ public class JobStage implements Stage {
                 return job.readJob();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "JBIO",
+                reporter_.report( ReportType.ERROR, "JBIO",
                                   "Error reading job info", e );
                 return null;
             }
             catch ( SAXException e ) {
-                reporter_.report( Reporter.Type.ERROR, "JBSP",
+                reporter_.report( ReportType.ERROR, "JBSP",
                                   "Error parsing job info", e );
                 return null;
             }
@@ -699,12 +699,12 @@ public class JobStage implements Stage {
                                         tq.getStreamParams() );
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "QFAA",
+                reporter_.report( ReportType.ERROR, "QFAA",
                                   "Failed to submit TAP query "
                                 + shortAdql_, e );
                 return null;
             }
-            reporter_.report( Reporter.Type.INFO, "CJOB",
+            reporter_.report( ReportType.INFO, "CJOB",
                               "Created new job " + job.getJobUrl() );
             return job;
         }
@@ -741,7 +741,7 @@ public class JobStage implements Stage {
                    .append( " from " )
                    .append( url )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "IFMT", msg );
+                reporter_.report( ReportType.ERROR, "IFMT", msg );
             }
         }
 
@@ -764,7 +764,7 @@ public class JobStage implements Stage {
                    .append( " from " )
                    .append( url )
                    .toString();
-                reporter_.report( Reporter.Type.WARNING, "TFMT", msg );
+                reporter_.report( ReportType.WARNING, "TFMT", msg );
             }
         }
 
@@ -782,7 +782,7 @@ public class JobStage implements Stage {
                 return buf == null ? null : new String( buf, "UTF-8" );
             }
             catch ( UnsupportedEncodingException e ) {
-                reporter_.report( Reporter.Type.FAILURE, "UTF8",
+                reporter_.report( ReportType.FAILURE, "UTF8",
                                   "Unknown encoding UTF-8??", e );
                 return null;
             }
@@ -809,7 +809,7 @@ public class JobStage implements Stage {
                 URLConnection conn = url.openConnection();
                 conn = TapQuery.followRedirects( conn );
                 if ( ! ( conn instanceof HttpURLConnection ) ) {
-                    reporter_.report( Reporter.Type.WARNING, "HURL",
+                    reporter_.report( ReportType.WARNING, "HURL",
                                       "Redirect to non-HTTP URL? "
                                     + conn.getURL() );
                     return null;
@@ -820,7 +820,7 @@ public class JobStage implements Stage {
                 responseMsg = hconn.getResponseMessage();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "EURL",
+                reporter_.report( ReportType.ERROR, "EURL",
                                   "Error contacting URL " + url );
                 return null;
             }
@@ -834,7 +834,7 @@ public class JobStage implements Stage {
                        .append( " from " )
                        .append( url )
                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "NFND", msg );
+                    reporter_.report( ReportType.ERROR, "NFND", msg );
                 }
                 return null;
             }
@@ -849,7 +849,7 @@ public class JobStage implements Stage {
                 buf = blist.toByteArray();
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.WARNING, "RDIO",
+                reporter_.report( ReportType.WARNING, "RDIO",
                                   "Error reading resource " + url );
                 buf = null;
             }
@@ -871,7 +871,7 @@ public class JobStage implements Stage {
                    .append( " for " )
                    .append( url )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "GMIM", msg );
+                reporter_.report( ReportType.ERROR, "GMIM", msg );
                 return buf;
             }
             return buf;

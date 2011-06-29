@@ -48,7 +48,7 @@ public class QueryStage implements Stage {
     public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
-            reporter.report( Reporter.Type.FAILURE, "NOTM",
+            reporter.report( ReportType.FAILURE, "NOTM",
                              "No table metadata available"
                            + " - will not run test queries" );
             return;
@@ -148,7 +148,7 @@ public class QueryStage implements Stage {
                    .append( "no <INFO name='QUERY_STATUS' value='OVERFLOW'/> " )
                    .append( "after TABLE" )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "OVNO", msg );
+                reporter_.report( ReportType.ERROR, "OVNO", msg );
             }
         }
 
@@ -243,7 +243,7 @@ public class QueryStage implements Stage {
                 tq = new TapQuery( serviceUrl_, adql, extraParams, null, 0 );
             }
             catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "TSER",
+                reporter_.report( ReportType.ERROR, "TSER",
                                   "TAP job creation failed for " + adql, e );
                 return null;
             }
@@ -260,7 +260,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "NREC", msg );
+                    reporter_.report( ReportType.ERROR, "NREC", msg );
                 }
                 if ( maxrow >= 0 && nrow > maxrow ) {
                     String msg = new StringBuffer()
@@ -270,7 +270,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "NROW", msg );
+                    reporter_.report( ReportType.ERROR, "NROW", msg );
                 }
                 checkMeta( adql, colSpecs, table );
             }
@@ -299,7 +299,7 @@ public class QueryStage implements Stage {
                    .append( " for " )
                    .append( adql )
                    .toString();
-                reporter_.report( Reporter.Type.ERROR, "NCOL", msg );
+                reporter_.report( ReportType.ERROR, "NCOL", msg );
                 return;
             }
             int ncol = qCount;
@@ -323,7 +323,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "CNAM", msg );
+                    reporter_.report( ReportType.ERROR, "CNAM", msg );
                 }
                 String columnId = rName.equalsIgnoreCase( qName )
                                 ? qName
@@ -347,7 +347,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "CTYP", msg );
+                    reporter_.report( ReportType.ERROR, "CTYP", msg );
                 }
             }
         }

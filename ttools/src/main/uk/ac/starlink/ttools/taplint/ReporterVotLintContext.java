@@ -25,17 +25,17 @@ public class ReporterVotLintContext extends VotLintContext {
 
     @Override
     public void info( String msg ) {
-        report( Reporter.Type.INFO, msg );
+        report( ReportType.INFO, msg );
     }
 
     @Override
     public void warning( String msg ) {
-        report( Reporter.Type.WARNING, msg );
+        report( ReportType.WARNING, msg );
     }
 
     @Override
     public void error( String msg ) {
-        report( Reporter.Type.ERROR, msg );
+        report( ReportType.ERROR, msg );
     }
 
     /**
@@ -44,7 +44,7 @@ public class ReporterVotLintContext extends VotLintContext {
      * @param  type  message type
      * @param  msg   message text
      */
-    private void report( Reporter.Type type, String msg ) {
+    private void report( ReportType type, String msg ) {
         String code = "VO"
                     + reporter_.createCode( type + ": " + msg )
                      .substring( 0, 2 );

@@ -82,7 +82,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                .append( conn.getURL() )
                .append( ")" )
                .toString();
-            reporter.report( Reporter.Type.ERROR, "VMIM", msg );
+            reporter.report( ReportType.ERROR, "VMIM", msg );
         }
 
         InputStream in = null;
@@ -178,7 +178,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         if ( resultsEl == null ) {
             if ( resourceEls.length == 1 ) {
                 resultsEl = resourceEls[ 0 ];
-                reporter.report( Reporter.Type.ERROR, "RRES",
+                reporter.report( ReportType.ERROR, "RRES",
                                  "TAP response document RESOURCE element "
                                + "is not marked type='results'" );
             }
@@ -208,7 +208,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                             preStatusInfo = el;
                         }
                         else {
-                            reporter.report( Reporter.Type.ERROR, "QST1",
+                            reporter.report( ReportType.ERROR, "QST1",
                                              "Multiple pre-table INFOs with "
                                            + "name='QUERY_STATUS'" );
                         }
@@ -218,7 +218,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                             postStatusInfo = el;
                         }
                         else {
-                            reporter.report( Reporter.Type.ERROR, "QST2",
+                            reporter.report( ReportType.ERROR, "QST2",
                                              "Multiple post-table INFOs with "
                                            + "name='QUERY_STATUS'" );
                         }
@@ -229,7 +229,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         tableEl = (TableElement) el;
                     }
                     else {
-                        reporter.report( Reporter.Type.ERROR, "TTOO",
+                        reporter.report( ReportType.ERROR, "TTOO",
                                          "Multiple TABLEs in results "
                                        + "RESOURCE" );
                     }
@@ -239,7 +239,7 @@ public abstract class VotLintTapRunner extends TapRunner {
 
         /* Check pre-table status INFO. */
         if ( preStatusInfo == null ) {
-            reporter.report( Reporter.Type.ERROR, "NOST",
+            reporter.report( ReportType.ERROR, "NOST",
                              "Missing <INFO name='QUERY_STATUS'> element "
                            + "before TABLE" );
         }
@@ -248,7 +248,7 @@ public abstract class VotLintTapRunner extends TapRunner {
             if ( "ERROR".equals( preStatus ) ) {
                 String err = DOMUtils.getTextContent( preStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
-                    reporter.report( Reporter.Type.WARNING, "NOER",
+                    reporter.report( ReportType.WARNING, "NOER",
                                      "<INFO name='QUERY_STATUS' value='ERROR'> "
                                    + "element has no message content" );
                     err = "Unknown TAP result error";
@@ -264,7 +264,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                     .append( preStatus )
                     .append( " is not OK/ERROR" )
                     .toString();
-                reporter.report( Reporter.Type.ERROR, "QST1", msg );
+                reporter.report( ReportType.ERROR, "QST1", msg );
             }
         }
 
@@ -275,7 +275,7 @@ public abstract class VotLintTapRunner extends TapRunner {
             if ( "ERROR".equals( postStatus ) ) {
                 String err = DOMUtils.getTextContent( postStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
-                    reporter.report( Reporter.Type.WARNING, "NOER",
+                    reporter.report( ReportType.WARNING, "NOER",
                                      "<INFO name='QUERY_STATUS' value='ERROR'> "
                                    + "element has no message content" );
                     err = "Unknown TAP result error";
@@ -291,7 +291,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                     .append( postStatus )
                     .append( " is not ERROR/OVERFLOW" )
                     .toString();
-                reporter.report( Reporter.Type.ERROR, "QST2", msg );
+                reporter.report( ReportType.ERROR, "QST2", msg );
             }
         }
 
@@ -325,7 +325,7 @@ public abstract class VotLintTapRunner extends TapRunner {
             parser = spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
-            reporter.report( Reporter.Type.FAILURE, "PRSR",
+            reporter.report( ReportType.FAILURE, "PRSR",
                              "Trouble setting up XML parse", e );
             throw (SAXException) new SAXException( e.getMessage() )
                                 .initCause( e );
@@ -343,7 +343,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         }
         catch ( SAXException e ) {
             parser.setEntityResolver( StarEntityResolver.getInstance() );
-            reporter.report( Reporter.Type.FAILURE, "XENT",
+            reporter.report( ReportType.FAILURE, "XENT",
                              "Entity trouble - DTD validation may not be " +
                               "done properly", e );
         }
@@ -388,7 +388,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                                    .toPostedBytes( tq.getStringParams() ),
                                     "utf-8" );
                     URL qurl = new URL( tq.getServiceUrl() + "/sync?" + ptxt );
-                    reporter.report( Reporter.Type.INFO, "QGET",
+                    reporter.report( ReportType.INFO, "QGET",
                                      "Query GET URL: " + qurl );
                     return qurl.openConnection();
                 }
@@ -420,7 +420,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                                       tq.getStringParams(),
                                       tq.getStreamParams() );
                 URL jobUrl = uwsJob.getJobUrl();
-                reporter.report( Reporter.Type.INFO, "QJOB",
+                reporter.report( ReportType.INFO, "QJOB",
                                  "Submitted query at " + jobUrl );
                 uwsJob.start();
                 String phase;

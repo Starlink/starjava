@@ -33,19 +33,19 @@ public class CapabilityStage implements Stage, CapabilityHolder {
 
     public void run( Reporter reporter, URL serviceUrl ) {
         final TapCapability tcap;
-        reporter.report( Reporter.Type.INFO, "CURL",
+        reporter.report( ReportType.INFO, "CURL",
                          "Reading capability metadata from "
                        + serviceUrl + "/capabilities" );
         try {
             tcap = TapQuery.readTapCapability( serviceUrl );
         }
         catch ( SAXException e ) {
-            reporter.report( Reporter.Type.ERROR, "FLSX",
+            reporter.report( ReportType.ERROR, "FLSX",
                              "Error parsing capabilities metadata", e );
             return;
         }
         catch ( IOException e ) {
-            reporter.report( Reporter.Type.ERROR, "FLIO",
+            reporter.report( ReportType.ERROR, "FLIO",
                              "Error reading capabilities metadata", e );
             return;
         }
@@ -58,7 +58,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         /* Check query languages. */
         String[] languages = tcap.getLanguages();
         if ( languages.length == 0 ) {
-            reporter.report( Reporter.Type.ERROR, "NOQL",
+            reporter.report( ReportType.ERROR, "NOQL",
                              "No query languages declared" );
         }
         else {
@@ -74,11 +74,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                 }
             }
             if ( ! hasAdql ) {
-                reporter.report( Reporter.Type.ERROR, "ADQX",
+                reporter.report( ReportType.ERROR, "ADQX",
                                  "ADQL not declared as a query language" );
             }
             else if ( ! hasAdql2 ) {
-                reporter.report( Reporter.Type.WARNING, "AD2X",
+                reporter.report( ReportType.WARNING, "AD2X",
                                  "ADQL-2.0 not declared as a query language" );
             }
         }
@@ -95,13 +95,13 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             if ( upMethod.startsWith( stdPrefix ) ) {
                 String frag = upMethod.substring( stdPrefix.length() );
                 if ( ! stdSuffixList.contains( frag ) ) {
-                    reporter.report( Reporter.Type.ERROR, "UPBD",
+                    reporter.report( ReportType.ERROR, "UPBD",
                                      "Unknown suffix \"" + frag
                                    + "\" for upload method" );
                 }
             }
             else {
-                reporter.report( Reporter.Type.WARNING, "UPCS",
+                reporter.report( ReportType.WARNING, "UPCS",
                                  "Custom upload method \"" + upMethod + "\"" );
             }
         }
@@ -115,7 +115,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( " not declared" )
                        .append( ", though uploads are apparently supported" )
                        .toString();
-                    reporter.report( Reporter.Type.ERROR, "MUPM", msg );
+                    reporter.report( ReportType.ERROR, "MUPM", msg );
                 }
             }
         }

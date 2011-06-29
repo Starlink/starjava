@@ -22,20 +22,20 @@ public class TablesEndpointStage extends TableMetadataStage {
 
     protected TableMeta[] readTableMetadata( Reporter reporter,
                                              URL serviceUrl ) {
-        reporter.report( Reporter.Type.INFO, "TURL",
+        reporter.report( ReportType.INFO, "TURL",
                          "Reading table metadata from "
                        + serviceUrl + "/tables" );
         try {
             return TapQuery.readTableMetadata( serviceUrl );
         }
         catch ( SAXException e ) {
-            reporter.report( Reporter.Type.ERROR, "FLSX",
+            reporter.report( ReportType.ERROR, "FLSX",
                              "Can't parse table metadata well enough "
                             + "to check it", e );
             return null;
         }
         catch ( IOException e ) {
-            reporter.report( Reporter.Type.ERROR, "FLIO",
+            reporter.report( ReportType.ERROR, "FLIO",
                              "Error reading table metadata", e );
             return null;
         }

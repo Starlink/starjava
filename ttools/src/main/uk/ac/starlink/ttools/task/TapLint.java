@@ -17,6 +17,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.ttools.taplint.ReportType;
 import uk.ac.starlink.ttools.taplint.Reporter;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TapLinter;
@@ -98,7 +99,7 @@ public class TapLint implements Task {
 
         reportParam_ = new Parameter( "report" );
         reportParam_.setPrompt( "Message types to report" );
-        Reporter.Type[] types = Reporter.Type.values();
+        ReportType[] types = ReportType.values();
         StringBuilder dbuf = new StringBuilder();
         StringBuilder cbuf = new StringBuilder();
         dbuf.append( "Each character of the string is one of the letters " );
@@ -113,7 +114,7 @@ public class TapLint implements Task {
         dbuf.append( " with the following meanings:\n" )
             .append( "<ul>\n" );
         for ( int it = 0; it < types.length; it++ ) {
-            Reporter.Type type = types[ it ];
+            ReportType type = types[ it ];
             dbuf.append( "<li><code>" )
                 .append( type.getChar() )
                 .append( "</code>: " )
@@ -177,10 +178,10 @@ public class TapLint implements Task {
         URL serviceUrl = urlParam_.urlValue( env );
         PrintStream out = env.getOutputStream();
         String typeStr = reportParam_.stringValue( env );
-        List<Reporter.Type> typeList = new ArrayList<Reporter.Type>();
+        List<ReportType> typeList = new ArrayList<ReportType>();
         for ( int ic = 0; ic < typeStr.length(); ic++ ) {
             char c = typeStr.charAt( ic );
-            Reporter.Type type = Reporter.Type.forChar( c );
+            ReportType type = ReportType.forChar( c );
             if ( type == null ) {
                 throw new ParameterValueException( reportParam_,
                                                    "Bad message type character"
@@ -188,7 +189,7 @@ public class TapLint implements Task {
             }
             typeList.add( type );
         }
-        Reporter.Type[] types = typeList.toArray( new Reporter.Type[ 0 ] );
+        ReportType[] types = typeList.toArray( new ReportType[ 0 ] );
         int maxRepeat = repeatParam_.intValue( env );;
         boolean debug = debugParam_.booleanValue( env );
         int maxChar = truncParam_.intValue( env );
