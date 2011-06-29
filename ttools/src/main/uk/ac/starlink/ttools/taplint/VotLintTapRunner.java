@@ -68,6 +68,22 @@ public abstract class VotLintTapRunner extends TapRunner {
             throws IOException, SAXException {
         URLConnection conn = getResultConnection( reporter, tq );
         conn = TapQuery.followRedirects( conn );
+        String ctype = conn.getContentType();
+        if ( ! ( ctype.startsWith( "text/xml" ) ||
+                 ctype.startsWith( "application/xml" ) ||
+                 ctype.startsWith( "application/x-votable+xml" ) ||
+                 ctype.startsWith( "text/x-votable+xml" ) ) ) {
+            String msg = new StringBuilder()
+               .append( "Bad content type " )
+               .append( ctype )
+               .append( " for HTTP response which should contain " )
+               .append( "VOTable result or error document" )
+               .append( " (" )
+               .append( conn.getURL() )
+               .append( ")" )
+               .toString();
+            reporter.report( Reporter.Type.ERROR, "VMIM", msg );
+        }
 
         InputStream in = null;
         try {

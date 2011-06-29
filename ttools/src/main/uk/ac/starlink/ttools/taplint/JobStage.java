@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,6 +14,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -109,15 +114,17 @@ public class JobStage implements Stage {
             }
             URL jobUrl = job.getJobUrl();
             checkPhase( job, "PENDING" );
-            checkParameter( job, "REQUEST", "doQuery" );
-            checkParameter( job, "RUNID", runId1_ );
+            checkParameter( job, "REQUEST", "doQuery", true );
+            checkParameter( job, "RUNID", runId1_, false );
             if ( postParameter( job, "runId", runId2_ ) ) {
-                checkParameter( job, "RUNID", runId2_ );
+                checkParameter( job, "RUNID", runId2_, false );
             }
             if ( postPhase( job, "ABORT" ) ) {
                 checkPhase( job, "ABORTED" );
             }
-            if ( postPhase( job, "DELETE" ) ) {
+            // should check 303 response here really
+            if ( postKeyValue( job, "", "ACTION", "DELETE" ) ) {
+           
                 checkDeleted( job );
             }
         }
@@ -176,6 +183,7 @@ public class JobStage implements Stage {
                 return;
             }
             URL jobUrl = job.getJobUrl();
+            checkEndpoints( job );
             checkPhase( job, "PENDING" );
             if ( ! postPhase( job, "RUN" ) ) {
                 return;
@@ -219,40 +227,34 @@ public class JobStage implements Stage {
          * @param  mustPhase  asserted phase string
          */
         private void checkPhase( UwsJob job, String mustPhase ) {
-            boolean gotPhase;
-            try {
-                job.readPhase();
-                gotPhase = true;
-            }
-            catch ( IOException e ) {
-                reporter_.report( Reporter.Type.ERROR, "PHER",
-                                  "Error reading job phase ", e );
-                gotPhase = false;
-            }
-            if ( gotPhase ) {
-                String lastPhase = job.getLastPhase();
-                if ( ! mustPhase.equals( lastPhase ) ) {
-                    String msg = new StringBuilder()
-                        .append( "Phase from /phase URL " )
-                        .append( lastPhase )
-                        .append( " != " )
-                        .append( mustPhase )
-                        .toString();
-                    reporter_.report( Reporter.Type.ERROR, "PHUR", msg );
-                }
-            }
+            URL phaseUrl = resourceUrl( job, "/phase" );
+            String resourcePhase = readTextContent( phaseUrl, true );
             UwsJobInfo jobInfo = readJobInfo( job );
-            if ( jobInfo != null ) {
-                String infoPhase = jobInfo.getPhase();
-                if ( ! mustPhase.equals( infoPhase ) ) {
+            String infoPhase = jobInfo == null ? null : jobInfo.getPhase();
+            String phase = resourcePhase != null ? resourcePhase : infoPhase;
+            if ( phase != null ) {
+                if ( ! mustPhase.equals( phase ) ) {
                     String msg = new StringBuilder()
-                        .append( "Phase from <uws:job> element " ) 
-                        .append( infoPhase )
+                        .append( "Phase " )
+                        .append( phase )
                         .append( " != " )
                         .append( mustPhase )
                         .toString();
                     reporter_.report( Reporter.Type.ERROR, "PHUR", msg );
                 }
+            }
+            if ( infoPhase != null && resourcePhase != null &&
+                 ! ( infoPhase.equals( resourcePhase ) ) ) {
+                String msg = new StringBuilder()
+                            .append( "Phase mismatch between job info " )
+                            .append( "and /phase URL " )
+                            .append( '(' )
+                            .append( infoPhase )
+                            .append( " != " )
+                            .append( resourcePhase )
+                            .append( ')' )
+                            .toString();
+                reporter_.report( Reporter.Type.ERROR, "JDPH", msg );
             }
         }
 
@@ -262,9 +264,12 @@ public class JobStage implements Stage {
          * @param  job  job to check
          * @param  name job parameter name
          * @param  value  asserted parameter value
+         * @param  mandatory  true iff parameter must be supported by TAP
+         *                    implementation
          */
         private void checkParameter( UwsJob job, final String name,
-                                     final String mustValue ) {
+                                     final String mustValue,
+                                     boolean mandatory ) {
             UwsJobInfo jobInfo = readJobInfo( job );
             if ( jobInfo == null ) {
                 return;
@@ -287,6 +292,9 @@ public class JobStage implements Stage {
                     reporter_.report( Reporter.Type.ERROR, "PANZ", msg );
                 }
             }
+            else if ( actualValue == null && ! mandatory ) {
+                // ok
+            }
             else if ( ! mustValue.equals( actualValue ) ) {
                 String msg = new StringBuilder()
                     .append( "Parameter " )
@@ -298,6 +306,90 @@ public class JobStage implements Stage {
                     .append( " in job document" )
                     .toString();
                 reporter_.report( Reporter.Type.ERROR, "PAMM", msg );
+            }
+        }
+
+        /**
+         * Perform checks of resource declared types and contents for various
+         * job sub-resources.
+         *
+         * @param  job  job to check
+         */
+        private void checkEndpoints( UwsJob job ) {
+
+            /* Check and read the job document. */
+            URL jobUrl = job.getJobUrl();
+            readContent( jobUrl, "text/xml", true );
+            UwsJobInfo jobInfo;
+            try {
+                jobInfo = job.readJob();
+            }
+            catch ( IOException e ) {
+                reporter_.report( Reporter.Type.ERROR, "JDIO",
+                                  "Error reading job document " + jobUrl, e );
+                return;
+            }
+            catch ( SAXException e ) {
+                reporter_.report( Reporter.Type.ERROR, "JDSX",
+                                  "Error parsing job document " + jobUrl, e );
+                return;
+            }
+            if ( jobInfo == null ) {
+                reporter_.report( Reporter.Type.ERROR, "JDNO",
+                                  "No job document found " + jobUrl );
+                return;
+            }
+
+            /* Check the job ID is consistent between the job URL and
+             * job info content. */
+            if ( ! jobUrl.toString().endsWith( "/" + jobInfo.getJobId() ) ) {
+                String msg = new StringBuilder()
+                   .append( "Job ID mismatch; " )
+                   .append( jobInfo.getJobId() )
+                   .append( " is not final path element of " )
+                   .append( jobUrl )
+                   .toString();
+                reporter_.report( Reporter.Type.ERROR, "JDID", msg );
+            }
+
+            /* Check the type of the quote resource. */
+            URL quoteUrl = resourceUrl( job, "/quote" );
+            String quote = readTextContent( quoteUrl, true );
+          
+            /* Check the type and content of the executionduration, and
+             * whether it matches that in the job document. */
+            URL durationUrl = resourceUrl( job, "/executionduration" );
+            String duration = readTextContent( durationUrl, true );
+            checkInt( durationUrl, duration );
+            if ( ! equals( duration, jobInfo.getExecutionDuration() ) ) {
+                String msg = new StringBuilder()
+                   .append( "Execution duration mismatch between job info " )
+                   .append( "and /executionduration URL " )
+                   .append( '(' )
+                   .append( jobInfo.getExecutionDuration() )
+                   .append( " != " )
+                   .append( duration )
+                   .append( ')' )
+                   .toString();
+                reporter_.report( Reporter.Type.ERROR, "JDED", msg );
+            }
+
+            /* Check the type and content of the destruction time, and
+             * whether it matches that in the job document. */
+            URL destructUrl = resourceUrl( job, "/destruction" );
+            String destruct = readTextContent( destructUrl, true );
+            checkDateTime( destructUrl, destruct );
+            if ( ! equals( destruct, jobInfo.getDestruction() ) ) {
+                String msg = new StringBuilder()
+                   .append( "Destruction time mismatch between job info " )
+                   .append( "and /destruction URL " )
+                   .append( '(' )
+                   .append( jobInfo.getDestruction() )
+                   .append( " != " )
+                   .append( destruct )
+                   .append( ')' )
+                   .toString();
+                reporter_.report( Reporter.Type.ERROR, "JDDE", msg );
             }
         }
 
@@ -343,6 +435,25 @@ public class JobStage implements Stage {
             else {
                 reporter_.report( Reporter.Type.ERROR, "NOHT",
                                   "Job " + jobUrl + " not HTTP?" );
+            }
+        }
+
+        /**
+         * Returns the URL of a job subresource, supressing exceptions.
+         *
+         * @param  job   job object
+         * @param  subResource   resource subpath, starting "/"
+         * @return   resource URL, or null in the unlikely event of failure
+         */
+        private URL resourceUrl( UwsJob job, String subResource ) {
+            String urlStr = job.getJobUrl() + subResource;
+            try {
+                return new URL( urlStr );
+            }
+            catch ( MalformedURLException e ) {
+                reporter_.report( Reporter.Type.FAILURE, "MURL",
+                                  "Bad URL " + urlStr + "??", e );
+                return null;
             }
         }
 
@@ -411,14 +522,16 @@ public class JobStage implements Stage {
             }
             if ( code >= 400 ) {
                 String msg = new StringBuilder()
-                   .append( "Error response to POSTed parameter " )
-                   .append( key )
-                   .append( "=" )
-                   .append( value )
-                   .append( ": " )
+                   .append( "Error response " )
                    .append( code )
                    .append( " " )
                    .append( responseMsg )
+                   .append( " for POST " )
+                   .append( key )
+                   .append( "=" )
+                   .append( value )
+                   .append( " to " )
+                   .append( url )
                    .toString();
                 reporter_.report( Reporter.Type.ERROR, "PORE", msg );
                 return false;
@@ -594,6 +707,174 @@ public class JobStage implements Stage {
             reporter_.report( Reporter.Type.INFO, "CJOB",
                               "Created new job " + job.getJobUrl() );
             return job;
+        }
+
+        /**
+         * Equality utility for two strings.
+         *
+         * @param  s1  string 1, may be null
+         * @param  s2  string 2, may be null
+         * @return  true iff they are equal
+         */
+        private boolean equals( String s1, String s2 ) {
+            return s1 == null || s1.trim().length() == 0 
+                 ? ( s2 == null || s2.trim().length() == 0 )
+                 : s1.equals( s2 );
+        }
+
+        /**
+         * Checks that the content of a given URL is an integer.
+         *
+         * @param  url  source of text, for reporting
+         * @param  txt  text content
+         */
+        private void checkInt( URL url, String txt ) {
+            try {
+                Long.parseLong( txt );
+            }
+            catch ( NumberFormatException e ) {
+                String msg = new StringBuilder()
+                   .append( "Not integer content " )
+                   .append( '"' )
+                   .append( txt )
+                   .append( '"' )
+                   .append( " from " )
+                   .append( url )
+                   .toString();
+                reporter_.report( Reporter.Type.ERROR, "IFMT", msg );
+            }
+        }
+
+        /**
+         * Checks that the content of a given URL is a ISO-8601 date.
+         *
+         * @param  url  source of text, for reporting
+         * @param  txt  text content
+         */
+        private void checkDateTime( URL url, String txt ) {
+            try {
+                Times.isoToMjd( txt );
+            }
+            catch ( IllegalArgumentException e ) {
+                String msg = new StringBuilder()
+                   .append( "Not ISO-8601 content " )
+                   .append( '"' )
+                   .append( txt )
+                   .append( '"' )
+                   .append( " from " )
+                   .append( url )
+                   .toString();
+                reporter_.report( Reporter.Type.WARNING, "TFMT", msg );
+            }
+        }
+
+        /**
+         * Returns the content of a given URL, checking that it has text/plain
+         * declared MIME type.
+         *
+         * @param  url   URL to read
+         * @param  mustExist   true if non-existence should trigger error report
+         * @return   content string (assumed UTF-8), or null
+         */
+        private String readTextContent( URL url, boolean mustExist ) {
+            byte[] buf = readContent( url, "text/plain", mustExist );
+            try {
+                return buf == null ? null : new String( buf, "UTF-8" );
+            }
+            catch ( UnsupportedEncodingException e ) {
+                reporter_.report( Reporter.Type.FAILURE, "UTF8",
+                                  "Unknown encoding UTF-8??", e );
+                return null;
+            }
+        }
+
+        /**
+         * Reads the content of a URL and checks that it has a given declared
+         * MIME type.
+         *
+         * @param  url   URL to read
+         * @param  mimeType  required declared Content-Type
+         * @param  mustExist   true if non-existence should trigger error report
+         * @return  content bytes, or null
+         */
+        private byte[] readContent( URL url, String mimeType,
+                                    boolean mustExist ) {
+            if ( url == null ) {
+                return null;
+            }
+            HttpURLConnection hconn;
+            int responseCode;
+            String responseMsg;
+            try {
+                URLConnection conn = url.openConnection();
+                conn = TapQuery.followRedirects( conn );
+                if ( ! ( conn instanceof HttpURLConnection ) ) {
+                    reporter_.report( Reporter.Type.WARNING, "HURL",
+                                      "Redirect to non-HTTP URL? "
+                                    + conn.getURL() );
+                    return null;
+                }
+                hconn = (HttpURLConnection) conn;
+                hconn.connect();
+                responseCode = hconn.getResponseCode();
+                responseMsg = hconn.getResponseMessage();
+            }
+            catch ( IOException e ) {
+                reporter_.report( Reporter.Type.ERROR, "EURL",
+                                  "Error contacting URL " + url );
+                return null;
+            }
+            if ( responseCode != 200 ) {
+                if ( mustExist ) {
+                    String msg = new StringBuilder()
+                       .append( "Non-OK response " )
+                       .append( responseCode )
+                       .append( " " )
+                       .append( responseMsg )
+                       .append( " from " )
+                       .append( url )
+                       .toString();
+                    reporter_.report( Reporter.Type.ERROR, "NFND", msg );
+                }
+                return null;
+            }
+            InputStream in = null;
+            byte[] buf;
+            try {
+                in = new BufferedInputStream( hconn.getInputStream() );
+                ByteList blist = new ByteList();
+                for ( int b; ( b = in.read() ) >= 0; ) {
+                    blist.add( (byte) b );
+                }
+                buf = blist.toByteArray();
+            }
+            catch ( IOException e ) {
+                reporter_.report( Reporter.Type.WARNING, "RDIO",
+                                  "Error reading resource " + url );
+                buf = null;
+            }
+            finally {
+                if ( in != null ) {
+                    try {
+                        in.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            if ( ! hconn.getContentType().startsWith( mimeType ) ) {
+                String msg = new StringBuilder()
+                   .append( "Incorrect Content-Type " )
+                   .append( hconn.getContentType() )
+                   .append( " != " )
+                   .append( mimeType )
+                   .append( " for " )
+                   .append( url )
+                   .toString();
+                reporter_.report( Reporter.Type.ERROR, "GMIM", msg );
+                return buf;
+            }
+            return buf;
         }
     }
 }
