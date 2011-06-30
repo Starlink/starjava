@@ -102,7 +102,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>9 May 2011</docdate>
+<docdate>30 Jun 2011</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -7737,9 +7737,17 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 2.3-1 (30 June 2011)</dt>
 <dd><p>
     <ul>
+    <li>Added new command <code>taplint</code>.
+        This is a validator for TAP (Table Access Protocol) services.
+        It is only likely to be useful to people developing or operating
+        TAP services.</li>
+    <li>ASCII table parsers now understand python-friendly
+        <code>nan</code> and <code>inf</code> representations.</li>
+    <li>Added new constants to expression language
+        <code>Infinity</code> and <code>NaN</code>.</li>
     <li>Fixed a significant bug in sky crossmatching.
         If all points in a table were on one side of the RA=0 line,
         but the error radius extended across that line, matches on the
@@ -7747,17 +7755,9 @@ but my thanks are especially due to the following:
         different tables used different conventional ranges for RA
         (e.g. -180..180 in one case and 0..360 in another).
         This fix may in some, but not most, cases result in slower matching
-        than previously.
-        </li>
-    <li>ASCII table parsers now understand python-friendly
-        <code>nan</code> and <code>inf</code> representations.</li>
-    <li>Added new constants to expression language
-        <code>POSITIVE_INFINITY</code>,
-        <code>NEGATIVE_INFINITY</code> and
-        <code>NaN</code>.</li>
-    <li>Fix <code>coneskymatch</code> cone search verbosity parameter so that
+        than previously.</li>
+    <li>Fixed <code>coneskymatch</code> cone search verbosity parameter so that
         VERB=3 is not erroneously ignored.</li>
-    <li>Add <code>taplint</code> command.</li>
     </ul>
     </p></dd>
 

@@ -7,6 +7,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 
@@ -132,8 +133,8 @@ public class ReplaceValueTable extends WrapperStarTable {
             throws IOException {
         try {
             final Class clazz = info.getContentClass();
-            boolean oldBlank = Tables.isBlank( oldStr );
-            boolean newBlank = Tables.isBlank( newStr );
+            boolean oldBlank = isBlank( oldStr, info );
+            boolean newBlank = isBlank( newStr, info );
             final Object newValue = newBlank ? null
                                              : info.unformatString( newStr );
             if ( oldBlank ) {
@@ -203,6 +204,31 @@ public class ReplaceValueTable extends WrapperStarTable {
                        + "\" in " + info.formatClass( info.getContentClass() )
                        + " column " + info.getName();
             throw (IOException) new IOException( msg ).initCause( e );
+        }
+    }
+
+    /**
+     * Indicates whether a string representation is to be interpreted as
+     * a blank value.
+     *
+     * @param   str  string
+     * @param   info   value metadata for which str provides value
+     * @return  true iff blank
+     */
+    private static boolean isBlank( String str, ValueInfo info ) {
+        if ( str == null ||
+             str.length() == 0 ||
+             Tables.isBlank( str ) ||
+             "NULL".equals( str ) ) {
+            return true;
+        }
+        else if ( ( Float.class.equals( info.getContentClass() ) ||
+                    Double.class.equals( info.getContentClass() ) ) &&
+                  "NaN".equals( str ) ) {
+            return true;
+        }
+        else {
+            return false;
         }
     }
     

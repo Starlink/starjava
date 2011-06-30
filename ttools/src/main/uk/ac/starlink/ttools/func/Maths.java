@@ -26,12 +26,7 @@ public class Maths {
     /**
      * Positive infinite floating point value.
      */
-    public static final double POSITIVE_INFINITY = Double.POSITIVE_INFINITY;
-
-    /**
-     * Negative infinite floating point value.
-     */
-    public static final double NEGATIVE_INFINITY = Double.NEGATIVE_INFINITY;
+    public static final double Infinity = Double.POSITIVE_INFINITY;
 
     /**
      * Not-a-Number floating point value.
