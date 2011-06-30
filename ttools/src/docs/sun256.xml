@@ -4694,6 +4694,7 @@ stilts -classpath lib/drivers/mysql-connector-java.jar \
 <subhead><title><code>taplint</code>: &taplint-purpose;</title></subhead>
 
 <p><code>taplint</code> runs a series of tests on a Table Access Protocol
+(<webref url="http://www.ivoa.net/Documents/TAP/">TAP</webref>)
 service and reports the results.  Unlike most of the other tools in 
 this package it is not likely to be of use to normal users;
 its intended use is for people developing or operating TAP services

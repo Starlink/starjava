@@ -167,7 +167,7 @@ public class TapLint implements Task {
     }
 
     public String getPurpose() {
-        return "Validates TAP services";
+        return "Tests TAP services";
     }
 
     public Parameter[] getParameters() {
