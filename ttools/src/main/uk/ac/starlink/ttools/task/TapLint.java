@@ -66,7 +66,9 @@ public class TapLint implements Task {
             Stage stage = stageMap.get( code );
             boolean on = tapLinter_.isDefault( code );
             slbuf.append( "<li>" )
+                 .append( "<code>" )
                  .append( code )
+                 .append( "</code>" )
                  .append( ": " )
                  .append( stage.getDescription() )
                  .append( on ? " (on)" : "" )
