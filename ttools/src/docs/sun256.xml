@@ -7762,6 +7762,15 @@ but my thanks are especially due to the following:
     </ul>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>A PARAMref element with no referent in a VOTable
+        no longer causes an uncaught NullPointerException.</li>
+    </ul>
+    </p>
+    </dd>
+
 </dl>
 </p>
 </subsect>

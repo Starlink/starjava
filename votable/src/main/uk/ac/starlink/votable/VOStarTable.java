@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.starlink.table.AbstractStarTable;
@@ -54,6 +55,8 @@ public class VOStarTable extends AbstractStarTable {
     private TabularData tdata;
     private ColumnInfo[] colinfos;
     private boolean doneParams;
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.votable" );
 
     /* Public column auxiliary metadata definitions. */
 
@@ -404,8 +407,19 @@ public class VOStarTable extends AbstractStarTable {
             }
             else if ( child instanceof ParamRefElement ) {
                 ParamElement pel = ((ParamRefElement) child).getParam();
-                if ( ! pelList.contains( pel ) ) {
-                    pelList.add( pel );
+                if ( pel != null ) {
+                    if ( ! pelList.contains( pel ) ) {
+                        pelList.add( pel );
+                    }
+                }
+                else {
+                    String msg = new StringBuffer()
+                        .append( "Ignoring PARAMref element with no referent " )
+                        .append( '"' )
+                        .append( child.getAttribute( "ref" ) )
+                        .append( '"' )
+                        .toString();
+                    logger_.warning( msg );
                 }
             }
             else if ( child instanceof LinkElement ) {

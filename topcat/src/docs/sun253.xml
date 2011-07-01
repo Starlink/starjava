@@ -14956,6 +14956,8 @@ introduced since the last version:
         <code>NaN</code>.</li>
     <li>Fix cone search verbosity parameter so that VERB=3 is not erroneously
         ignored.</li>
+    <li>A PARAMref element with no referent in a VOTable 
+        no longer causes an uncaught NullPointerException.</li>
     </ul>
     </p></dd>
 
