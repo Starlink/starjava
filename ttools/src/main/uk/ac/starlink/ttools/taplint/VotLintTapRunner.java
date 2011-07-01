@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.votlint.VotableVersion;
 import uk.ac.starlink.ttools.votlint.VotLintContentHandler;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLintEntityResolver;
+import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.vo.TapQuery;
@@ -90,9 +91,35 @@ public abstract class VotLintTapRunner extends TapRunner {
             reporter.report( ReportType.ERROR, "VOCT", msg );
         }
 
+        /* RFC2616 sec 3.5. */
+        String cCoding = conn.getContentEncoding();
+        final Compression compression;
+        if ( cCoding == null || cCoding.trim().length() == 0
+                             || "identity".equals( cCoding ) ) {
+            compression = Compression.NONE;
+        }
+        else if ( "gzip".equals( cCoding ) || "x-gzip".equals( cCoding ) ) {
+            compression = Compression.GZIP;
+        }
+        else if ( "compress".equals( cCoding ) ||
+                  "x-compress".equals( cCoding ) ) {
+            compression = Compression.COMPRESS;
+        }
+        else {
+            reporter.report( ReportType.WARNING, "CEUK",
+                             "Unknown Content-Encoding " + cCoding 
+                           + " for " + conn.getURL() );
+            compression = Compression.NONE;
+        }
+        if ( compression != Compression.NONE ) {
+            reporter.report( ReportType.WARNING, "CEZZ",
+                             "Compression with Content-Encoding " + cCoding
+                           + " for " + conn.getURL() );
+        }
+
         InputStream in = null;
         try {
-            in = conn.getInputStream();
+            in = compression.decompress( conn.getInputStream() );
         }
         catch ( IOException e ) {
             if ( conn instanceof HttpURLConnection ) {
