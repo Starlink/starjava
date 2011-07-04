@@ -317,6 +317,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                     RowSubset rset = getSubset( irow );
                     rset.setName( ((String) value).trim() );
                     subsets.set( irow, rset );
+                    tcModel.recompileSubsets();
                 }
                 else {
                     JOptionPane.showMessageDialog( SubsetWindow.this,

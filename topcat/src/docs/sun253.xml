@@ -14958,6 +14958,8 @@ introduced since the last version:
         ignored.</li>
     <li>A PARAMref element with no referent in a VOTable 
         no longer causes an uncaught NullPointerException.</li>
+    <li>Improved some issues (reporting wrong row subset counts and membership)
+        related to chaning subset definitions.</li>
     </ul>
     </p></dd>
 

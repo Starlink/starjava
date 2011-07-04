@@ -303,14 +303,10 @@ public class StatsWindow extends AuxWindow {
             StarJTable.configureColumnWidths( jtab_, 200, Integer.MAX_VALUE );
         }
         
-        /* Since we've worked out the subset count, update the count model. */
-        RowSubset rset = stats.rset;
-        long nrow = stats.ngoodrow;
-        int irset = subsets_.indexOf( rset );
-        if ( irset >= 0 ) {
-            tcModel_.getSubsetCounts().put( rset, new Long( nrow ) );
-            subsets_.fireContentsChanged( irset, irset );
-        }
+        /* We used to take the opportunity here to update the subsets count
+         * model, but it causes caching problems (can update it with an
+         * out of date value), so no longer do this; the efficiency gains
+         * are not great. */
     }
 
     /**

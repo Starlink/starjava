@@ -923,6 +923,7 @@ public class TopcatModel {
             if ( rset != RowSubset.ALL &&
                  rset.getName().equals( rs.getName() ) ) {
                 subsets_.set( is, rset );
+                recompileSubsets();
                 done = true;
             }
         }
@@ -936,6 +937,29 @@ public class TopcatModel {
 
         /* Encourage listeners to flag the new addition/change. */
         showSubset( rset );
+    }
+
+    /**
+     * Recompiles all synthetic subsets from their expressions.
+     * Where this can't be done, a warning is issued.
+     */
+    public void recompileSubsets() {
+        RandomJELRowReader jeller = createJELRowReader();
+        int nset = subsets_.size();
+        for ( int is = 0; is < nset; is++ ) {
+            RowSubset rs = (RowSubset) subsets_.get( is );
+            if ( rs instanceof SyntheticRowSubset ) {
+                SyntheticRowSubset ss = (SyntheticRowSubset) rs;
+                try {
+                    ss.setExpression( ss.getExpression(), jeller );
+                }
+                catch ( CompilationException e ) {
+                    logger_.warning( "Can't recompile expression "
+                                   + ss.getExpression() + " for "
+                                   + ss.getName() );
+                }
+            }
+        }
     }
 
     /**
