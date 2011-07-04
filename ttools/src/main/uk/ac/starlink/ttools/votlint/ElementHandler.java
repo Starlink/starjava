@@ -135,7 +135,9 @@ public class ElementHandler {
         }
         if ( childNames_.containsKey( name ) ) {
             ElementRef ref = (ElementRef) childNames_.get( name );
-            warning( "Name '" + name + "' already used in this " + this );
+            if ( ! name.equals( "QUERY_STATUS" ) ) {  // DAL special case
+                warning( "Name '" + name + "' already used in this " + this );
+            }
         }
         else {
             childNames_.put( name, child );

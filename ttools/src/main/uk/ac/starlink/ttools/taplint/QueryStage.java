@@ -108,7 +108,7 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to test
          */
         private void runAllColumns( TableMeta tmeta ) {
-            int nr0 = 10;
+            final int nr0 = 10;
             String tname = tmeta.getName();
 
             /* Prepare an array of column specifiers corresponding to all
@@ -120,35 +120,24 @@ public class QueryStage implements Stage {
                 cspecs[ ic ] = new ColSpec( cmetas[ ic ] );
             }
 
-            /* Check that MAXREC limit works. */
-            StarTable t1 = runCheckedQuery( "SELECT * FROM " + tname, nr0,
-                                            cspecs, -1 );
-
-            /* Get a lower bound for the number of rows in the result. */
+            /* Check that limiting using TOP works. */
+            StarTable t1 =
+                runCheckedQuery( "SELECT TOP " + nr0 + " * FROM " + tname,
+                                 -1, cspecs, nr0 );
             long nr1 = t1 != null ? t1.getRowCount() : 0;
             assert nr1 >= 0;
-            final boolean over;
-            long nr2;
-            if ( nr1 > 0 ) {
-                over = true;
-                nr2 = Math.min( nr1 - 1, nr0 );
-            }
-            else {
-                over = false;
-                nr2 = 3;
-            }
 
-            /* Check that limiting using TOP works. */
-            StarTable t2 =
-                runCheckedQuery( "SELECT TOP " + nr2 + " * FROM " + tname, -1,
-                                 cspecs, (int) nr2 );
-            if ( t2 != null && over && ! tapRunner_.isOverflow( t2 ) ) {
-                String msg = new StringBuffer()
-                   .append( "Overflow not marked - " )
-                   .append( "no <INFO name='QUERY_STATUS' value='OVERFLOW'/> " )
-                   .append( "after TABLE" )
-                   .toString();
-                reporter_.report( ReportType.ERROR, "OVNO", msg );
+            /* Check that limiting using MAXREC works. */
+            if ( nr1 > 0 ) {
+                int nr2 = Math.min( (int) nr1 - 1, nr0 - 1 );
+                StarTable t2 = runCheckedQuery( "SELECT * FROM " + tname,
+                                                nr2, cspecs, -1 );
+                if ( t2 != null && ! tapRunner_.isOverflow( t2 ) ) {
+                    String msg = "Overflow not marked - no "
+                               + "<INFO name='QUERY_STATUS' value='OVERFLOW'/> "
+                               + "after TABLE";
+                    reporter_.report( ReportType.ERROR, "OVNO", msg );
+                }
             }
         }
 
@@ -169,7 +158,7 @@ public class QueryStage implements Stage {
             for ( int icol = ncol - 1; icol >= 0; icol -= step ) {
                 ColSpec cspec = new ColSpec( tmeta.getColumns()[ icol ] );
                 if ( ix % 2 == 1 ) {
-                    cspec.setRename( "c_" + ( ix + 1 ) );
+                    cspec.setRename( "taplint_c_" + ( ix + 1 ) );
                 }
                 if ( ix % 3 == 2 ) {
                     cspec.setQuoted( true );
@@ -230,7 +219,8 @@ public class QueryStage implements Stage {
          * @param  adql  query string
          * @param  maxrec  value of MAXREC limit; if negative none applied
          * @param  colSpecs  expected column metadata of result
-         * @param  maxrow  expected maximum row count, different from MAXREC
+         * @param  maxrow  expected maximum row count, different from MAXREC;
+         *                 if negative ignored
          */
         private StarTable runCheckedQuery( String adql, int maxrec,
                                            ColSpec[] colSpecs, int maxrow ) {
