@@ -145,16 +145,23 @@ public class LinkChecker {
             if ( conn instanceof HttpURLConnection ) {
                 HttpURLConnection hconn = (HttpURLConnection) conn;
                 hconn.setRequestMethod( "HEAD" );
-                connectWithTimeout( hconn );
-                int response = hconn.getResponseCode();
-                if ( response == HttpURLConnection.HTTP_OK ) {
-                    ok = true;
+                URLConnection fconn = followRedirectsWithTimeout( hconn );
+                if ( fconn instanceof HttpURLConnection ) {
+                    int response =
+                        ((HttpURLConnection) fconn).getResponseCode();
+                    if ( response == HttpURLConnection.HTTP_OK ) {
+                        ok = true;
+                    }
+                    else {
+                        logMessage( "Response " + response + ": " + url );
+                        ok = false;
+                    }
                 }
                 else {
-                    logMessage( "Response " + response + ": " + url );
+                    logMessage( "Non-HTTP redirect " + conn.getURL() );
                     ok = false;
                 }
-                hconn.disconnect();
+                fconn.getInputStream().close();
             }
             else {
                 connectWithTimeout( conn );
@@ -183,6 +190,9 @@ public class LinkChecker {
         if ( urlNames.get( url ) == null ) {
             Set names = new HashSet();
             URLConnection conn = url.openConnection();
+            if ( conn instanceof HttpURLConnection ) {
+                ((HttpURLConnection) conn).setInstanceFollowRedirects( true );
+            }
             connectWithTimeout( conn );
             BufferedReader strm = new BufferedReader( 
                 new InputStreamReader( conn.getInputStream() ) );
@@ -329,6 +339,75 @@ public class LinkChecker {
                                        conn.getURL() );
             }
         }
+    }
+
+    /**
+     * Takes a URLConnection and repeatedly follows 303 redirects
+     * until a non-303 status is achieved.  Infinite loops are defended
+     * against.
+     *
+     * @param  conn   initial URL connection 
+     * @return   target URL connection
+     *           (if no redirects, the same as <code>hconn</code>)
+     */
+    public URLConnection followRedirectsWithTimeout( URLConnection conn )
+            throws IOException {
+        if ( ! ( conn instanceof HttpURLConnection ) ) {
+            return conn;
+        }
+        HttpURLConnection hconn = (HttpURLConnection) conn;
+        String requestMethod = hconn.getRequestMethod();
+        connectWithTimeout( hconn );
+        Set urlSet = new HashSet<String>();
+        urlSet.add( hconn.getURL() );
+        for ( int code;
+              ( isRedirectCode( code = hconn.getResponseCode() ) ); ) {
+            URL url0 = hconn.getURL();
+            String loc = hconn.getHeaderField( "Location" );
+            if ( loc == null || loc.trim().length() == 0 ) {
+                throw new IOException( "No Location field for " + code 
+                                     + " response from " + url0 );
+            }
+            URL url1; 
+            try {
+                url1 = new URL( loc );
+            }
+            catch ( MalformedURLException e ) {
+                throw (IOException)
+                      new IOException( "Bad Location field for " + code
+                                     + " response from " + url0 )
+                     .initCause( e ); 
+            }
+            if ( ! urlSet.add( url1 ) ) {
+                throw new IOException( "Recursive 3xx redirect at " + url1 );
+            }
+            URLConnection conn1 = url1.openConnection();
+            if ( ! ( conn1 instanceof HttpURLConnection ) ) { 
+                return conn1;
+            }
+            hconn = (HttpURLConnection) conn1;
+            hconn.setRequestMethod( requestMethod );
+            connectWithTimeout( hconn );
+        }
+        if ( hconn.getResponseCode() == 403 &&
+             "HEAD".equals( hconn.getRequestMethod() ) ) {
+            return followRedirectsWithTimeout( conn.getURL().openConnection() );
+        }
+        return hconn;
+    }
+
+    /**
+     * Indicate whether an HTTP response code indicates an HTTP redirect
+     * that should contain a Location header.
+     *
+     * @param  response code
+     * @return true for redircts
+     */
+    private static boolean isRedirectCode( int code ) {
+        return code == 301
+            || code == 302
+            || code == 303
+            || code == 307;
     }
 
     /**
