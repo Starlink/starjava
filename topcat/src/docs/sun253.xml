@@ -14960,6 +14960,8 @@ introduced since the last version:
         no longer causes an uncaught NullPointerException.</li>
     <li>Improved some issues (reporting wrong row subset counts and membership)
         related to changing subset definitions.</li>
+    <li>Fix a small bug related to enabledness of buttons in control
+        window and hub connection.</li>
     </ul>
     </p></dd>
 

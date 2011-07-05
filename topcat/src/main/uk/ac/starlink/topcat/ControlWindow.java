@@ -305,14 +305,16 @@ public class ControlWindow extends AuxWindow
             }
             communicator_.addConnectionListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent evt ) {
-                    rowSendButton_.setEnabled( communicator_.isConnected() );
+                    rowSendButton_.setEnabled( getCurrentModel() != null 
+                                            && communicator_.isConnected() );
                 }
             } );
             rowSendButton_.setToolTipText( "On Row Activation send a "
                                          +  communicator_.getProtocolName()
                                          + " highlight row message"
                                          + " to all registered applications" );
-            rowSendButton_.setEnabled( communicator_.isConnected() );
+            rowSendButton_.setEnabled( getCurrentModel() != null
+                                    && communicator_.isConnected() );
         }
 
         /* Set up actions. */
