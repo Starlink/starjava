@@ -6,7 +6,6 @@ import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.ContentHandler;
@@ -185,9 +184,9 @@ public abstract class VotLintTapRunner extends TapRunner {
         XMLReader parser = createParser( reporter, vlContext );
         ContentHandler tch =
             new MultiplexInvocationHandler<ContentHandler>(
-                    Arrays.asList( new ContentHandler[] {
-                                       new VotLintContentHandler( vlContext ),
-                                       domHandler } ) )
+                    new ContentHandler[] {
+                        new VotLintContentHandler( vlContext ),
+                        domHandler } )
            .createMultiplexer( ContentHandler.class );
         parser.setContentHandler( tch );
         parser.setErrorHandler( errHandler );
