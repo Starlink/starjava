@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -74,9 +75,9 @@ public class TapSchemaInterrogator {
     public Map<String,List<ForeignMeta.Link>> readForeignLinks()
             throws IOException {
         ColList lcList = new ColList();
-        int ilcId = lcList.add( "key_id" );
-        int ilcFrom = lcList.add( "from_column" );
-        int ilcTarget = lcList.add( "target_column" );
+        int ilcId = lcList.addStringCol( "key_id" );
+        int ilcFrom = lcList.addStringCol( "from_column" );
+        int ilcTarget = lcList.addStringCol( "target_column" );
         StarTable lTable = lcList.query( "TAP_SCHEMA.key_columns" );
 
         Map<String,List<ForeignMeta.Link>> lMap =
@@ -115,11 +116,11 @@ public class TapSchemaInterrogator {
            readForeignKeys( Map<String,List<ForeignMeta.Link>> lMap )
             throws IOException {
         ColList fcList = new ColList();
-        int ifcId = fcList.add( "key_id" );
-        int ifcFrom = fcList.add( "from_table" );
-        int ifcTarget = fcList.add( "target_table" );
-        int ifcDesc = fcList.add( "description" );
-        int ifcUtype = fcList.add( "utype" );
+        int ifcId = fcList.addStringCol( "key_id" );
+        int ifcFrom = fcList.addStringCol( "from_table" );
+        int ifcTarget = fcList.addStringCol( "target_table" );
+        int ifcDesc = fcList.addStringCol( "description" );
+        int ifcUtype = fcList.addStringCol( "utype" );
         StarTable fTable = fcList.query( "TAP_SCHEMA.keys" );
 
         Map<String,List<ForeignMeta>> fMap =
@@ -159,16 +160,16 @@ public class TapSchemaInterrogator {
      */
     public Map<String,List<ColumnMeta>> readColumns() throws IOException {
         ColList ccList = new ColList();
-        int iccTable = ccList.add( "table_name" );
-        int iccName = ccList.add( "column_name" );
-        int iccDesc = ccList.add( "description" );
-        int iccUnit = ccList.add( "unit" );
-        int iccUcd = ccList.add( "ucd" );
-        int iccUtype = ccList.add( "utype" );
-        int iccDatatype = ccList.add( "datatype" );
-        int iccIndexed = ccList.add( "indexed" );
-        int iccPrincipal = ccList.add( "principal" );
-        int iccStd = ccList.add( "std" );
+        int iccTable = ccList.addStringCol( "table_name" );
+        int iccName = ccList.addStringCol( "column_name" );
+        int iccDesc = ccList.addStringCol( "description" );
+        int iccUnit = ccList.addStringCol( "unit" );
+        int iccUcd = ccList.addStringCol( "ucd" );
+        int iccUtype = ccList.addStringCol( "utype" );
+        int iccDatatype = ccList.addStringCol( "datatype" );
+        int iccIndexed = ccList.addOtherCol( "indexed" );
+        int iccPrincipal = ccList.addOtherCol( "principal" );
+        int iccStd = ccList.addOtherCol( "std" );
         StarTable cTable = ccList.query( "TAP_SCHEMA.columns" );
 
         Map<String,List<ColumnMeta>> cMap =
@@ -223,10 +224,10 @@ public class TapSchemaInterrogator {
                                        Map<String,List<ForeignMeta>> fMap )
             throws IOException {
         ColList tcList = new ColList();
-        int itcName = tcList.add( "table_name" );
-        int itcType = tcList.add( "table_type" );
-        int itcDesc = tcList.add( "description" );
-        int itcUtype = tcList.add( "utype" );
+        int itcName = tcList.addStringCol( "table_name" );
+        int itcType = tcList.addStringCol( "table_type" );
+        int itcDesc = tcList.addStringCol( "description" );
+        int itcUtype = tcList.addStringCol( "utype" );
         StarTable tTable = tcList.query( "TAP_SCHEMA.tables" );
 
         List<TableMeta> tList = new ArrayList<TableMeta>();
@@ -294,23 +295,45 @@ public class TapSchemaInterrogator {
      * Represents a list of columns in a TAP table which will be queried.
      */
     private class ColList {
-        private final List<String> list_;
+        private final List<CSpec> list_;
 
         /**
          * Constructor.
          */
         ColList() {
-            list_ = new ArrayList<String>();
+            list_ = new ArrayList<CSpec>();
         }
 
         /**
-         * Adds a new column to the list.
+         * Adds a new string-valued column to the list.
+         * If the corresponding column in the result is not string-valued
+         * an error will result.
          *
          * @param  name  column name in remote table
          * @return  index of column which has been added
          */
-        int add( String name ) {
-            list_.add( name );
+        int addStringCol( String name ) {
+            return addCol( new CSpec( name, true ) );
+        }
+
+        /**
+         * Adds a new non-string-valued column to the list.
+         *
+         * @param  name  column name in remote table
+         * @return  index of column which has been added
+         */
+        int addOtherCol( String name ) {
+            return addCol( new CSpec( name, false ) );
+        }
+
+        /**
+         * Adds a new column specifier to the list.
+         *
+         * @param  cspec  column specifier
+         * @return  index of column which has been added
+         */
+        private int addCol( CSpec cspec ) {
+            list_.add( cspec );
             return list_.size() - 1;
         }
 
@@ -318,21 +341,70 @@ public class TapSchemaInterrogator {
          * Executes a query for the named columns and returns the result
          * as a StarTable.
          *
-         * @param  table  table name to query
+         * @param  tname  table name to query
          * @return   result
          */
-        StarTable query( String table ) throws IOException {
+        StarTable query( String tname ) throws IOException {
             StringBuffer sbuf = new StringBuffer();
             sbuf.append( "SELECT " );
-            for ( Iterator<String> it = list_.iterator(); it.hasNext(); ) {
-                sbuf.append( it.next() );
+            for ( Iterator<CSpec> it = list_.iterator(); it.hasNext(); ) {
+                sbuf.append( it.next().name_ );
                 if ( it.hasNext() ) {
                     sbuf.append( ", " );
                 }
             }
             sbuf.append( " FROM " )
-                .append( table );
-            return executeQuery( createTapQuery( sbuf.toString() ) );
+                .append( tname );
+            StarTable result =
+                executeQuery( createTapQuery( sbuf.toString() ) );
+            checkResultTable( result );
+            return result;
+        }
+
+        /**
+         * Performs some checks on the resulting table.
+         * If it is sufficiently unlike what's expected, an informative
+         * IOException will be thrown.  Otherwise no action is taken.
+         *
+         * @param   result table  table to check
+         */
+        private void checkResultTable( StarTable table ) throws IOException {
+            int ncol = table.getColumnCount();
+            if ( ncol != list_.size() ) {
+                throw new IOException( "Schema query column count mismatch ("
+                                     + ncol + " != " + list_.size() + " )" );
+            }
+            for ( int ic = 0; ic < ncol; ic++ ) {
+                ColumnInfo info = table.getColumnInfo( ic );
+                boolean isString = String.class
+                                  .isAssignableFrom( info.getContentClass() );
+                CSpec cspec = list_.get( ic );
+                boolean mustBeString = cspec.isString_;
+                if ( mustBeString && ! isString ) {
+                    throw new IOException( "Schema query column type mismatch: "
+                                         + info + " is not string type" );
+                }
+            }
+        }
+
+        /**
+         * Column specifier.
+         * Aggregates name and rudimentary type information.
+         */
+        private class CSpec {
+            final String name_;
+            final boolean isString_;
+ 
+            /**
+             * Constructor.
+             *
+             * @param  name  column name
+             * @param  isString  true iff the column must be string valued
+             */
+            CSpec( String name, boolean isString ) {
+                name_ = name;
+                isString_ = isString;
+            }
         }
     }
 
