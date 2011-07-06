@@ -6,8 +6,10 @@ import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -23,6 +25,7 @@ import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLintEntityResolver;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.MultiplexInvocationHandler;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -180,9 +183,13 @@ public abstract class VotLintTapRunner extends TapRunner {
         /* Create a SAX parser, install the event handlers and parse the
          * input to get a VODocument. */
         XMLReader parser = createParser( reporter, vlContext );
-        parser.setContentHandler( new TeeContentHandler(
-                                      new VotLintContentHandler( vlContext ),
-                                      domHandler ) );
+        ContentHandler tch =
+            new MultiplexInvocationHandler<ContentHandler>(
+                    Arrays.asList( new ContentHandler[] {
+                                       new VotLintContentHandler( vlContext ),
+                                       domHandler } ) )
+           .createMultiplexer( ContentHandler.class );
+        parser.setContentHandler( tch );
         parser.setErrorHandler( errHandler );
         parser.parse( new InputSource( in ) );
         VODocument doc = domHandler.getDocument();
