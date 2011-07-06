@@ -266,8 +266,7 @@ public class Reporter {
             if ( i > 0 ) {
                 sbuf.append( "; " );
             }
-            sbuf.append( type.getName() )
-                .append( "s" )
+            sbuf.append( type.getNames() )
                 .append( ": " )
                 .append( typeMap_.getCount( type ) );
         }

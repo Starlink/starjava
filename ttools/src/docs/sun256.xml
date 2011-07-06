@@ -6665,14 +6665,16 @@ are welcomed.
 Since then it has been supported by
 grant PP/D002486/1 from the
 UK's Particle Physics and Astronomy Research Council,
-the <webref url="http://www.eurovotech.org/">VOTech</webref> project
-    (from EU FP6),
+the <webref url="http://eurovotech.org/">VOTech</webref> project (from EU FP6),
 the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
             >AIDA</webref> project (from EU FP7),
-and
-grant ST/H008470/1 from the UK's Science and Technology Facilities Council.
+grant ST/H008470/1 from the UK's Science and Technology Facilities Council
+(STFC),
+and the <webref url="http://www.g-vo.org/">GAVO</webref> project
+(BMBF Bewilligungsnummer 05A08VHA),
+and grant ST/I00176X/1 from STFC.
 All of this support is gratefully acknowledged.
 </p>
 
@@ -7767,6 +7769,8 @@ but my thanks are especially due to the following:
     <ul>
     <li>A PARAMref element with no referent in a VOTable
         no longer causes an uncaught NullPointerException.</li>
+    <li>Improve test logic for record limiting queries in
+        <code>taplint</code>.</li>
     </ul>
     </p>
     </dd>
