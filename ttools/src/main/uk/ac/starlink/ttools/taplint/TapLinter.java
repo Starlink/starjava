@@ -35,6 +35,7 @@ public class TapLinter {
     private final QueryStage postQueryStage_;
     private final QueryStage asyncQueryStage_;
     private final JobStage jobStage_;
+    private final ColumnMetadataStage colMetaStage_;
     private final UploadStage uploadStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
 
@@ -57,13 +58,18 @@ public class TapLinter {
                                          "table metadata" );
         tmetaStage_ = new TablesEndpointStage();
         tapSchemaStage_ =
-            new TapSchemaStage( VotLintTapRunner.createGetSyncRunner() );
+            new TapSchemaStage( VotLintTapRunner.createGetSyncRunner( true ) );
         tapSchemaMetadata_ = new TapSchemaMetadataHolder();
         MetadataHolder metaHolder =
                 new AnyMetadataHolder( new MetadataHolder[] {
             tmetaStage_,
             tapSchemaStage_,
             tapSchemaMetadata_,
+        } );
+        MetadataHolder declaredMetaHolder =
+                new AnyMetadataHolder( new MetadataHolder[] {
+            tmetaStage_,
+            tapSchemaStage_,
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
@@ -75,17 +81,21 @@ public class TapLinter {
                         .createXsdStage( AVAILABILITY_XSD, "/availability",
                                          false, "availability" );
         getQueryStage_ =
-            new QueryStage( VotLintTapRunner.createGetSyncRunner(),
+            new QueryStage( VotLintTapRunner.createGetSyncRunner( true ),
                             metaHolder );
         postQueryStage_ =
-            new QueryStage( VotLintTapRunner.createPostSyncRunner(),
+            new QueryStage( VotLintTapRunner.createPostSyncRunner( true ),
                             metaHolder );
         asyncQueryStage_ =
-            new QueryStage( VotLintTapRunner.createAsyncRunner( 500 ),
+            new QueryStage( VotLintTapRunner.createAsyncRunner( 500, true ),
                             metaHolder );
         jobStage_ = new JobStage( metaHolder, 500 );
+        colMetaStage_ =
+            new ColumnMetadataStage( VotLintTapRunner
+                                    .createGetSyncRunner( false ),
+                                     declaredMetaHolder, 0 );
         uploadStage_ =
-            new UploadStage( VotLintTapRunner.createAsyncRunner( 500 ),
+            new UploadStage( VotLintTapRunner.createAsyncRunner( 500, true ),
                              tcapStage_ );
 
         /* Record them in order. */
@@ -101,6 +111,7 @@ public class TapLinter {
         stageSet_.add( "QPO", postQueryStage_, true );
         stageSet_.add( "QAS", asyncQueryStage_, true );
         stageSet_.add( "UWS", jobStage_, true );
+        stageSet_.add( "MDQ", colMetaStage_, true );
         stageSet_.add( "UPL", uploadStage_, true );
     }
 
@@ -207,7 +218,7 @@ public class TapLinter {
      * of those it owns.
      */
     private static class AnyMetadataHolder implements MetadataHolder {
-        final MetadataHolder[] holders_;
+        private final MetadataHolder[] holders_;
 
         /**
          * Constructor.

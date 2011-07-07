@@ -7774,6 +7774,7 @@ but my thanks are especially due to the following:
     <li><code>taplint</code> no longer reports errors (e.g. E-Qxx-CNAM) 
         for unexpected TAP_SCHEMA table column ordering
         (when running query stage but no metadata acquisition stages).</li>
+    <li>Add new stage MDQ to <code>taplint</code>.</li>
     </ul>
     </p>
     </dd>

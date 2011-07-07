@@ -9,8 +9,10 @@ import java.net.URLConnection;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.ContentHandler;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.w3c.dom.Node;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -43,6 +45,8 @@ import uk.ac.starlink.votable.VOTableDOMBuilder;
  */
 public abstract class VotLintTapRunner extends TapRunner {
 
+    private final boolean doChecks_;
+
     /** Result table parameter set if table was marked overflowed. */
     public static ValueInfo OVERFLOW_INFO =
         new DefaultValueInfo( "OVERFLOW", Boolean.class,
@@ -50,9 +54,15 @@ public abstract class VotLintTapRunner extends TapRunner {
 
     /**
      * Constructor.
+     *
+     * @param   name  name for this instance
+     * @param   doChecks  true to perform various checks on the result VOTable
+     *                    (including linting) and report them, false to be
+     *                    mostly silent and only report serious errors
      */
-    protected VotLintTapRunner( String name ) {
+    protected VotLintTapRunner( String name, boolean doChecks ) {
         super( name );
+        doChecks_ = doChecks;
     }
 
     /**
@@ -73,24 +83,27 @@ public abstract class VotLintTapRunner extends TapRunner {
         conn = TapQuery.followRedirects( conn );
         conn.connect();
         String ctype = conn.getContentType();
-        if ( ctype == null || ctype.trim().length() == 0 ) {
-            reporter.report( ReportType.WARNING, "NOCT",
-                             "No Content-Type header for " + conn.getURL() );
-        }
-        else if ( ! ( ctype.startsWith( "text/xml" ) ||
-                      ctype.startsWith( "application/xml" ) ||
-                      ctype.startsWith( "application/x-votable+xml" ) ||
-                      ctype.startsWith( "text/x-votable+xml" ) ) ) {
-            String msg = new StringBuilder()
-               .append( "Bad content type " )
-               .append( ctype )
-               .append( " for HTTP response which should contain " )
-               .append( "VOTable result or error document" )
-               .append( " (" )
-               .append( conn.getURL() )
-               .append( ")" )
-               .toString();
-            reporter.report( ReportType.ERROR, "VOCT", msg );
+        if ( doChecks_ ) {
+            if ( ctype == null || ctype.trim().length() == 0 ) {
+                reporter.report( ReportType.WARNING, "NOCT",
+                                 "No Content-Type header for "
+                               + conn.getURL() );
+            }
+            else if ( ! ( ctype.startsWith( "text/xml" ) ||
+                          ctype.startsWith( "application/xml" ) ||
+                          ctype.startsWith( "application/x-votable+xml" ) ||
+                          ctype.startsWith( "text/x-votable+xml" ) ) ) {
+                String msg = new StringBuilder()
+                   .append( "Bad content type " )
+                   .append( ctype )
+                   .append( " for HTTP response which should contain " )
+                   .append( "VOTable result or error document" )
+                   .append( " (" )
+                   .append( conn.getURL() )
+                   .append( ")" )
+                   .toString();
+                reporter.report( ReportType.ERROR, "VOCT", msg );
+            }
         }
 
         /* RFC2616 sec 3.5. */
@@ -113,7 +126,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                            + " for " + conn.getURL() );
             compression = Compression.NONE;
         }
-        if ( compression != Compression.NONE ) {
+        if ( doChecks_ && compression != Compression.NONE ) {
             reporter.report( ReportType.WARNING, "CEZZ",
                              "Compression with Content-Encoding " + cCoding
                            + " for " + conn.getURL() );
@@ -165,31 +178,43 @@ public abstract class VotLintTapRunner extends TapRunner {
     protected StarTable readResultVOTable( Reporter reporter, InputStream in )
             throws IOException, SAXException {
 
-        /* Set up SAX event handlers to report messages via reporter. */
-        ReporterErrorHandler errHandler =
-            new ReporterErrorHandler( reporter );
-        ReporterVotLintContext vlContext =
-            new ReporterVotLintContext( reporter );
-        vlContext.setVersion( VotableVersion.V12 );
-        vlContext.setValidating( true );
-        vlContext.setDebug( false );
-        vlContext.setOutput( null );
-
         /* Set up a SAX event handler to create a DOM. */
         VOTableDOMBuilder domHandler =
             new VOTableDOMBuilder( StoragePolicy.getDefaultPolicy(), true );
 
-        /* Create a SAX parser, install the event handlers and parse the
-         * input to get a VODocument. */
-        XMLReader parser = createParser( reporter, vlContext );
-        ContentHandler tch =
-            new MultiplexInvocationHandler<ContentHandler>(
-                    new ContentHandler[] {
-                        new VotLintContentHandler( vlContext ),
-                        domHandler } )
-           .createMultiplexer( ContentHandler.class );
-        parser.setContentHandler( tch );
-        parser.setErrorHandler( errHandler );
+        /* Set up a parser which will feed SAX events to the dom builder,
+         * and may or may not generate logging messages through the
+         * reporter as it progresses. */
+        final XMLReader parser;
+        if ( doChecks_ ) {
+            ReporterVotLintContext vlContext =
+                new ReporterVotLintContext( reporter );
+            vlContext.setVersion( VotableVersion.V12 );
+            vlContext.setValidating( true );
+            vlContext.setDebug( false );
+            vlContext.setOutput( null );
+            parser = createParser( reporter, vlContext );
+            ContentHandler vcHandler =
+                    new MultiplexInvocationHandler<ContentHandler>(
+                            new ContentHandler[] {
+                            new VotLintContentHandler( vlContext ),
+                            domHandler } )
+                   .createMultiplexer( ContentHandler.class );
+            parser.setErrorHandler( new ReporterErrorHandler( reporter ) );
+            parser.setContentHandler( vcHandler );
+        }
+        else {
+            parser = createParser( reporter );
+            parser.setEntityResolver( StarEntityResolver.getInstance() );
+            parser.setErrorHandler( new ErrorHandler() {
+                public void warning( SAXParseException err ) {}
+                public void error( SAXParseException err ) {}
+                public void fatalError( SAXParseException err ) {}
+            } );
+            parser.setContentHandler( domHandler );
+        }
+
+        /* Perform the parse and retrieve the resulting DOM. */
         parser.parse( new InputSource( in ) );
         VODocument doc = domHandler.getDocument();
 
@@ -216,9 +241,11 @@ public abstract class VotLintTapRunner extends TapRunner {
         if ( resultsEl == null ) {
             if ( resourceEls.length == 1 ) {
                 resultsEl = resourceEls[ 0 ];
-                reporter.report( ReportType.ERROR, "RRES",
-                                 "TAP response document RESOURCE element "
-                               + "is not marked type='results'" );
+                if ( doChecks_ ) {
+                    reporter.report( ReportType.ERROR, "RRES",
+                                     "TAP response document RESOURCE element "
+                                   + "is not marked type='results'" );
+                }
             }
             else {
                 throw new IOException( "No RESOURCE with type='results'" );
@@ -245,7 +272,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         if ( preStatusInfo == null ) {
                             preStatusInfo = el;
                         }
-                        else {
+                        else if ( doChecks_ ) {
                             reporter.report( ReportType.ERROR, "QST1",
                                              "Multiple pre-table INFOs with "
                                            + "name='QUERY_STATUS'" );
@@ -255,7 +282,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         if ( postStatusInfo == null ) {
                             postStatusInfo = el;
                         }
-                        else {
+                        else if ( doChecks_ ) {
                             reporter.report( ReportType.ERROR, "QST2",
                                              "Multiple post-table INFOs with "
                                            + "name='QUERY_STATUS'" );
@@ -277,18 +304,23 @@ public abstract class VotLintTapRunner extends TapRunner {
 
         /* Check pre-table status INFO. */
         if ( preStatusInfo == null ) {
-            reporter.report( ReportType.ERROR, "NOST",
-                             "Missing <INFO name='QUERY_STATUS'> element "
-                           + "before TABLE" );
+            if ( doChecks_ ) {
+                reporter.report( ReportType.ERROR, "NOST",
+                                 "Missing <INFO name='QUERY_STATUS'> element "
+                               + "before TABLE" );
+            }
         }
         else {
             String preStatus = preStatusInfo.getAttribute( "value" );
             if ( "ERROR".equals( preStatus ) ) {
                 String err = DOMUtils.getTextContent( preStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
-                    reporter.report( ReportType.WARNING, "NOER",
-                                     "<INFO name='QUERY_STATUS' value='ERROR'> "
-                                   + "element has no message content" );
+                    if ( doChecks_ ) {
+                        reporter.report( ReportType.WARNING, "NOER",
+                                         "<INFO name='QUERY_STATUS' "
+                                       + "value='ERROR'> "
+                                       + "element has no message content" );
+                    }
                     err = "Unknown TAP result error";
                 }
                 throw new IOException( err );
@@ -297,12 +329,15 @@ public abstract class VotLintTapRunner extends TapRunner {
                 // ok
             }
             else {
-                String msg = new StringBuffer()
-                    .append( "Pre-table QUERY_STATUS INFO has unknown value " )
-                    .append( preStatus )
-                    .append( " is not OK/ERROR" )
-                    .toString();
-                reporter.report( ReportType.ERROR, "QST1", msg );
+                if ( doChecks_ ) {
+                    String msg = new StringBuffer()
+                        .append( "Pre-table QUERY_STATUS INFO " )
+                        .append( "has unknown value " )
+                        .append( preStatus )
+                        .append( " is not OK/ERROR" )
+                        .toString();
+                    reporter.report( ReportType.ERROR, "QST1", msg );
+                }
             }
         }
 
@@ -313,9 +348,12 @@ public abstract class VotLintTapRunner extends TapRunner {
             if ( "ERROR".equals( postStatus ) ) {
                 String err = DOMUtils.getTextContent( postStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
-                    reporter.report( ReportType.WARNING, "NOER",
-                                     "<INFO name='QUERY_STATUS' value='ERROR'> "
-                                   + "element has no message content" );
+                    if ( doChecks_ ) {
+                        reporter.report( ReportType.WARNING, "NOER",
+                                         "<INFO name='QUERY_STATUS' "
+                                       + "value='ERROR'> "
+                                       + "element has no message content" );
+                    }
                     err = "Unknown TAP result error";
                 }
                 throw new IOException( err );
@@ -324,12 +362,15 @@ public abstract class VotLintTapRunner extends TapRunner {
                 overflow = true;
             }
             else {
-                String msg = new StringBuffer()
-                    .append( "Post-table QUERY_STATUS INFO has unknown value " )
-                    .append( postStatus )
-                    .append( " is not ERROR/OVERFLOW" )
-                    .toString();
-                reporter.report( ReportType.ERROR, "QST2", msg );
+                if ( doChecks_ ) {
+                    String msg = new StringBuffer()
+                        .append( "Post-table QUERY_STATUS INFO " )
+                        .append( "has unknown value " )
+                        .append( postStatus )
+                        .append( " is not ERROR/OVERFLOW" )
+                        .toString();
+                    reporter.report( ReportType.ERROR, "QST2", msg );
+                }
             }
         }
 
@@ -344,7 +385,29 @@ public abstract class VotLintTapRunner extends TapRunner {
     }
 
     /**
-     * Returns a SAX parser suitable for use with a VOTable.
+     * Returns a basic SAX parser.  If it fails, the error will be reported
+     * and an exception will be thrown.
+     *
+     * @param  reporter  validation message destination
+     * @return  basically configured SAX parser
+     */
+    private XMLReader createParser( Reporter reporter ) throws SAXException {
+        try {
+            SAXParserFactory spfact = SAXParserFactory.newInstance();
+            spfact.setValidating( false );
+            spfact.setNamespaceAware( true );
+            return spfact.newSAXParser().getXMLReader();
+        }
+        catch ( ParserConfigurationException e ) {
+            reporter.report( ReportType.FAILURE, "PRSR",
+                             "Trouble setting up XML parse", e );
+            throw (SAXException) new SAXException( e.getMessage() )
+                                .initCause( e );
+        }
+    }
+
+    /**
+     * Returns a SAX parser suitable for VOTable checking.
      * Its handlers are not set.
      *
      * @param  reporter   validation message destination
@@ -353,21 +416,7 @@ public abstract class VotLintTapRunner extends TapRunner {
     private XMLReader createParser( Reporter reporter,
                                     VotLintContext vlContext )
             throws SAXException {
-
-        /* Get a validating or non-validating parser. */
-        XMLReader parser;
-        try {
-            SAXParserFactory spfact = SAXParserFactory.newInstance();
-            spfact.setValidating( false );
-            spfact.setNamespaceAware( true );
-            parser = spfact.newSAXParser().getXMLReader();
-        }
-        catch ( ParserConfigurationException e ) {
-            reporter.report( ReportType.FAILURE, "PRSR",
-                             "Trouble setting up XML parse", e );
-            throw (SAXException) new SAXException( e.getMessage() )
-                                .initCause( e );
-        }
+        XMLReader parser = createParser( reporter );
 
         /* Install a custom entity resolver.  This is also installed as
          * a lexical handler, to guarantee that whatever is named in the
@@ -393,10 +442,11 @@ public abstract class VotLintTapRunner extends TapRunner {
     /**
      * Returns a new instance which uses HTTP POST to make synchronous queries.
      *
+     * @param  doChecks   true for detailed VOTable checking
      * @return  new TapRunner
      */
-    public static VotLintTapRunner createPostSyncRunner() {
-        return new VotLintTapRunner( "sync POST" ) {
+    public static VotLintTapRunner createPostSyncRunner( boolean doChecks ) {
+        return new VotLintTapRunner( "sync POST", doChecks ) {
             @Override
             protected URLConnection getResultConnection( Reporter reporter,
                                                          TapQuery tq )
@@ -411,10 +461,11 @@ public abstract class VotLintTapRunner extends TapRunner {
     /**
      * Returns a new instance which uses HTTP GET to make synchronous queries.
      *
+     * @param  doChecks   true for detailed VOTable checking
      * @return  new TapRunner
      */
-    public static VotLintTapRunner createGetSyncRunner() {
-        return new VotLintTapRunner( "sync GET" ) {
+    public static VotLintTapRunner createGetSyncRunner( boolean doChecks ) {
+        return new VotLintTapRunner( "sync GET", doChecks ) {
             @Override
             protected URLConnection getResultConnection( Reporter reporter,
                                                          TapQuery tq )
@@ -445,10 +496,12 @@ public abstract class VotLintTapRunner extends TapRunner {
      * This instance does not do exhaustive validation.
      *
      * @param  pollMillis  polling interval in milliseconds
+     * @param  doChecks   true for detailed VOTable checking
      * @return  new TapRunner
      */
-    public static VotLintTapRunner createAsyncRunner( final long pollMillis ) {
-        return new VotLintTapRunner( "async" ) {
+    public static VotLintTapRunner createAsyncRunner( final long pollMillis,
+                                                      boolean doChecks ) {
+        return new VotLintTapRunner( "async", doChecks ) {
             @Override
             protected URLConnection getResultConnection( Reporter reporter,
                                                          TapQuery tq )
