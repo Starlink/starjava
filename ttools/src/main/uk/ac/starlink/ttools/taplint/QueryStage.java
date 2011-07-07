@@ -53,6 +53,16 @@ public class QueryStage implements Stage {
                            + " - will not run test queries" );
             return;
         }
+        List<TableMeta> tmList = new ArrayList<TableMeta>();
+        for ( int i = 0; i < tmetas.length; i++ ) {
+            TableMeta tmeta = tmetas[ i ];
+            if ( ! tmeta.getName().toUpperCase().startsWith( "TAP_SCHEMA." ) ) {
+                tmList.add( tmeta );
+            }
+        }
+        if ( ! tmList.isEmpty() ) {
+            tmetas = tmList.toArray( new TableMeta[ 0 ] );
+        }
         new Querier( reporter, serviceUrl, tmetas ).run();
         tapRunner_.reportSummary( reporter );
     }
@@ -96,7 +106,7 @@ public class QueryStage implements Stage {
          * Invoked to perform queries.
          */
         public void run() {
-            runAllColumns( tmeta1_ );
+            runOneColumn( tmeta1_ );
             runSomeColumns( tmeta2_ );
             runJustMeta( tmeta3_ );
             // make sure GET and POST work
@@ -107,31 +117,40 @@ public class QueryStage implements Stage {
          *
          * @param  tmeta  table to test
          */
-        private void runAllColumns( TableMeta tmeta ) {
+        private void runOneColumn( TableMeta tmeta ) {
             final int nr0 = 10;
             String tname = tmeta.getName();
 
-            /* Prepare an array of column specifiers corresponding to all
-             * the columns in the table. */
-            ColumnMeta[] cmetas = tmeta.getColumns();
-            int ncol = cmetas.length;
-            ColSpec[] cspecs = new ColSpec[ ncol ];
-            for ( int ic = 0; ic < ncol; ic++ ) {
-                cspecs[ ic ] = new ColSpec( cmetas[ ic ] );
-            }
+            /* Prepare an array of column specifiers corresponding to
+             * the first single column in the table. */
+            ColumnMeta cmeta1 = tmeta.getColumns()[ 0 ];
+            ColSpec cspec1 = new ColSpec( cmeta1 );
 
             /* Check that limiting using TOP works. */
+            String tAdql = new StringBuilder()
+               .append( "SELECT TOP " )
+               .append( nr0 )
+               .append( " " )
+               .append( cspec1.getQueryText() )
+               .append( " FROM " )
+               .append( tname )
+               .toString();
             StarTable t1 =
-                runCheckedQuery( "SELECT TOP " + nr0 + " * FROM " + tname,
-                                 -1, cspecs, nr0 );
+                runCheckedQuery( tAdql, -1, new ColSpec[] { cspec1 }, nr0 );
             long nr1 = t1 != null ? t1.getRowCount() : 0;
             assert nr1 >= 0;
 
             /* Check that limiting using MAXREC works. */
             if ( nr1 > 0 ) {
                 int nr2 = Math.min( (int) nr1 - 1, nr0 - 1 );
-                StarTable t2 = runCheckedQuery( "SELECT * FROM " + tname,
-                                                nr2, cspecs, -1 );
+                String mAdql = new StringBuilder()
+                   .append( "SELECT " )
+                   .append( cspec1.getQueryText() )
+                   .append( " FROM " )
+                   .append( tname )
+                   .toString();
+                StarTable t2 =
+                    runCheckedQuery( mAdql, nr2, new ColSpec[] { cspec1 }, -1 );
                 if ( t2 != null && ! tapRunner_.isOverflow( t2 ) ) {
                     String msg = "Overflow not marked - no "
                                + "<INFO name='QUERY_STATUS' value='OVERFLOW'/> "

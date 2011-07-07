@@ -7771,6 +7771,9 @@ but my thanks are especially due to the following:
         no longer causes an uncaught NullPointerException.</li>
     <li>Improve test logic for record limiting queries in
         <code>taplint</code>.</li>
+    <li><code>taplint</code> no longer reports errors (e.g. E-Qxx-CNAM) 
+        for unexpected TAP_SCHEMA table column ordering
+        (when running query stage but no metadata acquisition stages).</li>
     </ul>
     </p>
     </dd>
