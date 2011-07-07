@@ -68,7 +68,8 @@ public class JobStage implements Stage {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( ReportType.FAILURE, "NOTM",
-                             "No table metadata available"
+                             "No table metadata available "
+                           + "(earlier stages failed/skipped? "
                            + " - will not attempt UWS tests" );
             return;
         }

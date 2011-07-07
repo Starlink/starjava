@@ -49,8 +49,9 @@ public class QueryStage implements Stage {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( ReportType.FAILURE, "NOTM",
-                             "No table metadata available"
-                           + " - will not run test queries" );
+                             "No table metadata available "
+                           + "(earlier stages failed/skipped?) "
+                           + "- will not run test queries" );
             return;
         }
         List<TableMeta> tmList = new ArrayList<TableMeta>();

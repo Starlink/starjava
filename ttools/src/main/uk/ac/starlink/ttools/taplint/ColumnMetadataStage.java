@@ -54,6 +54,7 @@ public class ColumnMetadataStage implements Stage {
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( ReportType.FAILURE, "NOTM",
                              "No table metadata available"
+                           + " (earlier stages failed/skipped?)"
                            + " - will not run test queries" );
             return;
         }
