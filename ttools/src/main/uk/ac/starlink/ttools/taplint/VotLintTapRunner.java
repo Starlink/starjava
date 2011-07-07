@@ -464,7 +464,8 @@ public abstract class VotLintTapRunner extends TapRunner {
      * @param  doChecks   true for detailed VOTable checking
      * @return  new TapRunner
      */
-    public static VotLintTapRunner createGetSyncRunner( boolean doChecks ) {
+    public static VotLintTapRunner
+            createGetSyncRunner( final boolean doChecks ) {
         return new VotLintTapRunner( "sync GET", doChecks ) {
             @Override
             protected URLConnection getResultConnection( Reporter reporter,
@@ -477,8 +478,10 @@ public abstract class VotLintTapRunner extends TapRunner {
                                    .toPostedBytes( tq.getStringParams() ),
                                     "utf-8" );
                     URL qurl = new URL( tq.getServiceUrl() + "/sync?" + ptxt );
-                    reporter.report( ReportType.INFO, "QGET",
-                                     "Query GET URL: " + qurl );
+                    if ( doChecks ) {
+                        reporter.report( ReportType.INFO, "QGET",
+                                         "Query GET URL: " + qurl );
+                    }
                     return qurl.openConnection();
                 }
                 else {

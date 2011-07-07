@@ -2,6 +2,12 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -115,120 +121,173 @@ public class ColumnMetadataStage implements Stage {
                                   "TAP job creation failed for " + adql, e );
                 return;
             }
-            StarTable result = tRunner_.getResultTable( reporter_, tq );
-            if ( result != null ) {
+            StarTable result;
+            try {
+                result = tRunner_.attemptGetResultTable( reporter_, tq );
+            }
+            catch ( IOException e ) {
+                reporter_.report( ReportType.ERROR, "QERR",
+                                  "Failed TAP query " + adql, e );
+                return;
+            }
+            catch ( SAXException e ) {
+                reporter_.report( ReportType.ERROR, "QERX",
+                                  "Failed to parse result for TAP query "
+                                + adql, e );
+                return;
+            }
 
-                /* Check row count. */
-                try {
-                    result = Tables.randomTable( result );
-                }
-                catch ( IOException e ) {
-                    reporter_.report( ReportType.ERROR, "VTIO",
-                                      "Error reading table result for " + adql,
-                                      e );
-                    return;
-                }
-                long nrow = result.getRowCount();
-                if ( nrow > ntop ) {
-                    String msg = new StringBuilder()
-                       .append( "Too many rows returned (" )
-                       .append( nrow )
-                       .append( " > " )
-                       .append( ntop )
-                       .append( " for " )
-                       .append( adql )
-                       .toString();
-                    reporter_.report( ReportType.ERROR, "RRTO", msg );
-                }
+            /* Check row count. */
+            try {
+                result = Tables.randomTable( result );
+            }
+            catch ( IOException e ) {
+                reporter_.report( ReportType.ERROR, "VTIO",
+                                  "Error reading table result for " + adql, e );
+                return;
+            }
+            long nrow = result.getRowCount();
+            if ( nrow > ntop ) {
+                String msg = new StringBuilder()
+                   .append( "Too many rows returned (" )
+                   .append( nrow )
+                   .append( " > " )
+                   .append( ntop )
+                   .append( " for " )
+                   .append( adql )
+                   .toString();
+                reporter_.report( ReportType.ERROR, "RRTO", msg );
+            }
 
-                /* Check column count. */
-                ColumnMeta[] colMetas = tmeta.getColumns();
-                ColumnInfo[] colInfos = Tables.getColumnInfos( result );
-                int mCount = colMetas.length;
-                int rCount = colInfos.length;
-                if ( mCount != rCount ) {
-                    String msg = new StringBuilder()
-                       .append( "Result/metadata column count mismatch: " )
-                       .append( rCount )
-                       .append( " != " )
-                       .append( mCount )
-                       .append( " for " )
-                       .append( adql )
-                       .toString();
-                    reporter_.report( ReportType.ERROR, "NCOL", msg );
-                    return;
-                }
-                int ncol = mCount;
+            /* Prepare name->column-metadata maps for both declared and
+             * result column sets. */
+            ColumnMeta[] colMetas = tmeta.getColumns();
+            Map<String,ColumnMeta> declaredMap =
+                new LinkedHashMap<String,ColumnMeta>();
+            for ( int ic = 0; ic < colMetas.length; ic++ ) {
+                ColumnMeta colMeta = colMetas[ ic ];
+                declaredMap.put( normalize( colMeta.getName() ), colMeta );
+            }
+            Map<String,ColumnInfo> resultMap =
+                new LinkedHashMap<String,ColumnInfo>();
+            for ( int ic = 0; ic < result.getColumnCount(); ic++ ) {
+                ColumnInfo colInfo = result.getColumnInfo( ic );
+                resultMap.put( normalize( colInfo.getName() ), colInfo );
+            }
 
-                /* Check column names. */
-                boolean[] matches = new boolean[ ncol ];
-                for ( int ic = 0; ic < ncol; ic++ ) {
-                    String mName = colMetas[ ic ].getName();
-                    String rName = colInfos[ ic ].getName();
-                    final boolean match;
-                    if ( ! mName.equalsIgnoreCase( rName ) ) {
-                        match = false;
-                        String msg = new StringBuilder()
-                           .append( "Result/metadata column name mismatch: " )
-                           .append( rName )
-                           .append( " != " )
-                           .append( mName )
-                           .append( " for column #" )
-                           .append( ic + 1 )
-                           .append( " in table " )
-                           .append( tname )
-                           .toString();
-                        reporter_.report( ReportType.ERROR, "CNAM", msg );
-                    }
-                    else if ( ! mName.equals( rName ) ) {
-                        match = true;
-                        String msg = new StringBuilder()
-                           .append( "Result/metadata column name " )
-                           .append( "case mismatch: " )
-                           .append( rName )
-                           .append( " != " )
-                           .append( mName )
-                           .append( " for column #" )
-                           .append( ic + 1 )
-                           .append( " in table " ) 
-                           .append( tname )
-                           .toString();
-                        reporter_.report( ReportType.WARNING, "CCAS", msg );
-                    }
-                    else {
-                        match = true;
-                    }
-                    matches[ ic ] = match;
-                }
-
-                /* Check column types. */
-                for ( int ic = 0; ic < ncol; ic++ ) {
-                    if ( matches[ ic ] ) {
-                        String cname = colMetas[ ic ].getName();
-                        String mType = colMetas[ ic ].getDataType();
-                        String rType =
-                            (String)
-                            colInfos[ ic ]
-                           .getAuxDatumValue( VOStarTable.DATATYPE_INFO,
-                                              String.class );
-                        if ( ! CompareMetadataStage
-                              .compatibleDataTypes( mType, rType ) ) {
-                            String msg = new StringBuilder()
-                               .append( "Result/metadata column type " )
-                               .append( "mismatch for column " )
-                               .append( cname )
-                               .append( " in table " )
-                               .append( tname )
-                               .append( ": " )
-                               .append( rType )
-                               .append( " != " )
-                               .append( mType )
-                               .toString();
-                            reporter_.report( ReportType.WARNING, "CTYP", msg );
+            /* Check for columns declared but not in result. */
+            {
+                List<String> dOnlyList =
+                    new ArrayList<String>( declaredMap.keySet() );
+                dOnlyList.removeAll( resultMap.keySet() );
+                int ndo = dOnlyList.size();
+                if ( ndo > 0 ) {
+                    StringBuilder sbuf = new StringBuilder()
+                        .append( "SELECT * for table " )
+                        .append( tname )
+                        .append( " lacks " )
+                        .append( ndo )
+                        .append( " declared " )
+                        .append( ndo == 1 ? "column" : "columns" )
+                        .append( ": " );
+                    for ( Iterator<String> cit = dOnlyList.iterator();
+                          cit.hasNext(); ) {
+                        String cname = cit.next();
+                        sbuf.append( declaredMap.get( cname ).getName() );
+                        if ( cit.hasNext() ) {
+                            sbuf.append( ", " );
                         }
                     }
+                    reporter_.report( ReportType.ERROR, "CLDR",
+                                      sbuf.toString() );
                 }
             }
+
+            /* Check for columns in result but not declared. */
+            {
+                List<String> rOnlyList =
+                    new ArrayList<String>( resultMap.keySet() );
+                rOnlyList.removeAll( declaredMap.keySet() );
+                int nro = rOnlyList.size();
+                if ( nro > 0 ) {
+                    StringBuilder sbuf = new StringBuilder()
+                        .append( "SELECT * for table " )
+                        .append( tname )
+                        .append( " returns " )
+                        .append( nro )
+                        .append( " undeclared " )
+                        .append( nro == 1 ? "column" : "columns" )
+                        .append( ": " );
+                    for ( Iterator<String> cit = rOnlyList.iterator();
+                          cit.hasNext(); ) {
+                        String cname = cit.next();
+                        sbuf.append( resultMap.get( cname ).getName() );
+                        if ( cit.hasNext() ) {
+                            sbuf.append( ", " );
+                        }
+                    }
+                    reporter_.report( ReportType.ERROR, "CLRD",
+                                      sbuf.toString() );
+                }
+            }
+
+            /* Work out the intersection. */
+            List<String> bothList =
+                new ArrayList<String>( declaredMap.keySet() );
+            bothList.retainAll( resultMap.keySet() );
+
+            /* Report on capitalisation discrepancies. */
+            for ( String cname : bothList ) {
+                String dName = declaredMap.get( cname ).getName();
+                String rName = resultMap.get( cname ).getName();
+                if ( ! dName.equals( rName ) ) {
+                    String msg = new StringBuilder()
+                        .append( "Declared/result column " )
+                        .append( "capitalization mismatch in table " )
+                        .append( tname )
+                        .append( " " )
+                        .append( dName )
+                        .append( " != " )
+                        .append( rName )
+                        .toString();
+                    reporter_.report( ReportType.WARNING, "CCAS", msg );
+                }
+            }
+
+            /* Report on type discrepancies. */
+            for ( String cname : bothList ) {
+                String dType = declaredMap.get( cname ).getDataType();
+                String rType = (String)
+                               resultMap.get( cname )
+                              .getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                                 String.class );
+                if ( ! CompareMetadataStage
+                      .compatibleDataTypes( dType, rType ) ) {
+                    String msg = new StringBuilder()
+                        .append( "Declared/result type mismatch " )
+                        .append( "for column " )
+                        .append( resultMap.get( cname ).getName() )
+                        .append( " in table " )
+                        .append( tname )
+                        .append( " (" )
+                        .append( dType )
+                        .append( " != " )
+                        .append( rType )
+                        .append( ")" )
+                        .toString();
+                    reporter_.report( ReportType.ERROR, "CTYP", msg );
+                }
+            }
+        }
+
+        /**
+         * Flattens case for column names.
+         *
+         * @param   name  column name
+         * @param   name with case folded
+         */
+        private String normalize( String name ) {
+            return name.toLowerCase();
         }
     }
 }
