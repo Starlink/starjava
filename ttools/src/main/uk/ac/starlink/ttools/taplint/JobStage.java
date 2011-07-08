@@ -876,7 +876,7 @@ public class JobStage implements Stage {
                 }
             }
             String ctype = hconn.getContentType();
-            if ( ctype == null && ctype.trim().length() == 0 ) {
+            if ( ctype == null || ctype.trim().length() == 0 ) {
                 reporter_.report( ReportType.WARNING, "NOCT",
                                   "No Content-Type header for " + url );
             }
