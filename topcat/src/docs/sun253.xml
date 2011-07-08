@@ -14964,6 +14964,8 @@ introduced since the last version:
         related to changing subset definitions.</li>
     <li>Fix a small bug related to enabledness of buttons in control
         window and hub connection.</li>
+    <li>Improve resilience of multi-cone operation in the presence of
+        unreliable or inconsistent DAL services.</li>
     </ul>
     </p></dd>
 

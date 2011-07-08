@@ -28,6 +28,8 @@ public class ConeSearchConer implements Coner {
     private final BooleanParameter believeemptyParam_;
     private final Parameter formatParam_;
     private static final String BELIEVE_EMPTY_NAME = "emptyok";
+    private static final String INCONSISTENT_EMPTY_ADVICE =
+            BELIEVE_EMPTY_NAME + "=false";
 
     /**
      * Constructor.
@@ -265,26 +267,6 @@ public class ConeSearchConer implements Coner {
                 }
             }
         }
-
-        /**
-         * Returns the warning string to be issed if inconsistent table 
-         * metadata is encountered.
-         *
-         * @param  believeEmpty  whether to take seriously metadata from
-         *         zero-length tables
-         */
-        String getWarning( boolean believeEmpty ) {
-            StringBuffer sbuf = new StringBuffer();
-            sbuf.append( "Different queries to the same " )
-                .append( name_ )
-                .append( " service return incompatible tables" );
-            if ( believeEmpty ) {
-                sbuf.append( " - try " )
-                    .append( BELIEVE_EMPTY_NAME )
-                    .append( "=false" );
-            }
-            return sbuf.toString();
-        }
     }
 
     /**
@@ -325,8 +307,9 @@ public class ConeSearchConer implements Coner {
             return new ServiceConeSearcher( new ConeSearch( url ),
                                             getVerbosity( env ),
                                             believeEmpty, tfact ) {
-                protected String getInconsistentResultsWarning() {
-                    return getWarning( believeEmpty );
+                @Override
+                protected String getInconsistentEmptyAdvice() {
+                    return INCONSISTENT_EMPTY_ADVICE;
                 }
             };
         }
@@ -379,8 +362,9 @@ public class ConeSearchConer implements Coner {
             formatParam_.setDefault( "image/fits" );
             String format = formatParam_.stringValue( env );
             return new SiaConeSearcher( url, format, believeEmpty, tfact ) {
-                protected String getInconsistentResultsWarning() {
-                    return getWarning( believeEmpty );
+                @Override
+                protected String getInconsistentEmptyAdvice() {
+                    return INCONSISTENT_EMPTY_ADVICE;
                 }
             };
         }
@@ -434,8 +418,9 @@ public class ConeSearchConer implements Coner {
                 throws TaskException {
             String format = formatParam_.stringValue( env );
             return new SsaConeSearcher( url, format, believeEmpty, tfact ) {
-                protected String getInconsistentResultsWarning() {
-                    return getWarning( believeEmpty );
+                @Override
+                protected String getInconsistentEmptyAdvice() {
+                    return INCONSISTENT_EMPTY_ADVICE;
                 };
             };
         }

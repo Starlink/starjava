@@ -23,6 +23,7 @@ public class DalConeSearcher {
     private final String stdName_;
     private final String stdVers_;
     private Class[] colTypes_;
+    private Boolean typesFromEmpty_;
     private boolean warned_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
@@ -46,40 +47,64 @@ public class DalConeSearcher {
      * Takes a table which is the result of a query to the service handled
      * by this searcher, and returns a table which has compatible column
      * structure to any tables returned by previous calls to this method.
-     * If the given table looks different (different number or type of
-     * columns), null is returned instead.
-     * A one-time warning is issued throgh the logging system if an
-     * inconsistent table is encountered.
+     * If the given table looks inconsistent (different number or type of
+     * columns), an exception may be thrown or null returned instead.
      *
      * @param  table  candidate table
-     * @return   same table if it's consistent, else null
+     * @return   same table if it's consistent, or possibly null
      */
     protected StarTable getConsistentTable( StarTable table )
             throws IOException {
-        table = Tables.randomTable( table );
-        StarTable result = ( believeEmpty_ || ! isEmpty( table ) )
-                         ? table
-                         : null;
 
-        /* Check for consistency of columns between different calls.
-         * The main point of this is so that we can suggest adjusting
-         * the believeEmpty parameter if appropriate; it is *not* a
-         * good idea to throw an error here in response to inconsistencies.
-         * That is because (a) it's checked downstream of here and
-         * (b) an error here might look like an error in the service 
-         * resolution itself and be ignored accordingly (erract param). */
-        if ( result != null && ! warned_ ) {
-            if ( colTypes_ == null ) {
-                colTypes_ = getColumnTypes( result );
+        /* Check if the table has zero rows. */
+        table = Tables.randomTable( table );
+        boolean isEmpty = isEmpty( table );
+
+        /* If it does, and if zero-row tables are not trusted, return null
+         * (since there's no data, and the metadata might be wrong). */
+        if ( isEmpty && ! believeEmpty_ ) {
+            return null;
+        }
+
+        /* Get the array of column data types from the result table. */
+        Class[] ctypes = getColumnTypes( table );
+
+        /* If we haven't encountered reliable column metadata before now,
+         * set them from the values we have. */
+        if ( colTypes_ == null ) {
+            colTypes_ = ctypes;
+            typesFromEmpty_ = Boolean.valueOf( isEmpty );
+        }
+        assert colTypes_ != null;
+        assert typesFromEmpty_ != null;
+
+        /* Find out if the columns for this table are consistent with those
+         * previously obtained. */
+        boolean isConsistent = Arrays.equals( colTypes_, ctypes );
+
+        /* If consistent, just return the table. */
+        if ( isConsistent ) {
+            return table;
+        }
+
+        /* If not, throw an exception and possibly issue a one-time warning.
+         * The point of the warning is that the exception may get caught
+         * and ignored (erract param). */
+        else {
+            if ( typesFromEmpty_ && ! isEmpty ) {
+                String message = "Non-empty and empty queries to the same "
+                               + "service seem to return incompatible tables"
+                               + " - " + getInconsistentEmptyAdvice();
+                if ( ! warned_ ) {
+                    logger_.warning( message );
+                }
+                throw new IOException( message );
             }
             else {
-                if ( ! Arrays.equals( colTypes_, getColumnTypes( result ) ) ) {
-                    logger_.warning( getInconsistentResultsWarning() );
-                    warned_ = true;
-                }
+                throw new IOException( "Different queries to the same service "
+                                     + "return incompatible tables" );
             }
         }
-        return result;
     }
 
     /**
@@ -171,21 +196,16 @@ public class DalConeSearcher {
     }
 
     /**
-     * Returns the warning message to be output in the case that
-     * subsequent accesses to the same service return
-     * incompatible tables (ones with different columns).
-     * This most commonly happens when the table has no rows, and
-     * the server doesn't bother to send columns either.
+     * Returns implementation-specific advice to the user about how to
+     * swich off trusting the metadata of zero-row tables.
+     * This is issued to the user in the event that zero-row tables are
+     * trusted (<code>believeEmpty==true</code>), but subsequent results
+     * make it look like they shouldn't be.
      *
      * @return   warning message
      */
-    protected String getInconsistentResultsWarning() {
-        String msg = "Different queries to the same " + stdName_
-                   + " service return incompatible tables";
-        if ( believeEmpty_ ) {
-            msg += " - try believeEmpty=false";
-        }
-        return msg;
+    protected String getInconsistentEmptyAdvice() {
+        return "try believeEmpty=false";
     }
 
     /**
