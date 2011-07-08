@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.vo.TapQuery;
@@ -16,6 +17,7 @@ public abstract class TapRunner {
     private final String description_;
     private int nQuery_;
     private int nResult_;
+    private long queryTime_;
 
     /**
      * Constructor.
@@ -73,7 +75,9 @@ public abstract class TapRunner {
         reporter.report( ReportType.INFO, "QSUB",
                          "Submitting query: " + tq.getAdql() );
         nQuery_++;
+        long start = System.currentTimeMillis();
         StarTable table = executeQuery( reporter, tq );
+        queryTime_ += System.currentTimeMillis() - start;
         nResult_++;
         return table;
     }
@@ -97,12 +101,21 @@ public abstract class TapRunner {
      * @param  reporter  validation message destination
      */
     public void reportSummary( Reporter reporter ) {
-        String msg = new StringBuffer()
-           .append( "Successful/submitted TAP queries: " )
-           .append( nResult_ )
-           .append( "/" )
-           .append( nQuery_ )
-           .toString();
-        reporter.report( ReportType.SUMMARY, "QNUM", msg );
+        String cmsg = new StringBuilder()
+            .append( "Successful/submitted TAP queries: " )
+            .append( nResult_ )
+            .append( "/" )
+            .append( nQuery_ )
+            .toString();
+        reporter.report( ReportType.SUMMARY, "QNUM", cmsg );
+        if ( nResult_ > 0 ) {
+            String tmsg = new StringBuilder()
+                .append( "Average successful query time: " )
+                .append( new DecimalFormat( "0.0" )
+                        .format( 0.001 * queryTime_ / nResult_ ) )
+                .append( "s" )
+                .toString();
+            reporter.report( ReportType.SUMMARY, "QTIM", tmsg );
+        }
     }
 }
