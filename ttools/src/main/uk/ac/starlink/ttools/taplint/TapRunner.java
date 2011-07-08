@@ -109,10 +109,17 @@ public abstract class TapRunner {
             .toString();
         reporter.report( ReportType.SUMMARY, "QNUM", cmsg );
         if ( nResult_ > 0 ) {
+            double qtime = 0.001 * queryTime_ / nResult_;
+            String fmt = "0.0";
+            if ( qtime < 0.2 ) {
+                fmt = "0.00";
+            }
+            if ( qtime < 0.02 ) {
+                fmt = "0.000";
+            }
             String tmsg = new StringBuilder()
                 .append( "Average successful query time: " )
-                .append( new DecimalFormat( "0.0" )
-                        .format( 0.001 * queryTime_ / nResult_ ) )
+                .append( new DecimalFormat( fmt ).format( qtime ) )
                 .append( "s" )
                 .toString();
             reporter.report( ReportType.SUMMARY, "QTIM", tmsg );
