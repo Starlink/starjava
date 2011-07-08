@@ -4701,7 +4701,7 @@ its intended use is for people developing or operating TAP services
 to assess their services, perhaps with a view to improving compliance.
 </p>
 
-<p>Validation takes place in a number of stages; it is possible to choose 
+<p>Testing takes place in a number of stages; it is possible to choose 
 which stages are run in by using the <code>stages</code> parameter.
 At present output is line-based text to standard output,
 and each report line is of the (fairly greppable) form:
@@ -4742,6 +4742,9 @@ where the parts have the following meanings:
     instead of the sequence number.
     This behaviour prevents the output being swamped by
     multiple reports of the same issue.
+    If the <code>maxrepeat</code> parameter is increased above 9, more than
+    one digit will be used here (so e.g. for maxrepeat=999, the format would
+    be <code>NNN</code> not <code>N</code>).
     </li>
 <li><code>aaaaa...</code>: Message text, a free text description of
     what is being reported.
@@ -4765,10 +4768,13 @@ where the parts have the following meanings:
 and it is hard to write a validator which comprehensive, especially
 one which can provide useful output for services with a range of 
 compliance levels.
-This validator tries to make a wide range of tests, but does not claim to
+This tool tries to make a wide range of tests, but does not claim to
 be comprehensive.  An idea of what tests it does perform can be gained 
 from the stages listed in the description of the <code>stages</code>
-parameter.  Notable omissions include complex ADQL queries, 
+parameter.  It does make a fairly good job of checking that declared
+metadata is consistent and matches the data actually returned from queries,
+and it tests job submission in most of the various ways permitted by the TAP
+standard.  Things it does not test much include complex ADQL queries, 
 coordinate/STC-related data types, queries in non-ADQL languages,
 and service registration.
 </p>

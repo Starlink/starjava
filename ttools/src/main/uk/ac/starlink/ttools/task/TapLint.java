@@ -96,6 +96,13 @@ public class TapLint implements Task {
             "You can specify a list of stage codes, separated by spaces.",
             "Order is not significant.",
             "</p>",
+            "<p>Note that removing some stages may affect the operation",
+            "of others;",
+            "for instance table metadata is acquired from the metadata stages,",
+            "and avoiding those will mean that later stages that use",
+            "the table metadata to pose queries will not be able to do so",
+            "with knowledge of the database schema.",
+            "</p>",
         } );
         paramList.add( stagesParam_ );
 
