@@ -54,7 +54,8 @@ public class CompareMetadataStage implements Stage {
         TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
         if ( tmetas1 == null || tmetas2 == null ) {
             reporter.report( ReportType.FAILURE, "NOTM",
-                             "Don't have two metadata sets to compare" );
+                             "Don't have two metadata sets to compare"
+                           + " (earlier stages failed/skipped?)" );
             return;
         }
         compareTables( reporter, tmetas1, tmetas2 );
