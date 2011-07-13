@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.URL;
@@ -12,13 +14,17 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOStarTable;
+import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -170,34 +176,9 @@ public class UploadStage implements Stage {
                            .toString();
                         reporter_.report( ReportType.ERROR, "TMCN", msg );
                     }
-                    Class clazz1 = c1.getContentClass();
-                    Class clazz2 = c2.getContentClass();
-                    if ( ! clazz1.equals( clazz2 ) ) {
-                        String msg = new StringBuilder()
-                           .append( "Upload result column type mismatch " )
-                           .append( clazz1.getName() )
-                           .append( " != " )
-                           .append( clazz2.getName() )
-                           .toString();
-                        reporter_.report( ReportType.ERROR, "TMCC", msg );
-                    }
-                    DescribedValue xtype1 =
-                        c1.getAuxDatum( VOStarTable.XTYPE_INFO );
-                    DescribedValue xtype2 =
-                        c2.getAuxDatum( VOStarTable.XTYPE_INFO );
-                    if ( xtype1 != null ) {
-                        if ( xtype2 == null ||
-                             ! xtype1.getValue().equals( xtype2.getValue() ) ) {
-                            String msg = new StringBuilder()
-                               .append( "Upload result column xtype mismatch " )
-                               .append( xtype2.getValue() )
-                               .append( " != " )
-                               .append( xtype1.getValue() )
-                               .toString();
-                            reporter_.report( ReportType.ERROR, "TMCX", msg );
-                                             
-                        }
-                    }
+                    compareStringAuxMetadata( c1, c2,
+                                              VOStarTable.DATATYPE_INFO );
+                    compareStringAuxMetadata( c1, c2, VOStarTable.XTYPE_INFO );
                 }
             }
 
@@ -232,6 +213,39 @@ public class UploadStage implements Stage {
             catch ( IOException e ) {
                 reporter_.report( ReportType.FAILURE, "DTIO",
                                   "Unexpected IO error reading table", e );
+            }
+        }
+
+        /**
+         * Compares column auxiliary metadata items for two columns;
+         * if they are different, a warning is issued.
+         *
+         * @param  c1  upload column
+         * @param  c2  result column
+         * @param  metaInfo  the metadata item to be compared
+         */
+        private void compareStringAuxMetadata( ColumnInfo c1, ColumnInfo c2,
+                                               ValueInfo metaInfo ) {
+            DescribedValue dv1 = c1.getAuxDatum( metaInfo );
+            DescribedValue dv2 = c2.getAuxDatum( metaInfo );
+            String s1 = dv1 == null ? null : (String) dv1.getValue();
+            String s2 = dv2 == null ? null : (String) dv2.getValue();
+            if ( ( s1 == null && s2 != null ) ||
+                 ( s1 != null && ! s1.equals( s2 ) ) ) {
+                String msg = new StringBuilder()
+                   .append( "Upload result column " )
+                   .append( metaInfo.getName() )
+                   .append( " mismatch (" )
+                   .append( s1 )
+                   .append( " != " )
+                   .append( s2 )
+                   .append( ")" )
+                   .append( " for column " )
+                   .append( c1.getName() )
+                   .toString();
+                String code = "TM" + metaInfo.getName().substring( 0, 2 )
+                                                       .toUpperCase();
+                reporter_.report( ReportType.WARNING, code, msg );
             }
         }
     }
@@ -315,8 +329,27 @@ public class UploadStage implements Stage {
             }
         }
 
-        /* Return the result. */
-        return ctable;
+        /* Write and re-read the table.  The purpose of this is so that
+         * the columns have VOTable-specific aux metadata, for comparison
+         * with that from the query response VOTable. */
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            VOTableWriter vow = new VOTableWriter( DataFormat.BINARY, true );
+            vow.setVotableVersion( "1.2" );
+            vow.writeStarTable( ctable, bout );
+            bout.close();
+            byte[] bbuf = bout.toByteArray();
+            StarTableFactory stfact = new StarTableFactory();
+            stfact.setStoragePolicy( StoragePolicy.PREFER_MEMORY );
+            return stfact
+                  .makeStarTable( new ByteArrayInputStream( bbuf ),
+                                  new VOTableBuilder( true ) );
+        }
+        catch ( IOException e ) {
+            throw (AssertionError)
+                  new AssertionError( "Unexpected error re-reading VOTable" )
+                 .initCause( e );
+        }
     }
 
     /**
