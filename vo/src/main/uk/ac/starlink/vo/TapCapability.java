@@ -161,16 +161,16 @@ public abstract class TapCapability {
             (NodeList) xpath.evaluate( "language",
                                        capNode, XPathConstants.NODESET );
         List<String> langList = new ArrayList<String>();
-        for ( int i = 0; i < langNodeList.getLength(); i++ ) {
-            Node lang = langNodeList.item( i );
+        for ( int il = 0; il < langNodeList.getLength(); il++ ) {
+            Node lang = langNodeList.item( il );
             String name =
                 (String) xpath.evaluate( "./name/text()",
                                          lang, XPathConstants.STRING );
             NodeList versNodeList =
                 (NodeList) xpath.evaluate( "./version/text()",
                                            lang, XPathConstants.NODESET );
-            for ( int j = 0; j < versNodeList.getLength(); j++ ) {
-                String version = versNodeList.item( i ).getNodeValue();
+            for ( int iv = 0; iv < versNodeList.getLength(); iv++ ) {
+                String version = versNodeList.item( iv ).getNodeValue();
                 langList.add( name + "-" + version );
             }
         }
