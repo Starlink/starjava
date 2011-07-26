@@ -2466,6 +2466,17 @@ The common ones are:
   </dl>
 </p></dd>
 
+<dt>Bitwise</dt>
+<dd><p>
+   <dl>
+   <dt><code>&amp;</code> (and)</dt>
+   <dt><code>|</code> (or)</dt>
+   <dt><code>&lt;&lt;</code> (left shift)</dt>
+   <dt><code>&gt;&gt;</code> (right shift)</dt>
+   <dt><code>&gt;&gt;&gt;</code> (logical right shift)</dt>
+   </dl>
+</p></dd>
+
 <dt>Numeric Typecasts</dt>
 <dd><p>
   <dl>
