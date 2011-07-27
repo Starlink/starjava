@@ -1,11 +1,16 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -26,6 +31,8 @@ public class TopcatLoadClient implements TableLoadClient {
     private volatile int nLoad_;
     private volatile int nAttempt_;
     private volatile boolean cancelled_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs a load client with popup windows for warnings and errors.
@@ -95,18 +102,47 @@ public class TopcatLoadClient implements TableLoadClient {
      * @return   topcat model which holds the table
      */
     protected TopcatModel addTable( StarTable table ) {
-        String location;
-        DescribedValue srcParam =
-            table.getParameterByName( TableLoader.SOURCE_INFO.getName() );
-        if ( srcParam != null && srcParam.getValue() instanceof String ) {
-            location = (String) srcParam.getValue();
+
+        /* See if a SOURCE_INFO entry exists in the metadata.  This may have
+         * been added by the load machinery.  If so, use it as the location
+         * label.  In any case, remove such entries from the parameter list,
+         * since they have no further use and should not be propagated or
+         * otherwise visible in the application. */
+        String location = null;
+        List paramList = table.getParameters();
+        int nsrc = 0;
+        try {
+            for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
+                DescribedValue dval = (DescribedValue) it.next();
+                ValueInfo info = dval.getInfo();
+                if ( TableLoader.SOURCE_INFO.getName()
+                                            .equals( info.getName() ) ) {
+                    it.remove();
+                    Object value = dval.getValue();
+                    if ( value instanceof String ) {
+                        location = (String) value;
+                    }
+                    nsrc++;
+                }
+            }
         }
-        else {
+        catch ( RuntimeException e ) {
+            logger_.log( Level.WARNING,
+                         "Unexpected error examining metadata: " + e, e );
+        }
+
+        /* If more than one SOURCE_INFO entry is discovered, ignore them all.
+         * This shouldn't happen, but some previous buggy code might have
+         * written such tables.  In any case, if we don't have a (trustworthy)
+         * SOURCE_INFO label, use the load label instead. */
+        if ( location == null || nsrc > 1 ) {
             location = label_;
             if ( nLoad_ > 0 ) {
                 location += "-" + ( nLoad_ + 1 );
             }
         }
+
+        /* Update count and return a new TopcatModel based on this table. */
         nLoad_++;
         return controlWin_.addTable( table, location, true );
     }

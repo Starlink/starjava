@@ -14977,6 +14977,9 @@ introduced since the last version:
         window and hub connection.</li>
     <li>Improve resilience of multi-cone operation in the presence of
         unreliable or inconsistent DAL services.</li>
+    <li>Fix bug introduced at v3.7 related to labelling loaded files
+        (improper handling and propagation of <code>LOAD_SOURCE</code>
+        table parameter).</li>
     </ul>
     </p></dd>
 
