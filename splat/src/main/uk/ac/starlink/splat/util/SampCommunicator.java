@@ -36,9 +36,8 @@ import org.astrogrid.samp.client.MessageHandler;
 import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.MessageTrackerHubConnector;
 import org.astrogrid.samp.gui.SysTray;
-import org.astrogrid.samp.xmlrpc.HubMode;
-import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
+import org.astrogrid.samp.hub.Hub;
+import org.astrogrid.samp.hub.HubServiceMode;
 
 import uk.ac.starlink.splat.iface.SampFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO;
@@ -145,13 +144,12 @@ public class SampCommunicator
         throws IOException
     {
         if ( external ) {
-            HubRunner.runExternalHub( HubMode.MESSAGE_GUI );
+            Hub.runHub( HubServiceMode.MESSAGE_GUI );
         }
         else {
-            HubRunner.runHub( SysTray.getInstance().isSupported()
-                                  ? HubMode.CLIENT_GUI
-                                  : HubMode.NO_GUI,
-                              XmlRpcKit.INTERNAL );
+            Hub.runHub( SysTray.getInstance().isSupported()
+                            ? HubServiceMode.CLIENT_GUI
+                            : HubServiceMode.NO_GUI );
         }
     }
 
