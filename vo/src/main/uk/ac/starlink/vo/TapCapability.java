@@ -130,11 +130,14 @@ public abstract class TapCapability {
                           .newDocumentBuilder()
                           .parse( new BufferedInputStream( url.openStream() ) );
         XPath xpath = XPathFactory.newInstance().newXPath();
+        String capXpath = "capability[@standardID='ivo://ivoa.net/std/TAP']";
         Node capNode =
-            (Node) xpath.evaluate( "capability[@standardID="
-                                   + "'ivo://ivoa.net/std/TAP']",
-                                   capsDoc.getDocumentElement(),
+            (Node) xpath.evaluate( capXpath, capsDoc.getDocumentElement(),
                                    XPathConstants.NODE );
+        if ( capNode == null ) {
+            throw new IOException( "No element \"" + capXpath + "\""
+                                 + " at " + url );
+        }
 
         /* Get upload methods. */
         NodeList upNodeList =
