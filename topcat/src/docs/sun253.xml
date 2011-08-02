@@ -3526,6 +3526,15 @@ The meaning of the flags is as follows:
     contain particularly sensible data, they are just to give an idea.
     </p></dd>
 
+<dt>-running</dt>
+<dd><p>The <code>-running</code> flag can be used when specifying tables
+    on the command line.  If an existing instance of TOPCAT is already
+    running, the tables are loaded into it.  If no instance of TOPCAT
+    is running (or at least one cannot be discovered), then the
+    <code>-running</code> flag has no effect and a new instance is
+    started up as usual.
+    </p></dd>
+
 <dt>-memory</dt>
 <dd><p>If the <code>-memory</code> flag is given then the program will
     store table data in memory,
@@ -14980,6 +14989,9 @@ introduced since the last version:
     <li>Fix bug introduced at v3.7 related to labelling loaded files
         (improper handling and propagation of <code>LOAD_SOURCE</code>
         table parameter).</li>
+    <li>Add <code>-running</code> flag which loads tables specified on the
+        command line into a existing instance of TOPCAT if one is already
+        running.</li>
     </ul>
     </p></dd>
 

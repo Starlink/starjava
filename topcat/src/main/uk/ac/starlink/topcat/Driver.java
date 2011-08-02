@@ -13,7 +13,11 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.JSamp;
+import org.astrogrid.samp.Response;
+import org.astrogrid.samp.client.DefaultClientProfile;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
 import uk.ac.starlink.plastic.PlasticHub;
 import uk.ac.starlink.plastic.PlasticUtils;
@@ -161,7 +165,7 @@ public class Driver {
      *
      * @param  args  list of flags and table specifications
      */
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws SampException, IOException {
         try {
             Loader.checkJ2se();
         }
@@ -183,7 +187,8 @@ public class Driver {
      *
      * @param  args  list of table specifications
      */
-    private static void runMain( String[] args ) {
+    private static void runMain( String[] args )
+            throws SampException, IOException {
         VOElementFactory.STRICT_DEFAULT = false;
         tabfact = new StarTableFactory( true );
         String cmdname;
@@ -220,7 +225,7 @@ public class Driver {
         String usage = 
               pre + " [-help] [-version]"
             + pad + " [-stilts <stilts-args>|-jsamp <jsamp-args>]"
-            + pad + " [-verbose] [-demo] [-memory|-disk]"
+            + pad + " [-verbose] [-demo] [-running] [-memory|-disk]"
             + pad + " [-[no]hub|-exthub|-noserv] [-samp|-plastic]"
             + pad + " [[-f <format>] table ...]";
 
@@ -235,8 +240,8 @@ public class Driver {
         boolean internalHub = false;
         boolean externalHub = false;
         boolean noHub = false;
-        boolean stiltsMode = false;
         boolean checkVersion = true;
+        boolean useRunning = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
@@ -276,6 +281,14 @@ public class Driver {
             else if ( arg.equals( "-memory" ) ) {
                 it.remove();
                 tabfact.setStoragePolicy( StoragePolicy.PREFER_MEMORY );
+            }
+            else if ( arg.equals( "-running" ) ) {
+                it.remove();
+                useRunning = true;
+            }
+            else if ( arg.equals( "-norunning" ) ) {
+                it.remove();
+                useRunning = false;
             }
             else if ( arg.equals( "-disk" ) ) {
                 it.remove();
@@ -355,7 +368,8 @@ public class Driver {
         URLUtils.installCustomHandlers();
 
         /* Assemble pairs of (table name, handler name) to be loaded. */
-        final List<TableLoader> loaderList = new ArrayList<TableLoader>();
+        final List<DataSourceLoader> loaderList =
+            new ArrayList<DataSourceLoader>();
         String handler = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -377,6 +391,41 @@ public class Driver {
             }
             else {
                 loaderList.add( new DataSourceLoader( arg, handler ) );
+            }
+        }
+
+        /* Attempt to contact existing TOPCAT if requested. */
+        if ( useRunning ) {
+            TopcatSender sender =
+                TopcatSender.createSender( DefaultClientProfile.getProfile() );
+            if ( sender != null ) {
+                if ( loaderList.isEmpty() ) {
+                    logger.warning( "Running TOPCAT exists; "
+                                  + "no tables to send to it" );
+                }
+                try {
+                    for ( DataSourceLoader loader : loaderList ) {
+                        logger.info( "Sending table to running TOPCAT: "
+                                   + loader.loc_ );
+                        Response response =
+                            sender.sendTable( loader.loc_, loader.format_ );
+                        String status = response.getStatus();
+                        ErrInfo errInfo = response.getErrInfo();
+                        String errmsg = errInfo == null ? null
+                                                        : errInfo.getUsertxt();
+                        if ( Response.ERROR_STATUS.equals( status ) ) {
+                            throw new IOException( "Table send failed: "
+                                                 + errmsg );
+                        }
+                        else if ( ! response.isOK() ) {
+                            logger.warning( "Table send warning: " + errmsg );
+                        }
+                    } 
+                }
+                finally {
+                    sender.close();
+                }
+                return;
             }
         }
 
@@ -560,6 +609,8 @@ public class Driver {
            .append( p2 + "-verbose       increase verbosity of "
                                          + "reports to console" )
            .append( p2 + "-demo          start with demo data" )
+           .append( p2 + "-running       use existing TOPCAT instance "
+                                         + "if one is running" )
            .append( p2 + "-memory        use memory storage for tables" )
            .append( p2 + "-disk          use disk backing store for "
                                          + "large tables" ) 
@@ -647,7 +698,7 @@ public class Driver {
      * @param   sequential  true for sequential loading (synchronous operation),
      *                      false for parallel (aysnchronous)
      */
-    private static void loadTableList( List<TableLoader> loaderList,
+    private static void loadTableList( List<? extends TableLoader> loaderList,
                                        ControlWindow controlWin,
                                        final boolean sequential ) {
         for ( TableLoader loader : loaderList ) {

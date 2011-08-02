@@ -47,6 +47,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatLoadClient;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatSender;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.join.ConeMultiWindow;
 import uk.ac.starlink.topcat.join.DalMultiWindow;
@@ -345,6 +346,9 @@ public class TopcatSampControl {
             /* Load FITS table by reference. */
             new TableLoadHandler( "table.load.fits", "fits" ),
 
+            /* Load table with supplied format by reference. */
+            new TableLoadHandler( TopcatSender.TOPCAT_LOAD_MTYPE, null ),
+
             /* Highlight a single row. */
             new AbstractMessageHandler( "table.highlight.row" ) {
                 public Map processCall( HubConnection conn, String senderId,
@@ -572,7 +576,8 @@ public class TopcatSampControl {
          * Constructor.
          *
          * @param   mtype  table load MType string
-         * @param   format  STIL name for format specific table input handler
+         * @param   format  STIL name for format specific table input handler,
+         *                  or null if format is supplied in message
          */
         TableLoadHandler( String mtype, String format ) {
             mtype_ = mtype;
@@ -620,6 +625,9 @@ public class TopcatSampControl {
 
             /* Prepare a loader which can load the table. */
             String url = (String) message.getRequiredParam( "url" );
+            final String format = format_ != null
+                                ? format_
+                                : (String) message.getParam( "format" );
             File file = URLUtils.urlToFile( url );
             final DataSource datsrc =
                 file != null
@@ -637,7 +645,7 @@ public class TopcatSampControl {
                 }
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
-                    StarTable table = tfact.makeStarTable( datsrc, format_ );
+                    StarTable table = tfact.makeStarTable( datsrc, format );
                     String srcName = senderName;
                     String tname = table.getName();
                     if ( tname != null && tname.trim().length() > 0 ) {
