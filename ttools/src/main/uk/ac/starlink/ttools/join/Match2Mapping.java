@@ -100,7 +100,9 @@ public class Match2Mapping implements TableMapping {
         matcher.setIndicator( progger_ );
         LinkSet matches;
         try {
-            matches = matcher.findPairMatches( bestOnly_ );
+            RowMatcher.PairMode pairMode = bestOnly_ ? RowMatcher.PairMode.BEST
+                                                     : RowMatcher.PairMode.ALL;
+            matches = matcher.findPairMatches( pairMode );
             if ( ! matches.sort() ) {
                 logger.warning( "Implementation can't sort rows - "
                               + "matched table rows may not be ordered" );

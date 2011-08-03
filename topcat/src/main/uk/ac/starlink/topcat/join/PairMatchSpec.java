@@ -119,11 +119,14 @@ public class PairMatchSpec extends MatchSpec {
         }
         JoinType joinType = joinSelector_.getJoinType();
         boolean bestOnly = bestSelector_.isBest();
+        RowMatcher.PairMode pairMode = bestSelector_.isBest()
+                                     ? RowMatcher.PairMode.BEST
+                                     : RowMatcher.PairMode.ALL;
 
         /* Find the matching row pairs. */
         RowMatcher matcher = new RowMatcher( engine_, tables );
         matcher.setIndicator( indicator );
-        LinkSet pairs = matcher.findPairMatches( bestOnly );
+        LinkSet pairs = matcher.findPairMatches( pairMode );
         pairCount_ = pairs.size();
         if ( ! pairs.sort() ) {
             logger_.warning( "Can't sort matches - matched table rows may be "

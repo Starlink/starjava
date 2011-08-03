@@ -92,32 +92,18 @@ public class RowMatcher {
      * Each element in the returned list corresponds to a matched
      * pair with one entry from each of the input tables.
      *
-     * @param   bestOnly  whether only the best match between the two tables
-     *          is required, or whether you would like to retain every
-     *          match which fits the criteria
-     * @return  links representing rows to include in the output table
+     * @param  pairMode  matching mode to determine which rows appear
+     *         in the result
+     * @return  links representing matched rows
      */
-    public LinkSet findPairMatches( boolean bestOnly )
+    public LinkSet findPairMatches( PairMode pairMode )
             throws IOException, InterruptedException {
-
-        /* Check we have two tables. */
         if ( nTable != 2 ) {
             throw new IllegalStateException( "findPairMatches only makes sense"
                                            + " for 2 tables" );
         }
         startMatch();
-
-        /* Locate pairs, possibly including unwanted multiple entries for
-         * the same row. */
-        LinkSet pairs = findAllPairs( 0, 1, bestOnly );
-
-        /* If it has been requested ensure that no row is
-         * represented  more than once in the set of matches. */
-        if ( bestOnly ) {
-            pairs = eliminateMultipleRowEntries( pairs );
-        }
-
-        /* Return. */
+        LinkSet pairs = pairMode.findPairMatches( this );
         endMatch();
         return pairs;
     }
@@ -137,10 +123,7 @@ public class RowMatcher {
      */
     private LinkSet findAllPairs( int index1, int index2, boolean bestOnly )
              throws IOException, InterruptedException {
-        int ncol = tables[ index1 ].getColumnCount();
-        if ( tables[ index2 ].getColumnCount() != ncol ) {
-            throw new IllegalArgumentException( "Column count mismatch" );
-        }
+        int ncol = getPairColumnCount( index1, index2 );
 
         /* Work out which table will have its rows cached in bins 
          * (R for Random) and which will just be scanned (S for Sequential),
@@ -163,7 +146,7 @@ public class RowMatcher {
             range = new Range( ncol );
         }
         else if ( ! tables[ index2 ].isRandom() ) {
-           assert tables[ index1 ].isRandom();
+            assert tables[ index1 ].isRandom();
             indexS = index2;
             indexR = index1;
             range = new Range( ncol );
@@ -208,8 +191,8 @@ public class RowMatcher {
      * @param  indexS  index of table which will be accessed sequentially
      * @param  range   range outside which pairs can be ignored
      * @param  bestOnly  if false, all matches will be included in the result;
-     *         if true, the best matches will be included and some non-best
-     *         ones may be as well
+     *         if true, for each row in the sequential table, only the best
+     *         match in the random table will be included
      * @return  links representing pair matches
      */
     private LinkSet scanForPairs( int indexR, int indexS, Range range,
@@ -288,7 +271,7 @@ public class RowMatcher {
                     Arrays.sort( rrows );
 
                     /* Score and accumulate matched links. */
-                    List linkList = new ArrayList();
+                    List linkList = new ArrayList( 1 );
                     double bestScore = Double.MAX_VALUE;
                     for ( ir = 0; ir < rrows.length; ir++ ) {
                         long irrow = rrows[ ir ];
@@ -302,17 +285,10 @@ public class RowMatcher {
                             pairLink.setScore( score );
                             if ( bestOnly ) {
                                 bestScore = score;
-                                if ( linkList.isEmpty() ) {
-                                    linkList.add( pairLink );
-                                }
-                                else {
-                                    linkList.set( 0, pairLink );
-                                }
-                                assert linkList.size() == 1;
+                                linkList.clear();
                             }
-                            else {
-                                linkList.add( pairLink );
-                            }
+                            linkList.add( pairLink );
+                            assert ( ! bestOnly ) || ( linkList.size() == 1 );
                         }
                     }
 
@@ -1220,6 +1196,23 @@ public class RowMatcher {
     }
 
     /**
+     * Returns the common number of columns for two tables owned by this
+     * matcher.  If the number differs between the two, an exception is
+     * thrown.
+     * 
+     * @param  index1  index of one table
+     * @param  index2  index of other table
+     * @return  number of columns for both tables
+     */
+    private int getPairColumnCount( int index1, int index2 ) {
+        int ncol = tables[ index1 ].getColumnCount();
+        if ( tables[ index2 ].getColumnCount() != ncol ) {
+            throw new IllegalArgumentException( "Column count mismatch" );
+        }
+        return ncol;
+    }
+
+    /**
      * Recursively pulls out connected nodes (RowRefs) from a map of
      * RowRefs to RowLinks and dumps them in a set of nodes.
      *
@@ -1618,6 +1611,76 @@ public class RowMatcher {
      */
     private static int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
+    }
+
+    /**
+     * Enumeration used to determine which row links result from a pair
+     * match operation.
+     *
+     * @see  #findPairMatches(PairMode)
+     */
+    public static enum PairMode {
+
+        /**
+         * All matches are returned.
+         */
+        ALL() {
+            LinkSet findPairMatches( RowMatcher rowMatcher )
+                    throws IOException, InterruptedException {
+                return rowMatcher.findAllPairs( 0, 1, false );
+            }
+        },
+
+        /**
+         * Only the best matches are returned, obtained symmetrically.
+         * Each row from both input tables will appear in at most
+         * one RowLink in the result.
+         */
+        BEST() {
+            LinkSet findPairMatches( RowMatcher rowMatcher )
+                    throws IOException, InterruptedException {
+                LinkSet lset = rowMatcher.findAllPairs( 0, 1, true );
+                return rowMatcher.eliminateMultipleRowEntries( lset );
+            }
+        },
+
+        /**
+         * For each row in table 1, only the best match in table 2 is returned.
+         * Each row from table 1 will appear a maximum of once in the result,
+         * but rows from table 2 may appear multiple times.
+         */
+        BEST1() {
+            LinkSet findPairMatches( RowMatcher rowMatcher )
+                    throws IOException, InterruptedException {
+                Range range =
+                    new Range( rowMatcher.getPairColumnCount( 0, 1 ) );
+                return rowMatcher.scanForPairs( 1, 0, range, true );
+            }
+        },
+
+        /**
+         * For each row in table 2, only the best match in table 1 is returned.
+         * Each row from table 2 will appear a maximum of once in the result,
+         * but rows from table 1 may appear multiple times.
+         */
+        BEST2() {
+            LinkSet findPairMatches( RowMatcher rowMatcher )
+                    throws IOException, InterruptedException {
+                Range range =
+                    new Range( rowMatcher.getPairColumnCount( 0, 1 ) );
+                return rowMatcher.scanForPairs( 0, 1, range, true );
+            }
+        };
+     
+        /**
+         * Executes the pair match on a given row matcher according to
+         * this matching mode.
+         *
+         * @param   rowMatcher  object containing tables
+         * @return   set of matched row pairs
+         */
+        abstract LinkSet findPairMatches( RowMatcher rowMatcher )
+                throws IOException, InterruptedException;
     }
 
     /**
