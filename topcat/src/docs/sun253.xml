@@ -14992,6 +14992,8 @@ introduced since the last version:
     <li>Add <code>-running</code> flag which loads tables specified on the
         command line into a existing instance of TOPCAT if one is already
         running.</li>
+    <li>Upgrade to JSAMP v1.3: web profile on-and-offable, will overwrite
+        moribund <code>.samp</code> file at startup.</li>
     </ul>
     </p></dd>
 
