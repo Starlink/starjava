@@ -50,8 +50,9 @@ public class PairsRowLink extends RowLink {
      * @param   ref0  reference row ref
      * @param   ref1s  array of other row refs which match ref0
      * @param   scores    array of scores, one for each of ref1s
-     * @param   bestOnly  if true, only the best score will be retained and
-     *          others will be discarded
+     * @param   bestOnly  if true, only the best score for each 
+     *          non-reference table will be retained and others
+     *          will be discarded
      */
     private static RowRef[] amalgamateRefs( RowRef ref0, RowRef[] ref1s,
                                             double[] scores,
