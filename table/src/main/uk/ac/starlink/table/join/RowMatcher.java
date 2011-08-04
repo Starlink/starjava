@@ -1624,7 +1624,7 @@ public class RowMatcher {
         /**
          * All matches are returned.
          */
-        ALL() {
+        ALL( true, "All matches", "" ) {
             LinkSet findPairMatches( RowMatcher rowMatcher )
                     throws IOException, InterruptedException {
                 return rowMatcher.findAllPairs( 0, 1, false );
@@ -1636,7 +1636,9 @@ public class RowMatcher {
          * Each row from both input tables will appear in at most
          * one RowLink in the result.
          */
-        BEST() {
+        BEST( false, "Only the best matches, obtained symmetrically",
+              "Each row from both input tables will appear in at most "
+              + "one row in the result." ) {
             LinkSet findPairMatches( RowMatcher rowMatcher )
                     throws IOException, InterruptedException {
                 LinkSet lset = rowMatcher.findAllPairs( 0, 1, true );
@@ -1649,7 +1651,10 @@ public class RowMatcher {
          * Each row from table 1 will appear a maximum of once in the result,
          * but rows from table 2 may appear multiple times.
          */
-        BEST1() {
+        BEST1( true, "For each row in table 1, only the best match in table 2",
+               "Each row from table 1 will appear a maximum of once "
+               + "in the result, but rows from table 2 may appear "
+               + "multiple times." ) {
             LinkSet findPairMatches( RowMatcher rowMatcher )
                     throws IOException, InterruptedException {
                 Range range =
@@ -1663,7 +1668,10 @@ public class RowMatcher {
          * Each row from table 2 will appear a maximum of once in the result,
          * but rows from table 1 may appear multiple times.
          */
-        BEST2() {
+        BEST2( true, "For each row in table 2, only the best match in table 1",
+               "Each row from table 2 will appear a maximum of once "
+               + "in the result, but rows from table 1 may appear "
+               + "multiple times." ) {
             LinkSet findPairMatches( RowMatcher rowMatcher )
                     throws IOException, InterruptedException {
                 Range range =
@@ -1671,6 +1679,58 @@ public class RowMatcher {
                 return rowMatcher.scanForPairs( 0, 1, range, true );
             }
         };
+
+        private final boolean mayProduceGroups_;
+        private final String summary_;
+        private final String explanation_;
+
+        /**
+         * Constructor.
+         *
+         * @param  mayProduceGroups  whether this mode can produce result row
+         *                           groups
+         * @param  summary        short summary of operation
+         * @param  explanation    slightly more detail if any, may be empty
+         */
+        PairMode( boolean mayProduceGroups, String summary,
+                  String explanation ) {
+            mayProduceGroups_ = mayProduceGroups;
+            summary_ = summary;
+            explanation_ = explanation;
+        }
+
+        /**
+         * Indicates whether the result of a match performed in this mode 
+         * may contain non-trivial related groups of rows.
+         * A group represents a match in which an object in one table
+         * corresponds to more than object in the other table.
+         *
+         * @return  true iff this mode may result in ambiguous matches
+         * @see   MatchStarTables#findGroups
+         */
+        public boolean mayProduceGroups() {
+            return mayProduceGroups_;
+        }
+
+        /**
+         * Returns a short summary of the matching policy.
+         *
+         * @return  short description string
+         */
+        public String getSummary() {
+            return summary_;
+        }
+
+        /**
+         * Returns some explanation additional to the summary about the
+         * meaning of this mode.  May be empty if there's nothing else
+         * to be said.
+         *
+         * @return  explanation string
+         */
+        public String getExplanation() {
+            return explanation_;
+        }
      
         /**
          * Executes the pair match on a given row matcher according to
