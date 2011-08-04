@@ -139,7 +139,7 @@ public class PairMatchSpec extends MatchSpec {
                             : null;
 
         /* Create a new table based on the matched lines. */
-        boolean addGroups = pairMode == RowMatcher.PairMode.ALL;
+        boolean addGroups = pairMode.mayProduceGroups();
         JoinFixAction[] fixActs = getDefaultFixActions( 2 );
         StarTable[] useBases = (StarTable[]) bases.clone();
         for ( int i = 0; i < 2; i++ ) {

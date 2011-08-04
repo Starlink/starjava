@@ -10222,31 +10222,50 @@ of the matches that were found.
 (or possibly unmatched) "object", so that any non-blank columns
 in a given row come from only rows in the input tables
 which match according to the specified <ref id="matchCriteria">criteria</ref>.
-However, you have two (somewhat interlinked) choices to make
-about which rows are produced.
+However, you have two choices to make about which rows are produced.
 </p>
 
 <p>The <label>Match Selection</label> selector allows you to choose
 what happens when a given row in one table can be matched by 
-more than one row in the other table.  There are two choices:
+more than one row in the other table.  There are four options:
 <dl>
-<dt>Best Match Only</dt>
-<dd><p>Only the best match is chosen, and the other correct but inferior
-    matches are ignored.
-    In this case the data from a row of either input table will appear
-    in at most one row of the output table.
-    The best match is usually the "closest" - it
-    is the one with the lowest match score, where the definition of this
-    score is determined by the match criteria you have selected.
+<dt>ALL</dt>
+<dd><p>All matches are included.
     </p></dd>
-
-<dt>All Matches</dt>
-<dd><p>Any pairs which meet the match criteria are retained in
-    the output table.
-    This means that you may have data from some of the same input rows
-    appearing more than once in the output.
+<dt>BEST</dt>
+<dd><p>Only the best matches are included, obtained symmetrically between
+    the two tables.
+    Each row from both input tables will appear in at most one row
+    in the output.
+    </p></dd>
+<dt>BEST1</dt>
+<dd><p>For each row in table 1, only the best match from table 2 is included.
+    Each row from table 1 will appear a maximum of once in the result,
+    but rows from table 2 may appear multiple times.
+    </p></dd>
+<dt>BEST2</dt>
+<dd><p>For each row in table 2, only the best match from table 1 is included.
+    Each row from table 2 will appear a maximum of once in the result,
+    but rows from table 1 may appear multiple times.
     </p></dd>
 </dl>
+The "best" match in these options is usually the "closest" - it is the one
+with the lowest match score, where the definition of this score
+is determined by the match criteria you have selected.
+The differences between
+<label>BEST</label>, <label>BEST1</label> and <label>BEST2</label> 
+are a bit subtle.
+In cases where it's obvious which object in each table is the best match
+for which object in the other, choosing between these options will not
+affect the result. However, in crowded fields (where the distance between
+objects within one or both tables is typically similar to or smaller than
+the specified match radius) it will make a difference. In this case one
+of the asymmetric options (<label>BEST1</label> or <label>BEST2</label>)
+is usually most appropriate, but you'll need to think about which 
+of them suits your requirements.
+The performance (time and memory usage) of the match may also differ
+between these options, especially if one table is much larger than
+the other.
 </p>
 
 <p>The <label>Join Type</label> selector allows you to choose what
@@ -10297,6 +10316,11 @@ output rows result from a match in the input tables.
 </dl>
 </p>
 
+<p>Note that the choices of which <label>Match Selection</label> and
+<label>Join Type</label> to use are somewhat interlinked, and
+some combinations may not be very meaningful.
+</p>
+
 <p>In most cases (all the above except for <label>1 not 2</label> and
 <label>2 not 1</label>, the set of columns in the output table contains
 all the columns from the first table followed by all the columns
@@ -10319,8 +10343,9 @@ some additional useful columns may be added:
     </p></dd>
 
 <dt>GroupSize, GroupID</dt>
-<dd><p>If you choose the <label>All Matches</label> option and some of
-    the rows match more than once, two columns named 
+<dd><p>If some of the rows match more than once
+    (which may happen for any of the Match Selection options above
+    apart from <label>BEST</label>), two columns named 
     <label>GroupID</label> and <label>GroupSize</label> will be added.
     These allow you to identify which matches are multiple.
     In the case of rows which represent a unique match, they are blank.
@@ -14994,6 +15019,9 @@ introduced since the last version:
         running.</li>
     <li>Upgrade to JSAMP v1.3: web profile on-and-offable, will overwrite
         moribund <code>.samp</code> file at startup.</li>
+    <li>Additional asymmetric match options in the Pair Match window -
+        you can now choose BEST1 or BEST2 as alternatives to Best Match Only
+        or All Matches.  This can save a lot of trouble in crowded fields.</li>
     </ul>
     </p></dd>
 

@@ -1,10 +1,12 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.Component;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JRadioButton;
+import javax.swing.JList;
 import uk.ac.starlink.table.join.RowMatcher;
 
 /**
@@ -16,41 +18,48 @@ import uk.ac.starlink.table.join.RowMatcher;
 public class PairModeSelector extends Box {
 
     private final JLabel label_;
-    private final JRadioButton bestButton_;
-    private final JRadioButton allButton_;
+    private final JComboBox comboBox_;
 
     /**
      * Constructor.
      */
     public PairModeSelector() {
         super( BoxLayout.X_AXIS );
-        bestButton_ = new JRadioButton( "Best Match Only" );
-        allButton_ = new JRadioButton( "All Matches" );
-        ButtonGroup grp = new ButtonGroup();
-        grp.add( bestButton_ );
-        grp.add( allButton_ );
-        bestButton_.setSelected( true );
+        comboBox_ = new JComboBox( RowMatcher.PairMode.values() );
+        comboBox_.setRenderer( new DefaultListCellRenderer() {
+            public Component getListCellRendererComponent( JList list,
+                                                           Object value, int ix,
+                                                           boolean isSel,
+                                                           boolean hasFocus ) {
+                Component c =
+                    super.getListCellRendererComponent( list, value, ix, isSel,
+                                                        hasFocus );
+                if ( value instanceof RowMatcher.PairMode ) {
+                    setToolTipText( ((RowMatcher.PairMode) value)
+                                   .getSummary() );
+                }
+                return c;
+            }
+        } );
+        comboBox_.setSelectedItem( RowMatcher.PairMode.BEST );
         label_ = new JLabel( "Match Selection: " );
-
         add( label_ );
-        add( bestButton_ );
-        add( allButton_ );
+        add( comboBox_ );
     }
 
     /**
      * Returns matching mode.
      *
-     * @return mode
+     * @return  mode
      */
     public RowMatcher.PairMode getMode() {
-        return bestButton_.isSelected() ? RowMatcher.PairMode.BEST
-                                        : RowMatcher.PairMode.ALL;
+        return (RowMatcher.PairMode) comboBox_.getSelectedItem();
     }
 
+    @Override
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
         label_.setEnabled( enabled );
-        bestButton_.setEnabled( enabled );
-        allButton_.setEnabled( enabled );
+        comboBox_.setEnabled( enabled );
     }
 }
