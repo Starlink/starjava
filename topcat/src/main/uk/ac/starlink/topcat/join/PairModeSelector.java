@@ -5,14 +5,15 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
+import uk.ac.starlink.table.join.RowMatcher;
 
 /**
- * Panel for selecting between Best and All matches for a pairwise crossmatch.
+ * Panel for selecting matching mode for a pairwise crossmatch.
  *
  * @author   Mark Taylor
  * @since    17 Apr 2009
  */
-public class BestSelector extends Box {
+public class PairModeSelector extends Box {
 
     private final JLabel label_;
     private final JRadioButton bestButton_;
@@ -21,7 +22,7 @@ public class BestSelector extends Box {
     /**
      * Constructor.
      */
-    BestSelector() {
+    public PairModeSelector() {
         super( BoxLayout.X_AXIS );
         bestButton_ = new JRadioButton( "Best Match Only" );
         allButton_ = new JRadioButton( "All Matches" );
@@ -37,12 +38,13 @@ public class BestSelector extends Box {
     }
 
     /**
-     * Indicates status.
+     * Returns matching mode.
      *
-     * @return  true for best only, false for all
+     * @return mode
      */
-    public boolean isBest() {
-        return bestButton_.isSelected();
+    public RowMatcher.PairMode getMode() {
+        return bestButton_.isSelected() ? RowMatcher.PairMode.BEST
+                                        : RowMatcher.PairMode.ALL;
     }
 
     public void setEnabled( boolean enabled ) {

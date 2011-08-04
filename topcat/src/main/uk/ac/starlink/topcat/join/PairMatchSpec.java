@@ -41,7 +41,7 @@ public class PairMatchSpec extends MatchSpec {
 
     private final MatchEngine engine_;
     private final TupleSelector[] tupleSelectors_;
-    private final BestSelector bestSelector_;
+    private final PairModeSelector pairModeSelector_;
     private final JoinSelector joinSelector_;
     private StarTable result_;
     private RowSubset matchSubset_;
@@ -74,8 +74,8 @@ public class PairMatchSpec extends MatchSpec {
         /* Construct and place box containing selections affecting 
          * output rows. */
         Box rowBox = Box.createVerticalBox();
-        bestSelector_ = new BestSelector();
-        rowBox.add( bestSelector_ );
+        pairModeSelector_ = new PairModeSelector();
+        rowBox.add( pairModeSelector_ );
         rowBox.add( Box.createVerticalStrut( 5 ) );
         joinSelector_ = new JoinSelector();
         rowBox.add( joinSelector_ );
@@ -118,10 +118,7 @@ public class PairMatchSpec extends MatchSpec {
                                                      .getRowCount() );
         }
         JoinType joinType = joinSelector_.getJoinType();
-        boolean bestOnly = bestSelector_.isBest();
-        RowMatcher.PairMode pairMode = bestSelector_.isBest()
-                                     ? RowMatcher.PairMode.BEST
-                                     : RowMatcher.PairMode.ALL;
+        RowMatcher.PairMode pairMode = pairModeSelector_.getMode();
 
         /* Find the matching row pairs. */
         RowMatcher matcher = new RowMatcher( engine_, tables );
@@ -142,7 +139,7 @@ public class PairMatchSpec extends MatchSpec {
                             : null;
 
         /* Create a new table based on the matched lines. */
-        boolean addGroups = ! bestOnly;
+        boolean addGroups = pairMode == RowMatcher.PairMode.ALL;
         JoinFixAction[] fixActs = getDefaultFixActions( 2 );
         StarTable[] useBases = (StarTable[]) bases.clone();
         for ( int i = 0; i < 2; i++ ) {
@@ -153,7 +150,7 @@ public class PairMatchSpec extends MatchSpec {
         }
         result_ = MatchStarTables.makeJoinTable( useBases, links, addGroups,
                                                  fixActs, scoreInfo );
-        addMatchMetadata( result_, engine_, bestOnly, joinType, tcModels );
+        addMatchMetadata( result_, engine_, pairMode, joinType, tcModels );
 
         /* If it makes sense to do so, record which rows count as matches. */
         if ( joinType.getUsedMatchFlag() ) {
@@ -212,12 +209,11 @@ public class PairMatchSpec extends MatchSpec {
     }
 
     private static void addMatchMetadata( StarTable table, MatchEngine engine,
-                                          boolean bestOnly, JoinType joinType,
+                                          RowMatcher.PairMode pairMode,
+                                          JoinType joinType,
                                           TopcatModel[] tcModels ) {
         List params = table.getParameters();
-        String type = "Pair match"
-                    + ( bestOnly ? ", best matched pairs only"
-                                 : ", all matched pairs included" );
+        String type = "Pair match; " + pairMode.getSummary();
         params.add( new DescribedValue( MATCHTYPE_INFO, type ) );
         params.add( new DescribedValue( ENGINE_INFO, engine.toString() ) );
         ValueInfo joinInfo = 
