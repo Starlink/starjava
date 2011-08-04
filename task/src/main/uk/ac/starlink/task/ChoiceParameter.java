@@ -2,7 +2,9 @@ package uk.ac.starlink.task;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Parameter whose legal value must be one of a disjunction of given values.
@@ -11,11 +13,10 @@ import java.util.List;
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
-public class ChoiceParameter extends Parameter {
+public class ChoiceParameter<T> extends Parameter {
 
-    private final List optionList_;
-    private final List nameList_;
-    private Object objectValue_;
+    private final Map<T,String> optionMap_;
+    private T objectValue_;
     private boolean usageSet_;
 
     /**
@@ -24,10 +25,9 @@ public class ChoiceParameter extends Parameter {
      * @param   name  parameter name
      * @param   options  legal values of this parameter
      */
-    public ChoiceParameter( String name, Object[] options ) {
+    public ChoiceParameter( String name, T[] options ) {
         super( name );
-        optionList_ = new ArrayList();
-        nameList_ = new ArrayList();
+        optionMap_ = new LinkedHashMap<T,String>();
         if ( options != null ) {
             for ( int iopt = 0; iopt < options.length; iopt++ ) {
                 addOption( options[ iopt ] );
@@ -51,26 +51,18 @@ public class ChoiceParameter extends Parameter {
      * @param   option  option object
      * @param   name   label for option
      */
-    public void addOption( Object option, String name ) {
-        if ( name == null ) {
-            name = getName( option );
-        }
-        if ( nameList_.contains( name ) ) {
-            throw new IllegalArgumentException( "Option " + name +
-                                                " already exists" );
-        }
-        optionList_.add( option );
-        nameList_.add( name );
+    public void addOption( T option, String name ) {
+        optionMap_.put( option, name );
     }
 
     /**
      * Adds an option value to this parameter. 
-     * This object's {@link #getName(java.lang.Object)} method is used to
-     * supply the option name.
+     * The option's name will be determined by this object's
+     * {@link #stringifyOption} method.
      *
      * @param  option  option object
      */
-    public void addOption( Object option ) {
+    public void addOption( T option ) {
         addOption( option, null );
     }
 
@@ -87,8 +79,9 @@ public class ChoiceParameter extends Parameter {
         }
         else {
             StringBuffer sbuf = new StringBuffer();
-            for ( Iterator it = nameList_.iterator(); it.hasNext(); ) {
-                sbuf.append( (String) it.next() );
+            for ( Iterator<T> it = optionMap_.keySet().iterator();
+                  it.hasNext(); ) {
+                sbuf.append( getName( it.next() ) );
                 if ( it.hasNext() ) {
                     sbuf.append( '|' );
                 }
@@ -108,10 +101,9 @@ public class ChoiceParameter extends Parameter {
             super.setValueFromString( env, value );
             return;
         }
-        int nopt = optionList_.size();
-        for ( int i = 0; i < nopt; i++ ) {
-            if ( value.equalsIgnoreCase( (String) nameList_.get( i ) ) ) {
-                objectValue_ = optionList_.get( i );
+        for ( T option : optionMap_.keySet() ) {
+            if ( value.equalsIgnoreCase( getName( option ) ) ) {
+                objectValue_ = option;
                 super.setValueFromString( env, value );
                 return;
             }
@@ -120,8 +112,8 @@ public class ChoiceParameter extends Parameter {
             .append( "Unknown value " )
             .append( value )
             .append( " - must be one of " );
-        for ( Iterator it = nameList_.iterator(); it.hasNext(); ) {
-            sbuf.append( (String) it.next() );
+        for ( Iterator<T> it = optionMap_.keySet().iterator(); it.hasNext(); ) {
+            sbuf.append( getName( it.next() ) );
             if ( it.hasNext() ) {
                 sbuf.append( ", " );
             }
@@ -136,7 +128,7 @@ public class ChoiceParameter extends Parameter {
      * @param  env  execution environment
      * @return  selected object
      */
-    public Object objectValue( Environment env ) throws TaskException {
+    public T objectValue( Environment env ) throws TaskException {
         checkGotValue( env );
         return objectValue_;
     }
@@ -147,7 +139,7 @@ public class ChoiceParameter extends Parameter {
      *
      * @param  option  default option
      */
-    public void setDefaultOption( Object option ) {
+    public void setDefaultOption( T option ) {
         if ( option == null ) {
             if ( isNullPermitted() ) {
                 setDefault( null );
@@ -157,9 +149,8 @@ public class ChoiceParameter extends Parameter {
             }
         }
         else {
-            int iopt = optionList_.indexOf( option );
-            if ( iopt >= 0 ) {
-                setDefault( (String) nameList_.get( iopt ) );
+            if ( optionMap_.containsKey( option ) ) {
+                setDefault( getName( option ) );
             }
             else {
                 throw new IllegalArgumentException( "No such option: "
@@ -175,7 +166,11 @@ public class ChoiceParameter extends Parameter {
      * @return  permitted options, stringified
      */
     public String[] getOptionNames() {
-        return (String[]) nameList_.toArray( new String[ 0 ] );
+        List<String> optNameList = new ArrayList<String>();
+        for ( T option : optionMap_.keySet() ) {
+            optNameList.add( getName( option ) );
+        }
+        return optNameList.toArray( new String[ 0 ] );
     }
 
     /** 
@@ -185,19 +180,31 @@ public class ChoiceParameter extends Parameter {
      * @return   permitted options
      */
     public Object[] getOptions() {
-        return optionList_.toArray( new Object[ 0 ] );
+        return optionMap_.keySet().toArray( new Object[ 0 ] );
     }
 
     /**
      * Converts an option value object to a string which is used to identify
      * it as a string value of this parameter.
-     * The default implementation is <code>String.valueOf(option)</code>,
-     * but this may be overrridden.
      *
      * @param  option   option value
      * @return  string representation
      */
-    public String getName( Object option ) {
+    public String getName( T option ) {
+        String name = optionMap_.get( option );
+        return name == null ? stringifyOption( option ) : name;
+    }
+
+    /**
+     * Determines how an option will be represented as a string value of
+     * this parameter if no name has explicitly been supplied.
+     * The default implementation is <code>String.valueOf(option)</code>,
+     * but this may be overrridden.
+     *
+     * @param  option  option value
+     * @return   string representation of option
+     */
+    public String stringifyOption( T option ) {
         return String.valueOf( option );
     }
 
@@ -210,10 +217,9 @@ public class ChoiceParameter extends Parameter {
      * @return  correspondig option object
      */
     public Object getOption( String name ) {
-        int nopt = optionList_.size();
-        for ( int i = 0; i < nopt; i++ ) {
-            if ( name.equalsIgnoreCase( (String) nameList_.get( i ) ) ) {
-                return optionList_.get( i );
+        for ( T option : optionMap_.keySet() ) {
+            if ( name.equalsIgnoreCase( getName( option ) ) ) {
+                return option;
             }
         }
         return null;
