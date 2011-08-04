@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
@@ -110,9 +111,20 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         } );
         paramList.add( srParam_ );
 
+        /* Permit "best1" as an undocumented alternative to "best", since
+         * it has the meaning of best1 in the pair match tasks. */
         modeParam_ = new ChoiceParameter( "find", new String[] {
             "best", "all", "each",
-        } );
+        } ) {
+            @Override
+            public void setValueFromString( Environment env, String value )
+                    throws TaskException {
+                if ( "best1".equalsIgnoreCase( value ) ) {
+                    value = "best";
+                }
+                super.setValueFromString( env, value );
+            }
+        };
         modeParam_.setDefault( "all" );
         modeParam_.setPrompt( "Type of match to perform" );
         modeParam_.setDescription( new String[] {
@@ -122,6 +134,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                 "Only the matching query table row closest to",
                 "the input table row will be output.",
                 "Input table rows with no matches will be omitted.",
+                "(Note this corresponds to the",
+                "<code>" + RowMatcher.PairMode.BEST1.toString().toLowerCase()
+                         + "</code>",
+                "option in the pair matching commands, and <code>best1</code>",
+                "is a permitted alias).",
                 "</li>",
             "<li><code>all</code>:",
                 "All query table rows which match",

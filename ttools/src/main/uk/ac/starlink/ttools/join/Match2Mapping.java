@@ -31,7 +31,7 @@ public class Match2Mapping implements TableMapping {
     final String[] exprTuple2_;
     final JoinFixAction[] fixacts_;
     final MatchEngine matchEngine_;
-    final boolean bestOnly_;
+    final RowMatcher.PairMode pairMode_;
     final JoinType join_;
     final ValueInfo scoreInfo_;
     final ProgressIndicator progger_;
@@ -52,7 +52,7 @@ public class Match2Mapping implements TableMapping {
      *          match; each element is a JEL expression evaluated in
      *          the context of the second table
      * @param   join  output row selection type
-     * @param   bestOnly   whether only the best match is to be retained
+     * @param   pairMode   pair matching mode
      * @param   fixact1    deduplication fix action for first input table
      * @param   fixact2    deduplication fix action for second input table
      * @param   scoreInfo  column description for inter-table match score
@@ -61,14 +61,14 @@ public class Match2Mapping implements TableMapping {
      */
     Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
                    String[] exprTuple2, JoinType join,
-                   boolean bestOnly, JoinFixAction fixact1, 
+                   RowMatcher.PairMode pairMode, JoinFixAction fixact1, 
                    JoinFixAction fixact2, ValueInfo scoreInfo,
                    ProgressIndicator progger ) {
         matchEngine_ = matchEngine;
         exprTuple1_ = exprTuple1;
         exprTuple2_ = exprTuple2;
         join_ = join;
-        bestOnly_ = bestOnly;
+        pairMode_ = pairMode;
         fixacts_ = new JoinFixAction[] { fixact1, fixact2, };
         scoreInfo_ = scoreInfo;
         progger_ = progger;
@@ -100,9 +100,7 @@ public class Match2Mapping implements TableMapping {
         matcher.setIndicator( progger_ );
         LinkSet matches;
         try {
-            RowMatcher.PairMode pairMode = bestOnly_ ? RowMatcher.PairMode.BEST
-                                                     : RowMatcher.PairMode.ALL;
-            matches = matcher.findPairMatches( pairMode );
+            matches = matcher.findPairMatches( pairMode_ );
             if ( ! matches.sort() ) {
                 logger.warning( "Implementation can't sort rows - "
                               + "matched table rows may not be ordered" );
@@ -111,10 +109,11 @@ public class Match2Mapping implements TableMapping {
         catch ( InterruptedException e ) {
             throw new ExecutionException( e.getMessage(), e );  
         }
+        boolean addGroups = pairMode_.mayProduceGroups();
 
         /* Create a new table from the result and return. */
         return MatchStarTables.makeJoinTable( inTable1, inTable2, matches,
-                                              join_, ! bestOnly_, fixacts_,
+                                              join_, addGroups, fixacts_,
                                               scoreInfo_ );
     }
 

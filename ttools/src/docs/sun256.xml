@@ -7794,6 +7794,12 @@ but my thanks are especially due to the following:
     <li>Add new stage MDQ to <code>taplint</code>.</li>
     <li>Improve resilience of <code>coneskymatch</code> in the presence of
         unreliable or inconsistent DAL services.</li>
+    <li>Add new asymmetric match options <code>best1</code>
+        and <code>best2</code> for the <code>find</code> parameter in
+        the pair matching commands 
+        <code>tmatch2</code> and <code>tskymatch2</code>.
+        These can save a lot of trouble for crossmatches
+        in crowded fields.</li>
     </ul>
     </p>
     </dd>

@@ -6,6 +6,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -82,7 +83,7 @@ public class Match2Mapper implements TableMapper {
 
         /* Get other parameter values. */
         JoinType join = joinParam_.joinTypeValue( env );
-        boolean bestOnly = modeParam_.bestOnlyValue( env );
+        RowMatcher.PairMode pairMode = modeParam_.objectValue( env );
         JoinFixAction[] fixacts = fixcolParam_.getJoinFixActions( env, 2 );
         ValueInfo scoreInfo = matcherParam_.getScoreInfo( env );
         ProgressIndicator progger =
@@ -90,7 +91,7 @@ public class Match2Mapper implements TableMapper {
 
         /* Construct and return a mapping based on this lot. */
         return new Match2Mapping( matcher, tupleExprs[ 0 ], tupleExprs[ 1 ],
-                                  join, bestOnly, fixacts[ 0 ], fixacts[ 1 ],
+                                  join, pairMode, fixacts[ 0 ], fixacts[ 1 ],
                                   scoreInfo, progger );
     }
 }

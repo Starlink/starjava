@@ -9,6 +9,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.table.join.SkyMatchEngine;
 import uk.ac.starlink.task.ExecutionException;
 
@@ -55,7 +56,7 @@ public class SkyMatch2Mapping extends Match2Mapping {
      * @param   decExpr2 JEL expression for declination/degrees in table 2
      *                   - if null, a guess is made
      * @param   join  output row selection type
-     * @param   bestOnly   whether only the best match is to be retained
+     * @param   pairMode   pair matching mode
      * @param   fixact1    deduplication fix action for first input table
      * @param   fixact2    deduplication fix action for second input table
      * @param   progger    progress indicator for match process
@@ -63,12 +64,12 @@ public class SkyMatch2Mapping extends Match2Mapping {
     public SkyMatch2Mapping( SkyMatchEngine matcher, 
                              String raExpr1, String decExpr1,
                              String raExpr2, String decExpr2,
-                             JoinType join, boolean bestOnly,
+                             JoinType join, RowMatcher.PairMode pairMode,
                              JoinFixAction fixact1, JoinFixAction fixact2,
                              ProgressIndicator progger ) {
         super( new HumanMatchEngine( matcher ),
                new String[] { raExpr1, decExpr1, }, 
-               new String[] { raExpr2, decExpr2, }, join, bestOnly,
+               new String[] { raExpr2, decExpr2, }, join, pairMode,
                fixact1, fixact2, 
                new HumanMatchEngine( matcher ).getMatchScoreInfo(), progger );
     }

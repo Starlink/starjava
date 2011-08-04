@@ -1,22 +1,18 @@
 package uk.ac.starlink.ttools.join;
 
+import java.util.Arrays;
+import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 
 /**
- * Parameter for choosing table match mode.  Either BEST or ALL may be chosen.
+ * Parameter for choosing table pair match mode.
  *
  * @author   Mark Taylor
  * @since    2 Nov 2007
  */
-public class FindModeParameter extends ChoiceParameter {
-
-    /** Value for best match only mode. */
-    public static final String BEST = "best";
-
-    /** Value for all metches mode. */
-    public static final String ALL = "all";
+public class FindModeParameter extends ChoiceParameter<RowMatcher.PairMode> {
 
     /**
      * Constructor.
@@ -24,41 +20,61 @@ public class FindModeParameter extends ChoiceParameter {
      * @param  name  parameter name
      */
     public FindModeParameter( String name ) {
-        super( name, new String[] { BEST, ALL, } );
-        setDefault( BEST );
+        super( name, RowMatcher.PairMode.values() );
+        RowMatcher.PairMode[] modes =
+            (RowMatcher.PairMode[]) Arrays.asList( getOptions() )
+                                   .toArray( new RowMatcher.PairMode[ 0 ] );
+        setDefaultOption( RowMatcher.PairMode.BEST );
         setPrompt( "Type of match to perform" );
+        StringBuilder optBuf = new StringBuilder();
+        for ( int im = 0; im < modes.length; im++ ) {
+            optBuf.append( "<li>" )
+                  .append( "<code>" )
+                  .append( stringifyOption( modes[ im ] ) )
+                  .append( "</code>: " )
+                  .append( modes[ im ].getSummary() )
+                  .append( ".\n" )
+                  .append( modes[ im ].getExplanation() )
+                  .append( "</li>" )
+                  .append( '\n' );
+        }
+        String cBest =
+            "<code>" + stringifyOption( RowMatcher.PairMode.BEST ) + "</code>";
+        String cBest1 =
+            "<code>" + stringifyOption( RowMatcher.PairMode.BEST1 ) + "</code>";
+        String cBest2 =
+            "<code>" + stringifyOption( RowMatcher.PairMode.BEST2 ) + "</code>";
+        String cAll =
+            "<code>" + stringifyOption( RowMatcher.PairMode.ALL ) + "</code>";
         setDescription( new String[] {
-            "<p>Determines which matches are retained.", 
-            "If <code>" + BEST + "</code> is selected,",
-            "then only the best match",
-            "between the two tables will be retained; in this case",
-            "the data from a row of either input table will appear in",
-            "at most one row of the output table.",
-            "If <code>" + ALL + "</code> is selected, then all pairs of rows",
-            "from the two input tables which match the input criteria",
-            "will be represented in the output table.",
+            "<p>Determines which matches appear in the result.", 
+            "The options are:",
+            "<ul>",
+            optBuf.toString(),
+            "</ul>",
+            "The differences between",
+            cBest + ", " + cBest1 + " and " + cBest2 + " are a bit subtle.",
+            "In cases where it's obvious which object in each table",
+            "is the best match for which object in the other,",
+            "choosing betwen these options will not affect the result.",
+            "However, in crowded fields",
+            "(where the distance between objects within one or both tables is",
+            "typically similar to or smaller than the specified match radius)",
+            "it will make a difference.",
+            "In this case one of the asymmetric options",
+            "(" + cBest1 + " or " + cBest2 + ")",
+            "is usually more appropriate than " + cBest + ",",
+            "but you'll have to think about which of them suits your",
+            "requirements.",
+            "The performance (time and memory usage) of the match",
+            "may also differ between these options,",
+            "especially if one table is much bigger than the other.",
             "</p>",
         } );
     }
 
-    /**
-     * Returns the value of this parameter as a flag indicating whether it's
-     * only the best matches or all that are required.
-     *
-     * @param  env  execution environment
-     * @return   true for best matches only, false for all matches
-     */
-    public boolean bestOnlyValue( Environment env ) throws TaskException {
-        String mode = stringValue( env );
-        if ( BEST.equalsIgnoreCase( mode ) ) {
-            return true;
-        }
-        else if ( ALL.equalsIgnoreCase( mode ) ) {
-            return false;
-        }
-        else {
-            throw new TaskException( "Unknown value \"" + mode + "\" of "
-                                   + getName() + " (shouldn't happen)" );
-        }
+    @Override
+    public String stringifyOption( RowMatcher.PairMode option ) {
+        return String.valueOf( option ).toLowerCase();
     }
 }
