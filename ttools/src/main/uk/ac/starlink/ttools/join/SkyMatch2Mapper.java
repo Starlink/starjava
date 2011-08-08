@@ -6,8 +6,8 @@ import uk.ac.starlink.table.join.HEALPixMatchEngine;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.NullProgressIndicator;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
-import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
@@ -148,7 +148,7 @@ public class SkyMatch2Mapper implements TableMapper {
         int k = healpixkParam_.intValue( env );
         matcher.setHealpixK( k );
         JoinType join = joinParam_.joinTypeValue( env );
-        RowMatcher.PairMode pairMode = modeParam_.objectValue( env );
+        PairMode pairMode = modeParam_.objectValue( env );
 
         JoinFixAction fixact1 =
             JoinFixAction.makeRenameDuplicatesAction( "_1", false, true );

@@ -5,8 +5,8 @@ import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
-import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -83,7 +83,7 @@ public class Match2Mapper implements TableMapper {
 
         /* Get other parameter values. */
         JoinType join = joinParam_.joinTypeValue( env );
-        RowMatcher.PairMode pairMode = modeParam_.objectValue( env );
+        PairMode pairMode = modeParam_.objectValue( env );
         JoinFixAction[] fixacts = fixcolParam_.getJoinFixActions( env, 2 );
         ValueInfo scoreInfo = matcherParam_.getScoreInfo( env );
         ProgressIndicator progger =

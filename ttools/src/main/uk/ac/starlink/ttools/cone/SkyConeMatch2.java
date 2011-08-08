@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
-import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
@@ -135,8 +135,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                 "the input table row will be output.",
                 "Input table rows with no matches will be omitted.",
                 "(Note this corresponds to the",
-                "<code>" + RowMatcher.PairMode.BEST1.toString().toLowerCase()
-                         + "</code>",
+                "<code>" + PairMode.BEST1.toString().toLowerCase() + "</code>",
                 "option in the pair matching commands, and <code>best1</code>",
                 "is a permitted alias).",
                 "</li>",

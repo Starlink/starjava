@@ -7,7 +7,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.table.join.PairMode;
 
 /**
  * Panel for selecting matching mode for a pairwise crossmatch.
@@ -25,7 +25,7 @@ public class PairModeSelector extends Box {
      */
     public PairModeSelector() {
         super( BoxLayout.X_AXIS );
-        comboBox_ = new JComboBox( RowMatcher.PairMode.values() );
+        comboBox_ = new JComboBox( PairMode.values() );
         comboBox_.setRenderer( new DefaultListCellRenderer() {
             public Component getListCellRendererComponent( JList list,
                                                            Object value, int ix,
@@ -34,14 +34,13 @@ public class PairModeSelector extends Box {
                 Component c =
                     super.getListCellRendererComponent( list, value, ix, isSel,
                                                         hasFocus );
-                if ( value instanceof RowMatcher.PairMode ) {
-                    setToolTipText( ((RowMatcher.PairMode) value)
-                                   .getSummary() );
+                if ( value instanceof PairMode ) {
+                    setToolTipText( ((PairMode) value).getSummary() );
                 }
                 return c;
             }
         } );
-        comboBox_.setSelectedItem( RowMatcher.PairMode.BEST );
+        comboBox_.setSelectedItem( PairMode.BEST );
         label_ = new JLabel( "Match Selection: " );
         add( label_ );
         add( comboBox_ );
@@ -52,8 +51,8 @@ public class PairModeSelector extends Box {
      *
      * @return  mode
      */
-    public RowMatcher.PairMode getMode() {
-        return (RowMatcher.PairMode) comboBox_.getSelectedItem();
+    public PairMode getMode() {
+        return (PairMode) comboBox_.getSelectedItem();
     }
 
     @Override

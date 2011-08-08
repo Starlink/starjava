@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.join;
 
 import java.util.Arrays;
-import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
@@ -12,7 +12,7 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    2 Nov 2007
  */
-public class FindModeParameter extends ChoiceParameter<RowMatcher.PairMode> {
+public class FindModeParameter extends ChoiceParameter<PairMode> {
 
     /**
      * Constructor.
@@ -20,11 +20,10 @@ public class FindModeParameter extends ChoiceParameter<RowMatcher.PairMode> {
      * @param  name  parameter name
      */
     public FindModeParameter( String name ) {
-        super( name, RowMatcher.PairMode.values() );
-        RowMatcher.PairMode[] modes =
-            (RowMatcher.PairMode[]) Arrays.asList( getOptions() )
-                                   .toArray( new RowMatcher.PairMode[ 0 ] );
-        setDefaultOption( RowMatcher.PairMode.BEST );
+        super( name, PairMode.values() );
+        PairMode[] modes = (PairMode[]) Arrays.asList( getOptions() )
+                                       .toArray( new PairMode[ 0 ] );
+        setDefaultOption( PairMode.BEST );
         setPrompt( "Type of match to perform" );
         StringBuilder optBuf = new StringBuilder();
         for ( int im = 0; im < modes.length; im++ ) {
@@ -39,13 +38,13 @@ public class FindModeParameter extends ChoiceParameter<RowMatcher.PairMode> {
                   .append( '\n' );
         }
         String cBest =
-            "<code>" + stringifyOption( RowMatcher.PairMode.BEST ) + "</code>";
+            "<code>" + stringifyOption( PairMode.BEST ) + "</code>";
         String cBest1 =
-            "<code>" + stringifyOption( RowMatcher.PairMode.BEST1 ) + "</code>";
+            "<code>" + stringifyOption( PairMode.BEST1 ) + "</code>";
         String cBest2 =
-            "<code>" + stringifyOption( RowMatcher.PairMode.BEST2 ) + "</code>";
+            "<code>" + stringifyOption( PairMode.BEST2 ) + "</code>";
         String cAll =
-            "<code>" + stringifyOption( RowMatcher.PairMode.ALL ) + "</code>";
+            "<code>" + stringifyOption( PairMode.ALL ) + "</code>";
         setDescription( new String[] {
             "<p>Determines which matches appear in the result.", 
             "The options are:",
@@ -74,7 +73,7 @@ public class FindModeParameter extends ChoiceParameter<RowMatcher.PairMode> {
     }
 
     @Override
-    public String stringifyOption( RowMatcher.PairMode option ) {
+    public String stringifyOption( PairMode option ) {
         return String.valueOf( option ).toLowerCase();
     }
 }

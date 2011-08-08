@@ -9,7 +9,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
-import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.SkyMatchEngine;
 import uk.ac.starlink.task.ExecutionException;
 
@@ -64,7 +64,7 @@ public class SkyMatch2Mapping extends Match2Mapping {
     public SkyMatch2Mapping( SkyMatchEngine matcher, 
                              String raExpr1, String decExpr1,
                              String raExpr2, String decExpr2,
-                             JoinType join, RowMatcher.PairMode pairMode,
+                             JoinType join, PairMode pairMode,
                              JoinFixAction fixact1, JoinFixAction fixact2,
                              ProgressIndicator progger ) {
         super( new HumanMatchEngine( matcher ),

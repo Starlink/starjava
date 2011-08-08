@@ -22,9 +22,10 @@ import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
-import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.table.join.RowLink;
+import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
@@ -118,7 +119,7 @@ public class PairMatchSpec extends MatchSpec {
                                                      .getRowCount() );
         }
         JoinType joinType = joinSelector_.getJoinType();
-        RowMatcher.PairMode pairMode = pairModeSelector_.getMode();
+        PairMode pairMode = pairModeSelector_.getMode();
 
         /* Find the matching row pairs. */
         RowMatcher matcher = new RowMatcher( engine_, tables );
@@ -209,8 +210,7 @@ public class PairMatchSpec extends MatchSpec {
     }
 
     private static void addMatchMetadata( StarTable table, MatchEngine engine,
-                                          RowMatcher.PairMode pairMode,
-                                          JoinType joinType,
+                                          PairMode pairMode, JoinType joinType,
                                           TopcatModel[] tcModels ) {
         List params = table.getParameters();
         String type = "Pair match; " + pairMode.getSummary();

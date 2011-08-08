@@ -11,6 +11,7 @@ import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
+import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.task.ExecutionException;
@@ -31,7 +32,7 @@ public class Match2Mapping implements TableMapping {
     final String[] exprTuple2_;
     final JoinFixAction[] fixacts_;
     final MatchEngine matchEngine_;
-    final RowMatcher.PairMode pairMode_;
+    final PairMode pairMode_;
     final JoinType join_;
     final ValueInfo scoreInfo_;
     final ProgressIndicator progger_;
@@ -60,10 +61,9 @@ public class Match2Mapping implements TableMapping {
      * @param   progger    progress indicator for matching
      */
     Match2Mapping( MatchEngine matchEngine, String[] exprTuple1,
-                   String[] exprTuple2, JoinType join,
-                   RowMatcher.PairMode pairMode, JoinFixAction fixact1, 
-                   JoinFixAction fixact2, ValueInfo scoreInfo,
-                   ProgressIndicator progger ) {
+                   String[] exprTuple2, JoinType join, PairMode pairMode,
+                   JoinFixAction fixact1, JoinFixAction fixact2,
+                   ValueInfo scoreInfo, ProgressIndicator progger ) {
         matchEngine_ = matchEngine;
         exprTuple1_ = exprTuple1;
         exprTuple2_ = exprTuple2;
