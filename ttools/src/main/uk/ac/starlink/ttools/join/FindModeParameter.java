@@ -24,7 +24,7 @@ public class FindModeParameter extends ChoiceParameter<PairMode> {
         PairMode[] modes = (PairMode[]) Arrays.asList( getOptions() )
                                        .toArray( new PairMode[ 0 ] );
         setDefaultOption( PairMode.BEST );
-        setPrompt( "Type of match to perform" );
+        setPrompt( "Which pair matches to include" );
         StringBuilder optBuf = new StringBuilder();
         for ( int im = 0; im < modes.length; im++ ) {
             optBuf.append( "<li>" )
@@ -33,7 +33,7 @@ public class FindModeParameter extends ChoiceParameter<PairMode> {
                   .append( "</code>: " )
                   .append( modes[ im ].getSummary() )
                   .append( ".\n" )
-                  .append( modes[ im ].getExplanation() )
+                  .append( getModeDescription( modes[ im ] ) )
                   .append( "</li>" )
                   .append( '\n' );
         }
@@ -46,7 +46,8 @@ public class FindModeParameter extends ChoiceParameter<PairMode> {
         String cAll =
             "<code>" + stringifyOption( PairMode.ALL ) + "</code>";
         setDescription( new String[] {
-            "<p>Determines which matches appear in the result.", 
+            "<p>Determines what happens when a row in one table",
+            "can be matched by more than one row in the other table.",
             "The options are:",
             "<ul>",
             optBuf.toString(),
@@ -75,5 +76,43 @@ public class FindModeParameter extends ChoiceParameter<PairMode> {
     @Override
     public String stringifyOption( PairMode option ) {
         return String.valueOf( option ).toLowerCase();
+    }
+
+    /**
+     * Returns additional description for each given pair matching mode.
+     *
+     * @param  mode  mode to describe
+     * @return  XML-friendly description
+     */
+    public static String getModeDescription( PairMode mode ) {
+        switch ( mode ) {
+            case ALL:
+                return "Every match between the two tables is included "
+                     + "in the result.\n"
+                     + "Rows from both of the input tables may appear "
+                     + "multiple times in the result.";
+            case BEST:
+                return "The best pairs are selected in a way which treats the "
+                     + "two tables symmetrically.\n"
+                     + "Any input row which appears in one result pair is "
+                     + "disqualified from appearing in any other result pair, "
+                     + "so each row from both input tables will appear in "
+                     + "at most one row in the result.";
+            case BEST1:
+                return "For each row in table 1, only the best match from "
+                     + "table 2 will appear in the result.\n"
+                     + "Each row from table 1 will appear a maximum of once "
+                     + "in the result, but rows from table 2 may appear "
+                     + "multiple times.";
+            case BEST2:
+                return "For each row in table 2, only the best match from "
+                     + "table 1 will appear in the result.\n"
+                     + "Each row from table 2 will appear a maximum of once "
+                     + "in the result, but rows from table 1 may appear "
+                     + "multiple times.";
+            default:
+                assert false;
+                return "???";
+        }
     }
 }

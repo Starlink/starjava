@@ -13,7 +13,7 @@ public enum PairMode {
     /**
      * All matches are returned.
      */
-    ALL( true, "All matches", "" ) {
+    ALL( true, "All matches" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
             return rowMatcher.findAllPairs( 0, 1, false );
@@ -25,9 +25,7 @@ public enum PairMode {
      * Each row from both input tables will appear in at most
      * one RowLink in the result.
      */
-    BEST( false, "Only the best matches, obtained symmetrically",
-          "Each row from both input tables will appear in at most "
-          + "one row in the result." ) {
+    BEST( false, "Best match, symmetric" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
             LinkSet lset = rowMatcher.findAllPairs( 0, 1, true );
@@ -40,9 +38,7 @@ public enum PairMode {
      * Each row from table 1 will appear a maximum of once in the result,
      * but rows from table 2 may appear multiple times.
      */
-    BEST1( true, "For each row in table 1, only the best match in table 2",
-           "Each row from table 1 will appear a maximum of once in the result, "
-           + "but rows from table 2 may appear multiple times." ) {
+    BEST1( true, "Best match for each table 1 row" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
             Range range = new Range( rowMatcher.getPairColumnCount( 0, 1 ) );
@@ -55,9 +51,7 @@ public enum PairMode {
      * Each row from table 2 will appear a maximum of once in the result,
      * but rows from table 1 may appear multiple times.
      */
-    BEST2( true, "For each row in table 2, only the best match in table 1",
-           "Each row from table 2 will appear a maximum of once in the result, "
-           + "but rows from table 1 may appear multiple times." ) {
+    BEST2( true, "Best match for each table 2 row" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
             Range range = new Range( rowMatcher.getPairColumnCount( 0, 1 ) );
@@ -67,7 +61,6 @@ public enum PairMode {
 
     private final boolean mayProduceGroups_;
     private final String summary_;
-    private final String explanation_;
 
     /**
      * Constructor.
@@ -75,12 +68,10 @@ public enum PairMode {
      * @param  mayProduceGroups  whether this mode can produce result row
      *                           groups
      * @param  summary        short summary of operation
-     * @param  explanation    slightly more detail if any, may be empty
      */
-    PairMode( boolean mayProduceGroups, String summary, String explanation ) {
+    PairMode( boolean mayProduceGroups, String summary ) {
         mayProduceGroups_ = mayProduceGroups;
         summary_ = summary;
-        explanation_ = explanation;
     }
 
     /**
@@ -103,17 +94,6 @@ public enum PairMode {
      */
     public String getSummary() {
         return summary_;
-    }
-
-    /**
-     * Returns some explanation additional to the summary about the
-     * meaning of this mode.  May be empty if there's nothing else
-     * to be said.
-     *
-     * @return  explanation string
-     */
-    public String getExplanation() {
-        return explanation_;
     }
 
     /**

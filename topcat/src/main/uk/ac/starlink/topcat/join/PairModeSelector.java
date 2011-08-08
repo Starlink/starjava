@@ -7,7 +7,10 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.join.PairMode;
+import uk.ac.starlink.ttools.Formatter;
+import uk.ac.starlink.ttools.join.FindModeParameter;
 
 /**
  * Panel for selecting matching mode for a pairwise crossmatch.
@@ -27,6 +30,7 @@ public class PairModeSelector extends Box {
         super( BoxLayout.X_AXIS );
         comboBox_ = new JComboBox( PairMode.values() );
         comboBox_.setRenderer( new DefaultListCellRenderer() {
+            Formatter formatter_ = new Formatter();
             public Component getListCellRendererComponent( JList list,
                                                            Object value, int ix,
                                                            boolean isSel,
@@ -34,9 +38,22 @@ public class PairModeSelector extends Box {
                 Component c =
                     super.getListCellRendererComponent( list, value, ix, isSel,
                                                         hasFocus );
+                String ttip = null;
                 if ( value instanceof PairMode ) {
-                    setToolTipText( ((PairMode) value).getSummary() );
+                    PairMode mode = (PairMode) value;
+                    setText( mode.getSummary() );
+                    String desc = FindModeParameter.getModeDescription( mode );
+                    try {
+                        ttip = "<html>"
+                             + formatter_.formatXML( desc, 0 )
+                                         .replaceAll( "\\n", "<br>" )
+                             + "</html>";
+                    }
+                    catch ( SAXException e ) {
+                        ttip = null;
+                    }
                 }
+                setToolTipText( ttip );
                 return c;
             }
         } );

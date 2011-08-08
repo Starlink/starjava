@@ -10226,46 +10226,45 @@ However, you have two choices to make about which rows are produced.
 </p>
 
 <p>The <label>Match Selection</label> selector allows you to choose
-what happens when a given row in one table can be matched by 
+what happens when a row in one table can be matched by 
 more than one row in the other table.  There are four options:
 <dl>
-<dt>ALL</dt>
-<dd><p>All matches are included.
+<dt>All matches</dt>                      <!-- ALL -->
+<dd><p>Every match between the two tables is included in the result.
+    Rows from both of the input tables may appear multiple times in the result.
     </p></dd>
-<dt>BEST</dt>
-<dd><p>Only the best matches are included, obtained symmetrically between
-    the two tables.
-    Each row from both input tables will appear in at most one row
-    in the output.
+<dt>Best match, symmetric</dt>            <!-- BEST -->
+<dd><p>The best pairs are selected in a way which treats the two tables
+    symmetrically.
+    Any input row which appears in one result pair is disqualified
+    from appearing in any other result pair, so each row
+    from both input tables will appear in at most one row in the result.
     </p></dd>
-<dt>BEST1</dt>
-<dd><p>For each row in table 1, only the best match from table 2 is included.
-    Each row from table 1 will appear a maximum of once in the result,
-    but rows from table 2 may appear multiple times.
+<dt>Best match for each table 1 row</dt>  <!-- BEST1 -->
+<dd><p>For each row in table 1, only the best match from table 2
+    will appear in the result. Each row from table 1 will appear a maximum
+    of once in the result, but rows from table 2 may appear multiple times.
     </p></dd>
-<dt>BEST2</dt>
-<dd><p>For each row in table 2, only the best match from table 1 is included.
-    Each row from table 2 will appear a maximum of once in the result,
-    but rows from table 1 may appear multiple times.
+<dt>Best match for each table 2 row</dt>  <!-- BEST2 -->
+<dd><p>For each row in table 2, only the best match from table 1
+    will appear in the result. Each row from table 2 will appear a maximum
+    of once in the result, but rows from table 1 may appear multiple times.
     </p></dd>
 </dl>
-The "best" match in these options is usually the "closest" - it is the one
+The "best" match in these options generally means "closest" - it is the one
 with the lowest match score, where the definition of this score
 is determined by the match criteria you have selected.
-The differences between
-<label>BEST</label>, <label>BEST1</label> and <label>BEST2</label> 
+The differences between the various <label>Best match...</label> options
 are a bit subtle.
 In cases where it's obvious which object in each table is the best match
 for which object in the other, choosing between these options will not
 affect the result. However, in crowded fields (where the distance between
 objects within one or both tables is typically similar to or smaller than
 the specified match radius) it will make a difference. In this case one
-of the asymmetric options (<label>BEST1</label> or <label>BEST2</label>)
-is usually most appropriate, but you'll need to think about which 
-of them suits your requirements.
+of the asymmetric options is usually most appropriate,
+but you'll need to think about which of them suits your requirements.
 The performance (time and memory usage) of the match may also differ
-between these options, especially if one table is much larger than
-the other.
+between these options, especially if one table is much larger than the other.
 </p>
 
 <p>The <label>Join Type</label> selector allows you to choose what
@@ -10321,8 +10320,9 @@ output rows result from a match in the input tables.
 some combinations may not be very meaningful.
 </p>
 
-<p>In most cases (all the above except for <label>1 not 2</label> and
-<label>2 not 1</label>, the set of columns in the output table contains
+<p>In most cases
+(all the above except for <label>1 not 2</label> and <label>2 not 1</label>),
+the set of columns in the output table contains
 all the columns from the first table followed by all the columns
 from the second table.  If this causes a clash of column names,
 offending columns will be renamed with a trailing "<code>_1</code>" or 
@@ -15020,8 +15020,11 @@ introduced since the last version:
     <li>Upgrade to JSAMP v1.3: web profile on-and-offable, will overwrite
         moribund <code>.samp</code> file at startup.</li>
     <li>Additional asymmetric match options in the Pair Match window -
-        you can now choose BEST1 or BEST2 as alternatives to Best Match Only
-        or All Matches.  This can save a lot of trouble in crowded fields.</li>
+        as well as the old symmetric Best Match option, you can now choose
+        to do a match which identifies the best match for each row of
+        one or the other input table
+        (see <ref id="matchRowSelect">Output Rows Selector Box</ref>).
+        This can save a lot of trouble in crowded fields.</li>
     </ul>
     </p></dd>
 
