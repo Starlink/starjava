@@ -31,6 +31,8 @@ public class TableMatch2Test extends TableTestCase {
 
         Logger.getLogger( "uk.ac.starlink.ttools.task" )
               .setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.ttools.join" )
+              .setLevel( Level.WARNING );
     }
 
     public void testCols() throws Exception {
@@ -41,6 +43,12 @@ public class TableMatch2Test extends TableTestCase {
         assertArrayEquals(
             cols12sep,
             getColNames( join12( "1and2", "best", 1.0 ) ) );
+        assertArrayEquals(
+            cols12sep,
+            getColNames( join12( "1and2", "best1", 1.0 ) ) );
+        assertArrayEquals(
+            cols12sep,
+            getColNames( join12( "1and2", "best2", 1.0 ) ) );
         assertArrayEquals(
             cols12sep,
             getColNames( join12( "1or2", "all", 1.0 ) ) );
@@ -107,6 +115,52 @@ public class TableMatch2Test extends TableTestCase {
         assertEquals( 0, join12( "1and2", "best", 0.514 ).getRowCount() );
     }
 
+    public void testAsymmetric() throws Exception {
+        MapEnvironment catEnv = new MapEnvironment()
+            .setValue( "nin", "2" )
+            .setValue( "in1", t2_ )
+            .setValue( "in2", t2_ )
+            .setValue( "seqcol", "iseq" )
+            .setValue( "ocmd", "replacecol X X+0.01*(iseq-1);"
+                             + "replacecol Y Y+0.01*(iseq-1);"
+                             + "delcols iseq;"  );
+        new TableCatN().createExecutable( catEnv ).execute();
+        StarTable t22 = catEnv.getOutputTable( "omode" );
+        assertEquals( 2 * t2_.getRowCount(), t22.getRowCount() );
+        MapEnvironment m1Env = new MapEnvironment()
+            .setValue( "in", t22 )
+            .setValue( "action", "wide2" )
+            .setValue( "matcher", "2d" )
+            .setValue( "values", "X Y" )
+            .setValue( "params", "0.02" );
+        new TableMatch1().createExecutable( m1Env ).execute();
+        StarTable m1 = m1Env.getOutputTable( "omode" );
+        assertEquals( 4, m1.getRowCount() );
+        assertEquals( t22.getColumnCount() * 2, m1.getColumnCount() );
+
+        assertEquals( 0, joinABcount( t1_, t22, "1and2", "best", 0.2 ) );
+        assertEquals( 0, joinABcount( t1_, t22, "1and2", "best1", 0.2 ) );
+        assertEquals( 0, joinABcount( t1_, t22, "1and2", "best2", 0.2 ) );
+        assertEquals( 0, joinABcount( t1_, t22, "1and2", "all", 0.2 ) );
+
+        assertEquals( 1, joinABcount( t1_, t22, "1and2", "best", 0.7 ) );
+        assertEquals( 1, joinABcount( t1_, t22, "1and2", "best1", 0.7 ) );
+        assertEquals( 2, joinABcount( t1_, t22, "1and2", "best2", 0.7 ) );
+        assertEquals( 2, joinABcount( t1_, t22, "1and2", "all", 0.7 ) );
+
+        assertEquals( 2, joinABcount( t1_, t22, "1and2", "best", 0.96 ) );
+        assertEquals( 2, joinABcount( t1_, t22, "1and2", "best1", 0.96 ) );
+        assertEquals( 4, joinABcount( t1_, t22, "1and2", "best2", 0.96 ) );
+        assertEquals( 4, joinABcount( t1_, t22, "1and2", "all", 0.96 ) );
+
+        assertEquals( 24, joinABcount( t1_, t22, "1and2", "all", 2000 ) );
+        assertEquals( 3, joinABcount( t1_, t22, "1and2", "best1", 2000 ) );
+        assertEquals( 3, joinABcount( t22, t1_, "1and2", "best2", 2000 ) );
+        assertEquals( 8, joinABcount( t1_, t22, "1and2", "best2", 2000 ) );
+        assertEquals( 8, joinABcount( t22, t1_, "1and2", "best1", 2000 ) );
+        assertEquals( 3, joinABcount( t1_, t22, "1and2", "best", 2000 ) );
+    }
+
     public void testNot() throws Exception {
         StarTable tNot = join12( "1not2", "best", 1.0 );
         assertArrayEquals( new double[] { 659.68, 1046.874, 17.2 },
@@ -153,5 +207,26 @@ public class TableMatch2Test extends TableTestCase {
             Tables.checkTable( result );
         }
         return result;
+    }
+
+    private long joinABcount( StarTable ta, StarTable tb,
+                              String join, String find, double err )
+            throws Exception {
+        MapEnvironment env = new MapEnvironment()
+                            .setValue( "in1", ta )
+                            .setValue( "in2", tb )
+                            .setValue( "matcher", "2d" )
+                            .setValue( "values1", "X Y" )
+                            .setValue( "values2", "X Y" )
+                            .setValue( "params", Double.toString( err ) )
+                            .setValue( "join", join )
+                            .setValue( "find", find )
+                            .setValue( "fixcols", "dups" );
+        new TableMatch2().createExecutable( env ).execute();
+        StarTable result = env.getOutputTable( "omode" );
+        if ( result != null ) {
+            Tables.checkTable( result );
+        }
+        return result.getRowCount();
     }
 }
