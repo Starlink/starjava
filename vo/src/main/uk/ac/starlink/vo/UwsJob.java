@@ -399,7 +399,11 @@ public class UwsJob {
         hconn.setRequestMethod( "POST" );
         hconn.setRequestProperty( "Content-Type",
                                   "application/x-www-form-urlencoded" );
-        hconn.setFixedLengthStreamingMode( postBytes.length );
+        // We could stream this request, which would seem tidier.
+        // However, that inhibits automatic handling of 401 Unauthorized
+        // responses if a java.net.Authenticator is in use, and the 
+        // amount of data posted is not likely to be large, so don't do it.
+        // hconn.setFixedLengthStreamingMode( postBytes.length );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
         logger_.info( "POST to " + url );

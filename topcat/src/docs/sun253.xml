@@ -3892,6 +3892,18 @@ The following ones have special significance within TOPCAT:
     Currently defaults to "false".
     </p></dd>
 
+<dt><code>star.basicauth.user</code></dt>
+<dt><code>star.basicauth.password</code></dt>
+<dd><p>If set, these will provide username and password for HTTP Basic
+    Authentication.  Any time the application attempts to access an
+    HTTP URL and is met by a 401 Unauthorized response, it will try again
+    supplying these user credentials.  This is a rather blunt instrument,
+    since the same identity is supplied regardless of which URL is being
+    accessed, but it may be of some use in accessing basic-authentication
+    protected services.  This mechanism is experimental, and may be
+    modified or withdrawn in future versions.
+    </p></dd>
+
 <dt><code>star.connectors</code></dt>
 <dd><p>Can be set to a (colon-separated) list of classes which provide
     access to remote filespace implementations.
@@ -15025,6 +15037,9 @@ introduced since the last version:
         one or the other input table
         (see <ref id="matchRowSelect">Output Rows Selector Box</ref>).
         This can save a lot of trouble in crowded fields.</li>
+    <li>Add experimental system properties
+        <code>star.basicauth.user</code> and
+        <code>star.basicauth.password</code>.</li>
     </ul>
     </p></dd>
 

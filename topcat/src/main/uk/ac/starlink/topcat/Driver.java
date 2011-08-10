@@ -40,6 +40,7 @@ import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.PropertyAuthenticator;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -205,6 +206,7 @@ public class Driver {
                            + TopcatUtils.getVersion() );
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
+        PropertyAuthenticator.installInstance();
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */

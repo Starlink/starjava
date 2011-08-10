@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.ObjectFactory;
+import uk.ac.starlink.util.PropertyAuthenticator;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -35,6 +36,7 @@ public class Stilts {
         Loader.setHttpAgent( "STILTS" + "/" + getVersion() ); 
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
+        PropertyAuthenticator.installInstance();
         URLUtils.installCustomHandlers();
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
         int status = invoker.invoke( args );
