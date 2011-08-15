@@ -39,6 +39,7 @@ import org.astrogrid.samp.gui.SysTray;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubServiceMode;
 
+import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.SampFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
@@ -215,6 +216,8 @@ public class SampCommunicator
         {
             subs = new Subscriptions();
             subs.addMType( "spectrum.load.ssa-generic" );
+            subs.addMType( "table.load.fits" );
+            subs.addMType( "table.load.votable" );
             propsMap = Collections.synchronizedMap( new IdentityHashMap() );
         }
 
@@ -306,6 +309,13 @@ public class SampCommunicator
             SpectrumIO.Props props = SplatPlastic.getProps( location, meta );
             if ( shortName != null && shortName.trim().length() > 0 ) {
                 props.setShortName( shortName );
+            }
+
+            //  Table Mtypes lack SSA meta-data, attempt to handle this by
+            //  using the standard SPLAT guessing for tables. This also makes
+            //  sure we download using HTTP if necessary.
+            if ( ! msg.getMType().equals( "spectrum.load.ssa-generic" ) ) {
+                props.setType( SpecDataFactory.TABLE );
             }
             return props;
         }
