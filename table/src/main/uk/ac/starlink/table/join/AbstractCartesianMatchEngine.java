@@ -10,7 +10,7 @@ import uk.ac.starlink.table.ValueInfo;
  * A matching engine which can match points in an 
  * <tt>ndim</tt>-dimensional space.
  * All tuples (coordinate vectors) submitted to it must be 
- * <ndim>-element arrays of {@link java.lang.Number} objects.
+ * <code>ndim</code>-element arrays of {@link java.lang.Number} objects.
  * Tuples are considered matching if they fall within an ellipsoid
  * defined by a scalar or vector error parameter.
  *
@@ -256,7 +256,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
     /**
      * Returns the matching error along a given axis.
-     * This is the principle radius of an ellipsoid within which two points
+     * This is the principal radius of an ellipsoid within which two points
      * must fall in order to match.
      *
      * @return  error array
