@@ -2,6 +2,7 @@ package uk.ac.starlink.table.join;
 
 import java.util.logging.Logger;
 
+// theta is the positive (anticlockwise) angle from the X axis.
 public abstract class EllipseMatchEngine implements MatchEngine {
 
     private static final double NaN = Double.NaN;
@@ -14,7 +15,7 @@ public abstract class EllipseMatchEngine implements MatchEngine {
 
     // x, y, a, b, theta
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        Match match = getMatch( new Ellipse( tuple1 ), new Ellipse( tuple2 ) );
+        Match match = getMatch( toEllipse( tuple1 ), toEllipse( tuple2 ) );
         return match == null ? -1 : match.score_;
     }
 
@@ -233,6 +234,22 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         }
     }
 
+    private static Ellipse toEllipse( Object[] tuple ) {
+        double x = ((Number) tuple[ 0 ]).doubleValue();
+        double y = ((Number) tuple[ 1 ]).doubleValue();
+        if ( tuple[ 2 ] instanceof Number &&
+             tuple[ 3 ] instanceof Number &&
+             tuple[ 4 ] instanceof Number ) {
+            double a = ((Number) tuple[ 2 ]).doubleValue();
+            double b = ((Number) tuple[ 3 ]).doubleValue();
+            double theta = ((Number) tuple[ 4 ]).doubleValue();
+            return new Ellipse( x, y, a, b, theta );
+        }
+        else {
+            return new Ellipse( x, y );
+        }
+    }
+
     static class Ellipse {
         final double x_;
         final double y_;
@@ -240,25 +257,20 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         final double b_;
         final double theta_;
 
-        Ellipse( Object[] tuple ) {
-            x_ = ((Number) tuple[ 0 ]).doubleValue();
-            y_ = ((Number) tuple[ 1 ]).doubleValue();
-            if ( tuple[ 2 ] instanceof Number &&
-                 tuple[ 3 ] instanceof Number &&
-                 tuple[ 4 ] instanceof Number ) {
-                a_ = ((Number) tuple[ 2 ]).doubleValue();
-                b_ = ((Number) tuple[ 3 ]).doubleValue();
-                theta_ = ((Number) tuple[ 4 ]).doubleValue();
-            }
-            else {
-                a_ = 0;
-                b_ = 0;
-                theta_ = 0;
-            }
+        Ellipse( double x, double y, double a, double b, double theta ) {
+            x_ = x;
+            y_ = y;
+            a_ = a;
+            b_ = b;
+            theta_ = theta;
+        }
+
+        Ellipse( double x, double y ) {
+            this( x, y, 0, 0, 0 );
         }
 
         boolean isPoint() {
-            return ! ( a_ > 0 && b_ > 0 && ! Double.isNaN( theta_ ) );
+            return ! ( ( a_ > 0 || b_ > 0 ) && ! Double.isNaN( theta_ ) );
         }
 
         double getMaxRadius() {
