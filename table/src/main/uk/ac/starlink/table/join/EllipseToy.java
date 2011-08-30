@@ -20,6 +20,18 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.event.MouseInputAdapter;
 
+/**
+ * Provides an interactive graphical representation of the Ellipse Matching
+ * algorithms used in this package.
+ * Executing the {@link #main} method of this class posts a window with
+ * two ellipses whose position, shape and orientation can be dragged around
+ * using the mouse, and displays the match status that the ellipse
+ * matching algorithms calculate for them.  This provides a sanity check
+ * that the algorithms are working as they should do.
+ *
+ * @author   Mark Taylor
+ * @since    30 Aug 2011
+ */
 public class EllipseToy extends JComponent {
 
     private static Stroke DASHES =
@@ -35,10 +47,16 @@ public class EllipseToy extends JComponent {
                                 : RenderingHints.VALUE_ANTIALIAS_OFF );
     }
 
+    /**
+     * Component which shows ellipses on a Cartesian plane.
+     */
     public static class CartesianEllipseToy extends JComponent {
         private final Ellipse e1_;
         private final Ellipse e2_;
 
+        /**
+         * Constructor.
+         */
         public CartesianEllipseToy() {
             setPreferredSize( new Dimension( 400, 400 ) );
             e1_ = new Ellipse( 100, 100, 60, 90, 0 );
@@ -48,6 +66,7 @@ public class EllipseToy extends JComponent {
             addMouseMotionListener( dragger );
         }
 
+        @Override
         protected void paintComponent( Graphics g ) {
             Graphics2D g2 = (Graphics2D) g.create();
             setAntialias( g2, true );
@@ -83,6 +102,9 @@ public class EllipseToy extends JComponent {
             }
         }
 
+        /**
+         * Paints a single ellipse.
+         */
         private void paintEllipse( Graphics g, Ellipse e ) {
             Graphics2D g2 = (Graphics2D) g.create();
             int thDeg = (int) ( e.theta_ * 180. / Math.PI );
@@ -103,16 +125,27 @@ public class EllipseToy extends JComponent {
             g2.rotate( - Math.PI / 2. );
         }
 
+        /**
+         * Turns an ellipse obtained from the GUI into a Cartesian ellipse
+         * suitable for use by the matching algorithm.
+         */
         private EllipseMatchEngine.Ellipse adaptEllipse( Ellipse e ) {
             return new EllipseMatchEngine
                       .Ellipse( e.x_, e.y_, e.a_, e.b_, e.theta_ );
         }
     }
 
+    /**
+     * Component which shows ellipses on a spherical surface.
+     * The display is on a cylindrical (plate carree) projection.
+     */
     public static class SkyEllipseToy extends JComponent {
         private final Ellipse e1_;
         private final Ellipse e2_;
 
+        /**
+         * Constructor.
+         */
         public SkyEllipseToy() {
             int qp = 180;
             setPreferredSize( new Dimension( qp * 4, qp * 2 ) );
@@ -133,6 +166,7 @@ public class EllipseToy extends JComponent {
             addMouseMotionListener( dragger );
         }
 
+        @Override
         protected void paintComponent( Graphics g ) {
             int qp = getQuarterPixelCount();
             Graphics2D g2 = (Graphics2D) g.create();
@@ -182,12 +216,17 @@ public class EllipseToy extends JComponent {
         /**
          * Returns the number of pixels along a line of latitude or longitude
          * corresponding to a quarter revolution (pi/2).
+         *
+         * @return  pixels per 90 degrees
          */
         private int getQuarterPixelCount() {
             Rectangle bounds = getBounds();
             return Math.min( bounds.width / 4, bounds.height / 2 );
         }
 
+        /**
+         * Paints an ellipse.
+         */
         private void paintEllipse( Graphics g, Ellipse e, int qp ) {
             Graphics2D g2 = (Graphics2D) g.create();
             SkyEllipseMatchEngine.SkyEllipse se = adaptEllipse( e, qp );
@@ -210,6 +249,11 @@ public class EllipseToy extends JComponent {
             g2.drawString( "" + paDeg, 0, 0 );
         }
 
+        /**
+         * Paints the Cartesian projections of the two ellipses over the
+         * ellipses themselves.  These will diverge increasingly from the
+         * original ellipses as the latitude increases away from the equator.
+         */
         private void paintProjections( Graphics g, int qp ) {
             Graphics2D g2 = (Graphics2D) g.create();
             SkyEllipseMatchEngine.SkyEllipse se1 = adaptEllipse( e1_, qp );
@@ -228,6 +272,10 @@ public class EllipseToy extends JComponent {
             paintCartesianEllipse( g2, ce2, qp );
         }
 
+        /**
+         * Paints a cartesian ellipse that has dimensions in radians 
+         * onto the spherical projection.
+         */
         private void paintCartesianEllipse( Graphics g,
                                             EllipseMatchEngine.Ellipse ce,
                                             int qp ) {
@@ -244,29 +292,49 @@ public class EllipseToy extends JComponent {
             g2.drawOval( -a, -b, 2 * a, 2 * b );
         }
 
+        /**
+         * Converts graphical X coordinate to spherical RA coordinate.
+         */
         private double xToAlpha( int x, int qp ) {
             double alpha = x * Math.PI / 2 / qp;
             return alpha;
         }
 
+        /**
+         * Converts graphical Y coordinate to spherical Dec coordinate.
+         */
         private double yToDelta( int y, int qp ) {
             double delta = ( qp - y ) * Math.PI / 2 / qp;
             return delta;
         }
 
+        /**
+         * Converts graphical orientation angle (positive from horizontal)
+         * to position angle.
+         */
         private double thetaToZeta( double theta ) {
             double zeta = - theta + 0.5 * Math.PI;
             zeta = ( ( zeta + 2 * Math.PI ) % ( 2 * Math.PI ) ) - Math.PI;
             return zeta;
         }
 
+        /**
+         * Converts spherical RA coordinate to graphical X coordinate.
+         */
         private int alphaToX( double alpha, int qp ) {
             return (int) ( alpha / Math.PI * 2 * qp );
         }
+
+        /**
+         * Converts spherical Dec coordinate to graphical Y coordinate.
+         */
         private int deltaToY( double delta, int qp ) {
             return (int) ( - delta / Math.PI * 2 * qp ) + qp;
         }
 
+        /**
+         * Normalizes ellipse coordinates to standard intervals.
+         */
         private void normalizeEllipse( Ellipse e, int qp ) {
             if ( e.y_ < 0 ) {
                 e.y_ = - e.y_;
@@ -279,6 +347,10 @@ public class EllipseToy extends JComponent {
             e.x_ = ( e.x_ + qp * 4 ) % ( qp * 4 );
         }
 
+        /**
+         * Converts a graphical ellipse to a spherical one suitable for
+         * the matching algorithm.
+         */
         private SkyEllipseMatchEngine.SkyEllipse adaptEllipse( Ellipse e,
                                                                int qp ) {
             double alpha = xToAlpha( e.x_, qp );
@@ -290,6 +362,11 @@ public class EllipseToy extends JComponent {
                       .SkyEllipse( alpha, delta, mu, nu, zeta );
         }
 
+        /**
+         * Paints each pixel of the projected sky according to its distance
+         * from the centre of one or both of the ellipses.
+         * Unlike the drawn ellipses, this remains correct near the poles.
+         */
         private void paintSurface( Graphics g, int qp,
                                    Ellipse e1, Ellipse e2 ) {
             Graphics2D g2 = (Graphics2D) g.create();
@@ -319,6 +396,10 @@ public class EllipseToy extends JComponent {
         }
     }
 
+    /**
+     * Class which can interpret user mouse actions to drag the position and
+     * dimensions of an ellipse around the screen.
+     */
     private static class Dragger extends MouseInputAdapter {
 
         private final Ellipse[] ellipses_;
@@ -332,11 +413,18 @@ public class EllipseToy extends JComponent {
         private static final Cursor targetCursor_ =
             Cursor.getPredefinedCursor( Cursor.HAND_CURSOR );
 
+        /**
+         * Constructor.
+         *
+         * @param  ellipses  ellipses that will be draggable
+         * @param  comp   component in which this works
+         */
         Dragger( Ellipse[] ellipses, JComponent comp ) {
             ellipses_ = ellipses;
             comp_ = comp;
         }
 
+        @Override
         public void mousePressed( MouseEvent evt ) {
             Point p = evt.getPoint();
             for ( int ie = 0; ie < ellipses_.length; ie++ ) {
@@ -351,6 +439,7 @@ public class EllipseToy extends JComponent {
             }
         }
 
+        @Override
         public void mouseDragged( MouseEvent evt ) {
             if ( changer_ != null ) {
                 changer_.submitChange( evt.getPoint() );
@@ -358,6 +447,7 @@ public class EllipseToy extends JComponent {
             }
         }
 
+        @Override
         public void mouseMoved( MouseEvent evt ) {
             Point p = evt.getPoint();
             Changer changer = null;
@@ -367,6 +457,7 @@ public class EllipseToy extends JComponent {
             comp_.setCursor( changer == null ? defaultCursor_ : targetCursor_ );
         }
 
+        @Override
         public void mouseReleased( MouseEvent evt ) {
             changer_ = null;
             p0_ = null;
@@ -375,21 +466,50 @@ public class EllipseToy extends JComponent {
         }
     }
 
+    /**
+     * Private interface for object which can modify an ellipse based on
+     * an updated position.
+     */
     private static abstract class Changer {
+
+        /**
+         * Change the state of some object according to a given screen position.
+         *
+         * @param  p1  updated position
+         */
         abstract void submitChange( Point p1 );
     }
 
+    /**
+     * Represents an ellipse displayed on the screen.
+     */
     private static class Ellipse {
+
+        /** X coordinate of centre. */
         int x_;
+
+        /** Y coordinate of centre. */
         int y_;
+
+        /** Major radius in pixels. */
         int a_;
+
+        /** Minor radius in pixels. */
         int b_;
+
+        /** Orientation from positive screen X axis to semi-major axis,
+         *  towards positive screen Y axis, in radians. */
         double theta_;
 
-        Ellipse() {
-            this( 0, 0, 0, 0, 0. );
-        }
-
+        /**
+         * Constructor from coordinates.
+         *
+         * @param  x  X coordinate of centre
+         * @param  y  Y coordinate of centre
+         * @param  a  major radius
+         * @param  b  minor radius
+         * @param  theta  orientation in radians
+         */
         Ellipse( int x, int y, int a, int b, double theta ) {
             x_ = x;
             y_ = y;
@@ -398,17 +518,11 @@ public class EllipseToy extends JComponent {
             theta_ = theta;
         }
 
+        /**
+         * Copy constructor.
+         */
         Ellipse( Ellipse e ) {
-            this();
-            copy( e );
-        }
-
-        void copy( Ellipse e ) {
-            x_ = e.x_;
-            y_ = e.y_;
-            a_ = e.a_;
-            b_ = e.b_;
-            theta_ = e.theta_;
+            this( e.x_, e.y_, e.a_, e.b_, e.theta_ );
         }
 
         public String toString() {
@@ -418,6 +532,14 @@ public class EllipseToy extends JComponent {
                   .toString();
         }
 
+        /**
+         * Returns a changer object associated with a particular screen
+         * position, if any.
+         *
+         * @param   p   screen position
+         * @param  tol  tolerance in pixels
+         * @return   changer, or null if not near any active point
+         */
         public Changer getChanger( Point p, int tol ) {
             final Point p0 = p;
             final Ellipse e0 = new Ellipse( this );
@@ -472,12 +594,23 @@ public class EllipseToy extends JComponent {
             }
         }
 
+        /**
+         * Indicates if two screen points are close to each other.
+         *
+         * @param  p1  point 1
+         * @param  p2  point 2
+         * @param  tol   tolerance in pixels
+         * @return  true iff p1 and p2 are as close as <code>tol</code>
+         */
         boolean isClose( Point p1, Point p2, int tol ) {
             return ( ( p1.x - p2.x ) * ( p1.x - p2.x ) +
                      ( p1.y - p2.y ) * ( p1.y - p2.y ) ) <= tol * tol;
         }
     }
 
+    /**
+     * Main method.  Use "-h" flag for help.
+     */
     public static void main( String[] args ) {
         String usage = "Usage: " + EllipseToy.class.getName() + " [-sky]";
         JFrame frame = new JFrame();

@@ -6,6 +6,24 @@ import uk.ac.starlink.pal.AngleDR;
 import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.pal.palError;
 
+/**
+ * MatchEngine implementation for ellipses on the surface of a (celestial)
+ * sphere.
+ * The calculations are approximate since in some cases they rely on
+ * projecting the ellipses onto a Cartesian plane before evaluating the match.
+ * For small ellipses, a match is detected if the ellipses touch or overlap;
+ * for larger ellipses this criterion is only approximate.
+ * For sky-sized objects, this approximation is not expected to be problematic.
+ *
+ * <p>Although the documentation is mostly in terms of Right Ascension and
+ * Declination for spherical coordinates, alternative equivalent spherical
+ * coordinate pairs can be used instead.
+ *
+ * <p>The calculations are currently done using numerical optimisation.
+ *
+ * @author   Mark Taylor
+ * @since    30 Aug 2011
+ */
 public class SkyEllipseMatchEngine {
 
     private static final double NaN = Double.NaN;
@@ -22,6 +40,38 @@ public class SkyEllipseMatchEngine {
         return match == null ? -1 : match.score_;
     }
 
+    /**
+     * Turns a tuple as accepted by this match engine into a SkyEllipse object
+     * as used by the internal calculations.
+     */
+    private static SkyEllipse toSkyEllipse( Object[] tuple ) {
+        double alpha = ((Number) tuple[ 0 ]).doubleValue();
+        double delta = ((Number) tuple[ 1 ]).doubleValue();
+        if ( tuple[ 2 ] instanceof Number &&
+             tuple[ 3 ] instanceof Number &&
+             tuple[ 4 ] instanceof Number ) {
+            double mu = ((Number) tuple[ 2 ]).doubleValue();
+            double nu = ((Number) tuple[ 3 ]).doubleValue();
+            double zeta = ((Number) tuple[ 4 ]).doubleValue();
+            return new SkyEllipse( alpha, delta, mu, nu, zeta );
+        }
+        else {
+            return new SkyEllipse( alpha, delta );
+        }
+    }
+
+    /**
+     * Determines whether there is a match between two given ellipses,
+     * and returns an object characterising it if there is.
+     *
+     * @param   se1  ellipse 1
+     * @param   se2  ellipse 2
+     * @param   needPoints  true if the caller wants the coordinate information
+     *                      filled in in the returned Match object;
+     *                      this may be expensive to generate, so if it's
+     *                      not required, false can be given
+     * @return   description of match, or null if no overlap
+     */
     static Match getMatch( SkyEllipse se1, SkyEllipse se2,
                            boolean needPoints ) {
         double alpha1 = se1.alpha_;
@@ -106,29 +156,59 @@ public class SkyEllipseMatchEngine {
         }
     }
 
+    /**
+     * Returns the scaled distance from the centre of an ellipse to a given
+     * point on the sphere.  This is an analogue of the distance from the
+     * centre of a small circle - it evaluates to 0 at the centre of the
+     * ellipse and 1 on the circumference.
+     *
+     * <p>The calculation is only accurate for small distances
+     * (ellipse dimensions and distance from the point to the centre
+     * small angles), though an attempt is made to return a sensible
+     * value for larger dimensions.
+     *
+     * @param  se  ellipse 
+     * @param  alpha   right ascension of point in radians
+     * @param  delta   declination of point in radians
+     * @return  scaled distance
+     */
     static double scaledDistance( SkyEllipse se, double alpha, double delta ) {
-        // This is effectively projecting an flat ellipse onto the sphere.
-        // Since we haven't really defined what we mean by an ellipse,
-        // and it's bound to be small for sensible data, it's probably
-        // as good as anything.
+
+        /* Rotate the coordinates so that the ellipse is centred on the
+         * north pole. */
         double[][] rot =
             pal_.Deuler( "zxz",
                          se.alpha_ + 0.5 * Math.PI, 0.5 * Math.PI - se.delta_,
                          Math.PI / 2 - se.zeta_ );
         double[] xyz =
             pal_.Dmxv( rot, pal_.Dcs2c( new AngleDR( alpha, delta ) ) );
-        boolean anti = xyz[ 2 ] < 0;
+
+        /* Work out the angular distances along X and Y axes. */
         double dm = Math.asin( Math.abs( xyz[ 0 ] ) );
         double dn = Math.asin( Math.abs( xyz[ 1 ] ) );
+
+        /* Adjust if the requested point is in the wrong hemisphere. */
+        boolean anti = xyz[ 2 ] < 0;
         if ( anti ) {
             dm = Math.PI - dm;
             dn = Math.PI - dn;
         }
+
+        /* Scale for ellipse dimensions and return result. */
         double dx = dm / se.mu_;
         double dy = dn / se.nu_;
         return Math.sqrt( dx * dx + dy * dy );
     }
 
+    /**
+     * Find a point midway between two given points.
+     *
+     * @param   alpha1  RA of point 1
+     * @param   delta1  Dec of point 1
+     * @param   alpha2  RA of point 2
+     * @param   delta2  Dec of point 2
+     * @return  (ra,dec) for bisector point
+     */
     static double[] bisect( double alpha1, double delta1,
                             double alpha2, double delta2 ) {
         double[] p1 = pal_.Dcs2c( new AngleDR( alpha1, delta1 ) );
@@ -140,15 +220,36 @@ public class SkyEllipseMatchEngine {
         return new double[] { cSph.getAlpha(), cSph.getDelta() };
     }
 
+    /**
+     * Maps RA-type angle to a canonical range.
+     *
+     * @param  alpha  input angle
+     * @return   angle mapped to range 0..2*pi
+     */
     private static double normalizeAlpha( double alpha ) {
         final double base = 2 * Math.PI;
         return ( ( alpha % base ) + base ) % base;
     }
 
+    /**
+     * Normalises Dec-type angle.
+     *
+     * @param  delta  input angle
+     * @return  same as input angle
+     */
     private static double normalizeDelta( double delta ) {
         return delta;
     }
 
+    /**
+     * Projects a spherical ellipse onto a plane.
+     * Will only work well for small ellipses near the projector's projection
+     * point.
+     *
+     * @param   projector  projector object
+     * @param   se  sky ellipse
+     * @return  cartesian ellipse
+     */
     public static EllipseMatchEngine.Ellipse
                   projectEllipse( Projector projector, SkyEllipse se ) {
         double[] center = projector.project( se.alpha_, se.delta_ );
@@ -160,29 +261,41 @@ public class SkyEllipseMatchEngine {
         return new EllipseMatchEngine.Ellipse( x, y, a, b, theta );
     }
 
-    public static SkyEllipse toSkyEllipse( Object[] tuple ) {
-        double alpha = ((Number) tuple[ 0 ]).doubleValue();
-        double delta = ((Number) tuple[ 1 ]).doubleValue();
-        if ( tuple[ 2 ] instanceof Number &&
-             tuple[ 3 ] instanceof Number &&
-             tuple[ 4 ] instanceof Number ) {
-            double mu = ((Number) tuple[ 2 ]).doubleValue();
-            double nu = ((Number) tuple[ 3 ]).doubleValue();
-            double zeta = ((Number) tuple[ 4 ]).doubleValue();
-            return new SkyEllipse( alpha, delta, mu, nu, zeta );
-        }
-        else {
-            return new SkyEllipse( alpha, delta );
-        }
-    }
-
+    /**
+     * Represents a successful match between two sky ellipses.
+     * As well as the score (between 0 and 2, 0 is best), some interesting
+     * points may be included.  There are two of these, one for each
+     * ellipse, and they represent line segments which contribute to
+     * the match.  Either or both may be blank (represented by NaN
+     * coordinates).  These are provided for illustration, and may be
+     * used for graphical feedback, or may be ignored.
+     */
     static class Match {
+
+        /** Match score between 0 and 2, 0 is best. */
         final double score_;
+
+        /** RA of arc end from centre of ellipse 1, or NaN. */
         final double alpha1_;
+
+        /** Dec of arc end from centre of ellipse 1, or NaN. */
         final double delta1_;
+
+        /** RA of arc end from centre of ellipse 2, or NaN. */
         final double alpha2_;
+
+        /** Dec of arc end from centre of ellipse 2, or NaN. */
         final double delta2_;
 
+        /**
+         * Constructor.
+         *
+         * @param  score  match score
+         * @param  alpha1  ra coord of arc end from centre of ellipse 1
+         * @param  delta1  dec coord of arc end from centre of ellipse 1
+         * @param  alpha2  ra coord of arc end from centre of ellipse 2
+         * @param  delta2  dec coord of arc end from centre of ellipse 2
+         */
         Match( double score, double alpha1, double delta1,
                double alpha2, double delta2 ) {
             score_ = score;
@@ -193,13 +306,45 @@ public class SkyEllipseMatchEngine {
         }
     }
 
+    /**
+     * Represents an ellipse on the surface of a sphere, which can be matched
+     * with other ellipses by this match engine.
+     *
+     * <p>The two radii, which are both measured in radians, are labelled
+     * major and minor for convenience - it is permitted for the minor radius
+     * to be larger than the major one.
+     * The ellipse orientation angle zeta is measured from the 
+     * direction towards the north pole to the major radius towards the 
+     * positive RA axis, which matches the normal convention
+     * for Position Angle on the sky.
+     */
     static class SkyEllipse {
+
+        /** RA coordinate of the centre, in radians. */
         final double alpha_;
+
+        /** Declination coordinate of the centre, in radians. */
         final double delta_;
+
+        /** Major radius in radians. */
         final double mu_;
+
+        /** Minor radius in radians. */
         final double nu_;
+
+        /** Angle of major radius from positive delta axis to
+         *  positive alpha axis in radians. */
         final double zeta_;
 
+        /**
+         * Constructs a general sky ellipse.
+         *
+         * @param   alpha  RA of centre in radians
+         * @param   delta  Dec of centre in radians
+         * @param   mu     major radius in radians
+         * @param   nu     minor radius in radians
+         * @param   zeta   angle from north to major radius in radians
+         */
         SkyEllipse( double alpha, double delta, double mu, double nu,
                     double zeta ) {
             alpha_ = alpha;
@@ -209,14 +354,31 @@ public class SkyEllipseMatchEngine {
             zeta_ = zeta;
         }
 
+        /**
+         * Constructs a point-like ellipse.
+         *
+         * @param   alpha  RA of centre in radians
+         * @param   delta  Dec of centre in radians
+         */
         SkyEllipse( double alpha, double delta ) {
             this( alpha, delta, 0, 0, 0 );
         }
 
+        /**
+         * Indicates whether this ellipse is point-like.
+         *
+         * @return   true iff this ellipse is dimensionless
+         */
         boolean isPoint() {
             return ! ( ( mu_ > 0 || nu_ > 0 ) && ! Double.isNaN( zeta_ ) );
         }
 
+        /**
+         * Returns an angular distance from the centre of this ellipse
+         * beyond which positions are definitely outside it.
+         *
+         * @return   maximum of semi-major radii in radians
+         */
         double getMaxRadius() {
             return Math.max( mu_, nu_ );
         }
@@ -231,13 +393,34 @@ public class SkyEllipseMatchEngine {
         }
     }
 
+    /**
+     * Object which can project points from a the surface of a sphere
+     * onto a given tangent plane.
+     */
     static class Projector {
+
         private final AngleDR ad0_;
 
+        /**
+         * Constructor.
+         *
+         * @param  alpha0  RA of tangent point
+         * @param  delta0  Dec of tangent point
+         */
         Projector( double alpha0, double delta0 ) {
             ad0_ = new AngleDR( alpha0, delta0 );
         }
 
+        /**
+         * Projects a point from the surface of a sphere onto this projector's
+         * plane.  The units of the output coordinates are radians, or at
+         * least radian-like.  In the case of a projection error, the
+         * returned coordinates will be NaNs.
+         *
+         * @param  alpha  RA of point to be projected
+         * @param  delta  Dec of point to be projected
+         * @return  (x,y) Cartesian coordinates of projected point
+         */
         public double[] project( double alpha, double delta ) {
             try {
                 AngleDR ad = pal_.Ds2tp( new AngleDR( alpha, delta ), ad0_ );
@@ -248,6 +431,14 @@ public class SkyEllipseMatchEngine {
             }
         }
 
+        /**
+         * Takes a point on the tangent plane and works out where it would
+         * be on the surface of the sphere.
+         *
+         * @param  x  X coordinate of projected point
+         * @param  y  Y coordinate of projected point
+         * @return  (alpha, delta) coordinates of point that projects to (x,y)
+         */
         public double[] unproject( double x, double y ) {
             AngleDR ad = pal_.Dtp2s( new AngleDR( x, y ), ad0_ );
             return new double[] { ad.getAlpha(), ad.getDelta() };

@@ -2,7 +2,15 @@ package uk.ac.starlink.table.join;
 
 import java.util.logging.Logger;
 
-// theta is the positive (anticlockwise) angle from the X axis.
+/**
+ * MatchEngine implementation for plane elliptical figures.
+ * A match is detected if the ellipses touch or overlap.
+ *
+ * <p>The calculations are currently done using numerical optimisation.
+ *
+ * @author   Mark Taylor
+ * @since    30 Aug 2011
+ */
 public abstract class EllipseMatchEngine implements MatchEngine {
 
     private static final double NaN = Double.NaN;
@@ -19,6 +27,34 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         return match == null ? -1 : match.score_;
     }
 
+    /**
+     * Turns a tuple as accepted by this match engine into an Ellipse object
+     * as used by the internal calculations.
+     */
+    private static Ellipse toEllipse( Object[] tuple ) {
+        double x = ((Number) tuple[ 0 ]).doubleValue();
+        double y = ((Number) tuple[ 1 ]).doubleValue();
+        if ( tuple[ 2 ] instanceof Number &&
+             tuple[ 3 ] instanceof Number &&
+             tuple[ 4 ] instanceof Number ) {
+            double a = ((Number) tuple[ 2 ]).doubleValue();
+            double b = ((Number) tuple[ 3 ]).doubleValue();
+            double theta = ((Number) tuple[ 4 ]).doubleValue();
+            return new Ellipse( x, y, a, b, theta );
+        }
+        else {
+            return new Ellipse( x, y );
+        }
+    }
+
+    /**
+     * Determines whether there is a match between two given ellipses,
+     * and returns an object characterising it if there is.
+     *
+     * @param   e1  ellipse 1
+     * @param   e2  ellipse 2
+     * @return   description of match, or null if no overlap
+     */
     static Match getMatch( Ellipse e1, Ellipse e2 ) {
         double x1 = e1.x_;
         double y1 = e1.y_;
@@ -86,6 +122,17 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         }
     }
 
+    /**
+     * Returns the scaled distance from the centre of an ellipse to a given
+     * point on the plane.  This is an analogue of the distance from the
+     * centre of a circle; it evaluates to 0 at the centre of the ellipse
+     * and 1 on the circumference.
+     *
+     * @param   e  ellipse
+     * @param   x  X coordinate of point
+     * @param   y  Y coordinate of point
+     * @return   scaled distance
+     */
     static double scaledDistance( Ellipse e, double x, double y ) {
         double rx = x - e.x_;
         double ry = y - e.y_;
@@ -96,6 +143,15 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         return Math.sqrt( dx * dx + dy * dy );
     }
 
+    /**
+     * Returns the point on the circumference of a given ellipse parameterised
+     * an angle phi.  The whole circumference is covered by varying phi
+     * from 0 to 2pi (or equivalent).
+     *
+     * @param   e  ellipse
+     * @param  phi   angle parameter
+     * @return   (x,y) coordinates of edge point
+     */
     static double[] edgePoint( Ellipse e, double phi ) {
         double cp = Math.cos( phi );
         double sp = Math.sin( phi );
@@ -107,12 +163,19 @@ public abstract class EllipseMatchEngine implements MatchEngine {
     }
 
     /**
-     * Point on edge of e2 closest to the centre of e1.
+     * Returns the point on the circumference of a given ellipse
+     * <code>e2</code> which is closest (scaled distance) to the
+     * centre of ellipse <code>e1</code>.
+     * This value is calculated using a numerical optimisation technique.
+     *
+     * @param  e1   ellipse whose centre is sought
+     * @param  e2   ellipse whose circumference is varied over
+     * @return  point on the circumference of <code>e2</code>
      */
     static double[] findClosestEdgePoint( final Ellipse e1, final Ellipse e2 ) {
 
         /* Calculate the angle representing the closest point numerically.
-         * There are several stationary points of the function being
+         * There are multiple stationary points of the function being
          * minimised, and there may be more than one (maximum two?) minima.
          * Getting a suitable starting point for the optimisation is therefore
          * essential to correctness.  The procedure adopted here appears
@@ -148,7 +211,14 @@ public abstract class EllipseMatchEngine implements MatchEngine {
     }
 
     /**
-     * Ellipse parameter phi from the centre of e towards the point (x, y).
+     * Ellipse parameter phi which corresponds to a point on the circumference
+     * of the ellipse directly towards the point (x, y).  Note this is
+     * not just atan2(dy,dx), since the ellipse parameter phi is not a
+     * geometric angle.
+     *
+     * @param   e  ellipse
+     * @param   x  X coord of direction point
+     * @param   y  Y coord of direction point
      */
     static double phiTowardsPoint( Ellipse e, double x, double y ) {
         double psi = Math.atan2( x - e.x_, y - e.y_ );
@@ -160,6 +230,18 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         return phi;
     }
 
+    /**
+     * Calculates the function s12(phi2) and its derivatives.
+     * s12 is scaledDistance(e1,x2(phi2),y2(phi2)), x2(phi2) and y2(phi2)
+     * are the outputs of edgePoint(e2,phi2).  The zeroth, first and second
+     * derivatives w.r.t. phi2 are calculated.  These can be used for
+     * numerical optimisation of s12 w.r.t. phi2.
+     *
+     * @param   e1  ellipse whose centre is sought
+     * @param   e2  ellipse whose circumference is parameterised
+     * @param  phi2  parameter for circumference of <code>e2</code>
+     * @return  array of first three derivatives of s12 w.r.t. phi2
+     */
     private static double[] calcSeparationDerivs( Ellipse e1, Ellipse e2,
                                                   double phi2 ) {
         double a1 = e1.a_;
@@ -204,10 +286,24 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         };
     }
 
+    /**
+     * Square.
+     *
+     * @param   x  parameter
+     * @return   <code>x*x</code>
+     */
     private static double sq( double x ) {
         return x * x;
     }
 
+    /**
+     * Indicates whether three points are (or nearly are) on the same line.
+     *
+     * @param  r1  (x,y) coords of point 1
+     * @param  r2  (x,y) coords of point 2
+     * @param  r3  (x,y) coords of point 3
+     * @return   true iff r1, r2, r3 fall on a single line, or nearly do so
+     */
     private static boolean isCollinear( double[] r1, double[] r2,
                                         double[] r3 ) {
         double xa = r3[0] - r2[0];
@@ -218,13 +314,41 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         return Math.abs( crossprod ) < 1e-10;
     }
 
+    /**
+     * Characterises a successful match between two ellipses.
+     * As well as the score (between 0 and 2, 0 is best), some interesting
+     * points may be included.  There are two of these, one for each 
+     * ellipse, and they represent line segments which contribute to
+     * the match.  Either or both may be blank (represented by NaN
+     * coordinates).  These are provided for illustration, and may be
+     * used for graphical feedback, or may be ignored.
+     */
     static class Match {
+
+        /** Match score, between 0 and 2, 0 is best. */
         final double score_;
+
+        /** X coordinate of line end from centre of ellipse 1, or NaN. */
         final double x1_;
+
+        /** Y coordinate of line end from centre of ellipse 1, or NaN. */
         final double y1_;
+
+        /** X coordinate of line end from centre of ellipse 2, or NaN. */
         final double x2_;
+
+        /** Y coordinate of line end from centre of ellipse 2, or NaN. */
         final double y2_;
 
+        /**
+         * Constructor.
+         *
+         * @param   score  match score
+         * @param   x1  x coord of line end from centre of ellipse 1
+         * @param   y1  y coord of line end from centre of ellipse 1
+         * @param   x2  x coord of line end from centre of ellipse 2
+         * @param   y2  y coord of line end from centre of ellipse 2
+         */
         Match( double score, double x1, double y1, double x2, double y2 ) {
             score_ = score;
             x1_ = x1;
@@ -234,29 +358,42 @@ public abstract class EllipseMatchEngine implements MatchEngine {
         }
     }
 
-    private static Ellipse toEllipse( Object[] tuple ) {
-        double x = ((Number) tuple[ 0 ]).doubleValue();
-        double y = ((Number) tuple[ 1 ]).doubleValue();
-        if ( tuple[ 2 ] instanceof Number &&
-             tuple[ 3 ] instanceof Number &&
-             tuple[ 4 ] instanceof Number ) {
-            double a = ((Number) tuple[ 2 ]).doubleValue();
-            double b = ((Number) tuple[ 3 ]).doubleValue();
-            double theta = ((Number) tuple[ 4 ]).doubleValue();
-            return new Ellipse( x, y, a, b, theta );
-        }
-        else {
-            return new Ellipse( x, y );
-        }
-    }
-
+    /**
+     * Represents an ellipse which can be matched with other ellipses
+     * by this match engine.
+     *
+     * <p>The two radii are labelled major and minor for convenience -
+     * it is permitted for the minor radius to be larger than the major one.
+     * The orientation is measured in the positive (anticlockwise)
+     * direction from the X axis to the major radius; note that this
+     * is not the same convention used for a Position Angle on the sky.
+     */
     static class Ellipse {
+
+        /** X coordinate of centre. */
         final double x_;
+
+        /** Y coordinate of centre. */
         final double y_;
+
+        /** Major radius. */
         final double a_;
+
+        /** Minor radius. */
         final double b_;
+
+        /** Angle of major radius from X axis in radians. */
         final double theta_;
 
+        /**
+         * Constructs a general ellipse.
+         *
+         * @param  x  x coordinate of centre
+         * @param  y  y coordinate of centre
+         * @param  a  major radius
+         * @param  b  minor radius
+         * @param  theta  angle of major radius from X axis in radians
+         */
         Ellipse( double x, double y, double a, double b, double theta ) {
             x_ = x;
             y_ = y;
@@ -265,14 +402,31 @@ public abstract class EllipseMatchEngine implements MatchEngine {
             theta_ = theta;
         }
 
+        /**
+         * Constructs a point-like ellipse.
+         *
+         * @param  x  x coordinate of centre
+         * @param  y  y coordinate of centre
+         */
         Ellipse( double x, double y ) {
             this( x, y, 0, 0, 0 );
         }
 
+        /**
+         * Indicates whether this ellipse is point-like.
+         *
+         * @return   true iff this ellipse is dimensionless
+         */
         boolean isPoint() {
             return ! ( ( a_ > 0 || b_ > 0 ) && ! Double.isNaN( theta_ ) );
         }
 
+        /**
+         * Returns a distance from the centre of this ellipse beyond which
+         * points are definitely outside it.
+         *
+         * @return   maximum of semi-major radii
+         */
         double getMaxRadius() {
             return Math.max( a_, b_ );
         }
