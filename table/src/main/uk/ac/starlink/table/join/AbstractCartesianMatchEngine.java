@@ -450,4 +450,55 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             setScaleFactor( ((Number) value).doubleValue() );
         }
     }
+
+    /**
+     * Represents cells in the grid which represents the cartesian space.
+     * Each cell has a label represented by <tt>ndim</tt> integral indices.
+     */
+    private class Cell {
+
+        private final int[] label_;
+        private final AbstractCartesianMatchEngine encloser_;
+
+        Cell( int[] label ) {
+            label_ = label;
+            encloser_ = AbstractCartesianMatchEngine.this;
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof Cell ) {
+                Cell other = (Cell) o;
+                if ( this.encloser_ == other.encloser_ ) {
+                    int[] otherLabel = other.label_;
+                    for ( int i = 0; i < ndim_; i++ ) {
+                        if ( otherLabel[ i ] != label_[ i ] ) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            int code = 37;
+            for ( int i = 0; i < ndim_; i++ ) {
+                code = 23 * code + label_[ i ];
+            }
+            return code;
+        }
+
+        public String toString() {
+            StringBuffer sbuf = new StringBuffer( "(" );
+            for ( int i = 0; i < ndim_; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( "," ); 
+                }
+                sbuf.append( label_[ i ] );
+            }
+            sbuf.append( ")" );
+            return sbuf.toString();
+        }
+    }
 }
