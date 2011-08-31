@@ -39,7 +39,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * but performance may be affected).
      * The current value may not be optimal.
      */
-    private static final double DEFAULT_SCALE_FACTOR = 8;
+    static final double DEFAULT_SCALE_FACTOR = 8;
 
     /**
      * Constructs a matcher which matches points in an
@@ -157,12 +157,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     public ValueInfo[] getTupleInfos() {
         ValueInfo[] infos = new ValueInfo[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            DefaultValueInfo info = 
-                new DefaultValueInfo( getCoordinateName( i ),
-                                      Number.class,
-                                      getCoordinateDescription( i ) );
-            info.setNullable( false );
-            infos[ i ] = info;
+            infos[ i ] = createCoordinateInfo( ndim_, i );
         }
         return infos;
     }
@@ -171,81 +166,29 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] minTuple, 
-                                          Comparable[] maxTuple ) {
-        minTuple = (Comparable[]) minTuple.clone();
-        maxTuple = (Comparable[]) maxTuple.clone();
+    public Comparable[][] getMatchBounds( Comparable[] minIn, 
+                                          Comparable[] maxIn ) {
+        Comparable[] minOut = new Comparable[ ndim_ ];
+        Comparable[] maxOut = new Comparable[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             double err = getError( i );
 
             /* The output minimum for each dimension is the input minimum
              * minus the error in that dimension.  Calculate it and
              * set the result as the same kind of object (or null). */
-            if ( minTuple[ i ] instanceof Number ) {
-                double min = ((Number) minTuple[ i ]).doubleValue() - err;
-                Class clazz = minTuple[ i ].getClass();
-                Comparable min1;
-                if ( clazz == Byte.class && 
-                     Math.floor( min ) >= Byte.MIN_VALUE ) {
-                    min1 = (Comparable) new Byte( (byte) Math.floor( min ) );
-                }
-                else if ( clazz == Short.class &&
-                          Math.floor( min ) >= Short.MIN_VALUE ) {
-                    min1 = (Comparable) new Short( (short) Math.floor( min ) );
-                }
-                else if ( clazz == Integer.class &&
-                          Math.floor( min ) >= Integer.MIN_VALUE ) {
-                    min1 = (Comparable) new Integer( (int) Math.floor( min ) );
-                }
-                else if ( clazz == Long.class &&
-                          Math.floor( min ) >= Long.MIN_VALUE ) {
-                    min1 = (Comparable) new Long( (long) Math.floor( min ) );
-                }
-                else if ( clazz == Float.class ) {
-                    min1 = (Comparable) new Float( (float) min );
-                }
-                else if ( clazz == Double.class ) {
-                    min1 = (Comparable) new Double( min );
-                }
-                else {
-                    min1 = null;
-                }
-                minTuple[ i ] = min1;
+            if ( minIn[ i ] instanceof Number ) {
+                minOut[ i ] = add( (Number) minIn[ i ], -err );
             }
 
             /* Do the same for the output maximum, this time adding the
              * error. */
-            if ( maxTuple[ i ] instanceof Number ) {
-                double max = ((Number) maxTuple[ i ]).doubleValue() + err;
-                Class clazz = maxTuple[ i ].getClass();
-                Comparable max1;
-                if ( clazz == Byte.class &&
-                     Math.ceil( max ) <= Byte.MAX_VALUE ) {
-                    max1 = (Comparable) new Byte( (byte) Math.ceil( max ) );
-                }
-                else if ( clazz == Short.class &&
-                          Math.ceil( max ) <= Short.MAX_VALUE ) {
-                    max1 = (Comparable) new Short( (short) Math.ceil( max ) );
-                }
-                else if ( clazz == Integer.class &&
-                          Math.ceil( max ) <= Integer.MAX_VALUE ) {
-                    max1 = (Comparable) new Integer( (int) Math.ceil( max ) );
-                }
-                else if ( clazz == Float.class ) {
-                    max1 = (Comparable) new Float( (float) max );
-                }
-                else if ( clazz == Double.class ) {
-                    max1 = (Comparable) new Double( max );
-                }
-                else {
-                    max1 = null;
-                }
-                maxTuple[ i ] = max1;
+            if ( maxIn[ i ] instanceof Number ) {
+                maxOut[ i ] = add( (Number) maxIn[ i ], +err );
             }
         }
 
         /* Return the doctored result. */
-        return new Comparable[][] { minTuple, maxTuple };
+        return new Comparable[][] { minOut, maxOut };
     }
 
     public abstract DescribedValue[] getMatchParameters();
@@ -347,23 +290,47 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns a description of the tuple element containing one of
+     * the Cartesian coordinates.
+     *
+     * @param  ndim  total number of Cartesian coordinates
+     * @param  idim  index of the coordinate in question
+     * @return  metadata for coordinate <tt>idim</tt>
+     */
+    static ValueInfo createCoordinateInfo( int ndim, int idim ) {
+        DefaultValueInfo info =
+            new DefaultValueInfo( getCoordinateName( ndim, idim ), Number.class,
+                                  getCoordinateDescription( ndim, idim ) );
+        info.setNullable( false );
+        return info;
+    }
+
+    /**
      * Returns the name of one of the coordinates.
      *
+     * @param  ndim  total number of Cartesian coordinates
      * @param  idim  index of coordinate
      * @return  name to use for coordinate <tt>idim</tt>
      */
-    String getCoordinateName( int idim ) {
-        return ndim_ <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
-                          : ( "Co-ord #" + ( idim + 1 ) );
+    static String getCoordinateName( int ndim, int idim ) {
+        if ( idim >= ndim ) {
+            throw new IllegalArgumentException();
+        }
+        return ndim <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
+                         : ( "Co-ord #" + ( idim + 1 ) );
     }
 
     /**
      * Returns the description of one of the coordinates.
      *
+     * @param  ndim  total number of Cartesian coordinates
      * @param  idim  index of coordinate
      * @return  description to use for coordinate <tt>idim</tt>
      */
-    String getCoordinateDescription( int idim ) {
+    static String getCoordinateDescription( int ndim, int idim ) {
+        if ( idim >= ndim ) {
+            throw new IllegalArgumentException();
+        }
         return "Cartesian co-ordinate #" + ( idim + 1 );
     }
 
@@ -433,6 +400,72 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return (Cell[]) cells.toArray( new Cell[ cells.size() ] );
     }
 
+    static Comparable add( Number in, double inc ) {
+        if ( in == null || Double.isNaN( inc ) ) {
+            return null;
+        }
+        Class clazz = in.getClass();
+        double dval = in.doubleValue() + inc;
+        if ( inc < 0 ) {
+            if ( clazz == Byte.class &&
+                 Math.floor( dval ) >= Byte.MIN_VALUE ) {
+                return new Byte( (byte) Math.floor( dval ) );
+            }
+            else if ( clazz == Short.class &&
+                      Math.floor( dval ) >= Short.MIN_VALUE ) {
+                return new Short( (short) Math.floor( dval ) );
+            }
+            else if ( clazz == Integer.class &&
+                      Math.floor( dval ) >= Integer.MIN_VALUE ) {
+                return new Integer( (int) Math.floor( dval ) );
+            }
+            else if ( clazz == Long.class &&
+                      Math.floor( dval ) >= Long.MIN_VALUE ) {
+                return new Long( (long) Math.floor( dval ) );
+            }
+            else if ( clazz == Float.class ) {
+                return new Float( (float) dval );
+            }
+            else if ( clazz == Double.class ) {
+                return new Double( dval );
+            }
+            else {
+                return null;
+            }
+        }
+        else if ( inc > 0 ) {
+            if ( clazz == Byte.class &&
+                 Math.floor( dval ) <= Byte.MAX_VALUE ) {
+                return new Byte( (byte) Math.floor( dval ) );
+            }
+            else if ( clazz == Short.class &&
+                      Math.floor( dval ) <= Short.MAX_VALUE ) {
+                return new Short( (short) Math.floor( dval ) );
+            }
+            else if ( clazz == Integer.class &&
+                      Math.floor( dval ) <= Integer.MAX_VALUE ) {
+                return new Integer( (int) Math.floor( dval ) );
+            }
+            else if ( clazz == Long.class &&
+                      Math.floor( dval ) <= Long.MAX_VALUE ) {
+                return new Long( (long) Math.floor( dval ) );
+            }
+            else if ( clazz == Float.class ) {
+                return new Float( (float) dval );
+            }
+            else if ( clazz == Double.class ) {
+                return new Double( dval );
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            assert inc == 0;
+            return in instanceof Comparable ? (Comparable) in : null;
+        }
+    }
+
     /**
      * Implements the tuning parameter which controls scale factor.
      */
@@ -448,57 +481,6 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         }
         public void setValue( Object value ) {
             setScaleFactor( ((Number) value).doubleValue() );
-        }
-    }
-
-    /**
-     * Represents cells in the grid which represents the cartesian space.
-     * Each cell has a label represented by <tt>ndim</tt> integral indices.
-     */
-    private class Cell {
-
-        private final int[] label_;
-        private final AbstractCartesianMatchEngine encloser_;
-
-        Cell( int[] label ) {
-            label_ = label;
-            encloser_ = AbstractCartesianMatchEngine.this;
-        }
-
-        public boolean equals( Object o ) {
-            if ( o instanceof Cell ) {
-                Cell other = (Cell) o;
-                if ( this.encloser_ == other.encloser_ ) {
-                    int[] otherLabel = other.label_;
-                    for ( int i = 0; i < ndim_; i++ ) {
-                        if ( otherLabel[ i ] != label_[ i ] ) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public int hashCode() {
-            int code = 37;
-            for ( int i = 0; i < ndim_; i++ ) {
-                code = 23 * code + label_[ i ];
-            }
-            return code;
-        }
-
-        public String toString() {
-            StringBuffer sbuf = new StringBuffer( "(" );
-            for ( int i = 0; i < ndim_; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( "," ); 
-                }
-                sbuf.append( label_[ i ] );
-            }
-            sbuf.append( ")" );
-            return sbuf.toString();
         }
     }
 }

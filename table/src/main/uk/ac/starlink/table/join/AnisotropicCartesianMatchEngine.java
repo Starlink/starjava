@@ -57,11 +57,11 @@ public class AnisotropicCartesianMatchEngine
         final int idim_;
         ErrorParam( int idim ) {
             super( new DefaultValueInfo( "Error in " + 
-                                         getCoordinateName( idim ),
+                                         getCoordinateName( ndim_, idim ),
                                          Number.class,
                                          "Radius of error ellipse in " +
-                                         getCoordinateDescription( idim ) + 
-                                         " direction" ) );
+                                         getCoordinateDescription( ndim_, idim )
+                                         + " direction" ) );
             idim_ = idim;
         }
         public Object getValue() {
