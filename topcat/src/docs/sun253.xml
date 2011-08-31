@@ -9867,8 +9867,8 @@ of a metric on that space to count as a match.
     if necessary use the <ref id="StatsWindow">Statistics Window</ref>
     to determine the actual maximum uncertainty.
     If you set the tuning parameters explicitly however 
-    (see <ref id="matchTuning"/>) the value of this parameter is not
-    significant.
+    (see <ref id="matchTuning"/>) then using a large value of this parameter
+    is not harmful.
     </p></dd>
 
 <dt>Sky 3D</dt>
