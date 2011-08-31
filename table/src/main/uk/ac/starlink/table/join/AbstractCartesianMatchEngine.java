@@ -289,51 +289,6 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return normaliseScores_;
     }
 
-    /**
-     * Returns a description of the tuple element containing one of
-     * the Cartesian coordinates.
-     *
-     * @param  ndim  total number of Cartesian coordinates
-     * @param  idim  index of the coordinate in question
-     * @return  metadata for coordinate <tt>idim</tt>
-     */
-    static ValueInfo createCoordinateInfo( int ndim, int idim ) {
-        DefaultValueInfo info =
-            new DefaultValueInfo( getCoordinateName( ndim, idim ), Number.class,
-                                  getCoordinateDescription( ndim, idim ) );
-        info.setNullable( false );
-        return info;
-    }
-
-    /**
-     * Returns the name of one of the coordinates.
-     *
-     * @param  ndim  total number of Cartesian coordinates
-     * @param  idim  index of coordinate
-     * @return  name to use for coordinate <tt>idim</tt>
-     */
-    static String getCoordinateName( int ndim, int idim ) {
-        if ( idim >= ndim ) {
-            throw new IllegalArgumentException();
-        }
-        return ndim <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
-                         : ( "Co-ord #" + ( idim + 1 ) );
-    }
-
-    /**
-     * Returns the description of one of the coordinates.
-     *
-     * @param  ndim  total number of Cartesian coordinates
-     * @param  idim  index of coordinate
-     * @return  description to use for coordinate <tt>idim</tt>
-     */
-    static String getCoordinateDescription( int ndim, int idim ) {
-        if ( idim >= ndim ) {
-            throw new IllegalArgumentException();
-        }
-        return "Cartesian co-ordinate #" + ( idim + 1 );
-    }
-
     public abstract String toString();
 
     /**
@@ -400,12 +355,69 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return (Cell[]) cells.toArray( new Cell[ cells.size() ] );
     }
 
+    /**
+     * Returns a description of the tuple element containing one of
+     * the Cartesian coordinates.
+     *
+     * @param  ndim  total number of Cartesian coordinates
+     * @param  idim  index of the coordinate in question
+     * @return  metadata for coordinate <tt>idim</tt>
+     */
+    static ValueInfo createCoordinateInfo( int ndim, int idim ) {
+        DefaultValueInfo info =
+            new DefaultValueInfo( getCoordinateName( ndim, idim ), Number.class,
+                                  getCoordinateDescription( ndim, idim ) );
+        info.setNullable( false );
+        return info;
+    }
+
+    /**
+     * Returns the name of one of the coordinates.
+     *
+     * @param  ndim  total number of Cartesian coordinates
+     * @param  idim  index of coordinate
+     * @return  name to use for coordinate <tt>idim</tt>
+     */
+    static String getCoordinateName( int ndim, int idim ) {
+        if ( idim >= ndim ) {
+            throw new IllegalArgumentException();
+        }
+        return ndim <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
+                         : ( "Co-ord #" + ( idim + 1 ) );
+    }
+
+    /**
+     * Returns the description of one of the coordinates.
+     *
+     * @param  ndim  total number of Cartesian coordinates
+     * @param  idim  index of coordinate
+     * @return  description to use for coordinate <tt>idim</tt>
+     */
+    static String getCoordinateDescription( int ndim, int idim ) {
+        if ( idim >= ndim ) {
+            throw new IllegalArgumentException();
+        }
+        return "Cartesian co-ordinate #" + ( idim + 1 );
+    }
+
+    /**
+     * Adds a numeric value to a Number object, and returns an object of
+     * the same type having the new value.
+     * If the addition can't be done, null is returned.
+     * The signature looks strange, because Number doesn't implement
+     * Comparable, though all the Number subclasses that this method
+     * can cope with do.
+     *
+     * @param   in   input number object
+     * @param   inc  value to increment input number by
+     * @return  object of same type as <code>in</code> and the incremented value
+     */
     static Comparable add( Number in, double inc ) {
         if ( in == null || Double.isNaN( inc ) ) {
             return null;
         }
-        Class clazz = in.getClass();
         double dval = in.doubleValue() + inc;
+        Class clazz = in.getClass();
         if ( inc < 0 ) {
             if ( clazz == Byte.class &&
                  Math.floor( dval ) >= Byte.MIN_VALUE ) {
@@ -435,20 +447,20 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         }
         else if ( inc > 0 ) {
             if ( clazz == Byte.class &&
-                 Math.floor( dval ) <= Byte.MAX_VALUE ) {
-                return new Byte( (byte) Math.floor( dval ) );
+                 Math.ceil( dval ) <= Byte.MAX_VALUE ) {
+                return new Byte( (byte) Math.ceil( dval ) );
             }
             else if ( clazz == Short.class &&
-                      Math.floor( dval ) <= Short.MAX_VALUE ) {
-                return new Short( (short) Math.floor( dval ) );
+                      Math.ceil( dval ) <= Short.MAX_VALUE ) {
+                return new Short( (short) Math.ceil( dval ) );
             }
             else if ( clazz == Integer.class &&
-                      Math.floor( dval ) <= Integer.MAX_VALUE ) {
-                return new Integer( (int) Math.floor( dval ) );
+                      Math.ceil( dval ) <= Integer.MAX_VALUE ) {
+                return new Integer( (int) Math.ceil( dval ) );
             }
             else if ( clazz == Long.class &&
-                      Math.floor( dval ) <= Long.MAX_VALUE ) {
-                return new Long( (long) Math.floor( dval ) );
+                      Math.ceil( dval ) <= Long.MAX_VALUE ) {
+                return new Long( (long) Math.ceil( dval ) );
             }
             else if ( clazz == Float.class ) {
                 return new Float( (float) dval );
