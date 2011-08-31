@@ -38,7 +38,7 @@ public enum PairMode {
      * Each row from table 1 will appear a maximum of once in the result,
      * but rows from table 2 may appear multiple times.
      */
-    BEST1( true, "Best match for each table 1 row" ) {
+    BEST1( true, "Best match for each Table 1 row" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
             Range range = new Range( rowMatcher.getPairColumnCount( 0, 1 ) );
@@ -51,7 +51,7 @@ public enum PairMode {
      * Each row from table 2 will appear a maximum of once in the result,
      * but rows from table 1 may appear multiple times.
      */
-    BEST2( true, "Best match for each table 2 row" ) {
+    BEST2( true, "Best match for each Table 2 row" ) {
         LinkSet findPairMatches( RowMatcher rowMatcher )
                 throws IOException, InterruptedException {
             Range range = new Range( rowMatcher.getPairColumnCount( 0, 1 ) );

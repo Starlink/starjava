@@ -10252,12 +10252,12 @@ more than one row in the other table.  There are four options:
     from appearing in any other result pair, so each row
     from both input tables will appear in at most one row in the result.
     </p></dd>
-<dt>Best match for each table 1 row</dt>  <!-- BEST1 -->
+<dt>Best match for each Table 1 row</dt>  <!-- BEST1 -->
 <dd><p>For each row in table 1, only the best match from table 2
     will appear in the result. Each row from table 1 will appear a maximum
     of once in the result, but rows from table 2 may appear multiple times.
     </p></dd>
-<dt>Best match for each table 2 row</dt>  <!-- BEST2 -->
+<dt>Best match for each Table 2 row</dt>  <!-- BEST2 -->
 <dd><p>For each row in table 2, only the best match from table 1
     will appear in the result. Each row from table 2 will appear a maximum
     of once in the result, but rows from table 1 may appear multiple times.
