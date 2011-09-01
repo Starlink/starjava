@@ -9846,29 +9846,24 @@ of a metric on that space to count as a match.
     but an error radius (positional uncertainty) can be given for each
     row in the input tables, rather than just a single value for the whole
     match.
-    You need to specify a single Max Error value, which gives the
-    global maximum separation applying to all matches, and for each
-    of the input tables, along with the Right Ascension and 
-    Declination columns, you also specify an Error column
-    which gives the error radius corresponding to that position.
+    Along with the Right Ascension and Declination columns,
+    you also specify an Error column which gives the error radius
+    corresponding to that position.
     Two rows are considered to match when the separation between the
-    two RA,Dec positions is smaller than <em>both</em> the 
-    Max Error value <em>and</em> the sum of the two
+    two RA,Dec positions is smaller than the sum of the two
     Error values for the corresponding rows.
-    If either of the per-row Error values is blank, then any separation
-    up to the Max Error is considered to match.
-    According to these rules, you might decide to set the Max Error
-    to an arbitarily large number so that only the sum of per-row Errors
-    will determine the actual match criteria.  
-    However please <em>don't</em> do this, since the Max Error also 
-    functions as a tuning parameter for the matching algorithm,
-    and ought to be reasonably close to the actual maximum acceptable
-    separation - 
-    if necessary use the <ref id="StatsWindow">Statistics Window</ref>
-    to determine the actual maximum uncertainty.
-    If you set the tuning parameters explicitly however 
-    (see <ref id="matchTuning"/>) then using a large value of this parameter
-    is not harmful.
+    The Scale value should be set to a rough average of the per-row errors.
+    It is used only to set a sensible default for the tuning parameter,
+    and its value does not affect the result.
+    If the Healpix-k tuning parameter is set directly
+    (see <ref id="matchTuning"/>), Scale is ignored.
+    <strong>Note:</strong> the semantics of this matcher have changed
+    slightly since version 3.8 of TOPCAT and earlier. 
+    In earlier versions the single parameter was named Max Error
+    and provided an additional constraint on the maximum accepted separation
+    between matched objects.  For most uses, the old and new behaviours are
+    expected to give the same results, but in cases of difference, the new
+    behaviour is more likely what you want.
     </p></dd>
 
 <dt>Sky 3D</dt>
@@ -15040,6 +15035,8 @@ introduced since the last version:
     <li>Add experimental system properties
         <code>star.basicauth.user</code> and
         <code>star.basicauth.password</code>.</li>
+    <li>Semantics of the <label>Sky With Errors</label> crossmatch
+        criterion have changed slightly.</li>
     </ul>
     </p></dd>
 

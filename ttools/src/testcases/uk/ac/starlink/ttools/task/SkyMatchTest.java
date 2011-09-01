@@ -54,8 +54,6 @@ public class SkyMatchTest extends TableTestCase {
         env.setValue( "in1", t1 );
         env.setValue( "in2", t2 );
         env.setValue( "matcher", "skyerr" );
-        env.setValue( "values1", "ra1 dec1 known_error*0.49" );
-        env.setValue( "values2", "ra2 dec2 known_error*0.49" );
         env.setValue( "params", "10" );
         env.setValue( "join", "1and2" );
 
@@ -70,17 +68,14 @@ public class SkyMatchTest extends TableTestCase {
                            .getRowCount() );
 
         env.setValue( "params", "5" );
-        assertEquals( 550, tmatch2( env, t1, "ra1 dec1 known_error*0.51",
-                                         t2, "ra2 dec2 known_error*0.51" )
-                          .getRowCount() );
+        assertEquals( 1000, tmatch2( env, t1, "ra1 dec1 known_error*0.51",
+                                          t2, "ra2 dec2 known_error*0.51" )
+                           .getRowCount() );
 
-        assertEquals( 550, tmatch2( env, t1, "ra1 dec1 known_error*1.01",
-                                         t2, "ra2 dec2 0" )
-                          .getRowCount() );
-
-        assertEquals( 550, tmatch2( env, t1, "ra1 dec1 known_error*1.01",
-                                         t2, "ra2 dec2 NULL" )
-                          .getRowCount() );
+        assertEquals( 550,
+                      tmatch2( env, t1, "ra1 dec1 min(known_error*0.51,2.5)",
+                                    t2, "ra2 dec2 min(known_error*0.51,2.5)" )
+                     .getRowCount() );
     }
 
     public void testSkyColumns() throws Exception {

@@ -2477,25 +2477,27 @@ such transformations.
 sphere using error radii which can be different for each row.
 Rows are considered to match when the separation between the
 two <code>ra</code>, <code>dec</code> positions is smaller than 
-<em>both</em> the fixed <code>max-error</code> value 
-<em>and</em> the sum of the two per-row <code>error</code> values.
-If either of the <code>error</code> values is blank,
-then any separation up to <code>max-error</code> is considered a match.
+the sum of the two per-row <code>error</code> values.
 </p>
 
-<p>According to these rules, you might decide to set <code>max-error</code>
-to an arbitarily large number so that only the sum of <code>error</code>s
-will determine the actual match criteria.
-However please <em>don't</em> do this, since <code>max-error</code>
-also functions as a tuning parameter for the matching algorithm,
-and ought to be reasonably close to the actual maximum acceptable
-separation.  Note that if you set the <code>healpix-k</code> parameter
-explicitly, you may set <code>max-error</code> as large as you like.
+<p>The <code>scale</code> parameter should be a rough average value
+of the error distances.  It is used only to set a sensible default for 
+<code>healpix-k</code> tuning parameter, and its value does not affect
+the result.  If you set <code>healpix-k</code> directly, its value is ignored.
 </p>
 
 <p>As with <ref id="SkyMatchEngine"><code>sky</code></ref> matching,
 other longitude/latitude coordinate pairs may be used in place of
 right ascension and declination.
+</p>
+
+<p><strong>Note:</strong> the semantics of this matcher have changed
+slightly since version 2.3-1 of STILTS and earlier.
+In earlier versions the single parameter was named <code>max-error</code>
+and provided an additional constraint on the maximum accepted separation
+between matched objects.  For most uses, the old and new behaviours are
+expected to give the same results, but in cases of difference, the new
+behaviour is more likely what you want.
 </p>
 
 </subsubsect>
@@ -5467,18 +5469,15 @@ stilts tmatch1 matcher=sky values="RA2000 DE2000" params=20 \
     </p></dd>
 
 <dt><verbatim>
-stilts tmatch1 matcher=skyerr values="RA2000 DE2000 RADIUS*4" params=100 \
+stilts tmatch1 matcher=skyerr values="RA2000 DE2000 RADIUS*4" params=40 \
                action=keep0 in=crowded.vot out=sparse.vot
 </verbatim></dt>
 <dd><p>This is similar to the previous example, but uses the 
     <code>skyerr</code> matcher which determines the proximity threshold
     on a row-by-row basis from values in the table - in this case 4 times
     the value of the RADIUS column (this value must be in arc seconds). 
-    It is still necessary to specify <code>params=60</code>, but here it
-    just gives an upper limit for 4*RADIUS for all rows - this value is
-    required by the algorithm, and should not be too large for performance
-    reasons, but as long as it's set high enough it will 
-    not affect the result.
+    The <code>params=40</code> value does not affect the result, but it
+    gives the algorithm an idea of the rough scale of object separation.
     </p></dd>
 
 <dt><verbatim>
@@ -5582,9 +5581,8 @@ stilts tmatch2 survey.fits ifmt2=csv mycat.csv \
     <code>values1</code> parameter is the POS_ERR column (in arcsec).
     Since the second input table has no positional uncertainty information,
     0 is used as the third entry in <code>values2</code>.
-    The <code>params</code> still has to contain a value which gives the
-    maximum error for matching (i.e. &gt;= the largest value in the
-    POS_ERR column).
+    The <code>params</code> gives a rough idea of the scale of the object
+    separations, but its value does not affect the result.
     The join type is <code>2not1</code>, which means the output table
     will only contain those entries which are in the second input table
     but not in the first one.
@@ -5739,7 +5737,7 @@ stilts tmatchn multimode=group nin=3 matcher=skyerr params=8 \
     an output row will result for each object which is represented in any
     two of the input catalogues. 
     The match takes account of per-object errors equivalent to twice the
-    recorded seeing with a maximum of 8 arcsec separation.
+    recorded seeing, which is in the region of 8 arcsec.
     Note that this may not operate as expected if the catalogues contain
     multiple distinct objects too close (in comparison to the declared
     separation) to each other.
@@ -7815,6 +7813,8 @@ but my thanks are especially due to the following:
     <li>Add experimental system properties
         <code>star.basicauth.user</code> and 
         <code>star.basicauth.password</code>.</li>
+    <li>Semantics of the <ref id="SkyMatchEngine-err"><code>skyerr</code></ref>
+        matcher have changed slightly.</li>
     </ul>
     </p>
     </dd>

@@ -10,9 +10,12 @@ import uk.ac.starlink.table.ValueInfo;
  * The tuples it uses are two-element arrays of {@link java.lang.Number}
  * objects, the first giving Right Ascension in radians, and the second
  * giving Declination in radians.
- * The <tt>separation</tt> attribute indicates how many radians may
- * separate two points on the celestial sphere for them to be 
- * considered matching.
+ * This can operate in two modes, with or without per-object errors.
+ * In the latter, the <tt>separation</tt> attribute indicates how many
+ * radians may separate two points on the celestial sphere for them to be 
+ * considered matching.  In the former, that threshold is determined by
+ * the sum of the errors supplied by each point, and the separation is
+ * just used as a guide value for tuning purposes.
  *
  * @author   Mark Taylor (Starlink)
  * @since    15 Mar 2005
@@ -27,10 +30,11 @@ public abstract class SkyMatchEngine implements MatchEngine {
     private static final DefaultValueInfo SEP_INFO =
         new DefaultValueInfo( "Max Error", Number.class,
                               "Maximum separation along a great circle" );
-    private static final DefaultValueInfo SEPERR_INFO =
-        new DefaultValueInfo( "Max Error", Number.class,
-                              "Maximum separation along a great circle"
-                            + " - additional constraint to per-object errors" );
+    private static final DefaultValueInfo SCALE_INFO =
+        new DefaultValueInfo( "Scale", Number.class,
+                              "Rough average of per-object error distance; "
+                            + "just used for tuning to set "
+                            + "default pixel size" );
     private static final DefaultValueInfo ERR_INFO =
         new DefaultValueInfo( "Error", Number.class,
                               "Per-object error radius along a great circle" );
@@ -42,8 +46,8 @@ public abstract class SkyMatchEngine implements MatchEngine {
         SEP_INFO.setUnitString( "radians" );
         SEP_INFO.setNullable( false );
 
-        SEPERR_INFO.setUnitString( "radians" );
-        SEPERR_INFO.setNullable( false );
+        SCALE_INFO.setUnitString( "radians" );
+        SCALE_INFO.setNullable( false );
 
         ERR_INFO.setUnitString( "radians" );
         ERR_INFO.setNullable( true );
@@ -119,48 +123,37 @@ public abstract class SkyMatchEngine implements MatchEngine {
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
 
         /* Work out maximum permissible distance between points. */
-        double err = getSeparation();
-        if ( useErrors_ ) {
-            Number err1 = (Number) tuple1[ 2 ];
-            Number err2 = (Number) tuple2[ 2 ];
-            if ( ( ! Tables.isBlank( err1 ) ) &&
-                 ( ! Tables.isBlank( err2 ) ) ) {
-                err = Math.min( err, err1.doubleValue() + err2.doubleValue() );
-            }
+        double err = getUseErrors() ? getNumberValue( tuple1[ 2 ] ) +
+                                      getNumberValue( tuple2[ 2 ] )
+                                    : getSeparation();
+        if ( ! ( err >= 0 ) ) {
+            return -1.0;
         }
 
         /* Cheap test which will throw out most comparisons straight away:
          * see if the separation in declination is greater than the maximum
          * acceptable separation. */
-        double dec1 = ((Number) tuple1[ 1 ]).doubleValue();
-        double dec2 = ((Number) tuple2[ 1 ]).doubleValue();
+        double dec1 = getNumberValue( tuple1[ 1 ] );
+        double dec2 = getNumberValue( tuple2[ 1 ] );
         if ( Math.abs( dec1 - dec2 ) > err ) {
             return -1.0;
         }
 
         /* Declinations at least are close; do a proper test. */
-        double ra1 = ((Number) tuple1[ 0 ]).doubleValue();
-        double ra2 = ((Number) tuple2[ 0 ]).doubleValue();
+        double ra1 = getNumberValue( tuple1[ 0 ] );
+        double ra2 = getNumberValue( tuple2[ 0 ] );
         double sep = calculateSeparation( ra1, dec1, ra2, dec2 );
         return sep <= err ? sep / ARC_SECOND : -1.0;
     }
 
     public Object[] getBins( Object[] tuple ) {
-        if ( tuple[ 0 ] instanceof Number && tuple[ 1 ] instanceof Number ) {
-            double ra = ((Number) tuple[ 0 ]).doubleValue();
-            double dec = ((Number) tuple[ 1 ]).doubleValue();
-            double err = getSeparation();
-            if ( useErrors_ ) {
-                Number rowErr = (Number) tuple[ 2 ];
-                if ( ! Tables.isBlank( rowErr ) ) {
-                    err = Math.min( err, rowErr.doubleValue() );
-                }
-            }
-            return getBins( ra, dec, err );
-        }
-        else {
-            return NO_BINS;
-        }
+        double ra = getNumberValue( tuple[ 0 ] );
+        double dec = getNumberValue( tuple[ 1 ] );
+        double err = useErrors_ ? getNumberValue( tuple[ 2 ] )
+                                : getSeparation();
+        return ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) && err >= 0 )
+             ? getBins( ra, dec, err )
+             : NO_BINS;
     }
 
     /**
@@ -169,8 +162,6 @@ public abstract class SkyMatchEngine implements MatchEngine {
      * The returned objects can be anything, but should have their
      * <code>equals</code> and <code>hashCode</code> methods 
      * implemented properly for comparison.
-     * The <code>err</code> value will not be greater than the current 
-     * result of <code>getSeparation</code>.
      *
      * @param   ra   right ascension of point to test (radians)
      * @param   dec  declination of point to test (radians)
@@ -205,22 +196,20 @@ public abstract class SkyMatchEngine implements MatchEngine {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] radecMinIn,
-                                          Comparable[] radecMaxIn ) {
+    public Comparable[][] getMatchBounds( Comparable[] minIns,
+                                          Comparable[] maxIns ) {
 
         /* Get numeric values of RA and Dec input limits. */
-        double rMinIn = radecMinIn[ 0 ] == null
-                      ? Double.NaN
-                      : ((Number) radecMinIn[ 0 ]).doubleValue();
-        double dMinIn = radecMinIn[ 1 ] == null
-                      ? Double.NaN
-                      : ((Number) radecMinIn[ 1 ]).doubleValue();
-        double rMaxIn = radecMaxIn[ 0 ] == null
-                      ? Double.NaN
-                      : ((Number) radecMaxIn[ 0 ]).doubleValue();
-        double dMaxIn = radecMaxIn[ 1 ] == null
-                      ? Double.NaN
-                      : ((Number) radecMaxIn[ 1 ]).doubleValue();
+        double rMinIn = getNumberValue( minIns[ 0 ] );
+        double dMinIn = getNumberValue( minIns[ 1 ] );
+        double rMaxIn = getNumberValue( maxIns[ 0 ] );
+        double dMaxIn = getNumberValue( maxIns[ 1 ] );
+
+        /* Get the maximum error which may surround any of the presented
+         * points. */
+        boolean useerr = getUseErrors();
+        double err = useerr ? 2 * getNumberValue( maxIns[ 2 ] )
+                            : getSeparation();
 
         /* Calculate the corresponding output limits - these are similar,
          * but including an extra error of separation in any direction.
@@ -228,14 +217,14 @@ public abstract class SkyMatchEngine implements MatchEngine {
          * as NaN. */
         double rMinOut;
         double rMaxOut;
-        double dMinOut = dMinIn - separation_;
-        double dMaxOut = dMaxIn + separation_;
+        double dMinOut = dMinIn - err;
+        double dMaxOut = dMaxIn + err;
         if ( ! Double.isNaN( dMinOut ) && ! Double.isNaN( dMaxOut ) ) {
 
             /* Use trig to adjust right ascension limits correctly. */
             double rDiffMax =
-                Math.max( Math.abs( separation_ / Math.cos( dMinOut ) ),
-                          Math.abs( separation_ / Math.cos( dMaxOut ) ) );
+                Math.max( Math.abs( err / Math.cos( dMinOut ) ),
+                          Math.abs( err / Math.cos( dMaxOut ) ) );
             rMinOut = rMinIn - rDiffMax;
             rMaxOut = rMaxIn + rDiffMax;
 
@@ -269,41 +258,17 @@ public abstract class SkyMatchEngine implements MatchEngine {
          * Float or Double - in the weird case in which they are not,
          * null values are returned, which is quite legal and will not
          * lead to incorrect results (only perhaps less efficient). */
-        Comparable[] radecMinOut = new Comparable[ getUseErrors() ? 3 : 2 ];
-        Comparable[] radecMaxOut = new Comparable[ getUseErrors() ? 3 : 2 ];
-        if ( ! Double.isNaN( rMinOut ) ) {
-            if ( radecMinIn[ 0 ] instanceof Float ) {
-                radecMinOut[ 0 ] = new Float( (float) rMinOut );
-            }
-            else if ( radecMinIn[ 0 ] instanceof Double ) {
-                radecMinOut[ 0 ] = new Double( rMinOut );
-            }
+        Comparable[] minOuts = new Comparable[ useerr ? 3 : 2 ];
+        Comparable[] maxOuts = new Comparable[ useerr ? 3 : 2 ];
+        minOuts[ 0 ] = toFloatingNumber( rMinOut, minIns[ 0 ] );
+        minOuts[ 1 ] = toFloatingNumber( dMinOut, minIns[ 1 ] );
+        maxOuts[ 0 ] = toFloatingNumber( rMaxOut, maxIns[ 0 ] );
+        maxOuts[ 1 ] = toFloatingNumber( dMaxOut, maxIns[ 1 ] );
+        if ( useerr ) {
+            minOuts[ 2 ] = minIns[ 2 ];
+            maxOuts[ 2 ] = maxIns[ 2 ];
         }
-        if ( ! Double.isNaN( dMinOut ) ) {
-            if ( radecMinIn[ 1 ] instanceof Float ) {
-                radecMinOut[ 1 ] = new Float( (float) dMinOut );
-            }
-            else if ( radecMinIn[ 1 ] instanceof Double ) {
-                radecMinOut[ 1 ] = new Double( dMinOut );
-            }
-        }
-        if ( ! Double.isNaN( rMaxOut ) ) {
-            if ( radecMaxIn[ 0 ] instanceof Float ) {
-                radecMaxOut[ 0 ] = new Float( (float) rMaxOut );
-            }
-            else if ( radecMaxIn[ 0 ] instanceof Double ) {
-                radecMaxOut[ 0 ] = new Double( rMaxOut );
-            }
-        }
-        if ( ! Double.isNaN( dMaxOut ) ) {
-            if ( radecMaxIn[ 1 ] instanceof Float ) {
-                radecMaxOut[ 1 ] = new Float( (float) dMaxOut );
-            }
-            else if ( radecMaxIn[ 1 ] instanceof Double ) {
-                radecMaxOut[ 1 ] = new Double( dMaxOut );
-            }
-        }
-        return new Comparable[][] { radecMinOut, radecMaxOut };
+        return new Comparable[][] { minOuts, maxOuts };
     }
 
     /**
@@ -367,11 +332,50 @@ public abstract class SkyMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns the numeric value for an object if it is a Number,
+     * and NaN otherwise.
+     *
+     * @param  numobj  object
+     * @return  numeric value
+     */
+    private static double getNumberValue( Object numobj ) {
+        return numobj instanceof Number
+             ? ((Number) numobj).doubleValue()
+             : Double.NaN;
+    }
+
+    /**
+     * Turn a numeric value into a floating point number object
+     * of the same type as a template object.  If the template is not
+     * Float or Double, or if the value is NaN, null is returned.
+     *
+     * @param   value  numeric value
+     * @param   template  object with template type
+     * @return  Float or Double object of same type as template and value
+     *          as value, or null
+     */
+    private static Comparable toFloatingNumber( double value,
+                                                Comparable template ) {
+        if ( Double.isNaN( value ) ) {
+            return null;
+        }
+        else if ( template instanceof Double ) {
+            return new Double( value );
+        }
+        else if ( template instanceof Float ) {
+            return new Float( (float) value );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * Implements the parameter which controls the matching error.
      */
     private class SkySeparationValue extends DescribedValue {
         SkySeparationValue() {
-            super( useErrors_ ? SEPERR_INFO : SEP_INFO );
+            super( useErrors_ ? SCALE_INFO : SEP_INFO );
         }
         public Object getValue() {
             return new Double( getSeparation() );
