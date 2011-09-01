@@ -52,7 +52,7 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
     public ErrorCartesianMatchEngine( int ndim, double scale ) {
         ndim_ = ndim;
         setScale( scale );
-        binFactor_ = AbstractCartesianMatchEngine.DEFAULT_SCALE_FACTOR;
+        binFactor_ = AbstractCartesianMatchEngine.DEFAULT_BIN_FACTOR;
         scaleParam_ = new ScaleParam();
         binFactorParam_ = new BinFactorParam();
     }

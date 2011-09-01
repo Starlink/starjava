@@ -26,20 +26,20 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     private final int blockSize_;
     private final double[] errors_;
     private final double[] err2rs_;
-    private final double[] cellScales_;
-    private final DescribedValue scaleFactorParam_;
+    private final double[] rBinSizes_;
+    private final DescribedValue binFactorParam_;
     private boolean normaliseScores_;
-    private double scaleFactor_;
+    private double binFactor_;
 
     /**
-     * Scale factor which determines bin size to use,
+     * Factor which determines bin size to use,
      * as a multiple of the maximum error distance, if no
-     * scale factor is set explicitly.
-     * This is a tuning factor (any value will give correct results,
+     * bin factor is set explicitly.
+     * This is a tuning parameter (any value will give correct results,
      * but performance may be affected).
      * The current value may not be optimal.
      */
-    static final double DEFAULT_SCALE_FACTOR = 8;
+    static final double DEFAULT_BIN_FACTOR = 8;
 
     /**
      * Constructs a matcher which matches points in an
@@ -57,10 +57,10 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         blockSize_ = (int) Math.pow( 3, ndim );
         errors_ = new double[ ndim ];
         err2rs_ = new double[ ndim ];
-        cellScales_ = new double[ ndim ];
-        scaleFactorParam_ = new ScaleFactorParameter();
+        rBinSizes_ = new double[ ndim ];
+        binFactorParam_ = new BinFactorParameter();
         setNormaliseScores( normaliseScores );
-        setScaleFactor( DEFAULT_SCALE_FACTOR );
+        setBinFactor( DEFAULT_BIN_FACTOR );
     }
 
     /**
@@ -194,7 +194,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     public abstract DescribedValue[] getMatchParameters();
 
     public DescribedValue[] getTuningParameters() {
-        return new DescribedValue[] { scaleFactorParam_ };
+        return new DescribedValue[] { binFactorParam_ };
     }
 
     /**
@@ -227,8 +227,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      *
      * @return   grid scaling factor
      */
-    public double getScaleFactor() {
-        return scaleFactor_;
+    public double getBinFactor() {
+        return binFactor_;
     }
 
     /**
@@ -236,15 +236,15 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * as a multiple of the size of the matching error in each dimension.
      * It can be used as a tuning parameter.  It must be >= 1.
      *
-     * @param   scaleFactor   new scaling factor
+     * @param   binFactor   new bin scaling factor
      * @throws  IllegalArgumentException  if out of range
      */
-    public void setScaleFactor( double scaleFactor ) {
-        if ( ! ( scaleFactor >= 1.0 ) ) {
-            throw new IllegalArgumentException( "Scale factor " + scaleFactor
+    public void setBinFactor( double binFactor ) {
+        if ( ! ( binFactor >= 1.0 ) ) {
+            throw new IllegalArgumentException( "Bin factor " + binFactor
                                               + " must be >= 1" );
         }
-        scaleFactor_ = scaleFactor;
+        binFactor_ = binFactor;
         for ( int idim = 0; idim < ndim_; idim++ ) {
             configureScale( idim );
         }
@@ -257,8 +257,8 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * @param  idim  dimension index
      */
     private void configureScale( int idim ) {
-        assert scaleFactor_ >= 1.0;
-        cellScales_[ idim ] = 1.0 / ( scaleFactor_ * errors_[ idim ] );
+        assert binFactor_ >= 1.0;
+        rBinSizes_[ idim ] = 1.0 / ( binFactor_ * errors_[ idim ] );
     }
 
     /**
@@ -300,7 +300,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     private int[] getBaseLabel( double[] coords ) {
         int[] label = new int[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
-            label[ i ] = (int) Math.floor( coords[ i ] * cellScales_[ i ] );
+            label[ i ] = (int) Math.floor( coords[ i ] * rBinSizes_[ i ] );
         }
         return label;
     }
@@ -479,20 +479,20 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Implements the tuning parameter which controls scale factor.
+     * Implements the tuning parameter which controls bin scaling factor.
      */
-    private class ScaleFactorParameter extends DescribedValue {
-        ScaleFactorParameter() {
-            super( new DefaultValueInfo( "Scale Factor", Double.class,
+    private class BinFactorParameter extends DescribedValue {
+        BinFactorParameter() {
+            super( new DefaultValueInfo( "Bin Factor", Double.class,
                                          "Scaling factor to adjust bin size; "
                                        + "larger values mean larger bins. "
                                        + "Minimum legal value is 1." ) );
         }
         public Object getValue() {
-            return new Double( getScaleFactor() );
+            return new Double( getBinFactor() );
         }
         public void setValue( Object value ) {
-            setScaleFactor( ((Number) value).doubleValue() );
+            setBinFactor( ((Number) value).doubleValue() );
         }
     }
 }
