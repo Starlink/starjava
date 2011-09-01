@@ -1,22 +1,18 @@
 package uk.ac.starlink.table.join;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Matcher which matches in an N-dimensional Cartesian space with per-object
- * errors.  Two points are considered matching if the distance between them
- * is less than the sum of the errors associated with each object.
+ * Abstract superclass for match engines which work in an N-dimensional
+ * Cartesian space with per-object errors.
  *
  * @author   Mark Taylor
- * @since    31 Aug 2011
+ * @since    1 Sep 2011
  */
-public class ErrorCartesianMatchEngine implements MatchEngine {
+public abstract class AbstractErrorCartesianMatchEngine implements MatchEngine {
 
     private final int ndim_;
     private final DescribedValue scaleParam_;
@@ -35,21 +31,14 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
         new DefaultValueInfo( "Bin Factor", Double.class,
                               "Scaling factor to adjust bin size; "
                             + "larger values mean larger bins" );
-    private static final DefaultValueInfo SCORE_INFO =
-        new DefaultValueInfo( "Separation", Double.class,
-                              "Spatial distance between matched points" );
-    static {
-        BINFACT_INFO.setNullable( false );
-        SCORE_INFO.setUCD( "pos.distance" );
-    }
 
     /**
      * Constructor.
      *
      * @param   ndim  dimensionality
-     * @param   scale   rough scale of errors 
+     * @param   scale   rough scale of errors
      */
-    public ErrorCartesianMatchEngine( int ndim, double scale ) {
+    public AbstractErrorCartesianMatchEngine( int ndim, double scale ) {
         ndim_ = ndim;
         setScale( scale );
         binFactor_ = AbstractCartesianMatchEngine.DEFAULT_BIN_FACTOR;
@@ -122,20 +111,6 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
         rBinSize_ = 1.0 / ( scale_ * binFactor_ );
     }
 
-    public ValueInfo[] getTupleInfos() {
-        List<ValueInfo> infoList = new ArrayList<ValueInfo>();
-        for ( int id = 0; id < ndim_; id++ ) {
-            infoList.add( AbstractCartesianMatchEngine
-                         .createCoordinateInfo( ndim_, id ) ); 
-        }
-        DefaultValueInfo errInfo =
-            new DefaultValueInfo( "Error", Number.class,
-                                  "Per-object error radius" );
-        errInfo.setNullable( false );
-        infoList.add( errInfo );
-        return infoList.toArray( new ValueInfo[ 0 ] );
-    }
-
     public DescribedValue[] getMatchParameters() {
         return new DescribedValue[] { scaleParam_ };
     }
@@ -144,46 +119,18 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
         return new DescribedValue[] { binFactorParam_ };
     }
 
-    public ValueInfo getMatchScoreInfo() {
-        return SCORE_INFO;
-    }
-
-    public String toString() {
-        return ndim_ + "-d Cartesian with Errors";
-    }
-
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-
-        /* Determine the distance threshold for matching of this pair. */
-        double err1 = ((Number) tuple1[ ndim_ ]).doubleValue();
-        double err2 = ((Number) tuple2[ ndim_ ]).doubleValue();
-        double errSum = err1 + err2;
-
-        /* If the distance in any dimension is greater than the maximum,
-         * reject it straight away.  This is a cheap test which will normally
-         * reject most pairs. */
-        for ( int id = 0; id < ndim_; id++ ) {
-            if ( Math.abs( ((Number) tuple1[ id ]).doubleValue() -
-                           ((Number) tuple2[ id ]).doubleValue() ) > errSum ) {
-                return -1;
-            }
-        }
-
-        /* Otherwise, calculate the distance using Pythagoras. */
-        double dist2 = 0;
-        for ( int id = 0; id < ndim_; id++ ) {
-            double dist = ((Number) tuple1[ id ]).doubleValue() -
-                          ((Number) tuple2[ id ]).doubleValue();
-            dist2 += dist * dist;
-        }
-        return dist2 <= errSum * errSum ? Math.sqrt( dist2 )
-                                        : -1;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-
-        /* Get the error associated with the submitted position. */
-        double err = ((Number) tuple[ ndim_ ]).doubleValue();
+    /**
+     * Returns an array of the bin objects that may be covered within a
+     * given distance of a given position.  Not all returned bins are
+     * guaranteed to be so covered.  Validation is performed on the
+     * arguments (NaNs will result in an empty return).
+     *
+     * @param  coords  central position
+     * @param  err     error radius
+     * @return  bin objects that may be within <code>err</code>
+     *          of <code>coords</code>
+     */
+    protected Object[] getBins( double[] coords, double err ) {
         if ( ! ( err >= 0 ) ) {
             return NO_BINS;
         }
@@ -195,15 +142,15 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
         int[] lcount = new int[ ndim_ ];  // number of coord labels
         int ncell = 1;                    // total number of cells in cube
         for ( int id = 0; id < ndim_; id++ ) {
-            if ( tuple[ id ] instanceof Number ) {
-                double c0 = ((Number) tuple[ id ]).doubleValue();
+            double c0 = coords[ id ];
+            if ( Double.isNaN( c0 ) ) {
+                return NO_BINS;
+            }
+            else {
                 lbase[ id ] = getLabelComponent( id, c0 - err );
                 lcount[ id ] = getLabelComponent( id, c0 + err )
                              - lbase[ id ] + 1;
                 ncell *= lcount[ id ];
-            }
-            else {
-                return NO_BINS;
             }
         }
 
@@ -229,7 +176,22 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
         assert new HashSet( Arrays.asList( cells ) ).size() == cells.length;
 
         /* Return the list of cells. */
-        return cells; 
+        return cells;
+    }
+
+    public abstract String toString();
+
+    /**
+     * Returns the numeric value for an object if it is a Number,
+     * and NaN otherwise.
+     *
+     * @param  numobj  object
+     * @return  numeric value
+     */
+    static double getNumberValue( Object numobj ) {
+        return numobj instanceof Number
+             ? ((Number) numobj).doubleValue()
+             : Double.NaN;
     }
 
     /**
@@ -243,31 +205,6 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
      */
     private int getLabelComponent( int idim, double coord ) {
         return (int) Math.floor( coord * rBinSize_ );
-    }
-
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public Comparable[][] getMatchBounds( Comparable[] minIn,
-                                          Comparable[] maxIn ) {
-
-        /* Extend the bounds region both ways in each dimension
-         * by the maximum error value. */
-        Comparable[] minOut = new Comparable[ minIn.length ];
-        Comparable[] maxOut = new Comparable[ maxIn.length ];
-        if ( maxIn[ ndim_ ] instanceof Number ) {
-            double err = 2 * ((Number) maxIn[ ndim_ ]).doubleValue();
-            if ( err >= 0 ) {
-                for ( int id = 0; id < ndim_; id++ ) {
-                    minOut[ id ] = AbstractCartesianMatchEngine
-                                  .add( minIn[ id ], -err );
-                    maxOut[ id ] = AbstractCartesianMatchEngine
-                                  .add( maxIn[ id ], +err );
-                }
-            }
-        }
-        return new Comparable[][] { minOut, maxOut };
     }
 
     /**
