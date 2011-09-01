@@ -172,22 +172,9 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         Comparable[] maxOut = new Comparable[ ndim_ ];
         for ( int i = 0; i < ndim_; i++ ) {
             double err = getError( i );
-
-            /* The output minimum for each dimension is the input minimum
-             * minus the error in that dimension.  Calculate it and
-             * set the result as the same kind of object (or null). */
-            if ( minIn[ i ] instanceof Number ) {
-                minOut[ i ] = add( (Number) minIn[ i ], -err );
-            }
-
-            /* Do the same for the output maximum, this time adding the
-             * error. */
-            if ( maxIn[ i ] instanceof Number ) {
-                maxOut[ i ] = add( (Number) maxIn[ i ], +err );
-            }
+            minOut[ i ] = add( minIn[ i ], -err );
+            maxOut[ i ] = add( maxIn[ i ], +err );
         }
-
-        /* Return the doctored result. */
         return new Comparable[][] { minOut, maxOut };
     }
 
@@ -401,24 +388,25 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Adds a numeric value to a Number object, and returns an object of
-     * the same type having the new value.
-     * If the addition can't be done, null is returned.
-     * The signature looks strange, because Number doesn't implement
-     * Comparable, though all the Number subclasses that this method
-     * can cope with do.
+     * Attempts to add a numeric value to a Comparable object,
+     * and returns an object of the same type having the new value.
+     * If the addition can't be done (for instance if the input value
+     * is not a Number, or if the increment value is NaN), null is returned.
+     * Rounding where necessary is done in the direction of <code>incr</code>
+     * (down for negative <code>incr</code>, up for positive).
      *
-     * @param   in   input number object
-     * @param   inc  value to increment input number by
-     * @return  object of same type as <code>in</code> and the incremented value
+     * @param   in   input comparable object
+     * @param   incr value to increment input number by
+     * @return  object like <code>in</code>,
+     *          but incremented by <code>incr</code>
      */
-    static Comparable add( Number in, double inc ) {
-        if ( in == null || Double.isNaN( inc ) ) {
+    static Comparable add( Comparable in, double incr ) {
+        if ( ! ( in instanceof Number) || Double.isNaN( incr ) ) {
             return null;
         }
-        double dval = in.doubleValue() + inc;
+        double dval = ((Number) in).doubleValue() + incr;
         Class clazz = in.getClass();
-        if ( inc < 0 ) {
+        if ( incr < 0 ) {
             if ( clazz == Byte.class &&
                  Math.floor( dval ) >= Byte.MIN_VALUE ) {
                 return new Byte( (byte) Math.floor( dval ) );
@@ -445,7 +433,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
                 return null;
             }
         }
-        else if ( inc > 0 ) {
+        else if ( incr > 0 ) {
             if ( clazz == Byte.class &&
                  Math.ceil( dval ) <= Byte.MAX_VALUE ) {
                 return new Byte( (byte) Math.ceil( dval ) );
@@ -473,7 +461,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             }
         }
         else {
-            assert inc == 0;
+            assert incr == 0;
             return in instanceof Comparable ? (Comparable) in : null;
         }
     }

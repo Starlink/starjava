@@ -264,10 +264,6 @@ public abstract class SkyMatchEngine implements MatchEngine {
         minOuts[ 1 ] = toFloatingNumber( dMinOut, minIns[ 1 ] );
         maxOuts[ 0 ] = toFloatingNumber( rMaxOut, maxIns[ 0 ] );
         maxOuts[ 1 ] = toFloatingNumber( dMaxOut, maxIns[ 1 ] );
-        if ( useerr ) {
-            minOuts[ 2 ] = minIns[ 2 ];
-            maxOuts[ 2 ] = maxIns[ 2 ];
-        }
         return new Comparable[][] { minOuts, maxOuts };
     }
 

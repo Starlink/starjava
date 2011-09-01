@@ -252,33 +252,21 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
     public Comparable[][] getMatchBounds( Comparable[] minIn,
                                           Comparable[] maxIn ) {
 
-        /* Prepare output arrays. */
-        Comparable[] minOut = new Comparable[ minIn.length ];
-        Comparable[] maxOut = new Comparable[ maxIn.length ];
-
-        /* Max/Min error values are unchanged. */
-        minOut[ ndim_ ] = minIn[ ndim_ ];
-        maxOut[ ndim_ ] = maxIn[ ndim_ ];
-
         /* Extend the bounds region both ways in each dimension
          * by the maximum error value. */
+        Comparable[] minOut = new Comparable[ minIn.length ];
+        Comparable[] maxOut = new Comparable[ maxIn.length ];
         if ( maxIn[ ndim_ ] instanceof Number ) {
             double err = 2 * ((Number) maxIn[ ndim_ ]).doubleValue();
             if ( err >= 0 ) {
                 for ( int id = 0; id < ndim_; id++ ) {
-                    if ( minIn[ id ] instanceof Number ) {
-                        minOut[ id ] = AbstractCartesianMatchEngine
-                                      .add( (Number) minIn[ id ], -err );
-                    }
-                    if ( maxIn[ id ] instanceof Number ) {
-                        maxOut[ id ] = AbstractCartesianMatchEngine
-                                      .add( (Number) maxIn[ id ], +err );
-                    }
+                    minOut[ id ] = AbstractCartesianMatchEngine
+                                  .add( minIn[ id ], -err );
+                    maxOut[ id ] = AbstractCartesianMatchEngine
+                                  .add( maxIn[ id ], +err );
                 }
             }
         }
-
-        /* Return the result. */
         return new Comparable[][] { minOut, maxOut };
     }
 
