@@ -1,6 +1,8 @@
 package uk.ac.starlink.table.join;
 
 import java.util.logging.Logger;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * MatchEngine implementation for plane elliptical figures.
@@ -11,20 +13,95 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    30 Aug 2011
  */
-public abstract class EllipseMatchEngine implements MatchEngine {
+public class EllipseMatchEngine extends AbstractErrorCartesianMatchEngine {
 
     private static final double NaN = Double.NaN;
+    private static final ValueInfo SCORE_INFO =
+        new DefaultValueInfo( "Separation", Double.class,
+                              "Normalised distance between ellipses in range "
+                            + "0-2; 0 is concentric, 1 is centre-on-edge, "
+                            + "2 is edges touching" );
+    private static final ValueInfo X_INFO =
+        new DefaultValueInfo( "X", Number.class, "X coordinate of centre" );
+    private static final ValueInfo Y_INFO =
+        new DefaultValueInfo( "Y", Number.class, "Y coordinate of centre" );
+    private static final ValueInfo A_INFO =
+        new DefaultValueInfo( "RMAJ", Number.class, "Ellipse major radius" );
+    private static final ValueInfo B_INFO =
+        new DefaultValueInfo( "RMIN", Number.class, "Ellipse minor radius" );
+    private static final DefaultValueInfo THETA_INFO =
+        new DefaultValueInfo( "THETA", Number.class,
+                              "Angle from X axis towards Y axis "
+                            + "of semi-major axis" );
+    static {
+        THETA_INFO.setUnitString( "radians" );
+    }
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.join" );
 
-    public EllipseMatchEngine() {
+    /**
+     * Constructor.
+     *
+     * @param  scale  rough scale of ellipse dimensions
+     */
+    public EllipseMatchEngine( double scale ) {
+        super( 2, scale );
     }
 
-    // x, y, a, b, theta
+    public ValueInfo[] getTupleInfos() {
+        return new ValueInfo[] {
+            X_INFO, Y_INFO, A_INFO, B_INFO, THETA_INFO,
+        };
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return SCORE_INFO;
+    }
+
+    public String toString() {
+        return "2-d Cartesian with Ellipses";
+    }
+
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         Match match = getMatch( toEllipse( tuple1 ), toEllipse( tuple2 ) );
         return match == null ? -1 : match.score_;
+    }
+
+    public Object[] getBins( Object[] tuple ) {
+        Ellipse ellipse = toEllipse( tuple );
+        return getBins( new double[] { ellipse.x_, ellipse.y_ },
+                        ellipse.getMaxRadius() );
+    }
+
+    public boolean canBoundMatch() {
+        return true;
+    }
+
+    public Comparable[][] getMatchBounds( Comparable[] inMins, 
+                                          Comparable[] inMaxs ) {
+
+        /* Prepare output bound arrays. */
+        Comparable[] outMins = new Comparable[ 5 ];
+        Comparable[] outMaxs = new Comparable[ 5 ];
+
+        /* Work out the maximum radius. */
+        double maxA = getNumberValue( inMaxs[ 2 ] );
+        double maxB = getNumberValue( inMaxs[ 3 ] );
+        double err = 2 * Math.max( maxA, maxB );
+
+        /* Expand X and Y limits. */
+        if ( err >= 0 ) {
+            for ( int id = 0; id < 2; id++ ) {
+                outMins[ id ] = AbstractCartesianMatchEngine
+                               .add( inMins[ id ], -err );
+                outMaxs[ id ] = AbstractCartesianMatchEngine
+                               .add( inMaxs[ id ], +err );
+            }
+        }
+
+        /* Return result. */
+        return new Comparable[][] { outMins, outMaxs };
     }
 
     /**
