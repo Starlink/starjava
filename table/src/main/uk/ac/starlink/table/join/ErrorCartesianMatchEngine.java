@@ -263,7 +263,7 @@ public class ErrorCartesianMatchEngine implements MatchEngine {
         /* Extend the bounds region both ways in each dimension
          * by the maximum error value. */
         if ( maxIn[ ndim_ ] instanceof Number ) {
-            double err = ((Number) maxIn[ ndim_ ]).doubleValue();
+            double err = 2 * ((Number) maxIn[ ndim_ ]).doubleValue();
             if ( err >= 0 ) {
                 for ( int id = 0; id < ndim_; id++ ) {
                     if ( minIn[ id ] instanceof Number ) {
