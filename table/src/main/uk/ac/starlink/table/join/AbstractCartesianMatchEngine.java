@@ -1,34 +1,23 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * A matching engine which can match points in an 
- * <tt>ndim</tt>-dimensional space.
- * All tuples (coordinate vectors) submitted to it must be 
- * <code>ndim</code>-element arrays of {@link java.lang.Number} objects.
- * Tuples are considered matching if they fall within an ellipsoid
- * defined by a scalar or vector error parameter.
+ * Abstract superclass for match engines working in a Cartesian space.
  *
- * <p>This abstract class defines the mechanics of the matching,
- * but not the match parameters, which will presumably be to do 
- * with error radii.
- *
- * @author   Mark Taylor (Starlink)
+ * @author   Mark Taylor
+ * @since    2 Sep 2011
  */
 public abstract class AbstractCartesianMatchEngine implements MatchEngine {
 
     private final int ndim_;
-    private final int blockSize_;
-    private final double[] errors_;
-    private final double[] err2rs_;
+    private final double[] scales_;
     private final double[] rBinSizes_;
     private final DescribedValue binFactorParam_;
-    private boolean normaliseScores_;
     private double binFactor_;
 
     /**
@@ -39,352 +28,346 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * but performance may be affected).
      * The current value may not be optimal.
      */
-    static final double DEFAULT_BIN_FACTOR = 8;
+    private static final double DEFAULT_BIN_FACTOR = 8;
+
+    private static final DefaultValueInfo BINFACT_INFO =
+        new DefaultValueInfo( "Bin Factor", Double.class,
+                              "Scaling factor to adjust bin size; "
+                            + "larger values mean larger bins" );
 
     /**
-     * Constructs a matcher which matches points in an
-     * <tt>ndim</tt>-dimensional Cartesian space.
-     * The error array (error ellipsoid dimensions) is not initialised to
-     * anything sensible by this constructor.
+     * Constructor.
      *
-     * @param   ndim  dimensionality of the space
-     * @param   normaliseScores  <tt>true</tt> iff you want match scores 
-     *                           to be normalised
+     * @param   ndim  dimensionality of Cartesian space
      */
-    protected AbstractCartesianMatchEngine( int ndim, 
-                                            boolean normaliseScores ) {
+    public AbstractCartesianMatchEngine( int ndim ) {
         ndim_ = ndim;
-        blockSize_ = (int) Math.pow( 3, ndim );
-        errors_ = new double[ ndim ];
-        err2rs_ = new double[ ndim ];
-        rBinSizes_ = new double[ ndim ];
+        scales_ = new double[ ndim_ ];
+        rBinSizes_ = new double[ ndim_ ];
+        binFactor_ = DEFAULT_BIN_FACTOR;
         binFactorParam_ = new BinFactorParameter();
-        setNormaliseScores( normaliseScores );
-        setBinFactor( DEFAULT_BIN_FACTOR );
     }
 
     /**
-     * Returns the number of dimensions of this matcher.
-     *
-     * @return  dimensionality of Cartesian space
+     * Returns the dimensionality of the Cartesian space
+     * in which this match engine works.
+     *      
+     * @return   number of spatial dimensions
      */
-    public int getDimensions() {
+    public int getNdim() {
         return ndim_;
     }
 
     /**
-     * Matches two tuples if they represent the coordinates of nearby points.
-     * If they match (fall within the same error ellipsoid) the return
-     * value is a non-negative value giving the distance between them.
-     * According to the value of the <tt>normaliseScores</tt> flag,
-     * this is either the actual distance between the points (Pythagoras)
-     * or the same thing normalised to the range between 0 (same position) 
-     * and 1 (on the boundary of the error ellipsoid).
-     * If they don't match, -1 is returned.
+     * Sets a multiplier for the length scale that determines bin size.
      *
-     * @param  tuple1  <tt>ndim</tt>-element array of <tt>Number</tt> objects
-     *                 representing coordinates of first object
-     * @param  tuple2  <tt>ndim</tt>-element array of <tt>Number</tt> objects
-     *                 representing coordinates of second object
-     * @return  the separation of the points represented by <tt>tuple1</tt>
-     *          and <tt>tuple2</tt> if they match, or -1 if they don't
+     * @param  binFactor  bin size multiplier
      */
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-
-        /* If any of the coordinates is too far away, reject it straight away.
-         * This is a cheap test which will normally reject most requests. */
-        for ( int i = 0; i < ndim_; i++ ) {
-            if ( Math.abs( ((Number) tuple1[ i ]).doubleValue() - 
-                           ((Number) tuple2[ i ]).doubleValue() ) 
-                 > errors_[ i ] ) {
-                return -1.0;
-            }
+    public void setBinFactor( double binFactor ) {
+        if ( ! ( binFactor > 0 ) ) {
+            throw new IllegalArgumentException( "Bin factor must be >0" );
         }
-
-        /* We are in the right ball park - do an accurate calculation. */
-        double spaceDist2 = 0.0; 
-        double normDist2 = 0.0;
-        for ( int i = 0; i < ndim_; i++ ) {
-            double d = ((Number) tuple1[ i ]).doubleValue() - 
-                       ((Number) tuple2[ i ]).doubleValue();
-            double d2 = d * d;
-            spaceDist2 += d2;
-            normDist2 += d2 * err2rs_[ i ];
+        binFactor_ = binFactor;
+        for ( int id = 0; id < ndim_; id++ ) {
+            configureScale( id );
         }
-        if ( normDist2 <= 1.0 ) {
-            return normaliseScores_ ? Math.sqrt( normDist2 ) 
-                                    : Math.sqrt( spaceDist2 );
-        }
-        else {
-            return -1.0;
-        }
-    }
-
-    public ValueInfo getMatchScoreInfo() {
-        String descrip = getNormaliseScores()
-            ? "Normalised distance between matched points" +
-              "(0 is identical position, 1 is worst permissible match)"
-            : "Spatial distance between matched points";
-        DefaultValueInfo scoreInfo = 
-            new DefaultValueInfo( "Separation", Double.class, descrip );
-        scoreInfo.setUCD( "pos.distance" );
-        return scoreInfo;
     }
 
     /**
-     * Returns a set of Cell objects representing the cell in which 
-     * this tuple falls and some or all of its neighbouring ones.
+     * Returns the multiplier for length scale that determines bin size.
      *
-     * @param  tuple  <tt>ndim</tt>-element array of <tt>Number</tt> objects
-     *                representing coordinates of an object
-     */
-    public Object[] getBins( Object[] tuple ) {
-        double[] coords = new double[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            if ( tuple[ i ] instanceof Number ) {
-                coords[ i ] = ((Number) tuple[ i ]).doubleValue();
-            }
-            else {
-                return NO_BINS;
-            }
-        }
-        return getCellBlock( coords );
-    }
-
-    /**
-     * Returns an array of tuple infos, one for each Cartesian dimension.
-     */
-    public ValueInfo[] getTupleInfos() {
-        ValueInfo[] infos = new ValueInfo[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            infos[ i ] = createCoordinateInfo( ndim_, i );
-        }
-        return infos;
-    }
-
-    public boolean canBoundMatch() {
-        return true;
-    }
-
-    public Comparable[][] getMatchBounds( Comparable[] minIn, 
-                                          Comparable[] maxIn ) {
-        Comparable[] minOut = new Comparable[ ndim_ ];
-        Comparable[] maxOut = new Comparable[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            double err = getError( i );
-            minOut[ i ] = add( minIn[ i ], -err );
-            maxOut[ i ] = add( maxIn[ i ], +err );
-        }
-        return new Comparable[][] { minOut, maxOut };
-    }
-
-    public abstract DescribedValue[] getMatchParameters();
-
-    public DescribedValue[] getTuningParameters() {
-        return new DescribedValue[] { binFactorParam_ };
-    }
-
-    /**
-     * Returns the matching error along a given axis.
-     * This is the principal radius of an ellipsoid within which two points
-     * must fall in order to match.
-     *
-     * @return  error array
-     */
-    protected double getError( int idim ) {
-        return errors_[ idim ];
-    }
-
-    /**
-     * Sets one of the principal radii of the ellipsoid within which 
-     * two points have to fall in order to match.
-     *
-     * @param  idim  index of axis
-     * @param  error  error along axis <tt>idim</tt>
-     */
-    public void setError( int idim, double error ) {
-        errors_[ idim ] = error;
-        err2rs_[ idim ] = error == 0.0 ? Double.MAX_VALUE
-                                       : 1.0 / ( error * error );
-        configureScale( idim );
-    }
-
-    /**
-     * Returns the grid scaling factor.
-     *
-     * @return   grid scaling factor
+     * @return  bin size multiplier
      */
     public double getBinFactor() {
         return binFactor_;
     }
 
     /**
-     * Sets the grid scaling factor which determines the size of a grid cell
-     * as a multiple of the size of the matching error in each dimension.
-     * It can be used as a tuning parameter.  It must be >= 1.
+     * Sets the scale isotropically.  All dimension scales are set to the
+     * given value.
      *
-     * @param   binFactor   new bin scaling factor
-     * @throws  IllegalArgumentException  if out of range
+     * @param  scale  guide error distance
      */
-    public void setBinFactor( double binFactor ) {
-        if ( ! ( binFactor >= 1.0 ) ) {
-            throw new IllegalArgumentException( "Bin factor " + binFactor
-                                              + " must be >= 1" );
-        }
-        binFactor_ = binFactor;
-        for ( int idim = 0; idim < ndim_; idim++ ) {
-            configureScale( idim );
+    public void setIsotropicScale( double scale ) {
+        for ( int id = 0; id < ndim_; id++ ) {
+            setScale( id, scale );
         }
     }
 
     /**
-     * Updates internal state for the current values of error and 
-     * scaling factor in a given dimension.
+     * Returns the isotropic scale.  If all dimension scales are set to the
+     * same value, that value is returned.  If they are not all set to the
+     * same value, the return value is undefined.
+     *
+     * @return  scale  isotropic guide error distance
+     */
+    public double getIsotropicScale() {
+        return scales_[ 0 ];
+    }
+
+    /**
+     * Sets the scale value for a given dimension.  In conjunction with the
+     * bin factor, this determines the bin size.
+     *
+     * @param  idim  dimension index
+     * @param  scale  guide error distance in dimension <code>idim</code>
+     */
+    protected void setScale( int idim, double scale ) {
+        if ( scale < 0 ) {
+            throw new IllegalArgumentException( "Scale must be >0" );
+        }
+        scales_[ idim ] = scale;
+        configureScale( idim );
+    }
+
+    /**
+     * Returns the scale value for a given dimension.
+     *
+     * @param  idim  dimension index
+     * @return  guide error distance in dimension <code>idim</code>
+     */
+    protected double getScale( int idim ) {
+        return scales_[ idim ];
+    }
+ 
+    /**
+     * Reconfigures internal state following a change to the tuning
+     * parameters affecting a given dimension.
      *
      * @param  idim  dimension index
      */
     private void configureScale( int idim ) {
-        assert binFactor_ >= 1.0;
-        rBinSizes_[ idim ] = 1.0 / ( binFactor_ * errors_[ idim ] );
+        rBinSizes_[ idim ] = 1.0 / ( scales_[ idim ] * binFactor_ );
+    }
+
+    public DescribedValue[] getTuningParameters() {
+        return new DescribedValue[] { binFactorParam_ };
     }
 
     /**
-     * Determines whether the results of the {@link #matchScore} method
-     * will be normalised or not.  
-     * If <tt>norm</tt> is true, 
-     * successful matches always result in a score between 0 and 1; 
-     * if it's false, 
-     * the score is the distance in the space defined by the supplied tuples.
+     * Returns an array of the bin objects that may be covered within a
+     * given distance of a given position.  Not all returned bins are
+     * guaranteed to be so covered.  Validation is performed on the
+     * arguments (NaNs will result in an empty return).
      *
-     * <p>If your errors are significantly anisotropic 
-     * and/or your coordinates do not represent a physical space, 
-     * you probably want to set this false.
-     *
-     * @param  norm  <tt>true</tt> iff you want match scores to be normalised
+     * @param  coords  central position
+     * @param  radius  error radius
+     * @return  bin objects that may be within <code>radius</code>
+     *          of <code>coords</code>
      */
-    public void setNormaliseScores( boolean norm ) {
-        normaliseScores_ = norm;
+    protected Object[] getRadiusBins( double[] coords, double radius ) {
+        return radius >= 0 ? doGetBins( coords, radius )
+                           : NO_BINS;
     }
 
     /**
-     * Indicates whether the results of the {@link #matchScore} method
-     * will be normalised.
+     * Returns an array of the bin objects that may be covered within the
+     * current anisotropic scale length in each direction of a given position.
+     * Not all returned bins are guaranteed to be so covered.
+     * Validation is performed on the arguments (NaNs will result in
+     * an empty return.
      *
-     * @return   <tt>true</tt> iff match scores will be normalised
+     * @param  coords  central position
+     * @return  bin objects within a scale length of <code>coords</code>
      */
-    public boolean getNormaliseScores() {
-        return normaliseScores_;
-    }
-
-    public abstract String toString();
-
-    /**
-     * Returns the cell label corresponding to the given coordinate set.
-     *
-     * @param  coords  ndim-dimensional array of coordinate values
-     * @return  ndim-dimensional array of cell label indices
-     */
-    private int[] getBaseLabel( double[] coords ) {
-        int[] label = new int[ ndim_ ];
-        for ( int i = 0; i < ndim_; i++ ) {
-            label[ i ] = (int) Math.floor( coords[ i ] * rBinSizes_[ i ] );
-        }
-        return label;
+    protected Object[] getScaleBins( double[] coords ) {
+        return doGetBins( coords, Double.NaN );
     }
 
     /**
-     * Returns an array of Cell objects corresponding to the cell in which
-     * <tt>coords</tt> falls and all its nearest neighbours.
+     * Does the work for the get*Bins methods.
+     * Returns bins within some range of the given position.
+     * If radius is a number, it is used;
+     * if it's NaN, the scale length is used instead.
      *
-     * @param  coords  coordinates of reference points
-     * @return  <tt>3^ndim</tt>-element array of Cells surrounding 
-     *          <tt>coords</tt>
+     * @param   coords  central position
+     * @param  radius  error radius or NaN
+     * @return  list of bin objects
      */
-    private Cell[] getCellBlock( double[] coords ) {
+    private Object[] doGetBins( double[] coords, double radius ) {
+        boolean useScale = Double.isNaN( radius );
 
-        /* Iterate over the 3^ndim points which are the given point and
-         * all the points separated from it by err[i] in any direction i,
-         * and accumulate a set of the cells in which each such point lies.
-         * Any point which is near the given one must lie in one of those 
-         * cells. */
-        Set cells = new HashSet();
-        int[] offset = new int[ ndim_ ];
-        double[] pos = new double[ ndim_ ];
-        for ( int icell = 0; icell < blockSize_; icell++ ) {
-
-            /* Get the position of the next point. */
-            for ( int i = 0; i < ndim_; i++ ) {
-                pos[ i ] = coords[ i ] + ( offset[ i ] - 1 ) * errors_[ i ];
+        /* Work out the range of cell label coordinates in each dimension
+         * corresponding to a cube extending + and -err away from the
+         * submitted position. */
+        int[] llo = new int[ ndim_ ];     // lowest coord label index
+        int[] lhi = new int[ ndim_ ];     // highest coord label index
+        int ncell = 1;                    // total number of cells in cube
+        for ( int id = 0; id < ndim_; id++ ) {
+            double c0 = coords[ id ];
+            if ( Double.isNaN( c0 ) ) {
+                return NO_BINS;
             }
+            else {
+                double r = useScale ? scales_[ id ] : radius;
+                llo[ id ] = getLabelComponent( id, c0 - r );
+                lhi[ id ] = getLabelComponent( id, c0 + r );
+                ncell *= lhi[ id ] - llo[ id ] + 1;
+            }
+        }
 
-            /* Ensure that the grid cell in which that point lies is 
-             * in the accumulated set. */
-            Cell cell = new Cell( getBaseLabel( pos ) );
-            cells.add( cell );
-
-            /* Bump the n-dimensional offset to the next point. */
-            for ( int j = 0; j < ndim_; j++ ) {
-                if ( ++offset[ j ] < 3 ) {
+        /* Iterate over the cube of cells in ndim dimensions to construct
+         * a list of all the cells inside it. */
+        Cell[] cells = new Cell[ ncell ];
+        int[] label = (int[]) llo.clone();
+        for ( int ic = 0; ic < ncell; ic++ ) {
+            cells[ ic ] = new Cell( (int[]) label.clone() );
+            for ( int jd = 0; jd < ndim_; jd++ ) {
+                if ( ++label[ jd ] <= lhi[ jd ] ) {
                     break;
                 }
                 else {
-                    offset[ j ] = 0;
+                    label[ jd ] = llo[ jd ];
                 }
             }
         }
 
         /* Sanity check. */
-        for ( int i = 0; i < ndim_; i++ ) {
-            assert offset[ i ] == 0;
-        }
+        assert Arrays.equals( label, llo );
+        assert new HashSet<Cell>( Arrays.asList( cells ) ).size()
+               == cells.length;
 
-        /* Returns the set of cells as an array. */
-        return (Cell[]) cells.toArray( new Cell[ cells.size() ] );
+        /* Return the list of cells. */
+        return cells;
+    }
+
+    /** 
+     * Returns the integer label of a cell position in a given dimension.
+     * This identifies one of the coordinates of the discrete cube 
+     * corresponding to any continuous position.
+     *      
+     * @param   idim  dimension index 
+     * @param   coord  position in space in dimension <code>idim</code>
+     * @return   index of cell coordinate in dimension <code>idim</code>
+     */     
+    private int getLabelComponent( int idim, double coord ) { 
+        return (int) Math.floor( coord * rBinSizes_[ idim ] ); 
+    }
+
+    /**
+     * Utility method to calculate a match score using an isotropic error
+     * radius between two given Carteian positions.
+     *
+     * @param  ndim  coordinate dimensionality
+     * @param  coords1  position 1, ndim-element array
+     * @param  coords2  position 2, ndim-element array
+     * @param  err  maximum separation for match
+     * @return   Pythagoras distance between positions 1 and 2 if they are
+     *           within err of each other, otherwise -1
+     * @see  MatchEngine#matchScore
+     */
+    static double matchScore( int ndim, double[] coords1, double[] coords2,
+                              double err ) {
+        double err2 = err * err;
+        double dist2 = 0;
+        for ( int id = 0; id < ndim; id++ ) {
+            double d = coords2[ id ] - coords1[ id ];
+            dist2 += d * d;
+            if ( ! ( dist2 <= err2 ) ) {
+                return -1;
+            }
+        }
+        double score = Math.sqrt( dist2 );
+        assert score >= 0 && score <= err;
+        return score;
+    }
+
+    /**
+     * Utility method to return a pair of min/max comparable arrays
+     * based on an input pair, but with some coordinates extended
+     * by a given scalar value.  For the indicated tuple elements,
+     * the output minima will be reduced, and maxima will be increased,
+     * by the supplied error value.  Other elements will be null.
+     * Elements which cannot be increased/reduced appropriately for some
+     * reason will also be null.
+     *
+     * @param  minTuple  array of minimum values, may contain nulls
+     * @param  maxTuple  array of maximum values, may contain nulls
+     * @param  err    amount to extend min/max values
+     * @param  idims  array of array indices for which minTuple and maxTuple
+     *                should be extended
+     * @return  2-element array of tuples - 
+     *          effectively (minTuple,maxTuple) broadened by errors
+     * @see   MatchEngine#getMatchBounds
+     */
+    static Comparable[][] createExtendedBounds( Comparable[] minTuple,
+                                                Comparable[] maxTuple,
+                                                double err, int[] idims ) {
+        Comparable[] outMins = new Comparable[ minTuple.length ];
+        Comparable[] outMaxs = new Comparable[ maxTuple.length ];
+        for ( int jd = 0; jd < idims.length; jd++ ) {
+            int id = idims[ jd ];
+            outMins[ id ] = add( minTuple[ id ], -err );
+            outMaxs[ id ] = add( maxTuple[ id ], +err );
+        }
+        return new Comparable[][] { outMins, outMaxs };
+    }
+
+    /**
+     * Utility method to create a array which contains a given continuous
+     * range of integer values.
+     *
+     * @param  ibase  lowest value
+     * @param  icount  number of values
+     * @return   icount-element array [ibase, ibase+1, ... ibase+icount-1]
+     */
+    static int[] indexRange( int ibase, int icount ) {
+        int[] jxs = new int[ icount ];
+        for ( int i = 0; i < icount; i++ ) {
+            jxs[ i ] = ibase + i;
+        }
+        return jxs;
     }
 
     /**
      * Returns a description of the tuple element containing one of
      * the Cartesian coordinates.
      *
-     * @param  ndim  total number of Cartesian coordinates
      * @param  idim  index of the coordinate in question
      * @return  metadata for coordinate <tt>idim</tt>
      */
-    static ValueInfo createCoordinateInfo( int ndim, int idim ) {
+    ValueInfo createCoordinateInfo( int idim ) {
         DefaultValueInfo info =
-            new DefaultValueInfo( getCoordinateName( ndim, idim ), Number.class,
-                                  getCoordinateDescription( ndim, idim ) );
+            new DefaultValueInfo( getCoordinateName( idim ), Number.class,
+                                  getCoordinateDescription( idim ) );
         info.setNullable( false );
         return info;
     }
 
     /**
-     * Returns the name of one of the coordinates.
+     * Returns a name for one of the coordinates.
      *
-     * @param  ndim  total number of Cartesian coordinates
      * @param  idim  index of coordinate
      * @return  name to use for coordinate <tt>idim</tt>
      */
-    static String getCoordinateName( int ndim, int idim ) {
-        if ( idim >= ndim ) {
-            throw new IllegalArgumentException();
-        }
-        return ndim <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
-                         : ( "Co-ord #" + ( idim + 1 ) );
+    String getCoordinateName( int idim ) {
+        return ndim_ <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
+                          : ( "Co-ord #" + ( idim + 1 ) );
     }
 
     /**
      * Returns the description of one of the coordinates.
      *
-     * @param  ndim  total number of Cartesian coordinates
      * @param  idim  index of coordinate
      * @return  description to use for coordinate <tt>idim</tt>
      */
-    static String getCoordinateDescription( int ndim, int idim ) {
-        if ( idim >= ndim ) {
-            throw new IllegalArgumentException();
-        }
+    String getCoordinateDescription( int idim ) {
         return "Cartesian co-ordinate #" + ( idim + 1 );
+    }
+
+    public abstract String toString();
+
+    /**
+     * Returns the numeric value for an object if it is a Number,
+     * and NaN otherwise.
+     *
+     * @param  numobj  object
+     * @return  numeric value
+     */
+    static double getNumberValue( Object numobj ) {
+        return numobj instanceof Number
+             ? ((Number) numobj).doubleValue()
+             : Double.NaN;
     }
 
     /**
@@ -467,20 +450,32 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
     }
 
     /**
-     * Implements the tuning parameter which controls bin scaling factor.
+     * Tuning parameter which controls the bin factor.
      */
-    private class BinFactorParameter extends DescribedValue {
+    class BinFactorParameter extends DescribedValue {
         BinFactorParameter() {
-            super( new DefaultValueInfo( "Bin Factor", Double.class,
-                                         "Scaling factor to adjust bin size; "
-                                       + "larger values mean larger bins. "
-                                       + "Minimum legal value is 1." ) );
+            super( BINFACT_INFO );
         }
         public Object getValue() {
             return new Double( getBinFactor() );
         }
         public void setValue( Object value ) {
             setBinFactor( ((Number) value).doubleValue() );
+        }
+    }
+
+    /**
+     * Parameter which controls the isotropic scale value.
+     */
+    class IsotropicScaleParameter extends DescribedValue {
+        public IsotropicScaleParameter( ValueInfo info ) {
+            super( info );
+        }
+        public Object getValue() {
+            return new Double( getIsotropicScale() );
+        }
+        public void setValue( Object value ) {
+            setIsotropicScale( ((Number) value).doubleValue() );
         }
     }
 }

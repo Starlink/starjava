@@ -2,11 +2,13 @@ package uk.ac.starlink.table.join;
 
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Matcher which matches in an isotropic N-dimensional Cartesian space.
- * Two points are considered matching if they fall within an error
- * sphere of a given size.
+ * Two points are considered matching if they fall within a given error
+ * distance of each other.
+ * The isotropic scale is used as the error.
  *
  * @author   Mark Taylor (Starlink)
  * @since    25 Aug 2004
@@ -14,9 +16,15 @@ import uk.ac.starlink.table.DescribedValue;
 public class IsotropicCartesianMatchEngine 
         extends AbstractCartesianMatchEngine {
 
-    private double error_;
     private final int ndim_;
-    final DescribedValue errorParam_;
+    private final DescribedValue[] matchParams_;
+
+    private static final ValueInfo ERR_INFO =
+        new DefaultValueInfo( "Error", Number.class,
+                              "Maximum Cartesian separation for match" );
+    private static final ValueInfo SCORE_INFO =
+        new DefaultValueInfo( "Separation", Double.class,
+                              "Spatial distance between matched points" );
 
     /**
      * Constructs a matcher which matches points in an
@@ -30,43 +38,64 @@ public class IsotropicCartesianMatchEngine
      */
     public IsotropicCartesianMatchEngine( int ndim, double err, 
                                           boolean normaliseScores ) {
-        super( ndim, normaliseScores );
+        super( ndim );
         ndim_ = ndim;
-        setError( err );
-        error_ = err;
-        errorParam_ = new ErrorParam();
+        matchParams_ = new DescribedValue[] {
+                           new IsotropicScaleParameter( ERR_INFO ) };
+        setIsotropicScale( err );
     }
 
     /**
-     * Sets the isotropic matching error.
+     * Sets the matching error.
      *
-     * @param   err  radius of error sphere
+     * @param   err  maximum match error
      */
     public void setError( double err ) {
-        for ( int i = 0; i < ndim_; i++ ) {
-            setError( i, err );
-        }
-        error_ = err;
+        setIsotropicScale( err );
     }
 
     /**
-     * Returns the isotropic matching error.
+     * Returns the matching error.
      *
-     * @return  radius of error sphere
+     * @return  maximum match error
      */
     public double getError() {
-        for ( int i = 0; i < ndim_; i++ ) {
-            assert getError( i ) == error_;
-        }
-        return error_;
+        return getIsotropicScale();
     }
 
-    /**
-     * Returns a single parameter controlling the isotropic error 
-     * (radius of a match sphere).
-     */
+    public ValueInfo[] getTupleInfos() {
+        ValueInfo[] infos = new ValueInfo[ ndim_ ];
+        for ( int id = 0; id < ndim_; id++ ) {
+            infos[ id ] = createCoordinateInfo( id );
+        }
+        return infos;
+    }
+
     public DescribedValue[] getMatchParameters() {
-        return new DescribedValue[] { errorParam_ };
+        return matchParams_;
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return SCORE_INFO;
+    }
+
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+        return matchScore( ndim_, toCoords( tuple1 ), toCoords( tuple2 ),
+                           getError() );
+    }
+
+    public Object[] getBins( Object[] tuple ) {
+        return getRadiusBins( toCoords( tuple ), getError() * 0.5 );
+    }
+
+    public boolean canBoundMatch() {
+        return true;
+    }
+
+    public Comparable[][] getMatchBounds( Comparable[] minTuple,
+                                          Comparable[] maxTuple ) {
+        return createExtendedBounds( minTuple, maxTuple, getError(),
+                                     indexRange( 0, ndim_ ) );
     }
 
     public String toString() {
@@ -74,19 +103,16 @@ public class IsotropicCartesianMatchEngine
     }
 
     /**
-     * Implements the parameter which controls the matching error.
+     * Returns the Cartesian coordinates for a given match tuple.
+     *
+     * @param  tuple  input tuple
+     * @return  numeric ndim-element coordinate array
      */
-    private class ErrorParam extends DescribedValue {
-        ErrorParam() {
-            super( new DefaultValueInfo( "Error", Number.class,
-                                 "Maximum Cartesian separation for match" ) );
+    private double[] toCoords( Object[] tuple ) {
+        double[] coords = new double[ ndim_ ];
+        for ( int id = 0; id < ndim_; id++ ) {
+            coords[ id ] = getNumberValue( tuple[ id ] );
         }
-        public Object getValue() {
-            return new Double( getError() );
-        }
-        public void setValue( Object value ) {
-            setError( ((Number) value).doubleValue() );
-        }
+        return coords;
     }
-
 }

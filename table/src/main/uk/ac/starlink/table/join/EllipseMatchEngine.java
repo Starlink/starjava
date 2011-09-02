@@ -2,25 +2,36 @@ package uk.ac.starlink.table.join;
 
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
  * MatchEngine implementation for plane elliptical figures.
  * A match is detected if the ellipses touch or overlap.
+ * Tuples are 5-element: (X,Y,A,B,theta), where (X,Y) is the centre position,
+ * A and B are the semi-major and semi-minor radii, and theta is the
+ * orientation angle in radians, being the angle from the X axis to the
+ * semi-major radius measured towards the Y axis.
  *
  * <p>The calculations are currently done using numerical optimisation.
  *
  * @author   Mark Taylor
  * @since    30 Aug 2011
  */
-public class EllipseMatchEngine extends AbstractErrorCartesianMatchEngine {
+public class EllipseMatchEngine extends AbstractCartesianMatchEngine {
 
+    private final DescribedValue[] matchParams_;
     private static final double NaN = Double.NaN;
     private static final ValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
                               "Normalised distance between ellipses in range "
                             + "0-2; 0 is concentric, 1 is centre-on-edge, "
                             + "2 is edges touching" );
+    private static final DefaultValueInfo ERRSCALE_INFO =
+        new DefaultValueInfo( "Scale", Number.class,
+                              "Rough average of per-object error distance; "
+                            + "just used for tuning in conjunction with "
+                            + "bin factor" );
     private static final ValueInfo X_INFO =
         new DefaultValueInfo( "X", Number.class, "X coordinate of centre" );
     private static final ValueInfo Y_INFO =
@@ -46,13 +57,39 @@ public class EllipseMatchEngine extends AbstractErrorCartesianMatchEngine {
      * @param  scale  rough scale of ellipse dimensions
      */
     public EllipseMatchEngine( double scale ) {
-        super( 2, scale );
+        super( 2 );
+        matchParams_ = new DescribedValue[] {
+                           new IsotropicScaleParameter( ERRSCALE_INFO ) };
+        setIsotropicScale( scale );
+    }
+
+    /**
+     * Sets the rough average of per-object error distance.
+     * This is just used in conjunction with the bin factor for tuning.
+     *
+     * @param   scale  characteristic scale of errors
+     */
+    public void setScale( double scale ) {
+        super.setIsotropicScale( scale );
+    }
+
+    /**
+     * Returns distance scale.
+     *
+     * @return  characteristic scale of errors
+     */
+    public double getScale() {
+        return super.getIsotropicScale();
     }
 
     public ValueInfo[] getTupleInfos() {
         return new ValueInfo[] {
             X_INFO, Y_INFO, A_INFO, B_INFO, THETA_INFO,
         };
+    }
+
+    public DescribedValue[] getMatchParameters() {
+        return matchParams_;
     }
 
     public ValueInfo getMatchScoreInfo() {
@@ -70,38 +107,21 @@ public class EllipseMatchEngine extends AbstractErrorCartesianMatchEngine {
 
     public Object[] getBins( Object[] tuple ) {
         Ellipse ellipse = toEllipse( tuple );
-        return getBins( new double[] { ellipse.x_, ellipse.y_ },
-                        ellipse.getMaxRadius() );
+        return getRadiusBins( new double[] { ellipse.x_, ellipse.y_ },
+                              ellipse.getMaxRadius() );
     }
 
     public boolean canBoundMatch() {
         return true;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] inMins, 
-                                          Comparable[] inMaxs ) {
-
-        /* Prepare output bound arrays. */
-        Comparable[] outMins = new Comparable[ 5 ];
-        Comparable[] outMaxs = new Comparable[ 5 ];
-
-        /* Work out the maximum radius. */
-        double maxA = getNumberValue( inMaxs[ 2 ] );
-        double maxB = getNumberValue( inMaxs[ 3 ] );
+    public Comparable[][] getMatchBounds( Comparable[] minTuple, 
+                                          Comparable[] maxTuple ) {
+        double maxA = getNumberValue( maxTuple[ 2 ] );
+        double maxB = getNumberValue( maxTuple[ 3 ] );
         double err = 2 * Math.max( maxA, maxB );
-
-        /* Expand X and Y limits. */
-        if ( err >= 0 ) {
-            for ( int id = 0; id < 2; id++ ) {
-                outMins[ id ] = AbstractCartesianMatchEngine
-                               .add( inMins[ id ], -err );
-                outMaxs[ id ] = AbstractCartesianMatchEngine
-                               .add( inMaxs[ id ], +err );
-            }
-        }
-
-        /* Return result. */
-        return new Comparable[][] { outMins, outMaxs };
+        return createExtendedBounds( minTuple, maxTuple, err,
+                                     indexRange( 0, 2 ) );
     }
 
     /**

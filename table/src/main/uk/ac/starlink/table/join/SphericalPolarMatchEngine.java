@@ -15,60 +15,53 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class SphericalPolarMatchEngine implements MatchEngine {
+public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
 
-    private Double[] work0_ = new Double[ 3 ];
-    private Double[] work1_ = new Double[ 3 ];
-    private Double[] work2_ = new Double[ 3 ];
-    private final IsotropicCartesianMatchEngine spaceEngine_;
+    private final DescribedValue[] matchParams_;
 
     private static final DefaultValueInfo R_INFO =
         new DefaultValueInfo( "Distance", Number.class,
-                              "Distance along the line of sight" );
+                              "Distance from origin" );
     private static final DefaultValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
                               "Cartesian distance between matched points" );
+    private static final DefaultValueInfo ERR_INFO =
+        new DefaultValueInfo( "Error", Number.class,
+                              "Maximum Cartesian separation for match" );
     static {
-        R_INFO.setNullable( false );
+        ERR_INFO.setUnitString( "units of distance" );
     }
 
     /**
      * Constructs a new match engine which will match on differences
-     * not greater than a given number <tt>err</tt>, in the same units 
+     * not greater than a given number <tt>err</tt>, in the same units
      * that the range part of the tuples is specified.
-     * 
+     *
      * @param   err  maximum separation for a match
      */
     public SphericalPolarMatchEngine( double err ) {
-        spaceEngine_ = new IsotropicCartesianMatchEngine( 3, err, false );
-        ((DefaultValueInfo) spaceEngine_.errorParam_.getInfo())
-                           .setUnitString( "Units of distance" );
+        super( 3 );
+        matchParams_ = new DescribedValue[] {
+                           new IsotropicScaleParameter( ERR_INFO ) };
+        setIsotropicScale( err );
     }
 
-    public DescribedValue[] getTuningParameters() {
-        return spaceEngine_.getTuningParameters();
+    /**
+     * Sets the isotropic matching error.
+     *
+     * @param   err  radius of error sphere
+     */
+    public void setError( double err ) {
+        setIsotropicScale( err );
     }
 
-    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        polarToCartesian( tuple1, work1_ );
-        polarToCartesian( tuple2, work2_ );
-        return spaceEngine_.matchScore( work1_, work2_ );
-    }
-
-    public ValueInfo getMatchScoreInfo() {
-        return SCORE_INFO;
-    }
-
-    public Object[] getBins( Object[] tuple ) {
-        if ( tuple[ 0 ] instanceof Number &&
-             tuple[ 1 ] instanceof Number &&
-             tuple[ 2 ] instanceof Number ) {
-            polarToCartesian( tuple, work0_ );
-            return spaceEngine_.getBins( work0_ );
-        }
-        else {
-            return NO_BINS;
-        }
+    /**
+     * Returns the isotropic matching error.
+     *
+     * @return  radius of error sphere
+     */
+    public double getError() {
+        return getIsotropicScale();
     }
 
     public ValueInfo[] getTupleInfos() {
@@ -76,7 +69,19 @@ public class SphericalPolarMatchEngine implements MatchEngine {
     }
 
     public DescribedValue[] getMatchParameters() {
-        return spaceEngine_.getMatchParameters();
+        return matchParams_;
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return SCORE_INFO;
+    }
+
+    public double matchScore( Object[] tuple1, Object[] tuple2 ) {
+        return matchScore( 3, toXyz( tuple1 ), toXyz( tuple2 ), getError() );
+    }
+
+    public Object[] getBins( Object[] tuple ) {
+        return getRadiusBins( toXyz( tuple ), getError() * 0.5 );
     }
 
     /**
@@ -87,7 +92,8 @@ public class SphericalPolarMatchEngine implements MatchEngine {
         return false;
     }
 
-    public Comparable[][] getMatchBounds( Comparable[] min, Comparable[] max ) {
+    public Comparable[][] getMatchBounds( Comparable[] minTuple,
+                                          Comparable[] maxTuple ) {
         throw new UnsupportedOperationException();
     }
 
@@ -96,15 +102,15 @@ public class SphericalPolarMatchEngine implements MatchEngine {
     }
 
     /**
-     * Converts spherical polar coordinates to Cartesian ones.
+     * Converts a submitted match tuple to Cartesian coordinates.
      *
-     * @param  polar  array of Numbers specified as input: ra, dec, range
-     * @param  cartesian  array filled with Doubles as output: x, y, z
+     * @param   (alpha,delta,r) array
+     * @return  (x,y,z) array
      */
-    private static void polarToCartesian( Object[] polar, Object[] cartesian ) {
-        double ra = ((Number) polar[ 0 ]).doubleValue();
-        double dec = ((Number) polar[ 1 ]).doubleValue();
-        double r = ((Number) polar[ 2 ]).doubleValue();
+    private static double[] toXyz( Object[] tuple ) {
+        double ra = getNumberValue( tuple[ 0 ] );
+        double dec = getNumberValue( tuple[ 1 ] );
+        double r = getNumberValue( tuple[ 2 ] );
 
         double cd = Math.cos( dec );
         double sd = Math.sin( dec );
@@ -115,8 +121,6 @@ public class SphericalPolarMatchEngine implements MatchEngine {
         double y = r * sr * cd;
         double z = r * sd;
 
-        cartesian[ 0 ] = new Double( x );
-        cartesian[ 1 ] = new Double( y );
-        cartesian[ 2 ] = new Double( z );
+        return new double[] { x, y, z };
     }
 }
