@@ -9850,7 +9850,7 @@ of a metric on that space to count as a match.
     you also specify an Error column which gives the error radius
     corresponding to that position.
     Two rows are considered to match when the separation between the
-    two RA,Dec positions is smaller than the sum of the two
+    two RA,Dec positions is no larger than the sum of the two
     Error values for the corresponding rows.
     The Scale value should be set to a rough average of the per-row errors.
     It is used only to set a sensible default for the tuning parameter,
@@ -9871,7 +9871,7 @@ of a metric on that space to count as a match.
     distance from the observer.
     In this case you will need to specify columns giving
     Right Ascension and Declination in angular units, 
-    as well as distance along the line of sight in arbitrary units
+    as well as distance from the origin in arbitrary units
     for each table participating in the match.
     The Error value is a maximum separation in Cartesian space 
     of matched points in the same units as the radial distance.
@@ -9898,14 +9898,14 @@ of a metric on that space to count as a match.
     does anyone want a higher number?
     </p></dd>
 
-<dt>N-dimensional Cartesian (anisotropic)</dt>
+<dt>N-dimensional Cartesian, Anisotropic</dt>
 <dd><p>Comparison of positions in an N-dimensional Cartesian space
     with an anisotropic metric.
     In this case you will need to specify N columns giving coordinates
     for each table participating in the match,
-    and an error radius for each of these dimensions.
+    and an error distance for each of these dimensions.
     Points P1 and P2 are considered to match if P2 falls within
-    the ellipsoid defined by the error radii centered on P1.
+    the ellipsoid with radii given by the error distances, centered on P1.
     This kind of match will typically be used for non-'spatial' spaces,
     for instance (magnitude,redshift) space, in which the metrics in 
     different dimensions are not related to each other.

@@ -2476,7 +2476,7 @@ such transformations.
 <p>The <code>skyerr</code> matcher compares positions on the celestial 
 sphere using error radii which can be different for each row.
 Rows are considered to match when the separation between the
-two <code>ra</code>, <code>dec</code> positions is smaller than 
+two <code>ra</code>, <code>dec</code> positions is no larger than 
 the sum of the two per-row <code>error</code> values.
 </p>
 
@@ -2581,8 +2581,8 @@ extending this syntax in the obvious way.
 <p>The <code>2d_anisotropic</code> matcher compares positions in 
 2-dimensional Cartesian space using an anisotropic metric.
 Rows are considered to match if their (<code>x</code>,<code>y</code>)
-positions fall within an error ellipse with radii 
-<code>error-in-x</code>,<code>error-in-y</code> of each other.
+positions fall within an error ellipse with axis lengths 
+<code>error-in-x</code>, <code>error-in-y</code> of each other.
 This kind of match will typically be used for non-'spatial' spaces,
 for instance (magnitude,redshift) space, in which the metrics along
 different axes are not related to each other.
