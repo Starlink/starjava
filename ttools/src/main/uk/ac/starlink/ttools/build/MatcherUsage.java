@@ -30,7 +30,7 @@ public class MatcherUsage {
             .append( "=" )
             .append( matcherName_ );
         String pad = sbuf.toString().replaceAll( ".", " " );
-        String vu = matcherParam_.getValuesUsage( engine_ );
+        String vu = matcherParam_.getValuesUsage( engine_, sbuf.length() );
         String pu = matcherParam_
              .getConfigUsage( engine_,
                               matcherParam_.getMatchParametersParameter(),

@@ -9843,7 +9843,7 @@ of a metric on that space to count as a match.
 
 <dt>Sky with Errors</dt>
 <dd><p>The matching is like that for the <label>Sky</label> option above,
-    but an error radius (positional uncertainty) can be given for each
+    but an error radius (positional uncertainty) is given for each
     row in the input tables, rather than just a single value for the whole
     match.
     Along with the Right Ascension and Declination columns,
@@ -9853,10 +9853,10 @@ of a metric on that space to count as a match.
     two RA,Dec positions is no larger than the sum of the two
     Error values for the corresponding rows.
     The Scale value should be set to a rough average of the per-row errors.
-    It is used only to set a sensible default for the tuning parameter,
-    and its value does not affect the result.
-    If the Healpix-k tuning parameter is set directly
-    (see <ref id="matchTuning"/>), Scale is ignored.
+    It is used only to set a sensible default for the Healpix-k
+    tuning parameter, and its value does not affect the result.
+    If Healpix-k is set directly (see <ref id="matchTuning"/>),
+    Scale is ignored.
     <strong>Note:</strong> the semantics of this matcher have changed
     slightly since version 3.8 of TOPCAT and earlier. 
     In earlier versions the single parameter was named Max Error
@@ -9864,6 +9864,27 @@ of a metric on that space to count as a match.
     between matched objects.  For most uses, the old and new behaviours are
     expected to give the same results, but in cases of difference, the new
     behaviour is more likely what you want.
+    </p></dd>
+
+<dt>Sky Ellipses</dt>
+<dd><p>Compares elliptical regions on the sky for overlap.
+    You will need to specify columns giving the central position,
+    major and minor radii, and position angle of the ellipse.
+    Two rows are considered to match if there is any overlap between the
+    ellipses.  The goodness of match is a normalised generalisation of the
+    symmetrical case used by the <label>Sky with Errors</label> option above.
+    The position angle is measured from north to the semi-major axis,
+    in the direction towards the positive RA axis.
+    The Scale value should be set to a rough average of the major radii;
+    It is used only to set a sensible default for the Healpix-k
+    tuning parameter, and its value does not affect the result.
+    If Healpix-k is set directly (see <ref id="matchTuning"/>),
+    Scale is ignored.
+    The calculations are approximate since in some cases they rely on
+    projecting the ellipses onto a Cartesian tangent plane before evaluating
+    the match, so for larger ellipses the criterion will be less exact.
+    For objects the size of most observed stars or galaxies,
+    this approximation is not expected to be problematic.
     </p></dd>
 
 <dt>Sky 3D</dt>
@@ -9911,6 +9932,36 @@ of a metric on that space to count as a match.
     different dimensions are not related to each other.
     Currently the highest dimensionality you can select is 4-d -
     does anyone want a higher number?
+    </p></dd>
+
+<dt>N-dimensional Cartesian with Errors</dt>
+<dd><p>The matching is like that for the <label>N-dimensional Cartesian</label>
+    option above, but an error radius (positional uncertainty) is given
+    for each row in the input tables, rather than just a single value
+    for the whole match.
+    Along with the Cartesian coordinate columns, you also specify an Error
+    column which gives the error radius corresponding to that position.
+    Two rows are considered to match when the separation between the
+    two positions is no larger than the sum of the two Error values
+    for the corresponding rows.
+    The Scale parameter should be approximately the characteristic size
+    of the per-object error values.
+    Its value, in conjunction with the Bin Factor tuning parameter,
+    affects the performance of the match but not the result.
+    </p></dd>
+
+<dt>2-d Cartesian Ellipses</dt>
+<dd><p>Compares elliptical regions in the plane for overlap.
+    You will need to specify columns giving the central position,
+    major and minor radii, and orientation angle of the ellipse.
+    Two rows are considered to overlap if there is any overlap between the
+    ellipses.  The goodness of match is a generalisation of the symmetrical
+    case used by the <label>2-d Cartesian with Errors</label> option above.
+    The orientation angle is measured anticlockwise from the X-axis
+    to the ellipse major axis.
+    The Scale parameter should be set to a rough average of the major radii.
+    Its value, in conjunction with the Bin Factor tuning parameter,
+    affects the performance of the match but not the result.
     </p></dd>
 
 <dt>Sky + X</dt>
@@ -15037,6 +15088,10 @@ introduced since the last version:
         <code>star.basicauth.password</code>.</li>
     <li>Semantics of the <label>Sky With Errors</label> crossmatch
         criterion have changed slightly.</li>
+    <li>New <label>Match Algorithms</label> have been introduced:
+        <label>N-d Cartesian with Errors</label>
+        <label>2-d Cartesian Ellipses</label>, and
+        <label>Sky Ellipses</label>.</li>
     </ul>
     </p></dd>
 

@@ -1197,11 +1197,14 @@
           classpathref="classpath">
       <arg value="sky"/>
       <arg value="skyerr"/>
+      <arg value="skyellipse"/>
       <arg value="sky3d"/>
       <arg value="exact"/>
       <arg value="1d"/>
       <arg value="2d"/>
       <arg value="2d_anisotropic"/>
+      <arg value="2d_err"/>
+      <arg value="2d_ellipse"/>
       <arg value="sky+1d"/>
     </java>
 

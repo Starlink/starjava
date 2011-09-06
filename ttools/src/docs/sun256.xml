@@ -73,11 +73,14 @@
   <!-- Usage messages for match engines. -->
   <!ENTITY matcher-sky-usage SYSTEM 'matcher-sky-usage.xml'>
   <!ENTITY matcher-skyerr-usage SYSTEM 'matcher-skyerr-usage.xml'>
+  <!ENTITY matcher-skyellipse-usage SYSTEM 'matcher-skyellipse-usage.xml'>
   <!ENTITY matcher-sky3d-usage SYSTEM 'matcher-sky3d-usage.xml'>
   <!ENTITY matcher-exact-usage SYSTEM 'matcher-exact-usage.xml'>
   <!ENTITY matcher-1d-usage SYSTEM 'matcher-1d-usage.xml'>
   <!ENTITY matcher-2d-usage SYSTEM 'matcher-2d-usage.xml'>
   <!ENTITY matcher-2d_anis-usage SYSTEM 'matcher-2d_anisotropic-usage.xml'>
+  <!ENTITY matcher-2d_err-usage SYSTEM 'matcher-2d_err-usage.xml'>
+  <!ENTITY matcher-2d_ellipse-usage SYSTEM 'matcher-2d_ellipse-usage.xml'>
   <!ENTITY matcher-sky.1d-usage SYSTEM 'matcher-sky.1d-usage.xml'>
 
   <!-- Automatically generated plot example text. -->
@@ -2502,6 +2505,40 @@ behaviour is more likely what you want.
 
 </subsubsect>
 
+<subsubsect id="EllipseSkyMatchEngine">
+<subhead><title><code>skyellipse</code>:
+                Sky Matching of Elliptical Regions</title></subhead>
+
+<p>&matcher-skyellipse-usage;</p>
+
+<p>The <code>skyellipse</code> matcher compares elliptical regions
+on the sky for overlap.  Each row has to provide five values,
+giving the centre, the major and minor radii, and the position angle
+of an ellipse.
+Rows are considered to match if there is any overlap between the ellipses.
+The goodness of match is a normalised generalisation of the symmetrical case
+used by the <code>skyerr</code> matcher, in which the best possible match
+is two concentric ellipses, and the worst allowable match is when the
+circumferences just touch.
+</p>
+
+<p>The calculations are approximate since in some cases they rely on
+projecting the ellipses onto a Cartesian tangent plane before evaluating
+the match, so for larger ellipses the criterion will be less exact.
+For objects the size of most observed stars or galaxies,
+this approximation is not expected to be problematic.
+</p>
+
+<p>The <code>scale</code> parameter must be supplied, and should be
+a rough average value of the major radii.  it is used only to set
+a sensible default for the <code>healpix-k</code> tuning parameter,
+and its value does not affect the result.
+If you set <code>healpix-k</code> directly,
+the value of <code>scale</code> is ignored.
+</p>
+
+</subsubsect>
+
 <subsubsect id="SphericalPolarMatchEngine">
 <subhead><title><code>sky3d</code>: Spherical Polar Matching</title></subhead>
 
@@ -2590,6 +2627,62 @@ different axes are not related to each other.
 
 <p>Matching in any number of dimensions of Cartesian space using an
 anisotropic metric can be done by extending this syntax in the obvious way.
+</p>
+
+</subsubsect>
+
+<subsubsect id="ErrorCartesianMatchEngine">
+<subhead><title><code>1d_err</code>, <code>2d_err</code>, ...:
+         Cartesian Matching with Per-Object Errors</title></subhead>
+
+<p>&matcher-2d_err-usage;</p>
+
+<p>The <code>1d_err</code>, <code>2d_err</code>, ... matchers compare
+positions in N-dimensional Cartesian space like the
+<code>1d</code>, <code>2d</code> matchers described in
+<ref id="IsotropicCartesianMatchEngine"/>,
+except that the match radius can be different for each row.
+Rows are considered to match when the separation reckoned by
+Pythagoras between the <code>x</code>, <code>y</code>, ... positions 
+is no larger than the sum of the two per-row <code>error</code> values.
+Matching in any number of Cartesian dimensions can be done by extending
+this syntax in the obvious way.
+</p>
+
+<p>The <code>scale</code> parameter must be supplied, and should be 
+approximately the characteristic size of the per-object error values.
+In conjunction with the <code>bin-factor</code> tuning parameter
+its value affects the performance of the match, but not the result.
+</p>
+
+</subsubsect>
+
+<subsubsect id="EllipseCartesianMatchEngine">
+<subhead><title><code>2d_ellipse</code>:
+         Cartesian Matching of Elliptical Regions</title></subhead>
+
+<p>&matcher-2d_ellipse-usage;</p>
+
+<p>The <code>2d_ellipse</code> matcher compares elliptical regions
+in a 2d plane for overlap.  Each row has to specify five values,
+giving the centre, the major and minor radii, and the orientation angle
+of an ellipse.
+Rows are considered to match if there is any overlap between the ellipses.
+The goodness of match is a normalised generalisation of the symmetrical case
+used by the isotropic matcher, in which the best possible match is 
+two concentric ellipses, and the worst allowable match is when 
+the circumferences just touch.
+</p>
+
+<p>Note the orientation angle is measured anticlockwise from the horizontal,
+unlike the position angle used by the 
+<ref id="EllipseSkyMatchEngine"><code>skyellipse</code></ref> matcher.
+</p>
+
+<p>The <code>scale</code> parameter must be supplied, and should be 
+approximately the characteristic size of the per-object major radius.
+In conjunction with the <code>bin-factor</code> tuning parameter
+its value affects the performance of the match, but not the result.
 </p>
 
 </subsubsect>
@@ -7815,6 +7908,10 @@ but my thanks are especially due to the following:
         <code>star.basicauth.password</code>.</li>
     <li>Semantics of the <ref id="SkyMatchEngine-err"><code>skyerr</code></ref>
         matcher have changed slightly.</li>
+    <li>New matchers:
+        <ref id="ErrorCartesianMatchEngine"><em>N</em><code>d_err</code></ref>,
+        <ref id="EllipseCartesianMatchEngine"><code>2d_ellipse</code></ref>,
+        and <ref id="EllipseSkyMatchEngine"><code>skyellipse</code></ref>.</li>
     </ul>
     </p>
     </dd>

@@ -100,7 +100,7 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
     }
 
     public String toString() {
-        return "2-d Cartesian with Ellipses";
+        return "2-d Cartesian Ellipses";
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {

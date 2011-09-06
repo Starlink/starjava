@@ -8,8 +8,11 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
-import uk.ac.starlink.table.join.EqualsMatchEngine;
+import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
+import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
+import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
+import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.HealpixSkyPixellator;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
@@ -39,6 +42,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
     private final Parameter scoreParam_;
     private MatchEngine matchEngine_;
 
+    private static final int MAX_CHARS = 78;
     private static final ValueInfo SCORE_INFO = 
         new DefaultValueInfo( "Score", Number.class,
                               "Closeness of match (0 is exact)" );
@@ -141,7 +145,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                     .append( '=' )
                     .append( name );
                 String pad = line.toString().replaceAll( ".", " " );
-                String vu = getValuesUsage( engine );
+                String vu = getValuesUsage( engine, line.length() );
                 String pu = getConfigUsage( engine, paramsParam_,
                                             engine.getMatchParameters() );
                 String tu = getConfigUsage( engine, tuningParam_,
@@ -149,14 +153,14 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 int leng = line.length();
                 line.append( vu );
                 leng += vu.length();
-                if ( leng + pu.length() > 78 ) {
+                if ( leng + pu.length() > MAX_CHARS ) {
                     line.append( '\n' )
                         .append( pad );
                     leng = pad.length();
                 }
                 line.append( pu );
                 leng += pu.length();
-                if ( leng + tu.length() > 78 ) {
+                if ( leng + tu.length() > MAX_CHARS ) {
                     line.append( '\n' )
                         .append( pad );
                     leng = pad.length();
@@ -441,16 +445,28 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 component = new ErrorSkyMatchEngine( new HealpixSkyPixellator(),
                                                      Coords.ARC_SECOND );
             }
+            else if ( "skyellipse".equalsIgnoreCase( cName ) ) {
+                component =
+                    new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
+                                               Coords.ARC_SECOND );
+            }
             else if ( "sky3d".equalsIgnoreCase( cName ) ) {
                 component = new SphericalPolarMatchEngine( 0. );
             }
             else if ( "exact".equalsIgnoreCase( cName ) ) {
                 component = new EqualsMatchEngine();
             }
+            else if ( "2d_ellipse".equalsIgnoreCase( cName ) ) {
+                component = new EllipseCartesianMatchEngine( 1 );
+            }
             else if ( cName.matches( "[0-9][dD]" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
                 component =
                     new IsotropicCartesianMatchEngine( ndim, 0.0, false );
+            }
+            else if ( cName.toLowerCase().matches( "[0-9]d_err" ) ) {
+                int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
+                component = new ErrorCartesianMatchEngine( ndim, 1.0 );
             }
             else if ( cName.toLowerCase().matches( "[0-9]d_anisotropic" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
@@ -482,20 +498,34 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * of the matching command line.
      *
      * @param  engine  match engine
+     * @param  startLeng  running line length at which the values part
+     *                    begins on the output
      * @return  values usage - possibly empty, not null
      */
-    public String getValuesUsage( MatchEngine engine ) {
+    public String getValuesUsage( MatchEngine engine, int startLeng ) {
         StringBuffer sbuf = new StringBuffer();
         ValueInfo[] tupleInfos = engine.getTupleInfos();
         if ( tupleInfos.length > 0 ) {
             sbuf.append( " values*='" );
-            for ( int i = 0; i < tupleInfos.length; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( ' ' );
+            int baseLeng = startLeng + sbuf.length();
+            int leng = baseLeng;
+            for ( int iv = 0; iv < tupleInfos.length; iv++ ) {
+                StringBuffer vbuf = new StringBuffer();
+                if ( iv > 0 ) {
+                    vbuf.append( ' ' );
                 }
-                sbuf.append( '<' )
-                    .append( getInfoUsage( tupleInfos[ i ] ) )
+                vbuf.append( '<' )
+                    .append( getInfoUsage( tupleInfos[ iv ] ) )
                     .append( '>' );
+                if ( leng + vbuf.length() > MAX_CHARS ) {
+                    sbuf.append( '\n' );
+                    for ( int is = 0; is < baseLeng - 1; is++ ) {
+                        sbuf.append( ' ' );
+                    }
+                    leng = baseLeng;
+                }
+                sbuf.append( vbuf );
+                leng += vbuf.length();
             }
             sbuf.append( '\'' );
         }
@@ -557,8 +587,11 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      */
     public static String[] getExampleValues() {
         return new String[] {
-            "sky", "skyerr", "sky3d", "exact", "1d", "2d", "3d",
+            "sky", "sky3d", "skyerr", "skyellipse",
+            "exact", "1d", "2d", "3d",
             "2d_anisotropic", "3d_anisotropic",
+            "1d_err", "2d_err",
+            "2d_ellipse",
             "sky+1d",
         };
     }

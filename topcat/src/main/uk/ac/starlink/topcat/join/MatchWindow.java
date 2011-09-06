@@ -28,6 +28,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
+import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
+import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
+import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
+import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.HealpixSkyPixellator;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
@@ -453,13 +457,18 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         return new MatchEngine[] {
             new FixedSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
             new ErrorSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
+            new EllipseSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),
+            new ErrorCartesianMatchEngine( 1, someLength ),
             new IsotropicCartesianMatchEngine( 2, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths2 ),
+            new ErrorCartesianMatchEngine( 2, someLength ),
+            new EllipseCartesianMatchEngine( someLength ),
             new IsotropicCartesianMatchEngine( 3, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths3 ),
+            new ErrorCartesianMatchEngine( 3, someLength ),
             new AnisotropicCartesianMatchEngine( someLengths4 ),
             skyPlus1Engine,
             skyPlus2Engine,
