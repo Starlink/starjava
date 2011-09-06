@@ -83,8 +83,8 @@ public class SkyEllipseMatchEngine {
          * there is no match. */
         double maxSep = se1.getMaxRadius() + se2.getMaxRadius();
         if ( Math.abs( delta2 - delta1 ) > maxSep ||
-             SkyMatchEngine.calculateSeparation( alpha1, delta1,
-                                                 alpha2, delta2 ) > maxSep ) {
+             AbstractSkyMatchEngine
+            .calculateSeparation( alpha1, delta1, alpha2, delta2 ) > maxSep ) {
             return null;
         }
 

@@ -7,7 +7,8 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.join.HTMMatchEngine;
+import uk.ac.starlink.table.join.FixedSkyMatchEngine;
+import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
 import uk.ac.starlink.ttools.func.Coords;
@@ -151,10 +152,9 @@ public class TableMatch1Test extends TableTestCase {
         return result;
     }
 
-    public static class TestSkyMatchEngine extends HTMMatchEngine {
+    public static class TestSkyMatchEngine extends FixedSkyMatchEngine {
         public TestSkyMatchEngine() {
-            super( 0.1, false );
+            super( new HtmSkyPixellator(), 0.1 );
         }
     }
-
 }

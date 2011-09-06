@@ -29,12 +29,14 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
-import uk.ac.starlink.table.join.HEALPixMatchEngine;
-import uk.ac.starlink.table.join.HTMMatchEngine;
+import uk.ac.starlink.table.join.HealpixSkyPixellator;
+import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RangeModelProgressIndicator;
+import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
+import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
@@ -430,24 +432,27 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         Arrays.fill( someLengths4, someLength );
         CombinedMatchEngine skyPlus1Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new HEALPixMatchEngine( someAngle, false ),
+                new FixedSkyMatchEngine( new HealpixSkyPixellator(),
+                                         someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths1 ),
             } );
         skyPlus1Engine.setName( "Sky + X" );
         CombinedMatchEngine skyPlus2Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new HEALPixMatchEngine( someAngle, false ),
+                new FixedSkyMatchEngine( new HealpixSkyPixellator(),
+                                         someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths2 ),
             } );
         skyPlus2Engine.setName( "Sky + XY" );
-        HTMMatchEngine htmEngine = new HTMMatchEngine( someAngle, false ) {
+        MatchEngine htmEngine = new FixedSkyMatchEngine( new HtmSkyPixellator(),
+                                                         someAngle ) {
             public String toString() {
                 return "HTM";
             }
         };
         return new MatchEngine[] {
-            new HEALPixMatchEngine( someAngle, false ),
-            new HEALPixMatchEngine( someAngle, true ),
+            new FixedSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
+            new ErrorSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),

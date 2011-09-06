@@ -9,8 +9,10 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
-import uk.ac.starlink.table.join.HEALPixMatchEngine;
-import uk.ac.starlink.table.join.HTMMatchEngine;
+import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
+import uk.ac.starlink.table.join.FixedSkyMatchEngine;
+import uk.ac.starlink.table.join.HealpixSkyPixellator;
+import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
@@ -432,10 +434,12 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             String cName = names[ i ];
             if ( "sky".equalsIgnoreCase( cName ) ||
                  "healpix".equalsIgnoreCase( cName ) ) {
-                component = new HEALPixMatchEngine( Coords.ARC_SECOND, false );
+                component = new FixedSkyMatchEngine( new HealpixSkyPixellator(),
+                                                     Coords.ARC_SECOND );
             }
             else if ( "skyerr".equalsIgnoreCase( cName ) ) {
-                component = new HEALPixMatchEngine( Coords.ARC_SECOND, true );
+                component = new ErrorSkyMatchEngine( new HealpixSkyPixellator(),
+                                                     Coords.ARC_SECOND );
             }
             else if ( "sky3d".equalsIgnoreCase( cName ) ) {
                 component = new SphericalPolarMatchEngine( 0. );
@@ -454,7 +458,8 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                     new AnisotropicCartesianMatchEngine( new double[ ndim ] );
             }
             else if ( cName.equalsIgnoreCase( "htm" ) ) {
-                component = new HTMMatchEngine( Coords.ARC_SECOND, false );
+                component = new FixedSkyMatchEngine( new HtmSkyPixellator(),
+                                                     Coords.ARC_SECOND );
             }
             else {
                 component =

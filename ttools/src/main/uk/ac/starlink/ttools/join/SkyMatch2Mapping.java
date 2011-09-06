@@ -10,7 +10,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.PairMode;
-import uk.ac.starlink.table.join.SkyMatchEngine;
+import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.task.ExecutionException;
 
 /**
@@ -61,7 +61,7 @@ public class SkyMatch2Mapping extends Match2Mapping {
      * @param   fixact2    deduplication fix action for second input table
      * @param   progger    progress indicator for match process
      */
-    public SkyMatch2Mapping( SkyMatchEngine matcher, 
+    public SkyMatch2Mapping( FixedSkyMatchEngine matcher, 
                              String raExpr1, String decExpr1,
                              String raExpr2, String decExpr2,
                              JoinType join, PairMode pairMode,
