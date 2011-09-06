@@ -263,9 +263,10 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
          * symmetric between the two input ellipses. */
         double[] pt = bisect( alpha1, delta1, alpha2, delta2 );
         Projector projector = new Projector( pt[ 0 ], pt[ 1 ] );
-        EllipseMatchEngine.Match cmatch =
-            EllipseMatchEngine.getMatch( projectEllipse( projector, se1 ),
-                                         projectEllipse( projector, se2 ) );
+        EllipseCartesianMatchEngine.Match cmatch =
+            EllipseCartesianMatchEngine
+           .getMatch( projectEllipse( projector, se1 ),
+                      projectEllipse( projector, se2 ) );
         if ( cmatch == null ) {
             return null;
         }
@@ -377,7 +378,7 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
      * @param   se  sky ellipse
      * @return  cartesian ellipse
      */
-    public static EllipseMatchEngine.Ellipse
+    public static EllipseCartesianMatchEngine.Ellipse
                   projectEllipse( Projector projector, SkyEllipse se ) {
         double[] center = projector.project( se.alpha_, se.delta_ );
         double x = center[ 0 ];
@@ -385,7 +386,7 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         double a = se.mu_;
         double b = se.nu_;
         double theta = 0.5 * Math.PI + se.zeta_;
-        return new EllipseMatchEngine.Ellipse( x, y, a, b, theta );
+        return new EllipseCartesianMatchEngine.Ellipse( x, y, a, b, theta );
     }
 
     /**

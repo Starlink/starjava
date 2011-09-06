@@ -72,9 +72,9 @@ public class EllipseToy extends JComponent {
             setAntialias( g2, true );
             paintEllipse( g2, e1_ );
             paintEllipse( g2, e2_ );
-            EllipseMatchEngine.Match match =
-                EllipseMatchEngine.getMatch( adaptEllipse( e1_ ),
-                                             adaptEllipse( e2_ ) );
+            EllipseCartesianMatchEngine.Match match =
+                EllipseCartesianMatchEngine.getMatch( adaptEllipse( e1_ ),
+                                                      adaptEllipse( e2_ ) );
             if ( match != null ) {
                 g2.setColor( Color.RED );
                 g2.drawString( new Formatter()
@@ -129,8 +129,8 @@ public class EllipseToy extends JComponent {
          * Turns an ellipse obtained from the GUI into a Cartesian ellipse
          * suitable for use by the matching algorithm.
          */
-        private EllipseMatchEngine.Ellipse adaptEllipse( Ellipse e ) {
-            return new EllipseMatchEngine
+        private EllipseCartesianMatchEngine.Ellipse adaptEllipse( Ellipse e ) {
+            return new EllipseCartesianMatchEngine
                       .Ellipse( e.x_, e.y_, e.a_, e.b_, e.theta_ );
         }
     }
@@ -263,9 +263,9 @@ public class EllipseToy extends JComponent {
                                               se2.alpha_, se2.delta_ );
             EllipseSkyMatchEngine.Projector projector =
                 new EllipseSkyMatchEngine.Projector( pt[ 0 ], pt[ 1 ] );
-            EllipseMatchEngine.Ellipse ce1 =
+            EllipseCartesianMatchEngine.Ellipse ce1 =
                 EllipseSkyMatchEngine.projectEllipse( projector, se1 );
-            EllipseMatchEngine.Ellipse ce2 =
+            EllipseCartesianMatchEngine.Ellipse ce2 =
                 EllipseSkyMatchEngine.projectEllipse( projector, se2 );
             g2.translate( ( e1_.x_ + e2_.x_ ) / 2, ( e1_.y_ + e2_.y_ ) / 2 );
             paintCartesianEllipse( g2, ce1, qp );
@@ -276,9 +276,10 @@ public class EllipseToy extends JComponent {
          * Paints a cartesian ellipse that has dimensions in radians 
          * onto the spherical projection.
          */
-        private void paintCartesianEllipse( Graphics g,
-                                            EllipseMatchEngine.Ellipse ce,
-                                            int qp ) {
+        private void
+                paintCartesianEllipse( Graphics g,
+                                       EllipseCartesianMatchEngine.Ellipse ce,
+                                       int qp ) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setColor( Color.GREEN );
             double f = 2 * qp / Math.PI;

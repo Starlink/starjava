@@ -18,7 +18,7 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor
  * @since    30 Aug 2011
  */
-public class EllipseMatchEngine extends AbstractCartesianMatchEngine {
+public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
 
     private final DescribedValue[] matchParams_;
     private static final double NaN = Double.NaN;
@@ -56,7 +56,7 @@ public class EllipseMatchEngine extends AbstractCartesianMatchEngine {
      *
      * @param  scale  rough scale of ellipse dimensions
      */
-    public EllipseMatchEngine( double scale ) {
+    public EllipseCartesianMatchEngine( double scale ) {
         super( 2 );
         matchParams_ = new DescribedValue[] {
                            new IsotropicScaleParameter( ERRSCALE_INFO ) };

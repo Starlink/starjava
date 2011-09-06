@@ -16,8 +16,7 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor
  * @since    1 Sep 2011
  */
-public class CircularErrorCartesianMatchEngine
-        extends AbstractCartesianMatchEngine {
+public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
 
     private final int ndim_;
     private final DescribedValue[] matchParams_;
@@ -40,7 +39,7 @@ public class CircularErrorCartesianMatchEngine
      * @param  ndim  dimensionality
      * @param   scale   rough scale of errors
      */
-    public CircularErrorCartesianMatchEngine( int ndim, double scale ) {
+    public ErrorCartesianMatchEngine( int ndim, double scale ) {
         super( ndim );
         ndim_ = ndim;
         matchParams_ = new DescribedValue[] {
