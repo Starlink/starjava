@@ -5,39 +5,166 @@ import java.util.logging.Logger;
 import uk.ac.starlink.pal.AngleDR;
 import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.pal.palError;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * MatchEngine implementation for ellipses on the surface of a (celestial)
  * sphere.
- * The calculations are approximate since in some cases they rely on
- * projecting the ellipses onto a Cartesian plane before evaluating the match.
- * For small ellipses, a match is detected if the ellipses touch or overlap;
- * for larger ellipses this criterion is only approximate.
- * For sky-sized objects, this approximation is not expected to be problematic.
+ * The tuples it uses are five-element arrays of {@link java.lang.Number}
+ * objects, as follows:
+ * </p>
+ * <ol>
+ * <li>alpha: right ascension coordinate of ellipse centre in radians
+ * <li>delta: declination coordinate of ellipse centre in radians
+ * <li>mu: primary radius of ellipse in radians
+ * <li>nu: secondary radius of ellipse in radians
+ * <li>zeta: position angle in radians (from north pole to primary radius,
+ *           in direction of positive alpha axis)
+ * </ol>
+ * <p>Two tuples are considered to match if their ellipses touch or
+ * partially overlap.
+ * The match score is a normalized value; it is zero for concentric ellipses,
+ * 1 if the centre of one ellipse falls on the circumference of the other,
+ * and 2 if the ellipses just touch.  Intermediate values are assumed for
+ * intermediate situations.
  *
- * <p>Although the documentation is mostly in terms of Right Ascension and
- * Declination for spherical coordinates, alternative equivalent spherical
- * coordinate pairs can be used instead.
+ * <p>Other RA/Dec-like sky coordinate systems may alternatively be used
+ * for the alpha/delta coordinates.
+ *
+ * <p>The calculations are approximate since in some cases they rely on
+ * projecting the ellipses onto a Cartesian plane before evaluating the match,
+ * so for large ellipses the criterion will be less exact.
+ * For objects the size of most observed stars and galaxies,
+ * this approximation is not expected to be problematic.
  *
  * <p>The calculations are currently done using numerical optimisation.
  *
  * @author   Mark Taylor
  * @since    30 Aug 2011
  */
-public class SkyEllipseMatchEngine {
+public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
+
+    private final DescribedValue[] matchParams_;
+
+    private static final DefaultValueInfo SCALE_INFO =
+        new DefaultValueInfo( "Scale", Number.class,
+                              "Rough average of ellipse major radius; "
+                            + "just used for tuning to set "
+                            + "default pixel size" );
+    private static final DefaultValueInfo SCORE_INFO =
+        new DefaultValueInfo( "Separation", Double.class,
+                              "Normalised distance between ellipses; "
+                            + "range is 0 (concentric) - 2 (tangent)" );
+    private static final DefaultValueInfo ALPHA_INFO =
+        new DefaultValueInfo( "RA", Number.class,
+                              "Right ascension of centre" );
+    private static final DefaultValueInfo DELTA_INFO =
+        new DefaultValueInfo( "Dec", Number.class,
+                              "Declination of centre" );
+    private static final DefaultValueInfo MU_INFO =
+        new DefaultValueInfo( "Rmaj", Number.class,
+                              "Ellipse primary radius radius" );
+    private static final DefaultValueInfo NU_INFO =
+        new DefaultValueInfo( "Rmin", Number.class,
+                              "Ellipse secondary radius" );
+    private static final DefaultValueInfo ZETA_INFO =
+        new DefaultValueInfo( "PosAng", Number.class,
+                              "Position angle - measured from north pole to "
+                            + "primary axis, in direction of positive RA" );
+    static {
+        ALPHA_INFO.setUnitString( "radians" );
+        ALPHA_INFO.setUCD( "pos.eq.ra" );
+ 
+        DELTA_INFO.setUnitString( "radians" );
+        DELTA_INFO.setUCD( "pos.eq.dec" );
+
+        MU_INFO.setUnitString( "radians" );
+        MU_INFO.setUnitString( "pos.angDistance" );
+
+        NU_INFO.setUnitString( "radians" );
+        NU_INFO.setUnitString( "pos.angDistance" );
+
+        ZETA_INFO.setUnitString( "radians" );
+        ZETA_INFO.setUCD( "pos.posAng" );
+    }
 
     private static final double NaN = Double.NaN;
     private static final Pal pal_ = new Pal();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.join" );
 
-    // alpha, delta, mu,    nu,    zeta
-    // ra,    dec,   majax, minax, pa
-    // zeta = P.A. = angle from north pole (Dec=Pi/2) towards positive RA axis.
+    /**
+     * Constructor.
+     *
+     * @param  pixellator  handles sky pixellisation
+     * @param  scale       initial value for length scale, in radians
+     */
+    public EllipseSkyMatchEngine( SkyPixellator pixellator, double scale ) {
+        super( pixellator, scale );
+        matchParams_ =
+            new DescribedValue[] { new SkyScaleParameter( SCALE_INFO ) };
+    }
+
+    /**
+     * Sets the length scale.
+     *
+     * @param  scale rough value of per-object errors, in radians
+     */
+    public void setScale( double scale ) {
+        super.setScale( scale );
+    }
+
+    /**
+     * Returns the length scale.
+     *
+     * @return  length scale value in radians
+     */
+    public double getScale() {
+        return super.getScale();
+    }
+
+    public ValueInfo[] getTupleInfos() {
+        return new ValueInfo[] {
+            ALPHA_INFO, DELTA_INFO, MU_INFO, NU_INFO, ZETA_INFO
+        };
+    }
+
+    public DescribedValue[] getMatchParameters() {
+        return matchParams_;
+    }
+
+    public ValueInfo getMatchScoreInfo() {
+        return SCORE_INFO;
+    }
+
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         Match match = getMatch( toSkyEllipse( tuple1 ),
                                 toSkyEllipse( tuple2 ), false );
         return match == null ? -1 : match.score_;
+    }
+
+    public Object[] getBins( Object[] tuple ) {
+        SkyEllipse ellipse = toSkyEllipse( tuple );
+        return getBins( ellipse.alpha_, ellipse.delta_,
+                        ellipse.getMaxRadius() );
+    }
+
+    public boolean canBoundMatch() {
+        return true;
+    }
+
+    public Comparable[][] getMatchBounds( Comparable[] minTuple,
+                                          Comparable[] maxTuple ) {
+        double maxError = Math.max( getNumberValue( maxTuple[ 2 ] ),
+                                    getNumberValue( maxTuple[ 3 ] ) );
+        return createExtendedSkyBounds( minTuple, maxTuple, 0, 1,
+                                        2 * maxError );
+    }
+
+    public String toString() {
+        return "Sky Ellipses";
     }
 
     /**

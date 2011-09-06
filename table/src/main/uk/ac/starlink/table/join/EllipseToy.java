@@ -178,8 +178,8 @@ public class EllipseToy extends JComponent {
             setAntialias( g2, true );
             paintEllipse( g2, e1_, qp );
             paintEllipse( g2, e2_, qp );
-            SkyEllipseMatchEngine.Match match =
-                SkyEllipseMatchEngine.getMatch( adaptEllipse( e1_, qp ),
+            EllipseSkyMatchEngine.Match match =
+                EllipseSkyMatchEngine.getMatch( adaptEllipse( e1_, qp ),
                                                 adaptEllipse( e2_, qp ), true );
             if ( match != null ) {
                 g2.setColor( Color.RED );
@@ -229,7 +229,7 @@ public class EllipseToy extends JComponent {
          */
         private void paintEllipse( Graphics g, Ellipse e, int qp ) {
             Graphics2D g2 = (Graphics2D) g.create();
-            SkyEllipseMatchEngine.SkyEllipse se = adaptEllipse( e, qp );
+            EllipseSkyMatchEngine.SkyEllipse se = adaptEllipse( e, qp );
             g2.setFont( g2.getFont().deriveFont( 8f ) );
             g2.translate( e.x_, e.y_ );
             g2.drawString( "(" + (int) (se.alpha_ * 180 / Math.PI)
@@ -256,17 +256,17 @@ public class EllipseToy extends JComponent {
          */
         private void paintProjections( Graphics g, int qp ) {
             Graphics2D g2 = (Graphics2D) g.create();
-            SkyEllipseMatchEngine.SkyEllipse se1 = adaptEllipse( e1_, qp );
-            SkyEllipseMatchEngine.SkyEllipse se2 = adaptEllipse( e2_, qp );
+            EllipseSkyMatchEngine.SkyEllipse se1 = adaptEllipse( e1_, qp );
+            EllipseSkyMatchEngine.SkyEllipse se2 = adaptEllipse( e2_, qp );
             double[] pt =
-                SkyEllipseMatchEngine.bisect( se1.alpha_, se1.delta_,
+                EllipseSkyMatchEngine.bisect( se1.alpha_, se1.delta_,
                                               se2.alpha_, se2.delta_ );
-            SkyEllipseMatchEngine.Projector projector =
-                new SkyEllipseMatchEngine.Projector( pt[ 0 ], pt[ 1 ] );
+            EllipseSkyMatchEngine.Projector projector =
+                new EllipseSkyMatchEngine.Projector( pt[ 0 ], pt[ 1 ] );
             EllipseMatchEngine.Ellipse ce1 =
-                SkyEllipseMatchEngine.projectEllipse( projector, se1 );
+                EllipseSkyMatchEngine.projectEllipse( projector, se1 );
             EllipseMatchEngine.Ellipse ce2 =
-                SkyEllipseMatchEngine.projectEllipse( projector, se2 );
+                EllipseSkyMatchEngine.projectEllipse( projector, se2 );
             g2.translate( ( e1_.x_ + e2_.x_ ) / 2, ( e1_.y_ + e2_.y_ ) / 2 );
             paintCartesianEllipse( g2, ce1, qp );
             paintCartesianEllipse( g2, ce2, qp );
@@ -351,14 +351,14 @@ public class EllipseToy extends JComponent {
          * Converts a graphical ellipse to a spherical one suitable for
          * the matching algorithm.
          */
-        private SkyEllipseMatchEngine.SkyEllipse adaptEllipse( Ellipse e,
+        private EllipseSkyMatchEngine.SkyEllipse adaptEllipse( Ellipse e,
                                                                int qp ) {
             double alpha = xToAlpha( e.x_, qp );
             double delta = yToDelta( e.y_, qp );
             double mu = e.a_ * Math.PI / 2 / qp;
             double nu = e.b_ * Math.PI / 2 / qp;
             double zeta = thetaToZeta( e.theta_ );
-            return new SkyEllipseMatchEngine
+            return new EllipseSkyMatchEngine
                       .SkyEllipse( alpha, delta, mu, nu, zeta );
         }
 
@@ -371,8 +371,8 @@ public class EllipseToy extends JComponent {
                                    Ellipse e1, Ellipse e2 ) {
             Graphics2D g2 = (Graphics2D) g.create();
             setAntialias( g2, false );
-            SkyEllipseMatchEngine.SkyEllipse se1 = adaptEllipse( e1, qp );
-            SkyEllipseMatchEngine.SkyEllipse se2 = adaptEllipse( e2, qp );
+            EllipseSkyMatchEngine.SkyEllipse se1 = adaptEllipse( e1, qp );
+            EllipseSkyMatchEngine.SkyEllipse se2 = adaptEllipse( e2, qp );
             Rectangle bounds = getBounds();
             int xmax = bounds.x + 4 * qp;
             int ymax = bounds.y + 2 * qp;
@@ -381,9 +381,9 @@ public class EllipseToy extends JComponent {
                 double delta = yToDelta( y, qp );
                 for ( int x = bounds.x; x < xmax; x += step ) {
                     double alpha = xToAlpha( x, qp );
-                    double d1 = SkyEllipseMatchEngine
+                    double d1 = EllipseSkyMatchEngine
                                .scaledDistance( se1, alpha, delta );
-                    double d2 = SkyEllipseMatchEngine
+                    double d2 = EllipseSkyMatchEngine
                                .scaledDistance( se2, alpha, delta );
                     double c1 = d1 < 1 ? d1 * 0.8 : 1;
                     double c2 = d2 < 1 ? d2 * 0.8 : 1;
