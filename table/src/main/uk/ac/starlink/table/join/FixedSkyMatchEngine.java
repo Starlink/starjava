@@ -31,6 +31,8 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
 
     static {
         SEP_INFO.setUnitString( "radians" );
+        SEP_INFO.setUCD( "pos.angDistance" );
+
         SCORE_INFO.setUnitString( "arcsec" );
         SCORE_INFO.setUCD( "pos.angDistance" );
     }

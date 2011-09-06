@@ -37,15 +37,18 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
     private static final ValueInfo Y_INFO =
         new DefaultValueInfo( "Y", Number.class, "Y coordinate of centre" );
     private static final ValueInfo A_INFO =
-        new DefaultValueInfo( "RMAJ", Number.class, "Ellipse major radius" );
+        new DefaultValueInfo( "Primary Radius", Number.class,
+                              "Length of ellipse semi-major axis" );
     private static final ValueInfo B_INFO =
-        new DefaultValueInfo( "RMIN", Number.class, "Ellipse minor radius" );
+        new DefaultValueInfo( "Secondary Radius", Number.class,
+                              "Length of ellipse semi-minor axis" );
     private static final DefaultValueInfo THETA_INFO =
-        new DefaultValueInfo( "THETA", Number.class,
+        new DefaultValueInfo( "Orientation Angle", Number.class,
                               "Angle from X axis towards Y axis "
                             + "of semi-major axis" );
     static {
         THETA_INFO.setUnitString( "radians" );
+        THETA_INFO.setUCD( "pos.posAng" );
     }
 
     private static final Logger logger_ =

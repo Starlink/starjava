@@ -64,13 +64,13 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         new DefaultValueInfo( "Dec", Number.class,
                               "Declination of centre" );
     private static final DefaultValueInfo MU_INFO =
-        new DefaultValueInfo( "Rmaj", Number.class,
-                              "Ellipse primary radius radius" );
+        new DefaultValueInfo( "Primary Radius", Number.class,
+                              "Length of ellipse semi-major axis" );
     private static final DefaultValueInfo NU_INFO =
-        new DefaultValueInfo( "Rmin", Number.class,
-                              "Ellipse secondary radius" );
+        new DefaultValueInfo( "Secondary Radius", Number.class,
+                              "Length of ellipse semi-minor axis" );
     private static final DefaultValueInfo ZETA_INFO =
-        new DefaultValueInfo( "PosAng", Number.class,
+        new DefaultValueInfo( "Position Angle", Number.class,
                               "Position angle - measured from north pole to "
                             + "primary axis, in direction of positive RA" );
     static {
@@ -81,10 +81,10 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
         DELTA_INFO.setUCD( "pos.eq.dec" );
 
         MU_INFO.setUnitString( "radians" );
-        MU_INFO.setUnitString( "pos.angDistance" );
+        MU_INFO.setUCD( "pos.angDistance" );
 
         NU_INFO.setUnitString( "radians" );
-        NU_INFO.setUnitString( "pos.angDistance" );
+        NU_INFO.setUCD( "pos.angDistance" );
 
         ZETA_INFO.setUnitString( "radians" );
         ZETA_INFO.setUCD( "pos.posAng" );

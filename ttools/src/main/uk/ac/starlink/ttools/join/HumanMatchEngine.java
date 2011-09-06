@@ -1,8 +1,8 @@
 package uk.ac.starlink.ttools.join;
 
+import java.util.logging.Logger;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.ttools.func.Coords;
@@ -10,9 +10,9 @@ import uk.ac.starlink.ttools.func.Coords;
 /**
  * MatchEngine adaptor which transforms the base engine so that it
  * uses more human-friendly units.  Currently, this means that it uses 
- * eschews radians in favour of degrees for RA &amp; Dec,
- * and in favour of arcseconds for other quantities (assumed errors of
- * some kind).  Obviously, in other respects, this engine will behave
+ * eschews radians in favour of degrees or arcseconds for angular quantities;
+ * it decides which on the basis of UCDs.
+ * In other respects, this engine will behave
  * exactly the same as its base engine.  If the base engine has no
  * human-unfriendly units, this one should behave exactly the same.
  *
@@ -29,6 +29,9 @@ public class HumanMatchEngine implements MatchEngine {
     private final ValueWrapper scoreWrapper_;
     private final ValueInfo scoreInfo_;
     private final int nval_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
     /**
      * Constructor.
@@ -179,42 +182,73 @@ public class HumanMatchEngine implements MatchEngine {
      * @return   new wrapper which will wrap <code>info</code> type values
      *           in a human-friendly way
      */
-    private static ValueWrapper createWrapper( ValueInfo info ) {
+    private ValueWrapper createWrapper( ValueInfo info ) {
         String units = info == null ? null : info.getUnitString();
         Class clazz = info == null ? null : info.getContentClass();
 
-        /* If it's an RA or Dec description, change radians to degrees. */
-        if ( matches( info, Tables.RA_INFO ) ||
-             matches( info, Tables.DEC_INFO ) ) {
-            if ( "radians".equals( units ) &&
-                 ( clazz == Double.class || clazz == Number.class ) ) {
+        /* If the units are radians, change them to something more
+         * comprehensible. */
+        if ( ( "radians".equals( units ) || "radian".equals( units ) ) &&
+             ( clazz == Double.class || clazz == Number.class ) ) {
+
+            /* For small angles, use arcseconds. */
+            if ( isSmallAngle( info ) ) {
+                return new DoubleFactorWrapper( Coords.ARC_SECOND, "arcsec" );
+            }
+
+            /* For large angles, use degrees. */
+            else if ( isLargeAngle( info ) ) {
+                return new DoubleFactorWrapper( Coords.DEGREE, "degrees" );
+            }
+
+            /* If in doubt, issue a warning and use degrees. */
+            else {
+                logger_.warning( "Unknown angular quantity " + info
+                               + " - convert to degrees" );
                 return new DoubleFactorWrapper( Coords.DEGREE, "degrees" );
             }
         }
 
-        /* Otherwise if it has radians, change radians to arcseconds. */
-        else if ( "radians".equals( units ) &&
-                  ( clazz == Double.class || clazz == Number.class ) ) {
-            return new DoubleFactorWrapper( Coords.ARC_SECOND, "arcsec" );
-        }
-
         /* Otherwise, return a wrapper which does nothing to values. */
-        return NULL_WRAPPER;
+        else {
+            return NULL_WRAPPER;
+        }
     }
 
     /**
-     * Utility method to determine whether an info resembles another one.
-     * Currently matches name and content class.
+     * Indicates whether a given value is recognised as representing a large
+     * angle (such as a coordinate of some kind).
      *
-     * @param  info1  first info
-     * @param  info2  second info
-     * @return  true iff <code>info1</code> matches <code>info2</code>
+     * @param  info  value metadata
+     * @return  true if info is known to represent a large angle
      */
-    private static boolean matches( ValueInfo info1, ValueInfo info2 ) {
-        return info1 != null 
-            && info2 != null
-            && info1.getName().equals( info2.getName() )
-            && info1.getContentClass().equals( info2.getContentClass() );
+    public boolean isLargeAngle( ValueInfo info ) {
+        String ucd = info.getUCD();
+        if ( ucd == null ) {
+            return false;
+        }
+        String lucd = ucd.toLowerCase();
+        return lucd.matches( "pos[\\._]"
+                           + "(eq|az|earth|ecliptic|galactic|supergalactic)"
+                           + "[\\._].*" )
+            || lucd.startsWith( "pos.posAng".toLowerCase() );
+    }
+
+    /**
+     * Indicates whether a given value is recognised as representing a small
+     * angle (such as an error of some kind).
+     *
+     * @param  info  value metadata
+     * @return  true if info is known to represent a small angle
+     */
+    public boolean isSmallAngle( ValueInfo info ) {
+        String ucd = info.getUCD();
+        if ( ucd == null ) {
+            return false;
+        }
+        String lucd = ucd.toLowerCase();
+        return lucd.startsWith( "pos.angDistance".toLowerCase() )
+            || lucd.startsWith( "pos.angResolution".toLowerCase() );
     }
 
     /**

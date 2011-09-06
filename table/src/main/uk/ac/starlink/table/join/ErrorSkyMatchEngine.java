@@ -43,9 +43,11 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
                               "along a great circle" );
     static {
         SCALE_INFO.setUnitString( "radians" );
+        SCALE_INFO.setUCD( "pos.angDistance" );
         SCALE_INFO.setNullable( false );
 
         ERR_INFO.setUnitString( "radians" );
+        ERR_INFO.setUCD( "pos.angDistance" );
         ERR_INFO.setNullable( false );
 
         SCORE_INFO.setUnitString( "arcsec" );
