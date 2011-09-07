@@ -51,7 +51,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
     private static final String TUPLE_NAME = "values";
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.task" );
+        Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
     public MatchEngineParameter( String name ) {
         super( name );

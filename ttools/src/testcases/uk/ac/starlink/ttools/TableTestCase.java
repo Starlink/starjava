@@ -19,6 +19,10 @@ import uk.ac.starlink.util.TestCase;
  */
 public class TableTestCase extends TestCase {
 
+    public TableTestCase() {
+        super();
+    }
+
     public TableTestCase( String name ) {
         super( name );
     }
@@ -32,6 +36,29 @@ public class TableTestCase extends TestCase {
      */
     public static ColumnData col( String name, Object data ) {
         return ArrayColumn.makeColumn( name, data );
+    }
+
+    /**
+     * Returns the index of the column with a given name in a table.
+     * An exception is thrown if the column name is not unique.
+     *
+     * @param  table  table
+     * @param  colName  column name
+     * @return  column index, or -1 if no such column
+     */
+    public int getColIndex( StarTable table, String colName ) {
+        int icol = -1;
+        for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
+            if ( colName.equals( table.getColumnInfo( ic ).getName() ) ) {
+                if ( icol < 0 ) {
+                    icol = ic;
+                }
+                else {
+                    fail( "Duplicate column name " + colName );
+                }
+            }
+        }
+        return icol;
     }
 
     /**
