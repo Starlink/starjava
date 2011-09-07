@@ -71,7 +71,7 @@ public class EllipseRegressionTest extends TableTestCase {
               .setLevel( Level.WARNING );
         tngc_ =
             Tables.randomTable( new StarTableFactory( true )
-                               .makeStarTable( EllipseTest.class
+                               .makeStarTable( EllipseRegressionTest.class
                                               .getResource( "ngc1275.fits.gz" )
                                               .toString(),
                                                "fits" ) );
