@@ -26,6 +26,8 @@ public class SkyMatchTest extends TableTestCase {
     private static int NROW = 1000;
     static {
         Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.table.join" )
+              .setLevel( Level.WARNING );
     }
 
     public SkyMatchTest( String name ) {
@@ -38,15 +40,16 @@ public class SkyMatchTest extends TableTestCase {
 
     public void testCounts() throws Exception {
 
-        /* Currently, these aren't much more than regression tests.
-         * I can think of some more rigorous tests to do, but my spherical
-         * trigonometry would need some polishing to get there. */
-        assertEquals( 1000, countMatches( 10. ) );
-        assertEquals( 1000, countMatches( 20. ) );
-        assertEquals( 550, countMatches( 5. ) );
-        assertEquals( 228, countMatches( 2. ) );
-        assertEquals( 118, countMatches( 1. ) );
-        assertEquals( 1, countMatches( 1e-3 ) );
+        /* These are regression tests and also check whether the result is
+         * the same for different matchers.  A more stringent test could
+         * be done by rotating the positions on the sky and seeing if the
+         * results stayed the same - see EllipseMatchTest for an example. */
+        assertEquals( 1000, countMatches( 10., true ) );
+        assertEquals( 1000, countMatches( 20., false ) );
+        assertEquals( 550, countMatches( 5., true ) );
+        assertEquals( 228, countMatches( 2., false ) );
+        assertEquals( 118, countMatches( 1., true ) );
+        assertEquals( 1, countMatches( 1e-3, false ) );
     }
 
     public void testErrMatch() throws Exception {
@@ -228,43 +231,62 @@ public class SkyMatchTest extends TableTestCase {
         return m12;
     }
 
-    private int countMatches( double tol ) throws Exception {
-
-        /* Do physically the same sky match using three different match engines.
-         * This is a good test because the implementations are quite different,
-         * especially sky and sky3d, which are using geometrically quite
-         * different criteria. */
+    private int countMatches( double tol, boolean withChecks )
+            throws Exception {
         MapEnvironment tskyEnv = new MapEnvironment()
            .setValue( "params", Double.toString( tol ) )
            .setValue( "matcher", "sky" );
         StarTable tskyResult =
             tmatch2( tskyEnv, t1, "ra1 dec1", t2, "ra2 dec2" );
 
-        MapEnvironment thtmEnv = new MapEnvironment()
-           .setValue( "params", Double.toString( tol ) )
-           .setValue( "matcher", "htm" );
-        StarTable thtmResult =
-            tmatch2( thtmEnv, t1, "ra1 dec1", t2, "ra2 dec2" );
+        /* Do physically the same sky match using three different match engines.
+         * This is a good test because the implementations are quite different,
+         * especially sky and sky3d, which are using geometrically quite
+         * different criteria. */
+        if ( withChecks ) {
+            MapEnvironment thtmEnv = new MapEnvironment()
+               .setValue( "params", Double.toString( tol ) )
+               .setValue( "matcher", "htm" );
+            StarTable thtmResult =
+                tmatch2( thtmEnv, t1, "ra1 dec1", t2, "ra2 dec2" );
 
-        MapEnvironment tsky3dEnv = new MapEnvironment()
-           .setValue( "params", Double.toString( tol * Coords.ARC_SECOND ) )
-           .setValue( "matcher", "sky3d" );
-        StarTable tsky3dResult =
-            tmatch2( tsky3dEnv, t1, "ra1 dec1 1", t2, "ra2 dec2 1" );
+            MapEnvironment tsky3dEnv = new MapEnvironment()
+               .setValue( "params", Double.toString( tol * Coords.ARC_SECOND ) )
+               .setValue( "matcher", "sky3d" );
+            StarTable tsky3dResult =
+                tmatch2( tsky3dEnv, t1, "ra1 dec1 1", t2, "ra2 dec2 1" );
 
-        StarTable skyResult =
-            skymatch2( new MapEnvironment(), t1, "ra1", "dec1",
-                                             t2, "ra2", "dec2", tol );
+            MapEnvironment tskyEllipseEnv = new MapEnvironment()
+               .setValue( "params", Double.toString( tol ) )
+               .setValue( "matcher", "skyellipse" );
+            String ellipseSpec = ( tol * 0.5 ) + " "
+                               + ( tol * 0.5 ) + " "
+                               + "$0%360-180";
+            StarTable tskyEllipseResult =
+                tmatch2( tskyEllipseEnv, t1, "ra1 dec1 " + ellipseSpec,
+                                         t2, "ra2 dec2 " + ellipseSpec );
 
-        assertSameData( tskyResult, skyResult );
-        assertSameData( tskyResult, thtmResult );
+            StarTable skyResult =
+                skymatch2( new MapEnvironment(), t1, "ra1", "dec1",
+                                                 t2, "ra2", "dec2", tol );
 
-        // Sky3d matcher output will be different since the separation column
-        // is not the same.  It will have the same number of rows and columns
-        // though.
-        assertEquals( tskyResult.getColumnCount(),
-                      tsky3dResult.getColumnCount() );
-        assertEquals( tskyResult.getRowCount(), tsky3dResult.getRowCount() );
+            assertSameData( tskyResult, skyResult );
+            assertSameData( tskyResult, thtmResult );
+
+            // Sky3d matcher output will be different since the separation
+            // column is not the same.  It will have the same number of
+            // rows and columns though.
+            assertEquals( tskyResult.getColumnCount(),
+                          tsky3dResult.getColumnCount() );
+            assertEquals( tskyResult.getRowCount(),
+                          tsky3dResult.getRowCount() );
+
+            // Ditto sky ellipse matcher.
+            assertEquals( tskyResult.getColumnCount(),
+                          tskyEllipseResult.getColumnCount() );
+            assertEquals( tskyResult.getRowCount(),
+                          tskyEllipseResult.getRowCount() );
+        }
 
         RowSequence rseq = tskyResult.getRowSequence();
 

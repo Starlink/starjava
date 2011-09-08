@@ -46,7 +46,7 @@ public class TableTestCase extends TestCase {
      * @param  colName  column name
      * @return  column index, or -1 if no such column
      */
-    public int getColIndex( StarTable table, String colName ) {
+    public static int getColIndex( StarTable table, String colName ) {
         int icol = -1;
         for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
             if ( colName.equals( table.getColumnInfo( ic ).getName() ) ) {

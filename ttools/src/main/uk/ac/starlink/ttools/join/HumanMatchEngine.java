@@ -248,7 +248,8 @@ public class HumanMatchEngine implements MatchEngine {
         }
         String lucd = ucd.toLowerCase();
         return lucd.startsWith( "pos.angDistance".toLowerCase() )
-            || lucd.startsWith( "pos.angResolution".toLowerCase() );
+            || lucd.startsWith( "pos.angResolution".toLowerCase() )
+            || lucd.startsWith( "phys.angSize".toLowerCase() );
     }
 
     /**

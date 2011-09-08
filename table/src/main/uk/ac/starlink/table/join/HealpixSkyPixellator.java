@@ -2,6 +2,7 @@ package uk.ac.starlink.table.join;
 
 import gov.fnal.eag.healpix.PixTools;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.vecmath.Vector3d;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -32,6 +33,9 @@ public class HealpixSkyPixellator implements SkyPixellator {
     private double scale_;
     private int healpixK_;
     private long nside_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table.join" );
 
     /**
      * Scale factor which determines the sky pixel size to use,
@@ -148,6 +152,15 @@ public class HealpixSkyPixellator implements SkyPixellator {
          * a tuning parameter. */
         double pixelSize = DEFAULT_SCALE_FACTOR * scale;
         double pixelSizeArcSec = pixelSize * ( 180. * 60 * 60 / Math.PI );
+
+        /* Put a limit on the value.  If a value smaller than this is
+         * used, the result is the same (20), but PixTools writes a warning
+         * to standard output.  Emit the same message through the logging
+         * system instead. */
+        if ( pixelSizeArcSec < 0.21) {
+            pixelSizeArcSec = 0.21;
+            logger_.info( "pixtools: nside cannot be bigger than 1048576" );
+        }
         long nside = pixTools_.GetNSide( pixelSizeArcSec );
         return (int) Math.round( Math.log( nside ) / Math.log( 2 ) );
     }

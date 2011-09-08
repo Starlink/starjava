@@ -198,7 +198,7 @@ public class EllipseMatchTest extends TableTestCase {
             .setValue( "matcher", t1.getMatcherName() )
             .setValue( "values1", t1.getMatchValues() )
             .setValue( "values2", t2.getMatchValues() )
-            .setValue( "params", Double.toString( scale ) )
+            .setValue( "params", Double.toString( scale / ARCSEC ) )
             .setValue( "icmd1", "addcol ID1 $0" )
             .setValue( "icmd2", "addcol ID2 $0" )
             .setValue( "progress", "none" );
