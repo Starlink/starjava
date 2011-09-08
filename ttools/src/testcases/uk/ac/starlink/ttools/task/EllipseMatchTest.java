@@ -1,13 +1,15 @@
 package uk.ac.starlink.ttools.task;
 
 import java.util.Arrays;
-import java.util.TreeSet;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RandomStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
@@ -20,7 +22,7 @@ public class EllipseMatchTest extends TableTestCase {
     private static final Pal pal_ = new Pal();
     private static final double DEGREE = Math.PI / 180;
     private static final double ARCSEC = DEGREE / 60 / 60;
-    private Random random_ = new Random( 23032L );
+    private Random random_ = new Random( 230327L );
 
     public EllipseMatchTest() {
         Logger.getLogger( "uk.ac.starlink.ttools.join" )
@@ -69,32 +71,50 @@ public class EllipseMatchTest extends TableTestCase {
     public void testSky() throws Exception {
         int nel = 100;
         double unit = ARCSEC;
-        double rmin = 0.1 * unit;
+        double rmin = 0.4 * unit;
         double rmax = 1 * unit;
         double range = rmax * 500;
         double scale = rmax * 5;
         Ellipse[] els1 = createEllipses( nel, range, rmin, rmax );
         Ellipse[] els2 = scrambleEllipses( els1, rmin, rmax );
+
+        assertEquals( nel, selfMatchCount(
+                           shiftRotMatch( els1, els2, 0, 0, 0, scale ) ) );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, 0, 1.4 );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, Math.PI * 0.5, 1.4 );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, 2, 2 );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, -1.5, 1.4 );
+    }
+
+    private void checkSkyRotation( Ellipse[] els1, Ellipse[] els2,
+                                   double rmin, double rmax, double scale,
+                                   double rotPhi, double rotTheta )
+            throws Exception {
+        int nel = els1.length;
+        assertEquals( nel, els2.length );
         double dlo = rmin * 0.99;
         double dhi = rmax * 1.01;
         double dmid = ( rmax + rmin ) * 0.5;
-        double P2 = Math.PI * 0.5;
-        assertEquals( nel, shiftRotMatch( els1, els2, 0, 0, 0, scale ).size() );
+        assertEquals( nel, selfMatchCount(
+                           shiftRotMatch( els1, els2, rotPhi, rotTheta,
+                                          dlo, scale ) ) );
+        assertEquals( 0, selfMatchCount(
+                         shiftRotMatch( els1, els2, rotPhi, rotTheta,
+                                        dhi, scale ) ) );
+        long nmid = selfMatchCount(
+                    shiftRotMatch( els1, els2, rotPhi, rotTheta,
+                                   dmid, scale ) );
+        assertTrue( nmid > 1 && nmid < nel - 1 );
+    }
 
-        assertEquals( nel,
-                      shiftRotMatch( els1, els2, 0, 1.4, dlo, scale ).size() );
-        assertEquals( nel,
-                      shiftRotMatch( els1, els2, P2, 1.4, dlo, scale ).size() );
-
-        assertEquals( 0,
-                      shiftRotMatch( els1, els2, 0, 1.4, dhi, scale ).size() );
-        assertEquals( 0,
-                      shiftRotMatch( els1, els2, P2, 1.4, dhi, scale ).size() );
-
-        long nmida = shiftRotMatch( els1, els2, 0, 1.4, dmid, scale ).size();
-        long nmidb = shiftRotMatch( els1, els2, P2, 1.4, dmid, scale ).size();
-        assertTrue( nmida > 1 && nmida < nel - 1 );
-        assertTrue( nmidb > 1 && nmidb < nel - 1 );
+    private Set shiftRotMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
+                               double rotPhi, double rotTheta, double shiftXi,
+                               double scale )
+            throws Exception {
+        double[][] rot1 = rotationMatrix( rotPhi, rotTheta - shiftXi );
+        double[][] rot2 = rotationMatrix( rotPhi, rotTheta + shiftXi );
+        return match12( new EllipseTableSky( ellipses1, rot1 ),
+                        new EllipseTableSky( ellipses2, rot2 ), scale );
     }
 
     /**
@@ -110,16 +130,6 @@ public class EllipseMatchTest extends TableTestCase {
         return pal_.Deuler( "xz", rotPhi, rotTheta, Double.NaN );
     }
 
-    private Set shiftRotMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
-                               double rotPhi, double rotTheta, double shiftXi,
-                               double scale )
-            throws Exception {
-        double[][] rot1 = rotationMatrix( rotPhi, rotTheta - shiftXi );
-        double[][] rot2 = rotationMatrix( rotPhi, rotTheta + shiftXi );
-        return match12( new EllipseTableSky( ellipses1, rot1 ),
-                        new EllipseTableSky( ellipses2, rot2 ), scale );
-    }
-
     public void testRotateSky() throws Exception {
         int nel = 200;
         double unit = ARCSEC;
@@ -130,10 +140,11 @@ public class EllipseMatchTest extends TableTestCase {
         Ellipse[] els1 = createEllipses( nel, range, rmin, rmax );
         Ellipse[] els2 = createEllipses( nel, range, rmin, rmax );
         Set t12 = rotatedSkyMatch( els1, els2, 0, 0, scale );
-        assertEquals( t12, rotatedSkyMatch( els1, els2, 1, 0, scale ) );
         assertEquals( t12, rotatedSkyMatch( els1, els2, 0, 1, scale ) );
         assertEquals( t12, rotatedSkyMatch( els1, els2, 1, 1.5, scale ) );
-        assertEquals( t12, rotatedSkyMatch( els1, els2, 1, 1, scale ) );
+        assertEquals( t12, rotatedSkyMatch( els1, els2, Math.PI*.5, 1.5,
+                                            scale ) );
+        assertEquals( t12, rotatedSkyMatch( els1, els2, 2, -2, scale ) );
     }
 
     private Set rotatedSkyMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
@@ -176,7 +187,8 @@ public class EllipseMatchTest extends TableTestCase {
         return new Ellipse( x, y, a, b, psi );
     }
 
-    private static Set match12( EllipseTable t1, EllipseTable t2, double scale )
+    private static Set<Link2> match12( EllipseTable t1, EllipseTable t2,
+                                       double scale )
             throws Exception {
         MapEnvironment env = new MapEnvironment()
             .setValue( "find", "best" )
@@ -187,15 +199,30 @@ public class EllipseMatchTest extends TableTestCase {
             .setValue( "values1", t1.getMatchValues() )
             .setValue( "values2", t2.getMatchValues() )
             .setValue( "params", Double.toString( scale ) )
-            .setValue( "icmd1", "addcol ID1 toString($0)" )
-            .setValue( "icmd2", "addcol ID2 toString($0)" )
-            .setValue( "ocmd", "addcol LINK concat(ID1,\\\"=\\\",ID2); "
-                             + "keepcols LINK" )
+            .setValue( "icmd1", "addcol ID1 $0" )
+            .setValue( "icmd2", "addcol ID2 $0" )
             .setValue( "progress", "none" );
         new TableMatch2().createExecutable( env ).execute();
-        StarTable table = Tables.randomTable( env.getOutputTable( "omode" ) );
-        Object[] links = getColData( table, 0 );
-        return new TreeSet( Arrays.asList( links ) );
+        StarTable table = env.getOutputTable( "omode" );
+        int idcol1 = getColIndex( table, "ID1" );
+        int idcol2 = getColIndex( table, "ID2" );
+        Set<Link2> linkSet = new HashSet<Link2>();
+        for ( RowSequence rseq = table.getRowSequence(); rseq.next(); ) {
+            linkSet
+           .add( new Link2( ((Number) rseq.getCell( idcol1 )).intValue(),
+                            ((Number) rseq.getCell( idcol2 )).intValue() ) );
+        }
+        return linkSet;
+    }
+
+    private static int selfMatchCount( Collection<Link2> linkSet ) {
+        int ns = 0;
+        for ( Link2 link : linkSet ) {
+            if ( link.isSelfLink() ) {
+                ns++;
+            }
+        }
+        return ns;
     }
 
     private static abstract class EllipseTable extends RandomStarTable {
@@ -302,6 +329,26 @@ public class EllipseMatchTest extends TableTestCase {
             return x == 0 && y == 0 ? 0
                                     : Math.atan2( y, x );
         } 
+    }
+
+    private static class Link2 {
+        int ix1_;
+        int ix2_;
+        Link2( int ix1, int ix2 ) {
+            ix1_ = ix1;
+            ix2_ = ix2;
+        }
+        boolean isSelfLink() {
+            return ix1_ == ix2_;
+        }
+        @Override public boolean equals( Object o ) {
+            Link2 other = (Link2) o;
+            return other.ix1_ == this.ix1_
+                && other.ix2_ == this.ix2_;
+        }
+        @Override public int hashCode() {
+            return ( ix1_ << 16 ) | ix2_;
+        }
     }
 
     private static class Ellipse {
