@@ -31,9 +31,9 @@ public class EllipseMatchTest extends TableTestCase {
         // test the sense of the position angle wrangling.
         double unit = ARCSEC;
         double psi = Math.PI * 0.23;
+        double[][] m1 = {{1,0,0},{0,1,0},{0,0,1}};
         Ellipse e = new Ellipse( unit * 3, unit * 8, unit * 1, unit * 2, psi );
-        EllipseTableSky table =
-            new EllipseTableSky( new Ellipse[] { e }, 0, 0 );
+        EllipseTableSky table = new EllipseTableSky( new Ellipse[] { e }, m1 );
         Object[] row = table.getRow( 0 );
         assertEquals( psi * 180 / Math.PI, ((Number) row[ 4 ]).doubleValue(),
                       1e-3 );
@@ -73,37 +73,51 @@ public class EllipseMatchTest extends TableTestCase {
         double rmax = 1 * unit;
         double range = rmax * 500;
         double scale = rmax * 5;
-        Ellipse[] ellipses1 = createEllipses( nel, range, rmin, rmax );
-        Ellipse[] ellipses2 = scrambleEllipses( ellipses1, rmin, rmax );
+        Ellipse[] els1 = createEllipses( nel, range, rmin, rmax );
+        Ellipse[] els2 = scrambleEllipses( els1, rmin, rmax );
         double dlo = rmin * 0.99;
-        double dhi = rmax * 1.05;
+        double dhi = rmax * 1.01;
         double dmid = ( rmax + rmin ) * 0.5;
         double P2 = Math.PI * 0.5;
-        assertEquals( nel, match12( new EllipseTableSky( ellipses1, 0, 0 ),
-                                    new EllipseTableSky( ellipses2, 0, 0 ), 
-                                    scale ).size() );
-        assertEquals( nel, match12( new EllipseTableSky( ellipses1, -dlo, P2 ),
-                                    new EllipseTableSky( ellipses2, +dlo, P2 ),
-                                    scale ).size() );
-        assertEquals( nel, match12( new EllipseTableSky( ellipses1, 0, -dlo ),
-                                    new EllipseTableSky( ellipses2, 0, +dlo ),
-                                    scale ).size() );
-        assertEquals( 0, match12( new EllipseTableSky( ellipses1, 1+dhi, -1.5 ),
-                                  new EllipseTableSky( ellipses2, 1-dhi, -1.5 ),
-                                  scale ).size() );
-        assertEquals( 0, match12( new EllipseTableSky( ellipses1, 0, +dhi ),
-                                  new EllipseTableSky( ellipses2, 0, -dhi ),
-                                  scale ).size() );
-        long nmida = match12( new EllipseTableSky( ellipses1, 0, -dmid ),
-                              new EllipseTableSky( ellipses2, 0, +dmid ),
-                              scale )
-                   .size();
+        assertEquals( nel, shiftRotMatch( els1, els2, 0, 0, 0, scale ).size() );
+
+        assertEquals( nel,
+                      shiftRotMatch( els1, els2, 0, 1.4, dlo, scale ).size() );
+        assertEquals( nel,
+                      shiftRotMatch( els1, els2, P2, 1.4, dlo, scale ).size() );
+
+        assertEquals( 0,
+                      shiftRotMatch( els1, els2, 0, 1.4, dhi, scale ).size() );
+        assertEquals( 0,
+                      shiftRotMatch( els1, els2, P2, 1.4, dhi, scale ).size() );
+
+        long nmida = shiftRotMatch( els1, els2, 0, 1.4, dmid, scale ).size();
+        long nmidb = shiftRotMatch( els1, els2, P2, 1.4, dmid, scale ).size();
         assertTrue( nmida > 1 && nmida < nel - 1 );
-        long nmidb = match12( new EllipseTableSky( ellipses1, +dmid, 1 ),
-                              new EllipseTableSky( ellipses2, -dmid, 1 ),
-                              scale )
-                    .size();
         assertTrue( nmidb > 1 && nmidb < nel - 1 );
+    }
+
+    /**
+     * Returns a rotation matrix which will rotate the point (alpha=0, delta=0),
+     * or equivalently (x=1,y=0,z=0), by rotTheta radians in a direction given
+     * by rotPhi.
+     *
+     * @param   rotPhi  angle of rotation - 0 is along equator,
+     *                  PI/2 is towards pole
+     * @param   rotTheta  magnitude of rotation
+     */
+    private static double[][] rotationMatrix( double rotPhi, double rotTheta ) {
+        return pal_.Deuler( "xz", rotPhi, rotTheta, Double.NaN );
+    }
+
+    private Set shiftRotMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
+                               double rotPhi, double rotTheta, double shiftXi,
+                               double scale )
+            throws Exception {
+        double[][] rot1 = rotationMatrix( rotPhi, rotTheta - shiftXi );
+        double[][] rot2 = rotationMatrix( rotPhi, rotTheta + shiftXi );
+        return match12( new EllipseTableSky( ellipses1, rot1 ),
+                        new EllipseTableSky( ellipses2, rot2 ), scale );
     }
 
     public void testRotateSky() throws Exception {
@@ -112,7 +126,7 @@ public class EllipseMatchTest extends TableTestCase {
         double rmin = 0.1 * unit;
         double rmax = 1.0 * unit;
         double range = rmax * 50;
-        double scale = rmax * 5;
+        double scale = rmax * 1;
         Ellipse[] els1 = createEllipses( nel, range, rmin, rmax );
         Ellipse[] els2 = createEllipses( nel, range, rmin, rmax );
         Set t12 = rotatedSkyMatch( els1, els2, 0, 0, scale );
@@ -123,10 +137,11 @@ public class EllipseMatchTest extends TableTestCase {
     }
 
     private Set rotatedSkyMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
-                                 double phi, double theta, double scale )
+                                 double rotPhi, double rotTheta, double scale )
             throws Exception {
-        return match12( new EllipseTableSky( ellipses1, phi, theta ),
-                        new EllipseTableSky( ellipses2, phi, theta ), scale );
+        double[][] rot = rotationMatrix( rotPhi, rotTheta );
+        return match12( new EllipseTableSky( ellipses1, rot ),
+                        new EllipseTableSky( ellipses2, rot ), scale );
     }
     
     private Ellipse[] createEllipses( int count, double range,
@@ -245,10 +260,10 @@ public class EllipseMatchTest extends TableTestCase {
 
     private static class EllipseTableSky extends EllipseTable {
         private final double[][] rotation_;
-        EllipseTableSky( Ellipse[] ellipses, double phi, double theta ) {
+        EllipseTableSky( Ellipse[] ellipses, double[][] rotation ) {
             super( ellipses, "skyellipse",
                    new String[] { "alpha", "delta", "mu", "nu", "zeta" } );
-            rotation_ = pal_.Deuler( "zy", phi, theta, Double.NaN );
+            rotation_ = rotation;
         }
         Object[] toRow( Ellipse ellipse ) {
             double alpha0 = ellipse.x_;
