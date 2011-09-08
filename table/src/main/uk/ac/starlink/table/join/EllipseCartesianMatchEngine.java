@@ -32,14 +32,14 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
                               "Rough average of per-object error distance; "
                             + "just used for tuning in conjunction with "
                             + "bin factor" );
-    private static final ValueInfo X_INFO =
+    private static final DefaultValueInfo X_INFO =
         new DefaultValueInfo( "X", Number.class, "X coordinate of centre" );
-    private static final ValueInfo Y_INFO =
+    private static final DefaultValueInfo Y_INFO =
         new DefaultValueInfo( "Y", Number.class, "Y coordinate of centre" );
-    private static final ValueInfo A_INFO =
+    private static final DefaultValueInfo A_INFO =
         new DefaultValueInfo( "Primary Radius", Number.class,
                               "Length of ellipse semi-major axis" );
-    private static final ValueInfo B_INFO =
+    private static final DefaultValueInfo B_INFO =
         new DefaultValueInfo( "Secondary Radius", Number.class,
                               "Length of ellipse semi-minor axis" );
     private static final DefaultValueInfo THETA_INFO =
@@ -47,6 +47,8 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
                               "Angle from X axis towards Y axis "
                             + "of semi-major axis" );
     static {
+        A_INFO.setUCD( "phys.size.smajAxis" );
+        B_INFO.setUCD( "phys.size.sminAxis" );
         THETA_INFO.setUnitString( "radians" );
         THETA_INFO.setUCD( "pos.posAng" );
     }

@@ -88,6 +88,10 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
 
         ZETA_INFO.setUnitString( "radians" );
         ZETA_INFO.setUCD( "pos.posAng" );
+
+        SCALE_INFO.setUnitString( "radians" );
+        SCALE_INFO.setUCD( "pos.angDistance" );
+        SCALE_INFO.setNullable( false );
     }
 
     private static final double NaN = Double.NaN;
