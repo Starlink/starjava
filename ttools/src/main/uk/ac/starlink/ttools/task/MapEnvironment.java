@@ -102,6 +102,29 @@ public class MapEnvironment implements TableEnvironment {
                                   : text.split( "\\n" );
     }
 
+    /**
+     * Returns a string which contains all the error output written by the task
+     * so far.
+     *
+     * @return  error text
+     */
+    public String getErrorText() {
+        perr_.flush();
+        return new String( err_.toByteArray() );
+    }
+
+    /**
+     * Returns the error output written by the task so far, in an array one line
+     * per element.
+     *
+     * @return  error text
+     */
+    public String[] getErrorLines() {
+        String text = getErrorText();
+        return text.length() == 0 ? new String[ 0 ]
+                                  : text.split( "\\n" );
+    }
+
     /** 
      * Sets the value of a parameter.  A string value is OK; in some cases
      * other parameter types are catered for.
