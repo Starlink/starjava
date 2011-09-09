@@ -450,6 +450,13 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                     new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
                                                Coords.ARC_SECOND );
             }
+            else if ( "skyellipse-nocirc".equalsIgnoreCase( cName ) ) {
+                EllipseSkyMatchEngine matcher =
+                    new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
+                                               Coords.ARC_SECOND );
+                matcher.setRecogniseCircles( false );
+                component = matcher;
+            }
             else if ( "sky3d".equalsIgnoreCase( cName ) ) {
                 component = new SphericalPolarMatchEngine( 0. );
             }
@@ -458,6 +465,12 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             }
             else if ( "2d_ellipse".equalsIgnoreCase( cName ) ) {
                 component = new EllipseCartesianMatchEngine( 1 );
+            }
+            else if ( "2d_ellipse-nocirc".equalsIgnoreCase( cName ) ) {
+                EllipseCartesianMatchEngine matcher =
+                    new EllipseCartesianMatchEngine( 1 );
+                matcher.setRecogniseCircles( false );
+                component = matcher;
             }
             else if ( cName.matches( "[0-9][dD]" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );

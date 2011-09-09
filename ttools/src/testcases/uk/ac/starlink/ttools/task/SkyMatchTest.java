@@ -258,13 +258,23 @@ public class SkyMatchTest extends TableTestCase {
 
             MapEnvironment tskyEllipseEnv = new MapEnvironment()
                .setValue( "params", Double.toString( tol ) )
-               .setValue( "matcher", "skyellipse" );
+               .setValue( "matcher", "skyellipse-nocirc" );
             String ellipseSpec = ( tol * 0.5 ) + " "
                                + ( tol * 0.5 ) + " "
                                + "$0%360-180";
             StarTable tskyEllipseResult =
                 tmatch2( tskyEllipseEnv, t1, "ra1 dec1 " + ellipseSpec,
                                          t2, "ra2 dec2 " + ellipseSpec );
+
+            MapEnvironment tskyCircleEnv = new MapEnvironment()
+               .setValue( "params", Double.toString( tol ) )
+               .setValue( "matcher", "skyellipse" );
+            String circleSpec = ( tol * 0.5 ) + " "
+                              + ( tol * 0.5 ) + " "
+                              + "$0%360-180";
+            StarTable tskyCircleResult =
+                tmatch2( tskyCircleEnv, t1, "ra1 dec1 " + circleSpec,
+                                        t2, "ra2 dec2 " + circleSpec );
 
             StarTable skyResult =
                 skymatch2( new MapEnvironment(), t1, "ra1", "dec1",
@@ -286,6 +296,17 @@ public class SkyMatchTest extends TableTestCase {
                           tskyEllipseResult.getColumnCount() );
             assertEquals( tskyResult.getRowCount(),
                           tskyEllipseResult.getRowCount() );
+
+            // These should be very similar but not identical, since one uses
+            // numerical approximations.
+            assertEquals( tskyEllipseResult.getColumnCount(),
+                          tskyCircleResult.getColumnCount() );
+            assertEquals( tskyEllipseResult.getRowCount(),
+                          tskyCircleResult.getRowCount() );
+            int sepCol = getColIndex( tskyEllipseResult, "Separation" );
+            assertArrayEquals( unbox( getColData( tskyEllipseResult, sepCol ) ),
+                               unbox( getColData( tskyCircleResult, sepCol ) ),
+                               1e-8 );
         }
 
         RowSequence rseq = tskyResult.getRowSequence();

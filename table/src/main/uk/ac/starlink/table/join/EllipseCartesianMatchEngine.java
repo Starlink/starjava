@@ -21,6 +21,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
 
     private final DescribedValue[] matchParams_;
+    private boolean recogniseCircles_;
     private static final double NaN = Double.NaN;
     private static final ValueInfo SCORE_INFO =
         new DefaultValueInfo( "Separation", Double.class,
@@ -66,6 +67,7 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         matchParams_ = new DescribedValue[] {
                            new IsotropicScaleParameter( ERRSCALE_INFO ) };
         setIsotropicScale( scale );
+        setRecogniseCircles( true );
     }
 
     /**
@@ -87,6 +89,19 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         return super.getIsotropicScale();
     }
 
+    /**
+     * Determines whether short cuts should be taken in the calculations
+     * when the ellipses are actually circles.  This is generally a good
+     * idea, since it is faster and improves accuracy; the default is
+     * therefore true.  But you might want to turn it off for purposes
+     * of debugging or testing.
+     *
+     * @param  recogniseCircles  whether to take circle-specific short cuts
+     */
+    public void setRecogniseCircles( boolean recogniseCircles ) {
+        recogniseCircles_ = recogniseCircles;
+    }
+
     public ValueInfo[] getTupleInfos() {
         return new ValueInfo[] {
             X_INFO, Y_INFO, A_INFO, B_INFO, THETA_INFO,
@@ -106,7 +121,8 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
-        Match match = getMatch( toEllipse( tuple1 ), toEllipse( tuple2 ) );
+        Match match = getMatch( toEllipse( tuple1 ), toEllipse( tuple2 ),
+                                recogniseCircles_ );
         return match == null ? -1 : match.score_;
     }
 
@@ -155,9 +171,11 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
      *
      * @param   e1  ellipse 1
      * @param   e2  ellipse 2
+     * @param  recogniseCircles  whether to take short cuts in the calculations
+     *                           for circular ellipses
      * @return   description of match, or null if no overlap
      */
-    static Match getMatch( Ellipse e1, Ellipse e2 ) {
+    static Match getMatch( Ellipse e1, Ellipse e2, boolean recogniseCircles ) {
         double x1 = e1.x_;
         double y1 = e1.y_;
         double x2 = e2.x_;
@@ -209,18 +227,41 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
         /* Otherwise, find the closest edge point on one ellipse to the
          * inside (scaled) of the other.  If this point is inside the other
          * ellipse, they overlap.  That criterion is robust, though
-         * calculating a score from it is a bit arbitrary. */
-        double[] p1 = findClosestEdgePoint( e1, e2 );
-        double sp1 = scaledDistance( e1, p1[ 0 ], p1[ 1 ] );
-        if ( sp1 > 1 ) {
-            return null;
+         * calculating a score from it is a bit arbitrary.
+         * In the case that they are both circles we can do some short cuts
+         * in the working. */
+        if ( e1.isCircle() && e2.isCircle() && recogniseCircles ) {
+            double r1 = e1.a_;
+            double r2 = e2.a_;
+            assert r1 == e1.b_;
+            assert r2 == e2.b_;
+            double dx = x2 - x1;
+            double dy = y2 - y1;
+            double s = Math.sqrt( dx * dx + dy * dy );
+            if ( s > r1 + r2 ) {
+                return null;
+            }
+            else {
+                double fx = dx / s;
+                double fy = dy / s;
+                return new Match( 1 + 0.5 * ( (s-r2)/r1 + (s-r1)/r2 ),
+                                  x2 - r2 * fx, y2 - r2 * fy,
+                                  x1 + r1 * fx, y1 + r1 * fy );
+            }
         }
         else {
-            double[] p2 = findClosestEdgePoint( e2, e1 );
-            double sp2 = scaledDistance( e2, p2[ 0 ], p2[ 1 ] );
-            assert sp2 <= 1;
-            return new Match( 1. + 0.5 * ( sp1 + sp2 ),
-                              p1[ 0 ], p1[ 1 ], p2[ 0 ], p2[ 1 ] );
+            double[] p1 = findClosestEdgePoint( e1, e2 );
+            double sp1 = scaledDistance( e1, p1[ 0 ], p1[ 1 ] );
+            if ( sp1 > 1 ) {
+                return null;
+            }
+            else {
+                double[] p2 = findClosestEdgePoint( e2, e1 );
+                double sp2 = scaledDistance( e2, p2[ 0 ], p2[ 1 ] );
+                assert sp2 <= 1;
+                return new Match( 1. + 0.5 * ( sp1 + sp2 ),
+                                  p1[ 0 ], p1[ 1 ], p2[ 0 ], p2[ 1 ] );
+            }
         }
     }
 
@@ -521,6 +562,15 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
          */
         boolean isPoint() {
             return ! ( ( a_ > 0 || b_ > 0 ) && ! Double.isNaN( theta_ ) );
+        }
+
+        /**
+         * Indicates whether this ellipse is circle-like.
+         *
+         * @return  true iff this ellipse has equal radii
+         */
+        boolean isCircle() {
+            return a_ == b_;
         }
 
         /**

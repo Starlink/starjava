@@ -51,13 +51,18 @@ public class EllipseToy extends JComponent {
      * Component which shows ellipses on a Cartesian plane.
      */
     public static class CartesianEllipseToy extends JComponent {
+        private final boolean recogniseCircles_;
         private final Ellipse e1_;
         private final Ellipse e2_;
 
         /**
          * Constructor.
+         *
+         * @param  recogniseCircles  whether to take short cuts in the
+         *                           calculations for circular ellipses
          */
-        public CartesianEllipseToy() {
+        public CartesianEllipseToy( boolean recogniseCircles ) {
+            recogniseCircles_ = recogniseCircles;
             setPreferredSize( new Dimension( 400, 400 ) );
             e1_ = new Ellipse( 100, 100, 60, 90, 0 );
             e2_ = new Ellipse( 200, 50, 70, 40, Math.PI / 6. );
@@ -74,7 +79,8 @@ public class EllipseToy extends JComponent {
             paintEllipse( g2, e2_ );
             EllipseCartesianMatchEngine.Match match =
                 EllipseCartesianMatchEngine.getMatch( adaptEllipse( e1_ ),
-                                                      adaptEllipse( e2_ ) );
+                                                      adaptEllipse( e2_ ),
+                                                      recogniseCircles_ );
             if ( match != null ) {
                 g2.setColor( Color.RED );
                 g2.drawString( new Formatter()
@@ -140,13 +146,18 @@ public class EllipseToy extends JComponent {
      * The display is on a cylindrical (plate carree) projection.
      */
     public static class SkyEllipseToy extends JComponent {
+        private final boolean recogniseCircles_;
         private final Ellipse e1_;
         private final Ellipse e2_;
 
         /**
          * Constructor.
+         *
+         * @param  recogniseCircles  whether to take short cuts in the
+         *                           calculations for circular ellipses
          */
-        public SkyEllipseToy() {
+        public SkyEllipseToy( boolean recogniseCircles ) {
+            recogniseCircles_ = recogniseCircles;
             int qp = 180;
             setPreferredSize( new Dimension( qp * 4, qp * 2 ) );
             e1_ = new Ellipse( qp, qp, (int) (qp * .15), (int) (qp * .1),
@@ -244,7 +255,7 @@ public class EllipseToy extends JComponent {
             g2.setFont( g2.getFont().deriveFont( 10f ) );
             g2.setColor( new Color( 0x404040 ) );
             g2.translate( e.x_, e.y_ );
-            int paDeg = (int) ( se.zeta_ / Math.PI * 180 );
+            int paDeg = (int) ( thetaToZeta( e.theta_ ) / Math.PI * 180 );
             g2.drawArc( -20, -20, 40, 40, 90, - paDeg );
             g2.drawString( "" + paDeg, 0, 0 );
         }
@@ -263,10 +274,8 @@ public class EllipseToy extends JComponent {
                                               se2.alpha_, se2.delta_ );
             EllipseSkyMatchEngine.Projector projector =
                 new EllipseSkyMatchEngine.Projector( pt[ 0 ], pt[ 1 ] );
-            EllipseCartesianMatchEngine.Ellipse ce1 =
-                EllipseSkyMatchEngine.projectEllipse( projector, se1 );
-            EllipseCartesianMatchEngine.Ellipse ce2 =
-                EllipseSkyMatchEngine.projectEllipse( projector, se2 );
+            EllipseCartesianMatchEngine.Ellipse ce1 = se1.project( projector );
+            EllipseCartesianMatchEngine.Ellipse ce2 = se2.project( projector );
             g2.translate( ( e1_.x_ + e2_.x_ ) / 2, ( e1_.y_ + e2_.y_ ) / 2 );
             paintCartesianEllipse( g2, ce1, qp );
             paintCartesianEllipse( g2, ce2, qp );
@@ -359,8 +368,9 @@ public class EllipseToy extends JComponent {
             double mu = e.a_ * Math.PI / 2 / qp;
             double nu = e.b_ * Math.PI / 2 / qp;
             double zeta = thetaToZeta( e.theta_ );
-            return new EllipseSkyMatchEngine
-                      .SkyEllipse( alpha, delta, mu, nu, zeta );
+            return EllipseSkyMatchEngine
+                  .createSkyEllipse( alpha, delta, mu, nu, zeta,
+                                     recogniseCircles_ );
         }
 
         /**
@@ -382,10 +392,8 @@ public class EllipseToy extends JComponent {
                 double delta = yToDelta( y, qp );
                 for ( int x = bounds.x; x < xmax; x += step ) {
                     double alpha = xToAlpha( x, qp );
-                    double d1 = EllipseSkyMatchEngine
-                               .scaledDistance( se1, alpha, delta );
-                    double d2 = EllipseSkyMatchEngine
-                               .scaledDistance( se2, alpha, delta );
+                    double d1 = se1.getScaledDistance( alpha, delta );
+                    double d2 = se2.getScaledDistance( alpha, delta );
                     double c1 = d1 < 1 ? d1 * 0.8 : 1;
                     double c2 = d2 < 1 ? d2 * 0.8 : 1;
                     float lev = (float) ( ( c1 * c2 ) * 0.6 + 0.4 );
@@ -427,16 +435,12 @@ public class EllipseToy extends JComponent {
 
         @Override
         public void mousePressed( MouseEvent evt ) {
-            Point p = evt.getPoint();
-            for ( int ie = 0; ie < ellipses_.length; ie++ ) {
-                Changer changer = ellipses_[ ie ].getChanger( p, 4 );
-                if ( changer != null ) {
-                    changer_ = changer;
-                    p0_ = p;
-                    e0_ = new Ellipse( ellipses_[ ie ] );
-                    comp_.setCursor( moveCursor_ );
-                    return;
-                }
+            Changer changer = getChanger( evt );
+            if ( changer != null ) {
+                changer_ = changer;
+                p0_ = evt.getPoint();
+                e0_ = new Ellipse( changer.ellipse_ );
+                comp_.setCursor( moveCursor_ );
             }
         }
 
@@ -450,11 +454,7 @@ public class EllipseToy extends JComponent {
 
         @Override
         public void mouseMoved( MouseEvent evt ) {
-            Point p = evt.getPoint();
-            Changer changer = null;
-            for ( int ie = 0; changer == null && ie < ellipses_.length; ie++ ) {
-                changer = ellipses_[ ie ].getChanger( p, 4 );
-            }
+            Changer changer = getChanger( evt );
             comp_.setCursor( changer == null ? defaultCursor_ : targetCursor_ );
         }
 
@@ -465,6 +465,34 @@ public class EllipseToy extends JComponent {
             e0_ = null;
             comp_.setCursor( defaultCursor_ );
         }
+
+        @Override
+        public void mouseClicked( MouseEvent evt ) {
+            Changer changer = getChanger( evt );
+            int nclick = evt.getClickCount();
+            if ( changer != null && nclick > 1 ) {
+                changer.multiClick( nclick );
+                comp_.repaint( comp_.getBounds() );
+            }
+        }
+
+        /**
+         * Returns the changer, if any, appropriate for the position
+         * in a mouse event.
+         *
+         * @param  evt  event
+         * @return   indiated changer or null
+         */
+        private Changer getChanger( MouseEvent evt ) {
+            Point p = evt.getPoint();
+            for ( int ie = 0; ie < ellipses_.length; ie++ ) {
+                Changer changer = ellipses_[ ie ].getChanger( p, 4 );
+                if ( changer != null ) {
+                    return changer;
+                }
+            }
+            return null;
+        }
     }
 
     /**
@@ -473,12 +501,25 @@ public class EllipseToy extends JComponent {
      */
     private static abstract class Changer {
 
+        private final Ellipse ellipse_;
+
+        Changer( Ellipse ellipse ) {
+            ellipse_ = ellipse;
+        }
+
         /**
          * Change the state of some object according to a given screen position.
          *
          * @param  p1  updated position
          */
         abstract void submitChange( Point p1 );
+
+        /**
+         * Change the state of some object given a multiClick event.
+         *
+         * @param  nclick  number of clicks
+         */
+        abstract void multiClick( int nclick );
     }
 
     /**
@@ -555,38 +596,52 @@ public class EllipseToy extends JComponent {
                 new Point( (int) ( x_ - a_ * ct ), (int) ( y_ + a_ * st ) );
             Point bMinus =
                 new Point( (int) ( x_ - b_ * st ), (int) ( y_ - b_ * ct ) );
-            if ( isClose( p, aPlus, tol ) ) {
-                return new Changer() {
+            boolean isPoint = a_ == 0 && b_ == 0;
+            if ( isClose( p, aPlus, tol ) && ! isPoint ) {
+                return new Changer( this ) {
                     public void submitChange( Point p1 ) {
                         a_ = e0.a_ + (int) ( ( p1.x - p0.x ) * ct -
                                              ( p1.y - p0.y ) * st );
                     }
+                    public void multiClick( int nclick ) {
+                    }
                 };
             }
-            else if ( isClose( p, bPlus, tol ) ) {
-                return new Changer() {
+            else if ( isClose( p, bPlus, tol ) && ! isPoint ) {
+                return new Changer( this ) {
                     public void submitChange( Point p1 ) {
                         b_ = e0.b_ + (int) ( + ( p1.x - p0.x ) * st
                                              + ( p1.y - p0.y ) * ct );
                     }
+                    public void multiClick( int nclick ) {
+                    }
                 };
             }
             else if ( isClose( p, center, tol ) ) {
-                return new Changer() {
+                return new Changer( this ) {
                     public void submitChange( Point p1 ) {
                         x_ = e0.x_ + p1.x - p0.x;
                         y_ = e0.y_ + p1.y - p0.y;
+                    }
+                    public void multiClick( int nclick ) {
+                        if ( nclick == 2 ) {
+                            int maxr = Math.max( a_, b_ );
+                            a_ = maxr;
+                            b_ = maxr;
+                        }
                     }
                 };
             }
             else if ( isClose( p, aMinus, tol ) ||
                       isClose( p, bMinus, tol ) ) {
-                return new Changer() {
+                return new Changer( this ) {
                     public void submitChange( Point p1 ) {
                         theta_ = e0.theta_
                                - Math.atan2( p1.y - e0.y_, p1.x - e0.x_ )
                                + Math.atan2( p0.y - e0.y_, p0.x - e0.x_ );
                         theta_ = ( theta_ + 2 * Math.PI ) % ( 2 * Math.PI );
+                    }
+                    public void multiClick( int nclick ) {
                     }
                 };
             }
@@ -613,15 +668,26 @@ public class EllipseToy extends JComponent {
      * Main method.  Use "-h" flag for help.
      */
     public static void main( String[] args ) {
-        String usage = "Usage: " + EllipseToy.class.getName() + " [-sky]";
+        String usage = "Usage: " + EllipseToy.class.getName()
+                     + " [-sky]"
+                     + " [-[no]circles]";
         JFrame frame = new JFrame();
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         boolean sky = false;
+        boolean recogniseCircles = true;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
             String arg = it.next();
             if ( arg.equals( "-sky" ) ) {
                 it.remove();
                 sky = true;
+            }
+            else if ( arg.startsWith( "-circ" ) ) {
+                it.remove();
+                recogniseCircles = true;
+            }
+            else if ( arg.startsWith( "-nocirc" ) ) {
+                it.remove();
+                recogniseCircles = false;
             }
             else if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
@@ -637,7 +703,8 @@ public class EllipseToy extends JComponent {
             System.exit( 1 );
         }
         
-        frame.add( sky ? new SkyEllipseToy() : new CartesianEllipseToy() );
+        frame.add( sky ? new SkyEllipseToy( recogniseCircles )
+                       : new CartesianEllipseToy( recogniseCircles ) );
         frame.pack();
         frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
         frame.setVisible( true );

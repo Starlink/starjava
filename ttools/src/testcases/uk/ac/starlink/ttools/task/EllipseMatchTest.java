@@ -30,18 +30,29 @@ public class EllipseMatchTest extends TableTestCase {
     }
 
     public void testRotation() {
+        doTestRotation( false );
+        doTestRotation( true );
+    }
+
+    private void doTestRotation( boolean useCirc ) {
         // test the sense of the position angle wrangling.
         double unit = ARCSEC;
         double psi = Math.PI * 0.23;
         double[][] m1 = {{1,0,0},{0,1,0},{0,0,1}};
         Ellipse e = new Ellipse( unit * 3, unit * 8, unit * 1, unit * 2, psi );
-        EllipseTableSky table = new EllipseTableSky( new Ellipse[] { e }, m1 );
+        EllipseTableSky table =
+            new EllipseTableSky( new Ellipse[] { e }, m1, useCirc );
         Object[] row = table.getRow( 0 );
         assertEquals( psi * 180 / Math.PI, ((Number) row[ 4 ]).doubleValue(),
                       1e-3 );
     }
 
     public void testCartesian() throws Exception {
+        doTestCartesian( true );
+        doTestCartesian( false );
+    }
+
+    private void doTestCartesian( boolean useCirc ) throws Exception {
         int nel = 100;
         double rmin = 0.1;
         double rmax = 1.0;
@@ -52,23 +63,35 @@ public class EllipseMatchTest extends TableTestCase {
         double dlo = rmin / Math.sqrt( 2 ) * 0.99;
         double dhi = rmax / Math.sqrt( 2 ) * 1.01;
         double dmid = ( rmax + rmin ) * 0.5;
-        assertEquals( nel, match12( new EllipseTable2d( ellipses1, 0, 0 ),
-                                    new EllipseTable2d( ellipses2, 0, 0 ),
-                                    scale ).size() );
-        assertEquals( nel, match12( new EllipseTable2d( ellipses1, -dlo, -dlo ),
-                                    new EllipseTable2d( ellipses2, +dlo, +dlo ),
-                                    scale ).size() );
-        assertEquals( 0, match12( new EllipseTable2d( ellipses1, -dhi, +dhi ),
-                                  new EllipseTable2d( ellipses2, +dhi, -dhi ),
-                                  scale ).size() );
-        long nmid = match12( new EllipseTable2d( ellipses1, +dmid, +dmid ),
-                             new EllipseTable2d( ellipses2, -dmid, -dmid ),
-                             scale )
-                   .size();
+        assertEquals( nel,
+            selfMatchCount(
+            match12( new EllipseTable2d( ellipses1, 0, 0, useCirc ),
+                     new EllipseTable2d( ellipses2, 0, 0, useCirc ),
+                     scale ) ) );
+        assertEquals( nel,
+            selfMatchCount(
+            match12( new EllipseTable2d( ellipses1, -dlo, -dlo, useCirc ),
+                     new EllipseTable2d( ellipses2, +dlo, +dlo, useCirc ),
+                     scale ) ) );
+        assertEquals( 0,
+            selfMatchCount(
+            match12( new EllipseTable2d( ellipses1, -dhi, +dhi, useCirc ),
+                     new EllipseTable2d( ellipses2, +dhi, -dhi, useCirc ),
+                     scale ) ) );
+        long nmid =
+            selfMatchCount(
+            match12( new EllipseTable2d( ellipses1, +dmid, +dmid, useCirc ),
+                     new EllipseTable2d( ellipses2, -dmid, -dmid, useCirc ),
+                     scale ) );
         assertTrue( nmid > 1 && nmid < nel - 1 );  // not cast iron, but likely
     }
 
     public void testSky() throws Exception {
+        doTestSky( false );
+        doTestSky( true );
+    }
+
+    private void doTestSky( boolean useCirc ) throws Exception {
         int nel = 100;
         double unit = ARCSEC;
         double rmin = 0.4 * unit;
@@ -78,17 +101,20 @@ public class EllipseMatchTest extends TableTestCase {
         Ellipse[] els1 = createEllipses( nel, range, rmin, rmax );
         Ellipse[] els2 = scrambleEllipses( els1, rmin, rmax );
 
-        assertEquals( nel, selfMatchCount(
-                           shiftRotMatch( els1, els2, 0, 0, 0, scale ) ) );
-        checkSkyRotation( els1, els2, rmin, rmax, scale, 0, 1.4 );
-        checkSkyRotation( els1, els2, rmin, rmax, scale, Math.PI * 0.5, 1.4 );
-        checkSkyRotation( els1, els2, rmin, rmax, scale, 2, 2 );
-        checkSkyRotation( els1, els2, rmin, rmax, scale, -1.5, 1.4 );
+        assertEquals( nel,
+                      selfMatchCount(
+                      shiftRotMatch( els1, els2, 0, 0, 0, scale, useCirc ) ) );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, 0, 1.4, useCirc );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, Math.PI * 0.5, 1.4,
+                          useCirc );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, 2, 2, useCirc );
+        checkSkyRotation( els1, els2, rmin, rmax, scale, -1.5, 1.4, useCirc );
     }
 
     private void checkSkyRotation( Ellipse[] els1, Ellipse[] els2,
                                    double rmin, double rmax, double scale,
-                                   double rotPhi, double rotTheta )
+                                   double rotPhi, double rotTheta,
+                                   boolean useCirc )
             throws Exception {
         int nel = els1.length;
         assertEquals( nel, els2.length );
@@ -97,24 +123,25 @@ public class EllipseMatchTest extends TableTestCase {
         double dmid = ( rmax + rmin ) * 0.5;
         assertEquals( nel, selfMatchCount(
                            shiftRotMatch( els1, els2, rotPhi, rotTheta,
-                                          dlo, scale ) ) );
+                                          dlo, scale, useCirc ) ) );
         assertEquals( 0, selfMatchCount(
                          shiftRotMatch( els1, els2, rotPhi, rotTheta,
-                                        dhi, scale ) ) );
+                                        dhi, scale, useCirc ) ) );
         long nmid = selfMatchCount(
                     shiftRotMatch( els1, els2, rotPhi, rotTheta,
-                                   dmid, scale ) );
+                                   dmid, scale, useCirc ) );
         assertTrue( nmid > 1 && nmid < nel - 1 );
     }
 
     private Set shiftRotMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
                                double rotPhi, double rotTheta, double shiftXi,
-                               double scale )
+                               double scale, boolean useCirc )
             throws Exception {
         double[][] rot1 = rotationMatrix( rotPhi, rotTheta - shiftXi );
         double[][] rot2 = rotationMatrix( rotPhi, rotTheta + shiftXi );
-        return match12( new EllipseTableSky( ellipses1, rot1 ),
-                        new EllipseTableSky( ellipses2, rot2 ), scale );
+        return match12( new EllipseTableSky( ellipses1, rot1, useCirc ),
+                        new EllipseTableSky( ellipses2, rot2, useCirc ),
+                        scale );
     }
 
     /**
@@ -131,6 +158,11 @@ public class EllipseMatchTest extends TableTestCase {
     }
 
     public void testRotateSky() throws Exception {
+        doTestRotateSky( false );
+        doTestRotateSky( true );
+    }
+
+    private void doTestRotateSky( boolean useCirc ) throws Exception {
         int nel = 200;
         double unit = ARCSEC;
         double rmin = 0.1 * unit;
@@ -139,20 +171,25 @@ public class EllipseMatchTest extends TableTestCase {
         double scale = rmax * 1;
         Ellipse[] els1 = createEllipses( nel, range, rmin, rmax );
         Ellipse[] els2 = createEllipses( nel, range, rmin, rmax );
-        Set t12 = rotatedSkyMatch( els1, els2, 0, 0, scale );
-        assertEquals( t12, rotatedSkyMatch( els1, els2, 0, 1, scale ) );
-        assertEquals( t12, rotatedSkyMatch( els1, els2, 1, 1.5, scale ) );
-        assertEquals( t12, rotatedSkyMatch( els1, els2, Math.PI*.5, 1.5,
-                                            scale ) );
-        assertEquals( t12, rotatedSkyMatch( els1, els2, 2, -2, scale ) );
+        Set t12 = rotatedSkyMatch( els1, els2, 0, 0, scale, useCirc );
+        assertEquals( t12,
+                      rotatedSkyMatch( els1, els2, 0, 1, scale, useCirc ) );
+        assertEquals( t12,
+                      rotatedSkyMatch( els1, els2, 1, 1.5, scale, useCirc ) );
+        assertEquals( t12,
+                      rotatedSkyMatch( els1, els2, Math.PI*.5, 1.5, scale,
+                                       useCirc ) );
+        assertEquals( t12,
+                      rotatedSkyMatch( els1, els2, 2, -2, scale, useCirc ) );
     }
 
     private Set rotatedSkyMatch( Ellipse[] ellipses1, Ellipse[] ellipses2,
-                                 double rotPhi, double rotTheta, double scale )
+                                 double rotPhi, double rotTheta, double scale,
+                                 boolean useCirc )
             throws Exception {
         double[][] rot = rotationMatrix( rotPhi, rotTheta );
-        return match12( new EllipseTableSky( ellipses1, rot ),
-                        new EllipseTableSky( ellipses2, rot ), scale );
+        return match12( new EllipseTableSky( ellipses1, rot, useCirc ),
+                        new EllipseTableSky( ellipses2, rot, useCirc ), scale );
     }
     
     private Ellipse[] createEllipses( int count, double range,
@@ -182,7 +219,9 @@ public class EllipseMatchTest extends TableTestCase {
     private Ellipse createRandomEllipse( double x, double y,
                                          double rmin, double rmax ) {
         double a = rmin + random_.nextDouble() * ( rmax - rmin );
-        double b = rmin + random_.nextDouble() * ( rmax - rmin );
+        double b = random_.nextDouble() <= 0.2
+                 ? a
+                 : rmin + random_.nextDouble() * ( rmax - rmin );
         double psi = ( random_.nextDouble() * Math.PI * 2 );
         return new Ellipse( x, y, a, b, psi );
     }
@@ -191,7 +230,7 @@ public class EllipseMatchTest extends TableTestCase {
                                        double scale )
             throws Exception {
         MapEnvironment env = new MapEnvironment()
-            .setValue( "find", "best" )
+            .setValue( "find", "all" )
             .setValue( "in1", t1 )
             .setValue( "in2", t2 )
             .setValue( "join", "1and2" )
@@ -268,8 +307,9 @@ public class EllipseMatchTest extends TableTestCase {
     private static class EllipseTable2d extends EllipseTable {
         private final double xoff_;
         private final double yoff_;
-        EllipseTable2d( Ellipse[] ellipses, double xoff, double yoff ) {
-            super( ellipses, "2d_ellipse",
+        EllipseTable2d( Ellipse[] ellipses, double xoff, double yoff,
+                        boolean useCirc ) {
+            super( ellipses, useCirc ? "2d_ellipse" : "2d_ellipse-nocirc",
                    new String[] { "X", "Y", "A", "B", "THETA" } );
             xoff_ = xoff;
             yoff_ = yoff;
@@ -287,8 +327,9 @@ public class EllipseMatchTest extends TableTestCase {
 
     private static class EllipseTableSky extends EllipseTable {
         private final double[][] rotation_;
-        EllipseTableSky( Ellipse[] ellipses, double[][] rotation ) {
-            super( ellipses, "skyellipse",
+        EllipseTableSky( Ellipse[] ellipses, double[][] rotation,
+                         boolean useCirc ) {
+            super( ellipses, useCirc ? "skyellipse" : "skyellipse-nocirc",
                    new String[] { "alpha", "delta", "mu", "nu", "zeta" } );
             rotation_ = rotation;
         }
