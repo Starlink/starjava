@@ -11430,6 +11430,8 @@ A tutorial on writing ADQL/SQL is beyond the scope of this manual,
 but the <ref id="TapTableLoadDialog_query">Enter Query</ref> tab
 provides an <label>Examples</label> menu which
 will give you a good start in using it.
+You can find a nice introduction written by Markus Demleitner of GAVO
+at <webref url="http://docs.g-vo.org/adql"/>.
 </p>
 
 <p>The window is composed of four tabs, of which you can see one at a time.
