@@ -459,6 +459,10 @@ have made:
     new table on the basis of one or more existing ones,
     the new table will be built on the basis of the apparent versions
     of the tables being operated on.
+    The same applies to the join-like functionality provided by 
+    table uploads in the <ref id="TapTableLoadDialog">TAP window</ref>,
+    and the <ref id="DalMultiPanel">multiple positional search</ref>
+    (Cone, SIA, SSA) windows.
     </p></dd>
 
 </dl>
@@ -2109,7 +2113,8 @@ TOPCAT provides access to these service types in two main ways:
     and a column for Dec, and either a fixed radius or a column giving
     the radius.  Then a positional query can be made for each row of
     the input table.
-    The result is effectively a join between the input table and the
+    The result is effectively a join between the input
+    <ref id="apparent">Apparent Table</ref> and the
     remote table of object data, images or spectra.
     See the sections on
     <ref id="ConeMultiWindow">Cone</ref>,
@@ -10978,7 +10983,8 @@ Each of the input rows defines a (probably small) region on the sky.
 The purpose is to find data records (about catalogue entries, images
 or spectra) in a remote catalogue corresponding to each row of a
 local catalogue.  As such, it is used to define a kind of join, 
-of a local table with a remote one, where the remote one is exposed
+of a local <ref id="apparent">Apparent Table</ref>
+with a remote one, where the remote one is exposed
 via a VO data service.
 </p>
 
@@ -11725,6 +11731,9 @@ that is the number before the colon in the
 So, if a table identified as "<code>1: messier.xml</code>"
 in the table list, you can reference it in ADQL as
 "<code>TAP_UPLOAD.t1</code>".
+Note the table uploaded in this way is the 
+<ref id="apparent">Apparent Table</ref> corresponding to the
+given ID number.
 </p>
 
 <p>Having entered suitable query text, 
