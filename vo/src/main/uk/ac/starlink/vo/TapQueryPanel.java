@@ -20,12 +20,12 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -43,7 +43,7 @@ public class TapQueryPanel extends JPanel {
     private URL serviceUrl_;
     private Thread metaFetcher_;
     private Thread capFetcher_;
-    private final JEditorPane textPanel_;
+    private final JTextComponent textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
@@ -70,7 +70,7 @@ public class TapQueryPanel extends JPanel {
         tcapPanel_ = new TapCapabilityPanel();
 
         /* Prepare a panel to contain user-entered ADQL text. */
-        textPanel_ = new JEditorPane();
+        textPanel_ = new JTextArea();
         textPanel_.setEditable( true );
         textPanel_.setFont( Font.decode( "Monospaced" ) );
         JComponent textScroller = new JScrollPane( textPanel_ );
@@ -192,7 +192,7 @@ public class TapQueryPanel extends JPanel {
      *
      * @return   ADQL text entry component
      */
-    public JEditorPane getAdqlPanel() {
+    public JTextComponent getAdqlPanel() {
         return textPanel_;
     }
 

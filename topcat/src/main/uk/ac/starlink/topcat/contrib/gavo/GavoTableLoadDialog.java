@@ -27,13 +27,13 @@ import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -75,7 +75,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
     private JComboBox urlField_;
     private JTextField userField_;
     private JPasswordField passField_;
-    private JEditorPane sqlField_;
+    private JTextArea sqlField_;
 
     /**
      * Constructor.  A public no-arg constructor is required by STIL's
@@ -95,7 +95,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
         urlField_.setEditable(true);
         userField_ = new JTextField();
         passField_ = new JPasswordField();
-        sqlField_ = new JEditorPane();
+        sqlField_ = new JTextArea();
         sqlField_.setEditable( true );
         sqlField_.setFont( Font.decode( "Monospaced" ) );
 
