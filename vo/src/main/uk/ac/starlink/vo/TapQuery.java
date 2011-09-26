@@ -444,8 +444,8 @@ public class TapQuery {
      * @param   conn  connection to table resource
      * @param  storage  storage policy
      */
-    private static StarTable readResultVOTable( URLConnection conn,
-                                                StoragePolicy storage )
+    public static StarTable readResultVOTable( URLConnection conn,
+                                               StoragePolicy storage )
             throws IOException {
 
         /* Follow 303 redirects as required. */
