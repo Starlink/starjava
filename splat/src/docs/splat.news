@@ -1,5 +1,14 @@
 1 Starlink SPLAT news.
 
+   3.9-8
+   =====
+
+   A bug in the "remove" & "remove selected" options in the cutter toolbox
+   has been fixed. After the last change the spectrum created did not
+   have a correct coordinate value assigned to the removed region. This
+   resulted in a non-monotonic spectrum.
+
+
    3.9-7
    =====
 

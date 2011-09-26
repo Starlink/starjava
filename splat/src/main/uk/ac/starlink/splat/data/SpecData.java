@@ -1004,6 +1004,7 @@ public class SpecData
                 //  Arrived within a range, so mark one mid-range
                 //  position BAD (so show the break) and skip to the
                 //  end. Set for next valid range.
+                newCoords[k] = xPos[i];
                 newData[k] = BAD;
                 k++;
                 if ( j + 1 == nRanges ) {
