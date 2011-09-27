@@ -31,6 +31,7 @@ import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TupleSelector;
 
 /**
  * MatchSpec for performing matches between pairs of tables.
@@ -65,7 +66,8 @@ public class PairMatchSpec extends MatchSpec {
         /* Set up table/column selector panels. */
         tupleSelectors_ = new TupleSelector[ 2 ];
         for ( int i = 0; i < 2; i++ ) {
-            TupleSelector selector = new TupleSelector( engine );
+            TupleSelector selector =
+                new TupleSelector( engine.getTupleInfos() );
             selector.setBorder( AuxWindow
                                .makeTitledBorder( "Table " + ( i + 1 ) ) );
             tupleSelectors_[ i ] = selector;

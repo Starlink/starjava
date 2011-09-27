@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.join;
+package uk.ac.starlink.topcat;
 
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
@@ -14,37 +14,30 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.table.join.MatchEngine;
-import uk.ac.starlink.topcat.ColumnSelector;
-import uk.ac.starlink.topcat.TablesListComboBox;
-import uk.ac.starlink.topcat.TopcatModel;
 
 /**
  * Component which allows the user to select table columns corresponding
- * to the tuple elements required for a given 
- * {@link uk.ac.starlink.table.join.MatchEngine}.
+ * to a given set of  the tuple elements required for a given 
+ * array of column metadata descriptions.
  *
  * @author   Mark Taylor (Starlink)
  * @since    17 Mar 2004
  */
 public class TupleSelector extends JPanel {
 
-    private final MatchEngine engine;
-    private final ColumnSelector[] colSelectors;
-    private final ValueInfo[] infos;
-    private final int nCols;
-    private TopcatModel tcModel;
+    private final ColumnSelector[] colSelectors_;
+    private final ValueInfo[] infos_;
+    private final int nCols_;
+    private TopcatModel tcModel_;
 
     /**
-     * Constructs a new selector panel to provide column selections of the
-     * tuple elements for a given match engine.
+     * Constructor.
      *
-     * @param  engine  match engine
+     * @param  infos   metadata descriptors for each value required
      */
-    public TupleSelector( MatchEngine engine ) {
-        this.engine = engine;
-        infos = engine.getTupleInfos();
-        nCols = infos.length;
+    public TupleSelector( ValueInfo[] infos ) {
+        infos_ = infos;
+        nCols_ = infos.length;
         JComponent main = Box.createVerticalBox();
         add( main );
 
@@ -62,23 +55,23 @@ public class TupleSelector extends JPanel {
         line.add( tableSelector );
         main.add( line );
 
-        /* Set up selectors for the engine parameters. */
-        colSelectors = new ColumnSelector[ nCols ];
-        for ( int i = 0; i < nCols; i++ ) {
-            colSelectors[ i ] = new ColumnSelector( infos[ i ], true );
-            main.add( colSelectors[ i ] );
+        /* Set up selectors for the infos. */
+        colSelectors_ = new ColumnSelector[ nCols_ ];
+        for ( int i = 0; i < nCols_; i++ ) {
+            colSelectors_[ i ] = new ColumnSelector( infos_[ i ], true );
+            main.add( colSelectors_[ i ] );
         }
         main.add( Box.createVerticalGlue() );
 
         /* Align the selectors. */
         Dimension labelSize = new Dimension( 0, 0 );
-        for ( int i = 0; i < nCols; i++ ) {
-            Dimension s = colSelectors[ i ].getLabel().getPreferredSize();
+        for ( int i = 0; i < nCols_; i++ ) {
+            Dimension s = colSelectors_[ i ].getLabel().getPreferredSize();
             labelSize.width = Math.max( labelSize.width, s.width );
             labelSize.height = Math.max( labelSize.height, s.height );
         }
-        for ( int i = 0; i < nCols; i++ ) {
-            colSelectors[ i ].getLabel().setPreferredSize( labelSize );
+        for ( int i = 0; i < nCols_; i++ ) {
+            colSelectors_[ i ].getLabel().setPreferredSize( labelSize );
         }
     }
 
@@ -95,24 +88,24 @@ public class TupleSelector extends JPanel {
      *          user hasn't properly specified a table
      */
     public StarTable getEffectiveTable() {
-        if ( tcModel == null ) {
+        if ( tcModel_ == null ) {
             throw new IllegalStateException( "No table selected" );
         }
-        final StarTable baseTable = tcModel.getDataModel();
+        final StarTable baseTable = tcModel_.getDataModel();
         ColumnStarTable effTable = new ColumnStarTable( baseTable ) {
             public long getRowCount() {
                 return baseTable.getRowCount();
             }
         };
-        for ( int j = 0; j < nCols; j++ ) {
-            ColumnData cdata = colSelectors[ j ].getColumnData();
+        for ( int j = 0; j < nCols_; j++ ) {
+            ColumnData cdata = colSelectors_[ j ].getColumnData();
             if ( cdata == null ) {
-                throw new IllegalStateException( "No " + infos[ j ].getName() +
+                throw new IllegalStateException( "No " + infos_[ j ].getName() +
                                                  " column selected" );
             }
             effTable.addColumn( cdata );
         }
-        return tcModel.getViewModel().getRowPermutedView( effTable );
+        return tcModel_.getViewModel().getRowPermutedView( effTable );
     }
 
     /**
@@ -121,7 +114,7 @@ public class TupleSelector extends JPanel {
      * @return  topcat model of the currently selected table
      */
     public TopcatModel getTable() {
-        return tcModel;
+        return tcModel_;
     }
 
     /**
@@ -131,9 +124,9 @@ public class TupleSelector extends JPanel {
      * @param  tcModel  table to work with
      */
     private void setTable( TopcatModel tcModel ) {
-        this.tcModel = tcModel;
-        for ( int i = 0; i < nCols; i++ ) {
-            colSelectors[ i ].setTable( tcModel );
+        tcModel_ = tcModel;
+        for ( int i = 0; i < nCols_; i++ ) {
+            colSelectors_[ i ].setTable( tcModel_ );
         }
     }
 }

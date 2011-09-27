@@ -13,6 +13,7 @@ import uk.ac.starlink.table.join.RowMatcher;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TupleSelector;
 
 /**
  * MatchSpec for matching between rows of a given table.
@@ -42,7 +43,7 @@ public class IntraMatchSpec extends MatchSpec {
         add( main );
 
         /* Set up a table/column selector panel for the sole table. */
-        tupleSelector_ = new TupleSelector( engine_ );
+        tupleSelector_ = new TupleSelector( engine_.getTupleInfos() );
         tupleSelector_.setBorder( AuxWindow.makeTitledBorder( "Table" ) );
         main.add( tupleSelector_ );
 
