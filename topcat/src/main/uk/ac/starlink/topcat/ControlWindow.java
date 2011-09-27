@@ -30,6 +30,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -118,6 +119,7 @@ import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
@@ -150,6 +152,13 @@ public class ControlWindow extends AuxWindow
 
     /** "plastic", "samp" or null to indicate communications preference. */
     static String interopType_;
+
+    /**
+     * System property giving a list of custom actions to appear in toolbar.
+     * Colon-separated classnames for Action implementations with no-arg
+     * constructors.
+     */
+    public static String TOPCAT_TOOLS_PROP = "topcat.exttools";
 
     private final JList tablesList_;
     private final DefaultListModel tablesModel_;
@@ -524,6 +533,13 @@ public class ControlWindow extends AuxWindow
             toolBar.add( interopAct );
         }
         toolBar.add( MethodWindow.getWindowAction( this, false ) );
+        List actList = Loader.getClassInstances( TOPCAT_TOOLS_PROP,
+                                                 TopcatToolAction.class );
+        for ( Iterator it = actList.iterator(); it.hasNext(); ) {
+            TopcatToolAction tact = (TopcatToolAction) it.next();
+            tact.setParent( this );
+            toolBar.add( tact );
+        }
         toolBar.addSeparator();
 
         /* Add actions to the file menu. */

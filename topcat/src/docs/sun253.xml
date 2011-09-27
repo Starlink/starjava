@@ -3950,6 +3950,17 @@ The following ones have special significance within TOPCAT:
     handler classes (see <ref id="customHandlers"/>).
     </p></dd>
 
+<dt><code>topcat.exttools</code></dt>
+<dd><p>Defines extension tools to be used by TOPCAT.
+    The value is a colon-separated list of class names,
+    each of which must implement the
+    <code>uk.ac.starlink.topcat.TopcatToolAction</code> interface and have a
+    no-arg constructor.
+    The actions corresponding to any such classes will be added to toolbar.
+    This is an experimental extensibility feature, which may be modified or
+    withdrawn in a future release.
+    </p></dd>
+
 <dt><code>user.dir</code></dt>
 <dd><p>Sets the current working directory.
     This determines the default from which the file browsers will start.
@@ -15103,6 +15114,9 @@ introduced since the last version:
         <label>N-d Cartesian with Errors</label>
         <label>2-d Cartesian Ellipses</label>, and
         <label>Sky Ellipses</label>.</li>
+    <li>Added the experimental <code>topcat.exttools</code>
+        <ref id="jvmProperties">system property</ref>
+        for custom tools.</li>
     </ul>
     </p></dd>
 
