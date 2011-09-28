@@ -223,6 +223,7 @@ public class ResourceIcon implements Icon {
         SYSTEM = makeIcon( "sysbrowser.gif" ),
         KEEP_OPEN = makeIcon( "tack2.gif" ),
         LISTEN = makeIcon( "tcear3.gif" ),
+        TO_BROWSER = makeIcon( "toBrowser.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),

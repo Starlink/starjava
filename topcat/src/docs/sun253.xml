@@ -12399,6 +12399,10 @@ these windows.
 <dt>&IMG.PAGE_SETUP; Page Setup</dt>
 <dd><p>Pops up a dialogue to do printer setup.
     </p></dd>
+
+<dt>&IMG.TO_BROWSER; To Browser</dt>
+<dd><p>Displays the currently displayed help page in your normal WWW browser.
+    </p></dd>
 </dl>
 </p>
 
@@ -15119,6 +15123,8 @@ introduced since the last version:
         for custom tools.</li>
     <li>Fix obscure bug which could cause the wrong cell to be edited if
         a sort interrupts an edit.</li>
+    <li>Add <label>To Browser</label> button to Help Window - this displays
+        the currently displayed help page in your normal web browser.</li>
     </ul>
     </p></dd>
 

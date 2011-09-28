@@ -44,20 +44,33 @@ public class BrowserHelpAction extends AbstractAction {
 
     public void actionPerformed( ActionEvent evt ) {
         if ( launcher_ == null ) {
-            try {
-                launcher_ = new BrowserLauncher();
-                launcher_.setNewWindowPolicy( false );
-            }
-            catch ( BrowserLaunchingInitializingException e ) {
-                ErrorDialog.showError( parent_, "Browser Error", e );
-                return;
-            }
-            catch ( UnsupportedOperatingSystemException e ) {
-                ErrorDialog.showError( parent_, "Browser Error", e );
-                return;
-            }
+            launcher_ = createBrowserLauncher( parent_ );
         }
-        launcher_.openURLinBrowser( helpUrl_.toString() );
+        if ( launcher_ != null ) {
+            launcher_.openURLinBrowser( helpUrl_.toString() );
+        }
+    }
+
+    /**
+     * Creates and returns a new BrowserLauncher instance.
+     * If it can't be done, null is returned, and an error is displayed.
+     *
+     * @param  parent  parent component, may be used for error display
+     */
+    public static BrowserLauncher createBrowserLauncher( Component parent ) {
+        try {
+            BrowserLauncher launcher = new BrowserLauncher();
+            launcher.setNewWindowPolicy( false );
+            return launcher;
+        }
+        catch ( BrowserLaunchingInitializingException e ) {
+            ErrorDialog.showError( parent, "Browser Error", e );
+            return null;
+        }
+        catch ( UnsupportedOperatingSystemException e ) {
+            ErrorDialog.showError( parent, "Browser Error", e );
+            return null;
+        }
     }
 
     /**
@@ -140,7 +153,7 @@ public class BrowserHelpAction extends AbstractAction {
      * @param  relUrl   relative path
      * @return  URL
      */
-    private static URL getHelpUrl( String relUrl ) {
+    public static URL getHelpUrl( String relUrl ) {
         if ( server_ != null ) {
             try {
                 return new URL( server_.getTopcatPackageUrl(),

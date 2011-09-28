@@ -1,9 +1,11 @@
 package uk.ac.starlink.topcat;
 
+import edu.stanford.ejalbert.BrowserLauncher;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -21,6 +23,7 @@ import javax.help.JHelp;
 import javax.help.JHelpTOCNavigator;
 import javax.help.event.HelpModelEvent;
 import javax.help.event.HelpModelListener;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -43,14 +46,17 @@ public class HelpWindow extends AuxWindow {
     /** Location of the HelpSet file relative to this class. */
     public static final String HELPSET_LOCATION = "help/sun253.hs";
 
-    private JLabel urlHead;
-    private JTextField urlInfo;
-    private JHelp jhelp;
-    private HelpSet hset;
-    private boolean fontSet;
+    private final Action toBrowserAction_;
+    private final JLabel urlHead_;
+    private final JTextField urlInfo_;
+    private JHelp jhelp_;
+    private HelpSet hset_;
+    private BrowserLauncher launcher_;
+    private String helpId_;
+    private boolean fontSet_;
 
-    private static HelpWindow instance;
-    private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
+    private static HelpWindow instance_;
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs a new HelpWindow. 
@@ -65,11 +71,11 @@ public class HelpWindow extends AuxWindow {
 
         /* Set up a component for general information to user. */
         Box infoBox = new Box( BoxLayout.X_AXIS );
-        urlHead = new JLabel( " External URL: " );
-        urlInfo = new JTextField();
-        urlInfo.setEditable( false );
-        infoBox.add( urlHead );
-        infoBox.add( urlInfo );
+        urlHead_ = new JLabel( " External URL: " );
+        urlInfo_ = new JTextField();
+        urlInfo_.setEditable( false );
+        infoBox.add( urlHead_ );
+        infoBox.add( urlInfo_ );
         externalURL( null );
         JComponent mainArea = getMainArea();
         mainArea.add( infoBox, BorderLayout.SOUTH );
@@ -77,20 +83,23 @@ public class HelpWindow extends AuxWindow {
         /* Create the HelpSet if there is not already one. */
         try {
             URL hsResource = HelpWindow.class.getResource( HELPSET_LOCATION );
-            hset = new HelpSet( null, hsResource );
-            jhelp = new JHelp( hset );
-            jhelp.setPreferredSize( new Dimension( 700, 500 ) );
-            helpComponent = jhelp;
+            hset_ = new HelpSet( null, hsResource );
+            jhelp_ = new JHelp( hset_ );
+            jhelp_.setPreferredSize( new Dimension( 700, 500 ) );
+            helpComponent = jhelp_;
 
             /* Fiddle around with presentation. */
-            openTOC( jhelp );
+            prepareTOC( jhelp_ );
 
             /* Add a listener which can inform about the location of
              * external URLs. */
-            JHelpContentViewer cview = jhelp.getContentViewer();
+            JHelpContentViewer cview = jhelp_.getContentViewer();
             cview.addHelpModelListener( new HelpModelListener() {
                 public void idChanged( HelpModelEvent evt ) {
-                    URL url = evt.getID() == null ? evt.getURL() : null;
+                    javax.help.Map.ID mapId = evt.getID();
+                    helpId_ = mapId == null ? null : mapId.id;
+                    URL url = mapId == null ? evt.getURL() : null;
+                    toBrowserAction_.setEnabled( helpId_ != null );
                     externalURL( url );
                 }
              } );
@@ -100,7 +109,7 @@ public class HelpWindow extends AuxWindow {
             cview.setSynch( true );
 
             /* Muck about with toolbars. */
-            pinchHelpToolBarTools( jhelp );
+            pinchHelpToolBarTools( jhelp_ );
         }
 
         /* If there was an error, present the error message where the
@@ -119,6 +128,28 @@ public class HelpWindow extends AuxWindow {
             helpComponent = new JTextArea( msg );
         }
 
+        /* Action which displays help page in a web browser. */
+        toBrowserAction_ =
+                new BasicAction( "To Browser", ResourceIcon.TO_BROWSER,
+                                 "Display current help page in WWW browser" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( helpId_ == null ) {
+                    beep();
+                }
+                URL url = BrowserHelpAction.getHelpUrl( helpId_ + ".html" );
+                if ( launcher_ == null ) {
+                    launcher_ = BrowserHelpAction
+                               .createBrowserLauncher( HelpWindow.this );
+                }
+                if ( launcher_ != null ) {
+                    launcher_.openURLinBrowser( url.toString() );
+                }
+            }
+        };
+        toBrowserAction_.setEnabled( helpId_ != null );
+        getToolBar().add( toBrowserAction_ );
+        getToolBar().addSeparator();
+
         /* Even a help window needs help. */
         addHelp( "HelpWindow" );
 
@@ -133,10 +164,10 @@ public class HelpWindow extends AuxWindow {
      * @param  parent  parent window
      */
     public static HelpWindow getInstance( Component parent ) {
-        if ( instance == null ) {
-            instance = new HelpWindow( parent );
+        if ( instance_ == null ) {
+            instance_ = new HelpWindow( parent );
         }
-        return instance;
+        return instance_;
     }
 
     /**
@@ -146,7 +177,7 @@ public class HelpWindow extends AuxWindow {
      * @return  the JHelp component
      */
     public JHelp getJHelp() {
-        return jhelp;
+        return jhelp_;
     }
 
     /**
@@ -157,27 +188,27 @@ public class HelpWindow extends AuxWindow {
      * @param   helpID  the ID to change to
      */
     public void setID( String helpID ) {
-        if ( hset != null && helpID != null ) {
-            javax.help.Map.ID mapID = javax.help.Map.ID.create( helpID, hset );
+        if ( hset_ != null && helpID != null ) {
+            javax.help.Map.ID mapID = javax.help.Map.ID.create( helpID, hset_ );
             if ( mapID != null ) {
                 try {
-                    jhelp.setCurrentID( mapID );
+                    jhelp_.setCurrentID( mapID );
 
                     /* Tweak terminally ugly default font. */
-                    if ( ! fontSet ) {
+                    if ( ! fontSet_ ) {
                         Font font = UIManager.getFont( "TextField.font" );
                         if ( font != null ) {
-                            jhelp.setFont( font );
-                            fontSet = true;
+                            jhelp_.setFont( font );
+                            fontSet_ = true;
                         }
                     }
                 }
                 catch ( InvalidHelpSetContextException e ) {
-                    logger.info( "Bad help ID: " + helpID );
+                    logger_.info( "Bad help ID: " + helpID );
                 }
             }
             else {
-                logger.info( "Unknown help ID: " + helpID );
+                logger_.info( "Unknown help ID: " + helpID );
             }
         }
     }
@@ -228,7 +259,6 @@ public class HelpWindow extends AuxWindow {
                 jhBar.remove( tool );
                 getToolBar().add( tool );
             }
-            getToolBar().addSeparator();
 
             /* Dispose of the JHelp toolbar. */
             helpComponent.remove( jhBar );
@@ -243,11 +273,11 @@ public class HelpWindow extends AuxWindow {
      */
     private void externalURL( URL url ) {
         boolean isActive = url != null;
-        urlHead.setEnabled( isActive );
-        urlInfo.setText( isActive ? url.toString() : null );
+        urlHead_.setEnabled( isActive );
+        urlInfo_.setText( isActive ? url.toString() : null );
     }
 
-    private static void openTOC( JHelp jhelp ) {
+    private static void prepareTOC( JHelp jhelp ) {
         JHelpTOCNavigator tocnav = null;
         for ( Enumeration en = jhelp.getHelpNavigators();
               en.hasMoreElements(); ) {
@@ -264,7 +294,7 @@ public class HelpWindow extends AuxWindow {
         for ( Enumeration en = hs.getCombinedMap().getAllIDs();
               en.hasMoreElements(); ) {
             String id = ((javax.help.Map.ID) en.nextElement()).id;
-            tocnav.expandID( id );
+            tocnav.collapseID( id );
         }
     }
     
