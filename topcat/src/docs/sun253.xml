@@ -15117,6 +15117,8 @@ introduced since the last version:
     <li>Added the experimental <code>topcat.exttools</code>
         <ref id="jvmProperties">system property</ref>
         for custom tools.</li>
+    <li>Fix obscure bug which could cause the wrong cell to be edited if
+        a sort interrupts an edit.</li>
     </ul>
     </p></dd>
 

@@ -88,7 +88,16 @@ public class TableViewerWindow extends AuxWindow
         tcModel.addTopcatListener( this );
 
         /* Set up the JTable. */
-        jtab = new JTable(); 
+        jtab = new JTable() {
+
+            /* Address rather obscure issue which causes the wrong cell to
+             * be edited if a sort happens during an edit.  Probably this is
+             * a misfeature in JTable. */
+            public void tableChanged( TableModelEvent evt ) {
+                editingCanceled( new ChangeEvent( this ) );
+                super.tableChanged( evt );
+            }
+        };
         jtab.setCellSelectionEnabled( false );
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( true );
