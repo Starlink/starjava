@@ -82,13 +82,13 @@ public class TapLinter {
                                          false, "availability" );
         getQueryStage_ =
             new QueryStage( VotLintTapRunner.createGetSyncRunner( true ),
-                            metaHolder );
+                            metaHolder, tcapStage_ );
         postQueryStage_ =
             new QueryStage( VotLintTapRunner.createPostSyncRunner( true ),
-                            metaHolder );
+                            metaHolder, null );
         asyncQueryStage_ =
             new QueryStage( VotLintTapRunner.createAsyncRunner( 500, true ),
-                            metaHolder );
+                            metaHolder, null );
         jobStage_ = new JobStage( metaHolder, 500 );
         colMetaStage_ =
             new ColumnMetadataStage( VotLintTapRunner

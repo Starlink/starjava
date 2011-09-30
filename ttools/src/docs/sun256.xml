@@ -7895,6 +7895,8 @@ but my thanks are especially due to the following:
         for unexpected TAP_SCHEMA table column ordering
         (when running query stage but no metadata acquisition stages).</li>
     <li>Add new stage MDQ to <code>taplint</code>.</li>
+    <li>Add check of versioned and unversioned LANG variants in
+        <code>taplint</code>.</li>
     <li>Improve resilience of <code>coneskymatch</code> in the presence of
         unreliable or inconsistent DAL services.</li>
     <li>Add new asymmetric match options <code>best1</code>

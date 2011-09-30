@@ -15,6 +15,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.VOStarTable;
 
@@ -28,16 +29,22 @@ public class QueryStage implements Stage {
 
     private final VotLintTapRunner tapRunner_;
     private final MetadataHolder metaHolder_;
+    private final CapabilityHolder capHolder_;
 
     /**
      * Constructor.
      *
      * @param  tapRunner    object that can run TAP queries
      * @param  metaHolder   provides table metadata at run time
+     * @param  capHolder    provides capability info at run time;
+     *                      may be null if capability-related queries
+     *                      are not required
      */
-    public QueryStage( VotLintTapRunner tapRunner, MetadataHolder metaHolder ) {
+    public QueryStage( VotLintTapRunner tapRunner, MetadataHolder metaHolder,
+                       CapabilityHolder capHolder ) {
         tapRunner_ = tapRunner;
         metaHolder_ = metaHolder;
+        capHolder_ = capHolder;
     }
 
     public String getDescription() {
@@ -47,6 +54,9 @@ public class QueryStage implements Stage {
 
     public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
+        String[] adqlLangs = capHolder_ == null
+                           ? null
+                           : getAdqlLanguages( capHolder_ );
         if ( tmetas == null || tmetas.length == 0 ) {
             reporter.report( ReportType.FAILURE, "NOTM",
                              "No table metadata available "
@@ -64,8 +74,33 @@ public class QueryStage implements Stage {
         if ( ! tmList.isEmpty() ) {
             tmetas = tmList.toArray( new TableMeta[ 0 ] );
         }
-        new Querier( reporter, serviceUrl, tmetas ).run();
+        new Querier( reporter, serviceUrl, tmetas, adqlLangs ).run();
         tapRunner_.reportSummary( reporter );
+    }
+
+    /**
+     * Returns all the known ADQL variants for a given capabilities element.
+     *
+     * @param  capHolder   capabilities metadata info supplier
+     * @return  array of ADQL* language specifiers
+     */
+    private static String[] getAdqlLanguages( CapabilityHolder capHolder ) {
+        TapCapability tcap = capHolder.getCapability();
+        if ( tcap == null ) {
+            return new String[] { "ADQL", "ADQL-2.0" };  // questionable?
+        }
+        String[] langs = tcap.getLanguages();
+        List<String> adqlLangList = new ArrayList<String>();
+        for ( int il = 0; il < langs.length; il++ ) {
+            String lang = langs[ il ];
+            if ( lang.startsWith( "ADQL" ) ) {
+                adqlLangList.add( lang );
+            }
+        }
+        if ( ! adqlLangList.contains( "ADQL" ) ) {
+            adqlLangList.add( "ADQL" );
+        }
+        return adqlLangList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -74,6 +109,7 @@ public class QueryStage implements Stage {
     private class Querier implements Runnable {
         private final Reporter reporter_;
         private final URL serviceUrl_;
+        private final String[] adqlLangs_;
         private final TableMeta tmeta1_;
         private final TableMeta tmeta2_;
         private final TableMeta tmeta3_;
@@ -85,9 +121,11 @@ public class QueryStage implements Stage {
          * @param  serviceUrl  TAP service URL
          * @param  tmetas  metadata for known tables
          */
-        Querier( Reporter reporter, URL serviceUrl, TableMeta[] tmetas ) {
+        Querier( Reporter reporter, URL serviceUrl, TableMeta[] tmetas,
+                 String[] adqlLangs ) {
             reporter_ = reporter;
             serviceUrl_ = serviceUrl;
+            adqlLangs_ = adqlLangs;
 
             /* Pick some representative tables for later testing.
              * Do it by choosing tables with column counts near the median. */
@@ -110,7 +148,6 @@ public class QueryStage implements Stage {
             runOneColumn( tmeta1_ );
             runSomeColumns( tmeta2_ );
             runJustMeta( tmeta3_ );
-            // make sure GET and POST work
         }
 
         /**
@@ -157,6 +194,46 @@ public class QueryStage implements Stage {
                                + "<INFO name='QUERY_STATUS' value='OVERFLOW'/> "
                                + "after TABLE";
                     reporter_.report( ReportType.ERROR, "OVNO", msg );
+                }
+            }
+
+            /* Check that all known variants (typically "ADQL" and "ADQL-2.0")
+             * work the same. */
+            if ( adqlLangs_ != null && adqlLangs_.length > 1 ) {
+                List<String> okLangList = new ArrayList<String>();
+                List<String> failLangList = new ArrayList<String>();
+                for ( int il = 0; il < adqlLangs_.length; il++ ) {
+                    String lang = adqlLangs_[ il ];
+                    String vAdql = new StringBuilder()
+                       .append( "SELECT TOP 1 " )
+                       .append( cspec1.getQueryText() )
+                       .append( " FROM " )
+                       .append( tname )
+                       .toString();
+                    Map<String,String> extraParams =
+                        new HashMap<String,String>();
+                    extraParams.put( "LANG", lang );
+                    StarTable result;
+                    try {
+                        TapQuery tq = new TapQuery( serviceUrl_, vAdql,
+                                                    extraParams, null, 0 );
+                        result = tapRunner_.getResultTable( reporter_, tq );
+                    }
+                    catch ( IOException e ) {
+                        result = null;
+                    }
+                    ( result == null ? failLangList
+                                     : okLangList ).add( lang );
+                }
+                if ( ! failLangList.isEmpty() && ! okLangList.isEmpty() ) {
+                    String msg = new StringBuilder()
+                       .append( "Some ADQL language variants fail: " )
+                       .append( okLangList )
+                       .append( " works, but " )
+                       .append( failLangList )
+                       .append( " doesn't" )
+                       .toString();
+                    reporter_.report( ReportType.ERROR, "LVER", msg );
                 }
             }
         }
