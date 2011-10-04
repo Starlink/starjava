@@ -1176,8 +1176,11 @@ is given in the following subsections.
 it is available from <webref url="http://www.jython.org/"/>,
 and comes as a self-installing jar file.
 JyStilts has been tested, and appears to work, on versions
-2.2.1, 2.5.0 and 2.5.1; it's recommended to use the latest version
+2.5.0 and 2.5.1; it's recommended to use the latest version
 if you don't have some reason to use one of the others.
+Some earlier versions of JyStilts worked with jython 2.2.1, 
+but that no longer seems to be the case; it might be possible
+to reinstate this if there is some pressing need.
 </p>
 
 <p>To use JyStilts, all you need to do is to
