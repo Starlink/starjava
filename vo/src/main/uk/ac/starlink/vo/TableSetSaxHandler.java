@@ -121,14 +121,18 @@ public class TableSetSaxHandler extends DefaultHandler {
             assert foreign_ != null;
             foreign_.links_ = linkList_.toArray( new ForeignMeta.Link[ 0 ] );
             linkList_ = null;
-            foreignList_.add( foreign_ );
+            if ( foreignList_ != null ) {
+                foreignList_.add( foreign_ );
+            }
             foreign_ = null;
         }
         else if ( "column".equals( tname ) ) {
             assert column_ != null;
             column_.flags_ = flagList_.toArray( new String[ 0 ] );
             flagList_ = null;
-            columnList_.add( column_ );
+            if ( columnList_ != null ) {
+                columnList_.add( column_ );
+            }
             column_ = null;
         }
         else if ( "table".equals( tname ) ) {
@@ -137,7 +141,9 @@ public class TableSetSaxHandler extends DefaultHandler {
             columnList_ = null;
             table_.foreignKeys_ = foreignList_.toArray( new ForeignMeta[ 0 ] );
             foreignList_ = null;
-            tableList_.add( table_ );
+            if ( tableList_ != null ) {
+                tableList_.add( table_ );
+            }
             table_ = null;
         }
         else if ( link_ != null ) {
