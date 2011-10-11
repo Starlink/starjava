@@ -2,8 +2,11 @@ package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
 import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.Icon;
 import javax.swing.JMenu;
@@ -19,6 +23,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.MouseInputListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
@@ -345,6 +351,13 @@ public class ColumnInfoWindow extends AuxWindow {
             }
         };
         rowHead.installOnScroller( scroller );
+
+        /* Arrange that dragging on the row header moves columns around
+         * in the table column model. */
+        rowHead.setSelectionModel( new DefaultListSelectionModel() );
+        MouseInputListener mousey = new RowDragMouseListener( rowHead );
+        rowHead.addMouseListener( mousey );
+        rowHead.addMouseMotionListener( mousey );
 
         /* Ensure that subsequent changes to the main column model are 
          * reflected in this window.  This listener implemenatation is 
@@ -728,6 +741,98 @@ public class ColumnInfoWindow extends AuxWindow {
                       ? new SortOrder( getColumnFromRow( irow ) )
                       : SortOrder.NONE;
             tcModel.sortBy( order, ascending );
+        }
+    }
+
+    /**
+     * Mouse Listener for use with the table row header which allows
+     * dragging column rows up and down.  The effect of these drags is
+     * to change the TopcatModel's TableColumnModel.
+     * The cursor is manipulated to indicate the possibilities and behaviour.
+     */
+    private class RowDragMouseListener extends MouseInputAdapter {
+        private final JTable rowHead_;
+        private final Cursor hoverCursor_;
+        private final Cursor dragCursor_;
+        private final ListSelectionModel selModel_;
+        private int kFrom_;
+
+        /**
+         * Constructor.
+         * 
+         * @param  rowHead  table whose rows can be dragged
+         */
+        RowDragMouseListener( JTable rowHead ) {
+            rowHead_ = rowHead;
+            hoverCursor_ = Cursor.getPredefinedCursor( Cursor.HAND_CURSOR );
+            dragCursor_ = Cursor.getPredefinedCursor( Cursor.N_RESIZE_CURSOR );
+            selModel_ = jtab.getSelectionModel();
+            kFrom_ = -1;
+        }
+
+        @Override
+        public void mousePressed( MouseEvent evt ) {
+            int i = rowHead_.rowAtPoint( evt.getPoint() );
+            if ( i > 0 ) {
+                int j = i - 1;
+                kFrom_ = columnList.isActive( j ) ? getActiveIndexFromRow( j )
+                                                  : -1;
+                if ( kFrom_ >= 0 ) {
+                    adjustGui( evt, true );
+                }
+            }
+        }
+
+        @Override
+        public void mouseDragged( MouseEvent evt ) {
+            if ( kFrom_ >= 0 ) {
+                Point p = evt.getPoint();
+                p.y = Math.min( Math.max( p.y, 0 ), rowHead_.getHeight() - 1 );
+                int i = rowHead_.rowAtPoint( p );
+                int j = Math.max( i - 1, 0 );
+                int kTo = getActiveIndexFromRow( j );
+                if ( kTo != kFrom_ ) {
+                    columnModel.moveColumn( kFrom_, kTo );
+                    kFrom_ = kTo;
+                    adjustGui( evt, true );
+                }
+            }
+        }
+
+        @Override
+        public void mouseReleased( MouseEvent evt ) {
+            kFrom_ = -1;
+            adjustGui( evt, false );
+        }
+
+        @Override
+        public void mouseMoved( MouseEvent evt ) {
+            adjustGui( evt, false );
+        }
+
+        /**
+         * Adjusts the appearance of the components this listener serves,
+         * to reflect the current state.
+         * 
+         * @param  evt  mouse event which caused the adjustment
+         * @param  isDrag  true iff a drag is in progress
+         */
+        private void adjustGui( MouseEvent evt, boolean isDrag ) {
+            final Cursor headCursor;
+            if ( isDrag ) {
+                headCursor = null;
+                int i =
+                    1 + columnList.indexOf( columnModel .getColumn( kFrom_ ) );
+                selModel_.setSelectionInterval( i, i );
+            }
+            else {
+                int i = rowHead_.rowAtPoint( evt.getPoint() );
+                headCursor = i > 0 && columnList.isActive( i - 1 )
+                           ? hoverCursor_
+                           : null;
+            }
+            rowHead_.setCursor( headCursor );
+            ColumnInfoWindow.this.setCursor( isDrag ? dragCursor_ : null );
         }
     }
 }

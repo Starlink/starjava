@@ -699,8 +699,12 @@ whether they are currently visible is indicated by the (leftmost)
 <dt>Move Columns</dt>
 <dd><p>In the Data Window you can move columns around by dragging the
     grey column header left or right to a new position (as usual in a 
-    <ref id="JTable">JTable</ref>).  This affects the Column Set, as
-    you can see if you watch the Columns Window while you do it.
+    <ref id="JTable">JTable</ref>).
+    Alternatively, you can drag the rows in the
+    <ref id="ColumnInfoWindow">Columns Window</ref> by grabbing the
+    grey row header (numbered cell at the left) and dragging it up or down.
+    Either of these affects the Column Set, as you can see by looking
+    at one window while moving columns in the other.
     </p></dd>
 
 <dt>Add Columns</dt>
@@ -5646,9 +5650,13 @@ double-clicking on them as usual.
 </p>
 
 <p>The order in which the rows are presented is determined
-by the table's current <ref id="columns" plaintextref="yes">Column Set</ref>,
-so can be changed by dragging the column headers around in the 
-<ref id="TableViewerWindow">Data Window</ref>.
+by the table's current <ref id="columns" plaintextref="yes">Column Set</ref>.
+You can change the position of a column in the order by dragging the 
+grey number cell at the left of the corresponding row up or down;
+note this is only possible for currently visible columns
+(ones with the Visible checkbox ticked).
+Another way to change this order is to drag the column headers left or right
+in the <ref id="TableViewerWindow">Data Window</ref>.
 </p>
 
 <p>The following buttons are available in the toolbar:
@@ -15125,6 +15133,8 @@ introduced since the last version:
         a sort interrupts an edit.</li>
     <li>Add <label>To Browser</label> button to Help Window - this displays
         the currently displayed help page in your normal web browser.</li>
+    <li>You can now change the column order of a table by dragging
+        rows up and down in the Columns Window.</li>
     </ul>
     </p></dd>
 
