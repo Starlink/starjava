@@ -11432,10 +11432,6 @@ the same interface for many different remote datasets.
 <p>TAP is more involved than the other VO protocols implemented by TOPCAT,
 and this window is correspondingly more complicated than the Cone, SIA
 and SSA dialogues, though it does share some features with them.
-In particular TAP caters specifically for long-running queries by
-allowing <em>asynchronous</em> submission in which you submit a job to
-the server, it runs for a potentially long time, and when it finishes
-the result can be collected from the server.
 </p>
 
 <p>In order to interrogate the remote database you will have to
@@ -11453,6 +11449,13 @@ You can find a nice introduction written by Markus Demleitner of GAVO
 at <webref url="http://docs.g-vo.org/adql"/>.
 </p>
 
+<p>Once your query is written, you can submit it in either
+<em>synchronous</em> or <em>asynchronous</em> mode.
+Synchronous queries begin to execute right away and must be relatively short;
+asynchronous queries are submitted to a server, run for a potentially 
+long time, and retrieve the result later.
+</p>
+
 <p>The window is composed of four tabs, of which you can see one at a time.
 You will use two or three of them when submitting a TAP query.
 Each tab is described in more detail in the following subsections,
@@ -11467,21 +11470,23 @@ but an overview of their operation is like this:
 <dt><ref id="TapTableLoadDialog_query">Enter Query</ref> tab</dt>
 <dd><p>Displays information about the service and the tables it holds,
     and allows you to enter the text of the query and submit the job.
-    When the job is submitted you will move to the
+    If the job is submitted synchronously, load will begin directly,
+    but in the asynchronous case, you will move to the
     <label>Running Jobs</label> tab.
     </p></dd>
 <dt><ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab</dt>
-<dd><p>Shows a list of the query jobs you have submitted, with details on
-    their progress.
+<dd><p>Shows a list of the asynchronous query jobs you have submitted,
+    with details on their progress.
     </p></dd>
 <dt><ref id="TapTableLoadDialog_resume">Resume Job</ref> tab</dt>
-<dd><p>Optionally allows you to resume a query started in some earlier session.
+<dd><p>Optionally allows you to resume an asynchronous query
+    started in some earlier session.
     </p></dd>
 </dl>
 </p>
 
 <p>When you first visit this window, the <label>Select Service</label>
-tab will be visible, and when your query has been submitted the
+tab will be visible, and when an asynchronous query has been submitted the
 <label>Running Jobs</label> tab will be visible.
 If you want to submit another query to the same service,
 or use a different service,
@@ -15135,6 +15140,8 @@ introduced since the last version:
         the currently displayed help page in your normal web browser.</li>
     <li>You can now change the column order of a table by dragging
         rows up and down in the Columns Window.</li>
+    <li>TAP queries are now synchronous by default
+        (the <label>Synchronous</label> checkbox is checked by default).</li>
     </ul>
     </p></dd>
 

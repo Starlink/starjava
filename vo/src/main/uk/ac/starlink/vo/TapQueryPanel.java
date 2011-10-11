@@ -76,7 +76,7 @@ public class TapQueryPanel extends JPanel {
         JComponent textScroller = new JScrollPane( textPanel_ );
 
         /* Button for selecting sync/async mode of query. */
-        syncToggle_ = new JCheckBox( "Synchronous", false );
+        syncToggle_ = new JCheckBox( "Synchronous", true );
         syncToggle_.setToolTipText( "Determines whether the TAP query will "
                                   + "be carried out in synchronous (selected) "
                                   + "or asynchronous (unselected) mode" );
