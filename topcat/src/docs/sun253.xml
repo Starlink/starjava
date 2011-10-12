@@ -12753,27 +12753,47 @@ will appear in the right hand panel.  In the case of functions
 this describes the function, its arguments, what it does, and
 how to use it.  The explanations should be fairly self-explanatory;
 for instance the description in the figure above indicates that
-you could use the invocation <code>atan2(X_POS,Y_POS)</code> 
-as the expression for a new table column which gives the angle from
-the X axis of a point whose position is given by columns with 
-the names X_POS and Y_POS.
+you could use the invocation <code>skyDistanceDegrees(RA1,DEC1,RA2,DEC2)</code> 
+as the expression for a new table column which gives the angular distance
+between two sky positions represented by columns with the names RA1, DEC1
+and RA2, DEC2.
 Examples of a number of these functions are given in 
 <ref id="jelExamples"/>.
 </p>
 
-<p>Using the Add button (&IMG.ADD;)
-you can specify the name of a class to add to those available.
-You should enter the fully-qualified class name (i.e. including the
-dot-separated package path).  The class that you specify must be
-on the class path which was current when TOPCAT was started,
-as explained in <ref id="jvmClasspath"/>.
-Note however it would be more usual to specify these using
-the system property <code>jel.classes</code> or 
-<code>jel.classes.activation</code> at startup,
-as described in <ref id="jelExtend"/>.
-Classes added in this way will be visible in the tree, but may 
-not have proper documentation (clicking on them may not reveal
-a description in the right hand panel).
+<p>There are two menu/toolbar actions:
+<dl>
+
+<dt>&IMG.SYNTAX; Syntax Help</dt>
+<dd><p>Displays the section of the manual which discusses the general
+    syntax used for algebraic expressions, including what operators are
+    available, what the rules are for referring to columns, etc.
+    The help is displayed in the <ref id="HelpWindow">Help Window</ref>
+    (and can from there be passed to a browser if that's more convenient).
+    The displayed material is simply a shortcut to <ref id="jel"/> in
+    this document.
+    </p></dd>
+
+<dt>&IMG.ADD; Add Class</dt>
+<dd><p>Allows you to add the name of a class to those available.
+    You should enter the fully-qualified class name (i.e. including the
+    dot-separated package path).  The class that you specify must be
+    on the class path which was current when TOPCAT was started,
+    as explained in <ref id="jvmClasspath"/>.
+    Note however it would be more usual to specify these using
+    the system property <code>jel.classes</code> or 
+    <code>jel.classes.activation</code> at startup,
+    as described in <ref id="jelExtend"/>.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>Classes added either using the <label>Add Class</label> action above or
+the <code>jel.classes</code> or <code>jel.classes.activation</code>
+system properties will be visible in the tree in this window,
+but they may not have proper documentation
+(clicking on them may not reveal a description in the right hand panel).
 </p>
 
 </subsubsect>
@@ -15157,6 +15177,9 @@ introduced since the last version:
         degrees and not radians.
         Some of the old function names have changed to make clear that they
         use radians and not degrees.</li>
+    <li>New convenience button added to Available Functions window
+        which is a shortcut to display of the expression syntax in the
+        Help browser.</li>
     </ul>
     </p></dd>
 

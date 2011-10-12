@@ -65,5 +65,9 @@ public class HelpTest extends TestCase {
         SAXParser parser = fact.newSAXParser();
         parser.parse( url.toString(), handler );
     }
+
+    public void testExpressionHelp() {
+        assertTrue( HelpAction.helpIdExists( MethodWindow.SYNTAX_HELP_ID ) );
+    }
     
 }

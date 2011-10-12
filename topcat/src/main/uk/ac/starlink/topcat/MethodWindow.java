@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
 import javax.swing.Action;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -34,6 +35,7 @@ public class MethodWindow extends AuxWindow {
 
     private final MethodBrowser browser_;
     private final DefaultMutableTreeNode activNode_;
+    static final String SYNTAX_HELP_ID = "jel";
 
     /**
      * Construct a new method browser.
@@ -102,13 +104,28 @@ public class MethodWindow extends AuxWindow {
         };
         addAction.setEnabled( TopcatUtils.canJel() );
 
+        /* Action to display expression syntax. */
+        Action syntaxAction = new HelpAction( SYNTAX_HELP_ID, this );
+        syntaxAction.putValue( Action.NAME, "Syntax Help" );
+        syntaxAction.putValue( Action.SHORT_DESCRIPTION,
+                               "Display manual section on expression syntax "
+                             + "in help browser" );
+        syntaxAction.putValue( Action.SMALL_ICON, ResourceIcon.SYNTAX );
+
         /* Open up the top level. */
         TreePath rootPath = new TreePath( root );
         browser_.getTree().expandPath( rootPath );
 
-        /* Tools. */
+        /* Add actions to toolbar. */
         getToolBar().add( addAction );
+        getToolBar().add( syntaxAction );
         getToolBar().addSeparator();
+
+        /* Add actions to menu bar. */
+        JMenu funcMenu = new JMenu( "Functions" );
+        funcMenu.add( addAction );
+        funcMenu.add( syntaxAction );
+        getJMenuBar().add( funcMenu );
 
         /* Add standard help actions. */
         addHelp( "MethodWindow" );
