@@ -24,7 +24,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.task.TableProducer;
 
@@ -395,8 +395,8 @@ public class ConeMatcher implements TableProducer {
                                 ? ((Number) inValues[ 1 ]).doubleValue()
                                   * decUnit
                                 : Double.NaN;
-                    double dist =
-                        Coords.skyDistanceDegrees( ra0, dec0, ra1, dec1 );
+                    double dist = CoordsDegrees
+                                 .skyDistanceDegrees( ra0, dec0, ra1, dec1 );
                     return new Object[] { new Double( dist ) };
                 }
             };

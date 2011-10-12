@@ -11,14 +11,15 @@ import uk.ac.starlink.pal.AngleDR;
 import uk.ac.starlink.pal.Pal;
 
 /**
- * Functions for angle transformations and manipulations.
+ * Functions for angle transformations and manipulations, based on
+ * radians rather than degrees.
  * In particular, methods for translating between radians and HH:MM:SS.S
  * or DDD:MM:SS.S type sexagesimal representations are provided.
  *
  * @author   Mark Taylor (Starlink)
  * @since    30 Apr 2004
  */
-public class Coords {
+public class CoordsRadians {
 
     private static Pattern dmsPattern = 
         getSexPattern( "[:d ]", "[:m' ]", "[s\"]?" );
@@ -27,21 +28,21 @@ public class Coords {
 
    
     /** The size of one degree in radians. */
-    public static final double DEGREE = Math.PI / 180;
+    public static final double DEGREE_RADIANS = Math.PI / 180;
 
     /** The size of one hour of right ascension in radians. */
-    public static final double HOUR = Math.PI / 180 * 15;
+    public static final double HOUR_RADIANS = Math.PI / 180 * 15;
 
     /** The size of one arcminute in radians. */
-    public static final double ARC_MINUTE = Math.PI / 180 / 60;
+    public static final double ARC_MINUTE_RADIANS = Math.PI / 180 / 60;
 
     /** The size of one arcsecond in radians. */
-    public static final double ARC_SECOND = Math.PI / 180 / 60 / 60;
+    public static final double ARC_SECOND_RADIANS = Math.PI / 180 / 60 / 60;
 
     /**
      * Private constructor prevents instantiation.
      */
-    private Coords() {
+    private CoordsRadians() {
     }
 
     /**
@@ -61,7 +62,7 @@ public class Coords {
      *
      * @param  rad  angle in radians
      * @param  secFig  number of decimal places in the seconds field
-     * @return  HMS-format string representing <code>rad</code>
+     * @return  DMS-format string representing <code>rad</code>
      */
     public static String radiansToDms( double rad, int secFig ) {
         if ( Double.isNaN( rad ) ) {
@@ -247,7 +248,7 @@ public class Coords {
 
     /**
      * Calculates the separation (distance around a great circle) of
-     * two points on the sky.
+     * two points on the sky in radians.
      *
      * @param  ra1   right ascension of point 1 in radians
      * @param  dec1  declination of point 1 in radians
@@ -255,27 +256,9 @@ public class Coords {
      * @param  dec2  declination of point 2 in radians
      * @return  angular distance between point 1 and point 2 in radians
      */
-    public static double skyDistance( double ra1, double dec1,
-                                      double ra2, double dec2 ) {
-        return haversineSeparationFormula( ra1, dec1, ra2, dec2 );
-    }
-
-    /**
-     * Calculates the separation (distance around a great circle) of
-     * two points on the sky in degrees.
-     *
-     * @param  ra1   right ascension of point 1 in degrees
-     * @param  dec1  declination of point 1 in degrees
-     * @param  ra2   right ascension of point 2 in degrees
-     * @param  dec2  declination of point 2 in degrees
-     * @return  angular distance between point 1 and point 2 in degrees
-     */
-    public static double skyDistanceDegrees( double ra1, double dec1,
+    public static double skyDistanceRadians( double ra1, double dec1,
                                              double ra2, double dec2 ) {
-        return Math.toDegrees( skyDistance( Math.toRadians( ra1 ),
-                                            Math.toRadians( dec1 ),
-                                            Math.toRadians( ra2 ),
-                                            Math.toRadians( dec2 ) ) );
+        return haversineSeparationFormula( ra1, dec1, ra2, dec2 );
     }
 
     /**
@@ -318,8 +301,8 @@ public class Coords {
      * @return  right ascension in J2000.0 FK5 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk45z
      */
-    public static double raFK4toFK5( double raFK4, double decFK4 ) {
-        return raFK4toFK5( raFK4, decFK4, 1950.0 );
+    public static double raFK4toFK5radians( double raFK4, double decFK4 ) {
+        return raFK4toFK5Radians( raFK4, decFK4, 1950.0 );
     }
 
     /**
@@ -332,8 +315,8 @@ public class Coords {
      * @return  declination in J2000.0 FK5 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk45z
      */
-    public static double decFK4toFK5( double raFK4, double decFK4 ) {
-        return decFK4toFK5( raFK4, decFK4, 1950.0 );
+    public static double decFK4toFK5radians( double raFK4, double decFK4 ) {
+        return decFK4toFK5Radians( raFK4, decFK4, 1950.0 );
     }
 
     /**
@@ -347,8 +330,8 @@ public class Coords {
      * @return  right ascension in the FK4 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk54z
      */
-    public static double raFK5toFK4( double raFK5, double decFK5 ) {
-        return raFK5toFK4( raFK5, decFK5, 1950.0 );
+    public static double raFK5toFK4radians( double raFK5, double decFK5 ) {
+        return raFK5toFK4Radians( raFK5, decFK5, 1950.0 );
     }
 
     /**
@@ -362,8 +345,8 @@ public class Coords {
      * @return  right ascension in the FK4 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk54z
      */
-    public static double decFK5toFK4( double raFK5, double decFK5 ) {
-        return decFK5toFK4( raFK5, decFK5, 1950.0 );
+    public static double decFK5toFK4radians( double raFK5, double decFK5 ) {
+        return decFK5toFK4Radians( raFK5, decFK5, 1950.0 );
     }
 
     /**
@@ -378,8 +361,8 @@ public class Coords {
      * @return  right ascension in J2000.0 FK5 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk45z
      */
-    public static double raFK4toFK5( double raFK4, double decFK4,
-                                     double bepoch ) {
+    public static double raFK4toFK5Radians( double raFK4, double decFK4,
+                                            double bepoch ) {
         return new Pal()
               .Fk45z( new AngleDR( raFK4, decFK4 ), bepoch )
               .getAlpha();
@@ -397,8 +380,8 @@ public class Coords {
      * @return  declination in J2000.0 FK5 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk45z
      */
-    public static double decFK4toFK5( double raFK4, double decFK4,
-                                      double bepoch ) {
+    public static double decFK4toFK5Radians( double raFK4, double decFK4,
+                                             double bepoch ) {
         return new Pal()
               .Fk45z( new AngleDR( raFK4, decFK4 ), bepoch )
               .getDelta();
@@ -415,8 +398,8 @@ public class Coords {
      * @return  right ascension in the FK4 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk54z
      */
-    public static double raFK5toFK4( double raFK5, double decFK5,
-                                     double bepoch ) {
+    public static double raFK5toFK4Radians( double raFK5, double decFK5,
+                                            double bepoch ) {
         return new Pal()
               .Fk54z( new AngleDR( raFK5, decFK5 ), bepoch ).getAngle()
               .getAlpha();
@@ -433,8 +416,8 @@ public class Coords {
      * @return  right ascension in the FK4 system (radians)
      * @see     uk.ac.starlink.pal.Pal#Fk54z
      */
-    public static double decFK5toFK4( double raFK5, double decFK5,
-                                      double bepoch ) {
+    public static double decFK5toFK4Radians( double raFK5, double decFK5,
+                                             double bepoch ) {
         return new Pal()
               .Fk54z( new AngleDR( raFK5, decFK5 ), bepoch ).getAngle()
               .getDelta();

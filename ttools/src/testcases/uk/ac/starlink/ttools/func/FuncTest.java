@@ -341,6 +341,21 @@ public class FuncTest extends TestCase {
         }
     }
 
+    public void testTrigDegrees() {
+        assertEquals( Math.toDegrees( Math.acos( 0.1 ) ),
+                      TrigDegrees.acosDeg( 0.1 ), TINY );
+        assertEquals( Math.toDegrees( Math.asin( 0.1 ) ),
+                      TrigDegrees.asinDeg( 0.1 ), TINY );
+        assertEquals( Math.toDegrees( Math.atan( 0.1 ) ),
+                      TrigDegrees.atanDeg( 0.1 ), TINY );
+        assertEquals( Math.toDegrees( Math.atan2( 0.2, 0.4 ) ),
+                      TrigDegrees.atan2Deg( 0.2, 0.4 ), TINY );
+
+        assertEquals( 0.0, TrigDegrees.cosDeg( 90 ), TINY );
+        assertEquals( 1.0, TrigDegrees.sinDeg( 90 ), TINY );
+        assertEquals( 0.0, TrigDegrees.tanDeg( 180 ), TINY );
+    }
+
     public void testStrings() {
         assertEquals( "00023", Strings.padWithZeros( 23, 5 ) );
         assertEquals( "23", Strings.padWithZeros( 23, 2 ) );
@@ -389,82 +404,124 @@ public class FuncTest extends TestCase {
         assertEquals( "some text", Strings.trim( "some text" ) );
     }
 
-    public void testCoords() {
+    public void testCoordsRadians() {
 
-        assertEquals( 180.0, Coords.radiansToDegrees( Maths.PI ), TINY );
-        assertEquals( 0.0, Coords.radiansToDegrees( 0.0 ) );
+        assertEquals( 180.0, CoordsRadians.radiansToDegrees( Maths.PI ), TINY );
+        assertEquals( 0.0, CoordsRadians.radiansToDegrees( 0.0 ) );
 
-        assertEquals( Maths.PI, Coords.degreesToRadians( 180.0 ), TINY );
-        assertEquals( 0.0, Coords.degreesToRadians( 0.0 ) );
+        assertEquals( Maths.PI, CoordsRadians.degreesToRadians( 180.0 ), TINY );
+        assertEquals( 0.0, CoordsRadians.degreesToRadians( 0.0 ) );
 
-        assertEquals( 0.0, Coords.skyDistance( 1.4, 2.1, 1.4, 2.1 ), TINY );
+        assertEquals( 0.0, CoordsRadians
+                          .skyDistanceRadians( 1.4, 2.1, 1.4, 2.1 ), TINY );
         assertEquals( Maths.PI / 2.0, 
-                      Coords.skyDistance( -1, 0.0, -1, Maths.PI / 2.0 ), TINY );
+                      CoordsRadians
+                     .skyDistanceRadians( -1, 0.0, -1, Maths.PI / 2.0 ), TINY );
 
         double ra1 = 0.1;
         double dec1 = 1.2;
         double ra2 = 0.2;
         double dec2 = 1.3;
-        assertEquals( Coords.skyDistance( ra1, dec1, ra2, dec2 ),
-                      Coords.skyDistance( ra2, dec2, ra1, dec1 ) );
-        assertEquals( Coords.skyDistanceDegrees( ra1, dec1, ra2, dec2 ),
-                      Coords.skyDistanceDegrees( ra2, dec2, ra1, dec1 ) );
+        assertEquals( CoordsRadians.skyDistanceRadians( ra1, dec1, ra2, dec2 ),
+                      CoordsRadians.skyDistanceRadians( ra2, dec2, ra1, dec1 ));
         assertEquals(
-            Coords.radiansToDegrees( Coords.skyDistance( ra1, dec1,
-                                                         ra2, dec2 ) ),
-            Coords.skyDistanceDegrees( Coords.radiansToDegrees( ra1 ),
-                                       Coords.radiansToDegrees( dec1 ),
-                                       Coords.radiansToDegrees( ra2 ),
-                                       Coords.radiansToDegrees( dec2 ) ),
+            CoordsRadians
+           .radiansToDegrees( CoordsRadians.skyDistanceRadians( ra1, dec1,
+                                                                ra2, dec2 ) ),
+            CoordsDegrees
+           .skyDistanceDegrees( CoordsRadians.radiansToDegrees( ra1 ),
+                                CoordsRadians.radiansToDegrees( dec1 ),
+                                CoordsRadians.radiansToDegrees( ra2 ),
+                                CoordsRadians.radiansToDegrees( dec2 ) ),
             TINY );
 
-        assertEquals( Maths.PI / 4.0, Coords.hmsToRadians( "03:00:00.0" ) );
-        assertEquals( -Maths.PI / 4.0, Coords.hmsToRadians( "-03: 0:0" ) );
-        assertEquals( Coords.hmsToRadians( "0 0 1" ),
-                      -Coords.hmsToRadians( "-0h0m1s" ) );
+        assertEquals( Maths.PI / 4.0,
+                      CoordsRadians.hmsToRadians( "03:00:00.0" ) );
+        assertEquals( -Maths.PI / 4.0,
+                      CoordsRadians.hmsToRadians( "-03: 0:0" ) );
+        assertEquals( CoordsRadians.hmsToRadians( "0 0 1" ),
+                      -CoordsRadians.hmsToRadians( "-0h0m1s" ) );
 
-        assertEquals( "03:00:00", Coords.radiansToHms( Maths.PI / 4.0 ) );
+        assertEquals( "03:00:00",
+                      CoordsRadians.radiansToHms( Maths.PI / 4.0 ) );
         assertEquals( "12:00:00.000",
-                      Coords.radiansToHms( -Maths.PI, 3 ) );
+                      CoordsRadians.radiansToHms( -Maths.PI, 3 ) );
         assertEquals( "12:00:00.500", 
-                      Coords.radiansToHms( -Maths.PI*(1+.5000/12/60/60), 3 ) );
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.5000/12/60/60),
+                                                  3 ) );
         assertEquals( "12:00:00.005", 
-                      Coords.radiansToHms( -Maths.PI*(1+.0050/12/60/60), 3 ) );
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.0050/12/60/60),
+                                                  3 ) );
         assertEquals( "12:00:00.500", 
-                      Coords.radiansToHms( -Maths.PI*(1+.5004/12/60/60), 3 ) );
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.5004/12/60/60),
+                                                  3 ) );
         assertEquals( "12:00:00.500", 
-                      Coords.radiansToHms( -Maths.PI*(1+.4996/12/60/60), 3 ) );
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.4996/12/60/60),
+                                                  3 ) );
 
-        assertEquals( Maths.PI / 4.0, Coords.dmsToRadians( "45:00:00.0" ) );
-        assertEquals( -Maths.PI / 4.0, Coords.dmsToRadians( "-45: 0:0" ) );
-        assertEquals( Coords.dmsToRadians( "0 0 1" ),
-                      -Coords.dmsToRadians( "-0d0m1s" ) );
+        assertEquals( Maths.PI / 4.0,
+                      CoordsRadians.dmsToRadians( "45:00:00.0" ) );
+        assertEquals( -Maths.PI / 4.0,
+                      CoordsRadians.dmsToRadians( "-45: 0:0" ) );
+        assertEquals( CoordsRadians.dmsToRadians( "0 0 1" ),
+                      -CoordsRadians.dmsToRadians( "-0d0m1s" ) );
 
-        assertEquals( "+45:00:00", Coords.radiansToDms( Maths.PI / 4.0 ) );
+        assertEquals( "+45:00:00",
+                      CoordsRadians.radiansToDms( Maths.PI / 4.0 ) );
         assertEquals( "-90:00:00.000",
-                      Coords.radiansToDms( -Maths.PI / 2, 3 ) );
+                      CoordsRadians.radiansToDms( -Maths.PI / 2, 3 ) );
         assertEquals( "-45:00:00.500",
-                      Coords.radiansToDms( -Maths.PI / 4.0 
-                                           * (1+.5000/45/60/60), 3 ) );
+                      CoordsRadians.radiansToDms( -Maths.PI / 4.0 
+                                                  * (1+.5000/45/60/60), 3 ) );
         assertEquals( "-45:00:00.005",
-                      Coords.radiansToDms( -Maths.PI / 4.0 
-                                           * (1+.0050/45/60/60), 3 ) );
+                      CoordsRadians.radiansToDms( -Maths.PI / 4.0 
+                                                  * (1+.0050/45/60/60), 3 ) );
         assertEquals( "-45:00:00.500",
-                      Coords.radiansToDms( -Maths.PI / 4.0 
-                                           * (1+.5004/45/60/60), 3 ) );
+                      CoordsRadians.radiansToDms( -Maths.PI / 4.0 
+                                                  * (1+.5004/45/60/60), 3 ) );
         assertEquals( "-45:00:00.500",
-                      Coords.radiansToDms( -Maths.PI / 4.0
-                                           * (1+.4996/45/60/60), 3 ) );
+                      CoordsRadians.radiansToDms( -Maths.PI / 4.0
+                                                  * (1+.4996/45/60/60), 3 ) );
 
         double ra1950 = 2.1;
         double de1950 = 1.2;
-        double ra2000 = Coords.raFK4toFK5( ra1950, de1950 );
-        double de2000 = Coords.decFK4toFK5( ra1950, de1950 );
+        double ra2000 = CoordsRadians.raFK4toFK5radians( ra1950, de1950 );
+        double de2000 = CoordsRadians.decFK4toFK5radians( ra1950, de1950 );
         assertEquals( ra1950, ra2000, 0.03 );
         assertEquals( de1950, de2000, 0.03 );
-        assertEquals( ra1950, Coords.raFK5toFK4( ra2000, de2000 ), 1e-9 );
-        assertEquals( de1950, Coords.decFK5toFK4( ra2000, de2000 ), 1e-9 );
+        assertEquals( ra1950, CoordsRadians.raFK5toFK4radians( ra2000, de2000 ),
+                      1e-9 );
+        assertEquals( de1950, CoordsRadians.decFK5toFK4radians( ra2000, de2000),
+                      1e-9 );
+    }
 
+    public void testCoordsDegrees() {
+        assertEquals( 0.0, CoordsDegrees
+                          .skyDistanceDegrees( 1.4, 2.1, 1.4, 2.1 ), TINY );
+        assertEquals( 90, CoordsDegrees.skyDistanceDegrees( -23, 0, -23, 90 ),
+                      TINY );
+        double ra1 = 195;
+        double dec1 = -28;
+        double ra2 = 38;
+        double dec2 = +88;
+        assertEquals( CoordsDegrees.skyDistanceDegrees( ra1, dec1, ra2, dec2 ),
+                      CoordsDegrees.skyDistanceDegrees( ra2, dec2, ra1, dec1 ));
+
+        assertEquals( 45, CoordsDegrees.hmsToDegrees( "03:00:00.0" ) );
+        assertEquals( -45, CoordsDegrees.hmsToDegrees( "-03: 0:0" ) );
+        assertEquals( CoordsDegrees.hmsToDegrees( "0 0 1" ),
+                      -CoordsDegrees.hmsToDegrees( "-0h0m1s" ) );
+
+        assertEquals( "03:00:00", CoordsDegrees.degreesToHms( 45 ) );
+        assertEquals( "12:00:00.000", CoordsDegrees.degreesToHms( -180, 3 ) );
+
+        assertEquals( 45, CoordsDegrees.dmsToDegrees( "45:00:00.0" ) );
+        assertEquals( -45, CoordsDegrees.dmsToDegrees( "-45: 0:0" ) );
+        assertEquals( CoordsDegrees.dmsToDegrees( "0 0 1" ),
+                      -CoordsDegrees.dmsToDegrees( "-0d0m1s" ) );
+
+        assertEquals( "+45:00:00", CoordsDegrees.degreesToDms( 45 ) );
+        assertEquals( "-90:00:00.000", CoordsDegrees.degreesToDms( -90, 3 ) );
     }
 
     public void testJELClasses() {

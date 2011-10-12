@@ -7,6 +7,7 @@ package uk.ac.starlink.ttools.func;
 
 /**
  * Standard mathematical and trigonometric functions.
+ * Trigonometric functions work with angles in radians.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Sep 2004

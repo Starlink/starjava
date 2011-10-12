@@ -15,7 +15,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 
 /**
  * ConeSearcher implementation using JDBC access to an SQL database.
@@ -168,7 +168,7 @@ public class JdbcConeSearcher implements ConeSearcher {
                               ? ((Number) decCell).doubleValue() * angleFactor
                               : Double.NaN;
                 double dist =
-                    Coords.skyDistanceDegrees( ra, dec, rowRa, rowDec );
+                    CoordsDegrees.skyDistanceDegrees( ra, dec, rowRa, rowDec );
                 return ! ( dist > sr );
             }
         };

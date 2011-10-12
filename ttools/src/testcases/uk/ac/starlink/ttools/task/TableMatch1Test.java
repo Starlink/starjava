@@ -11,7 +11,7 @@ import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.VOTableBuilder;
 
@@ -131,7 +131,9 @@ public class TableMatch1Test extends TableTestCase {
         MapEnvironment sky3dEnv = new MapEnvironment( env ) 
             .setValue( "matcher", "sKy3d" )
             .setValue( "values", "RA DEC 1" )
-            .setValue( "params", Double.toString( err * Coords.ARC_SECOND ) );
+            .setValue( "params",
+                       Double.toString( err * CoordsRadians
+                                             .ARC_SECOND_RADIANS ) );
         new TableMatch1().createExecutable( sky3dEnv ).execute();
         StarTable sky3dResult = sky3dEnv.getOutputTable( "omode" );
 

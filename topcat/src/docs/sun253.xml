@@ -2647,16 +2647,16 @@ define values for one of the axes in a plot.
     (double) range
 </verbatim></p></dd>
 
-<dt>Conversion from sexagesimal to radians</dt>
+<dt>Conversion from sexagesimal to degrees</dt>
 <dd><p><verbatim>
-    hmsToRadians(RA1950)
-    dmsToRadians(decDeg,decMin,decSec)
+    hmsToDegrees(RA1950)
+    dmsToDegrees(decDeg,decMin,decSec)
 </verbatim></p></dd>
 
-<dt>Conversion from radians to sexagesimal</dt>
+<dt>Conversion from degrees to sexagesimal</dt>
 <dd><p><verbatim>
-    radiansToDms(&column.id.char;3)
-    radiansToHms(RA,2)
+    degreesToDms(&column.id.char;3)
+    degreesToHms(RA,2)
 </verbatim></p></dd>
 
 <dt>Outlier clipping</dt>
@@ -2694,7 +2694,7 @@ to define <ref id="subsets">row subsets</ref>
 <dt>Within a circle</dt>
 <dd><p><verbatim>
     &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
-    skyDistance(ra0,dec0,degreesToRadians(RA),degreesToRadians(DEC))&lt;15*ARC_MINUTE
+    skyDistanceDegrees(ra0,dec0,hmsToDegrees(RA),dmsToDegrees(DEC))&lt;15./3600.
 </verbatim></p></dd>
 
 <dt>First 100 rows</dt>
@@ -15142,6 +15142,21 @@ introduced since the last version:
         rows up and down in the Columns Window.</li>
     <li>TAP queries are now synchronous by default
         (the <label>Synchronous</label> checkbox is checked by default).</li>
+    <li>Algebraic functions involving angles are now mostly available
+        using degrees as well as radians.
+        The <code>Coords</code> class has been replaced by
+        <ref id="CoordsDegrees"><code>CoordsDegrees</code></ref> and
+        <ref id="CoordsRadians"><code>CoordsRadians</code></ref> classes
+        providing sky coordinate functions,
+        and a new class
+        <ref id="TrigDegrees"><code>TrigDegrees</code></ref>
+        provides normal degree-based trigonometric functions
+        alongside the radian-based versions in
+        <ref id="Maths"><code>Maths</code></ref>.
+        The functions in the various activation action classes now take
+        degrees and not radians.
+        Some of the old function names have changed to make clear that they
+        use radians and not degrees.</li>
     </ul>
     </p></dd>
 

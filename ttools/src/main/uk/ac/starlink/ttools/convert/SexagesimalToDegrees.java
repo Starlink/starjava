@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.convert;
 
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 
 /**
  * Converts between Strings in sexagesimal format and numeric values in
@@ -47,9 +47,9 @@ public class SexagesimalToDegrees implements ValueConverter {
         if ( in instanceof String ) {
             String sex = ((String) in).trim();
             if ( sex.length() > 0 ) {
-                double rad = hours_ ? Coords.hmsToRadians( sex )
-                                    : Coords.dmsToRadians( sex );
-                return new Double( Coords.radiansToDegrees( rad ) );
+                double deg = hours_ ? CoordsDegrees.hmsToDegrees( sex )
+                                    : CoordsDegrees.dmsToDegrees( sex );
+                return new Double( deg );
             }
             else {
                 return null;
@@ -67,9 +67,8 @@ public class SexagesimalToDegrees implements ValueConverter {
                 return null;
             }
             else {
-                double rad = Math.toRadians( deg );
-                return hours_ ? Coords.radiansToHms( rad, 3 )
-                              : Coords.radiansToDms( rad, 2 );
+                return hours_ ? CoordsDegrees.degreesToHms( deg, 3 )
+                              : CoordsDegrees.degreesToDms( deg, 2 );
             }
         }
         else {

@@ -5,7 +5,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * MatchEngine adaptor which transforms the base engine so that it
@@ -193,19 +193,22 @@ public class HumanMatchEngine implements MatchEngine {
 
             /* For small angles, use arcseconds. */
             if ( isSmallAngle( info ) ) {
-                return new DoubleFactorWrapper( Coords.ARC_SECOND, "arcsec" );
+                return new DoubleFactorWrapper( CoordsRadians
+                                               .ARC_SECOND_RADIANS, "arcsec" );
             }
 
             /* For large angles, use degrees. */
             else if ( isLargeAngle( info ) ) {
-                return new DoubleFactorWrapper( Coords.DEGREE, "degrees" );
+                return new DoubleFactorWrapper( CoordsRadians.DEGREE_RADIANS,
+                                                "degrees" );
             }
 
             /* If in doubt, issue a warning and use degrees. */
             else {
                 logger_.warning( "Unknown angular quantity " + info
                                + " - convert to degrees" );
-                return new DoubleFactorWrapper( Coords.DEGREE, "degrees" );
+                return new DoubleFactorWrapper( CoordsRadians.DEGREE_RADIANS,
+                                                "degrees" );
             }
         }
 

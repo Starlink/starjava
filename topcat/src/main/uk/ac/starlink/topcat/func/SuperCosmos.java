@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.fits.FitsConstants;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
@@ -54,12 +54,12 @@ public class SuperCosmos {
      * the X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
      * Sky coverage is complete.
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String sssCutout( double ra, double dec, int pixels ) {
+    public static String sssShowCutout( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, null );
     }
 
@@ -68,12 +68,12 @@ public class SuperCosmos {
      * bands from the SuperCOSMOS Sky Surveys.
      * Sky coverage is complete.
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @return  short log message
      */
-    public static String sssCutout( double ra, double dec ) {
-        return sssCutout( ra, dec, 128 );
+    public static String sssShowCutout( double ra, double dec ) {
+        return sssShowCutout( ra, dec, 128 );
     }
 
     /**
@@ -81,12 +81,12 @@ public class SuperCosmos {
      * surveys from SuperCOSMOS.
      * Sky coverage is complete.
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String sssCutoutBlue( double ra, double dec, int pixels ) {
+    public static String sssShowBlue( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, BLUE );
     }
 
@@ -95,12 +95,12 @@ public class SuperCosmos {
      * surveys from SuperCOSMOS.
      * Sky coverage is complete.
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String sssCutoutRed( double ra, double dec, int pixels ) {
+    public static String sssShowRed( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, RED );
     }
 
@@ -113,12 +113,12 @@ public class SuperCosmos {
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String displayUkstB( double ra, double dec, int pixels ) {
+    public static String sssShowUkstB( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, UKST_B );
     }
 
@@ -131,12 +131,12 @@ public class SuperCosmos {
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String displayUkstR( double ra, double dec, int pixels ) {
+    public static String sssShowUkstR( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, UKST_R );
     }
 
@@ -149,12 +149,12 @@ public class SuperCosmos {
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String displayUkstI( double ra, double dec, int pixels ) {
+    public static String sssShowUkstI( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, UKST_I );
     }
 
@@ -167,12 +167,12 @@ public class SuperCosmos {
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String displayEsoR( double ra, double dec, int pixels ) {
+    public static String sssShowEsoR( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, ESO_R );
     }
 
@@ -185,20 +185,20 @@ public class SuperCosmos {
      *
      * <p>Sky coverage is -20.5&lt;Dec&lt;+2.5 (degrees).
      *
-     * @param  ra  right ascension of image centre in radians
-     * @param  dec  declination of image centre in radians
+     * @param  ra  right ascension of image centre in degrees
+     * @param  dec  declination of image centre in degrees
      * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String displayPossE( double ra, double dec, int pixels ) {
+    public static String sssShowPossE( double ra, double dec, int pixels ) {
         return sssCutout( ra, dec, pixels, POSS_E );
     }
 
     /**
      * Displays a cutout image from the SuperCOSMOS Sky Surveys server.
      *
-     * @param  ra  right ascension in radians
-     * @param  dec  declination in radians
+     * @param  ra  right ascension in degrees
+     * @param  dec  declination in degrees
      * @param  pixels   image dimension in units of (approx) 0.67 arcsec
      * @param  waveband  waveband for image
      * @return  short log message
@@ -213,8 +213,8 @@ public class SuperCosmos {
     /**
      * Displays a cutout image from the SuperCOSMOS Sky Surveys server.
      *
-     * @param  ra  right ascension in radians
-     * @param  dec  declination in radians
+     * @param  ra  right ascension in degrees
+     * @param  dec  declination in degrees
      * @param  mimeType  MIME type for return (though it doesn't seem to
      *         make any difference?)
      * @param  x   horizontal dimension of requested image in arcmin
@@ -226,8 +226,8 @@ public class SuperCosmos {
                                      double x, double y, Band waveband ) {
         final TopcatCgiQuery query = (TopcatCgiQuery)
              new TopcatCgiQuery( SSS_BASE_URL )
-            .addArgument( "ra", Coords.radiansToHms( ra, 5 ).trim() )
-            .addArgument( "dec", Coords.radiansToDms( dec, 4 ).trim() )
+            .addArgument( "ra", CoordsDegrees.degreesToHms( ra, 5 ).trim() )
+            .addArgument( "dec", CoordsDegrees.degreesToDms( dec, 4 ).trim() )
             .addArgument( "mime-type", mimeType )
             .addArgument( "x", x )
             .addArgument( "y", y );

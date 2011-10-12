@@ -16,7 +16,7 @@ import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.task.TableMapper;
 import uk.ac.starlink.ttools.task.TableMapping;
 
@@ -135,7 +135,8 @@ public class SkyMatch2Mapper implements TableMapper {
         String dec1 = decParams_[ 0 ].stringValue( env );
         String ra2 = raParams_[ 1 ].stringValue( env );
         String dec2 = decParams_[ 1 ].stringValue( env );
-        double error = errorParam_.doubleValue( env ) * Coords.ARC_SECOND;
+        double error = errorParam_.doubleValue( env )
+                     * CoordsRadians.ARC_SECOND_RADIANS;
         if ( error < 0 ) {
             throw new ParameterValueException( errorParam_,
                                                "Negative value illegal" );

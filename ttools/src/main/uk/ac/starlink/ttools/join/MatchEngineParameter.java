@@ -23,7 +23,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.task.ExtraParameter;
 import uk.ac.starlink.ttools.task.TableEnvironment;
 import uk.ac.starlink.ttools.task.WordsParameter;
@@ -46,6 +46,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
     private static final ValueInfo SCORE_INFO = 
         new DefaultValueInfo( "Score", Number.class,
                               "Closeness of match (0 is exact)" );
+    private static final double ARC_SECOND = CoordsRadians.ARC_SECOND_RADIANS;
 
     /** Base name for tuple parameter. */
     private static final String TUPLE_NAME = "values";
@@ -439,21 +440,21 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             if ( "sky".equalsIgnoreCase( cName ) ||
                  "healpix".equalsIgnoreCase( cName ) ) {
                 component = new FixedSkyMatchEngine( new HealpixSkyPixellator(),
-                                                     Coords.ARC_SECOND );
+                                                     ARC_SECOND );
             }
             else if ( "skyerr".equalsIgnoreCase( cName ) ) {
                 component = new ErrorSkyMatchEngine( new HealpixSkyPixellator(),
-                                                     Coords.ARC_SECOND );
+                                                     ARC_SECOND );
             }
             else if ( "skyellipse".equalsIgnoreCase( cName ) ) {
                 component =
                     new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
-                                               Coords.ARC_SECOND );
+                                               ARC_SECOND );
             }
             else if ( "skyellipse-nocirc".equalsIgnoreCase( cName ) ) {
                 EllipseSkyMatchEngine matcher =
                     new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
-                                               Coords.ARC_SECOND );
+                                               ARC_SECOND );
                 matcher.setRecogniseCircles( false );
                 component = matcher;
             }
@@ -488,7 +489,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             }
             else if ( cName.equalsIgnoreCase( "htm" ) ) {
                 component = new FixedSkyMatchEngine( new HtmSkyPixellator(),
-                                                     Coords.ARC_SECOND );
+                                                     ARC_SECOND );
             }
             else {
                 component =

@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.convert;
 
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * Class defining units used for a two-coordinate sky coordinate system.
@@ -207,16 +207,16 @@ public abstract class SkyUnits {
         }
         public double[] decode( Object c1, Object c2 ) {
             return new double[] {
-                c1 instanceof String ? Coords.hmsToRadians( (String) c1 )
+                c1 instanceof String ? CoordsRadians.hmsToRadians( (String) c1 )
                                      : Double.NaN,
-                c2 instanceof String ? Coords.dmsToRadians( (String) c2 )
+                c2 instanceof String ? CoordsRadians.dmsToRadians( (String) c2 )
                                      : Double.NaN,
             };
         }
         public Object[] encode( double c1, double c2 ) {
             return new Object[] {
-                Coords.radiansToHms( c1, hPlaces_ ),
-                Coords.radiansToDms( c2, dPlaces_ ),
+                CoordsRadians.radiansToHms( c1, hPlaces_ ),
+                CoordsRadians.radiansToDms( c2, dPlaces_ ),
             };
         }
     }

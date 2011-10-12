@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.fits.FitsConstants;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
@@ -33,18 +33,20 @@ public class TwoMass {
      * Displays a cutout image from the 2MASS image server around a given point.
      *
      * @param  label  viewer identification label
-     * @param  ra     right ascension in radians
-     * @param  dec    declination in radians
+     * @param  ra     right ascension in degrees
+     * @param  dec    declination in degrees
      * @param  npix   number of pixels in X and Y dimensions (0.4 arcsec square)
      * @param  band   band identifier: one of 'H', 'J' or 'K'
      * @return   short log message
      */
-    public static String image2Mass( final String label, double ra, double dec,
-                                     int npix, char band ) {
+    public static String showCutout2Mass( final String label,
+                                          double ra, double dec,
+                                          int npix, char band ) {
         final TopcatCgiQuery query = (TopcatCgiQuery)
              new TopcatCgiQuery( TWOMASS_BASE_URL )
-            .addArgument( "objstr", Coords.radiansToHms( ra, 5 ).trim() + " " +
-                                    Coords.radiansToDms( dec, 4 ).trim() )
+            .addArgument( "objstr",
+                          CoordsDegrees.degreesToHms( ra, 5 ).trim() + " " +
+                          CoordsDegrees.degreesToDms( dec, 4 ).trim() )
             .addArgument( "size", npix )
             .addArgument( "band", 
                           String.valueOf( Character.toLowerCase( band ) ) );

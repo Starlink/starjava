@@ -16,13 +16,15 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.ttools.QuickTable;
 import uk.ac.starlink.ttools.TableTestCase;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 
 public class SkyMatchTest extends TableTestCase {
 
     private final StarTable t0;
     private final StarTable t1;
     private final StarTable t2;
+    private static final double ARCSEC_PER_DEGREE = 60 * 60;
     private static int NROW = 1000;
     static {
         Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
@@ -251,7 +253,9 @@ public class SkyMatchTest extends TableTestCase {
                 tmatch2( thtmEnv, t1, "ra1 dec1", t2, "ra2 dec2" );
 
             MapEnvironment tsky3dEnv = new MapEnvironment()
-               .setValue( "params", Double.toString( tol * Coords.ARC_SECOND ) )
+               .setValue( "params",
+                          Double.toString( tol * CoordsRadians
+                                                .ARC_SECOND_RADIANS ) )
                .setValue( "matcher", "sky3d" );
             StarTable tsky3dResult =
                 tmatch2( tsky3dEnv, t1, "ra1 dec1 1", t2, "ra2 dec2 1" );
@@ -370,7 +374,7 @@ public class SkyMatchTest extends TableTestCase {
         final ColumnData ra2col = new ColumnData( ra2Info ) {
             public Object readValue( long irow ) throws IOException {
                 double theta = irow * 0.1;
-                double dist = irow / Coords.DEGREE * Coords.ARC_SECOND / 100.;
+                double dist = irow / ARCSEC_PER_DEGREE / 100.;
                 double ra1 = ((Double) ra1col.readValue( irow )).doubleValue();
                 return new Double( ra1 + Math.sin( theta ) * dist );
             }
@@ -378,7 +382,7 @@ public class SkyMatchTest extends TableTestCase {
         final ColumnData dec2col = new ColumnData( dec2Info ) {
             public Object readValue( long irow ) throws IOException {
                 double theta = irow * 0.1;
-                double dist = irow / Coords.DEGREE * Coords.ARC_SECOND / 100.;
+                double dist = irow / ARCSEC_PER_DEGREE / 100.;
                 double dec1 =((Double) dec1col.readValue( irow )).doubleValue();
                 return new Double( dec1 + Math.cos( theta ) * dist );
             }
@@ -389,9 +393,9 @@ public class SkyMatchTest extends TableTestCase {
                 double dec1 =((Double) dec1col.readValue( irow )).doubleValue();
                 double ra2 = ((Double) ra2col.readValue( irow )).doubleValue();
                 double dec2 =((Double) dec2col.readValue( irow )).doubleValue();
-                return new Double( Coords
+                return new Double( CoordsDegrees
                                   .skyDistanceDegrees( ra1, dec1, ra2, dec2 )
-                                   * Coords.DEGREE / Coords.ARC_SECOND );
+                                   * ARCSEC_PER_DEGREE );
             };
         };
         

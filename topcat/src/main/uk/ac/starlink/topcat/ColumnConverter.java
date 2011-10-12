@@ -2,7 +2,7 @@ package uk.ac.starlink.topcat;
 
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * Performs unit conversions on data values based on a given ValueInfo.
@@ -46,8 +46,8 @@ public abstract class ColumnConverter {
              Number.class.isAssignableFrom( clazz ) &&
              "radians".equalsIgnoreCase( units ) ) {
             return new ColumnConverter[] {
-                new FactorConverter( "degrees", Coords.DEGREE ),
-                new FactorConverter( "hours", Coords.HOUR ),
+                new FactorConverter( "degrees", CoordsRadians.DEGREE_RADIANS ),
+                new FactorConverter( "hours", CoordsRadians.HOUR_RADIANS ),
                 new UnitConverter( "radians" ),
             };
         }
@@ -57,7 +57,7 @@ public abstract class ColumnConverter {
                   Number.class.isAssignableFrom( clazz ) &&
                   "radians".equalsIgnoreCase( units ) ) {
             return new ColumnConverter[] {
-                new FactorConverter( "degrees", Coords.DEGREE ),
+                new FactorConverter( "degrees", CoordsRadians.DEGREE_RADIANS ),
                 new UnitConverter( "radians" ),
             };
         }
@@ -67,9 +67,12 @@ public abstract class ColumnConverter {
         else if ( Number.class.isAssignableFrom( clazz ) &&
                   "radians".equalsIgnoreCase( units ) ) {
             return new ColumnConverter[] {
-                new FactorConverter( "arcsec", Coords.ARC_SECOND ),
-                new FactorConverter( "arcmin", Coords.ARC_MINUTE ),
-                new FactorConverter( "degrees", Coords.DEGREE ),
+                new FactorConverter( "arcsec",
+                                     CoordsRadians.ARC_SECOND_RADIANS ),
+                new FactorConverter( "arcmin",
+                                     CoordsRadians.ARC_MINUTE_RADIANS ),
+                new FactorConverter( "degrees",
+                                     CoordsRadians.DEGREE_RADIANS ),
                 new UnitConverter( "radians" ),
             };
         }

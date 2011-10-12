@@ -39,13 +39,15 @@ public class CutoutSelector extends JPanel implements ItemListener {
         new CutoutService( "SuperCOSMOS All-Sky Blue", 0.67 ) {
             String displayCutout( int tableID, double ra, double dec, 
                                   int npix ) {
-                return SuperCosmos.sssCutoutBlue( ra, dec, npix );
+                return SuperCosmos.sssShowBlue( Math.toDegrees( ra ),
+                                                Math.toDegrees( dec ), npix );
             }
         },
         new CutoutService( "SuperCOSMOS All-Sky Red", 0.67 ) {
             String displayCutout( int tableID, double ra, double dec,
                                   int npix ) {
-                return SuperCosmos.sssCutoutRed( ra, dec, npix );
+                return SuperCosmos.sssShowRed( Math.toDegrees( ra ),
+                                               Math.toDegrees( dec ), npix );
             }
         },
         new TwoMassCutoutService( 'J' ),
@@ -54,8 +56,9 @@ public class CutoutSelector extends JPanel implements ItemListener {
         new CutoutService( "SDSS Colour Images", 0.4 ) {
             String displayCutout( int tableID, double ra, double dec,
                                   int npix ) {
-                return Sdss.sdssCutout( "SDSS (" + tableID + ")",
-                                        ra, dec, npix );
+                return Sdss.sdssShowCutout( "SDSS (" + tableID + ")",
+                                            Math.toDegrees( ra ),
+                                            Math.toDegrees( dec ), npix );
             }
         },
     };
@@ -288,10 +291,12 @@ public class CutoutSelector extends JPanel implements ItemListener {
         }
 
         String displayCutout( int tableID, double ra, double dec, int npix ) {
-            return TwoMass.image2Mass( "2MASS " + Character.toUpperCase( band_ )
-                                     + " (" + tableID + ")",
-                                       ra, dec, npix, 
-                                       Character.toLowerCase( band_ ) );
+            return TwoMass.showCutout2Mass( "2MASS "
+                                          + Character.toUpperCase( band_ )
+                                          + " (" + tableID + ")",
+                                            Math.toDegrees( ra ),
+                                            Math.toDegrees( dec ), npix, 
+                                            Character.toLowerCase( band_ ) );
         }
     }
 }

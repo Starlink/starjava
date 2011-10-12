@@ -35,16 +35,16 @@ public class Sdss {
      * a given number of (0.4arcsec) pixels on each side.
      *
      * @param  label  label for display window
-     * @param  ra  Right Ascension in radians
-     * @param  dec Declination in radians
+     * @param  ra  Right Ascension in degrees
+     * @param  dec Declination in degrees
      * @param  pixels  size of displayed image in SDSS pixels
      * @return  short log message
      */
-    public static String sdssCutout( String label, double ra, double dec, 
-                                     int pixels ) {
+    public static String sdssShowCutout( String label, double ra, double dec, 
+                                         int pixels ) {
         String query = new CgiQuery( SDSS_BASE_URL )
-             .addArgument( "ra", Math.toDegrees( ra ) )
-             .addArgument( "dec", Math.toDegrees( dec ) )
+             .addArgument( "ra", ra )
+             .addArgument( "dec", dec )
              .addArgument( "height", pixels )
              .addArgument( "width", pixels )
              .toString();
@@ -58,17 +58,17 @@ public class Sdss {
      * the <code>scale</code> argument.  The displayed image has 
      * <code>pixels</code> pixels along each side.
      *
-     * @param  ra  Right Ascension in radians
-     * @param  dec Declination in radians
+     * @param  ra  Right Ascension in degrees
+     * @param  dec Declination in degrees
      * @param  pixels  size of displayed image in SDSS pixels
      * @param  scale   pixel size in arcseconds
      * @return  short log message
      */
-    public static String sdssCutout( double ra, double dec, int pixels,
-                                     double scale ) {
+    public static String sdssShowCutout( double ra, double dec, int pixels,
+                                         double scale ) {
         String query = new CgiQuery( SDSS_BASE_URL )
-             .addArgument( "ra", Math.toDegrees( ra ) )
-             .addArgument( "dec", Math.toDegrees( dec ) )
+             .addArgument( "ra", ra )
+             .addArgument( "dec", dec )
              .addArgument( "height", pixels )
              .addArgument( "width", pixels )
              .addArgument( "scale", scale )
@@ -81,12 +81,12 @@ public class Sdss {
      * around a given sky position.  The displayed image is 128 pixels
      * square - a pixel is 0.4arcsec.
      *
-     * @param  ra  Right Ascension in radians
-     * @param  dec Declination in radians
+     * @param  ra  Right Ascension in degrees
+     * @param  dec Declination in degrees
      * @return  short log message
      */
-    public static String sdssCutout( double ra, double dec ) {
-        return sdssCutout( "SDSS", ra, dec, 128 );
+    public static String sdssShowCutout( double ra, double dec ) {
+        return sdssShowCutout( "SDSS", ra, dec, 128 );
     }
 
 }

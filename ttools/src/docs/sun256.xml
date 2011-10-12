@@ -1652,8 +1652,8 @@ module namespace, with unbound functions representing the functions.
 ]]></verbatim>
 or like this:
 <verbatim><![CDATA[
-    >>> from stilts import Coords
-    >>> dist = Coords.skyDistanceDegrees(ra1, dec1, ra2, dec2)
+    >>> from stilts import CoordsDegrees
+    >>> dist = CoordsDegrees.skyDistanceDegrees(ra1, dec1, ra2, dec2)
 ]]></verbatim>
 </p>
 
@@ -3568,16 +3568,16 @@ the expressions below could appear as the <code>&lt;expr&gt;</code> in a
    (double) range
 </verbatim></p></dd>
 
-<dt>Conversion from sexagesimal to radians</dt>
+<dt>Conversion from sexagesimal to degrees</dt>
 <dd><p><verbatim>
-   hmsToRadians(RA1950)
-   dmsToRadians(decDeg,decMin,decSec)
+   hmsToDegrees(RA1950)
+   dmsToDegrees(decDeg,decMin,decSec)
 </verbatim></p></dd>
 
-<dt>Conversion from radians to sexagesimal</dt>
+<dt>Conversion from degrees to sexagesimal</dt>
 <dd><p><verbatim>
-   radiansToDms(&column.id.char;3)
-   radiansToHms(RA,2)
+   degreesToDms(&column.id.char;3)
+   degreesToHms(RA,2)
 </verbatim></p></dd>
 
 <dt>Outlier clipping</dt>
@@ -3615,7 +3615,7 @@ command)
 <dt>Within a circle</dt>
 <dd><p><verbatim>
    &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
-   skyDistance(ra0,dec0,degreesToRadians(RA),degreesToRadians(DEC))&lt;15*ARC_MINUTE
+   skyDistanceDegrees(ra0,dec0,dmsToDegrees(RA),hmsToDegrees(DEC))&lt;15./3600.
 </verbatim></p></dd>
 
 <dt>First 100 rows</dt>
@@ -4134,8 +4134,8 @@ stilts coneskymatch \
        icmd='addskycoords -inunit sex fk4 fk5 RAB1950 DEB1950 RAJ2000 DEJ2000' \
        icmd='progress'
        ra=RAJ2000 dec=DEJ2000 sr=0.01 \
-       ocmd='replacecol -units rad RA hmsToRadians(RA[0],RA[1],RA[2])' \
-       ocmd='replacecol -units rad DEC dmsToRadians(DEC[0],DEC[1],DEC[2])' \
+       ocmd='replacecol -units deg RA hmsToDegrees(RA[0],RA[1],RA[2])' \
+       ocmd='replacecol -units deg DEC dmsToDegrees(DEC[0],DEC[1],DEC[2])' \
        omode=topcat
 </verbatim></dt>
 <dd><p>In this example some pre-processing of the input catalogue and
@@ -4156,7 +4156,7 @@ stilts coneskymatch \
     in a rather eccentric format, namely 3-element floating point arrays 
     representing (hours,minutes,seconds)/(degrees,minutes,seconds).
     The two <code>ocmd=replacecol...</code> filters replace the values of
-    these columns with the scalar equivalents in radians.
+    these columns with the scalar equivalents in degrees.
     Finally, the <code>omode=topcat</code> parameter causes the result
     table to be loaded directly into TOPCAT (if it is available).
     </p>
@@ -6159,32 +6159,33 @@ stilts tpipe omode=meta cmd=&indirection.char;commands.lis http://archive.org/da
 
 <dt><verbatim>
 stilts tpipe in=survey.fits 
-             cmd='select "skyDistance(hmsToRadians(RA),dmsToRadians(DEC), \
-                                      hmsToRadians(2,28,11),dmsToRadians(-6,49,45) \
-                          &lt; 5 * ARC_MINUTE"' \
+             cmd='select "skyDistanceDegrees(hmsToDegrees(RA),dmsToDegrees(DEC), \
+                                             hmsToDegrees(2,28,11),dmsToDegrees(-6,49,45) \
+                          &lt; 5./60."' \
              omode=count
 </verbatim></dt>
 <dd><p>Counts the number of rows within a given 5 arcmin 
     cone of sky in a FITS table.
-    The <code>skyDistance</code> function is an expression which
+    The <code>skyDistanceDegrees</code> function is an expression which
     calculates the distance between the position specified in a row
     (as given by its RA and DEC columns) and a given point on the sky
     (here, 02:28:11,-06:49:45).
-    Since <code>skyDistance</code>'s arguments and return value are in
-    radians, some conversions are required: the RA and DEC columns
+    Since <code>skyDistanceDegrees</code>'s arguments and return value are in
+    decimal degrees, some conversions are required: the RA and DEC columns
     are sexagesimal strings which are converted using the
-    <code>hmsToRadians</code> and <code>dmsToRadians</code> functions 
+    <code>hmsToDegrees</code> and <code>dmsToDegrees</code> functions 
     respectively.  Different versions of these functions (ones which take
     numeric arguments) are used to convert the coordinates of the fixed
-    point to radians. 
-    The result is compared to a multiple of the 
-    <code>ARC_MINUTE</code> constant, which is the size of an arcminute
-    in radians.  Any rows of the input table for which this comparison
+    point to degrees. 
+    The result is compared to a constant expression representing 5 arcminutes
+    in degrees.
+    Any rows of the input table for which this comparison
     is true are included in the output. 
-    An alternative function, <code>skyDistanceDegrees</code> which works
-    in degrees, is also available.
-    The functions and constants used here are described in detail 
-    in <ref id="uk.ac.starlink.ttools.func.Coords"/>.
+    An alternative function, <code>skyDistanceRadians</code> which works
+    in radians, is also available.
+    These functions and constants used here are described in detail in
+    <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"/> and
+    <ref id="uk.ac.starlink.ttools.func.CoordsRadians"/>.
     </p></dd>
 
 <dt><verbatim><![CDATA[
@@ -7917,6 +7918,23 @@ but my thanks are especially due to the following:
         <ref id="ErrorCartesianMatchEngine"><em>N</em><code>d_err</code></ref>,
         <ref id="EllipseCartesianMatchEngine"><code>2d_ellipse</code></ref>,
         and <ref id="EllipseSkyMatchEngine"><code>skyellipse</code></ref>.</li>
+    <li>Algebraic functions involving sky coordinates are now mostly available
+        using degrees as well as radians.
+        The <code>Coords</code> class has been replaced by
+        <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
+                                     ><code>CoordsDegrees</code></ref> and
+        <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
+                                     ><code>CoordsRadians</code></ref> classes,
+        providing sky coordinate functions,
+        and a new class
+        <ref id="uk.ac.starlink.ttools.func.TrigDegrees"
+                                     ><code>TrigDegrees</code></ref>
+        provides normal degree-based trigonometric functions
+        alongside the radian-based versions in
+        <ref id="uk.ac.starlink.ttools.func.Maths"
+                                     ><code>Maths</code></ref>.
+        Some of the old function names have changed to make clear that they
+        use radians and not degrees.</li>
     </ul>
     </p>
     </dd>

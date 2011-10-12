@@ -46,7 +46,7 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
-import uk.ac.starlink.ttools.func.Coords;
+import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * Window for selecting the characteristics of and invoking a match 
@@ -424,7 +424,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  match engine array
      */
     private static MatchEngine[] getEngines() {
-        double someAngle = Coords.ARC_SECOND;
+        double someAngle = CoordsRadians.ARC_SECOND_RADIANS;
         double someLength = 1.0;
         double[] someLengths1 = new double[ 1 ];
         double[] someLengths2 = new double[ 2 ];
