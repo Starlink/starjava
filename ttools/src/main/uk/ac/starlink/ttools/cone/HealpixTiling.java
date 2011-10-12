@@ -4,7 +4,6 @@ import gov.fnal.eag.healpix.PixTools;
 import java.util.Iterator;
 import java.util.List;
 import javax.vecmath.Vector3d;
-import uk.ac.starlink.ttools.func.Coords;
 
 /**
  * Tiling implementation based on the HEALPix scheme.
