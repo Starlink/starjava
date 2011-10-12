@@ -3615,7 +3615,7 @@ command)
 <dt>Within a circle</dt>
 <dd><p><verbatim>
    &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
-   skyDistanceDegrees(ra0,dec0,dmsToDegrees(RA),hmsToDegrees(DEC))&lt;15./3600.
+   skyDistanceDegrees(ra0,dec0,hmsToDegrees(RA),dmsToDegrees(DEC))&lt;15./3600.
 </verbatim></p></dd>
 
 <dt>First 100 rows</dt>
@@ -7918,13 +7918,13 @@ but my thanks are especially due to the following:
         <ref id="ErrorCartesianMatchEngine"><em>N</em><code>d_err</code></ref>,
         <ref id="EllipseCartesianMatchEngine"><code>2d_ellipse</code></ref>,
         and <ref id="EllipseSkyMatchEngine"><code>skyellipse</code></ref>.</li>
-    <li>Algebraic functions involving sky coordinates are now mostly available
+    <li>Algebraic functions involving angles are now mostly available
         using degrees as well as radians.
         The <code>Coords</code> class has been replaced by
         <ref id="uk.ac.starlink.ttools.func.CoordsDegrees"
                                      ><code>CoordsDegrees</code></ref> and
         <ref id="uk.ac.starlink.ttools.func.CoordsRadians"
-                                     ><code>CoordsRadians</code></ref> classes,
+                                     ><code>CoordsRadians</code></ref> classes
         providing sky coordinate functions,
         and a new class
         <ref id="uk.ac.starlink.ttools.func.TrigDegrees"
