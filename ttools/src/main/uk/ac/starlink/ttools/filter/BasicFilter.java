@@ -48,7 +48,7 @@ public abstract class BasicFilter implements ProcessingFilter {
      * <li>col-id</li>
      * <li>colid-list</li>
      * </ul>
-     * either alone or followed by a number.
+     * either alone or with some other text pre- or ap-pended.
      *
      * @param  usages  array of formal arguments to be explained
      * @return XML explanation
@@ -68,14 +68,14 @@ public abstract class BasicFilter implements ProcessingFilter {
             }
             String usage = usages[ i ];
             String refid;
-            if ( usage.startsWith( "expr" ) ||
-                 usage.startsWith( "key-list" ) ) {
+            if ( usage.contains( "expr" ) ||
+                 usage.contains( "key-list" ) ) {
                 refid = "jel";
             }
-            else if ( usage.startsWith( "col-id" ) ) {
+            else if ( usage.contains( "col-id" ) ) {
                 refid = "col-id";
             }
-            else if ( usage.startsWith( "colid-list" ) ) {
+            else if ( usage.contains( "colid-list" ) ) {
                 refid = "colid-list";
             }
             else {
