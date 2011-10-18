@@ -1,9 +1,13 @@
 package uk.ac.starlink.vo;
 
+import adql.parser.ParseException;
+import adql.parser.Token;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -21,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -30,7 +35,10 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainDocument;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -43,13 +51,16 @@ public class TapQueryPanel extends JPanel {
     private URL serviceUrl_;
     private Thread metaFetcher_;
     private Thread capFetcher_;
-    private final JTextComponent textPanel_;
+    private AdqlValidator validator_;
+    private ParseException parseError_;
+    private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
     private final JLabel countLabel_;
     private final JToggleButton syncToggle_;
     private final Action examplesAct_;
+    private final Action parseErrorAct_;
     private final AdqlExampleAction[] exampleActs_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -70,7 +81,7 @@ public class TapQueryPanel extends JPanel {
         tcapPanel_ = new TapCapabilityPanel();
 
         /* Prepare a panel to contain user-entered ADQL text. */
-        textPanel_ = new JTextArea();
+        textPanel_ = new ParseTextArea();
         textPanel_.setEditable( true );
         textPanel_.setFont( Font.decode( "Monospaced" ) );
         JComponent textScroller = new JScrollPane( textPanel_ );
@@ -80,6 +91,17 @@ public class TapQueryPanel extends JPanel {
         syncToggle_.setToolTipText( "Determines whether the TAP query will "
                                   + "be carried out in synchronous (selected) "
                                   + "or asynchronous (unselected) mode" );
+
+        /* Action to display parse error text. */
+        parseErrorAct_ = new AbstractAction( "Parse Errors" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                showParseError();
+            }
+        };
+        parseErrorAct_.putValue( Action.SHORT_DESCRIPTION,
+                                 "Show details of error parsing "
+                               + "current query ADQL text" );
+        setParseError( null );
 
         /* Action to clear text in ADQL panel. */
         final AdqlTextAction clearAct =
@@ -100,6 +122,16 @@ public class TapQueryPanel extends JPanel {
             }
             private void changed() {
                 clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
+                String text = textPanel_.getText();
+                if ( text.trim().length() > 0 ) {
+                    try {
+                        validator_.validate( text );
+                        setParseError( null );
+                    }
+                    catch ( ParseException e ) {
+                        setParseError( e );
+                    }
+                }
             }
         } );
 
@@ -133,6 +165,8 @@ public class TapQueryPanel extends JPanel {
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( syncToggle_ );
         buttLine.add( Box.createHorizontalGlue() );
+        buttLine.add( new JButton( parseErrorAct_ ) );
+        buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( clearAct ) );
@@ -327,6 +361,9 @@ public class TapQueryPanel extends JPanel {
         /* Populate table metadata JTable. */
         tmetaPanel_.setTables( tmetas );
 
+        /* Set validator. */
+        validator_ = new AdqlValidator( tmetas );
+
         /* Display number of tables. */
         String countText;
         if ( tmetas == null ) {
@@ -357,6 +394,29 @@ public class TapQueryPanel extends JPanel {
                 exAct.getExample().getText( true, lang, tcap, tables, table );
             exAct.setAdqlText( adql );
         }
+    }
+
+    /**
+     * Displays the current parse error, if any.
+     */
+    private void showParseError() {
+        if ( parseError_ != null ) {
+            Object msg = parseError_.getMessage();
+            JOptionPane.showMessageDialog( this, msg, "ADQL Parse Error",
+                                           JOptionPane.ERROR_MESSAGE );
+        }
+    }
+
+    /**
+     * Sets the parse error relating to the currently entered ADQL text,
+     * possibly null.
+     *
+     * @param  parseError  parse error or null
+     */
+    private void setParseError( ParseException parseError ) {
+        parseError_ = parseError;
+        textPanel_.setParseError( parseError );
+        parseErrorAct_.setEnabled( parseError != null );
     }
 
     /**
@@ -417,6 +477,102 @@ public class TapQueryPanel extends JPanel {
          */
         public AdqlExample getExample() {
             return example_;
+        }
+    }
+
+    /**
+     * Text area which can highlight the location of a parse error.
+     */
+    private class ParseTextArea extends JTextArea {
+
+        private Rectangle errorRect_;
+        private final Color highlighter_;
+
+        /**
+         * Constructor.
+         */
+        public ParseTextArea() {
+            super( new PlainDocument() );
+            highlighter_ = new Color( 0x40ff0000, true );
+        }
+
+        protected void paintComponent( Graphics g ) {
+            super.paintComponent( g );
+            Color col0 = g.getColor();
+            g.setColor( highlighter_ );
+            if ( errorRect_ != null ) {
+                g.fillRect( errorRect_.x, errorRect_.y,
+                            errorRect_.width, errorRect_.height );
+            }
+            g.setColor( col0 );
+        }
+
+        /**
+         * Sets the parse error whose location to highlight.
+         *
+         * @param  perr  parse error, or null if there is none
+         */
+        public void setParseError( ParseException perr ) {
+            Rectangle er = toRectangle( perr );
+            if ( ( er == null && errorRect_ != null ) ||
+                 ( er != null && ! er.equals( errorRect_ ) ) ) {
+                if ( er != null ) {
+                    repaint( er );
+                }
+                if ( errorRect_ != null ) {
+                    repaint( errorRect_ );
+                }
+            }
+            errorRect_ = er;
+        }
+
+        /**
+         * Indicates the coordinates of a rectangle on this text area
+         * corresponding to the token indicated by a parse error.
+         *
+         * @param  perr  parse error
+         * @return   rectangle coordinates of error-causing token
+         */
+        private Rectangle toRectangle( ParseException perr ) {
+            if ( perr == null ) {
+                return null;
+            }
+            Rectangle r0 =
+                toRectangle( perr.getBeginLine(), perr.getBeginColumn() );
+            Rectangle r1 =
+                toRectangle( perr.getEndLine(), perr.getEndColumn() + 1 );
+            if ( r0 == null || r1 == null ) {
+                return null;
+            }
+            else {
+                r0.add( r1 );
+                return r0;
+            }
+        }
+
+        /**
+         * Returns the coordinates of a (1d?) rectangle corresponding to
+         * a line/column position in the text document displayed by this area.
+         *
+         * @param  iline   text position line
+         * @param  icol    text position column
+         * @return   rectangle coordinates of text position
+         */
+        private Rectangle toRectangle( int iline, int icol ) {
+            if ( iline >= 0 && icol >= 0 ) {
+                Element line = getDocument().getDefaultRootElement()
+                                            .getElement( iline - 1 );
+                int pos = line.getStartOffset() + ( icol - 1 );
+                try {
+                    return modelToView( pos );
+                }
+                catch ( BadLocationException e ) {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
         }
     }
 }
