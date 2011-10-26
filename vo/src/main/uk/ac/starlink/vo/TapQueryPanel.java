@@ -165,11 +165,11 @@ public class TapQueryPanel extends JPanel {
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( syncToggle_ );
         buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( parseErrorAct_ ) );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( clearAct ) );
+        buttLine.add( Box.createHorizontalStrut( 5 ) );
+        buttLine.add( new JButton( parseErrorAct_ ) );
 
         /* Place components on ADQL panel. */
         JComponent adqlPanel = new JPanel( new BorderLayout() );

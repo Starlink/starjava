@@ -82,6 +82,7 @@
   <!ENTITY FIG.SampWindow_msgs '&figs;SampWindow_msgs.gif'>
   <!ENTITY FIG.SiapTableLoadDialog '&figs;SiapTableLoadDialog.gif'>
   <!ENTITY FIG.SsapTableLoadDialog '&figs;SsapTableLoadDialog.gif'>
+  <!ENTITY FIG.TapTableLoadDialog '&figs;TapTableLoadDialog.gif'>
   <!ENTITY FIG.TapTableLoadDialog_service
            '&figs;TapTableLoadDialog_service.gif'>
   <!ENTITY FIG.TapTableLoadDialog_query '&figs;TapTableLoadDialog_query.gif'>
@@ -11412,7 +11413,7 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 
 <figure>
 <caption><px>Table Access Protocol Window</px></caption>
-<figureimage src="&FIG.TapTableLoadDialog_query;"/>
+<figureimage src="&FIG.TapTableLoadDialog;"/>
 </figure>
 
 <p>The Table Access Protocol (TAP) load window can be opened using the
@@ -11728,6 +11729,12 @@ It has the following parts:
 <dd><p>Clicking this button clears any text currently shown in the
     text entry field.
     </p></dd>
+<dt>Parse Errors button</dt>
+<dd><p>If a syntax error is detected in the entered ADQL text, it
+    will be highlighted in the text field, and this button will be
+    enabled.  Clicking this button will show a popup window with 
+    more detail on the error.
+    </p></dd>
 <dt>Text entry field</dt>
 <dd><p>This is where you enter the text of the ADQL query you wish to make.
     The syntax of ADQL (Astronomical Data Query Language) is defined by an
@@ -11736,6 +11743,8 @@ It has the following parts:
     it is effectively a dialect of SQL, but a good way to write a query
     is to start with one of the examples from the <label>Examples</label>
     button above.
+    If any errors are detected in the syntax of the ADQL as entered,
+    they are highlighted in pink as in the figure above.
     </p></dd>
 </dl>
 </p>
@@ -11762,7 +11771,20 @@ Note the table uploaded in this way is the
 given ID number.
 </p>
 
-<p>Having entered suitable query text, 
+<p>As you enter the query text, it will be checked for syntax errors.
+If an error is found, the place in the text which appears to have caused it
+will be highlighted in pink (as in the figure above).
+To see more detail on the error, click the <label>Parse Errors</label> button.
+The checking itself is reasonably reliable, but the position of the
+highlighted error, and the text of the error message, can sometimes
+be a bit misleading, so don't take the details too seriously.
+The error highlighting is just used as a warning, you are not prevented
+from submitting a query marked as erroneous, since
+in some cases TAP services may accept ADQL which is not strictly correct,
+and in some cases the error checking may not be perfect.
+</p>
+
+<p>Having entered suitable query text,
 click the <label>OK</label> button at the bottom of the window
 to submit the job.  When you do this, one of two things will happen.
 In synchronous mode, the <ref id="LoadWindow">Load Window</ref> will appear,
@@ -12953,11 +12975,10 @@ the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
             >AIDA</webref> project (from EU FP7),
-grant ST/H008470/1 from the UK's Science and Technology Facilities Council
-(STFC),
+grants ST/H008470/1 and ST/I00176X/1 
+from the UK's Science and Technology Facilities Council (STFC),
 and the <webref url="http://www.g-vo.org/">GAVO</webref> project
-(BMBF Bewilligungsnummer 05A08VHA),
-and grant ST/I00176X/1 from STFC.
+(BMBF Bewilligungsnummer 05A08VHA).
 All of this support is gratefully acknowledged.
 </p>
 
@@ -12967,7 +12988,7 @@ although the University of Cambridge and the University of Heidelberg
 have also been involved.
 </p>
 
-<p>Inspiration for many of TOPCAT's features has been taken from the
+<p>Inspiration for some of TOPCAT's features has been taken from the
 following pre-existing tools:
 <ul>
 <li><webref url="http://cm.bell-labs.com/who/tkh/mirage/index.html"
@@ -13004,6 +13025,9 @@ functionality:
 <li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/"
             >IVOA FITS Package</webref>
     (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
+<li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
+            >ADQL</webref> (Gr&#x00e9;gory Mantelet, CDS)
+            for ADQL parsing</li>
 <li><webref url="http://browserlaunch2.sourceforge.net/"
             >BrowserLauncher2</webref> for launching default web browser</li>
 </ul>
@@ -15180,6 +15204,11 @@ introduced since the last version:
     <li>New convenience button added to Available Functions window
         which is a shortcut to display of the expression syntax in the
         Help browser.</li>
+    <li>ADQL parsing and syntax highligting has been added to the 
+        TAP load dialogue,
+        thanks to Gr&#x00e9;gory Mantelet's
+        <webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
+                >ADQL library</webref>.</li>
     </ul>
     </p></dd>
 
