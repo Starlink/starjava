@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import adql.parser.ParseException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -14,10 +15,12 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 
@@ -31,6 +34,7 @@ public class TapMapper implements TableMapper {
 
     private final URLParameter urlParam_;
     private final Parameter adqlParam_;
+    private final BooleanParameter parseParam_;
     private final BooleanParameter syncParam_;
     private final Parameter langParam_;
     private final Parameter maxrecParam_;
@@ -62,6 +66,19 @@ public class TapMapper implements TableMapper {
             "</p>",
         } );
         paramList.add( adqlParam_ );
+
+        parseParam_ = new BooleanParameter( "parse" );
+        parseParam_.setPrompt( "Perform syntax checking on ADQL?" );
+        parseParam_.setDescription( new String[] {
+            "<p>Determines whether an attempt will be made to check",
+            "the syntax of the ADQL prior to submitting the query.",
+            "If this is set true, and if a syntax error is found,",
+            "the task will fail with an error before any attempt is made",
+            "to submit the query.",
+            "</p>",
+        } );
+        parseParam_.setDefault( Boolean.FALSE.toString() );
+        paramList.add( parseParam_ );
 
         syncParam_ = new BooleanParameter( "sync" );
         syncParam_.setPrompt( "Submit query in synchronous mode?" );
@@ -128,6 +145,15 @@ public class TapMapper implements TableMapper {
             throws TaskException {
         final URL serviceUrl = urlParam_.urlValue( env );
         final String adql = adqlParam_.stringValue( env );
+        if ( parseParam_.booleanValue( env ) ) {
+            try {
+                new AdqlValidator( null ).validate( adql );
+            }
+            catch ( ParseException e ) {
+                throw new ExecutionException( "ADQL Parse error: "
+                                            + e.getMessage(), e );
+            }
+        }
         boolean sync = syncParam_.booleanValue( env );
         final Map<String,String> extraParams =
             new LinkedHashMap<String,String>();

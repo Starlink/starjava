@@ -7935,6 +7935,8 @@ but my thanks are especially due to the following:
                                      ><code>Maths</code></ref>.
         Some of the old function names have changed to make clear that they
         use radians and not degrees.</li>
+    <li>Add parameter <code>parse</code> to <code>tapquery</code> command,
+        allowing pre-send syntax checking of submitted ADQL.</li>
     </ul>
     </p>
     </dd>
