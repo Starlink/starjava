@@ -15221,6 +15221,8 @@ introduced since the last version:
         to combine array elements into a string.</li>
     <li>The <ref id="SQLTableLoadDialog">SQL Query Dialogue</ref>
         (finally) has a multi-line entry field for SQL query text.</li>
+    <li>You can now run JyStilts from the <code>topcat-*.jar</code> 
+        jar files in the same way as from <code>stilts.jar</code>.</li>
     </ul>
     </p></dd>
 

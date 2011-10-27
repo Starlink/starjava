@@ -523,6 +523,7 @@
     <zip destfile="${dist.lib.pkg}/extras.zip">
       <fileset dir="${star.bin}" includes="topcat stilts"/>
       <fileset dir="${star.dir}/source/src/etc" includes="LICENCE.txt"/>
+      <fileset dir="${star.etc}/ttools" includes="stilts.py"/>
       <fileset dir="${build.classes}">
         <include name="uk/ac/starlink/topcat/revision-string"/>
         <include name="uk/ac/starlink/ttools/revision-string"/>
