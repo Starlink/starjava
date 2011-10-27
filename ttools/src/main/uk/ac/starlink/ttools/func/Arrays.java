@@ -259,6 +259,35 @@ public class Arrays {
     }
 
     /**
+     * Returns a string composed of concatenating all the elements of an
+     * array, separated by a joiner string.
+     * If <code>array</code> is not an array, null is returned.
+     *
+     * @example <code>join(array(1.5,2.1,-3.9), "; ") = "1.5; 2.1; -3.9"</code>
+     *
+     * @param  array   array of numbers or strings
+     * @param  joiner  text string to interpose between adjacent elements
+     * @return  string composed of <code>array</code> elements separated by
+     *          <code>joiner</code> strings
+     */
+    public static String join( Object array, String joiner ) {
+        StringBuilder sbuf = new StringBuilder();
+        try {
+            int n = Array.getLength( array );
+            for ( int i = 0; i < n; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( joiner );
+                }
+                sbuf.append( Array.get( array, i ) );
+            }
+            return sbuf.toString();
+        }
+        catch ( RuntimeException e ) {
+            return null;
+        }
+    }
+
+    /**
      * Returns a numeric array built from a given element.
      *
      * @param   x1   array element 1

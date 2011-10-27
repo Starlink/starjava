@@ -7937,6 +7937,9 @@ but my thanks are especially due to the following:
         use radians and not degrees.</li>
     <li>Add parameter <code>parse</code> to <code>tapquery</code> command,
         allowing pre-send syntax checking of submitted ADQL.</li>
+    <li>Add new <code>join</code> function to 
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
+        to combine array elements into a string.</li>
     </ul>
     </p>
     </dd>

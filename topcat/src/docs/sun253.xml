@@ -15158,8 +15158,8 @@ introduced since the last version:
     <li>Add <code>-running</code> flag which loads tables specified on the
         command line into a existing instance of TOPCAT if one is already
         running.</li>
-    <li>Upgrade to JSAMP v1.3: web profile on-and-offable, will overwrite
-        moribund <code>.samp</code> file at startup.</li>
+    <li>Upgrade to JSAMP v1.3-1: web profile on by default, and on-and-offable,
+        will overwrite moribund <code>.samp</code> file at startup.</li>
     <li>Additional asymmetric match options in the Pair Match window -
         as well as the old symmetric Best Match option, you can now choose
         to do a match which identifies the best match for each row of
@@ -15172,7 +15172,7 @@ introduced since the last version:
     <li>Semantics of the <label>Sky With Errors</label> crossmatch
         criterion have changed slightly.</li>
     <li>New <label>Match Algorithms</label> have been introduced:
-        <label>N-d Cartesian with Errors</label>
+        <label>N-d Cartesian with Errors</label>,
         <label>2-d Cartesian Ellipses</label>, and
         <label>Sky Ellipses</label>.</li>
     <li>Added the experimental <code>topcat.exttools</code>
@@ -15209,6 +15209,9 @@ introduced since the last version:
         thanks to Gr&#x00e9;gory Mantelet's
         <webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
                 >ADQL library</webref>.</li>
+    <li>Add new <code>join</code> function to 
+        <ref id="Arrays">Arrays</ref> class 
+        to combine array elements into a string.</li>
     </ul>
     </p></dd>
 

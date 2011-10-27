@@ -122,6 +122,8 @@ public class FuncTest extends TestCase {
         assertEquals( 1, Arrays.median( Arrays.array( 1, 0, 0, 0, 2, 2, 2 ) ) );
         assertEquals( 1, Arrays.median( Arrays
                                        .array( 1, 1, 0, 0, 0, 2, 2, 2 ) ) );
+
+        assertEquals( "1; 2; 4", Arrays.join( new int[] { 1, 2, 4, }, "; " ) );
     }
 
     public void testConversions() {
