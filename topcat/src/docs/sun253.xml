@@ -5133,7 +5133,7 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     row order becomes the natural order of the new one.
     </p></dd>
 
-<dt>&IMG.DELETE; Discard Table</dt>
+<dt>&IMG.DELETE; Discard Table(s)</dt>
 <dd><p>Removes the current table from the list and closes and forgets any 
     view windows associated with it.  A discarded table cannot be reinstated.
     You will be prompted to confirm this action.
@@ -5143,6 +5143,8 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     where the table comes from.
     This action can also be triggered by hitting the <label>Delete</label>
     key on the keyboard when the table list has keyboard focus.
+    If multiple tables are selected at the same time, you will be
+    prompted to remove them all.
     </p></dd>
 
 <dt>&IMG.UP; Move Table Up</dt>
@@ -15223,6 +15225,8 @@ introduced since the last version:
         (finally) has a multi-line entry field for SQL query text.</li>
     <li>You can now run JyStilts from the <code>topcat-*.jar</code> 
         jar files in the same way as from <code>stilts.jar</code>.</li>
+    <li>The <label>File|Discard Table</label> action in the Control Window can
+        now remove multiple tables at once if more than one is selected.</li>
     </ul>
     </p></dd>
 

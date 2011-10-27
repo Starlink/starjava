@@ -191,6 +191,7 @@ public class ControlWindow extends AuxWindow
     private SiaMultiWindow multisiaWindow_;
     private SsaMultiWindow multissaWindow_;
     private ExtApp extApp_;
+    private TopcatModel currentModel_;
 
     private final JTextField idField_ = new JTextField();
     private final JLabel indexLabel_ = new JLabel();
@@ -327,8 +328,9 @@ public class ControlWindow extends AuxWindow
         }
 
         /* Set up actions. */
-        removeAct_ = new ControlAction( "Discard Table", ResourceIcon.DELETE,
-                                        "Forget about the current table" );
+        removeAct_ = new ControlAction( "Discard Table(s)", ResourceIcon.DELETE,
+                                        "Remove the selected table or tables "
+                                      + "from the application" );
         readAct_ = new ControlAction( "Load Table", ResourceIcon.LOAD,
                                       "Open a new table" );
         saveAct_ = new ControlAction( "Save Table(s)/Session",
@@ -893,7 +895,27 @@ public class ControlWindow extends AuxWindow
      * @return  selected model
      */
     public TopcatModel getCurrentModel() {
-        return (TopcatModel) tablesList_.getSelectedValue();
+        return currentModel_;
+    }
+
+    /**
+     * Returns an array of all selected tables.
+     * This is not widely used - for most purposes it is assumed that only
+     * a maximum of one table is selected.  However, it turns out that
+     * it's always been possible to select multiple tables, and this
+     * can be used when deleting multiple tables.
+     * Possibly this method may get withdrawn in the future, so think
+     * carefully before using it.
+     *
+     * @return   array of selected tables
+     */
+    private TopcatModel[] getSelectedModels() {
+        Object[] selObjs = tablesList_.getSelectedValues();
+        TopcatModel[] selModels = new TopcatModel[ selObjs.length ];
+        for ( int i = 0; i < selObjs.length; i++ ) {
+            selModels[ i ] = (TopcatModel) selObjs[ i ];
+        }
+        return selModels;
     }
 
     /**
@@ -1279,34 +1301,25 @@ public class ControlWindow extends AuxWindow
      */
 
     public void valueChanged( ListSelectionEvent evt ) {
-        int watchCount = 0;
-        int first = evt.getFirstIndex();
-        int last = evt.getLastIndex();
-        if ( first < 0 || last < 0 ) {
-            first = 0;
-            last = tablesModel_.size() - 1;
-        }
-        for ( int i = first; i <= last; i++ ) {
-            if ( i < tablesModel_.size() ) {
-                TopcatModel tcModel = (TopcatModel) 
-                                      tablesModel_.getElementAt( i );
-                ViewerTableModel viewModel = tcModel.getViewModel();
-                TableColumnModel columnModel = tcModel.getColumnModel();
-                if ( tablesList_.isSelectedIndex( i ) ) {
-                    watchCount++;
-                    tcModel.addTopcatListener( topcatWatcher_ );
-                    viewModel.addTableModelListener( tableWatcher_ );
-                    columnModel.addColumnModelListener( columnWatcher_ );
-                }
-                else {
-                    tcModel.removeTopcatListener( topcatWatcher_ );
-                    viewModel.removeTableModelListener( tableWatcher_ );
-                    columnModel.removeColumnModelListener( columnWatcher_ );
-                }
+        TopcatModel nextModel = getCurrentModel();
+        if ( nextModel != currentModel_ ) {
+            if ( currentModel_ != null ) {
+                currentModel_.removeTopcatListener( topcatWatcher_ );
+                currentModel_.getViewModel()
+                             .removeTableModelListener( tableWatcher_ );
+                currentModel_.getColumnModel()
+                             .removeColumnModelListener( columnWatcher_ );
             }
+            currentModel_ = nextModel;
+            if ( currentModel_ != null ) {
+                currentModel_.addTopcatListener( topcatWatcher_ );
+                currentModel_.getViewModel()
+                             .addTableModelListener( tableWatcher_ );
+                currentModel_.getColumnModel()
+                             .addColumnModelListener( columnWatcher_ );
+            }
+            updateInfo();
         }
-        assert watchCount <= 1;
-        updateInfo();
     }
 
     public void tableChanged( TableModelEvent evt ) {
@@ -1463,10 +1476,27 @@ public class ControlWindow extends AuxWindow
                 getSaver().makeVisible();
             }
             else if ( this == removeAct_ ) {
-                TopcatModel tcModel = getCurrentModel();
-                if ( confirm( "Remove table \"" + tcModel + "\" from list?",
-                              "Confirm Remove" ) ) {
-                    removeTable( tcModel );
+                TopcatModel[] tcModels = getSelectedModels();
+                int nt = tcModels.length;
+                if ( nt == 0 ) {
+                    return;
+                }
+                final Object msg;
+                if ( nt == 1 ) {
+                    msg = "Remove table " + tcModels[ 0 ] + " from list?";
+                }
+                else {
+                    List msgList = new ArrayList();
+                    msgList.add( "Remove tables from list?" );
+                    for ( int i = 0; i < nt; i++ ) {
+                        msgList.add( "    " + tcModels[ i ] );
+                    }
+                    msg = msgList.toArray( new String[ 0 ] );
+                }
+                if ( confirm( msg, "Confirm Remove" ) ) {
+                    for ( int i = 0; i < nt; i++ ) {
+                        removeTable( tcModels[ i ] );
+                    }
                 }
             }
             else if ( this == concatAct_ ) {

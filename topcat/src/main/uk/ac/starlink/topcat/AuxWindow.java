@@ -388,7 +388,7 @@ public class AuxWindow extends JFrame {
      * @param  title    confirmation window title
      * @return  true  iff the user provides positive confirmation
      */
-    public boolean confirm( String message, String title ) {
+    public boolean confirm( Object message, String title ) {
         return JOptionPane.showConfirmDialog( this, message, title,
                                               JOptionPane.OK_CANCEL_OPTION )
             == JOptionPane.OK_OPTION;
