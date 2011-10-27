@@ -2,6 +2,7 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.io.IOException;
 import java.sql.Connection;
@@ -9,11 +10,17 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Box;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
 import uk.ac.starlink.table.jdbc.Connector;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
@@ -30,7 +37,7 @@ public class SQLPanel extends JPanel {
     private JComboBox protoField;
     private JComboBox hostField;
     private JTextField dbField;
-    private JTextField refField;
+    private JTextComponent refField;
     private JTextField tableField;
     private JTextField userField;
     private JPasswordField passField;
@@ -43,11 +50,13 @@ public class SQLPanel extends JPanel {
      * part of the URL (the part after the '#' character).
      *
      * @param   refString  the string used for annotating
+     * @param   refArea  true to use a multi-line text area for the ref field,
+     *                   false for a one-line field
      */
-    public SQLPanel( String refString ) {
+    public SQLPanel( String refString, boolean refArea ) {
         super( new BorderLayout() );
         stack = new LabelledComponentStack();
-        add( stack, BorderLayout.CENTER );
+        add( stack, BorderLayout.NORTH );
         Font inputFont = stack.getInputFont();
 
         /* Protocol input field. */
@@ -69,10 +78,10 @@ public class SQLPanel extends JPanel {
 
         /* Database field. */
         dbField = new JTextField( 12 );
-        stack.addLine( "Dababase name", "/", dbField );
+        stack.addLine( "Database name", "/", dbField );
 
-        /* Reference field. */ 
-        if ( refString != null ) {
+        /* Reference field in the one-line case. */ 
+        if ( ! refArea ) {
             refField = new JTextField( 32 );
             stack.addLine( refString, "#", refField );
         }
@@ -85,6 +94,21 @@ public class SQLPanel extends JPanel {
         /* Password input field. */
         passField = new JPasswordField( 12 );
         stack.addLine( "Password", null, passField );
+
+        /* Reference field in the multi-line case. */
+        if ( refArea ) {
+            JComponent refHolder = new JPanel( new BorderLayout() );
+            Box labelBox = Box.createVerticalBox();
+            labelBox.add( new JLabel( refString + ": # " ) );
+            labelBox.add( Box.createVerticalGlue() );
+            refHolder.add( labelBox, BorderLayout.WEST );
+            refField = new JTextArea();
+            refField.setFont( Font.decode( "Monospaced" ) );
+            refHolder.add( Box.createVerticalStrut( 5 ), BorderLayout.NORTH );
+            refHolder.add( new JScrollPane( refField ), BorderLayout.CENTER );
+            refHolder.setPreferredSize( new Dimension( 400, 100 ) );
+            add( refHolder, BorderLayout.CENTER );
+        }
     }
 
     /**

@@ -33,7 +33,7 @@ public class SQLWriteDialog extends JPanel implements TableSaveDialog {
      */
     public SQLWriteDialog() {
         super( new BorderLayout() );
-        sqlPanel_ = new SQLPanel( "Write New SQL Table" );
+        sqlPanel_ = new SQLPanel( "Write New SQL Table", false );
         add( sqlPanel_, BorderLayout.CENTER );
         modeSelector_ = new JComboBox( WriteMode.getAllModes() );
         modeSelector_.setSelectedItem( WriteMode.CREATE );

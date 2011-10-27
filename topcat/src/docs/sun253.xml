@@ -8931,15 +8931,6 @@ up the query, as follows:
 <dd><p>The name of the database.
     </p></dd>
 
-<dt>SQL Query</dt>
-<dd><p>The text of the query which will define the resulting table.
-    If you want to look at a table named XXX as it exists in the database,
-    you can write something like "<code>SELECT * from XXX</code>".
-    In principle any SQL query on the database can be used here,
-    but the details of what SQL syntax is permitted will be defined
-    by the JDBC driver you are using.
-    </p></dd>
-
 <dt>User name</dt>
 <dd><p>The username under which you wish to access the database.
     This is not strictly necessary if there is no access control for
@@ -8950,6 +8941,15 @@ up the query, as follows:
 <dd><p>The password for the given username.  Again, whether this is
     necessary depends on the access policy of the database.
     </p></dd>
+
+<dt>SQL Query</dt>
+<dd><p>The text of the query which will define the resulting table.
+    If you want to look at a table named XXX as it exists in the database,
+    you can write something like "<code>SELECT * from XXX</code>".
+    In principle any SQL query on the database can be used here,
+    but the details of what SQL syntax is permitted may be restricted
+    by the JDBC driver you are using.
+    </p></dd>
 </dl>
 </p>
 
@@ -8957,6 +8957,13 @@ up the query, as follows:
 access to work within TOPCAT (installation of appropriate drivers
 and so on) - see <ref id="jdbcConfig"/>.  If you don't take
 these steps, this dialogue may be inaccessible.
+</p>
+
+<p>The way that this dialogue contacts the database makes some assumptions
+about how the JDBC driver works which are not always true,
+so for some databases and drivers it may not be possible to get it to work.
+It may be improved in the future; if you have particular problems,
+please contact the author or the mailing list.
 </p>
 
 </subsubsect>
@@ -15212,6 +15219,8 @@ introduced since the last version:
     <li>Add new <code>join</code> function to 
         <ref id="Arrays">Arrays</ref> class 
         to combine array elements into a string.</li>
+    <li>The <ref id="SQLTableLoadDialog">SQL Query Dialogue</ref>
+        (finally) has a multi-line entry field for SQL query text.</li>
     </ul>
     </p></dd>
 

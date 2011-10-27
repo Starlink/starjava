@@ -42,7 +42,7 @@ public class SQLTableLoadDialog extends AbstractTableLoadDialog {
     }
 
     protected Component createQueryComponent() {
-        sqlPanel_ = new SQLPanel( "SQL Query" );
+        sqlPanel_ = new SQLPanel( "SQL Query", true );
         sqlPanel_.useAuthenticator( authenticator_ );
         return sqlPanel_;
     }
