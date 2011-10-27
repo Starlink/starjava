@@ -15227,6 +15227,8 @@ introduced since the last version:
         jar files in the same way as from <code>stilts.jar</code>.</li>
     <li>The <label>File|Discard Table</label> action in the Control Window can
         now remove multiple tables at once if more than one is selected.</li>
+    <li>TAP load dialogue uses modified upload ID as per most recent 
+        TAPRegExt draft.</li>
     </ul>
     </p></dd>
 

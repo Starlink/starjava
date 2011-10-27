@@ -34,7 +34,8 @@ public abstract class TapCapability {
      * for instance the HTTP upload capability is indicated by the
      * string <code>TapCapability.UPLOADS_URL+"http"</code>.
      */ 
-    public static final String UPLOADS_URI = "ivo://ivoa.net/TAPRegExt#upload-";
+    public static final String UPLOADS_URI =
+        "ivo://ivoa.net/std/TAPRegExt#upload-";
 
     /**
      * Returns an array of upload methods known by this capability.

@@ -7940,6 +7940,8 @@ but my thanks are especially due to the following:
     <li>Add new <code>join</code> function to 
         <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
         to combine array elements into a string.</li>
+    <li><code>taplint</code> uses modified upload ID as per most recent
+        TAPRegExt draft.</li>
     </ul>
     </p>
     </dd>
