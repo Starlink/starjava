@@ -7902,7 +7902,7 @@ but my thanks are especially due to the following:
             in table A, and in crowded fields often provide more intuitive
             semantics than the previous symmetric <code>best</code> option
             (in non-crowded fields there is generally no difference).
-            The correspond to the matching performed by some other tools,
+            This replicates the matching performed by some other tools,
             including Aladin.</li>
         <li>New matchers have been added to permit matching of general
             elliptical, rather than just circular, regions in both planar
