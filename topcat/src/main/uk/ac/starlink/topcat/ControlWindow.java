@@ -1301,7 +1301,7 @@ public class ControlWindow extends AuxWindow
      */
 
     public void valueChanged( ListSelectionEvent evt ) {
-        TopcatModel nextModel = getCurrentModel();
+        TopcatModel nextModel = (TopcatModel) tablesList_.getSelectedValue();
         if ( nextModel != currentModel_ ) {
             if ( currentModel_ != null ) {
                 currentModel_.removeTopcatListener( topcatWatcher_ );
