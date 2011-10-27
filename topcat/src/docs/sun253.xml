@@ -126,7 +126,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>9 May 2011</docdate>
+<docdate>27 October 2011</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -15130,106 +15130,147 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 3.9 (27 October 2011)</dt>
 <dd><p>
-    <ul>
-    <li>Fixed a significant bug in sky crossmatching.  
-        If all points in a table were on one side of the RA=0 line, 
-        but the error radius extended across that line, matches on the 
-        other side could be missed.  Matches could also be missed if 
-        different tables used different conventional ranges for RA 
-        (e.g. -180..180 in one case and 0..360 in another).
-        This fix may in some, but not most, cases result in slower matching
-        than previously.
-        </li>
-    <li>ASCII table parsers now understand python-friendly
-        <code>nan</code> and <code>inf</code> representations.</li>
-    <li>Add "Delete On Exit" checkbox to Running Jobs tab of TAP load
-        dialogue.  Jobs are now created by default with Delete On Exit
-        set true (you can change the default with the Deletion menu).</li>
-    <li>Added new constants to expression language
-        <code>POSITIVE_INFINITY</code>, 
-        <code>NEGATIVE_INFINITY</code> and 
-        <code>NaN</code>.</li>
-    <li>Fix cone search verbosity parameter so that VERB=3 is not erroneously
-        ignored.</li>
-    <li>A PARAMref element with no referent in a VOTable 
-        no longer causes an uncaught NullPointerException.</li>
-    <li>Improved some issues (reporting wrong row subset counts and membership)
-        related to changing subset definitions.</li>
-    <li>Fix a small bug related to enabledness of buttons in control
-        window and hub connection.</li>
-    <li>Improve resilience of multi-cone operation in the presence of
-        unreliable or inconsistent DAL services.</li>
-    <li>Fix bug introduced at v3.7 related to labelling loaded files
-        (improper handling and propagation of <code>LOAD_SOURCE</code>
-        table parameter).</li>
-    <li>Add <code>-running</code> flag which loads tables specified on the
-        command line into a existing instance of TOPCAT if one is already
-        running.</li>
-    <li>Upgrade to JSAMP v1.3-1: web profile on by default, and on-and-offable,
-        will overwrite moribund <code>.samp</code> file at startup.</li>
-    <li>Additional asymmetric match options in the Pair Match window -
-        as well as the old symmetric Best Match option, you can now choose
-        to do a match which identifies the best match for each row of
-        one or the other input table
-        (see <ref id="matchRowSelect">Output Rows Selector Box</ref>).
-        This can save a lot of trouble in crowded fields.</li>
-    <li>Add experimental system properties
-        <code>star.basicauth.user</code> and
-        <code>star.basicauth.password</code>.</li>
-    <li>Semantics of the <label>Sky With Errors</label> crossmatch
-        criterion have changed slightly.</li>
-    <li>New <label>Match Algorithms</label> have been introduced:
-        <label>N-d Cartesian with Errors</label>,
-        <label>2-d Cartesian Ellipses</label>, and
-        <label>Sky Ellipses</label>.</li>
-    <li>Added the experimental <code>topcat.exttools</code>
-        <ref id="jvmProperties">system property</ref>
-        for custom tools.</li>
-    <li>Fix obscure bug which could cause the wrong cell to be edited if
-        a sort interrupts an edit.</li>
-    <li>Add <label>To Browser</label> button to Help Window - this displays
-        the currently displayed help page in your normal web browser.</li>
-    <li>You can now change the column order of a table by dragging
-        rows up and down in the Columns Window.</li>
-    <li>TAP queries are now synchronous by default
-        (the <label>Synchronous</label> checkbox is checked by default).</li>
-    <li>Algebraic functions involving angles are now mostly available
-        using degrees as well as radians.
-        The <code>Coords</code> class has been replaced by
-        <ref id="CoordsDegrees"><code>CoordsDegrees</code></ref> and
-        <ref id="CoordsRadians"><code>CoordsRadians</code></ref> classes
-        providing sky coordinate functions,
-        and a new class
-        <ref id="TrigDegrees"><code>TrigDegrees</code></ref>
-        provides normal degree-based trigonometric functions
-        alongside the radian-based versions in
-        <ref id="Maths"><code>Maths</code></ref>.
-        The functions in the various activation action classes now take
-        degrees and not radians.
-        Some of the old function names have changed to make clear that they
-        use radians and not degrees.</li>
-    <li>New convenience button added to Available Functions window
-        which is a shortcut to display of the expression syntax in the
-        Help browser.</li>
-    <li>ADQL parsing and syntax highligting has been added to the 
-        TAP load dialogue,
-        thanks to Gr&#x00e9;gory Mantelet's
-        <webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
-                >ADQL library</webref>.</li>
-    <li>Add new <code>join</code> function to 
-        <ref id="Arrays">Arrays</ref> class 
-        to combine array elements into a string.</li>
-    <li>The <ref id="SQLTableLoadDialog">SQL Query Dialogue</ref>
-        (finally) has a multi-line entry field for SQL query text.</li>
-    <li>You can now run JyStilts from the <code>topcat-*.jar</code> 
-        jar files in the same way as from <code>stilts.jar</code>.</li>
-    <li>The <label>File|Discard Table</label> action in the Control Window can
-        now remove multiple tables at once if more than one is selected.</li>
-    <li>TAP load dialogue uses modified upload ID as per most recent 
-        TAPRegExt draft.</li>
-    </ul>
+    <dl>
+    <dt>Crossmatching:</dt>
+    <dd><p>
+        <ul>
+        <li>Additional asymmetric match options have been added to
+            the Pair Match window -
+            as well as the old symmetric Best Match option, you can now choose
+            to do a match which identifies the best match for each row of
+            one or the other input table
+            (see <ref id="matchRowSelect">Output Rows Selector Box</ref>).
+            They correspond to finding the best match in table B for each row
+            in table A, and in crowded fields often provide more intuitive
+            semantics than the previous symmetric <code>best</code> option
+            (in non-crowded fields there is generally no difference).
+            This replicates the matching performed by some other tools,
+            including Aladin.</li>
+        <li>New <ref id="matchCriteria">Match Algorithms</ref>,
+            <label>2-d Cartesian Ellipses</label> and
+            <label>Sky Ellipses</label>,
+            have been introduced to permit matching of general
+            elliptical, rather than just circular, regions in both planar
+            and sky coordinates.
+            Another, <label>N-d Cartesian with Errors</label>,
+            has been added for dealing with per-object errors
+            in Cartesian coordinates (previously per-object errors
+            could only be handled in sky coords).</li>
+        <li>Fixed a significant bug in sky crossmatching.  
+            If all points in a table were on one side of the RA=0 line, 
+            but the error radius extended across that line, matches on the 
+            other side could be missed.  Matches could also be missed if 
+            different tables used different conventional ranges for RA 
+            (e.g. -180..180 in one case and 0..360 in another).
+            This fix may in some, but not most, cases result in slower matching
+            than previously.</li>
+        <li>Semantics of the <label>Sky With Errors</label> match
+            algorithm have changed slightly.</li>
+        </ul>
+        </p></dd>
+    <dt>Notable usability improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>You can now change the column order of a table by dragging
+            the rows up and down in the 
+            <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>Algebraic functions involving angles are now mostly available
+            using degrees as well as radians.
+            The <code>Coords</code> class has been replaced by
+            <ref id="CoordsDegrees"><code>CoordsDegrees</code></ref> and
+            <ref id="CoordsRadians"><code>CoordsRadians</code></ref> classes
+            providing sky coordinate functions,
+            and a new class
+            <ref id="TrigDegrees"><code>TrigDegrees</code></ref>
+            provides normal degree-based trigonometric functions
+            alongside the radian-based versions in
+            <ref id="Maths"><code>Maths</code></ref>.
+            The functions in the various activation action classes now take
+            degrees and not radians.
+            Some of the old function names have changed to make clear that they
+            use radians and not degrees.</li>
+        <li>The <label>File|Discard Table</label> action in the
+            Control Window can now remove multiple tables at once if
+            more than one is selected.</li>
+        <li>ADQL parsing and syntax highligting has been added to the 
+            TAP load dialogue,
+            thanks to Gr&#x00e9;gory Mantelet's
+            <webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
+                    >ADQL library</webref>.</li>
+        <li>TAP queries are now synchronous by default
+            (the <label>Synchronous</label> checkbox is now checked
+            by default).</li>
+        <li>The <ref id="SQLTableLoadDialog">SQL Query Dialogue</ref>
+            (finally) has a multi-line entry field for SQL query text.</li>
+        <li>Add <label>To Browser</label> button to Help Window - this displays
+            the currently displayed help page in your normal web browser.</li>
+        <li>New convenience button added to Available Functions window
+            which is a shortcut to display of the expression syntax in the
+            Help browser.</li>
+        </ul>
+        </p></dd>
+    <dt>Other upgrades and enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>JSAMP has been upgraded to version 1.3-1.
+            The main change is that the Web Profile is now enabled by default
+            in the SAMP hub that TOPCAT launches.
+            There are also more options in the Hub menus,
+            and it will overwrite any moribund <code>.samp</code> file at
+            startup, which <em>should</em> eliminate annoying persistent
+            "404 No handler for URL" warnings.
+            </li>
+        <li>Add <label>Delete On Exit</label> checkbox to 
+            Running Jobs tab of TAP load dialogue.
+            Jobs are now created by default with Delete On Exit
+            set true (you can change the default with the Deletion menu).</li>
+        <li>You can now run JyStilts from the <code>topcat-*.jar</code> 
+            jar files in the same way as from <code>stilts.jar</code>.</li>
+        <li>Add experimental system properties
+            <code>star.basicauth.user</code> and
+            <code>star.basicauth.password</code>.</li>
+        <li>Added the experimental <code>topcat.exttools</code>
+            <ref id="jvmProperties">system property</ref> to allow 
+            custom tools to be added to the main toolbar at runtime.</li>
+        <li>Improve resilience of multi-cone operation in the presence of
+            unreliable or inconsistent DAL services.</li>
+        <li>Added new constants to expression language
+            <code>POSITIVE_INFINITY</code>, 
+            <code>NEGATIVE_INFINITY</code> and 
+            <code>NaN</code>.</li>
+        <li>Add <code>-running</code> flag which loads tables specified on the
+            command line into a existing instance of TOPCAT if one is already
+            running.</li>
+        <li>Add new <code>join</code> function to 
+            <ref id="Arrays">Arrays</ref> class 
+            to combine array elements into a string.</li>
+        <li>TAP load dialogue uses modified upload ID as per most recent 
+            TAPRegExt draft.  This may cause some TAP services incorrectly
+            to appear not to support uploads if they have not made a
+            similar update.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Improved some issues (reporting wrong row subset counts
+            and membership) related to changing subset definitions.</li>
+        <li>Fix cone search verbosity parameter so that VERB=3 is not
+            erroneously ignored.</li>
+        <li>Fix bug introduced at v3.7 related to labelling loaded files
+            (improper handling and propagation of <code>LOAD_SOURCE</code>
+            table parameter).</li>
+        <li>A PARAMref element with no referent in a VOTable 
+            no longer causes an uncaught NullPointerException.</li>
+        <li>Fix a small bug related to enabledness of buttons in control
+            window and hub connection.</li>
+        <li>Work round an obscure java misfeature which could cause
+            the wrong cell to be edited if a sort interrupts an edit.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
