@@ -468,19 +468,41 @@ public class Driver {
         }
 
         /* Anything after this point does not delay GUI startup. */
+        final StartupConfig config = new StartupConfig();
+        config.interopServe_ = interopServe;
+        config.internalHub_ = internalHub;
+        config.externalHub_ = externalHub;
+        config.noHub_ = noHub;
+        config.checkVersion_ = checkVersion;
+        Thread extraThread = new Thread( "Non-critical Startup" ) {
+            public void run() {
+                extraStartupFunctions( config );
+            }
+        };
+        extraThread.setDaemon( true );
+        extraThread.start();
+    }
        
+    /**
+     * Performs startup functions which do not need to complete before
+     * the main application is ready for use.
+     *
+     * @param  config  configuration options
+     */
+    private static void extraStartupFunctions( StartupConfig config ) {
+
         /* Start up remote services. */
-        if ( interopServe ) {
+        if ( config.interopServe_ ) {
             TopcatCommunicator communicator =
                 getControlWindow().getCommunicator();
 
             /* Start SAMP/PLASTIC hub if requested. */
             try {
-                if ( internalHub || externalHub ) {
-                    boolean isExternal = externalHub;
+                if ( config.internalHub_ || config.externalHub_ ) {
+                    boolean isExternal = config.externalHub_;
                     communicator.startHub( isExternal );
                 }
-                else if ( ! noHub ) {
+                else if ( ! config.noHub_ ) {
                     communicator.maybeStartHub();
                 }
             }
@@ -502,7 +524,7 @@ public class Driver {
         }
 
         /* Investigate whether we have a recent version. */
-        if ( checkVersion ) {
+        if ( config.checkVersion_ ) {
             TopcatUtils.enquireLatestVersion();
         }
     }
@@ -788,6 +810,17 @@ public class Driver {
             logger.warning( "Logging configuration failed" +
                             " - security exception" );
         }
+    }
+
+    /**
+     * Defines configuration options for non-critical startup functions.
+     */
+    private static class StartupConfig {
+        boolean interopServe_;
+        boolean internalHub_;
+        boolean externalHub_;
+        boolean noHub_;
+        boolean checkVersion_;
     }
 
     /**
