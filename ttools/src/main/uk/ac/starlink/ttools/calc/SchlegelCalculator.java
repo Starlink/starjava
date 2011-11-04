@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.calc;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,18 +91,36 @@ public class SchlegelCalculator
                     colInfos[ ic ] = new ColumnInfo( resultInfos[ ic ] );
                 }
                 StarTable meta = new MetadataStarTable( colInfos );
-                DescribedValue srcParam =
-                    new DescribedValue( new DefaultValueInfo( "Schlegel_Source",
-                                                              String.class,
-                                                              null ),
-                                        "Schlegel parameters from "
-                                      + SERVICE_URL );
-                meta.getParameters().add( srcParam );
+                meta.getParameters()
+                    .addAll( Arrays.asList( createServiceParams() ) );
                 return meta;
             }
             public Object[] calculateRow( Object[] tuple ) throws IOException {
                 return spec.calculateRow( tuple );
             }
+        };
+    }
+
+    /**
+     * Return fixed information associated with results from the IPAC service.
+     */
+    private static DescribedValue[] createServiceParams() {
+        return new DescribedValue[] {
+            new DescribedValue(
+                new DefaultValueInfo( "Schlegel_Service", String.class, null ),
+                "Schlegel parameters from " + SERVICE_URL ),
+            new DescribedValue(
+                new DefaultValueInfo( "Schlegel_Paper", String.class, null ),
+                "D.J. Schlegel, D.P. Finkbeiner, & M. Davis "
+              + "(1998, ApJ, 500, 525)" ),
+            new DescribedValue(
+                new DefaultValueInfo( "IPAC_Acknowledgement", String.class,
+                                      null ),
+                "This research has made use of "
+              + "the NASA/IPAC Infrared Science Archive, which is operated by "
+              + "the Jet Propulsion Laboratory, "
+              + "California Institute of Technology, under contract with "
+              + "the National Aeronautics and Space Administration." ),
         };
     }
 
