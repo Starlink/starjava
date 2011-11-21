@@ -639,6 +639,7 @@ public class TopcatSampControl {
                 label += ":" + tableName;
             }
             final String label1 = label;
+            final String tname1 = tableName;
             TableLoader loader = new TableLoader() {
                 public String getLabel() {
                     return label1;
@@ -647,6 +648,9 @@ public class TopcatSampControl {
                         throws IOException {
                     StarTable table = tfact.makeStarTable( datsrc, format );
                     String srcName = senderName;
+                    if ( tname1 != null ) {
+                        table.setName( tname1 );
+                    }
                     String tname = table.getName();
                     if ( tname != null && tname.trim().length() > 0 ) {
                         srcName += ":" + tname;

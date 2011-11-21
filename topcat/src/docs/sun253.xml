@@ -15273,6 +15273,14 @@ introduced since the last version:
     </dl>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Fixed SAMP table loads to honour "name" parameter.</li>
+    </ul>
+    </p>
+    </dd>
+
 </dl>
 </p>
 
