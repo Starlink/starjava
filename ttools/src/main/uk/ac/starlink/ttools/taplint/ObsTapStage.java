@@ -1,14 +1,22 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.net.URL;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 
+/**
+ * Validation stage for testing ObsCore data model metadata and content.
+ *
+ * @author   Mark Taylor
+ * @since    24 Nov 2011
+ * @see <a href="http://www.ivoa.net/Documents/ObsCore/index.html"
+ *         >IVOA Observation Data Model</a>
+ */
 public class ObsTapStage implements Stage {
 
     private final TapRunner tapRunner_;
@@ -21,6 +29,13 @@ public class ObsTapStage implements Stage {
     private static Map<String,ObsCol> mandatoryColumnMap_;
     private static Map<String,ObsCol> optionalColumnMap_;
 
+    /**
+     * Constructor.
+     *
+     * @param   tapRunner  runs TAP queries
+     * @param   capHolder  provides capability metadata at runtime
+     * @param   metaHolder provides table metadata at runtime
+     */
     public ObsTapStage( TapRunner tapRunner, CapabilityHolder capHolder,
                         MetadataHolder metaHolder ) {
         tapRunner_ = tapRunner;
@@ -29,10 +44,12 @@ public class ObsTapStage implements Stage {
     }
 
     public String getDescription() {
-        return "Tests implementation of ObsCore DM";
+        return "Tests implementation of ObsCore Data Model";
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
+
+        /* Check prerequisites. */
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null ) {
             String[] dms = tcap.getDataModels();
@@ -51,6 +68,8 @@ public class ObsTapStage implements Stage {
                            + " (earlier stages failed/skipped?)" );
             return;
         }
+
+        /* Get ObsCore table if present. */
         TableMeta obsMeta = null;
         for ( int im = 0; im < tmetas.length; im++ ) {
             TableMeta tmeta = tmetas[ im ];
@@ -63,14 +82,19 @@ public class ObsTapStage implements Stage {
                              "No table with name " + OBSCORE_TNAME );
             return;
         }
+
+        /* Run tests. */
         new ObsTapRunner( reporter, serviceUrl, obsMeta, tapRunner_ ).run();
     }
 
+    /**
+     * Does the work for running tests on ObsCore table.
+     */
     private static class ObsTapRunner implements Runnable {
         private final Reporter reporter_;
         private final URL serviceUrl_;
-        private final TableMeta obsMeta_;
         private final TapRunner tRunner_;
+        private final Map<String,ColumnMeta> gotColMap_;
         private final Map<String,ObsCol> reqColMap_;
         private final Map<String,ObsCol> optColMap_;
 
@@ -79,13 +103,14 @@ public class ObsTapStage implements Stage {
          *
          * @param  reporter  validation message destination
          * @param  serviceUrl  TAP base URL
+         * @param  obsMeta   table metadata for ivoa.ObsCore table
          * @param  tapRunner  runs TAP queries
          */
         ObsTapRunner( Reporter reporter, URL serviceUrl, TableMeta obsMeta,
                       TapRunner tapRunner ) {
             reporter_ = reporter;
             serviceUrl_ = serviceUrl;
-            obsMeta_ = obsMeta;
+            gotColMap_ = toMap( obsMeta.getColumns() );
             tRunner_ = tapRunner;
             reqColMap_ = getMandatoryColumns();
             optColMap_ = getOptionalColumns();
@@ -95,12 +120,110 @@ public class ObsTapStage implements Stage {
          * Runs the test.
          */
         public void run() {
-            for ( Iterator<String> it = reqColMap_.keySet().iterator();
-                 it.hasNext(); ) {
+
+            /* Check column metadata for required columns. */
+            int nreq = 0;
+            for ( String reqName : reqColMap_.keySet() ) {
+                ObsCol reqCol = reqColMap_.get( reqName );
+                ColumnMeta gotCol = gotColMap_.get( reqName );
+                if ( gotCol != null ) {
+                    compareCols( reqCol, gotCol );
+                    nreq++;
+                }
+                else {
+                    String msg = new StringBuffer()
+                       .append( "Required ObsCore column " )
+                       .append( reqName )
+                       .append( " is missing" )
+                       .toString();
+                    reporter_.report( ReportType.ERROR, "MCOL", msg );
+                }
+            }
+
+            /* Check column metadata for optional columns. */
+            int nopt = 0;
+            for ( String optName : optColMap_.keySet() ) {
+                ObsCol optCol = optColMap_.get( optName );
+                ColumnMeta gotCol = gotColMap_.get( optName );
+                if ( gotCol != null ) {
+                    compareCols( optCol, gotCol );
+                    nopt++;
+                }
+            }
+
+            /* Summarise columns in each category. */
+            int nother = gotColMap_.size() - nreq - nopt;
+            String msg = new StringBuffer()
+               .append( "ivoa.ObsCore columns: " )
+               .append( nreq )
+               .append( "/" )
+               .append( reqColMap_.size() )
+               .append( " required, " )
+               .append( nopt )
+               .append( "/" )
+               .append( optColMap_.size() )
+               .append( " optional, " )
+               .append( nother )
+               .append( " custom" )
+               .toString();
+            reporter_.report( ReportType.SUMMARY, "COLS", msg );
+        }
+
+        /**
+         * Checks that the metadata for a given column has the correct
+         * metadata.
+         *
+         * @param  obsCol  correct metadata for a column
+         * @param  gotCol  metadata actually present in a column
+         */
+        private void compareCols( ObsCol obsCol, ColumnMeta gotCol ) {
+            String cname = gotCol.getName();
+            compareItem( cname, "Utype", "CUTP",
+                         obsCol.utype_, gotCol.getUtype(), false );
+            compareItem( cname, "UCD", "CUCD",
+                         obsCol.ucd_, gotCol.getUcd(), false );
+            compareItem( cname, "Unit", "CUNI",
+                         obsCol.unit_, gotCol.getUnit(), true );
+        }
+
+        /**
+         * Checks a metadata item against the value it should have and
+         * reports an error if not.
+         *
+         * @param  colName   name of column
+         * @param  itemName  name of metadata item
+         * @param  code      code value for mismatch error reports
+         * @param  obsValue  correct value for metadata item
+         * @param  gotValue  actual value of metadata item
+         * @param  isCaseSensitive  true iff value comparison is case-sensitive
+         */
+        private void compareItem( String colName, String itemName, String code,
+                                  String obsValue, String gotValue,
+                                  boolean isCaseSensitive ) {
+            String vGot = String.valueOf( gotValue );
+            String vObs = String.valueOf( obsValue );
+            if ( isCaseSensitive ? ( ! vGot.equals( vObs ) )
+                                 : ( ! vGot.equalsIgnoreCase( vObs ) ) ) {
+                String msg = new StringBuffer()
+                    .append( "ObsCore column " )
+                    .append( colName )
+                    .append( " has wrong " )
+                    .append( itemName )
+                    .append( ": " )
+                    .append( gotValue )
+                    .append( " != " )
+                    .append( obsValue )
+                    .toString();
+                reporter_.report( ReportType.ERROR, code, msg );
             }
         }
     }
 
+    /**
+     * Returns metadata objects for the standard required ObsCore columns.
+     *
+     * @return   lazily created name->metadata map
+     */
     private static Map<String,ObsCol> getMandatoryColumns() {
         if ( mandatoryColumnMap_ == null ) {
             mandatoryColumnMap_ = createMandatoryColumns();
@@ -108,6 +231,11 @@ public class ObsTapStage implements Stage {
         return mandatoryColumnMap_;
     }
 
+    /**
+     * Returns metadata objects for the standard optional ObsCore columns.
+     *
+     * @return  lazily created name->metadata map
+     */
     private static Map<String,ObsCol> getOptionalColumns() {
         if ( optionalColumnMap_ == null ) {
             optionalColumnMap_ = createOptionalColumns();
@@ -115,6 +243,11 @@ public class ObsTapStage implements Stage {
         return optionalColumnMap_;
     }
 
+    /**
+     * Creates a description of the standard required ObsCore columns.
+     *
+     * @return  new name->metadata map
+     */
     private static Map<String,ObsCol> createMandatoryColumns() {
         Map<String,ObsCol> map = toMap( new ObsCol[] {
             new ObsCol( "dataproduct_type", Type.VARCHAR,
@@ -186,6 +319,7 @@ public class ObsTapStage implements Stage {
         } );
         assert map.size() == 25;
 
+        /* Note some additional constraints. */
         map.get( "dataproduct_type" ).options_ = new String[] {
             "image", "cube", "spectrum", "sed", "timeseries", "visibility",
             "event", null,
@@ -200,6 +334,11 @@ public class ObsTapStage implements Stage {
         return map;
     }
 
+    /**
+     * Creates a description of the standard optional ObsCore columns.
+     *
+     * @return  new name->metadata map
+     */
     private static Map<String,ObsCol> createOptionalColumns() {
         Map<String,ObsCol> map = toMap( new ObsCol[] {
             new ObsCol( "dataproduct_subtype", Type.VARCHAR,
@@ -275,19 +414,56 @@ public class ObsTapStage implements Stage {
         return map;
     }
 
+    /**
+     * Enumeration of known data types for standard columns.
+     */
     private enum Type {
         INTEGER, BIGINT, DOUBLE, VARCHAR, TIMESTAMP, REGION, CLOB;
     }
 
+    /**
+     * Converts an array of ObsCol objects into a name->value map.
+     *
+     * @param  cols  column metadata list
+     * @return  map
+     */
     private static Map<String,ObsCol> toMap( ObsCol[] cols ) {
         Map<String,ObsCol> map = new LinkedHashMap<String,ObsCol>();
         for ( int i = 0; i < cols.length; i++ ) {
-            map.put( cols[ i ].name_, cols[ i ] );
+            map.put( nameKey( cols[ i ].name_ ), cols[ i ] );
         }
         assert cols.length == map.size();
         return map;
     }
 
+    /**
+     * Converts an array of ColumnMeta objects into a name->value map.
+     *
+     * @param  cols  column metadata list
+     * @return  map
+     */
+    private static Map<String,ColumnMeta> toMap( ColumnMeta[] cols ) {
+        Map<String,ColumnMeta> map = new LinkedHashMap<String,ColumnMeta>();
+        for ( int i = 0; i < cols.length; i++ ) {
+            map.put( nameKey( cols[ i ].getName() ), cols[ i ] );
+        }
+        return map;
+    }
+
+    /**
+     * Normalises a column name to produce a value suitable for use as a
+     * Map key.
+     *
+     * @param   name   column name
+     * @return   map-friendly value identifying <code>name</code>
+     */
+    private static String nameKey( String name ) {
+        return name.toLowerCase();
+    }
+
+    /**
+     * Represents metadata for a standard ObsCore column.
+     */
     private static class ObsCol {
         final String name_;
         final Type type_;
@@ -297,17 +473,34 @@ public class ObsTapStage implements Stage {
         boolean nullForbidden_;
         Object[] options_;
 
-        ObsCol( String name, Type type, String utype, String ucd ) {
-            this( name, type, utype, ucd, null );
-        }
-
+        /**
+         * Constructor including units.
+         *
+         * @param  name  column name
+         * @param  type  data type
+         * @param  utype  Utype, omitting "obscore:" prefix
+         * @param  ucd    UCD
+         * @param  unit   unit
+         */
         ObsCol( String name, Type type, String utype, String ucd,
                 String unit ) {
             name_ = name;
             type_ = type;
-            utype_ = utype;
+            utype_ = "obscore:" + utype;
             ucd_ = ucd;
             unit_ = unit;
+        }
+
+        /**
+         * Constructor excluding units.
+         *
+         * @param  name  column name
+         * @param  type  data type
+         * @param  utype  Utype, omitting "obscore:" prefix
+         * @param  ucd    UCD
+         */
+        ObsCol( String name, Type type, String utype, String ucd ) {
+            this( name, type, utype, ucd, null );
         }
     }
 }
