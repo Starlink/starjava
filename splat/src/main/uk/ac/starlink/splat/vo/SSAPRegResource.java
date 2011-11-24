@@ -52,6 +52,23 @@ public class SSAPRegResource
         }
     }
 
+    /**
+     * Constructor. Initialised from a {@link AddNewServerFrame}, allows
+     * manual insertion of a server}.
+     *
+     * @param   newshortName     resource short name
+     * @param   newTitle         resource title
+     * @param   newDescription   capability description
+     * @param   newAccessUrl     capability access url
+     */
+    public SSAPRegResource( String newShortName, String newTitle, String newDescription, String newAccessUrl )
+    {
+        setShortName(newShortName);
+        setTitle(newTitle);
+        capabilities = new SSAPRegCapability[1];
+        capabilities[0] = new SSAPRegCapability( newDescription, newAccessUrl );
+    }
+
     public String getShortName()
     {
         return shortName;

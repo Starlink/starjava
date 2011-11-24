@@ -37,6 +37,16 @@ public class SSAPRegCapability
         xsiType = rci.getXsiType();
     }
 
+    /**
+     * Constructor to manually add a  simple resource capability
+     */
+    public SSAPRegCapability( String newDescription, String newAccessUrl )
+    {
+        setDescription( newDescription );
+        setAccessUrl( newAccessUrl );
+    }
+
+
     public String getAccessUrl()
     {
         return accessUrl;

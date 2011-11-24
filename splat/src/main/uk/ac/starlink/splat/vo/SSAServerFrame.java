@@ -5,6 +5,8 @@
  *  History:
  *     05-MAY-2005 (Peter W. Draper):
  *        Original version.
+ *     22-NOV-2011 (Margarida Castro Neves mcneves@ari.uni-heidelberg.de)
+ *         A new SSAP server can now be manually inserted to the server list.
  */
 package uk.ac.starlink.splat.vo;
 
@@ -14,6 +16,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -60,6 +65,7 @@ import uk.ac.starlink.vo.RegResource;
  */
 public class SSAServerFrame
     extends JFrame
+    implements PropertyChangeListener
 {
     /**
      * The object that manages the actual list of servers.
@@ -80,6 +86,12 @@ public class SSAServerFrame
      * File chooser for storing and restoring server lists.
      */
     protected BasicFileChooser fileChooser = null;
+    
+    /**
+     * Frame for adding a new server.
+     */
+    protected AddNewServerFrame addServerWindow = null;
+
 
     /** The proxy server dialog */
     protected ProxySetupFrame proxyWindow = null;
@@ -98,7 +110,6 @@ public class SSAServerFrame
         initMenus();
         initFrame();
         setSSAServerList( serverList );
-
     }
 
     /**
@@ -174,7 +185,7 @@ public class SSAServerFrame
     {
         setTitle( Utilities.getTitle( "Select SSAP Servers" ));
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 700, 500 ) );
+        setSize( new Dimension( 800, 500 ) );
         setVisible( true );
     }
 
@@ -253,6 +264,14 @@ public class SSAServerFrame
         topActionBar.add( Box.createGlue() );
         topActionBar.add( newButton );
         newButton.setToolTipText( "Query registry for new SSAP servers" );
+        
+        //  Add action to manually add a new server to the list
+        AddNewAction addNewAction = new AddNewAction( "New Server" );
+        fileMenu.add( addNewAction );
+        JButton addButton = new JButton( addNewAction );
+        topActionBar.add( Box.createGlue() );
+        topActionBar.add( addButton );
+        addButton.setToolTipText( "Add a new server to the list" );
 
         //  Remove selected servers from table.
         RemoveAction removeAction = new RemoveAction( "Remove selected" );
@@ -347,7 +366,7 @@ public class SSAServerFrame
     {
         registryTable.setData( serverList.getData() );
     }
-
+    
     /**
      *  Delete all servers.
      */
@@ -400,6 +419,15 @@ public class SSAServerFrame
             }
             updateTable();
         }
+    }
+
+    /**
+     *  Add new server to the server list
+     */
+    protected void addNewServer()
+    {
+        initAddServerWindow();
+        addServerWindow.setVisible( true );
     }
 
     /**
@@ -458,6 +486,26 @@ public class SSAServerFrame
                 ( fileChooser.getAcceptAllFileFilter() );
         }
     }
+   /**
+     * Initialise the window to insert a new server to the list.
+     */
+    protected void initAddServerWindow()
+    {
+        if ( addServerWindow == null ) {
+            addServerWindow = new AddNewServerFrame();
+            addServerWindow.addPropertyChangeListener(this);
+        }
+    }
+
+    /**
+     * Event listener to trigger a list update when a new server is
+     * added to addServerWIndow
+     */
+    public void propertyChange(PropertyChangeEvent pvt)
+    {
+        serverList.addServer(addServerWindow.getResource());
+        updateTable();
+    }
 
     /**
      * Inner class defining Action for closing window.
@@ -475,6 +523,23 @@ public class SSAServerFrame
             closeWindowEvent();
         }
     }
+
+    /**
+     * Inner class defining action for adding a new server to the list
+     */
+    protected class AddNewAction
+        extends AbstractAction
+    {
+        public AddNewAction( String name )
+        {
+            super( name );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            addNewServer();
+        }
+    }
+
 
     /**
      * Inner class defining action for reading a list of servers.
@@ -604,5 +669,5 @@ public class SSAServerFrame
             deleteServers();
         }
     }
-
+    
 }
