@@ -1,4 +1,3 @@
-
 package uk.ac.starlink.splat.vo;
 
 //import uk.ac.starlink.vo.RegCapabilityInterface;
@@ -45,8 +44,6 @@ public class SSAPRegCapability
       
     }
 
-   
-
     /**
      * Constructor to manually add a  simple resource capability
      */
@@ -56,7 +53,6 @@ public class SSAPRegCapability
         setAccessUrl( newAccessUrl );
     }
 
-  
     public String getAccessUrl()
     {
         return accessUrl;
