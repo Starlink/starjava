@@ -1,13 +1,19 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.io.IOException;
 import java.net.URL;
-import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
+import uk.ac.starlink.vo.TapQuery;
 
 /**
  * Validation stage for testing ObsCore data model metadata and content.
@@ -127,7 +133,7 @@ public class ObsTapStage implements Stage {
                 ObsCol reqCol = reqColMap_.get( reqName );
                 ColumnMeta gotCol = gotColMap_.get( reqName );
                 if ( gotCol != null ) {
-                    compareCols( reqCol, gotCol );
+                    checkColumn( gotCol, reqCol );
                     nreq++;
                 }
                 else {
@@ -146,7 +152,7 @@ public class ObsTapStage implements Stage {
                 ObsCol optCol = optColMap_.get( optName );
                 ColumnMeta gotCol = gotColMap_.get( optName );
                 if ( gotCol != null ) {
-                    compareCols( optCol, gotCol );
+                    checkColumn( gotCol, optCol );
                     nopt++;
                 }
             }
@@ -173,17 +179,155 @@ public class ObsTapStage implements Stage {
          * Checks that the metadata for a given column has the correct
          * metadata.
          *
-         * @param  obsCol  correct metadata for a column
          * @param  gotCol  metadata actually present in a column
+         * @param  stdCol  correct metadata for a column
          */
-        private void compareCols( ObsCol obsCol, ColumnMeta gotCol ) {
+        private void checkColumn( ColumnMeta gotCol, ObsCol stdCol ) {
             String cname = gotCol.getName();
             compareItem( cname, "Utype", "CUTP",
-                         obsCol.utype_, gotCol.getUtype(), false );
+                         stdCol.utype_, gotCol.getUtype(), false );
             compareItem( cname, "UCD", "CUCD",
-                         obsCol.ucd_, gotCol.getUcd(), false );
+                         stdCol.ucd_, gotCol.getUcd(), false );
             compareItem( cname, "Unit", "CUNI",
-                         obsCol.unit_, gotCol.getUnit(), true );
+                         stdCol.unit_, gotCol.getUnit(), true );
+            if ( stdCol.nullForbidden_ ) {
+                checkNoNulls( cname );
+            }
+            if ( stdCol.range_ != null ) {
+                checkRange( cname, stdCol.range_ );
+            }
+            if ( stdCol.stringOptions_ != null ) {
+                checkStringOptions( cname, stdCol.stringOptions_, 
+                                    ! stdCol.nullForbidden_ );
+            }
+        }
+
+        /**
+         * Checks that a given ObsCore column contains no NULL values.
+         *
+         * @param  cname  column name
+         */
+        private void checkNoNulls( String cname ) {
+            String adql = new StringBuffer()
+               .append( "SELECT TOP 1 " )
+               .append( cname )
+               .append( " FROM " )
+               .append( OBSCORE_TNAME )
+               .append( " WHERE " )
+               .append( cname )
+               .append( " IS NULL" )
+               .toString();
+            TableData result = runQuery( adql );
+            if ( result != null && result.getRowCount() > 0 ) {
+                String msg = new StringBuffer()
+                   .append( "Illegal NULL(s) in ObsCore column " )
+                   .append( cname )
+                   .toString();
+                reporter_.report( ReportType.ERROR, "HNUL", msg );
+            }
+        }
+
+        /**
+         * Checks that all the values in a given ObsCore column are within
+         * a given numerical range.
+         *
+         * @param   cname  column name
+         * @param   [low,high] inclusive range permitted
+         */
+        private void checkRange( String cname, Comparable[] range ) {
+            String adql = new StringBuffer()
+               .append( "SELECT TOP 1 " )
+               .append( cname )
+               .append( " FROM " )
+               .append( OBSCORE_TNAME )
+               .append( " WHERE " )
+               .append( cname )
+               .append( " NOT BETWEEN " )
+               .append( range[ 0 ] )
+               .append( " AND " )
+               .append( range[ 1 ] )
+               .toString();
+            TableData result = runQuery( adql );
+            if ( result != null && result.getRowCount() > 0 ) {
+                String msg = new StringBuffer()
+                   .append( "Value(s) out of range in ObsCore column " )
+                   .append( cname )
+                   .append( ": " )
+                   .append( result.getCell( 0, 0 ) )
+                   .append( " not in [" )
+                   .append( range[ 0 ] )
+                   .append( "," )
+                   .append( range[ 1 ] )
+                   .append( "]" )
+                   .toString();
+                reporter_.report( ReportType.ERROR, "RANG", msg );
+            }
+        }
+
+        /**
+         * Checks that all the values in a given ObsCore column have one
+         * of a fixed set of string values.  NULLs are not reported on.
+         *
+         * @param   cname  column name
+         * @param  opts   permitted values
+         * @param   nullPermitted  true iff NULL is permissible
+         */
+        private void checkStringOptions( String cname, String[] opts,
+                                         boolean nullPermitted ) {
+            int maxWrong = 4;
+            StringBuffer abuf = new StringBuffer()
+               .append( "SELECT " )
+               .append( "DISTINCT TOP " )
+               .append( maxWrong )
+               .append( " " )
+               .append( cname )
+               .append( " FROM " )
+               .append( OBSCORE_TNAME )
+               .append( " WHERE " )
+               .append( cname )
+               .append( " NOT IN (" );
+            for ( int io = 0; io < opts.length; io++ ) {
+                if ( io > 0 ) {
+                    abuf.append( ", " );
+                }
+                abuf.append( "'" )
+                    .append( opts[ io ] )
+                    .append( "'" );
+            }
+            abuf.append( ")" );
+            if ( nullPermitted ) {
+                abuf.append( " AND " )
+                    .append( cname )
+                    .append( " IS NOT NULL" );
+            }
+            TableData result = runQuery( abuf.toString() );
+            if ( result == null ) {
+                return;
+            }
+            long nwrong = result.getRowCount();
+            if ( nwrong > 0 ) {
+                StringBuffer mbuf = new StringBuffer()
+                   .append( "Illegal values in column " )
+                   .append( cname )
+                   .append( ": " );
+                for ( int irow = 0; irow < nwrong; irow++ ) {
+                    if ( irow > 0 ) {
+                        mbuf.append( ", " );
+                    }
+                    mbuf.append( result.getCell( irow, 0 ) );
+                }
+                if ( nwrong >= maxWrong ) {
+                    mbuf.append( ", ..." );
+                }
+                mbuf.append( "; legal values are: " );
+                for ( int io = 0; io < opts.length; io++ ) {
+                    if ( io > 0 ) {
+                        mbuf.append( ", " );
+                    }
+                    mbuf.append( opts[ io ] );
+                }
+                reporter_.report( ReportType.ERROR, "ILOP", mbuf.toString() );
+            }
         }
 
         /**
@@ -205,10 +349,10 @@ public class ObsTapStage implements Stage {
             if ( isCaseSensitive ? ( ! vGot.equals( vObs ) )
                                  : ( ! vGot.equalsIgnoreCase( vObs ) ) ) {
                 String msg = new StringBuffer()
-                    .append( "ObsCore column " )
-                    .append( colName )
-                    .append( " has wrong " )
+                    .append( "Wrong " )
                     .append( itemName )
+                    .append( " in ObsCore column " )
+                    .append( colName )
                     .append( ": " )
                     .append( gotValue )
                     .append( " != " )
@@ -216,6 +360,55 @@ public class ObsTapStage implements Stage {
                     .toString();
                 reporter_.report( ReportType.ERROR, code, msg );
             }
+        }
+
+        /**
+         * Executes an ADQL query and returns the result as a TableData object.
+         * If there is some error, it is reported through the reporting
+         * system, and null is returned.
+         *
+         * @param   adql  query string
+         * @return   table result, or null
+         */
+        private TableData runQuery( String adql ) {
+            TapQuery tq;
+            try {
+                tq = new TapQuery( serviceUrl_, adql, null, null, 0 );
+            }
+            catch ( IOException e ) {
+                reporter_.report( ReportType.ERROR, "TQER",
+                                  "TAP job creation failed for " + adql, e );
+                return null;
+            }
+            StarTable table = tRunner_.getResultTable( reporter_, tq );
+            if ( table == null ) {
+                return null;
+            }
+            final List<Object[]> rowList = new ArrayList<Object[]>();
+            try {
+                RowSequence rseq = table.getRowSequence();
+                try {
+                    while ( rseq.next() ) {
+                        rowList.add( rseq.getRow() );
+                    }
+                }
+                finally {
+                    rseq.close();
+                }
+            }
+            catch ( IOException e ) {
+                reporter_.report( ReportType.FAILURE, "TIOF",
+                                  "Error reading result table", e );
+                return null;
+            }
+            return new TableData() {
+                public int getRowCount() {
+                    return rowList.size();
+                }
+                public Object getCell( int irow, int icol ) {
+                    return rowList.get( irow )[ icol ];
+                }
+            };
         }
     }
 
@@ -320,16 +513,22 @@ public class ObsTapStage implements Stage {
         assert map.size() == 25;
 
         /* Note some additional constraints. */
-        map.get( "dataproduct_type" ).options_ = new String[] {
+
+        /* ObsTAP 1.0 Sec 4.1. */
+        map.get( "dataproduct_type" ).stringOptions_ = new String[] {
             "image", "cube", "spectrum", "sed", "timeseries", "visibility",
-            "event", null,
+            "event",
         };
-        map.get( "calib_level" ).options_ = new Integer[] {
-           new Integer( 0 ), new Integer( 1 ),
-           new Integer( 2 ), new Integer( 3 ),
-        };
+
+        /* ObsTAP 1.0 Sec 4.2. */
+        map.get( "calib_level" ).range_ =
+            new Integer[] { new Integer( 0 ), new Integer( 3 ) };
+
+        /* ObsTAP 1.0 Table 4. */
+        map.get( "calib_level" ).nullForbidden_ = true;
         map.get( "obs_collection" ).nullForbidden_ = true;
         map.get( "obs_id" ).nullForbidden_ = true;
+        map.get( "obs_publisher_did" ).nullForbidden_ = true;
 
         return map;
     }
@@ -462,6 +661,28 @@ public class ObsTapStage implements Stage {
     }
 
     /**
+     * Contains the data from a table in easy to digest form (no IOExceptions).
+     * Suitable for holding small tables.
+     */
+    private static abstract class TableData {
+
+        /**
+         * Returns number of rows.
+         *
+         * @return  row count
+         */
+        abstract int getRowCount();
+
+        /**
+         * Returns the value of a cell.
+         *
+         * @param  irow  row index
+         * @param  icol  column index
+         */
+        abstract Object getCell( int irow, int icol );
+    }
+
+    /**
      * Represents metadata for a standard ObsCore column.
      */
     private static class ObsCol {
@@ -471,7 +692,8 @@ public class ObsTapStage implements Stage {
         final String ucd_;
         final String unit_;
         boolean nullForbidden_;
-        Object[] options_;
+        String[] stringOptions_;
+        Comparable[] range_;   // [low, high] inclusive
 
         /**
          * Constructor including units.
