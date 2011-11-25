@@ -33,7 +33,9 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.ConcatStarTable;
+import uk.ac.starlink.table.MetaCopyStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarTableColumn;
 
 /**
@@ -263,7 +265,15 @@ public class ConcatWindow extends AuxWindow
             }
             t2.addColumn( cdata );
         }
-        return new ConcatStarTable( t1, new StarTable[] { t1, t2 } );
+        MetaCopyStarTable t0 = new MetaCopyStarTable( t1 );
+        StarTable[] pair = new StarTable[] { t1, t2 };
+        ColumnInfo[] colInfos =
+            ConcatStarTable.extendColumnTypes( Tables.getColumnInfos( t0 ),
+                                               pair );
+        for ( int ic = 0; ic < colInfos.length; ic++ ) {
+            t0.setColumnInfo( ic, colInfos[ ic ] );
+        }
+        return new ConcatStarTable( t0, pair );
     }
 
     /**

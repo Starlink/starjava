@@ -146,7 +146,7 @@ public class ConcatStarTable extends WrapperStarTable {
                  info0.isArray() != info1.isArray() ) {
                 throw new IOException( "Column type mismatch (" +
                                        info1 + " not compatible with " +
-                                       info0 );
+                                       info0 + ")" );
             }
         }
     }
@@ -239,6 +239,72 @@ public class ConcatStarTable extends WrapperStarTable {
                 }
             };
         }
+    }
+
+    /**
+     * Assembles column metadata objects which are compatible
+     * between multiple tables.
+     * Nullability, array shape and element size
+     * are set to values which can accommodate all of the input tables.
+     * If column count or column data types are inconsistent, an
+     * IOException is thrown.
+     *
+     * <p>This utility method is not used by ConcatStarTable instances,
+     * but it may be useful when preparing metadata tables for use
+     * with the constructor.
+     * 
+     * @param  colInfos  input column metadata objects
+     * @param  tables   list of tables with which columns must be compatible
+     * @return   new array of new column metadata objects, based on input list
+     * @throws  IOException  if compatibility cannot be achieved
+     */
+    public static ColumnInfo[] extendColumnTypes( ColumnInfo[] colInfos,
+                                                  StarTable[] tables )
+            throws IOException {
+        int ncol = colInfos.length;
+        ColumnInfo[] outInfos = new ColumnInfo[ ncol ];
+        for ( int it = 0; it < tables.length; it++ ) {
+            int ncol1 = tables[ it ].getColumnCount();
+            if ( ncol1 != ncol ) {
+                throw new IOException( "Column count mismatch ("
+                                      + ncol1 + " != " + ncol + ")" );
+            }
+        }
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo info = new ColumnInfo( colInfos[ icol ] );
+            for ( int itab = 0; itab < tables.length; itab++ ) {
+                ColumnInfo info1 = tables[ itab ].getColumnInfo( icol );
+                if ( ! info.getContentClass()
+                           .isAssignableFrom( info1.getContentClass() ) ||
+                     info.isArray() != info1.isArray() ) {
+                    throw new IOException( "Column type mismatch (" +
+                                           info1 + " not compatible with " +
+                                           info + ")" );
+                }
+                if ( info1.isNullable() ) {
+                    info.setNullable( true );
+                }
+                if ( info1.getElementSize() != info.getElementSize() ) {
+                    info.setElementSize( -1 );
+                }
+                if ( info.isArray() ) {
+                    int[] shape = info.getShape();
+                    int[] shape1 = info1.getShape();
+                    if ( shape == null || shape1 == null ||
+                         shape.length == 0 || shape1.length == 0 ||
+                         shape[ 0 ] < 1 || shape1[ 0 ] < 1 ||
+                         shape.length != shape1.length ) {
+                        info.setShape( new int[] { -1 } );
+                    }
+                    else if ( ! Arrays.equals( shape, shape1 ) ) {
+                        shape[ shape.length - 1 ] = -1;
+                        info1.setShape( shape );
+                    }
+                }
+            }
+            outInfos[ icol ] = info;
+        }
+        return outInfos;
     }
 
     /**

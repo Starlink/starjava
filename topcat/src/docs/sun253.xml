@@ -15277,6 +15277,8 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Fixed SAMP table loads to honour "name" parameter.</li>
+    <li>Fixed table concatenation so that column datatype array size etc
+        is consistent with both input tables not just the first one.</li>
     </ul>
     </p>
     </dd>

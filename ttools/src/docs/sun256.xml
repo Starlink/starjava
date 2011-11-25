@@ -7982,6 +7982,15 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fixed <code>tcat</code>, <code>tcatn</code> so that in most cases
+        output column metadata is compatible with all input tables, not
+        just the first one in terms of nullability, array shape etc.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
