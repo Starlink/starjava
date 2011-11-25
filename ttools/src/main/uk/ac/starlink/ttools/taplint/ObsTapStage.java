@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -133,7 +135,7 @@ public class ObsTapStage implements Stage {
                 ObsCol reqCol = reqColMap_.get( reqName );
                 ColumnMeta gotCol = gotColMap_.get( reqName );
                 if ( gotCol != null ) {
-                    checkColumn( gotCol, reqCol );
+                    checkMetadata( gotCol, reqCol );
                     nreq++;
                 }
                 else {
@@ -152,8 +154,22 @@ public class ObsTapStage implements Stage {
                 ObsCol optCol = optColMap_.get( optName );
                 ColumnMeta gotCol = gotColMap_.get( optName );
                 if ( gotCol != null ) {
-                    checkColumn( gotCol, optCol );
+                    checkMetadata( gotCol, optCol );
                     nopt++;
+                }
+            }
+
+            /* Check column content. */
+            for ( String cname : gotColMap_.keySet() ) {
+                ObsCol stdCol = null;
+                if ( stdCol == null ) {
+                    stdCol = reqColMap_.get( cname );
+                }
+                if ( stdCol == null ) {
+                    stdCol = optColMap_.get( cname );
+                }
+                if ( stdCol != null ) {
+                    checkContent( gotColMap_.get( cname ), stdCol );
                 }
             }
 
@@ -173,16 +189,16 @@ public class ObsTapStage implements Stage {
                .append( " custom" )
                .toString();
             reporter_.report( ReportType.SUMMARY, "COLS", msg );
+            tRunner_.reportSummary( reporter_ );
         }
 
         /**
-         * Checks that the metadata for a given column has the correct
-         * metadata.
+         * Checks that a given column has the correct metadata.
          *
          * @param  gotCol  metadata actually present in a column
          * @param  stdCol  correct metadata for a column
          */
-        private void checkColumn( ColumnMeta gotCol, ObsCol stdCol ) {
+        private void checkMetadata( ColumnMeta gotCol, ObsCol stdCol ) {
             String cname = gotCol.getName();
             compareItem( cname, "Utype", "CUTP",
                          stdCol.utype_, gotCol.getUtype(), false );
@@ -190,15 +206,67 @@ public class ObsTapStage implements Stage {
                          stdCol.ucd_, gotCol.getUcd(), false );
             compareItem( cname, "Unit", "CUNI",
                          stdCol.unit_, gotCol.getUnit(), true );
+            checkType( gotCol, stdCol );
+        }
+
+        /**
+         * Checks that a given column has the correct data type.
+         *
+         * @param  gotCol  metadata actually present in a column
+         * @param  stdCol  correct metadata for a column
+         */
+        private void checkType( ColumnMeta gotCol, ObsCol stdCol ) {
+            String cname = gotCol.getName();
+            String gotType = gotCol.getDataType();
+            Type stdType = stdCol.type_;
+            if ( stdType.isEqual( gotType ) ) {
+                // no comment
+            }
+            else if ( stdType.isCompatible( gotType ) ) {
+                String msg = new StringBuffer()
+                   .append( "Imperfect datatype match for ObsCore column " )
+                   .append( cname )
+                   .append( ": " )
+                   .append( gotType )
+                   .append( " != " )
+                   .append( stdType )
+                   .toString();
+                reporter_.report( ReportType.WARNING, "TYPI", msg );
+            }
+            else {
+                String msg = new StringBuffer()
+                   .append( "Wrong datatype for ObsCore column " )
+                   .append( cname )
+                   .append( ": " )
+                   .append( gotType )
+                   .append( " != " )
+                   .append( stdType )
+                   .toString();
+                reporter_.report( ReportType.ERROR, "TYPX", msg );
+            }
+        }
+
+        /**
+         * Runs checks on column content as appropriate.
+         *
+         * @param  gotCol  metadata actually present in a column
+         * @param  stdCol  correct metadata for a column
+         */
+        private void checkContent( ColumnMeta gotCol, ObsCol stdCol ) {
+            String cname = gotCol.getName();
             if ( stdCol.nullForbidden_ ) {
                 checkNoNulls( cname );
             }
             if ( stdCol.range_ != null ) {
                 checkRange( cname, stdCol.range_ );
             }
-            if ( stdCol.stringOptions_ != null ) {
-                checkStringOptions( cname, stdCol.stringOptions_, 
-                                    ! stdCol.nullForbidden_ );
+            if ( stdCol.hardOptions_ != null ) {
+                checkStringOptions( cname, stdCol.hardOptions_, 
+                                    ! stdCol.nullForbidden_, true );
+            }
+            else if ( stdCol.softOptions_ != null ) {
+                checkStringOptions( cname, stdCol.softOptions_,
+                                    ! stdCol.nullForbidden_, false );
             }
         }
 
@@ -271,9 +339,10 @@ public class ObsTapStage implements Stage {
          * @param   cname  column name
          * @param  opts   permitted values
          * @param   nullPermitted  true iff NULL is permissible
+         * @param  hard  true for required lists, false for suggested
          */
         private void checkStringOptions( String cname, String[] opts,
-                                         boolean nullPermitted ) {
+                                         boolean nullPermitted, boolean hard ) {
             int maxWrong = 4;
             StringBuffer abuf = new StringBuffer()
                .append( "SELECT " )
@@ -307,26 +376,37 @@ public class ObsTapStage implements Stage {
             long nwrong = result.getRowCount();
             if ( nwrong > 0 ) {
                 StringBuffer mbuf = new StringBuffer()
-                   .append( "Illegal values in column " )
+                   .append( hard ? "Illegal" : "Non-standard" )
+                   .append( " " )
+                   .append( nwrong == 1 ? "value" : "values" )
+                   .append( " in column " )
                    .append( cname )
                    .append( ": " );
                 for ( int irow = 0; irow < nwrong; irow++ ) {
                     if ( irow > 0 ) {
                         mbuf.append( ", " );
                     }
-                    mbuf.append( result.getCell( irow, 0 ) );
+                    mbuf.append( '"' )
+                        .append( result.getCell( irow, 0 ) )
+                        .append( '"' );
                 }
                 if ( nwrong >= maxWrong ) {
                     mbuf.append( ", ..." );
                 }
-                mbuf.append( "; legal values are: " );
+                mbuf.append( "; " )
+                    .append( hard ? "legal" : "standard" )
+                    .append( " values are: " );
                 for ( int io = 0; io < opts.length; io++ ) {
                     if ( io > 0 ) {
                         mbuf.append( ", " );
                     }
-                    mbuf.append( opts[ io ] );
+                    mbuf.append( '"' )
+                        .append( opts[ io ] )
+                        .append( '"' );
                 }
-                reporter_.report( ReportType.ERROR, "ILOP", mbuf.toString() );
+                reporter_.report( hard ? ReportType.ERROR : ReportType.WARNING,
+                                  hard ? "ILOP" : "NSOP",
+                                  mbuf.toString() );
             }
         }
 
@@ -515,7 +595,7 @@ public class ObsTapStage implements Stage {
         /* Note some additional constraints. */
 
         /* ObsTAP 1.0 Sec 4.1. */
-        map.get( "dataproduct_type" ).stringOptions_ = new String[] {
+        map.get( "dataproduct_type" ).hardOptions_ = new String[] {
             "image", "cube", "spectrum", "sed", "timeseries", "visibility",
             "event",
         };
@@ -609,6 +689,27 @@ public class ObsTapStage implements Stage {
                         "Provenance.Proposal.identifier",
                         "meta.id;obs.proposal" ),
         } );
+
+        /* ObsTAP B.6.1.4. */
+        map.get( "s_calib_status" ).softOptions_ = new String[] {
+            "uncalibrated", "raw", "calibrated",
+        };
+
+        /* ObsTAP B.6.2.1. */
+        map.get( "em_calib_status" ).softOptions_ = new String[] {
+            "calibrated", "uncalibrated", "relative", "absolute",
+        };
+
+        /* ObsTAP B.6.3.3. */
+        map.get( "t_calib_status" ).softOptions_ = new String[] {
+            "calibrated", "uncalibrated", "relative", "absolute",
+        };
+
+        /* ObsTAP B.6.5.2. */
+        map.get( "o_calib_status" ).softOptions_ = new String[] {
+            "absolute", "relative", "normalized", "any",
+        };
+
         assert map.size() == 29;
         return map;
     }
@@ -617,7 +718,68 @@ public class ObsTapStage implements Stage {
      * Enumeration of known data types for standard columns.
      */
     private enum Type {
-        INTEGER, BIGINT, DOUBLE, VARCHAR, TIMESTAMP, REGION, CLOB;
+        INTEGER( new String[] { "SMALLINT", "BIGINT" },
+                 new String[] { "short", "int", "long" } ),
+        BIGINT( new String[] { "SMALLINT", "INTEGER" },
+                new String[] { "short", "int", "long" } ),
+        DOUBLE( new String[] { "REAL" },
+                new String[] { "float", "double" } ),
+        VARCHAR( new String[] { "CHAR" },
+                 new String[] { "char", "unicodeChar" } ),
+        TIMESTAMP( new String[] {},
+                   new String[] { "char", "unicodeChar" } ),
+        REGION( new String[] {},
+                new String[] { "char", "unicodeChar" } ),
+        CLOB( new String[] { "VARCHAR", "CHAR", },
+              new String[] { "char", "unicodeChar" } );
+
+        private final Set<String> adqlTypeSet_;
+        private final Set<String> votableTypeSet_;
+
+        /**
+         * Constructor.
+         *
+         * @param  adqlTypes  base type names for ADQL types which roughly
+         *         correspond to this type
+         * @param  votableTypes  VOTable type names which roughly
+         *         correspond to this type
+         */
+        Type( String[] adqlTypes, String[] votableTypes ) {
+            adqlTypeSet_ = new HashSet<String>( Arrays.asList( adqlTypes ) );
+            votableTypeSet_ =
+                new HashSet<String>( Arrays.asList( votableTypes ) );
+        }
+
+        /**
+         * Indicates whether a given data type is, or at least may be,
+         * exactly equal to this one.
+         *
+         * @param   dtype  type string for comparison
+         * @return  true iff dtype may be an exact match
+         */
+        boolean isEqual( String dtype ) {
+            String baseDtype = CompareMetadataStage.stripAdqlType( dtype );
+            return name().equals( baseDtype )
+   
+                /* If the submitted type is a VOTable-style type, we're not
+                 * comparing like with like, so just check it's roughly
+                 * similar. */
+                || votableTypeSet_.contains( baseDtype );
+        }
+
+        /**
+         * Indicates whether a given data type at least roughly corresponds
+         * to this one.
+         *
+         * @param   dtype  type string for comparison
+         * @return  true iff dtype is a rough match
+         */
+        boolean isCompatible( String dtype ) {
+            String baseDtype = CompareMetadataStage.stripAdqlType( dtype );
+            return name().equals( baseDtype )
+                || adqlTypeSet_.contains( baseDtype )
+                || votableTypeSet_.contains( baseDtype );
+        }
     }
 
     /**
@@ -692,7 +854,8 @@ public class ObsTapStage implements Stage {
         final String ucd_;
         final String unit_;
         boolean nullForbidden_;
-        String[] stringOptions_;
+        String[] hardOptions_;
+        String[] softOptions_;
         Comparable[] range_;   // [low, high] inclusive
 
         /**
