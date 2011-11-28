@@ -573,7 +573,7 @@ public class ObsTapStage implements Stage {
                         "Char.SpectralAxis.Coverage.Bounds.Limits.Interval"
                         + ".LoLim", "em.wl;stat.min", "m" ),
             new ObsCol( "em_max", Type.DOUBLE,
-                        "Char.SpectralAxis.Coverate.Bounds.Limits.Interval"
+                        "Char.SpectralAxis.Coverage.Bounds.Limits.Interval"
                         + ".HiLim", "em.wl;stat.max", "m" ),
             new ObsCol( "em_res_power", Type.DOUBLE,
                         "Char.SpectralAxis.Resolution.ResolPower.refVal",
