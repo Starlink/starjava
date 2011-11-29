@@ -7991,6 +7991,8 @@ but my thanks are especially due to the following:
         just the first one in terms of nullability, array shape etc.</li>
     <li>Add <code>OBS</code> stage (ObsTAP validation)
         to <code>taplint</code>.</li>
+    <li>Adjust SQL writer to avoid type error for MySQL.
+        Hope it hasn't introduced new problems elsewhere.</li>
     </ul>
     </p></dd>
 
