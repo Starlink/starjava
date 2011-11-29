@@ -16,6 +16,7 @@ import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
+import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.VOStarTable;
 
@@ -89,12 +90,17 @@ public class QueryStage implements Stage {
         if ( tcap == null ) {
             return new String[] { "ADQL", "ADQL-2.0" };  // questionable?
         }
-        String[] langs = tcap.getLanguages();
         List<String> adqlLangList = new ArrayList<String>();
-        for ( int il = 0; il < langs.length; il++ ) {
-            String lang = langs[ il ];
-            if ( lang.startsWith( "ADQL" ) ) {
-                adqlLangList.add( lang );
+        TapLanguage[] languages = tcap.getLanguages();
+        for ( int il = 0; il < languages.length; il++ ) {
+            TapLanguage lang = languages[ il ];
+            if ( "ADQL".equals( lang.getName() ) ) {
+                String[] versions = lang.getVersions();
+                for ( int iv = 0; iv < versions.length; iv++ ) {
+                    String version = versions[ iv ];
+                    adqlLangList.add( version == null ? "ADQL"
+                                                      : "ADQL-" + version );
+                }
             }
         }
         if ( ! adqlLangList.contains( "ADQL" ) ) {
