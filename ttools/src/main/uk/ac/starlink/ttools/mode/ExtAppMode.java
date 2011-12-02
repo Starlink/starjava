@@ -19,7 +19,8 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.filter.AddJELColumnTable;
+import uk.ac.starlink.ttools.filter.AddColumnsTable;
+import uk.ac.starlink.ttools.filter.JELColumnTable;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -110,8 +111,9 @@ public class ExtAppMode implements ProcessingMode {
     }
 
     private StarTable doctor( StarTable table ) throws CompilationException {
-        return new AddJELColumnTable( table, new ColumnInfo( "_OID" ),
-                                       "\"id_\"+$0", -1 );
+        StarTable oidTable =
+            new JELColumnTable( table, "\"id_\"+$0", new ColumnInfo( "_OID" ) );
+        return new AddColumnsTable( table, oidTable );
     }
 
     private String[] getSelectedIds( StarTable table, String selexpr )
@@ -119,7 +121,9 @@ public class ExtAppMode implements ProcessingMode {
         int idcol = table.getColumnCount() - 1;
         ColumnInfo flagInfo = new ColumnInfo( "flag", Boolean.class, null );
         try {
-            table = new AddJELColumnTable( table, flagInfo, selexpr, -1 );
+            table = new AddColumnsTable( table,
+                                         new JELColumnTable( table, selexpr,
+                                                             flagInfo ) );
         }
         catch ( CompilationException e ) {
             throw (IOException) new IOException( "Bad expression " + selexpr )

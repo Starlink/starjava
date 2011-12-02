@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.ConstantStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
@@ -24,6 +25,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
+import uk.ac.starlink.ttools.filter.CalculatorTable;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -79,7 +81,6 @@ public class ConeMatcher implements TableProducer {
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
-    
 
     /**
      * Full-functioned constructor.
@@ -371,36 +372,30 @@ public class ConeMatcher implements TableProducer {
         }
         int ncolIn = inTable.getColumnCount();
         ColumnInfo[] addCols = new ColumnInfo[] { distInfo };
+        final StarTable addTable;
         if ( ira < 0 || idec < 0 ) {
-            return new AddColumnsTable( inTable, new int[ 0 ],
-                                        addCols, ncolIn ) {
-                protected Object[] calculateValues( Object[] inValues ) {
-                    return new Object[] { new Double( Double.NaN ) };
-                }
-            };
+            Object[] blankRow = new Object[] { new Double( Double.NaN ) };
+            long nrow = inTable.getRowCount();
+            addTable = new ConstantStarTable( addCols, blankRow, nrow );
         }
         else {
             final double raUnit =
                 getAngleUnit( inTable.getColumnInfo( ira ).getUnitString() );
             final double decUnit =
                 getAngleUnit( inTable.getColumnInfo( idec ).getUnitString() );
-            return new AddColumnsTable( inTable, new int[] { ira, idec },
-                                        addCols, ncolIn ) {
-                protected Object[] calculateValues( Object[] inValues ) {
-                    double ra1 = inValues[ 0 ] instanceof Number
-                               ? ((Number) inValues[ 0 ]).doubleValue()
-                                 * raUnit
-                               : Double.NaN;
-                    double dec1 = inValues[ 1 ] instanceof Number
-                                ? ((Number) inValues[ 1 ]).doubleValue()
-                                  * decUnit
-                                : Double.NaN;
+            StarTable radecTable =
+                new ColumnPermutedStarTable( inTable, new int[] { ira, idec } );
+            addTable = new CalculatorTable( radecTable, addCols ) {
+                protected Object[] calculate( Object[] inValues ) {
+                    double ra1 = getDouble( inValues[ 0 ] ) * raUnit;
+                    double dec1 = getDouble( inValues[ 1 ] ) * decUnit;
                     double dist = CoordsDegrees
                                  .skyDistanceDegrees( ra0, dec0, ra1, dec1 );
                     return new Object[] { new Double( dist ) };
                 }
             };
         }
+        return new AddColumnsTable( inTable, addTable );
     }
 
     /**
