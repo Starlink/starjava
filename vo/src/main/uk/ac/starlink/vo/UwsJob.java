@@ -137,7 +137,8 @@ public class UwsJob {
                     throw new IOException( "Job not started"
                                          + " - phase: " + phase );
                 case UNKNOWN:
-                    logger_.warning( "Unknown UWS phase " + phase );
+                    logger_.info( "UWS phase " + phase + " reported"
+                                + "; wait and poll" );
                     // fall through
                 case RUNNING:
                     Thread.sleep( poll );
