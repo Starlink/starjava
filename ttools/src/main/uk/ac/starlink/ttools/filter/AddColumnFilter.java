@@ -130,8 +130,9 @@ public class AddColumnFilter extends BasicFilter {
             else {
                 ipos = base.getColumnCount();
             }
+            StarTable jelTable;
             try {
-                return new AddJELColumnTable( base, cinfo_, expr_, ipos );
+                jelTable = new JELColumnTable( base, expr_, cinfo_ );
             }
             catch ( CompilationException e ) {
                 String msg = "Bad expression \"" + expr_;
@@ -142,6 +143,7 @@ public class AddColumnFilter extends BasicFilter {
                 throw (IOException) new IOException( msg )
                                    .initCause( e );
             }
+            return new AddColumnsTable( base, jelTable, ipos );
         }
     }
 }

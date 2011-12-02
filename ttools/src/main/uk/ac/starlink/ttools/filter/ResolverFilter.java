@@ -8,7 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.vo.ResolverException;
 import uk.ac.starlink.vo.ResolverInfo;
@@ -84,8 +86,17 @@ public class ResolverFilter extends BasicFilter {
             final String decName0 = decName;
             return new ProcessingStep() {
                 public StarTable wrap( StarTable base ) throws IOException {
-                    return new ResolverTable( base, objId0, resolver,
-                                              raName0, decName0, 100000 );
+                    int iNameCol = new ColumnIdentifier( base )
+                                  .getColumnIndex( objId0 );
+                    StarTable inNameTable =
+                        new ColumnPermutedStarTable( base,
+                                                     new int[] { iNameCol } );
+                    StarTable outCoordsTable =
+                        new ResolverTable( inNameTable, resolver,
+                                           raName0, decName0,
+                                           Tables.getColumnInfos( base ),
+                                           100000 );
+                    return new AddColumnsTable( base, outCoordsTable );
                 }
             };
         }
@@ -98,7 +109,7 @@ public class ResolverFilter extends BasicFilter {
      * Wrapper table which adds RA, Dec columns to an existing table by
      * performing name resolution.
      */
-    private static class ResolverTable extends AddColumnsTable {
+    private static class ResolverTable extends CalculatorTable {
 
         private final Resolver resolver_;
         private final Map<String,Pair> cache_;
@@ -107,21 +118,20 @@ public class ResolverFilter extends BasicFilter {
          * Constructor.
          *
          * @param  base  base table
-         * @param  objId  column identifier for object name column
          * @param  resolver  resolver implementation to use
          * @param  raName  name of new RA column
          * @param  decName  name of new Declination column
+         * @param  baseColInfos  column metadata for the table this
+         *                       will be added to
          * @param  cacheSize  max size of resolver cache;
          *                    if &lt;=0 cache size is unlimited
          */
-        ResolverTable( StarTable base, String objId, Resolver resolver,
-                       String raName, String decName, final int cacheSize )
+        ResolverTable( StarTable nameTable, Resolver resolver,
+                       String raName, String decName,
+                       ColumnInfo[] baseColInfos, final int cacheSize )
                 throws IOException {
-            super( base,
-                   new int[] { new ColumnIdentifier( base )
-                              .getColumnIndex( objId ) },
-                   createColumnInfos( raName, decName, resolver, base ),
-                   base.getColumnCount() );
+            super( nameTable, createColumnInfos( raName, decName, resolver,
+                                                 baseColInfos ) );
             resolver_ = resolver;
             Map<String,Pair> cache =
                 cacheSize >= 0 ? new LinkedHashMap<String,Pair>() {
@@ -134,7 +144,7 @@ public class ResolverFilter extends BasicFilter {
             cache_ = Collections.synchronizedMap( cache );
         }
 
-        protected Object[] calculateValues( Object[] inValues ) {
+        protected Object[] calculate( Object[] inValues ) {
             Object item = inValues[ 0 ];
             if ( item instanceof String ) {
                 String objName = (String) item;
@@ -164,10 +174,10 @@ public class ResolverFilter extends BasicFilter {
         /**
          * Returns column metadata items appropriate for RA and Dec columns.
          */
-        private static ColumnInfo[] createColumnInfos( String raName,
-                                                       String decName,
-                                                       Resolver resolver,
-                                                       StarTable base ) {
+        private static ColumnInfo[]
+                       createColumnInfos( String raName, String decName,
+                                          Resolver resolver,
+                                          ColumnInfo[] baseColInfos ) {
 
             /* Set up basic metadata. */
             String serviceName = resolver.getServiceName();
@@ -196,9 +206,8 @@ public class ResolverFilter extends BasicFilter {
                                                Pattern.CASE_INSENSITIVE );
             Pattern decRegex = Pattern.compile( "^pos.eq.dec.*",
                                                 Pattern.CASE_INSENSITIVE );
-            int ncol = base.getColumnCount();
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                String ucd = base.getColumnInfo( icol ).getUCD();
+            for ( int icol = 0; icol < baseColInfos.length; icol++ ) {
+                String ucd = baseColInfos[ icol ].getUCD();
                 if ( ucd != null ) {
                     hasRa = hasRa || raRegex.matcher( ucd ).matches();
                     hasDec = hasDec || decRegex.matcher( ucd ).matches();

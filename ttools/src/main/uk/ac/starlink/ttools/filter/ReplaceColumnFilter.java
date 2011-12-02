@@ -129,9 +129,9 @@ public class ReplaceColumnFilter extends BasicFilter {
             }
 
             /* Create a table with the new column. */
-            StarTable added;
+            StarTable jelTable;
             try {
-                added = new AddJELColumnTable( base, cinfo, expr_, icol );
+                jelTable = new JELColumnTable( base, expr_, cinfo );
             }
             catch ( CompilationException e ) {
                 String msg = "Bad expression \"" + expr_;
@@ -143,9 +143,13 @@ public class ReplaceColumnFilter extends BasicFilter {
                                    .initCause( e );
             }
 
+            /* Add the new column just after the one it's replacing. */
+            StarTable addTable = new AddColumnsTable( base, jelTable, icol );
+
             /* Delete the old column. */
-            StarTable removed = ColumnPermutedStarTable
-                               .deleteColumns( added, new int[] { icol + 1 } );
+            StarTable removed =
+                ColumnPermutedStarTable
+               .deleteColumns( addTable, new int[] { icol + 1 } );
 
             /* Return the result. */
             return removed;
