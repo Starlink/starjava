@@ -35,9 +35,9 @@ public class ResolverFilter extends BasicFilter {
     protected String[] getDescriptionLines() {
         return new String[] {
             "<p>Performs name resolution on the string-valued column",
-            "<code>&gt;col-id-objname&lt;</code> and appends two new columns",
-            "<code>&gt;col-name-ra&lt;</code> and",
-            "<code>&gt;col-name-dec&lt;</code>",
+            "<code>&lt;col-id-objname&gt;</code> and appends two new columns",
+            "<code>&lt;col-name-ra&gt;</code> and",
+            "<code>&lt;col-name-dec&gt;</code>",
             "containing the resolved Right Ascension and Declination",
             "in degrees.",
             "</p>",
@@ -53,8 +53,9 @@ public class ResolverFilter extends BasicFilter {
             "which is able to work more efficiently by dispatching multiple",
             "concurrent requests.",
             "</p>",
-            "<p>This software uses source code created at the",
-            "Centre de Donnees astronomiques de Strasbourg, France.",
+            "<p>This is currently implemented using the Simbad service",
+            "operated by",
+            "<webref url='http://cdsweb.u-strasbg.fr/'>CDS</webref>.",
             "</p>",
         };
     }
