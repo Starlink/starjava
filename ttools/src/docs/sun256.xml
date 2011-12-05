@@ -7996,6 +7996,9 @@ but my thanks are especially due to the following:
         now checked.</li>
     <li>Adjust SQL writer to avoid type error for MySQL.
         Hope it hasn't introduced new problems elsewhere.</li>
+    <li>Add <ref id="addpixsample"><code>addpixsample</code></ref> filter,
+        which can sample pixel data from HEALPix table files
+        (useful for things like Schlegel dust extinction).</li>
     </ul>
     </p></dd>
 

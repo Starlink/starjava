@@ -36,14 +36,22 @@ public class JELColumnTable extends AbstractStarTable {
      * @param   inTable  table providing JEL context
      * @param   exprs    JEL expressions for columns
      * @param   colInfos metadata for columns
-     *                   (data types may be changed to match expression output)
+     *                   (data types may be changed to match expression output);
+     *                   if null, names are generated automatically
      */
     public JELColumnTable( StarTable inTable, String[] exprs,
                            ColumnInfo[] colInfos )
             throws CompilationException {
         inTable_ = inTable;
         ncol_ = exprs.length;
-        if ( colInfos.length != ncol_ ) {
+        if ( colInfos == null ) {
+            colInfos = new ColumnInfo[ ncol_ ];
+            for ( int ic = 0; ic < ncol_; ic++ ) {
+                colInfos[ ic ] =
+                    new ColumnInfo( "col" + ( ic + 1 ), Object.class, null );
+            }
+        }
+        else if ( colInfos.length != ncol_ ) {
             throw new IllegalArgumentException( "How many output columns?" );
         }
         exprs_ = (String[]) exprs.clone();
@@ -72,11 +80,13 @@ public class JELColumnTable extends AbstractStarTable {
      * @param   inTable   table providing JEL context
      * @param   expr      JEL expression for column
      * @param   colInfo   metadata for column
-     *                    (data type may be changed to match expression output)
+     *                    (data type may be changed to match expression output);
+     *                    if null, name is generated automatically
      */
     public JELColumnTable( StarTable inTable, String expr, ColumnInfo colInfo )
             throws CompilationException {
-        this( inTable, new String[] { expr }, new ColumnInfo[] { colInfo } );
+        this( inTable, new String[] { expr },
+              colInfo == null ? null : new ColumnInfo[] { colInfo } );
     }
 
     public long getRowCount() {

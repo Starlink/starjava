@@ -31,6 +31,7 @@ public class StepFactory {
         filterFactory_ = new ObjectFactory( ProcessingFilter.class );
         String pkg = "uk.ac.starlink.ttools.filter.";
         filterFactory_.register( "addcol", pkg + "AddColumnFilter" );
+        filterFactory_.register( "addpixsample", pkg + "PixSampleFilter" );
         filterFactory_.register( "addresolve", pkg + "ResolverFilter" );
         filterFactory_.register( "addskycoords", pkg + "AddSkyCoordsFilter" );
         filterFactory_.register( "assert", pkg + "AssertFilter" );
