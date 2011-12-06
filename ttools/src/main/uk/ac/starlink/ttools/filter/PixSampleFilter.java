@@ -8,6 +8,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.convert.SkySystem;
+import uk.ac.starlink.ttools.task.PixSample;
+import uk.ac.starlink.ttools.task.PixSampler;
 
 /**
  * Filter for sampling pixel data from a HEALPix all-sky table file.
@@ -147,9 +149,10 @@ public class PixSampleFilter extends BasicFilter {
               ( sRadius == null || "0".equals( sRadius ) )
             ? PixSampler.POINT_MODE
             : PixSampler.MEAN_MODE;
-        final CoordReader coordReader =
-            equToGal ? createCoordReader( SkySystem.FK5, SkySystem.GALACTIC )
-                     : createCoordReader( null, null );
+        final PixSample.CoordReader coordReader =
+              equToGal
+            ? PixSample.createCoordReader( SkySystem.FK5, SkySystem.GALACTIC )
+            : PixSample.createCoordReader( null, null );
         final String lonExpr = sLon;
         final String latExpr = sLat;
         final String radExpr = sRadius == null ? "0" : sRadius;
@@ -168,111 +171,12 @@ public class PixSampleFilter extends BasicFilter {
         /* Return a new processing step that does the work. */
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
-                return createPixSampleTable( base, pixSampler, statMode,
-                                             coordReader, lonExpr, latExpr,
-                                             radExpr );
+                StarTable sampleTable =
+                    PixSample.createSampleTable( base, pixSampler, statMode,
+                                                 coordReader, lonExpr, latExpr,
+                                                 radExpr );
+                return new AddColumnsTable( base, sampleTable );
             }
         };
-    }
-
-    /**
-     * Adds pixel sample columns to an input base table in accordance with
-     * supplied parameters.
-     *
-     * @param   base  base table
-     * @param   pixSample  characterises pixel sampling
-     * @param   coordReader  turns input coordinate pairs into
-     *                       lon/lat coords in the HEALPix coordinate system
-     * @param   lonExpr  JEL expression for first input coordinate
-     * @param   latExpr  JEL expression for second input coordinate
-     * @param   radExpr  JEL expression for averaging radius
-     * @return   table with sampled columns added
-     */
-    private static StarTable
-            createPixSampleTable( StarTable base, final PixSampler pixSampler,
-                                  final PixSampler.StatMode statMode,
-                                  final CoordReader coordReader,
-                                  String lonExpr, String latExpr,
-                                  String radExpr ) throws IOException {
-
-        /* Put together a table containing just the input lon, lat, radius. */
-        StarTable calcInputTable =
-            new JELColumnTable( base,
-                                new String[] { lonExpr, latExpr, radExpr },
-                                null );
-
-        /* Feed it to a calculator table that turns those inputs into the
-         * required pixel samples. */
-        StarTable sampleTable =
-                new CalculatorTable( calcInputTable,
-                                     pixSampler.getValueInfos( statMode ) ) {
-            protected Object[] calculate( Object[] inRow )
-                    throws IOException {
-                double[] coords =
-                    coordReader.getCoords( getDouble( inRow[ 0 ] ),
-                                           getDouble( inRow[ 1 ] ) );
-                double lon = coords[ 0 ];
-                double lat = coords[ 1 ];
-                double radius = getDouble( inRow[ 2 ] );
-                return pixSampler
-                      .sampleValues( lon, lat, radius, statMode );
-            }
-        };
-
-        /* Interpolate the calculated columns into the original input table
-         * and return. */
-        return new AddColumnsTable( base, sampleTable );
-    }
-
-    /** 
-     * Returns a coordinate reader which converts between a given input
-     * and output coordinate system.
-     * If no conversion is required, use <code>null</code> for in/out systems.
-     *
-     * @param   inSys  input sky coordinate system
-     * @param  outSsy  output sky coordinate system
-     * @return  coordinate reader that converts
-     */
-    private static CoordReader createCoordReader( final SkySystem inSys,
-                                                  final SkySystem outSys ) {
-        if ( inSys == null && outSys == null ) {
-            return new CoordReader() {
-                double[] getCoords( double lonDeg, double latDeg ) {
-                    return new double[] { lonDeg, latDeg };
-                }
-            };
-        }
-        else if ( inSys != null && outSys != null ) {
-            final double epoch = 2000.0;
-            return new CoordReader() {
-                double[] getCoords( double lonDegIn, double latDegIn ) {
-                    double lonRadIn= lonDegIn / 180. * Math.PI;
-                    double latRadIn = latDegIn / 180. * Math.PI;
-                    double[] fk5Rad = inSys.toFK5( lonRadIn, latRadIn, epoch );
-                    double[] radOut = outSys.fromFK5( fk5Rad[ 0 ], fk5Rad[ 1 ],
-                                                      epoch );
-                    double lonRadOut = radOut[ 0 ];
-                    double latRadOut = radOut[ 1 ];
-                    double lonDegOut = lonRadOut * 180. / Math.PI;
-                    double latDegOut = latRadOut * 180. / Math.PI;
-                    return new double[] { lonDegOut, latDegOut };
-                }
-            };
-        }
-        else {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    /**
-     * Interface to turn input coordinate values into coordinate values
-     * suitable for pixel sampling.
-     *
-     * @param   lonDeg  first input coordinate
-     * @param   latDeg  second input coordinate
-     * @return   (lon,lat) array of coordinates giving sampling position
-     */
-    private static abstract class CoordReader {
-        abstract double[] getCoords( double lonDeg, double latDeg );
     }
 }

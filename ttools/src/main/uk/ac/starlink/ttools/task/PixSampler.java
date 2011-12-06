@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.filter;
+package uk.ac.starlink.ttools.task;
 
 import gov.fnal.eag.healpix.PixTools;
 import java.io.IOException;
