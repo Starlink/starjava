@@ -39,6 +39,7 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY pixsample-summary SYSTEM 'pixsample-summary.xml'>
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
   <!ENTITY plot3d-summary SYSTEM 'plot3d-summary.xml'>
   <!ENTITY plothist-summary SYSTEM 'plothist-summary.xml'>
@@ -205,6 +206,10 @@ same ground as the STIL and TOPCAT user documents
     <ref id="plot3d"><code>plot3d</code></ref> and
     <ref id="plothist"><code>plothist</code></ref>
     (see <ref id="plot" plaintextref="yes"/>).
+    </p></dd>
+<dt>Pixel Sampling</dt>
+<dd><p>
+    <ref id="pixsample"><code>pixsample</code></ref>.
     </p></dd>
 <dt>VOTable</dt>
 <dd><p>
@@ -435,6 +440,7 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>funcs</code></li>
 <li><code>coneskymatch</code></li>
+<li><code>pixsample</code></li>
 <li><code>plot2d</code></li>
 <li><code>plot3d</code></li>
 <li><code>plothist</code></li>
@@ -1775,6 +1781,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
+           <ref id="pixsample"><code>pixsample</code></ref>,
            <ref id="plot2d"><code>plot2d</code></ref>,
            <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
@@ -3886,6 +3893,15 @@ Detailed descriptions and examples for each command can be found in
     See also <ref id="plot" plaintextref="yes"/>.
     </p></dd>
 
+<dt>Pixel Sampling:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="pixsample" plaintextref="yes"><code>pixsample</code></ref>:
+        &pixsample-purpose;
+        </li>
+    </ul>
+    </p></dd>
+
 <dt>VOTables:</dt>
 <dd><p>
     <ul>
@@ -4267,6 +4283,121 @@ There are no parameters.
 </p>
 
 &funcs-summary;
+
+</subsect>
+
+<subsect id="pixsample" tocleaf="yes">
+<subhead><title><code>pixsample</code>: &pixsample-purpose;</title></subhead>
+
+<p><code>pixsample</code> samples data at the sky position 
+represented by each row from an all-sky map contained
+in a HEALPix-format pixel data file.
+Such files are actually tables (usually in FITS format)
+in which the row number corresponds to
+a HEALPix pixel index, and the pixel values are cell contents;
+one or more columns may be present containing values for one or more
+all-sky maps.  The result of this command is to add a column to
+the input table representing the pixel data at the position of
+each input row for each of the data columns in the
+HEALPix table.
+</p>
+
+<p>This command does not attempt to convert between coordinate systems
+except as instructed, so it is important to know what coordinate
+system the HEALPix file is in, and ensure that the coordinates
+supplied from the input table match this.
+You may need to examine the documentation or headers of the HEALPix
+file in question to find out.
+See the <ref id="pixsample-examples">Examples</ref> section for
+some examples.
+</p>
+
+<p>There is a choice of how the sampling is done;
+the simplest way is just to use the value of the pixel covering 
+the indicated position.  An alternative is to average over a
+disc of given radius (perhaps a function of the input row).
+Other options (e.g. max/min) could easily be added.
+</p>
+
+<p>Although HEALPix is not a particularly common format for storing image
+data in general, it is used for storing a number of important all-sky
+data sets such as the WMAP results and Schlegel dust maps.
+The NASA 
+<webref url="http://lambda.gsfc.nasa.gov/" plaintextref="yes">LAMBDA</webref>
+(Legacy Archive for Microwave Background Data Analysis)
+archive has a number of maps in a suitable format,
+including foreground data like predicted reddening as well as CMB maps.
+</p>
+
+&pixsample-summary;
+
+<subsubsect id="pixsample-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>pixsample</code>:
+<dl>
+
+<dt><verbatim>
+stilts pixsample in=szdata.fits pixdata=wmap_ilc_7yr_v4.fits
+                 lat=GAL_LAT lon=GAL_LON pcmd='keepcols TEMPERATURE'
+                 out=szdata_cmb.fits
+</verbatim></dt>
+<dd><p>Samples from a HEALPix file containing WMAP data are added to an
+    input file <code>szdata.fits</code>, giving an output file
+    <code>szdata_cmb.fits</code> which is the same but with an additional
+    column <code>TEMPERATURE</code>.
+    The sampling is done using the default statistical mode <code>point</code>,
+    which just takes a point sample at the input position.
+    The HEALPix file must have its pixels ordered using galactic
+    coordinates, since that is the coordinate system available from
+    the input table.
+    </p>
+    <p>
+    The pixdata file used here can be found (at time of writing) at
+    <webref
+    url='http://lambda.gsfc.nasa.gov/data/map/dr4/dfp/ilc/wmap_ilc_7yr_v4.fits'
+    /> (24 Mbyte).
+    </p></dd>
+
+<dt><verbatim>
+stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
+                 stat=mean radius=5./60.
+                 icmd='addskycoords icrs galactic ra dec glon glat'
+                 lon=glon lat=glat
+                 ocmd='delcols "glon glat"'
+</verbatim></dt>
+<dd><p>Samples data from a HEALPix table, averaging over a sampling radius
+    of 5 arcmin.  The coordinates in the input table are only available
+    as ICRS (RA,Dec) coordinates, and the arrangement of the HEALPix pixels
+    in the pixel data file uses galactic coordinates
+    (you can only determine this by looking at the FITS headers or
+    documentation of that file), so it is necessary to use the
+    <ref id='addskycoords'><code>addskycoords</code></ref> filter
+    to generate galactic coordinates to supply as the 
+    <code>lon</code> and <code>lat</code> parameters.
+    The galactic coordinates are erased from the output table before
+    writing it.
+    </p>
+    <p>
+    The pixdata file used here can be found (at time of writing) at
+    <webref
+      url='http://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits'
+    /> (25 Mbyte).
+    </p></dd>
+
+<dt><verbatim>
+stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
+                 stat=mean radius=5./60.
+                 equ2gal=true lon=ra lat=dec
+</verbatim></dt>
+<dd><p>This does the same as the previous example but uses the
+    <code>equ2gal=true</code> shortcut.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
@@ -7996,9 +8127,11 @@ but my thanks are especially due to the following:
         now checked.</li>
     <li>Adjust SQL writer to avoid type error for MySQL.
         Hope it hasn't introduced new problems elsewhere.</li>
-    <li>Add <ref id="addpixsample"><code>addpixsample</code></ref> filter,
+    <li>Add <ref id="pixsample"><code>pixsample</code></ref> command,
         which can sample pixel data from HEALPix table files
-        (useful for things like Schlegel dust extinction).</li>
+        (useful for things like Schlegel dust extinction).
+        Also <ref id="addpixsample"><code>addpixsample</code></ref> filter,
+        which does the same job.</li>
     </ul>
     </p></dd>
 

@@ -462,8 +462,9 @@ public class PixSampler {
         }
         public ColumnInfo getResultInfo( ColumnInfo baseInfo ) {
             String baseDesc = baseInfo.getDescription();
-            String desc = baseDesc == null ? "Mean value"
-                                           : baseDesc + ", spatial mean";
+            String desc = baseDesc == null || baseDesc.trim().length() == 0
+                        ? "Mean value"
+                        : baseDesc + ", spatial mean";
             return new ColumnInfo( baseInfo.getName(), Double.class, desc );
         }
         public Object getResult( Object[] values ) {

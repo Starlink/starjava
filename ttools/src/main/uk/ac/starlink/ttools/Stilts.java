@@ -84,6 +84,7 @@ public class Stilts {
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
         taskFactory_.register( "regquery", taskPkg + "RegQuery" );
+        taskFactory_.register( "pixsample", taskPkg + "PixSample" );
         taskFactory_.register( "plot2d", taskPkg + "TablePlot2D" );
         taskFactory_.register( "plot3d", taskPkg + "TablePlot3D" );
         taskFactory_.register( "plothist", taskPkg + "TableHistogram" );
