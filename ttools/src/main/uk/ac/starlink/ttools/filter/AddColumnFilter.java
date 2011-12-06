@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.filter;
 
-import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
@@ -130,19 +129,7 @@ public class AddColumnFilter extends BasicFilter {
             else {
                 ipos = base.getColumnCount();
             }
-            StarTable jelTable;
-            try {
-                jelTable = new JELColumnTable( base, expr_, cinfo_ );
-            }
-            catch ( CompilationException e ) {
-                String msg = "Bad expression \"" + expr_;
-                String errMsg = e.getMessage();
-                if ( errMsg != null ) {
-                    msg += ": " + errMsg;
-                }
-                throw (IOException) new IOException( msg )
-                                   .initCause( e );
-            }
+            StarTable jelTable = new JELColumnTable( base, expr_, cinfo_ );
             return new AddColumnsTable( base, jelTable, ipos );
         }
     }

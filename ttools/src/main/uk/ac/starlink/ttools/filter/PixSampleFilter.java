@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.filter;
 
-import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -197,17 +196,10 @@ public class PixSampleFilter extends BasicFilter {
                                   String radExpr ) throws IOException {
 
         /* Put together a table containing just the input lon, lat, radius. */
-        StarTable calcInputTable;
-        try {
-            calcInputTable =
-                new JELColumnTable( base,
-                                    new String[] { lonExpr, latExpr, radExpr },
-                                    null );
-        }
-        catch ( CompilationException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
+        StarTable calcInputTable =
+            new JELColumnTable( base,
+                                new String[] { lonExpr, latExpr, radExpr },
+                                null );
 
         /* Feed it to a calculator table that turns those inputs into the
          * required pixel samples. */

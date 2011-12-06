@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.mode;
 
 import cds.tools.ExtApp;
-import gnu.jel.CompilationException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -80,12 +79,7 @@ public class ExtAppMode implements ProcessingMode {
                           : Boolean.valueOf( visParam_.stringValue( env ) );
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
-                try {
-                    table = doctor( table );
-                }
-                catch ( CompilationException e ) {
-                    throw new RuntimeException( "Unexpected", e );
-                }
+                table = doctor( table );
                 ByteArrayOutputStream ostrm = new ByteArrayOutputStream();
                 new StarTableOutput()
                    .writeStarTable( table, ostrm, new VOTableWriter() );
@@ -110,7 +104,7 @@ public class ExtAppMode implements ProcessingMode {
         };
     }
 
-    private StarTable doctor( StarTable table ) throws CompilationException {
+    private StarTable doctor( StarTable table ) throws IOException {
         StarTable oidTable =
             new JELColumnTable( table, "\"id_\"+$0", new ColumnInfo( "_OID" ) );
         return new AddColumnsTable( table, oidTable );
@@ -120,15 +114,9 @@ public class ExtAppMode implements ProcessingMode {
             throws IOException {
         int idcol = table.getColumnCount() - 1;
         ColumnInfo flagInfo = new ColumnInfo( "flag", Boolean.class, null );
-        try {
-            table = new AddColumnsTable( table,
-                                         new JELColumnTable( table, selexpr,
-                                                             flagInfo ) );
-        }
-        catch ( CompilationException e ) {
-            throw (IOException) new IOException( "Bad expression " + selexpr )
-                               .initCause( e );
-        }
+        table = new AddColumnsTable( table,
+                                     new JELColumnTable( table, selexpr,
+                                                         flagInfo ) );
         int flagcol = table.getColumnCount() - 1;
         List idList = new ArrayList();
         RowSequence rseq = table.getRowSequence();

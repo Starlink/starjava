@@ -38,10 +38,12 @@ public class JELColumnTable extends AbstractStarTable {
      * @param   colInfos metadata for columns
      *                   (data types may be changed to match expression output);
      *                   if null, names are generated automatically
+     * @throws  IOException  with a helpful message if one of the expressions
+     *                       cannot be compiled
      */
     public JELColumnTable( StarTable inTable, String[] exprs,
                            ColumnInfo[] colInfos )
-            throws CompilationException {
+            throws IOException {
         inTable_ = inTable;
         ncol_ = exprs.length;
         if ( colInfos == null ) {
@@ -63,14 +65,24 @@ public class JELColumnTable extends AbstractStarTable {
         outColInfos_ = new ColumnInfo[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             String expr = exprs[ icol ];
-            randomCompexs_[ icol ] = JELUtils.compile( lib, inTable_, expr );
+            try {
+                randomCompexs_[ icol ] =
+                    JELUtils.compile( lib, inTable_, expr );
 
-            /* Set the content class for the new column to be that
-             * returned by the expression. */
-            Class primType = JELUtils.getExpressionType( lib, inTable_, expr );
-            Class clazz = JELUtils.getWrapperType( primType );
-            outColInfos_[ icol ] = new ColumnInfo( colInfos[ icol ] );
-            outColInfos_[ icol ].setContentClass( clazz );
+                /* Set the content class for the new column to be that
+                 * returned by the expression. */
+                Class primType =
+                    JELUtils.getExpressionType( lib, inTable_, expr );
+                Class clazz = JELUtils.getWrapperType( primType );
+                outColInfos_[ icol ] = new ColumnInfo( colInfos[ icol ] );
+                outColInfos_[ icol ].setContentClass( clazz );
+            }
+            catch ( CompilationException e ) {
+                throw (IOException)
+                      new IOException( "Bad expression \"" + expr + "\""
+                                     + " (" + e.getMessage() + ")" )
+                     .initCause( e );
+            }
         }
     }
 
@@ -84,7 +96,7 @@ public class JELColumnTable extends AbstractStarTable {
      *                    if null, name is generated automatically
      */
     public JELColumnTable( StarTable inTable, String expr, ColumnInfo colInfo )
-            throws CompilationException {
+            throws IOException {
         this( inTable, new String[] { expr },
               colInfo == null ? null : new ColumnInfo[] { colInfo } );
     }
