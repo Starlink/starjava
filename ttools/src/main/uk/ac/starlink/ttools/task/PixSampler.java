@@ -10,6 +10,7 @@ import javax.vecmath.Vector3d;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Interrogates a HEALPix all-sky map to sample pixel data.
@@ -256,16 +257,77 @@ public class PixSampler {
      * @throws  IOException  if table is not random access or does not
      *                       appear to contain HEALPix data
      */
-    public static PixSampler createPixSampler( StarTable pixTable )
+    public static PixSampler createPixSampler( StarTable pixTable ) 
             throws IOException {
         if ( ! pixTable.isRandom() ) {
             throw new IOException( "Pixel data not random access" );
         }
-        PixTools pixTools = new PixTools();
+        int nside = inferNside( pixTable );
+        Boolean isNested = inferNested( pixTable );
+        final boolean nested;
+        if ( isNested == null ) {
+            logger_.warning( "Cannot determine HEALPix ordering scheme"
+                           + " - assuming nested" );
+            nested = true;
+        }
+        else {
+            nested = isNested.booleanValue();
+        }
+        return new PixSampler( pixTable, nside, nested );
+    }
+
+    /**
+     * Tries to work out whether a given table uses the nested or ring
+     * HEALPix ordering scheme.
+     * Parameters are interrogated in accordance with the conventions used by,
+     * for instance the FITS files used at NASA's
+     * <a href="http://lambda.gsfc.nasa.gov/">LAMBDA</a> archive.
+     *
+     * @param  pixTable  pixel data table
+     * @return  TRUE for nested, FALSE for ring, null for don't know
+     */
+    public static Boolean inferNested( StarTable pixTable ) {
+        String orderKey = "ORDERING";
+        String ordering = getStringParam( pixTable, orderKey );
+        if ( ordering != null ) {
+            String hval = "Header " + orderKey + "=\"" + ordering.trim() + "\"";
+            if ( ordering.toUpperCase().startsWith( "NEST" ) ) {
+                logger_.info( hval + " - inferring NESTED HEALPix ordering" );
+                return Boolean.TRUE;
+            }
+            else if ( ordering.toUpperCase().startsWith( "RING" ) ) {
+                logger_.info( hval + " - inferring RING HEALPix ordering" );
+                return Boolean.FALSE;
+            }
+            else {
+                logger_.warning( hval + " - unknown value" );
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Tries to work out the HEALPix nside parameter for a pixel data table.
+     * Mainly it looks at the row count, but if the table obeys HEALPix
+     * header conventions any discrepancies between declared and apparent
+     * nside result in an error.
+     *
+     * @param   pixTable  pixel data table
+     * @return  HEALPix nside
+     */
+    public static int inferNside( StarTable pixTable ) throws IOException {
+
+        /* Work out nside from row count. */
+        if ( ! pixTable.isRandom() ) {
+            throw new IOException( "Pixel data not random access" );
+        }
         long nrow = pixTable.getRowCount();
         long nside;
         try {
-            nside = pixTools.Npix2Nside( nrow );
+            nside = new PixTools().Npix2Nside( nrow );
         }
         catch ( RuntimeException e ) {
             nside = -1;
@@ -275,12 +337,9 @@ public class PixSampler {
                                  + "HEALPix map (" + nrow + ")" );
         }
 
-        /* Does it apparently follow known HEALPix conventions? */
+        /* Read and check declared nside if present. */
         String pixtype = getStringParam( pixTable, "PIXTYPE" );
         boolean dHealpix = "HEALPIX".equalsIgnoreCase( pixtype );
-
-        /* Check (FITS) keywords and try to characterise it. */
-        String ordering = getStringParam( pixTable, "ORDERING" );
         double dNside = getNumericParam( pixTable, "NSIDE" );
         if ( dNside >= 0 && dNside != nside ) {
             String msg = "NSIDE mismatch: declared (" + dNside + ")"
@@ -292,54 +351,9 @@ public class PixSampler {
                 logger_.warning( msg );
             }
         }
-        final Boolean dNested;
-        if ( ordering != null ) {
-            if ( ordering.toUpperCase().startsWith( "NEST" ) ) {
-                dNested = Boolean.TRUE;
-            }
-            else if ( ordering.toUpperCase().startsWith( "RING" ) ) {
-                dNested = Boolean.FALSE;
-            }
-            else {
-                dNested = null;
-            }
-            if ( dNested == null ) {
-                String msg = "Unknown HEALPix ORDERING value '" + ordering
-                           + "'";
-                if ( dHealpix ) {
-                    throw new IOException( msg );
-                }
-                else {
-                    logger_.warning( msg );
-                }
-            }
-        }
-        else {
-            dNested = null;
-        }
-        final boolean nested;
-        if ( dNested == null ) {
-            logger_.warning( "Unknown HEALPix pixel scheme; assuming NESTED" );
-            nested = true;
-        }
-        else {
-            nested = dNested.booleanValue();
-        }
 
-        /* Log what we think we're doing. */
-        String msg = new StringBuffer()
-            .append( "Table " )
-            .append( dHealpix ? "declared" : "assumed" )
-            .append( "HEALPix, " )
-            .append( "nside=" )
-            .append( nside )
-            .append( ", " )
-            .append( nested ? "nested" : "ring" )
-            .toString();
-        logger_.log( dHealpix ? Level.INFO : Level.WARNING, msg );
-
-        /* Return a suitable object. */
-        return new PixSampler( pixTable, nside, nested );
+        /* Return nside. */
+        return Tables.checkedLongToInt( nside );
     }
 
     /**

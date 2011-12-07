@@ -40,6 +40,7 @@ public class PixSample extends MapperTask {
         private final Parameter lonParam_;
         private final Parameter latParam_;
         private final Parameter radiusParam_;
+        private final ChoiceParameter<HealpixScheme> schemeParam_;
 
         /**
          * Constructor.
@@ -140,6 +141,27 @@ public class PixSample extends MapperTask {
                 "</p>",
             } );
 
+            schemeParam_ =
+                new ChoiceParameter<HealpixScheme>( "pixorder",
+                                                    HealpixScheme.values() );
+            schemeParam_.setPrompt( "HEALPix pixel ordering scheme" );
+            schemeParam_.setDescription( new String[] {
+                "<p>Selects the pixel ordering scheme used by the",
+                "pixel data file.",
+                "There are two different ways of ordering pixels in a",
+                "HEALPix file, \"ring\" and \"nested\", and the sampler",
+                "needs to know which one is in use.",
+                "If you know which is in use, choose the appropriate value",
+                "for this parameter;",
+                "if <code>" + HealpixScheme.AUTO + "</code> is used",
+                "it will attempt to work it out from headers in the file",
+                "(the ORDERING header).",
+                "If no reliable ordering scheme can be determined,",
+                "the command will fail with an error.",
+                "</p>",
+            } );
+            schemeParam_.setDefaultOption( HealpixScheme.AUTO );
+
             equ2galParam_.setPrompt( "Convert " + lonParam_.getName() + "/"
                                    + latParam_.getName()
                                    + " from RA/Dec to Galactic?" );
@@ -164,6 +186,7 @@ public class PixSample extends MapperTask {
 
         public Parameter[] getParameters() {
             return new Parameter[] {
+                schemeParam_,
                 modeParam_,
                 lonParam_,
                 latParam_,
@@ -187,6 +210,7 @@ public class PixSample extends MapperTask {
             final String radiusExpr = statMode.isPoint()
                                     ? "0"
                                     : radiusParam_.stringValue( env );
+            final HealpixScheme scheme = schemeParam_.objectValue( env );
             final JoinFixAction pixJoinFixAction =
                 JoinFixAction.makeRenameDuplicatesAction( "_pix" );
             return new TableMapping() {
@@ -194,8 +218,20 @@ public class PixSample extends MapperTask {
                         throws TaskException, IOException {
                     StarTable baseTable = ins[ 0 ].getWrappedTable();
                     StarTable pixTable = ins[ 1 ].getWrappedTable();
+                    int nside = PixSampler.inferNside( pixTable );
+                    final boolean isNested;
+                    if ( scheme == HealpixScheme.RING ) {
+                        isNested = false;
+                    }
+                    else if ( scheme == HealpixScheme.NESTED ) {
+                        isNested = true;
+                    }
+                    else {
+                        assert scheme == HealpixScheme.AUTO;
+                        isNested = PixSampler.inferNested( pixTable );
+                    }
                     PixSampler pixSampler =
-                        PixSampler.createPixSampler( pixTable );
+                        new PixSampler( pixTable, nside, isNested );
                     StarTable sampleTable =
                         createSampleTable( baseTable, pixSampler, statMode,
                                            coordReader, lonExpr, latExpr,
@@ -389,6 +425,20 @@ public class PixSample extends MapperTask {
         }
         else {
             throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * Possible values for HEALPix ordering parameter.
+     */
+    private enum HealpixScheme {
+        NESTED( "nested" ), RING( "ring" ), AUTO( "(auto)" );
+        private final String name_;
+        HealpixScheme( String name ) {
+            name_ = name;
+        }
+        public String toString() {
+            return name_;
         }
     }
 
