@@ -1,4 +1,4 @@
-package uk.ac.starlink.util;
+package uk.ac.starlink.xdoc;
 
 import java.io.File;
 import java.io.FileOutputStream;
