@@ -284,6 +284,12 @@ public class PixSample extends MapperTask {
                 "A filename or URL may be used, but a local file will be",
                 "more efficient.",
                 "</p>",
+                "<p>Some HEALPix format FITS tables seem to have rows",
+                "which contain 1024-element arrays of pixels",
+                "instead of single pixel values.",
+                "This (rather perverse?) format is not currently supported",
+                "here, but if there is demand support could be added.",
+                "</p>",
             } );
 
             InputFormatParameter pixFmtParam =

@@ -252,6 +252,17 @@ public class PixSampler {
      * but other HEALPix tables that work in a more or less similar way
      * will probably work.
      *
+     * <p>I don't know of any proper reference for encoding of HEALPix maps
+     * in FITS files, but the documentation for the HPIC package
+     * (<a href="http://cmb.phys.cwru.edu/hpic/"
+     *          >http://cmb.phys.cwru.edu/hpic/</a>)
+     * has a useful list of heuristics (manual section 2.10.1).
+     * One of these acknowledges the fact that some HEALPix FITS files
+     * have columns which are 1024-element arrays
+     * (<code>TFORMn = '1024E'</code>).  This routine does not currently
+     * support this rather perverse convention.  If somebody requests it,
+     * maybe I'll consider implementing it.
+     *
      * @param   pixTable   random access table containing HEALPix pixels 
      * @return  PixSampler object taking data from table
      * @throws  IOException  if table is not random access or does not

@@ -4319,7 +4319,7 @@ disc of given radius (perhaps a function of the input row).
 Other options (e.g. max/min) could easily be added.
 </p>
 
-<p>Although HEALPix is not a particularly common format for storing image
+<p>Although HEALPix is not a common format for storing image
 data in general, it is used for storing a number of important all-sky
 data sets such as the WMAP results and Schlegel dust maps.
 The NASA 
