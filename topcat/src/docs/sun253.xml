@@ -813,24 +813,42 @@ ASCII table, for instance by typing "<code>topcat -f ascii table.txt</code>".
 
 <p>The following sections describe the table formats which TOPCAT can read.</p>
 
-<subsubsubsect>
+<subsubsubsect id="inFits">
 <subhead><title>FITS</title></subhead>
 
 <p>FITS binary and ASCII table extensions can be read.
 Normally, TOPCAT will load all TABLE or BINTABLE extensions in a given file.
-If only a single extension is required, this is indicated by giving the
-extension number after a '#' at the end of the table location.
-The first extension (first HDU after the primary HDU) is numbered 1.
-Thus in a compressed FITS table named "spec23.fits.gz"
-with one primary HDU and two BINTABLE extensions,
-you would view the first one using the name "spec23.fits.gz"
-or "spec23.fits.gz#1" and the second one using the name "spec23.fits.gz#2".
-The suffix "#0" is never used for a legal
-FITS file, since the primary HDU cannot contain a table.
 </p>
 
-<p>You can select which extension to use more conveniently than
-by specifying the HDU numbers if you use the
+<p>If only a single extension is required from a multi-extension FITS file,
+this is indicated by giving an identifier after a '#' at the
+end of the table location.
+The identifier can be in one of two forms:
+<ul>
+<li>The numeric index of the HDU.  The first extension
+    (first HDU after the primary HDU) is numbered 1.
+    Thus in a compressed FITS table named "spec23.fits.gz"
+    with one primary HDU and two BINTABLE extensions,
+    you would view the first one using the name "spec23.fits.gz"
+    or "spec23.fits.gz#1" and the second one using the name "spec23.fits.gz#2".
+    The suffix "#0" is never used for a legal
+    FITS file, since the primary HDU cannot contain a table.
+    </li>
+<li>The name of the extension.  This is the value of the EXTNAME header
+    in the HDU, or alternatively the value of EXTNAME followed by "-"
+    followed by the value of EXTVER.  This follows the recommendation in
+    the FITS standard that EXTNAME and EXTVER headers can be used to
+    identify an HDU.
+    So in a multi-extension FITS file "cat.fits" where a table extension
+    has EXTNAME='UV_DATA' and EXTVER=1, it could be referenced as
+    "cat.fits#UV_DATA" or "cat.fits#UV_DATA-1".
+    Matching of these names is case-insensitive.
+    </li>
+</ul>
+</p>
+
+<p>You can select which extension to use interactively
+if you use the
 <ref id="TreeTableLoadDialog">Hierarchy Browser</ref> to load the table.
 </p>
 
@@ -8712,9 +8730,9 @@ into a table an error window will pop up.
 is all you need to do.  However, the <label>Position in file</label>
 field allows you to add information about where in the file the
 table you want is situated.  The meaning of this varies according to
-the file format: for FITS files, it is the index of the HDU containing
-the table you're after (the first extension after the primary HDU is
-numbered 1), and for VOTables it is the index of the TABLE element
+the file format: for FITS files, it is the index or EXTNAME of the HDU 
+containing the table you're after (see <ref id="inFits"/> for details),
+and for VOTables it is the index of the TABLE element
 (the first TABLE encountered is numbered 0).  If you leave this blank,
 you will get all the tables in the file; this is usually just one table, 
 since most file formats cannot accommodate more than one table per file, 
@@ -15281,6 +15299,8 @@ introduced since the last version:
         is consistent with both input tables not just the first one.</li>
     <li>Adjust SQL writer to avoid type error for MySQL.
         Hope it hasn't introduced new problems elsewhere.</li>
+    <li>You can now reference tables in multi-extension FITS files by name
+        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
     </ul>
     </p>
     </dd>

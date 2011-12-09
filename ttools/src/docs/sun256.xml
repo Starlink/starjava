@@ -1832,8 +1832,13 @@ The following list gives the values usually allowed for this
 <dd><p>FITS format - FITS binary or ASCII tables can be read.
     For commands which take a single input table, by default the 
     first table HDU in the file will used, but this can
-    be altered by supplying the HDU index after a '#' sign, 
-    so "table.fits#3" means the third HDU extension.
+    be altered for multi-extension FITS files by supplying
+    an identifier after a '#' sign.
+    The identifier can be either an HDU index or the extension name
+    (EXTNAME header, possibly followed by "-" and the EXTVER header),
+    so "table.fits#3" means the third HDU extension, and
+    "table.fits#UV_DATA" means the HDU with the value "UV_DATA" for its
+    EXTNAME header card.
     </p></dd>
 
 <dt><code>colfits</code></dt>
@@ -8132,6 +8137,8 @@ but my thanks are especially due to the following:
         (useful for things like Schlegel dust extinction).
         Also <ref id="addpixsample"><code>addpixsample</code></ref> filter,
         which does the same job.</li>
+    <li>You can now reference tables in multi-extension FITS files by name
+        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
     </ul>
     </p></dd>
 
