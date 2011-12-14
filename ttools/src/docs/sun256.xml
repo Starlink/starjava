@@ -8141,6 +8141,8 @@ but my thanks are especially due to the following:
         (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
     <li>Tidied up error reporting a bit (fewer duplicate nested messages
         reported).</li>
+    <li>Fix bug which failed when attempting to read FITS files with
+        complex array columns (<code>TFORMn=rC/rM</code>).</li>
     </ul>
     </p></dd>
 

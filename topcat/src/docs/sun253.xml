@@ -13075,6 +13075,7 @@ Some of the notable contributers are these:
 <li>Alasdair Allan (Starlink, Exeter)</li>
 <li>Mark Allen (CDS)</li>
 <li>Thomas Boch (CDS)</li>
+<li>Laurent Bourges (JMMC)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
 <li>Malcolm Currie (Starlink, RAL)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
@@ -15301,6 +15302,8 @@ introduced since the last version:
         Hope it hasn't introduced new problems elsewhere.</li>
     <li>You can now reference tables in multi-extension FITS files by name
         (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+    <li>Fix bug which failed when attempting to read FITS files with 
+        complex array columns (<code>TFORMn=rC/rM</code>).</li>
     </ul>
     </p>
     </dd>

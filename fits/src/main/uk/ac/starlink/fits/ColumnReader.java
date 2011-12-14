@@ -310,11 +310,13 @@ abstract class ColumnReader {
             final ArrayReader aReader =
                 createArrayReader( type, scale, zeroNum,
                                    hasBlank, blank, dims );
+            boolean isComplex = type == 'C' || type == 'M';
+            final int primCount = ( isComplex ? 2 : 1 ) * count;
             return new ColumnReader( aReader.getContentClass(),
                                      aReader.getShape(),
-                                     aReader.getByteCount( count ) ) {
+                                     aReader.getByteCount( primCount ) ) {
                 Object readValue( DataInput stream ) throws IOException {
-                    return aReader.readArray( stream, count );
+                    return aReader.readArray( stream, primCount );
                 }
                 int getElementSize() {
                     return aReader.getElementSize();
