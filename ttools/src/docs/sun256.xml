@@ -8139,6 +8139,8 @@ but my thanks are especially due to the following:
         which does the same job.</li>
     <li>You can now reference tables in multi-extension FITS files by name
         (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+    <li>Tidied up error reporting a bit (fewer duplicate nested messages
+        reported).</li>
     </ul>
     </p></dd>
 
