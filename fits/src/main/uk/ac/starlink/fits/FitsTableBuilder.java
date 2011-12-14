@@ -319,7 +319,7 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
      * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
      *         at which <tt>strm</tt> is positioned -
      *         it's an array so it can be updated by this routine (sorry)
-     * @param  a new table
+     * @return  a new table
      */
     public static StarTable findNamedTable( ArrayDataInput strm,
                                             DataSource datsrc, String name,
