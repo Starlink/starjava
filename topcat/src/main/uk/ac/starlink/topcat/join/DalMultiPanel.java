@@ -52,6 +52,7 @@ import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.Footprint;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -369,18 +370,19 @@ public class DalMultiPanel extends JPanel {
     private MatchWorker createMatchWorker() {
 
         /* Acquire state from this panel's GUI components. */
-        String serviceUrl = urlField_.getText();
-        if ( serviceUrl == null || serviceUrl.trim().length() == 0 ) {
+        String sUrl = urlField_.getText();
+        if ( sUrl == null || sUrl.trim().length() == 0 ) {
             throw new IllegalArgumentException( "No " + service_.getName()
                                               + " URL given" );
         }
+        URL serviceUrl;
         try {
-            new URL( serviceUrl );
+            serviceUrl = new URL( sUrl );
         }
         catch ( MalformedURLException e ) {
             throw (IllegalArgumentException)
                   new IllegalArgumentException( "Bad " + service_.getName()
-                                              + " URL syntax: " + serviceUrl )
+                                              + " URL syntax: " + sUrl )
                  .initCause( e );
         }
         ConeErrorPolicy erract =
@@ -406,12 +408,15 @@ public class DalMultiPanel extends JPanel {
         StarTableFactory tfact = ControlWindow.getInstance().getTableFactory();
 
         /* Assemble objects based on this information. */
-        ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
+        ConeSearcher searcher =
+            service_.createSearcher( serviceUrl.toString(), tfact );
         searcher = erract.adjustConeSearcher( searcher );
+        Footprint footprint = service_.getFootprint( serviceUrl );
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher =
-            mcMode.createConeMatcher( searcher, inTable, qsf, parallelism );
+            mcMode.createConeMatcher( searcher, inTable, qsf, footprint,
+                                      parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
                                         tcModel, inTable );
@@ -838,6 +843,7 @@ public class DalMultiPanel extends JPanel {
          * @param  inTable  input table
          * @param  qsFact   object which can produce a ConeQueryRowSequence
          *                  from the <code>inTable</code>
+         * @param  footprint  coverage footprint of coneSearcher, or null
          * @param  parallelism  number of threads to execute matches
          * @return   new cone matcher
          */
@@ -845,7 +851,7 @@ public class DalMultiPanel extends JPanel {
                 createConeMatcher( ConeSearcher coneSearcher,
                                    StarTable inTable,
                                    QuerySequenceFactory qsFact,
-                                   int parallelism );
+                                   Footprint footprint, int parallelism );
 
         /**
          * Constructs a ResultHandler suitable for use with this mode.
@@ -1020,11 +1026,13 @@ public class DalMultiPanel extends JPanel {
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
+                                              Footprint footprint,
                                               int parallelism ) {
             return
                 new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
-                                 best_, includeBlanks_, true, parallelism, "*",
-                                 DIST_NAME, JoinFixAction.NO_ACTION,
+                                 best_, footprint, includeBlanks_, true,
+                                 parallelism, "*", DIST_NAME,
+                                 JoinFixAction.NO_ACTION,
                                  JoinFixAction
                                 .makeRenameDuplicatesAction( "_" +
                                                              service_
@@ -1065,11 +1073,12 @@ public class DalMultiPanel extends JPanel {
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
+                                              Footprint footprint,
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher,
                                     toProducer( prependIndex( inTable ) ),
-                                    qsFact, true, false, true, parallelism,
-                                    INDEX_INFO.getName(), null,
+                                    qsFact, true, footprint, false, true,
+                                    parallelism, INDEX_INFO.getName(), null,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction.NO_ACTION );
         }

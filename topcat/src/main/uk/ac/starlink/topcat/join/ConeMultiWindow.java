@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.join;
 
 import java.awt.Component;
+import java.net.URL;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -12,6 +13,8 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.Footprint;
+import uk.ac.starlink.ttools.cone.MocFootprint;
 import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
@@ -105,6 +108,10 @@ public class ConeMultiWindow extends DalMultiWindow {
                       .getLevel();
             return new ServiceConeSearcher( new ConeSearch( url ), verb, false,
                                             tfact );
+        }
+
+        public Footprint getFootprint( URL url ) {
+            return new MocFootprint( url );
         }
     }
 }

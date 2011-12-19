@@ -1,11 +1,13 @@
 package uk.ac.starlink.topcat.join;
 
+import java.net.URL;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.Footprint;
 import uk.ac.starlink.vo.Capability;
 
 /**
@@ -76,4 +78,12 @@ public interface DalMultiService {
      * @param   tfact  table factory
      */
     ConeSearcher createSearcher( String url, StarTableFactory tfact );
+
+    /**
+     * Gets a coverage footprint for this service.
+     *
+     * @param    url   service URL
+     * @return  coverage footprint object, or null
+     */
+    Footprint getFootprint( URL url );
 }
