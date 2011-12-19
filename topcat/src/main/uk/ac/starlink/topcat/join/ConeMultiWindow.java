@@ -102,12 +102,11 @@ public class ConeMultiWindow extends DalMultiWindow {
             return controlBox_;
         }
 
-        public ConeSearcher createSearcher( String url,
-                                            StarTableFactory tfact ) {
+        public ConeSearcher createSearcher( URL url, StarTableFactory tfact ) {
             int verb = ((ConeVerbosity) verbSelector_.getSelectedItem())
                       .getLevel();
-            return new ServiceConeSearcher( new ConeSearch( url ), verb, false,
-                                            tfact );
+            return new ServiceConeSearcher( new ConeSearch( url.toString() ),
+                                            verb, false, tfact );
         }
 
         public Footprint getFootprint( URL url ) {

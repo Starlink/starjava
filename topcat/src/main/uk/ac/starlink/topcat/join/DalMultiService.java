@@ -77,7 +77,7 @@ public interface DalMultiService {
      * @param   url  service URL
      * @param   tfact  table factory
      */
-    ConeSearcher createSearcher( String url, StarTableFactory tfact );
+    ConeSearcher createSearcher( URL url, StarTableFactory tfact );
 
     /**
      * Gets a coverage footprint for this service.

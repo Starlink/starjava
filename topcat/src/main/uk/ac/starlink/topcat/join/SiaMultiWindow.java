@@ -106,10 +106,9 @@ public class SiaMultiWindow extends DalMultiWindow {
             return controlBox_;
         }
 
-        public ConeSearcher createSearcher( String url,
-                                            StarTableFactory tfact ) {
+        public ConeSearcher createSearcher( URL url, StarTableFactory tfact ) {
             String format = (String) formatSelector_.getSelectedItem();
-            return new SiaConeSearcher( url, format, false, tfact );
+            return new SiaConeSearcher( url.toString(), format, false, tfact );
         }
 
         public Footprint getFootprint( URL url ) {

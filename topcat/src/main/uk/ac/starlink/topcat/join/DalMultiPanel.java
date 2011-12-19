@@ -408,8 +408,7 @@ public class DalMultiPanel extends JPanel {
         StarTableFactory tfact = ControlWindow.getInstance().getTableFactory();
 
         /* Assemble objects based on this information. */
-        ConeSearcher searcher =
-            service_.createSearcher( serviceUrl.toString(), tfact );
+        ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
         searcher = erract.adjustConeSearcher( searcher );
         Footprint footprint = service_.getFootprint( serviceUrl );
         DatasQuerySequenceFactory qsf =
