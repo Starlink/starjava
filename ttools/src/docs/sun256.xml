@@ -8143,6 +8143,12 @@ but my thanks are especially due to the following:
         reported).</li>
     <li>Fix bug which failed when attempting to read FITS files with
         complex array columns (<code>TFORMn=rC/rM</code>).</li>
+    <li>Add MOC-based coverage filter to <code>coneskymatch</code>
+        when using some Cone Search services (mostly VizieR).
+        This uses the Multi-Order Coverage map service operated by CDS.
+        It can make VizieR multi-cone queries much faster by not doing
+        cone searches that are outside the coverage region of the
+        catalogue in question.</li>
     </ul>
     </p></dd>
 

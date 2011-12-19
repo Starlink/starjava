@@ -210,4 +210,8 @@ public class JdbcConer implements Coner {
                                    + e.getMessage(), e );
         }
     }
+
+    public Footprint getFootprint( Environment env ) {
+        return null;
+    }
 }

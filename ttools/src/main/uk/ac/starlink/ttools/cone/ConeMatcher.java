@@ -44,6 +44,7 @@ public class ConeMatcher implements TableProducer {
     private final QuerySequenceFactory qsFact_;
     private final int parallelism_;
     private final boolean bestOnly_;
+    private final Footprint footprint_;
     private final boolean includeBlanks_;
     private final boolean distFilter_;
     private final String copyColIdList_;
@@ -77,7 +78,7 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly ) {
-        this( coneSearcher, inProd, qsFact, bestOnly, true, false,
+        this( coneSearcher, inProd, qsFact, bestOnly, null, true, false,
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
@@ -91,6 +92,7 @@ public class ConeMatcher implements TableProducer {
      * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
+     * @param   footprint  coverage footprint for cone searcher, or null
      * @param   includeBlanks  true iff a row is to be output for input rows
      *                         for which the cone search has no matches
      * @param   distFilter true to perform post-query filtering on results
@@ -109,7 +111,7 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly,
-                        boolean includeBlanks,
+                        Footprint footprint, boolean includeBlanks,
                         boolean distFilter, int parallelism,
                         String copyColIdList, String distanceCol,
                         JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
@@ -117,6 +119,7 @@ public class ConeMatcher implements TableProducer {
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
+        footprint_ = footprint;
         includeBlanks_ = includeBlanks;
         distFilter_ = distFilter;
         parallelism_ = parallelism;
@@ -152,10 +155,14 @@ public class ConeMatcher implements TableProducer {
     public StarTable getTable() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
+        if ( footprint_ != null ) {
+            footprint_.initFootprint();
+        }
         final ConeResultRowSequence resultSeq;
         if ( parallelism_ == 1 ) {
             resultSeq = new SequentialResultRowSequence( querySeq,
                                                          coneSearcher_,
+                                                         footprint_,
                                                          bestOnly_, distFilter_,
                                                          distanceCol_ ) {
                    public void close() throws IOException {
@@ -167,6 +174,7 @@ public class ConeMatcher implements TableProducer {
         else {
             resultSeq = new ParallelResultRowSequence( querySeq,
                                                        coneSearcher_,
+                                                       footprint_,
                                                        bestOnly_, distFilter_,
                                                        distanceCol_,
                                                        parallelism_ ) {

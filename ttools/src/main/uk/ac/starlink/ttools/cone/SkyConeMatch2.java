@@ -288,6 +288,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         TableProducer inProd = createInputProducer( env );
         ConeSearcher coneSearcher =
             erract.adjustConeSearcher( coner_.createSearcher( env, bestOnly ) );
+        Footprint footprint = coner_.getFootprint( env );
         JoinFixAction inFixAct =
             fixcolsParam_.getJoinFixAction( env, insuffixParam_ );
         JoinFixAction coneFixAct =
@@ -297,7 +298,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         /* Return a table producer using these values. */
         ConeMatcher coneMatcher =
-            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly,
+            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly, footprint,
                              includeBlanks, distFilter, parallelism,
                              copyColIdList, distanceCol, inFixAct, coneFixAct );
         coneMatcher.setStreamOutput( ostream );
