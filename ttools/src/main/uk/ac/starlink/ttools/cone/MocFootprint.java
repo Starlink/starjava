@@ -41,7 +41,7 @@ public class MocFootprint implements Footprint {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
-    private static int nside_ = 512;
+    private static int nside_ = 64;
     private static HealpixImpl hpi_ = PixtoolsHealpix.getInstance();
     private static final int MOC_DATA_FORMAT = HealpixMoc.FITS;
     public static final String MOC_SERVICE_URL =
@@ -124,6 +124,17 @@ public class MocFootprint implements Footprint {
      * @param  nside  nside (a power of 2)
      */
     public static void setNside( int nside ) {
+        int order = (int) Math.round( Math.log( nside ) / Math.log( 2 ) );
+        if ( nside != ( 1 << order ) ) {
+            throw new IllegalArgumentException( "Not a power of 2" );
+        }
+        if ( nside > 512 ) {
+            logger_.warning( "HEALPix MOC nside set to " + nside
+                           + " - may be too large (service maximum=512?)" );
+        }
+        else {
+            logger_.info( "HEALPix MOC nside set to " + nside );
+        }
         nside_ = nside;
     }
 

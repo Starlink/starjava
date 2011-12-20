@@ -11,6 +11,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.task.ChoiceMode;
@@ -45,6 +46,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final JoinFixActionParameter fixcolsParam_;
     private final Parameter insuffixParam_;
     private final Parameter conesuffixParam_;
+    private final BooleanParameter usefootParam_;
+    private final IntegerParameter nsideParam_;
 
     /**
      * Constructor.
@@ -154,6 +157,50 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "</p>",
         } );
         paramList.add( modeParam_ );
+
+        usefootParam_ = new BooleanParameter( "usefoot" );
+        usefootParam_.setPrompt( "Use service footprint if available?" );
+        usefootParam_.setDescription( new String[] {
+            "<p>Determines whether an attempt will be made to restrict",
+            "searches in accordance with available footprint information.",
+            "If this is set true, then before any of the per-row queries",
+            "are performed, an attempt may be made to acquire footprint",
+            "information about the servce.",
+            "If such information can be obtained, then queries which",
+            "fall outside the footprint, and hence which are known to",
+            "yield no results, are skipped.  This can speed up the search",
+            "considerably.",
+            "</p>",
+            "<p>Currently, the only footprints available are those",
+            "provided by the CDS MOC (Multi-Order Coverage map) service,",
+            "which covers VizieR and a few other cone search services.",
+            "</p>",
+        } );
+        usefootParam_.setDefault( Boolean.TRUE.toString() );
+        paramList.add( usefootParam_ );
+
+        nsideParam_ = new IntegerParameter( "footnside" );
+        nsideParam_.setPrompt( "HEALPix Nside for footprints" );
+        nsideParam_.setDescription( new String[] {
+            "<p>Determines the HEALPix Nside parameter for use with the MOC",
+            "footprint service.",
+            "This tuning parameter determines the resolution of the footprint",
+            "if available.",
+            "Larger values give better resolution, hence a better chance of",
+            "avoiding unnecessary queries, but processing them takes longer",
+            "and retrieving and storing them is more expensive.",
+            "</p>",
+            "<p>The value must be a power of 2,",
+            "and at the time of writing, the MOC service will not supply",
+            "footprints at resolutions greater than nside=512,",
+            "so it should be &lt;=512.",
+            "</p>",
+            "<p>Only used if <code>" + usefootParam_.getName()
+                                     + "=true</code>.",
+            "</p>",
+        } );
+        nsideParam_.setDefault( Integer.toString( MocFootprint.getNside() ) );
+        paramList.add( nsideParam_ );
 
         copycolsParam_ = new Parameter( "copycols" );
         copycolsParam_.setUsage( "<colid-list>" );
@@ -288,7 +335,23 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         TableProducer inProd = createInputProducer( env );
         ConeSearcher coneSearcher =
             erract.adjustConeSearcher( coner_.createSearcher( env, bestOnly ) );
-        Footprint footprint = coner_.getFootprint( env );
+        final Footprint footprint;
+        if ( usefootParam_.booleanValue( env ) ) {
+            footprint = coner_.getFootprint( env );
+            int nside = nsideParam_.intValue( env );
+            if ( nside != MocFootprint.getNside() ) {
+                try {
+                    MocFootprint.setNside( nside );
+                }
+                catch ( IllegalArgumentException e ) {
+                    throw new ParameterValueException( nsideParam_,
+                                                       e.getMessage(), e );
+                }
+            }
+        }
+        else {
+            footprint = null;
+        }
         JoinFixAction inFixAct =
             fixcolsParam_.getJoinFixAction( env, insuffixParam_ );
         JoinFixAction coneFixAct =
