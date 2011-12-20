@@ -10,6 +10,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.ttools.cone.Footprint;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.util.TestCase;
@@ -91,6 +92,25 @@ public class MultiConeFrameworkTest extends TableTestCase {
         assertEquals( 2 + 3 + ( addScore ? 1 : 0 ),
                       allResult.getColumnCount() );
 
+        Footprint footNorth = new HemisphereFootprint( true );
+        Footprint footSouth = new HemisphereFootprint( false );
+        ConeMatcher footMatcherN = new ConeMatcher(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), false,
+                footNorth, false, true, parallelism, "*", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        ConeMatcher footMatcherS = new ConeMatcher(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), false,
+                footSouth, false, true, parallelism, "*", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        StarTable footResultN = Tables.randomTable( footMatcherN.getTable() );
+        StarTable footResultS = Tables.randomTable( footMatcherS.getTable() );
+        long nrN = footResultN.getRowCount();
+        long nrS = footResultS.getRowCount();
+        assertTrue( nrN > 10 );
+        assertTrue( nrS > 10 );
+        assertTrue( nrN + nrS == allResult.getRowCount() );
 
         if ( parallelism == 1 ) { // else order of requests is non-deterministic
             ConeSearcher searcher2 = new GappyConeSearcher( searcher, false ) {
@@ -187,5 +207,32 @@ public class MultiConeFrameworkTest extends TableTestCase {
         rseq2.close();
 
         return allResult;
+    }
+
+    /**
+     * Test footprint that covers a hemisphere at a time.
+     */
+    private static class HemisphereFootprint implements Footprint {
+        private final boolean isNorth_;
+        HemisphereFootprint( boolean isNorth ) {
+            isNorth_ = isNorth;
+        }
+        public void initFootprint() {
+        }
+        public boolean isFootprintReady() {
+            return true;
+        }
+
+        /**
+         * Note!! this does not implement the discOverlaps contract correctly,
+         * since it takes account of only the centre not the radius of the
+         * requested disc.  However, it serves the purpose required by this
+         * class, which is to define two mutually exclusive regions for which
+         * discOverlaps will return true.
+         */
+        public boolean discOverlaps( double alphaDeg, double deltaDeg,
+                                     double radiusDeg ) {
+            return ( deltaDeg < 0 ) ^ isNorth_;
+        }
     }
 }
