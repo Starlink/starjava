@@ -236,6 +236,29 @@ public class MultiConeTest extends TableTestCase {
                     < 0.1 );
     }
 
+    public void testFootprints() throws Exception {
+        MapEnvironment env = new MapEnvironment()
+            .setResourceBase( MultiConeTest.class )
+            .setValue( "serviceurl",
+                       "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source="
+                     + "VIII/58&" )
+            .setValue( "in", "messier.xml" )
+            .setValue( "ra", "RA" )
+            .setValue( "dec", "Dec" )
+            .setValue( "sr", "0.1" )
+            .setValue( "find", "all" )
+            .setValue( "copycols", "" )
+            .setValue( "emptyok", "false" );
+        MapEnvironment fEnv = new MapEnvironment( env )
+            .setValue( "usefoot", "true" );
+        MapEnvironment nEnv = new MapEnvironment( env )
+            .setValue( "usefoot", "false" );
+        StarTable fResult = multicone( env, new int[] { 1, 2 } );
+        assertEquals( 3, fResult.getRowCount() );
+        StarTable nResult = multicone( env, new int[] { 5 } );
+        assertSameData( fResult, nResult );
+    }
+
     private StarTable multicone( MapEnvironment env,
                                  int[] parallelisms ) throws Exception {
         StarTable result = null;
