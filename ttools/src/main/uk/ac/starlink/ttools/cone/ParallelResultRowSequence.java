@@ -61,9 +61,20 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         distanceCol_ = distanceCol;
         poolMax_ = parallelism * 3;
         resultPool_ = new TreeSet();
+
+        /* Prepare the worker threads. */
         workers_ = new Worker[ parallelism ];
         for ( int i = 0; i < parallelism; i++ ) {
             workers_[ i ] = new Worker( "Cone Query Worker #" + ( i + 1 ) );
+        }
+
+        /* Ensure that at least one query is performed even if all points
+         * are outside the footprint.  This way the metadata for an empty
+         * table is returned, so at least you have the columns. */
+        workers_[ 0 ].forceNextQuery_ = true;
+
+        /* Start the threads. */
+        for ( int i = 0; i < parallelism; i++ ) {
             workers_[ i ].start();
         }
     }
@@ -266,8 +277,9 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     private class Worker extends Thread {
         private boolean finished_;
-        private volatile long nQuery_;
-        private volatile long nSkip_;
+        volatile long nQuery_;
+        volatile long nSkip_;
+        volatile boolean forceNextQuery_;
 
         /**
          * Constructor.
@@ -354,8 +366,10 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
 
             /* Perform the query unless it can be shown to be unnecesary. */
             final StarTable table;
-            boolean excluded = footprint_ != null
+            boolean excluded = ! forceNextQuery_
+                            && footprint_ != null
                             && ! footprint_.discOverlaps( ra, dec, radius );
+            forceNextQuery_ = false;
             if ( excluded ) {
                 Level level = Level.CONFIG;
                 if ( logger_.isLoggable( level ) ) {

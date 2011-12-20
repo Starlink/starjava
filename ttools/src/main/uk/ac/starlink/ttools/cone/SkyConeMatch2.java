@@ -199,6 +199,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                                      + "=true</code>.",
             "</p>",
         } );
+        nsideParam_.setMinimum( 1 );
         nsideParam_.setDefault( Integer.toString( MocFootprint.getNside() ) );
         paramList.add( nsideParam_ );
 

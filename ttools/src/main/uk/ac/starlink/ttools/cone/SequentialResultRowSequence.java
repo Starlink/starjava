@@ -55,7 +55,12 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
         double ra = querySeq_.getRa();
         double dec = querySeq_.getDec();
         double radius = querySeq_.getRadius();
-        boolean excluded = footprint_ != null
+
+        /* Ensure that at least one query is performed even if all points
+         * are outside the footprint.  This way the metadata for an empty
+         * table is returned, so at least you have the columns. */
+        boolean excluded = nQuery_ + nSkip_ > 0
+                        && footprint_ != null
                         && ! footprint_.discOverlaps( ra, dec, radius );
         if ( excluded ) {
             Level level = Level.CONFIG;
