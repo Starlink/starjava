@@ -117,11 +117,12 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "dec", "$2" )
             .setValue( "sr", "$3" )
             .setValue( "scorecol", null )
-            .setValue( "copycols", "$4" );
+            .setValue( "copycols", "$4" )
+            .setValue( "ocmd", "delcols Category" );
         StarTable result = multicone( env, new int[] { 1, 2, 3, } );
 
         assertEquals( 699L, result.getRowCount() );  // was 451 rows
-        assertEquals( 15, result.getColumnCount() );  // was 14 cols
+        assertEquals( 14, result.getColumnCount() );
 
         assertEquals( "Name", result.getColumnInfo( 0 ).getName() );
         assertEquals( "fomalhaut", result.getCell( 0L, 0 ) );
