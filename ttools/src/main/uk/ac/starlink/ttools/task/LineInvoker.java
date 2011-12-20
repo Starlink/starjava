@@ -296,6 +296,13 @@ public class LineInvoker {
                 if ( e instanceof ParameterValueException && task != null ) {
                     Parameter param =
                         ((ParameterValueException) e).getParameter();
+                    try {
+                        err.println( "Value was: " + param.getName() + "=\""
+                                   + param.stringValue( env ) + "\"" );
+                    }
+                    catch ( TaskException e2 ) {
+                        // never mind
+                    }
                     err.println( "Usage: " + param.getName() + "="
                                + param.getUsage() );
                     err.println();
