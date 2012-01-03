@@ -273,7 +273,7 @@ and has subsequently been supported by PPARC grant PP/D002486/1,
 <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
         >AIDA</webref>,
 STFC grant ST/H008470/1,
-GAVO (BMBF Biwilligungsnummer 05A08VHA)
+GAVO (BMBF Bewilligungsnummer 05A08VHA)
 and
 STFC grant ST/I00176X/1.
 The underlying table handling facilities are supplied by
@@ -301,7 +301,7 @@ GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
 
 <p>This manual aims to give detailed tutorial and reference 
 documentation on most aspects of TOPCAT's capabilities, and reading
-it is an excellent way to to learn about the program.
+it is an excellent way to learn about the program.
 However, it's quite a fat document, and if you feel you've got better
 things to do with your time than read it all, you should be able to
 do most things by playing around with the software and dipping into
@@ -1957,7 +1957,7 @@ any "adjacent" bins within a distance corresponding to the matching
 tolerance.  A reference to the row is associated with each such bin.
 In the second step, each bin is examined, and if two or more 
 rows are associated with it every possible pair of rows in the associated set
-is assessed to see whether it does in fact consitute a matched pair.
+is assessed to see whether it does in fact constitute a matched pair.
 This will identify all and only those row pairs which 
 are related according to the selected match criteria.
 During this process a number of optimisations may be applied depending
@@ -2008,7 +2008,7 @@ so-called <em>Data Access Layer</em> services provided within the
 Virtual Observatory (VO).
 The buzzwords are not important, but the basic idea is that this
 allows you to locate a service providing data which may be
-of interest you, and then query that service to obtain the data.
+of interest to you, and then query that service to obtain the data.
 The VO is not a single monolithic entity, but a set of protocols
 which allow a general purpose tool such as TOPCAT to talk to 
 services made available by many different participating data
@@ -2187,7 +2187,7 @@ the Java language, which are compiled into Java bytecode before
 evaluation.  However, this does not mean that you need to be a
 Java programmer to write them.  The syntax is pretty similar to C,
 but even if you've never programmed in C most simple things, 
-and some complicated ones, are quite intutitive.
+and some complicated ones, are quite intuitive.
 </p>
 
 <p>The following explanation gives
@@ -2512,7 +2512,7 @@ The common ones are:
   <dt><code>(short)</code>  (numeric -> 2-byte integer)</dt>
   <dt><code>(int)</code>    (numeric -> 4-byte integer)</dt>
   <dt><code>(long)</code>   (numeric -> 8-byte integer)</dt>
-  <dt><code>(float)</code>  (numeric -> 4-type floating point)</dt>
+  <dt><code>(float)</code>  (numeric -> 4-byte floating point)</dt>
   <dt><code>(double)</code> (numeric -> 8-byte floating point)</dt>
   </dl>
   Note you may find the numeric conversion functions in the 
