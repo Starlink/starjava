@@ -8149,6 +8149,7 @@ but my thanks are especially due to the following:
         It can make VizieR multi-cone queries much faster by not doing
         cone searches that are outside the coverage region of the
         catalogue in question.</li>
+    <li>Fix failure when caching very large sequential tables.</li>
     </ul>
     </p></dd>
 

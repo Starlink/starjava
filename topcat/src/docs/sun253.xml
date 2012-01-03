@@ -15305,6 +15305,7 @@ introduced since the last version:
     <li>Fix bug which failed when attempting to read FITS files with 
         complex array columns (<code>TFORMn=rC/rM</code>).</li>
     <li>Use MOC footprints to speed up multi-cone searches.</li>
+    <li>Fix failure when loading very large sequential tables.</li>
     </ul>
     </p>
     </dd>
