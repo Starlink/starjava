@@ -96,12 +96,12 @@ public class MultiConeFrameworkTest extends TableTestCase {
         Footprint footSouth = new HemisphereFootprint( false );
         ConeMatcher footMatcherN = new ConeMatcher(
                 searcher, inProd,
-                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), false,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 footNorth, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         ConeMatcher footMatcherS = new ConeMatcher(
                 searcher, inProd,
-                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), false,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 footSouth, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable footResultN = Tables.randomTable( footMatcherN.getTable() );
@@ -110,7 +110,9 @@ public class MultiConeFrameworkTest extends TableTestCase {
         long nrS = footResultS.getRowCount();
         assertTrue( nrN > 10 );
         assertTrue( nrS > 10 );
-        assertTrue( nrN + nrS == allResult.getRowCount() );
+        long nrBoth = nrN + nrS - bestResult.getRowCount();
+        assertTrue( nrBoth > 0 );
+        assertTrue( nrBoth < 10 );
 
         if ( parallelism == 1 ) { // else order of requests is non-deterministic
             ConeSearcher searcher2 = new GappyConeSearcher( searcher, false ) {
@@ -222,17 +224,10 @@ public class MultiConeFrameworkTest extends TableTestCase {
         public boolean isFootprintReady() {
             return true;
         }
-
-        /**
-         * Note!! this does not implement the discOverlaps contract correctly,
-         * since it takes account of only the centre not the radius of the
-         * requested disc.  However, it serves the purpose required by this
-         * class, which is to define two mutually exclusive regions for which
-         * discOverlaps will return true.
-         */
         public boolean discOverlaps( double alphaDeg, double deltaDeg,
                                      double radiusDeg ) {
-            return ( deltaDeg < 0 ) ^ isNorth_;
+            return isNorth_ ? deltaDeg > -radiusDeg
+                            : deltaDeg < +radiusDeg;
         }
     }
 }
