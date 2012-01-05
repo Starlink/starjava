@@ -221,8 +221,8 @@ public class MultiConeFrameworkTest extends TableTestCase {
         }
         public void initFootprint() {
         }
-        public boolean isFootprintReady() {
-            return true;
+        public Coverage getCoverage() {
+            return Coverage.SOME_SKY;
         }
         public boolean discOverlaps( double alphaDeg, double deltaDeg,
                                      double radiusDeg ) {

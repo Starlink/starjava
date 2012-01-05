@@ -32,7 +32,7 @@ import uk.ac.starlink.util.CgiQuery;
 public class MocFootprint implements Footprint {
 
     private final URL serviceUrl_;
-    private volatile boolean isInitialised_;
+    private volatile Coverage coverage_;
     private volatile HealpixMoc moc_;
 
     private static final Map<URL,HealpixMoc> mocMap_ =
@@ -58,27 +58,28 @@ public class MocFootprint implements Footprint {
     }
 
     public synchronized void initFootprint() throws IOException {
-        if ( ! isInitialised_ ) {
+        if ( coverage_ == null ) {
             assert moc_ == null;
             try {
                 moc_ = getMoc( serviceUrl_ );
             }
             finally {
-                isInitialised_ = true;
+                coverage_ = getCoverage( moc_ );
+                assert coverage_ != null;
             }
         }
-        assert isFootprintReady();
     }
 
-    public boolean isFootprintReady() {
-        return isInitialised_;
+    public Coverage getCoverage() {
+        return coverage_;
     }
 
     public boolean discOverlaps( double alphaDeg, double deltaDeg,
                                  double radiusDeg ) {
         checkInitialised();
-        if ( moc_ == null ) {
-            return true;
+        Boolean knownResult = coverage_.getKnownResult();
+        if ( knownResult != null ) {
+            return knownResult.booleanValue();
         }
         HealpixMoc overlapMoc;
         try {
@@ -104,7 +105,7 @@ public class MocFootprint implements Footprint {
      * Checks that this object is initialised, and throws an exception if not.
      */
     private void checkInitialised() {
-        if ( ! isInitialised_ ) {
+        if ( coverage_ == null ) {
             throw new IllegalStateException( "Not initialised" );
         }
     }
@@ -154,6 +155,30 @@ public class MocFootprint implements Footprint {
      */
     public static void setHealpixImpl( HealpixImpl hpi ) {
         hpi_ = hpi;
+    }
+
+    /**
+     * Returns the coverage type for a given Moc.
+     *
+     * @param   moc, may be null
+     * @return   coverage type
+     */
+    private static Coverage getCoverage( HealpixMoc moc ) {
+        if ( moc == null ) {
+            return Coverage.NO_DATA;
+        }
+        else {
+            double frac = moc.getCoverage();
+            if ( frac == 0 ) {
+                return Coverage.NO_SKY;
+            }
+            else if ( frac == 1 ) {
+                return Coverage.ALL_SKY;
+            }
+            else {
+                return Coverage.SOME_SKY;
+            }
+        }
     }
 
     /**
