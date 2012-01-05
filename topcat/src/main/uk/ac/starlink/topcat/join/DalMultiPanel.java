@@ -140,6 +140,7 @@ public class DalMultiPanel extends JPanel {
                 public void focusGained( FocusEvent evt ) {
                 }
             } );
+            urlLine.add( Box.createHorizontalStrut( 5 ) );
             urlLine.add( footprintView_ );
         }
 
