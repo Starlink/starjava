@@ -29,7 +29,7 @@ import uk.ac.starlink.util.CgiQuery;
  * @author   Mark Taylor
  * @since    16 Dec 2011
  */
-public class MocFootprint implements Footprint {
+public class MocServiceFootprint implements Footprint {
 
     private final URL serviceUrl_;
     private volatile Coverage coverage_;
@@ -53,7 +53,7 @@ public class MocFootprint implements Footprint {
      * @param  serviceUrl  cone search service URL as recognised by CDS MOC
      *                     service
      */
-    public MocFootprint( URL serviceUrl ) {
+    public MocServiceFootprint( URL serviceUrl ) {
         serviceUrl_ = serviceUrl;
     }
 
@@ -271,7 +271,8 @@ public class MocFootprint implements Footprint {
     }
 
     public static void main( String[] args ) throws IOException {
-        MocFootprint fp = new MocFootprint( new URL( args[ 0 ] ) );
+        MocServiceFootprint fp =
+            new MocServiceFootprint( new URL( args[ 0 ] ) );
         fp.initFootprint();
         System.out.println( summariseMoc( fp.getMoc() ) );
     }

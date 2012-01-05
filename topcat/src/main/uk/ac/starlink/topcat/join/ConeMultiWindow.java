@@ -14,7 +14,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Footprint;
-import uk.ac.starlink.ttools.cone.MocFootprint;
+import uk.ac.starlink.ttools.cone.MocServiceFootprint;
 import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
@@ -114,7 +114,7 @@ public class ConeMultiWindow extends DalMultiWindow {
         }
 
         public Footprint getFootprint( URL url ) {
-            return new MocFootprint( url );
+            return new MocServiceFootprint( url );
         }
     }
 }

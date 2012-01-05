@@ -200,7 +200,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "</p>",
         } );
         nsideParam_.setMinimum( 1 );
-        nsideParam_.setDefault( Integer.toString( MocFootprint.getNside() ) );
+        nsideParam_.setDefault( Integer.toString( MocServiceFootprint
+                                                 .getNside() ) );
         paramList.add( nsideParam_ );
 
         copycolsParam_ = new Parameter( "copycols" );
@@ -340,9 +341,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         if ( usefootParam_.booleanValue( env ) ) {
             footprint = coner_.getFootprint( env );
             int nside = nsideParam_.intValue( env );
-            if ( nside != MocFootprint.getNside() ) {
+            if ( nside != MocServiceFootprint.getNside() ) {
                 try {
-                    MocFootprint.setNside( nside );
+                    MocServiceFootprint.setNside( nside );
                 }
                 catch ( IllegalArgumentException e ) {
                     throw new ParameterValueException( nsideParam_,

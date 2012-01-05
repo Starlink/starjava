@@ -327,7 +327,7 @@ public class ConeSearchConer implements Coner {
         }
 
         public Footprint getFootprint( URL url ) {
-            return new MocFootprint( url );
+            return new MocServiceFootprint( url );
         }
     }
 
