@@ -111,6 +111,10 @@ public class SiaMultiWindow extends DalMultiWindow {
             return new SiaConeSearcher( url.toString(), format, false, tfact );
         }
 
+        public boolean hasFootprints() {
+            return false;
+        }
+
         public Footprint getFootprint( URL url ) {
             return null;
         }

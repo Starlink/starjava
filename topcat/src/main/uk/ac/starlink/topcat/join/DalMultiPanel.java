@@ -4,6 +4,9 @@ import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
@@ -70,6 +73,7 @@ public class DalMultiPanel extends JPanel {
     private final DalMultiService service_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
+    private final FootprintView footprintView_;
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final ColumnSelector srSelector_;
@@ -79,6 +83,8 @@ public class DalMultiPanel extends JPanel {
     private final Action startAction_;
     private final Action stopAction_;
     private final JComponent[] components_;
+    private Footprint lastFootprint_;
+    private URL lastFootprintUrl_;
     private TopcatModel tcModel_;
     private MatchWorker matchWorker_;
 
@@ -118,6 +124,24 @@ public class DalMultiPanel extends JPanel {
         urlLine.add( urlField_ );
         main.add( urlLine );
         main.add( Box.createVerticalStrut( 10 ) );
+
+        /* Footprint information. */
+        footprintView_ = new FootprintView();
+        if ( service_.hasFootprints() ) {
+            urlField_.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateFootprint();
+                }
+            } );
+            urlField_.addFocusListener( new FocusListener() {
+                public void focusLost( FocusEvent evt ) {
+                    updateFootprint();
+                }
+                public void focusGained( FocusEvent evt ) {
+                }
+            } );
+            urlLine.add( footprintView_ );
+        }
 
         /* Field for input table. */
         final JComboBox tableSelector = new TablesListComboBox();
@@ -247,6 +271,41 @@ public class DalMultiPanel extends JPanel {
     public void setServiceUrl( String url ) {
         urlField_.setText( url );
         urlField_.setCaretPosition( 0 );
+        updateFootprint();
+    }
+
+    /**
+     * Update the footprint component if the currently selected
+     * service URL has changed.
+     */
+    private void updateFootprint() {
+        URL url = toUrl( urlField_.getText() );
+        if ( ( url == null && lastFootprintUrl_ != null ) ||
+             ( url != null && ! url.equals( lastFootprintUrl_ ) ) ) {
+            Footprint fp = url == null ? null : service_.getFootprint( url );
+            footprintView_.setFootprint( fp );
+            lastFootprintUrl_ = url;
+        }
+    }
+
+    /**
+     * Converts a string to a URL without exceptions.
+     *
+     * @param  surl  string representation
+     * @return  URL or null
+     */
+    private static URL toUrl( String surl ) {
+        if ( surl.startsWith( "http://" ) ) {
+            try {
+                return new URL( surl );
+            }
+            catch ( MalformedURLException e ) {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
     }
 
     /**

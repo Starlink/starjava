@@ -80,6 +80,14 @@ public interface DalMultiService {
     ConeSearcher createSearcher( URL url, StarTableFactory tfact );
 
     /**
+     * Indicates whether this service is capable of supplying footprint
+     * information.
+     *
+     * @return   false if <code>getFootprint</code> will always return false
+     */
+    boolean hasFootprints();
+
+    /**
      * Gets a coverage footprint for this service.
      *
      * @param    url   service URL

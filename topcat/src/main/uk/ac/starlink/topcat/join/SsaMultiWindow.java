@@ -111,6 +111,10 @@ public class SsaMultiWindow extends DalMultiWindow {
             return new SsaConeSearcher( url.toString(), format, false, tfact );
         }
 
+        public boolean hasFootprints() {
+            return false;
+        }
+
         public Footprint getFootprint( URL url ) {
             return null;
         }

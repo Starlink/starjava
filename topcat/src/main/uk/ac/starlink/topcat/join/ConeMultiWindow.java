@@ -109,6 +109,10 @@ public class ConeMultiWindow extends DalMultiWindow {
                                             verb, false, tfact );
         }
 
+        public boolean hasFootprints() {
+            return true;
+        }
+
         public Footprint getFootprint( URL url ) {
             return new MocFootprint( url );
         }
