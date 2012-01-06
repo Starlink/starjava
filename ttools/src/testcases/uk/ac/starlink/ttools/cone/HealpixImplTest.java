@@ -52,6 +52,7 @@ public class HealpixImplTest extends TestCase {
          * it's not possible using this test (or other tests that I 
          * know of) to test for false negatives, which would be harmful.
          * So for now, just log them and cross fingers. */
+        /* See also class HealpixAnomaly. */
         if ( npExtra > 0 || ngExtra > 0 ) {
             System.out.println( "query_disc false positives: "
                               + "nCommon: " + nCommon + ", "
