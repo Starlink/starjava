@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.join;
 
+import cds.moc.HealpixMoc;
 import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +31,8 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -47,15 +51,21 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ColumnSelectorModel;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
+import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatEvent;
+import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
+import uk.ac.starlink.ttools.cone.ConeQueryFootprint;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Footprint;
+import uk.ac.starlink.ttools.cone.MocFootprint;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -73,7 +83,9 @@ public class DalMultiPanel extends JPanel {
     private final DalMultiService service_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
-    private final FootprintView footprintView_;
+    private final FootprintView serviceFootprintView_;
+    private final FootprintView queryFootprintView_;
+    private final FootprintView overlapFootprintView_;
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final ColumnSelector srSelector_;
@@ -83,6 +95,8 @@ public class DalMultiPanel extends JPanel {
     private final Action startAction_;
     private final Action stopAction_;
     private final JComponent[] components_;
+    private final TopcatListener tcListener_;
+    private final ToggleButtonModel footprintModel_;
     private Footprint lastFootprint_;
     private URL lastFootprintUrl_;
     private TopcatModel tcModel_;
@@ -124,25 +138,6 @@ public class DalMultiPanel extends JPanel {
         urlLine.add( urlField_ );
         main.add( urlLine );
         main.add( Box.createVerticalStrut( 10 ) );
-
-        /* Footprint information. */
-        footprintView_ = new FootprintView();
-        if ( service_.hasFootprints() ) {
-            urlField_.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent evt ) {
-                    updateFootprint();
-                }
-            } );
-            urlField_.addFocusListener( new FocusListener() {
-                public void focusLost( FocusEvent evt ) {
-                    updateFootprint();
-                }
-                public void focusGained( FocusEvent evt ) {
-                }
-            } );
-            urlLine.add( Box.createHorizontalStrut( 5 ) );
-            urlLine.add( footprintView_ );
-        }
 
         /* Field for input table. */
         final JComboBox tableSelector = new TablesListComboBox();
@@ -223,6 +218,79 @@ public class DalMultiPanel extends JPanel {
         main.add( modeLine );
         main.add( Box.createVerticalStrut( 5 ) );
 
+        /* Set up footprint icons. */
+        if ( service_.hasFootprints() ) {
+
+            /* Service footprint icon. */
+            serviceFootprintView_ =
+                new FootprintView( service_.getLabel() + " service" );
+            serviceFootprintView_.setForeground( new Color( 0x0000ff ) );
+            serviceFootprintView_.setBackground( new Color( 0xc0c0ff ) );
+            urlField_.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateServiceFootprint();
+                }
+            } );
+            urlField_.addFocusListener( new FocusListener() {
+                public void focusLost( FocusEvent evt ) {
+                    updateServiceFootprint();
+                }
+                public void focusGained( FocusEvent evt ) {
+                }
+            } );
+            urlLine.add( Box.createHorizontalStrut( 5 ) );
+            urlLine.add( serviceFootprintView_ );
+
+            /* Table footprint icon. */
+            queryFootprintView_ = new FootprintView( "table" );
+            queryFootprintView_.setForeground( new Color( 0xff0000 ) );
+            queryFootprintView_.setBackground( new Color( 0xffc0c0 ) );
+            ActionListener tableListener = new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateQueryFootprint();
+                }
+            };
+            tableSelector.addActionListener( tableListener );
+            raSelector_.addActionListener( tableListener );
+            decSelector_.addActionListener( tableListener );
+            srSelector_.addActionListener( tableListener );
+            tableLine.add( new ShrinkWrapper( queryFootprintView_ ) );
+            tcListener_ = new TopcatListener() {
+                public void modelChanged( TopcatEvent evt ) {
+                    if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
+                        updateQueryFootprint();
+                    }
+                }
+            };
+
+            /* Overlap footprint icon. */
+            overlapFootprintView_ = new FootprintView( "potential matches" );
+            overlapFootprintView_.setForeground( new Color( 0xd000d0 ) );
+            overlapFootprintView_.setBackground( new Color( 0xffc0ff ) );
+            modeLine.add( new ShrinkWrapper( overlapFootprintView_ ) );
+        }
+        else {
+            tcListener_ = null;
+            queryFootprintView_ = null;
+            serviceFootprintView_ = null;
+            overlapFootprintView_ = null;
+        }
+
+        /* Configure footprint display toggle. */
+        footprintModel_ =
+            new ToggleButtonModel( "Show Footprints", ResourceIcon.FOOTPRINT,
+                                   "Display sky footprints for service and "
+                                 + "query where available" );
+        footprintModel_.setSelected( service_.hasFootprints() );
+        footprintModel_.setEnabled( service_.hasFootprints() );
+        footprintModel_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                updateServiceFootprint();
+                updateQueryFootprint();
+                updateOverlapFootprint();
+            }
+        } );
+
         /* Service access parameters. */
         parallelModel_ = new SpinnerNumberModel( 5, 1, 1000, 1 );
         JLabel parallelLabel = new JLabel( "Parallelism: " );
@@ -272,21 +340,87 @@ public class DalMultiPanel extends JPanel {
     public void setServiceUrl( String url ) {
         urlField_.setText( url );
         urlField_.setCaretPosition( 0 );
-        updateFootprint();
+        updateServiceFootprint();
     }
 
     /**
-     * Update the footprint component if the currently selected
+     * Update the service footprint component if the currently selected
      * service URL has changed.
      */
-    private void updateFootprint() {
-        URL url = toUrl( urlField_.getText() );
-        if ( ( url == null && lastFootprintUrl_ != null ) ||
-             ( url != null && ! url.equals( lastFootprintUrl_ ) ) ) {
-            Footprint fp = url == null ? null : service_.getFootprint( url );
-            footprintView_.setFootprint( fp );
-            lastFootprintUrl_ = url;
+    private void updateServiceFootprint() {
+        if ( footprintModel_.isSelected() ) {
+            URL url = toUrl( urlField_.getText() );
+            if ( ( url == null && lastFootprintUrl_ != null ) ||
+                 ( url != null && ! url.equals( lastFootprintUrl_ ) ) ) {
+                Footprint fp = url == null ? null
+                                           : service_.getFootprint( url );
+                serviceFootprintView_.setFootprint( fp );
+                lastFootprintUrl_ = url;
+                updateOverlapFootprint();
+            }
         }
+        else {
+            serviceFootprintView_.setFootprint( null );
+            lastFootprintUrl_ = null;
+        }
+    }
+
+    /**
+     * Update the query footprint component.
+     * Call this method if the effective selected table may have changed.
+     */
+    private void updateQueryFootprint() {
+        if ( footprintModel_.isSelected() ) {
+            Footprint footprint;
+            if ( tcModel_ == null ) {
+                footprint = null;
+            }
+            else {
+                int[] rowMap = tcModel_.getViewModel().getRowMap();
+                ColumnData raData = raSelector_.getColumnData();
+                ColumnData decData = decSelector_.getColumnData();
+                ColumnData srData = srSelector_.getColumnData();
+                if ( raData != null && decData != null ) {
+                    DatasQuerySequenceFactory qsf =
+                        new DatasQuerySequenceFactory( raData, decData, srData,
+                                                       rowMap );
+                    try {
+                        StarTable table = tcModel_.getApparentStarTable();
+                        ConeQueryRowSequence qseq =
+                            qsf.createQuerySequence( table );
+                        double resDeg = 1.0;
+                        footprint = new ConeQueryFootprint( qseq, resDeg );
+                    }
+                    catch ( IOException e ) {
+                        footprint = null;
+                    }
+                }
+                else {
+                    footprint = null;
+                }
+            }
+            queryFootprintView_.setFootprint( footprint );
+            updateOverlapFootprint();
+        }
+        else {
+            queryFootprintView_.setFootprint( null );
+        }
+    }
+
+    /**
+     * Update the overlap footprint component.
+     * Call this method if the query table footprint, or the service footprint,
+     * or both, may have changed.
+     */
+    private void updateOverlapFootprint() {
+        Footprint tfp = queryFootprintView_.getFootprint();
+        Footprint sfp = serviceFootprintView_.getFootprint();
+        Footprint ofp =
+            tfp instanceof MocFootprint && sfp instanceof MocFootprint
+            ? new OverlapFootprint( new MocFootprint[] { (MocFootprint) tfp,
+                                                         (MocFootprint) sfp } )
+            : null;
+        overlapFootprintView_.setFootprint( ofp );
     }
 
     /**
@@ -307,6 +441,16 @@ public class DalMultiPanel extends JPanel {
         else {
             return null;
         }
+    }
+
+    /**
+     * Returns a toggle model which controls whether footprint icons
+     * are displayed in this panel.
+     *
+     * @return   footprint display model
+     */
+    public ToggleButtonModel getFootprintModel() {
+        return footprintModel_;
     }
 
     /**
@@ -333,7 +477,13 @@ public class DalMultiPanel extends JPanel {
      * @param  tcModel   input table
      */
     private void setInputTable( TopcatModel tcModel ) {
+        if ( tcModel_ != null && tcListener_ != null ) {
+            tcModel_.removeTopcatListener( tcListener_ );
+        }
         tcModel_ = tcModel;
+        if ( tcModel_ != null && tcListener_ != null ) {
+            tcModel_.addTopcatListener( tcListener_ );
+        }
 
         /* Set the column selectors up to select from the correct table. */
         raSelector_.setTable( tcModel );
@@ -663,16 +813,20 @@ public class DalMultiPanel extends JPanel {
                 long irow_ = -1;
 
                 public boolean next() throws IOException {
-                    if ( matchWorker_.isInterrupted() ) {
+                    if ( matchWorker_ != null &&
+                         matchWorker_.isInterrupted() ) {
                         throw new InterruptedIOException();
                     }
                     boolean retval = rseq.next();
-                    if ( matchWorker_.isInterrupted() ) {
+                    if ( matchWorker_ != null &&
+                         matchWorker_.isInterrupted() ) {
                         throw new InterruptedIOException();
                     }
                     if ( retval ) {
                         irow_++;
-                        matchWorker_.setInputRow( (int) irow_ );
+                        if ( matchWorker_ != null ) {
+                            matchWorker_.setInputRow( (int) irow_ );
+                        }
                     }
                     return retval;
                 }

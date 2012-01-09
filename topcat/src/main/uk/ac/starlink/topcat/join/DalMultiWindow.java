@@ -140,6 +140,13 @@ public class DalMultiWindow extends AuxWindow {
         interopMenu.add( acceptResourceModel_.createMenuItem() );
         getJMenuBar().add( interopMenu );
 
+        /* Place toolbar buttons. */
+        if ( service.hasFootprints() ) {
+            getToolBar().add( multiPanel.getFootprintModel()
+                                        .createToolbarButton() );
+            getToolBar().addSeparator();
+        }
+
         /* Display something in the registry result table.  Either start
          * a query for all services of the right type, or show a message
          * describing how to use the registry query. */
