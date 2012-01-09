@@ -15,9 +15,9 @@ import java.util.logging.Logger;
 import uk.ac.starlink.util.CgiQuery;
 
 /**
- * Footprint based on HEALPix Multi-Order Coverage map, as developed at CDS.
- * The map data is obtained by querying the MOC service operated by CDS,
- * which can take a Cone Search URL as an argument to identify the
+ * Footprint implementation which acquires footprint information by
+ * querying the MOC service operated by CDS.
+ * This can take a Cone Search URL as an argument to identify the
  * target service.
  * The lon and lat are ICRS RA and Declination respectively for the
  * footprints returned by this object.
@@ -29,11 +29,9 @@ import uk.ac.starlink.util.CgiQuery;
  * @author   Mark Taylor
  * @since    16 Dec 2011
  */
-public class MocServiceFootprint implements Footprint {
+public class MocServiceFootprint extends MocFootprint {
 
     private final URL serviceUrl_;
-    private volatile Coverage coverage_;
-    private volatile HealpixMoc moc_;
 
     private static final Map<URL,HealpixMoc> mocMap_ =
         new HashMap<URL,HealpixMoc>();
@@ -42,7 +40,7 @@ public class MocServiceFootprint implements Footprint {
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     private static int nside_ = 64;
-    private static HealpixImpl hpi_ = PixtoolsHealpix.getInstance();
+    private static HealpixImpl defaultHpi_ = PixtoolsHealpix.getInstance();
     private static final int MOC_DATA_FORMAT = HealpixMoc.FITS;
     public static final String MOC_SERVICE_URL =
         "http://alasky.u-strasbg.fr/footprints/getMoc?";
@@ -54,60 +52,13 @@ public class MocServiceFootprint implements Footprint {
      *                     service
      */
     public MocServiceFootprint( URL serviceUrl ) {
+        super( defaultHpi_ );
         serviceUrl_ = serviceUrl;
     }
 
-    public synchronized void initFootprint() throws IOException {
-        if ( coverage_ == null ) {
-            assert moc_ == null;
-            try {
-                moc_ = getMoc( serviceUrl_ );
-            }
-            finally {
-                coverage_ = getCoverage( moc_ );
-                assert coverage_ != null;
-            }
-        }
-    }
-
-    public Coverage getCoverage() {
-        return coverage_;
-    }
-
-    public boolean discOverlaps( double alphaDeg, double deltaDeg,
-                                 double radiusDeg ) {
-        checkInitialised();
-        Boolean knownResult = coverage_.getKnownResult();
-        if ( knownResult != null ) {
-            return knownResult.booleanValue();
-        }
-        HealpixMoc overlapMoc;
-        try {
-            overlapMoc = moc_.queryDisc( hpi_, alphaDeg, deltaDeg, radiusDeg );
-        }
-        catch ( Exception e ) {
-            logger_.log( Level.WARNING, "Unexpected MOC error - fail safe", e );
-            return true;
-        }
-        return overlapMoc.getSize() > 0;
-    }
-
-    /**
-     * Returns the MOC object associated with this footprint.
-     *
-     * @return  moc
-     */
-    public HealpixMoc getMoc() {
-        return moc_;
-    }
-
-    /**
-     * Checks that this object is initialised, and throws an exception if not.
-     */
-    private void checkInitialised() {
-        if ( coverage_ == null ) {
-            throw new IllegalStateException( "Not initialised" );
-        }
+    @Override
+    protected HealpixMoc createMoc() throws IOException {
+        return getMoc( serviceUrl_ );
     }
 
     /**
@@ -115,7 +66,7 @@ public class MocServiceFootprint implements Footprint {
      *
      * @return   nside (a power of 2)
      */
-    public static int getNside() {
+    public static int getServiceNside() {
         return nside_;
     }
 
@@ -124,7 +75,7 @@ public class MocServiceFootprint implements Footprint {
      *
      * @param  nside  nside (a power of 2)
      */
-    public static void setNside( int nside ) {
+    public static void setServiceNside( int nside ) {
         int order = (int) Math.round( Math.log( nside ) / Math.log( 2 ) );
         if ( nside != ( 1 << order ) ) {
             throw new IllegalArgumentException( "Not a power of 2" );
@@ -140,45 +91,21 @@ public class MocServiceFootprint implements Footprint {
     }
 
     /**
-     * Returns the HEALPix implementation used for MOCs.
+     * Returns the HEALPix implementation used for MOC service queries.
      *
      * @return   indexing implementation
      */
-    public static HealpixImpl getHealpix() {
-        return hpi_;
+    public static HealpixImpl getDefaultHealpixImpl() {
+        return defaultHpi_;
     }
 
     /**
-     * Sets the HEALPix implementation used for MOCs.
+     * Sets the HEALPix implementation used for MOC service queries.
      *
      * @param  hpi  indexing implementation
      */
-    public static void setHealpixImpl( HealpixImpl hpi ) {
-        hpi_ = hpi;
-    }
-
-    /**
-     * Returns the coverage type for a given Moc.
-     *
-     * @param   moc, may be null
-     * @return   coverage type
-     */
-    private static Coverage getCoverage( HealpixMoc moc ) {
-        if ( moc == null ) {
-            return Coverage.NO_DATA;
-        }
-        else {
-            double frac = moc.getCoverage();
-            if ( frac == 0 ) {
-                return Coverage.NO_SKY;
-            }
-            else if ( frac == 1 ) {
-                return Coverage.ALL_SKY;
-            }
-            else {
-                return Coverage.SOME_SKY;
-            }
-        }
+    public static void setDefaultHealpixImpl( HealpixImpl hpi ) {
+        defaultHpi_ = hpi;
     }
 
     /**
@@ -249,25 +176,6 @@ public class MocServiceFootprint implements Footprint {
             catch ( IOException e ) {
             }
         }
-    }
-
-    /**
-     * Utility method to stringify a MOC.
-     *
-     * @param  moc  MOC
-     * @return  string
-     */
-    private static String summariseMoc( HealpixMoc moc ) {
-        return new StringBuffer()
-           .append( "Coverage: " )
-           .append( moc.getCoverage() )
-           .append( ", " )
-           .append( "Pixels: " )
-           .append( moc.getSize() )
-           .append( ", " )
-           .append( "Bytes: " )
-           .append( moc.getMem() )
-           .toString();
     }
 
     public static void main( String[] args ) throws IOException {

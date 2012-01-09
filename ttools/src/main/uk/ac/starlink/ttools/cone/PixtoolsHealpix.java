@@ -93,8 +93,37 @@ public class PixtoolsHealpix implements HealpixImpl {
      * @param  order
      * @return   nside
      */
-    private static long orderToNside( int order ) {
+    public static long orderToNside( int order ) {
         return 1L << order;
+    }
+
+    /**
+     * Turns the HEALPix Nside parameter into the MOC "order" parameter.
+     *
+     * @param  nside  Nside
+     * @return  order
+     * @throws  IllegalArgumentException  if nside is not suitable
+     */
+    public static int nsideToOrder( long nside ) {
+        double order = Math.log( nside ) / Math.log( 2 );
+        int iorder = (int) order;
+        if ( iorder == order ) {
+            return iorder;
+        }
+        else {
+            throw new IllegalArgumentException( "nside " + nside
+                                              + " not a power of 2" );
+        }
+    }
+
+    /**
+     * Returns an Nside value corresponding to a given angular size.
+     *
+     * @param  sizeDeg  size in degrees
+     * @return  nside
+     */
+    public synchronized int sizeToNside( double sizeDeg ) {
+        return (int) pixTools_.GetNSide( sizeDeg * 3600. );
     }
 
     /**
