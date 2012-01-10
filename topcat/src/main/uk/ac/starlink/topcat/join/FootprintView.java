@@ -243,7 +243,7 @@ public class FootprintView extends JComponent {
         public void paintIcon( Component c, Graphics g, int ox, int oy ) {
             Color color = g.getColor();
             g.setColor( c.getBackground() );
-            g.fillOval( ox, ox, nx_, ny_ );
+            g.fillOval( ox, oy, nx_, ny_ );
             g.setColor( color );
             for ( int ix = 0; ix < nx_; ix++ ) {
                 for ( int iy = 0; iy < ny_; iy++ ) {
