@@ -17,7 +17,7 @@ public class HealpixImplTest extends TestCase {
     }
 
     public void testGaia() {
-//      workHealpix( new Healpix(), true );  // known broken
+        workHealpix( new Healpix(), true );
         workHealpix( new Healpix(), false );
     }
 
