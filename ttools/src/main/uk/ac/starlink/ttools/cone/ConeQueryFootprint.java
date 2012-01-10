@@ -4,6 +4,7 @@ import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import gov.fnal.eag.healpix.PixTools;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 /**
  * Footprint implementation giving the coverage defined by a sequence of
@@ -50,6 +51,9 @@ public class ConeQueryFootprint extends MocFootprint {
         try {
             HealpixImpl healpix = PixtoolsHealpix.getInstance();
             while ( qseq_.next() ) {
+                if ( Thread.interrupted() ) {
+                    throw new InterruptedIOException();
+                }
                 double ra = qseq_.getRa();
                 double dec = qseq_.getDec();
                 double radius = qseq_.getRadius();

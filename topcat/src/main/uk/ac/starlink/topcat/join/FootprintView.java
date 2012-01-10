@@ -10,6 +10,7 @@ import java.awt.geom.Ellipse2D;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -25,10 +26,13 @@ import uk.ac.starlink.ttools.cone.Footprint;
  */
 public class FootprintView extends JComponent {
 
-    private Footprint footprint_;
+    private volatile Footprint footprint_;
     private Icon fpIcon_;
     private Object iconKey_;
     private String subject_;
+    private volatile Thread footprintThread_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     /**
      * Constructs a footprint with subject description.
@@ -50,17 +54,18 @@ public class FootprintView extends JComponent {
 
     /**
      * Sets the footprint for this component to display.
+     * The footprint is initialised asynchronously; the initialising
+     * thread will be <code>interrrupt</code>ed if a new footprint needs
+     * initialising before it's done.
      *
      * @param  footprint  footprint for display
      */
     public void setFootprint( final Footprint footprint ) {
         footprint_ = footprint;
-        if ( footprint == null || footprint.getCoverage() != null ) {
-            repaint();
-        }
-        else {
-            new Thread( "Footprinter" ) {
+        if ( footprint != null && footprint.getCoverage() == null ) {
+            final Thread thread = new Thread( "Footprinter" ) {
                 public void run() {
+                    final Thread fthread = this;
                     if ( footprint == footprint_ ) {
                         try {
                             footprint.initFootprint();
@@ -71,11 +76,28 @@ public class FootprintView extends JComponent {
                             } );
                         }
                         catch ( IOException e ) {
+                            logger_.info( "Footprint initialization did not "
+                                        + "complete: " + e );
+                        }
+                        finally {
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    if ( footprintThread_ == fthread ) {
+                                        footprintThread_ = null;
+                                    }
+                                }
+                            } );
                         }
                     }
                 }
-            }.start();
+            };
+            if ( footprintThread_ != null ) {
+                footprintThread_.interrupt();
+            }
+            footprintThread_ = thread;
+            thread.start();
         }
+        repaint();
     }
 
     /**
