@@ -13031,10 +13031,11 @@ the following external libraries provide important parts of TOPCAT's
 functionality:
 <ul>
 <li><webref url="http://www.gnu.org/software/jel/">JEL</webref>
-    (GNU) for algebraic expression evaluation</li>
+    (Konstantin Metlov, GNU) for algebraic expression evaluation</li>
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
-    (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+    (Nikolay Kuropatkin, Fermilab EAG)
+    for HEALPix-based celestial sphere row matching</li>
 <li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
             >IVOARegistry</webref>
     (NVO) for ADQL/X-&gt;S translations in registry searches</li>
@@ -13055,6 +13056,9 @@ functionality:
 <li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
             >ADQL</webref> (Gr&#x00e9;gory Mantelet, CDS)
             for ADQL parsing</li>
+<li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc"
+            >MOC</webref> (CDS)
+            Multi-Order Coverage HEALPix maps for footprint manipulation</li>
 <li><webref url="http://browserlaunch2.sourceforge.net/"
             >BrowserLauncher2</webref> for launching default web browser</li>
 </ul>
