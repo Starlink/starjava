@@ -77,6 +77,7 @@ public class SchlegelCalculator
                 .append( CgiQuery.formatDouble( ra, 6, 16 ) )
                 .append( "+" )
                 .append( CgiQuery.formatDouble( dec, 6, 16 ) )
+                .append( "+equ+j2000" )
                 .toString();
         }
     }
@@ -199,6 +200,7 @@ public class SchlegelCalculator
          * @return  result-bearing document
          */
         private Element getOkResultsElement( URL url ) throws IOException {
+            logger_.info( url.toString() );
             Document doc;
             try {
                 doc = dbf_.newDocumentBuilder().parse( url.openStream() );
