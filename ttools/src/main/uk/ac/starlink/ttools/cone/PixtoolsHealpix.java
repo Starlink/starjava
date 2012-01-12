@@ -11,13 +11,6 @@ import javax.vecmath.Vector3d;
  * PixTools library.
  * Use {@link #getInstance} to obtain the singleton instance of this class.
  *
- * <p><strong>Implementation Note:</strong>
- * In the current implementation all methods are synchronized because
- * use of the PixTools <em>class</em> (not just instances of it)
- * is not threadsafe.
- * This implementation may be changed if the underlying bug is fixed.
- * The singleton instance of this class is in any case threadsafe.
- *
  * @author   Mark Taylor
  * @since    16 Dec 2011
  * @see      <a href="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
@@ -35,17 +28,16 @@ public class PixtoolsHealpix implements HealpixImpl {
         pixTools_ = new PixTools();
     }
 
-    public synchronized long ang2pix( int order, double lonDeg,
-                                      double latDeg ) {
+    public long ang2pix( int order, double lonDeg, double latDeg ) {
         long nside = orderToNside( order );
         double thetaRad = Math.toRadians( 90 - latDeg );
         double phiRad = Math.toRadians( lonDeg );
-        return getPixtools().ang2pix_nest( nside, thetaRad, phiRad );
+        return pixTools_.ang2pix_nest( nside, thetaRad, phiRad );
     }
 
-    public synchronized double[] pix2ang( int order, long ipix ) {
+    public double[] pix2ang( int order, long ipix ) {
         long nside = orderToNside( order );
-        double[] coords = getPixtools().pix2ang_nest( nside, ipix );
+        double[] coords = pixTools_.pix2ang_nest( nside, ipix );
         double thetaRad = coords[ 0 ];
         double phiRad = coords[ 1 ];
         double latDeg = 90 - Math.toDegrees( thetaRad );
@@ -55,15 +47,14 @@ public class PixtoolsHealpix implements HealpixImpl {
         return coords;
     }
 
-    public synchronized long[] queryDisc( int order, double lonDeg,
-                                          double latDeg, double radiusDeg ) {
+    public long[] queryDisc( int order, double lonDeg, double latDeg,
+                             double radiusDeg ) {
         long nside = orderToNside( order );
         double thetaRad = Math.toRadians( 90 - latDeg );
         double phiRad = Math.toRadians( lonDeg );
         double radiusRad = Math.toRadians( radiusDeg );
-        PixTools pixTools = getPixtools();
-        Vector3d vec = pixTools.Ang2Vec( thetaRad, phiRad );
-        List pixList = pixTools.query_disc( nside, vec, radiusRad, 1, 1 );
+        Vector3d vec = pixTools_.Ang2Vec( thetaRad, phiRad );
+        List pixList = pixTools_.query_disc( nside, vec, radiusRad, 1, 1 );
         long[] pixs = new long[ pixList.size() ];
         int ip = 0;
         for ( Iterator it = pixList.iterator(); it.hasNext(); ) {
@@ -74,17 +65,13 @@ public class PixtoolsHealpix implements HealpixImpl {
     }
 
     /**
-     * Returns a PixTools instance which can be used for calculations.
-     * At present a single implementation is always used, on the grounds
-     * that its uses are always synchronized.  If the PixTools library 
-     * is fixed so that different instances may be used simulataneously,
-     * the implementation of this method should be changed, perhaps to
-     * use a {@link java.lang.ThreadLocal}.
+     * Returns an Nside value corresponding to a given angular size.
      *
-     * @return   PixTools instance
+     * @param  sizeDeg  size in degrees
+     * @return  nside
      */
-    private PixTools getPixtools() {
-        return pixTools_;
+    public int sizeToNside( double sizeDeg ) {
+        return (int) pixTools_.GetNSide( sizeDeg * 3600. );
     }
 
     /**
@@ -114,16 +101,6 @@ public class PixtoolsHealpix implements HealpixImpl {
             throw new IllegalArgumentException( "nside " + nside
                                               + " not a power of 2" );
         }
-    }
-
-    /**
-     * Returns an Nside value corresponding to a given angular size.
-     *
-     * @param  sizeDeg  size in degrees
-     * @return  nside
-     */
-    public synchronized int sizeToNside( double sizeDeg ) {
-        return (int) pixTools_.GetNSide( sizeDeg * 3600. );
     }
 
     /**

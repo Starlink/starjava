@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.cone;
 
 import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
-import gov.fnal.eag.healpix.PixTools;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
