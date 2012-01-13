@@ -62,7 +62,7 @@ public class HealpixSkyPixellator implements SkyPixellator {
      */
     public HealpixSkyPixellator( boolean nested ) {
         scheme_ = nested ? 1 : 0;
-        pixTools_ = new PixTools();
+        pixTools_ = PixTools.getInstance();
         healpixKParam_ = new HealpixKParameter();
         setHealpixK( -1 );
     }

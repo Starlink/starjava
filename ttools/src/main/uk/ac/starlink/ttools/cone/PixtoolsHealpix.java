@@ -25,7 +25,7 @@ public class PixtoolsHealpix implements HealpixImpl {
      * Private constructor prevents public instantiation of this singleton.
      */
     private PixtoolsHealpix() {
-        pixTools_ = new PixTools();
+        pixTools_ = PixTools.getInstance();
     }
 
     public long ang2pix( int order, double lonDeg, double latDeg ) {

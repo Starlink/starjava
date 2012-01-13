@@ -52,7 +52,7 @@ public class PixSampler {
         if ( ! pixTable.isRandom() ) {
             throw new IOException( "Pixel data not random access" );
         }
-        pixTools_ = new PixTools();
+        pixTools_ = PixTools.getInstance();
         long hasNrow = pixTable.getRowCount();
         long requireNrow = pixTools_.Nside2Npix( nside );
         if ( hasNrow != requireNrow  ) {
@@ -338,7 +338,7 @@ public class PixSampler {
         long nrow = pixTable.getRowCount();
         long nside;
         try {
-            nside = new PixTools().Npix2Nside( nrow );
+            nside = PixTools.getInstance().Npix2Nside( nrow );
         }
         catch ( RuntimeException e ) {
             nside = -1;
