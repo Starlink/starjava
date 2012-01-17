@@ -5,6 +5,8 @@
 
 package uk.ac.starlink.ttools.func;
 
+import uk.ac.starlink.table.Tables;
+
 /**
  * Functions for converting between strings and numeric values.
  *
@@ -26,8 +28,38 @@ public class Conversions {
      * @return  a string representation of <code>value</code>
      */
     public static String toString( double value ) {
-        return value == (double) (long) value ? Long.toString( (long) value )
-                                              : Double.toString( value );
+        if ( Tables.isBlank( value ) ) {
+            return null;
+        }
+        else {
+            return value == (double) (long) value
+                 ? Long.toString( (long) value )
+                 : Double.toString( value );
+        }
+    }
+
+    /**
+     * Turns an integer numeric value into a string.
+     *
+     * @param  value  numeric value
+     * @return  a string representation of <code>value</code>
+     */
+    public static String toString( long value ) {
+        return Long.toString( value );
+    }
+
+    /**
+     * Turns any value into a string.
+     * As applied to existing string values this isn't really useful,
+     * but it means that you can apply <code>toString()</code>
+     * to any value without knowing its type
+     * and get a useful return from it.
+     *
+     * @param  value  non-numeric value
+     * @return  a string representation of <code>value</code>
+     */
+    public static String toString( Object value ) {
+        return Tables.isBlank( value ) ? null : value.toString();
     }
 
     /**

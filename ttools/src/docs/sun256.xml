@@ -8150,6 +8150,10 @@ but my thanks are especially due to the following:
         cone searches that are outside the coverage region of the
         catalogue in question.</li>
     <li>Fix failure when caching very large sequential tables.</li>
+    <li>Slight changes to <code>toString</code> function: now works on
+        non-numeric values, gives the right answer for <code>Long</code>
+        integers, and returns a blank value rather than "null" or "NaN"
+        for blank inputs.</li>
     </ul>
     </p></dd>
 

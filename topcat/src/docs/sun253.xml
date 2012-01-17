@@ -15311,6 +15311,10 @@ introduced since the last version:
     <li>Use MOC footprints to speed up multi-cone searches,
         including footprint icon display in multicone window.</li>
     <li>Fix failure when loading very large sequential tables.</li>
+    <li>Slight changes to <code>toString</code> function: now works on
+        non-numeric values, gives the right answer for <code>Long</code>
+        integers, and returns a blank value rather than "null" or "NaN"
+        for blank inputs.</li>
     </ul>
     </p>
     </dd>
