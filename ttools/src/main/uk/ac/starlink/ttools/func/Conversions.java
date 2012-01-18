@@ -24,28 +24,28 @@ public class Conversions {
     /**
      * Turns a numeric value into a string.
      *
-     * @param  value  numeric value
-     * @return  a string representation of <code>value</code>
+     * @param  fpVal  floating point numeric value
+     * @return  a string representation of <code>fpVal</code>
      */
-    public static String toString( double value ) {
-        if ( Tables.isBlank( value ) ) {
+    public static String toString( double fpVal ) {
+        if ( Tables.isBlank( fpVal ) ) {
             return null;
         }
         else {
-            return value == (double) (long) value
-                 ? Long.toString( (long) value )
-                 : Double.toString( value );
+            return fpVal == (double) (long) fpVal
+                 ? Long.toString( (long) fpVal )
+                 : Double.toString( fpVal );
         }
     }
 
     /**
      * Turns an integer numeric value into a string.
      *
-     * @param  value  numeric value
-     * @return  a string representation of <code>value</code>
+     * @param  intVal  integer numeric value
+     * @return  a string representation of <code>intVal</code>
      */
-    public static String toString( long value ) {
-        return Long.toString( value );
+    public static String toString( long intVal ) {
+        return Long.toString( intVal );
     }
 
     /**
@@ -55,11 +55,11 @@ public class Conversions {
      * to any value without knowing its type
      * and get a useful return from it.
      *
-     * @param  value  non-numeric value
-     * @return  a string representation of <code>value</code>
+     * @param  objVal  non-numeric value
+     * @return  a string representation of <code>objVal</code>
      */
-    public static String toString( Object value ) {
-        return Tables.isBlank( value ) ? null : value.toString();
+    public static String toString( Object objVal ) {
+        return Tables.isBlank( objVal ) ? null : objVal.toString();
     }
 
     /**
