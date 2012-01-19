@@ -15315,6 +15315,7 @@ introduced since the last version:
         non-numeric values, gives the right answer for <code>Long</code>
         integers, and returns a blank value rather than "null" or "NaN"
         for blank inputs.</li>
+    <li>PNG graphics output no longer has transparent background.</li>
     </ul>
     </p>
     </dd>

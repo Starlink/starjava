@@ -149,14 +149,10 @@ public abstract class GraphicExporter {
     /** Exports to PNG format. */
     public static final GraphicExporter PNG =
          new ImageIOExporter( "png", "image/png",
-                              new String[] { ".png" }, true );
+                              new String[] { ".png" }, false );
 
     /**
      * Exports to GIF format.
-     *
-     * <p>There's something wrong with this - it ought to produce a
-     * transparent background, but it doesn't.  I'm not sure why, or
-     * even whether it's to do with the plot or the encoder.
      */
     public static final GraphicExporter GIF =
             new GraphicExporter( "gif", "image/gif",
@@ -171,16 +167,18 @@ public abstract class GraphicExporter {
 
             /* Create a BufferedImage to draw it onto. */
             BufferedImage image =
-                new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
+                new BufferedImage( w, h, BufferedImage.TYPE_3BYTE_BGR );
 
-            /* Set the background to transparent white. */
-            Graphics2D g2 = image.createGraphics();
-            g2.setBackground( new Color( 0x00ffffff, true ) );
-            g2.clearRect( 0, 0, w, h );
+            /* Clear the background. */
+            Graphics g = image.createGraphics();
+            Color color = g.getColor();
+            g.setColor( Color.WHITE );
+            g.fillRect( 0, 0, w, h );
+            g.setColor( color );
 
             /* Draw the component onto the image. */
-            icon.paintIcon( null, g2, 0, 0 );
-            g2.dispose();
+            icon.paintIcon( null, g, 0, 0 );
+            g.dispose();
 
             /* Count the number of colours represented in the resulting
              * image. */
@@ -312,7 +310,7 @@ public abstract class GraphicExporter {
      */
     private static class ImageIOExporter extends GraphicExporter {
         private final String formatName_;
-        private final int imageType_;
+        private final boolean transparentBg_;
         private final boolean isSupported_;
 
         /**
@@ -320,17 +318,16 @@ public abstract class GraphicExporter {
          *
          * @param  formatName  ImageIO format name
          * @param  mimeType  MIME type for this exporter's output format
-         * @param  transparent  true iff format is capable of supporting
-         *                      transparency
+         * @param  transparentBg  true to use a transparent background,
+         *              only permissible if format supports transparency
          * @param   fileSuffixes  file suffixes which usually indicate the
          *          export format used by this instance (may be null)
          */
         ImageIOExporter( String formatName, String mimeType, 
-                         String[] fileSuffixes, boolean transparent ) {
+                         String[] fileSuffixes, boolean transparentBg ) {
             super( formatName, mimeType, fileSuffixes );
             formatName_ = formatName;
-            imageType_ = transparent ? BufferedImage.TYPE_INT_ARGB
-                                     : BufferedImage.TYPE_INT_RGB;
+            transparentBg_ = transparentBg;
             isSupported_ =
                 ImageIO.getImageWritersByFormatName( formatName ).hasNext();
         }
@@ -345,15 +342,25 @@ public abstract class GraphicExporter {
             /* Create an image buffer on which to paint. */
             int w = icon.getIconWidth();
             int h = icon.getIconHeight();
-            BufferedImage image = new BufferedImage( w, h, imageType_ );
+            int imageType = transparentBg_ ? BufferedImage.TYPE_INT_ARGB
+                                           : BufferedImage.TYPE_INT_RGB;
+            BufferedImage image = new BufferedImage( w, h, imageType );
             Graphics2D g2 = image.createGraphics();
 
-            /* Clear the background to transparent white.  Failing to do this
-             * leaves all kinds of junk in the background. */
+            /* Clear the background.  Failing to do this can leave junk. */
             Color color = g2.getColor();
             Composite compos = g2.getComposite();
-            g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
-            g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
+            if ( transparentBg_ ) {
+
+                /* Attempt to clear to transparent white, but this doesn't
+                 * seem to work well, at least for PNG (looks like
+                 * transparent black). */
+                g2.setComposite( AlphaComposite.Src );
+                g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
+            }
+            else {
+                g2.setColor( Color.WHITE );
+            }
             g2.fillRect( 0, 0, w, h );
             g2.setColor( color );
             g2.setComposite( compos );
