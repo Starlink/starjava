@@ -6,7 +6,9 @@ import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfWriter;
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Composite;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -20,6 +22,7 @@ import java.util.HashSet;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jibble.epsgraphics.EpsGraphics2D;
 
@@ -57,12 +60,43 @@ public abstract class GraphicExporter {
     /**
      * Exports the graphic content of a given component to an output stream
      * using some graphics format or other.
-     * The output stream should not be closed following the write.
+     * This method should not close the stream following the write.
      *
      * @param   comp  component to draw
      * @param   out   destination output stream
      */
-    public abstract void exportGraphic( JComponent comp, OutputStream out )
+    public void exportGraphic( final JComponent comp, OutputStream out )
+            throws IOException {
+        final Rectangle bounds = comp.getBounds();
+        Icon compIcon = new Icon() {
+            public int getIconWidth() {
+                return bounds.width;
+            }
+            public int getIconHeight() {
+                return bounds.height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                int xoff = x - bounds.x;
+                int yoff = y - bounds.y;
+                g.translate( xoff, yoff );
+                comp.print( g );
+                g.translate( -xoff, -yoff );
+            }
+        };
+        exportGraphic( compIcon, out );
+    }
+
+    /**
+     * Paints the given icon to an output stream using some graphics format
+     * or other.
+     * Note that the icon's {@link javax.swing.Icon.#paintIcon paintIcon}
+     * method may be called with a null component.
+     * This method should not close the stream.
+     *
+     * @param  icon  icon to draw
+     * @param  out   destination output stream
+     */
+    public abstract void exportGraphic( Icon icon, OutputStream out )
             throws IOException;
 
     /**
@@ -127,25 +161,26 @@ public abstract class GraphicExporter {
     public static final GraphicExporter GIF =
             new GraphicExporter( "gif", "image/gif",
                                  new String[] { ".gif", } ) {
-        public void exportGraphic( JComponent comp, OutputStream out )
+
+        public void exportGraphic( Icon icon, OutputStream out )
                 throws IOException {
 
             /* Get component dimensions. */
-            int w = comp.getWidth();
-            int h = comp.getHeight();
+            int w = icon.getIconWidth();
+            int h = icon.getIconHeight();
 
             /* Create a BufferedImage to draw it onto. */
             BufferedImage image =
                 new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
 
             /* Set the background to transparent white. */
-            Graphics2D g = image.createGraphics();
-            g.setBackground( new Color( 0x00ffffff, true ) );
-            g.clearRect( 0, 0, w, h );
+            Graphics2D g2 = image.createGraphics();
+            g2.setBackground( new Color( 0x00ffffff, true ) );
+            g2.clearRect( 0, 0, w, h );
 
             /* Draw the component onto the image. */
-            comp.print( g );
-            g.dispose();
+            icon.paintIcon( null, g2, 0, 0 );
+            g2.dispose();
 
             /* Count the number of colours represented in the resulting
              * image. */
@@ -188,7 +223,7 @@ public abstract class GraphicExporter {
                  * drawImage!  Can't get to the bottom of it. */
                 gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
                                        RenderingHints.VALUE_DITHER_DISABLE );
-                comp.print( gifG );
+                icon.paintIcon( null, gifG, 0, 0 );
                 gifG.dispose();
             }
 
@@ -201,32 +236,31 @@ public abstract class GraphicExporter {
     public static final GraphicExporter EPS =
             new GraphicExporter( "eps", "application/postscript",
                                  new String[] { ".eps", ".ps", } ) {
-        public void exportGraphic( JComponent comp, OutputStream out )
+        public void exportGraphic( Icon icon, OutputStream out )
                 throws IOException {
         
             /* Scale to a pixel size which makes the bounding box sit
              * sensibly on an A4 or letter page.  EpsGraphics2D default
              * scale is 72dpi. */
-            Rectangle bounds = comp.getBounds();
+            int width = icon.getIconWidth();
+            int height = icon.getIconHeight();
             double padfrac = 0.05;       
-            double xdpi = bounds.width / 6.0;
-            double ydpi = bounds.height / 9.0;
+            double xdpi = width / 6.0;
+            double ydpi = height / 9.0;
             double scale;
             int pad;
             if ( xdpi > ydpi ) {
                 scale = 72.0 / xdpi;     
-                pad = (int) Math.ceil( bounds.width * padfrac * scale );
+                pad = (int) Math.ceil( width * padfrac * scale );
             }           
             else {
                 scale = 72.0 / ydpi;
-                pad = (int) Math.ceil( bounds.height * padfrac * scale );
+                pad = (int) Math.ceil( height * padfrac * scale );
             }
-            int xlo = (int) Math.floor( scale * bounds.x ) - pad;
-            int ylo = (int) Math.floor( scale * bounds.y ) - pad;
-            int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) )
-                    + pad;
-            int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) )
-                    + pad;
+            int xlo = - pad;
+            int ylo = - pad;
+            int xhi = (int) Math.ceil( scale * width ) + pad;
+            int yhi = (int) Math.ceil( scale * height ) + pad;
             
             /* Construct a graphics object which will write postscript
              * down this stream. */
@@ -235,7 +269,7 @@ public abstract class GraphicExporter {
             g2.scale( scale, scale );
 
             /* Do the drawing. */
-            comp.print( g2 );
+            icon.paintIcon( null, g2, 0, 0 );
 
             /* Note this close call *must* be made, otherwise the
              * eps file is not flushed or correctly terminated.
@@ -251,19 +285,19 @@ public abstract class GraphicExporter {
     public static final GraphicExporter PDF =
             new GraphicExporter( "pdf", "application/pdf",
                                  new String[] { "pdf", } ) {
-        public void exportGraphic( JComponent comp, OutputStream out )
+        public void exportGraphic( Icon icon, OutputStream out )
                 throws IOException {
-            Rectangle bounds = comp.getBounds();
+            int width = icon.getIconWidth();
+            int height = icon.getIconHeight();
             Document doc =
-                new Document( new com.lowagie.text.Rectangle( bounds.width,
-                                                              bounds.height ) );
+                new Document( new com.lowagie.text.Rectangle( width, height ) );
             try {
                 PdfWriter pWriter = PdfWriter.getInstance( doc, out );
                 doc.open();
-                Graphics2D g2 = pWriter.getDirectContent()
-                               .createGraphics( bounds.width, bounds.height );
-                comp.print( g2 );
-                g2.dispose();
+                Graphics g = pWriter.getDirectContent()
+                            .createGraphics( width, height );
+                icon.paintIcon( null, g, 0, 0 );
+                g.dispose();
                 doc.close();
             }
             catch ( DocumentException e ) {
@@ -301,7 +335,7 @@ public abstract class GraphicExporter {
                 ImageIO.getImageWritersByFormatName( formatName ).hasNext();
         }
 
-        public void exportGraphic( JComponent comp, OutputStream out )
+        public void exportGraphic( Icon icon, OutputStream out )
                 throws IOException {
             if ( ! isSupported_ ) {
                 throw new IOException( "Graphics export to " + formatName_
@@ -309,8 +343,8 @@ public abstract class GraphicExporter {
             }
 
             /* Create an image buffer on which to paint. */
-            int w = comp.getWidth();
-            int h = comp.getHeight();
+            int w = icon.getIconWidth();
+            int h = icon.getIconHeight();
             BufferedImage image = new BufferedImage( w, h, imageType_ );
             Graphics2D g2 = image.createGraphics();
 
@@ -325,7 +359,7 @@ public abstract class GraphicExporter {
             g2.setComposite( compos );
 
             /* Paint the graphics to the buffer. */
-            comp.print( g2 );
+            icon.paintIcon( null, g2, 0, 0 );
 
             /* Export. */
             boolean done = ImageIO.write( image, formatName_, out );
@@ -355,10 +389,10 @@ public abstract class GraphicExporter {
             baseExporter_ = baseExporter;
         }
 
-        public void exportGraphic( JComponent comp, OutputStream out )
+        public void exportGraphic( Icon icon, OutputStream out )
                 throws IOException {
             GZIPOutputStream gzout = new GZIPOutputStream( out );
-            baseExporter_.exportGraphic( comp, gzout );
+            baseExporter_.exportGraphic( icon, gzout );
             gzout.finish();
         }
 
