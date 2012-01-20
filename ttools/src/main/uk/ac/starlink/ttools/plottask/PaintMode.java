@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plottask;
 
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -275,16 +277,22 @@ public abstract class PaintMode {
                 throws TaskException {
             return new Painter() {
                 public void paintPicture( Picture picture ) throws IOException {
-
-                    /* Get a graphics context to render to, so that we actually
-                     * do the plot. */
-                    BufferedImage image =
-                        new BufferedImage( picture.getPictureWidth(), 
-                                           picture.getPictureHeight(),
-                                           BufferedImage.TYPE_INT_RGB );
-                    Graphics2D g2 = image.createGraphics();
+                    Image image = createImage( picture.getPictureWidth(),
+                                               picture.getPictureHeight() );
+                    Graphics2D g2 = (Graphics2D) image.getGraphics();
                     picture.paintPicture( g2 );
                     g2.dispose();
+                    image.flush();
+                }
+                private Image createImage( int w, int h ) {
+                    GraphicsEnvironment genv =
+                        GraphicsEnvironment.getLocalGraphicsEnvironment();
+                    return genv.isHeadless()
+                         ? (Image)
+                           new BufferedImage( w, h, BufferedImage.TYPE_INT_RGB )
+                         : (Image) genv.getDefaultScreenDevice()
+                                       .getDefaultConfiguration()
+                                       .createCompatibleVolatileImage( w, h );
                 }
             };
         }
