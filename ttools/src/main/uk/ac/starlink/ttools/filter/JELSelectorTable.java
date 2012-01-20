@@ -62,8 +62,7 @@ public class JELSelectorTable extends WrapperStarTable {
             // This shouldn't really happen since we already tried to
             // compile it in the constructor to test it.  However, just
             // rethrow it if it does.
-            throw (IOException) new IOException( "Bad expression: " + expr_ )
-                               .initCause( e );
+            throw JELUtils.toIOException( e, expr_ );
         }
         assert compEx.getType() == 0; // boolean
         

@@ -4,6 +4,7 @@ import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
  * Table filter for selecting only certain rows using a JEL expression.
@@ -49,9 +50,7 @@ public class SelectFilter extends BasicFilter {
                 return new JELSelectorTable( base, expr_ );
             }
             catch ( CompilationException e ) {
-                String msg = "Bad expression \"" + expr_ + 
-                             "\" (" + e.getMessage() + ")";
-                throw (IOException) new IOException( msg ).initCause( e );
+                throw JELUtils.toIOException( e, expr_ );
             }
         }
     }

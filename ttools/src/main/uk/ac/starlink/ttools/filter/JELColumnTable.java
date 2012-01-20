@@ -78,10 +78,7 @@ public class JELColumnTable extends AbstractStarTable {
                 outColInfos_[ icol ].setContentClass( clazz );
             }
             catch ( CompilationException e ) {
-                throw (IOException)
-                      new IOException( "Bad expression \"" + expr + "\""
-                                     + " (" + e.getMessage() + ")" )
-                     .initCause( e );
+                throw JELUtils.toIOException( e, expr );
             }
         }
     }
