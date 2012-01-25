@@ -2,24 +2,15 @@ package uk.ac.starlink.ttools.plottask;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.VolatileImage;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 import uk.ac.starlink.ttools.plot.Picture;
-import uk.ac.starlink.ttools.plot.TablePlot;
+import uk.ac.starlink.ttools.plot.PictureImageIcon;
 
 /**
  * Painter subclass which can paint to the screen.
@@ -33,8 +24,6 @@ import uk.ac.starlink.ttools.plot.TablePlot;
 public class SwingPainter implements Painter {
 
     private final String winTitle_;
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.plottask" );
 
     /**
      * Constructor.
@@ -46,7 +35,7 @@ public class SwingPainter implements Painter {
     }
 
     public void paintPicture( Picture picture ) {
-        postComponent( new JLabel( new PictureIcon( picture ) ) );
+        postComponent( new JLabel( new PictureImageIcon( picture, true ) ) );
     }
 
     /**
@@ -69,67 +58,5 @@ public class SwingPainter implements Painter {
         } );
         frame.pack();
         frame.setVisible( true );
-    }
-
-    /**
-     * Adapts a Picture to an Icon.
-     */
-    private static class PictureIcon implements Icon {
-
-        private final Picture picture_;
-        private BufferedImage image_;
-
-        /**
-         * Constructor.
-         *
-         * @param   picture   content to be painted by the icon
-         */
-        PictureIcon( Picture picture ) {
-            picture_ = picture;
-        }
-
-        public int getIconWidth() {
-            return picture_.getPictureWidth();
-        }
-
-        public int getIconHeight() {
-            return picture_.getPictureHeight();
-        }
-
-        public void paintIcon( Component c, Graphics g, int x, int y ) {
-            assert ! TablePlot.isVectorContext( g );
-            int w = picture_.getPictureWidth();
-            int h = picture_.getPictureHeight();
-            Graphics2D g2 = (Graphics2D) g.create( x, y, w, h );
-            if ( image_ == null ) {
-                GraphicsConfiguration gc = g2.getDeviceConfiguration();
-                VolatileImage vim = gc.createCompatibleVolatileImage( w, h );
-                for ( boolean done = false; ! done; ) {
-                    vim.validate( gc );
-                    Graphics2D gv = vim.createGraphics();
-                    doPaint( gv );
-                    image_ = vim.getSnapshot();
-                    if ( vim.contentsLost() ) {
-                        logger_.info( "Lost volatile image during draw" );
-                    }
-                    else {
-                        done = true;
-                    }
-                    gv.dispose();
-                }
-                vim.flush();
-            }
-            g2.drawImage( image_, 0, 0, null );
-        }
-
-        private void doPaint( Graphics2D g ) {
-            try {
-                picture_.paintPicture( g );
-            }
-            catch ( IOException e ) {
-                logger_.log( Level.WARNING, "Graphic plotting IO error", e );
-                g.drawString( e.toString(), 40, 40 );
-            }
-        }
     }
 }
