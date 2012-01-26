@@ -15316,6 +15316,8 @@ introduced since the last version:
         integers, and returns a blank value rather than "null" or "NaN"
         for blank inputs.</li>
     <li>PNG graphics output no longer has transparent background.</li>
+    <li>Fixed problem with row highlight messages bouncing for ever between
+        applications when the Transmit Row activation action is in use.</li>
     </ul>
     </p>
     </dd>

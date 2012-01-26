@@ -66,6 +66,7 @@ public class ActivationQueryWindow extends QueryWindow {
     private final TopcatModel tcModel_;
     private ActivatorFactory activeFactory_;
     private final TopcatCommunicator communicator_;
+    private static final String TRANSMIT_ROW = "transmitRow";
 
     /**
      * Constructs a new window.
@@ -181,6 +182,18 @@ public class ActivationQueryWindow extends QueryWindow {
                      ? ((StarTableColumn) tcol).getColumnInfo().getName()
                      : tcol.getHeaderValue().toString();
         return tname + "(" + tcModel_.getID() + ")";
+    }
+
+    /**
+     * Indicates whether a given activator sends rows to external applications.
+     * This can be necessary to avoid infinite loops where row highlight
+     * messages bounce between different tools.
+     *
+     * @param  activator  activator object produced by this factory
+     * @return   true iff activator sends rows out of the application
+     */
+    public static boolean isRowSender( Activator activator ) {
+        return TRANSMIT_ROW.equals( activator.toString() );
     }
 
     /**
@@ -456,7 +469,7 @@ public class ActivationQueryWindow extends QueryWindow {
                     }
                 }
                 public String toString() {
-                    return "transmitRow";
+                    return TRANSMIT_ROW;
                 }
             };
         }

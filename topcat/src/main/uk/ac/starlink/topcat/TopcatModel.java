@@ -583,7 +583,9 @@ public class TopcatModel {
     public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
             fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-            if ( activator_ != null ) {
+            if ( activator_ != null &&
+                 ( sendOut ||
+                   ! ActivationQueryWindow.isRowSender( activator_ ) ) ) {
                 String msg = activator_.activateRow( lrow );
                 if ( msg != null && msg.trim().length() > 0 ) {
                     System.out.println( msg );
