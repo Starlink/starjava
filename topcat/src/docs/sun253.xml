@@ -15318,6 +15318,8 @@ introduced since the last version:
     <li>PNG graphics output no longer has transparent background.</li>
     <li>Fixed problem with row highlight messages bouncing for ever between
         applications when the Transmit Row activation action is in use.</li>
+    <li>Sexagesimal to numeric angle conversion functions now permit the
+        seconds part of the sexagesimal string to be missing.</li>
     </ul>
     </p>
     </dd>
