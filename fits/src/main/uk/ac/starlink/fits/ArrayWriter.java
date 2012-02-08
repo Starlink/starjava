@@ -93,7 +93,7 @@ abstract class ArrayWriter {
                     out.writeByte( (byte) 0 );
                 }
                 public double getZero() {
-                    return Double.NaN;
+                    return 0.0;
                 }
             };
         }

@@ -8157,6 +8157,8 @@ but my thanks are especially due to the following:
     <li>PNG graphics output no longer has transparent background.</li>
     <li>Sexagesimal to numeric angle conversion functions now permit the
         seconds part of the sexagesimal string to be missing.</li>
+    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
+        reads to fail) for FITS output of boolean array columns.</li>
     </ul>
     </p></dd>
 

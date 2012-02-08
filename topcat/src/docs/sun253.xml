@@ -15320,6 +15320,8 @@ introduced since the last version:
         applications when the Transmit Row activation action is in use.</li>
     <li>Sexagesimal to numeric angle conversion functions now permit the
         seconds part of the sexagesimal string to be missing.</li>
+    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
+        reads to fail) for FITS output of boolean array columns.</li>
     </ul>
     </p>
     </dd>
