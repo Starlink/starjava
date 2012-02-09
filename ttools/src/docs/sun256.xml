@@ -8159,6 +8159,8 @@ but my thanks are especially due to the following:
         seconds part of the sexagesimal string to be missing.</li>
     <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
         reads to fail) for FITS output of boolean array columns.</li>
+    <li>Issue warning for high values of <code>coneskymatch</code>
+        <code>parallel</code> parameter.</li>
     </ul>
     </p></dd>
 
