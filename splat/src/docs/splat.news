@@ -87,7 +87,7 @@
    A bug that meant some NDF spectra opened in SPLAT using the "splatdisp"
    command could not be saved to disk. This has been fixed. Note this includes
    spectra sent from GAIA.
- 
+
    Post Kaulia
    3.9-7
    =====
