@@ -148,6 +148,7 @@ public class ComponentColourControls
     {
         this.colourStore = colourStore;
         colourStore.addChangeListener( this );
+        matchColour();
     }
 
     /**
@@ -190,11 +191,10 @@ public class ComponentColourControls
      */
     protected void chooseColour()
     {
-        Color[] newColour = new Color[1];
-        newColour[0] = JColorChooser.showDialog( this, "Select Colour",
-                                                 colourIcon.getMainColour() );
+        Color newColour = JColorChooser.showDialog( this, "Select Colour",
+                                                    colourStore.getColour() );
         if ( newColour != null ) {
-            colourStore.setColor( newColour[0] );
+            colourStore.setColor( newColour );
         }
     }
 
