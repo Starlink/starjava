@@ -182,7 +182,7 @@ public abstract class StyleEditor extends JPanel
      * @param  listener   listener to add
      */
     public void addActionListener( ActionListener listener ) {
-        actionForwarder_.addListener( listener );
+        actionForwarder_.addActionListener( listener );
     }
 
     /**
@@ -192,7 +192,7 @@ public abstract class StyleEditor extends JPanel
      * @see  #addActionListener
      */
     public void removeActionListener( ActionListener listener ) {
-        actionForwarder_.removeListener( listener );
+        actionForwarder_.removeActionListener( listener );
     }
 
     /**

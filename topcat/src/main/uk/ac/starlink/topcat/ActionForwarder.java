@@ -26,7 +26,7 @@ public class ActionForwarder implements ActionListener, ChangeListener {
      *
      * @param  listener   listener to add
      */
-    public void addListener( ActionListener listener ) {
+    public void addActionListener( ActionListener listener ) {
         listeners_.add( listener );
     }
 
@@ -34,9 +34,9 @@ public class ActionForwarder implements ActionListener, ChangeListener {
      * Removes a listener which was previously added.
      *
      * @param   listener   listener to remove
-     * @see     #addListener
+     * @see     #addActionListener
      */
-    public void removeListener( ActionListener listener ) {
+    public void removeActionListener( ActionListener listener ) {
         listeners_.remove( listener );
     }
 
