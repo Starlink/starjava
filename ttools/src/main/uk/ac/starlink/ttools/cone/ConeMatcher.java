@@ -156,7 +156,12 @@ public class ConeMatcher implements TableProducer {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
         if ( footprint_ != null ) {
-            footprint_.initFootprint();
+            try {
+                footprint_.initFootprint();
+            }
+            catch ( IOException e ) {
+                logger_.warning( "Footprint initialisation failed: " + e );
+            }
         }
         final ConeResultRowSequence resultSeq;
         if ( parallelism_ == 1 ) {
