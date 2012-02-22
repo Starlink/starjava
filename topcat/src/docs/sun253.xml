@@ -15324,6 +15324,9 @@ introduced since the last version:
         reads to fail) for FITS output of boolean array columns.</li>
     <li>Fix plotting bug that might have caused mysterious failures to
         update the plot.  Or it might not.</li>
+    <li>Fix bug which could cause truncation of strings in FITS and
+        possibly VOTable output when tables were hand-edited to add
+        strings longer than previously-declared length.</li>
     </ul>
     </p>
     </dd>

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.EditableColumn;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
@@ -247,6 +248,9 @@ public class ViewerTableModel extends AbstractTableModel {
         if ( ! startable.getColumnData( icol ).isWritable() ) {
             ColumnData oldcol = startable.getColumnData( icol );
             ColumnData newcol = new EditableColumn( oldcol );
+            ColumnInfo info = newcol.getColumnInfo();
+            info.setNullable( true );
+            info.setElementSize( -1 );
             startable.setColumn( icol, newcol );
         }
 
