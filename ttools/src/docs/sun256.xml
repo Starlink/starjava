@@ -8161,6 +8161,10 @@ but my thanks are especially due to the following:
         reads to fail) for FITS output of boolean array columns.</li>
     <li>Issue warning for high values of <code>coneskymatch</code>
         <code>parallel</code> parameter.</li>
+    <li>Fix bug in <code>replacecol</code> and <code>replaceval</code> filters
+        which could cause truncation of strings in FITS and possibly
+        VOTable output when the new value was longer than the previously
+        declared maximum length.</li>
     </ul>
     </p></dd>
 

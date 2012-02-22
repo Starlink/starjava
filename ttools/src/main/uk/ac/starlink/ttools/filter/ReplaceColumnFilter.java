@@ -127,6 +127,11 @@ public class ReplaceColumnFilter extends BasicFilter {
                 cinfo.setDescription( description_ );
             }
 
+            /* Invalidate metadata assertions which may be no longer true. */
+            cinfo.setNullable( true );
+            cinfo.setElementSize( -1 );
+            cinfo.setShape( new int[] { -1 } );
+
             /* Create a table with the new column. */
             StarTable jelTable = new JELColumnTable( base, expr_, cinfo );
 
