@@ -13118,6 +13118,7 @@ Some of the notable contributers are these:
 <li>Mike Read (ROE)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
+<li>Jonathan Zwart (Columbia)</li>
 </ul>
 </p>
 
@@ -15327,6 +15328,9 @@ introduced since the last version:
     <li>Fix bug which could cause truncation of strings in FITS and
         possibly VOTable output when tables were hand-edited to add
         strings longer than previously-declared length.</li>
+    <li>Fixed bug in multi-table matches (&gt;2 tables) which could result in
+        output rows with columns from only a single table,
+        i.e. not representing an inter-table match.</li>
     </ul>
     </p>
     </dd>

@@ -8165,6 +8165,8 @@ but my thanks are especially due to the following:
         which could cause truncation of strings in FITS and possibly
         VOTable output when the new value was longer than the previously
         declared maximum length.</li>
+    <li>Fixed bug in <code>tmatchn</code> group mode which could result
+        in rows in the output which did not represent inter-table matches.</li>
     </ul>
     </p></dd>
 
