@@ -11,17 +11,17 @@ package uk.ac.starlink.ast;
  *  - mapping which represents differentiation. 
  * A RateMap is a Mapping which represents a single element of the
  * Jacobian matrix of another Mapping. The Mapping for which the
- * Jacobian is required is specified when the new RateMap is created, 
+ * Jacobian is required is specified when the new RateMap is created,
  * and is referred to as the "encapsulated Mapping" below.
  * <p>
- * The number of inputs to a RateMap is the same as the number of inputs 
+ * The number of inputs to a RateMap is the same as the number of inputs
  * to its encapsulated Mapping. The number of outputs from a RateMap
  * is always one. This one output equals the rate of change of a
  * specified output of the encapsulated Mapping with respect to a
- * specified input of the encapsulated Mapping (the input and output 
+ * specified input of the encapsulated Mapping (the input and output
  * to use are specified when the RateMap is created).
  * <p>
- * A RateMap which has not been inverted does not define an inverse 
+ * A RateMap which has not been inverted does not define an inverse
  * transformation. If a RateMap has been inverted then it will define
  * an inverse transformation but not a forward transformation.
  * <h4>Licence</h4>
@@ -37,8 +37,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_RateMap'>AST RateMap</a>  
@@ -48,13 +48,13 @@ public class RateMap extends Mapping {
      * Create a RateMap.   
      * @param  map  Pointer to the encapsulated Mapping.
      * 
-     * @param  ax1  Index of the output from the encapsulated Mapping for which the 
+     * @param  ax1  Index of the output from the encapsulated Mapping for which the
      * rate of change is required. This corresponds to the delta
-     * quantity forming the numerator of the required element of the 
+     * quantity forming the numerator of the required element of the
      * Jacobian matrix. The first axis has index 1.
      * 
      * @param  ax2  Index of the input to the encapsulated Mapping which is to be
-     * varied. This corresponds to the delta quantity forming the 
+     * varied. This corresponds to the delta quantity forming the
      * denominator of the required element of the Jacobian matrix.
      * The first axis has index 1.
      * 

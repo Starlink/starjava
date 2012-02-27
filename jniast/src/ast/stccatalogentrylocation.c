@@ -11,7 +11,7 @@ c     astStcCatalogEntryLocation
 f     AST_STCCATALOGENTRYLOCATION
 
 *  Description:
-*     The StcCatalogEntryLocation class is a sub-class of Stc used to describe 
+*     The StcCatalogEntryLocation class is a sub-class of Stc used to describe
 *     the coverage of the datasets contained in some VO resource.
 *
 *     See http://hea-www.harvard.edu/~arots/nvometa/STC.html
@@ -37,16 +37,16 @@ f     The StcCatalogEntryLocation class does not define any new routines beyond 
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -98,9 +98,9 @@ static int class_check;
 
 
 #ifdef THREAD_SAFE
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
-   globals->Class_Init = 0; 
+   globals->Class_Init = 0;
 
 /* Create the function that initialises global data for this module. */
 astMAKE_INITGLOBALS(StcCatalogEntryLocation)
@@ -167,14 +167,14 @@ void astInitStcCatalogEntryLocationVtab_(  AstStcCatalogEntryLocationVtab *vtab,
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
    AstStcVtab *stc;        /* Pointer to Stc component of Vtab */
 
@@ -193,7 +193,8 @@ void astInitStcCatalogEntryLocationVtab_(  AstStcCatalogEntryLocationVtab *vtab,
    will be used (by astIsAStcCatalogEntryLocation) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstStcVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -214,9 +215,12 @@ void astInitStcCatalogEntryLocationVtab_(  AstStcCatalogEntryLocationVtab *vtab,
    astSetDump( vtab, Dump, "StcCatalogEntryLocation", "Resource coverage" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 /* Functions which access class attributes. */
@@ -295,11 +299,11 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsAStcCatalogEntryLocation and astCheckStcCatalogEntryLocation functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(StcCatalogEntryLocation,Stc,check,&class_check)
+astMAKE_ISA(StcCatalogEntryLocation,Stc)
 astMAKE_CHECK(StcCatalogEntryLocation)
 
 
-AstStcCatalogEntryLocation *astStcCatalogEntryLocation_( void *region_void, int ncoords, 
+AstStcCatalogEntryLocation *astStcCatalogEntryLocation_( void *region_void, int ncoords,
                                AstKeyMap **coords, const char *options, int *status, ...) {
 /*
 *++
@@ -326,7 +330,7 @@ f     RESULT = AST_STCCATALOGENTRYLOCATION( REGION, NCOORDS, COORDS, OPTIONS, ST
 *     This function creates a new StcCatalogEntryLocation and optionally initialises its
 *     attributes.
 *
-*     The StcCatalogEntryLocation class is a sub-class of Stc used to describe 
+*     The StcCatalogEntryLocation class is a sub-class of Stc used to describe
 *     the coverage of the datasets contained in some VO resource.
 *
 *     See http://hea-www.harvard.edu/~arots/nvometa/STC.html
@@ -344,22 +348,22 @@ c     coords
 f     COORDS( NCOORDS ) = INTEGER (Given)
 c        Pointer to an array holding "ncoords" AstKeyMap pointers (if "ncoords"
 f        An array holding NCOORDS AstKeyMap pointers (if NCOORDS
-*        is zero, the supplied value is ignored). Each supplied KeyMap 
-*        describes the contents of a single STC <AstroCoords> element, and 
-*        should have elements with keys given by constants AST__STCNAME, 
-*        AST__STCVALUE, AST__STCERROR, AST__STCRES, AST__STCSIZE, 
-*        AST__STCPIXSZ. Any of these elements may be omitted, but no other 
-*        elements should be included. If supplied, the AST__STCNAME element 
-*        should be a vector of character string pointers holding the "Name" 
+*        is zero, the supplied value is ignored). Each supplied KeyMap
+*        describes the contents of a single STC <AstroCoords> element, and
+*        should have elements with keys given by constants AST__STCNAME,
+*        AST__STCVALUE, AST__STCERROR, AST__STCRES, AST__STCSIZE,
+*        AST__STCPIXSZ. Any of these elements may be omitted, but no other
+*        elements should be included. If supplied, the AST__STCNAME element
+*        should be a vector of character string pointers holding the "Name"
 *        item for each axis in the coordinate system represented by
 c        "region".
 f        REGION.
-*        Any other supplied elements should be scalar elements, each  holding 
-*        a pointer to a Region describing the associated item of ancillary 
-*        information (error, resolution, size, pixel size or value). These 
-*        Regions should describe a volume within the coordinate system 
-c        represented by "region". 
-f        represented by REGION. 
+*        Any other supplied elements should be scalar elements, each  holding
+*        a pointer to a Region describing the associated item of ancillary
+*        information (error, resolution, size, pixel size or value). These
+*        Regions should describe a volume within the coordinate system
+c        represented by "region".
+f        represented by REGION.
 c     options
 f     OPTIONS = CHARACTER * ( * ) (Given)
 c        Pointer to a null-terminated string containing an optional
@@ -388,7 +392,7 @@ f     AST_STCCATALOGENTRYLOCATION = INTEGER
 
 *  Notes:
 *     - A deep copy is taken of the supplied Region. This means that
-*     any subsequent changes made to the encapsulated Region using the 
+*     any subsequent changes made to the encapsulated Region using the
 *     supplied pointer will have no effect on the Stc.
 *     - A null Object pointer (AST__NULL) will be returned if this
 c     function is invoked with the AST error status set, or if it
@@ -398,7 +402,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstRegion *region;            /* Pointer to Region structure */
    AstStcCatalogEntryLocation *new;   /* Pointer to new StcCatalogEntryLocation */
    va_list args;                 /* Variable argument list */
@@ -437,7 +441,7 @@ f     function is invoked with STATUS set to an error value, or if it
    return new;
 }
 
-AstStcCatalogEntryLocation *astStcCatalogEntryLocationId_( void *region_void, int ncoords, 
+AstStcCatalogEntryLocation *astStcCatalogEntryLocationId_( void *region_void, int ncoords,
                                AstKeyMap **coords, const char *options, ... ) {
 /*
 *  Name:
@@ -480,17 +484,16 @@ AstStcCatalogEntryLocation *astStcCatalogEntryLocationId_( void *region_void, in
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstKeyMap **keymaps;            /* Pointer to array of KeyMap pointers */
    AstRegion *region;              /* Pointer to Region structure */
    AstStcCatalogEntryLocation *new;/* Pointer to new StcCatalogEntryLocation */
    int icoord;                     /* Keymap index */
-   va_list args;                   /* Get a pointer to the thread specific global data structure. */
-   astGET_GLOBALS(NULL);
-
-/* Variable argument list */
-
+   va_list args;                   /* Variable argument list */
    int *status;                  /* Pointer to inherited status value */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(NULL);
 
 /* Get a pointer to the inherited status value. */
    status = astGetStatusPtr;
@@ -538,8 +541,8 @@ AstStcCatalogEntryLocation *astStcCatalogEntryLocationId_( void *region_void, in
    return astMakeId( new );
 }
 
-AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t size, 
-                                    int init, AstStcCatalogEntryLocationVtab *vtab, 
+AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t size,
+                                    int init, AstStcCatalogEntryLocationVtab *vtab,
                                     const char *name, AstRegion *region,
                                     int ncoords, AstKeyMap **coords, int *status ) {
 /*
@@ -555,8 +558,8 @@ AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t s
 
 *  Synopsis:
 *     #include "stccatalogentrylocation.h"
-*     AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t size, 
-*                                    int init, AstStcCatalogEntryLocationVtab *vtab, 
+*     AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t size,
+*                                    int init, AstStcCatalogEntryLocationVtab *vtab,
 *                                    const char *name, AstRegion *region,
 *                                    int ncoords, AstKeyMap **coords )
 
@@ -604,17 +607,17 @@ AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t s
 *        Ignored if "coords" is NULL.
 *     coords
 *        Pointer to an array of "ncoords" KeyMap pointers, or NULL if
-*        "ncoords" is zero. Each KeyMap defines defines a single <AstroCoords> 
-*        element, and should have elements with keys given by constants 
+*        "ncoords" is zero. Each KeyMap defines defines a single <AstroCoords>
+*        element, and should have elements with keys given by constants
 *        AST__STCNAME, AST__STCVALUE, AST__STCERROR, AST__STCRES, AST__STCSIZE,
-*        AST__STCPIXSZ. These elements hold values for the corresponding 
-*        components of the STC AstroCoords element. Any of these elements may 
-*        be omitted, but no other elements should be included. All supplied 
-*        elements should be vector elements, with vector length less than or 
-*        equal to the number of axes in the supplied Region. The data type of 
-*        all elements should be "double", except for AST__STCNAME which should 
+*        AST__STCPIXSZ. These elements hold values for the corresponding
+*        components of the STC AstroCoords element. Any of these elements may
+*        be omitted, but no other elements should be included. All supplied
+*        elements should be vector elements, with vector length less than or
+*        equal to the number of axes in the supplied Region. The data type of
+*        all elements should be "double", except for AST__STCNAME which should
 *        be "character string". If no value is available for a given axis, then
-*        AST__BAD (or NULL for the AST__STCNAME element) should be stored in 
+*        AST__BAD (or NULL for the AST__STCNAME element) should be stored in
 *        the vector at the index corresponding to the axis (trailing axes
 *        can be omitted completely from the KeyMap).
 
@@ -648,7 +651,7 @@ AstStcCatalogEntryLocation *astInitStcCatalogEntryLocation_( void *mem, size_t s
    return new;
 }
 
-AstStcCatalogEntryLocation *astLoadStcCatalogEntryLocation_( void *mem, size_t size, AstStcCatalogEntryLocationVtab *vtab, 
+AstStcCatalogEntryLocation *astLoadStcCatalogEntryLocation_( void *mem, size_t size, AstStcCatalogEntryLocationVtab *vtab,
                                                    const char *name, AstChannel *channel, int *status ) {
 /*
 *+
@@ -663,7 +666,7 @@ AstStcCatalogEntryLocation *astLoadStcCatalogEntryLocation_( void *mem, size_t s
 
 *  Synopsis:
 *     #include "stccatalogentrylocation.h"
-*     AstStcCatalogEntryLocation *astLoadStcCatalogEntryLocation( void *mem, size_t size, AstStcCatalogEntryLocationVtab *vtab, 
+*     AstStcCatalogEntryLocation *astLoadStcCatalogEntryLocation( void *mem, size_t size, AstStcCatalogEntryLocationVtab *vtab,
 *                                       const char *name, AstChannel *channel )
 
 *  Class Membership:
@@ -722,7 +725,7 @@ AstStcCatalogEntryLocation *astLoadStcCatalogEntryLocation_( void *mem, size_t s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstStcCatalogEntryLocation *new;              /* Pointer to the new StcCatalogEntryLocation */
 
 /* Initialise. */

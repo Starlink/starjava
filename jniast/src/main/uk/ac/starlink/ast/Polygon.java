@@ -13,19 +13,19 @@ package uk.ac.starlink.ast;
  * collection of vertices, within a 2-dimensional Frame. The vertices
  * are connected together by geodesic curves within the encapsulated Frame.
  * For instance, if the encapsulated Frame is a simple Frame then the
- * geodesics will be straight lines, but if the Frame is a SkyFrame then 
+ * geodesics will be straight lines, but if the Frame is a SkyFrame then
  * the geodesics will be great circles. Note, the vertices must be
  * supplied in an order such that the inside of the polygon is to the
  * left of the boundary as the vertices are traversed. Supplying them
  * in the reverse order will effectively negate the polygon.
  * <p>
- * Within a SkyFrame, neighbouring vertices are always joined using the 
+ * Within a SkyFrame, neighbouring vertices are always joined using the
  * shortest path. Thus if an edge of 180 degrees or more in length is
  * required, it should be split into section each of which is less
  * than 180 degrees. The closed path joining all the vertices in order
  * will divide the celestial sphere into two disjoint regions. The
  * inside of the polygon is the region which is circled in an
- * anti-clockwise manner (when viewed from the outside of the celestial
+ * anti-clockwise manner (when viewed from the inside of the celestial
  * sphere) when moving through the list of vertices in the order in
  * which they were supplied when the Polygon was created (i.e. the
  * inside is to the left of the boundary when moving through the
@@ -43,8 +43,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Polygon'>AST Polygon</a>  
@@ -52,26 +52,26 @@ package uk.ac.starlink.ast;
 public class Polygon extends Region {
     /** 
      * Create a Polygon.   
-     * This function creates a new Polygon object and optionally initialises 
+     * This function creates a new Polygon object and optionally initialises
      * its attributes.
      * <p>
      * The Polygon class implements a polygonal area, defined by a
      * collection of vertices, within a 2-dimensional Frame. The vertices
      * are connected together by geodesic curves within the encapsulated Frame.
      * For instance, if the encapsulated Frame is a simple Frame then the
-     * geodesics will be straight lines, but if the Frame is a SkyFrame then 
+     * geodesics will be straight lines, but if the Frame is a SkyFrame then
      * the geodesics will be great circles. Note, the vertices must be
      * supplied in an order such that the inside of the polygon is to the
      * left of the boundary as the vertices are traversed. Supplying them
      * in the reverse order will effectively negate the polygon.
      * <p>
-     * Within a SkyFrame, neighbouring vertices are always joined using the 
+     * Within a SkyFrame, neighbouring vertices are always joined using the
      * shortest path. Thus if an edge of 180 degrees or more in length is
      * required, it should be split into section each of which is less
      * than 180 degrees. The closed path joining all the vertices in order
      * will divide the celestial sphere into two disjoint regions. The
      * inside of the polygon is the region which is circled in an
-     * anti-clockwise manner (when viewed from the outside of the celestial
+     * anti-clockwise manner (when viewed from the inside of the celestial
      * sphere) when moving through the list of vertices in the order in
      * which they were supplied when the Polygon was created (i.e. the
      * inside is to the left of the boundary when moving through the
@@ -87,41 +87,41 @@ public class Polygon extends Region {
      * variable: "int *status".
      * 
      * @param  frame  A pointer to the Frame in which the region is defined. It must
-     * have exactly 2 axes. A deep copy is taken of the supplied Frame. 
-     * This means that any subsequent changes made to the Frame using the 
+     * have exactly 2 axes. A deep copy is taken of the supplied Frame.
+     * This means that any subsequent changes made to the Frame using the
      * supplied pointer will have no effect the Region.
      * 
-     * @param  npnt  The number of points in the Region. 
+     * @param  npnt  The number of points in the Region.
      * 
      * @param  xcoords  <code>npnt</code>-element
      * @param  ycoords  <code>npnt</code>-element
-     * @param  unc  An optional pointer to an existing Region which specifies the 
-     * uncertainties associated with the boundary of the Box being created. 
-     * The uncertainty in any point on the boundary of the Box is found by 
-     * shifting the supplied "uncertainty" Region so that it is centred at 
+     * @param  unc  An optional pointer to an existing Region which specifies the
+     * uncertainties associated with the boundary of the Box being created.
+     * The uncertainty in any point on the boundary of the Box is found by
+     * shifting the supplied "uncertainty" Region so that it is centred at
      * the boundary point being considered. The area covered by the
      * shifted uncertainty Region then represents the uncertainty in the
      * boundary position. The uncertainty is assumed to be the same for
      * all points.
      * <p>
-     * If supplied, the uncertainty Region must be of a class for which 
-     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.) 
-     * or be a Prism containing centro-symetric component Regions. A deep 
-     * copy of the supplied Region will be taken, so subsequent changes to 
-     * the uncertainty Region using the supplied pointer will have no 
-     * effect on the created Box. Alternatively, 
-     * a NULL Object pointer 
-     * may be supplied, in which case a default uncertainty is used 
+     * If supplied, the uncertainty Region must be of a class for which
+     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.)
+     * or be a Prism containing centro-symetric component Regions. A deep
+     * copy of the supplied Region will be taken, so subsequent changes to
+     * the uncertainty Region using the supplied pointer will have no
+     * effect on the created Box. Alternatively,
+     * a NULL Object pointer
+     * may be supplied, in which case a default uncertainty is used
      * equivalent to a box 1.0E-6 of the size of the Box being created.
      * <p>
-     * The uncertainty Region has two uses: 1) when the 
+     * The uncertainty Region has two uses: 1) when the
      * astOverlap
      * function compares two Regions for equality the uncertainty
      * Region is used to determine the tolerance on the comparison, and 2)
      * when a Region is mapped into a different coordinate system and
-     * subsequently simplified (using 
+     * subsequently simplified (using
      * astSimplify),
-     * the uncertainties are used to determine if the transformed boundary 
+     * the uncertainties are used to determine if the transformed boundary
      * can be accurately represented by a specific shape of Region.
      * 
      * @throws  AstException  if an error occurred in the AST library

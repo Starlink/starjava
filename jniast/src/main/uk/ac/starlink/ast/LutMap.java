@@ -25,12 +25,12 @@ package uk.ac.starlink.ast;
  * index lies outside the range of the table, linear extrapolation
  * is used based on the two nearest entries (i.e. the two entries
  * at the start or end of the table, as appropriate). If either of the
- * entries used for the interplation has a value of AST__BAD, then the 
+ * entries used for the interplation has a value of AST__BAD, then the
  * interpolated value is returned as AST__BAD.
  * <p>
- * If the lookup table entries increase or decrease monotonically (and
- * if the table contains no AST__BAD values), then the inverse 
- * transformation may also be performed.
+ * If the lookup table entries increase or decrease monotonically
+ * (ignoring any flat sections), then the inverse transformation may
+ * also be performed.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
@@ -44,8 +44,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_LutMap'>AST LutMap</a>  
@@ -57,7 +57,7 @@ public class LutMap extends Mapping {
      *             An array containing the lookup table entries.  There must be
      *             at least two elements.
      *          
-     * @param  start  The input coordinate value which corresponds to the first lookup 
+     * @param  start  The input coordinate value which corresponds to the first lookup
      * table entry.
      * 
      * @param  inc  The lookup table spacing (the increment in input coordinate

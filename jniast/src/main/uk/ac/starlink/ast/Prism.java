@@ -9,17 +9,17 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST Prism class
  *  - an extrusion of a region into higher dimensions. 
- * A Prism is a Region which represents an extrusion of an existing Region 
+ * A Prism is a Region which represents an extrusion of an existing Region
  * into one or more orthogonal dimensions (specified by another Region).
- * If the Region to be extruded has N axes, and the Region defining the 
- * extrusion has M axes, then the resulting Prism will have (M+N) axes. 
- * A point is inside the Prism if the first N axis values correspond to 
- * a point inside the Region being extruded, and the remaining M axis 
+ * If the Region to be extruded has N axes, and the Region defining the
+ * extrusion has M axes, then the resulting Prism will have (M+N) axes.
+ * A point is inside the Prism if the first N axis values correspond to
+ * a point inside the Region being extruded, and the remaining M axis
  * values correspond to a point inside the Region defining the extrusion.
  * <p>
- * As an example, a cylinder can be represented by extruding an existing 
+ * As an example, a cylinder can be represented by extruding an existing
  * Circle, using an Interval to define the extrusion. Ih this case, the
- * Interval would have a single axis and would specify the upper and 
+ * Interval would have a single axis and would specify the upper and
  * lower limits of the cylinder along its length.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -34,8 +34,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Prism'>AST Prism</a>  
@@ -46,21 +46,21 @@ public class Prism extends Region {
      * This function creates a new Prism and optionally initialises
      * its attributes.
      * <p>
-     * A Prism is a Region which represents an extrusion of an existing Region 
+     * A Prism is a Region which represents an extrusion of an existing Region
      * into one or more orthogonal dimensions (specified by another Region).
-     * If the Region to be extruded has N axes, and the Region defining the 
-     * extrusion has M axes, then the resulting Prism will have (M+N) axes. 
-     * A point is inside the Prism if the first N axis values correspond to 
-     * a point inside the Region being extruded, and the remaining M axis 
+     * If the Region to be extruded has N axes, and the Region defining the
+     * extrusion has M axes, then the resulting Prism will have (M+N) axes.
+     * A point is inside the Prism if the first N axis values correspond to
+     * a point inside the Region being extruded, and the remaining M axis
      * values correspond to a point inside the Region defining the extrusion.
      * <p>
-     * As an example, a cylinder can be represented by extruding an existing 
+     * As an example, a cylinder can be represented by extruding an existing
      * Circle, using an Interval to define the extrusion. Ih this case, the
-     * Interval would have a single axis and would specify the upper and 
+     * Interval would have a single axis and would specify the upper and
      * lower limits of the cylinder along its length.
      * <h4>Notes</h4>
      * <br> - Deep copies are taken of the supplied Regions. This means that
-     * any subsequent changes made to the component Regions using the 
+     * any subsequent changes made to the component Regions using the
      * supplied pointers will have no effect on the Prism.
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it

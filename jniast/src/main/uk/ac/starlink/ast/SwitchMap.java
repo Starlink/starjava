@@ -10,64 +10,64 @@ package uk.ac.starlink.ast;
  * Java interface to the AST SwitchMap class
  *  - a Mapping that encapsulates a set of alternate Mappings. 
  * A SwitchMap is a Mapping which represents a set of alternate
- * Mappings, each of which is used to transform positions within a 
- * particular region of the input or output coordinate system of the 
+ * Mappings, each of which is used to transform positions within a
+ * particular region of the input or output coordinate system of the
  * SwitchMap.
  * <p>
  * A SwitchMap can encapsulate any number of Mappings, but they must
- * all have the same number of inputs (Nin attribute value) and the 
- * same number of outputs (Nout attribute value). The SwitchMap itself 
+ * all have the same number of inputs (Nin attribute value) and the
+ * same number of outputs (Nout attribute value). The SwitchMap itself
  * inherits these same values for its Nin and Nout attributes. Each of
  * these Mappings represents a "route" through the switch, and are
- * referred to as "route" Mappings below. Each route Mapping transforms 
- * positions between the input and output coordinate space of the entire 
+ * referred to as "route" Mappings below. Each route Mapping transforms
+ * positions between the input and output coordinate space of the entire
  * SwitchMap, but only one Mapping will be used to transform any given
- * position. The selection of the appropriate route Mapping to use with 
+ * position. The selection of the appropriate route Mapping to use with
  * any given input position is made by another Mapping, called the
  * "selector" Mapping. Each SwitchMap encapsulates two selector
  * Mappings in addition to its route Mappings; one for use with the
  * SwitchMap's forward transformation (called the "forward selector
- * Mapping"), and one for use with the SwitchMap's inverse transformation 
+ * Mapping"), and one for use with the SwitchMap's inverse transformation
  * (called the "inverse selector Mapping"). The forward selector Mapping
  * must have the same number of inputs as the route Mappings, but
  * should have only one output. Likewise, the inverse selector Mapping
  * must have the same number of outputs as the route Mappings, but
- * should have only one input. 
+ * should have only one input.
  * <p>
  * When the SwitchMap is used to transform a position in the forward
  * direction (from input to output), each supplied input position is
- * first transformed by the forward transformation of the forward selector 
- * Mapping. This produces a single output value for each input position 
- * referred to as the selector value. The nearest integer to the selector 
- * value is found, and is used to index the array of route Mappings (the 
- * first supplied route Mapping has index 1, the second route Mapping has 
- * index 2, etc). If the nearest integer to the selector value is less 
- * than 1 or greater than the number of route Mappings, then the SwitchMap 
- * output position is set to a value of AST__BAD on every axis. Otherwise, 
- * the forward transformation of the selected route Mapping is used to 
- * transform the supplied input position to produce the SwitchMap output 
- * position. 
+ * first transformed by the forward transformation of the forward selector
+ * Mapping. This produces a single output value for each input position
+ * referred to as the selector value. The nearest integer to the selector
+ * value is found, and is used to index the array of route Mappings (the
+ * first supplied route Mapping has index 1, the second route Mapping has
+ * index 2, etc). If the nearest integer to the selector value is less
+ * than 1 or greater than the number of route Mappings, then the SwitchMap
+ * output position is set to a value of AST__BAD on every axis. Otherwise,
+ * the forward transformation of the selected route Mapping is used to
+ * transform the supplied input position to produce the SwitchMap output
+ * position.
  * <p>
  * When the SwitchMap is used to transform a position in the inverse
- * direction (from "output" to "input"), each supplied "output" position 
- * is first transformed by the inverse transformation of the inverse 
- * selector Mapping. This produces a selector value for each "output" 
- * position. Again, the nearest integer to the selector value is found, 
- * and is used to index the array of route Mappings. If this selector 
- * index value is within the bounds of the array of route Mappings, then 
- * the inverse transformation of the selected route Mapping is used to 
- * transform the supplied "output" position to produce the SwitchMap 
- * "input" position. If the selector index value is outside the bounds 
- * of the array of route Mappings, then the SwitchMap "input" position is 
- * set to a value of AST__BAD on every axis. 
+ * direction (from "output" to "input"), each supplied "output" position
+ * is first transformed by the inverse transformation of the inverse
+ * selector Mapping. This produces a selector value for each "output"
+ * position. Again, the nearest integer to the selector value is found,
+ * and is used to index the array of route Mappings. If this selector
+ * index value is within the bounds of the array of route Mappings, then
+ * the inverse transformation of the selected route Mapping is used to
+ * transform the supplied "output" position to produce the SwitchMap
+ * "input" position. If the selector index value is outside the bounds
+ * of the array of route Mappings, then the SwitchMap "input" position is
+ * set to a value of AST__BAD on every axis.
  * <p>
  * In practice, appropriate selector Mappings should be chosen to
- * associate a different route Mapping with each region of coordinate 
- * space. Note that the SelectorMap class of Mapping is particularly 
+ * associate a different route Mapping with each region of coordinate
+ * space. Note that the SelectorMap class of Mapping is particularly
  * appropriate for this purpose.
  * <p>
  * If a compound Mapping contains a SwitchMap in series with its own
- * inverse, the combination of the two adjacent SwitchMaps will be 
+ * inverse, the combination of the two adjacent SwitchMaps will be
  * replaced by a UnitMap when the compound Mapping is simplified using
  * astSimplify.
  * <h4>Licence</h4>
@@ -83,8 +83,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SwitchMap'>AST SwitchMap</a>  
@@ -95,23 +95,23 @@ public class SwitchMap extends Mapping {
      * @param  fsmap  Pointer to the forward selector Mapping. This must have a
      * defined forward transformation, but need not have a defined
      * inverse transformation. It must have one output, and the number of
-     * inputs must match the number of inputs of each of the supplied 
+     * inputs must match the number of inputs of each of the supplied
      * route Mappings.
      * NULL
-     * may be supplied, in which case the SwitchMap will have an undefined 
+     * may be supplied, in which case the SwitchMap will have an undefined
      * forward Mapping.
      * 
      * @param  ismap  Pointer to the inverse selector Mapping. This must have a
      * defined inverse transformation, but need not have a defined
      * forward transformation. It must have one input, and the number of
-     * outputs must match the number of outputs of each of the supplied 
+     * outputs must match the number of outputs of each of the supplied
      * route Mappings.
      * NULL
-     * may be supplied, in which case the SwitchMap will have an undefined 
+     * may be supplied, in which case the SwitchMap will have an undefined
      * inverse Mapping.
      * 
      * @param  routemaps  An array of pointers to the route Mappings. All the supplied
-     * route Mappings must have common values for the Nin and Nout 
+     * route Mappings must have common values for the Nin and Nout
      * attributes, and these values define the number of inputs and
      * outputs of the SwitchMap.
      * 

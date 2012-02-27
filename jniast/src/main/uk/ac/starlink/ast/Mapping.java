@@ -32,8 +32,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Mapping'>AST Mapping</a>  
@@ -137,12 +137,12 @@ public class Mapping extends AstObject {
      * be considered as special types of Mappings and so this method can
      * be used to decompose either CmpMaps or CmpFrames.
      * <h4>Notes</h4>
-     * <br> - The returned Invert values should be used in preference to the 
+     * <br> - The returned Invert values should be used in preference to the
      * current values of the Invert attribute in map1 and map2. This is
-     * because the attributes may have changed value since the Mappings 
+     * because the attributes may have changed value since the Mappings
      * were combined.
      * <br> - Any changes made to the component Mappings using the returned
-     * pointers will be reflected in the supplied Mapping. 
+     * pointers will be reflected in the supplied Mapping.
      * 
      * @param   series
      * A one-element array to hold a boolean result indicating whether
@@ -273,42 +273,44 @@ public class Mapping extends AstObject {
 
     /** 
      * Split a Mapping up into parallel component Mappings.   
-     * This function 
+     * This function
      * creates a new Mapping which connects specified inputs within a
-     * supplied Mapping to the corresponding outputs of the supplied Mapping. 
-     * This is only possible if the specified inputs correspond to some 
-     * subset of the Mapping outputs. That is, there must exist a subset of 
-     * the Mapping outputs for which each output depends only on the selected 
-     * Mapping inputs, and not on any of the inputs which have not been 
-     * selected. If this condition is not met by the supplied Mapping, then
-     * a NULL 
+     * supplied Mapping to the corresponding outputs of the supplied Mapping.
+     * This is only possible if the specified inputs correspond to some
+     * subset of the Mapping outputs. That is, there must exist a subset of
+     * the Mapping outputs for which each output depends only on the selected
+     * Mapping inputs, and not on any of the inputs which have not been
+     * selected. Also, any output which is not in this subset must not depend
+     * on any of the selected inputs. If these conditions are not met by the
+     * supplied Mapping, then
+     * a NULL
      * Mapping pointer is returned.
      * <h4>Notes</h4>
-     * <br> - If this 
-     * function 
-     * is invoked with the global error status set, or if it should fail for 
-     * any reason, then 
+     * <br> - If this
+     * function
+     * is invoked with the global error status set, or if it should fail for
+     * any reason, then
      * a NULL value
-     * will be returned for 
+     * will be returned for
      * the "map" pointer.
      * @param   in
-     * Pointer to an 
-     * array holding the indices within the supplied Mapping of the inputs 
-     * which are to be picked from the Mapping. 
-     * This array should have "nin" elements. 
-     * If "Nin" is the number of inputs of the supplied Mapping, then each 
+     * Pointer to an
+     * array holding the indices within the supplied Mapping of the inputs
+     * which are to be picked from the Mapping.
+     * This array should have "nin" elements.
+     * If "Nin" is the number of inputs of the supplied Mapping, then each
      * element should have a value in the range 1 to Nin.
      * 
      * @param   out
-     * Pointer to an 
-     * array in which to return the indices of the outputs of the supplied 
+     * Pointer to an
+     * array in which to return the indices of the outputs of the supplied
      * Mapping which are fed by the picked inputs. A value of one is
-     * used to refer to the first Mapping output. The supplied array should 
+     * used to refer to the first Mapping output. The supplied array should
      * have a length at least equal to the number of outputs in the
      * supplied Mapping. The number of values stored in the array on
      * exit will equal the number of outputs in the returned Mapping.
      * The i'th element in the returned array holds the index within
-     * the supplied Mapping which corresponds to the i'th output of 
+     * the supplied Mapping which corresponds to the i'th output of
      * the returned Mapping.
      * 
      * @return  
@@ -349,10 +351,10 @@ public class Mapping extends AstObject {
      * choice of sub-pixel interpolation schemes is provided, but you
      * may also implement your own.
      * <p>
-     * This algorithm samples the input data value, it does not integrate 
+     * This algorithm samples the input data value, it does not integrate
      * it. Thus total data value in the input image will not, in general,
      * be conserved. However, an option is provided (see the "Control Flags"
-     * section below) which can produce approximate flux conservation by 
+     * section below) which can produce approximate flux conservation by
      * scaling the output values using the ratio of the output pixel size
      * to the input pixel size. However, if accurate flux conservation is
      * important to you, consder using the
@@ -393,7 +395,7 @@ public class Mapping extends AstObject {
      * with the global error status set, or if it should fail for any
      * reason.
      * <h4>Propagation of Missing Data</h4>
-     * Unless the AST__NOBAD flag is specified, instances of missing data 
+     * Unless the AST__NOBAD flag is specified, instances of missing data
      * (bad pixels) in the output grid are
      * identified by occurrences of the "badval" value in the "out"
      * array. These may be produced if any of the following happen:
@@ -436,7 +438,7 @@ public class Mapping extends AstObject {
      * <p>
      * If the AST__NOBAD flag is specified via
      * parameter "flags",
-     * then output array elements that would otherwise be set to 
+     * then output array elements that would otherwise be set to
      * "badval"
      * are instead left holding the value they had on entry to this
      * function. The number of such array elements is returned as
@@ -629,8 +631,8 @@ public class Mapping extends AstObject {
      * should be given.
      * 
      * @return  The number of output pixels for which no valid resampled value
-     * could be obtained. Thus, in the absence of any error, a returned 
-     * value of zero indicates that all the required output pixels 
+     * could be obtained. Thus, in the absence of any error, a returned
+     * value of zero indicates that all the required output pixels
      * received valid resampled data values (and variances). See the
      * "badval" and "flags" parameters.
      * 
@@ -782,8 +784,8 @@ public class Mapping extends AstObject {
      * rebined output data. Propagation of missing data (bad pixels)
      * is supported.
      * <p>
-     * Note, if you will be rebining a sequence of input arrays and then 
-     * co-adding them into a single array, the alternative 
+     * Note, if you will be rebining a sequence of input arrays and then
+     * co-adding them into a single array, the alternative
      * astRebinSeq<X> functions
      * will in general be more efficient.
      * <p>
@@ -801,12 +803,12 @@ public class Mapping extends AstObject {
      * value is then divided up and assigned to the output pixels in the
      * neighbourhood of the central output coordinates. A choice of
      * schemes are provided for determining how each input pixel value is
-     * divided up between the output pixels. In general, each output pixel 
-     * may be assigned values from more than one input pixel. All 
+     * divided up between the output pixels. In general, each output pixel
+     * may be assigned values from more than one input pixel. All
      * contributions to a given output pixel are summed to produce the
      * final output pixel value. Output pixels can be set to the supplied
      * bad value if they receive contributions from an insufficient number
-     * of input pixels. This is controlled by the 
+     * of input pixels. This is controlled by the
      * "wlim" parameter.
      * <p>
      * Input pixel coordinates are transformed into the coordinate
@@ -838,21 +840,21 @@ public class Mapping extends AstObject {
      * applied becomes too small (in which case the original Mapping is
      * used directly).
      * <h4>Pixel Spreading Schemes</h4>
-     * The pixel spreading scheme specifies the Point Spread Function (PSF) 
-     * applied to each input pixel value as it is copied into the output 
-     * array. It can be thought of as the inverse of the sub-pixel 
+     * The pixel spreading scheme specifies the Point Spread Function (PSF)
+     * applied to each input pixel value as it is copied into the output
+     * array. It can be thought of as the inverse of the sub-pixel
      * interpolation schemes used by the
-     * astResample<X> 
-     * group of functions. That is, in a sub-pixel interpolation scheme the 
+     * astResample<X>
+     * group of functions. That is, in a sub-pixel interpolation scheme the
      * kernel specifies the weight to assign to each input pixel when
-     * forming the weighted mean of the input pixels, whereas the kernel in a 
-     * pixel spreading scheme specifies the fraction of the input data value 
-     * which is to be assigned to each output pixel. As for interpolation, the 
-     * choice of suitable pixel spreading scheme involves stricking a balance 
-     * between schemes which tend to degrade sharp features in the data by 
-     * smoothing them, and those which attempt to preserve sharp features but 
+     * forming the weighted mean of the input pixels, whereas the kernel in a
+     * pixel spreading scheme specifies the fraction of the input data value
+     * which is to be assigned to each output pixel. As for interpolation, the
+     * choice of suitable pixel spreading scheme involves stricking a balance
+     * between schemes which tend to degrade sharp features in the data by
+     * smoothing them, and those which attempt to preserve sharp features but
      * which often tend to introduce unwanted artifacts. See the
-     * astResample<X> 
+     * astResample<X>
      * documentation for further discussion.
      * <p>
      * The binning algorithm used has the ability to introduce artifacts
@@ -866,13 +868,13 @@ public class Mapping extends AstObject {
      * effect more clearly than the other functions, and for this reason
      * should be used with caution.
      * <p>
-     * The following values (defined in the 
+     * The following values (defined in the
      * "ast.h" header file)
-     * may be assigned to the 
-     * "spread" 
-     * parameter. See the 
-     * astResample<X> 
-     * documentation for details of these schemes including the use of the 
+     * may be assigned to the
+     * "spread"
+     * parameter. See the
+     * astResample<X>
+     * documentation for details of these schemes including the use of the
      * "fspread" and "params" parameters:
      * <p>
      * <br> - AST__NEAREST
@@ -883,27 +885,27 @@ public class Mapping extends AstObject {
      * <br> - AST__SINCGAUSS
      * <br> - AST__SOMBCOS
      * <p>
-     * In addition, the following schemes can be used with 
+     * In addition, the following schemes can be used with
      * astRebin<X> but not with astResample<X>:
      * <p>
-     * <br> - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with k 
+     * <br> - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with k
      * a positive constant determined by the full-width at half-maximum (FWHM).
-     * The FWHM should be supplied in units of output pixels by means of the 
+     * The FWHM should be supplied in units of output pixels by means of the
      * "params[1]"
-     * value and should be at least 0.1. The 
-     * "params[0]" 
-     * value should be used to specify at what point the Gaussian is truncated 
-     * to zero. This should be given as a number of output pixels on either 
-     * side of the central output point in each dimension (the nearest integer 
+     * value and should be at least 0.1. The
+     * "params[0]"
+     * value should be used to specify at what point the Gaussian is truncated
+     * to zero. This should be given as a number of output pixels on either
+     * side of the central output point in each dimension (the nearest integer
      * value is used).
      * <h4>Propagation of Missing Data</h4>
      * Instances of missing data (bad pixels) in the output grid are
      * identified by occurrences of the "badval" value in the "out"
-     * array. These are produced if the sum of the weights of the 
-     * contributing input pixels is less than 
+     * array. These are produced if the sum of the weights of the
+     * contributing input pixels is less than
      * "wlim".
      * <p>
-     * An input pixel is considered bad (and is consequently ignored) if 
+     * An input pixel is considered bad (and is consequently ignored) if
      * its
      * data value is equal to "badval" and the AST__USEBAD flag is
      * set via the "flags" parameter.
@@ -914,7 +916,7 @@ public class Mapping extends AstObject {
      * @param   wlim
      * Gives the required number of input pixel values which must contribute
      * to an output pixel in order for the output pixel value to be
-     * considered valid. If the sum of the input pixel weights contributing 
+     * considered valid. If the sum of the input pixel weights contributing
      * to an output pixel is less than the supplied
      * "wlim"
      * value, then the output pixel value is returned set to the
@@ -997,7 +999,7 @@ public class Mapping extends AstObject {
      * <p>
      * If the value is too high, discontinuities between the linear
      * approximations used in adjacent panel will be higher, and may
-     * cause the edges of the panel to be visible when viewing the output 
+     * cause the edges of the panel to be visible when viewing the output
      * image at high contrast. If this is a problem, reduce the
      * tolerance value used.
      * 
@@ -1041,7 +1043,7 @@ public class Mapping extends AstObject {
      * elements in the "out" (and "out_var") array(s) for which
      * rebined values could not be obtained (see the "Propagation
      * of Missing Data" section below for details of the
-     * circumstances under which this may occur). 
+     * circumstances under which this may occur).
      * 
      * @param   ndim_out
      * The number of dimensions in the output grid. This should be
@@ -1279,7 +1281,7 @@ public class Mapping extends AstObject {
      * input points reside).
      * 
      * @param   in
-     * The address of the first element in a 2-dimensional array of 
+     * The address of the first element in a 2-dimensional array of
      * shape "[ncoord_in][indim]",
      * containing the coordinates of the input (untransformed)
      * points. These should be stored such that the value of
@@ -1367,15 +1369,15 @@ public class Mapping extends AstObject {
 
     /** 
      * Transform a grid of positions.   
-     * This function uses the supplied Mapping to transforms a regular square 
+     * This function uses the supplied Mapping to transforms a regular square
      * grid of points covering a specified box. It attempts to do this
-     * quickly by first approximating the Mapping with a linear transformation 
-     * applied over the whole region of the input grid which is being used. 
-     * If this proves to be insufficiently accurate, the input region is 
-     * sub-divided into two along its largest dimension and the process is 
+     * quickly by first approximating the Mapping with a linear transformation
+     * applied over the whole region of the input grid which is being used.
+     * If this proves to be insufficiently accurate, the input region is
+     * sub-divided into two along its largest dimension and the process is
      * repeated within each of the resulting sub-regions. This process of
-     * sub-division continues until a sufficiently good linear approximation 
-     * is found, or the region to which it is being applied becomes too small 
+     * sub-division continues until a sufficiently good linear approximation
+     * is found, or the region to which it is being applied becomes too small
      * (in which case the original Mapping is used directly).
      * <h4>Notes</h4>
      * <br> - If the forward coordinate transformation is being applied, the
@@ -1419,11 +1421,11 @@ public class Mapping extends AstObject {
      * time.
      * <p>
      * If the value is too high, discontinuities between the linear
-     * approximations used in adjacent panel will be higher. If this 
+     * approximations used in adjacent panel will be higher. If this
      * is a problem, reduce the tolerance value used.
      * 
      * @param   maxpix
-     * A value which specifies an initial scale size (in input grid points) 
+     * A value which specifies an initial scale size (in input grid points)
      * for the adaptive algorithm which approximates non-linear Mappings
      * with piece-wise linear transformations. Normally, this should
      * be a large value (larger than any dimension of the region of
@@ -1440,7 +1442,7 @@ public class Mapping extends AstObject {
      * convergence of the adaptive algorithm in cases where the
      * Mapping appears approximately linear on large scales, but has
      * irregularities (e.g. holes) on smaller scales. A value of,
-     * say, 50 to 100 grid points can also be employed as a safeguard 
+     * say, 50 to 100 grid points can also be employed as a safeguard
      * in general-purpose software, since the effect on performance is
      * minimal.
      * <p>
@@ -1461,14 +1463,14 @@ public class Mapping extends AstObject {
      * space in which the output points reside). This need not be
      * the same as "ncoord_in".
      * 
-     * @return  The address of the first element in a 2-dimensional array of 
+     * @return  The address of the first element in a 2-dimensional array of
      * shape "[ncoord_out][outdim]", into
      * which the coordinates of the output (transformed) points will
      * be written. These will be stored such that the value of
      * coordinate number "coord" for output point number "point"
      * will be found in element "out[coord][point]".
      * The points are ordered such that the first axis of the input
-     * grid changes most rapidly. For example, if the input grid is 
+     * grid changes most rapidly. For example, if the input grid is
      * 2-dimensional and extends from (2,-1) to (3,1), the output
      * points will be stored in the order (2,-1), (3, -1), (2,0), (3,0),
      * (2,1), (3,1).
@@ -1479,10 +1481,10 @@ public class Mapping extends AstObject {
 
     /** 
      * Calculate the rate of change of a Mapping output.   
-     * This function 
+     * This function
      * evaluates the rate of change of a specified output of the supplied
      * Mapping with respect to a specified input, at a specified input
-     * position. 
+     * position.
      * <p>
      * The result is estimated by interpolating the function using a
      * fourth order polynomial in the neighbourhood of the specified
@@ -1496,22 +1498,22 @@ public class Mapping extends AstObject {
      * with the global error status set, or if it should fail for any
      * reason.
      * @param   at
-     * The address of an 
+     * The address of an
      * array holding the axis values at the position at which the rate
      * of change is to be evaluated. The number of elements in this
      * array should equal the number of inputs to the Mapping.
      * 
      * @param   ax1
-     * The index of the Mapping output for which the rate of change is to 
+     * The index of the Mapping output for which the rate of change is to
      * be found (output numbering starts at 1 for the first output).
      * 
      * @param   ax2
      * The index of the Mapping input which is to be varied in order to
-     * find the rate of change (input numbering starts at 1 for the first 
+     * find the rate of change (input numbering starts at 1 for the first
      * input).
      * 
-     * @return  The rate of change of Mapping output "ax1" with respect to input 
-     * "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+     * @return  The rate of change of Mapping output "ax1" with respect to input
+     * "ax2", evaluated at "at", or AST__BAD if the value cannot be
      * calculated.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -1525,8 +1527,8 @@ public class Mapping extends AstObject {
      * the transformation is found to be linear to a specified level of
      * accuracy, then an array of fit coefficients is returned. These
      * may be used to implement a linear approximation to the Mapping's
-     * forward transformation within the specified range of output coordinates. 
-     * If the transformation is not sufficiently linear, no coefficients 
+     * forward transformation within the specified range of output coordinates.
+     * If the transformation is not sufficiently linear, no coefficients
      * are returned.
      * <h4>Notes</h4>
      * <br> - This function fits the Mapping's forward transformation. To fit
@@ -1543,8 +1545,8 @@ public class Mapping extends AstObject {
      *    
      * @param   lbnd
      * Pointer to an array of doubles
-     * containing the lower bounds of a box defined within the input 
-     * coordinate system of the Mapping. The number of elements in this 
+     * containing the lower bounds of a box defined within the input
+     * coordinate system of the Mapping. The number of elements in this
      * array should equal the value of the Mapping's Nin attribute. This
      * box should specify the region over which linearity is required.
      * 
@@ -1557,22 +1559,22 @@ public class Mapping extends AstObject {
      * The maximum permitted deviation from linearity, expressed as
      * a positive Cartesian displacement in the output coordinate
      * space of the Mapping. If a linear fit to the forward
-     * transformation of the Mapping deviates from the true transformation 
+     * transformation of the Mapping deviates from the true transformation
      * by more than this amount at any point which is tested, then no fit
      * coefficients will be returned.
      * 
-     * @return  Pointer to an array of doubles 
+     * @return  Pointer to an array of doubles
      * in which to return the co-efficients of the linear
      * approximation to the specified transformation. This array should
-     * have at least "( Nin + 1 ) * Nout", elements. The first Nout elements 
-     * hold the constant offsets for the transformation outputs. The 
-     * remaining elements hold the gradients. So if the Mapping has 2 inputs 
-     * and 3 outputs the linear approximation to the forward transformation 
+     * have at least "( Nin + 1 ) * Nout", elements. The first Nout elements
+     * hold the constant offsets for the transformation outputs. The
+     * remaining elements hold the gradients. So if the Mapping has 2 inputs
+     * and 3 outputs the linear approximation to the forward transformation
      * is:
      * <p>
-     *    X_out = fit[0] + fit[3]*X_in + fit[4]*Y_in 
+     *    X_out = fit[0] + fit[3]*X_in + fit[4]*Y_in
      * <p>
-     *    Y_out = fit[1] + fit[5]*X_in + fit[6]*Y_in 
+     *    Y_out = fit[1] + fit[5]*X_in + fit[6]*Y_in
      * <p>
      *    Z_out = fit[2] + fit[7]*X_in + fit[8]*Y_in
      * <p>

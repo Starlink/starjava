@@ -29,22 +29,27 @@ import java.io.*;
  * the FitsChan's integer Card attribute, which identifies a "current"
  * card, to which subsequent operations apply. Searches
  * based on keyword may be performed (using astFindFits), new
- * cards may be inserted (astPutFits, astPutCards, astSetFits<X>) and 
+ * cards may be inserted (astPutFits, astPutCards, astSetFits<X>) and
  * existing ones may be deleted (astDelFits), extracted (astGetFits<X>),
  * or changed (astSetFits<X>).
  * <p>
  * When you create a FitsChan, you have the option of specifying
  * "source" and "sink" functions which connect it to external data
  * stores by reading and writing FITS header cards. If you provide
- * a source function, it is used to fill the FitsChan with header
- * cards when it is created. If you do not provide a source
- * function, the FitsChan remains empty until you explicitly enter
- * data into it (e.g. using astPutFits, astPutCards or astWrite). If you
- * provide a sink function, it is used to deliver any remaining
- * contents of a FitsChan to an external data store when the
- * FitsChan is deleted. If you do not provide a sink function, any
- * header cards remaining when the FitsChan is deleted will be
- * lost, so you should arrange to extract them first if necessary
+ * a source function, it is used to fill the FitsChan with header cards
+ * when it is accessed for the first time. If you do not provide a
+ * source function, the FitsChan remains empty until you explicitly enter
+ * data into it (e.g. using astPutFits, astPutCards, astWrite
+ * or by using the SourceFile attribute to specifying a text file from
+ * which headers should be read). When the FitsChan is deleted, any
+ * remaining header cards in the FitsChan can be saved in either of
+ * two ways: 1) by specifying a value for the SinkFile attribute (the
+ * name of a text file to which header cards should be written), or 2)
+ * by providing a sink function (used to to deliver header cards to an
+ * external data store). If you do not provide a sink function or a
+ * value for SinkFile, any header cards remaining when the FitsChan
+ * is deleted will be lost, so you should arrange to extract them
+ * first if necessary
  * (e.g. using astFindFits or astRead).
  * <p>
  * Coordinate system information may be described using FITS header
@@ -73,10 +78,10 @@ import java.io.*;
  * a FitsChan, depends on the encoding in use. In general, however,
  * all successful use of astRead is destructive, so that FITS header cards
  * are consumed in the process of reading an Object, and are
- * removed from the FitsChan (this deletion can be prevented for 
- * specific cards by calling the 
+ * removed from the FitsChan (this deletion can be prevented for
+ * specific cards by calling the
  * astRetainFits function).
- * An unsuccessful call of 
+ * An unsuccessful call of
  * astRead
  * (for instance, caused by the FitsChan not containing the necessary
  * FITS headers cards needed to create an Object) results in the
@@ -102,8 +107,8 @@ import java.io.*;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * <p>
  *       <h4>Usage</h4>
@@ -549,6 +554,7 @@ public class FitsChan extends Channel {
      * A field specifier starts with a "%" character. This is followed
      * by an optional single digit (0 to 9) specifying a field
      * width. Finally, there is a single character which specifies the
+     * <p>
      * type of character to be matched, as follows:
      * <p>
      * <br> - "c": matches all upper case letters,
@@ -559,6 +565,7 @@ public class FitsChan extends Channel {
      * If the field width is omitted, the field specifier matches one
      * or more characters. If the field width is zero, it matches zero
      * or more characters. Otherwise, it matches exactly the number of
+     * <p>
      * characters specified. In addition to this:
      * <p>
      * <br> - The template "%f" will match a blank FITS keyword consisting
@@ -566,6 +573,7 @@ public class FitsChan extends Channel {
      * <br> - A template consisting of 8 spaces will match a blank keyword
      * (only).
      * <p>
+     * 
      * For example:
      * <p>
      * <br> - The template "BitPix" will match the keyword "BITPIX" only.
@@ -620,23 +628,23 @@ public class FitsChan extends Channel {
      * not the required card, then the rest of the FitsChan is searched,
      * starting with the first card added to the FitsChan. Therefore cards
      * should be accessed in the order they are stored in the FitsChan (if
-     * possible) as this will minimise the time spent searching for cards. 
+     * possible) as this will minimise the time spent searching for cards.
      * <br> -  An error will be reported if the keyword name does not conform
      * to FITS requirements.
-     * <br> -  Zero 
-     * is returned as the function value if an error has already occurred, 
+     * <br> -  Zero
+     * is returned as the function value if an error has already occurred,
      * or if this function should fail for any reason.
      * @param   name
      * Pointer to a null-terminated character string
      * containing the FITS keyword name. This may be a complete FITS
-     * header card, in which case the keyword to use is extracted from 
+     * header card, in which case the keyword to use is extracted from
      * it. No more than 80 characters are read from this string.
      * 
-     * @return  A value of zero 
+     * @return  A value of zero
      * is returned if the keyword was not found in the FitsChan or has
-     * no associated value. Otherwise, a value of 
-     * one 
-     * is returned. 
+     * no associated value. Otherwise, a value of
+     * one
+     * is returned.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -673,16 +681,16 @@ public class FitsChan extends Channel {
 
     /** 
      * Indicate that the current card in a FitsChan should be retained.   
-     * This function 
+     * This function
      * stores a flag with the current card in the FitsChan indicating that
-     * the card should not be removed from the FitsChan when an Object is 
+     * the card should not be removed from the FitsChan when an Object is
      * read from the FitsChan using
      * astRead.
      * <p>
      * Cards that have not been flagged in this way are removed when a
      * read operation completes succesfully, but only if the card was used
      * in the process of creating the returned AST Object. Any cards that
-     * are irrelevant to the creation of the AST Object are retained whether 
+     * are irrelevant to the creation of the AST Object are retained whether
      * or not they are flagged.
      * <h4>Notes</h4>
      * <br> - This function returns without action if the FitsChan is
@@ -695,9 +703,9 @@ public class FitsChan extends Channel {
 
     /** 
      * Delete all cards in the FitsChan describing WCS information.   
-     * This function 
-     * deletes all cards in a FitsChan that relate to any of the recognised 
-     * WCS encodings. On exit, the current card is the first remaining card 
+     * This function
+     * deletes all cards in a FitsChan that relate to any of the recognised
+     * WCS encodings. On exit, the current card is the first remaining card
      * in the FitsChan.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -706,12 +714,12 @@ public class FitsChan extends Channel {
 
     /** 
      * Store a set of FITS header cards in a FitsChan.   
-     * This function 
+     * This function
      * stores a set of FITS header cards in a FitsChan. The cards are
      * supplied concatenated together into a single character string.
      * Any existing cards in the FitsChan are removed before the new cards
-     * are added. The FitsChan is "re-wound" on exit by clearing its Card 
-     * attribute. This means that a subsequent invocation of 
+     * are added. The FitsChan is "re-wound" on exit by clearing its Card
+     * attribute. This means that a subsequent invocation of
      * astRead
      * can be made immediately without the need to re-wind the FitsChan
      * first.
@@ -798,23 +806,23 @@ public class FitsChan extends Channel {
      * (plate carree, or "Cartesian") projections should be treated when
      * reading a FrameSet from a foreign encoded FITS header. If zero (the
      * default), it is assumed that the CAR projection conforms to the
-     * conventions described in the FITS world coordinate system (FITS-WCS) 
-     * paper II "Representation of Celestial Coordinates in FITS" by 
-     * M. Calabretta & E.W. Greisen. If CarLin is non-zero, then these 
-     * conventions are ignored, and it is assumed that the mapping from pixel 
-     * coordinates to celestial coordinates is a simple linear transformation 
-     * (hence the attribute name "CarLin"). This is appropriate for some older 
+     * conventions described in the FITS world coordinate system (FITS-WCS)
+     * paper II "Representation of Celestial Coordinates in FITS" by
+     * M. Calabretta & E.W. Greisen. If CarLin is non-zero, then these
+     * conventions are ignored, and it is assumed that the mapping from pixel
+     * coordinates to celestial coordinates is a simple linear transformation
+     * (hence the attribute name "CarLin"). This is appropriate for some older
      * FITS data which claims to have a "CAR" projection, but which in fact do
      * not conform to the conventions of the FITS-WCS paper. Furthermore, if
      * CarLin is non-zero, it is assumed that CDELT and CD keywords are
      * in units of degrees rather than radians (as required by the
      * FITS-WCS papers).
      * <p>
-     * The FITS-WCS paper specifies that headers which include a CAR projection 
-     * represent a linear mapping from pixel coordinates to "native spherical 
+     * The FITS-WCS paper specifies that headers which include a CAR projection
+     * represent a linear mapping from pixel coordinates to "native spherical
      * coordinates", NOT celestial coordinates. An extra mapping is then
      * required from native spherical to celestial. This mapping is a 3D
-     * rotation and so the overall Mapping from pixel to celestial coordinates 
+     * rotation and so the overall Mapping from pixel to celestial coordinates
      * is NOT linear. See the FITS-WCS papers for further details.
      * 
      *
@@ -831,23 +839,23 @@ public class FitsChan extends Channel {
      * (plate carree, or "Cartesian") projections should be treated when
      * reading a FrameSet from a foreign encoded FITS header. If zero (the
      * default), it is assumed that the CAR projection conforms to the
-     * conventions described in the FITS world coordinate system (FITS-WCS) 
-     * paper II "Representation of Celestial Coordinates in FITS" by 
-     * M. Calabretta & E.W. Greisen. If CarLin is non-zero, then these 
-     * conventions are ignored, and it is assumed that the mapping from pixel 
-     * coordinates to celestial coordinates is a simple linear transformation 
-     * (hence the attribute name "CarLin"). This is appropriate for some older 
+     * conventions described in the FITS world coordinate system (FITS-WCS)
+     * paper II "Representation of Celestial Coordinates in FITS" by
+     * M. Calabretta & E.W. Greisen. If CarLin is non-zero, then these
+     * conventions are ignored, and it is assumed that the mapping from pixel
+     * coordinates to celestial coordinates is a simple linear transformation
+     * (hence the attribute name "CarLin"). This is appropriate for some older
      * FITS data which claims to have a "CAR" projection, but which in fact do
      * not conform to the conventions of the FITS-WCS paper. Furthermore, if
      * CarLin is non-zero, it is assumed that CDELT and CD keywords are
      * in units of degrees rather than radians (as required by the
      * FITS-WCS papers).
      * <p>
-     * The FITS-WCS paper specifies that headers which include a CAR projection 
-     * represent a linear mapping from pixel coordinates to "native spherical 
+     * The FITS-WCS paper specifies that headers which include a CAR projection
+     * represent a linear mapping from pixel coordinates to "native spherical
      * coordinates", NOT celestial coordinates. An extra mapping is then
      * required from native spherical to celestial. This mapping is a 3D
-     * rotation and so the overall Mapping from pixel to celestial coordinates 
+     * rotation and so the overall Mapping from pixel to celestial coordinates
      * is NOT linear. See the FITS-WCS papers for further details.
      * 
      *
@@ -861,37 +869,36 @@ public class FitsChan extends Channel {
      * Get 
      * use CDi_j keywords to represent pixel scaling, rotation, etc.  
      * This attribute is a boolean value which specifies how the linear
-     * transformation from pixel coordinates to intermediate world 
+     * transformation from pixel coordinates to intermediate world
      * coordinates should be represented within a FitsChan when using
-     * FITS-WCS encoding. This transformation describes the scaling, 
+     * FITS-WCS encoding. This transformation describes the scaling,
      * rotation, shear, etc., of the pixel axes.
      * <p>
      * If the attribute has a non-zero value then the transformation is
-     * represented by a set of CDi_j keywords representing a square matrix 
-     * (where "i" is the index of an intermediate world coordinate axis 
-     * and "j" is the index of a pixel axis). If the attribute has a zero 
-     * value the transformation is represented by a set of PCi_j keywords 
-     * (which also represent a square matrix) together with a corresponding 
-     * set of CDELTi keywords representing the axis scalings. See FITS-WCS 
-     * paper II "Representation of Celestial Coordinates in FITS" by 
-     * M. Calabretta & E.W. Greisen, for a complete description of these two 
+     * represented by a set of CDi_j keywords representing a square matrix
+     * (where "i" is the index of an intermediate world coordinate axis
+     * and "j" is the index of a pixel axis). If the attribute has a zero
+     * value the transformation is represented by a set of PCi_j keywords
+     * (which also represent a square matrix) together with a corresponding
+     * set of CDELTi keywords representing the axis scalings. See FITS-WCS
+     * paper II "Representation of Celestial Coordinates in FITS" by
+     * M. Calabretta & E.W. Greisen, for a complete description of these two
      * schemes.
      * <p>
      * The default value of the CDMatrix attribute is determined by the
      * contents of the FitsChan at the time the attribute is accessed. If
-     * the FitsChan contains any CDi_j keywords then the default value is 
+     * the FitsChan contains any CDi_j keywords then the default value is
      * non-zero. Otherwise it is zero. Note, reading a FrameSet from a
-     * FitsChan will in general consume any CDi_j keywords present in the 
+     * FitsChan will in general consume any CDi_j keywords present in the
      * FitsChan. Thus the default value for CDMatrix following a read will
      * usually be zero, even if the FitsChan originally contained some
      * CDi_j keywords. This behaviour is similar to that of the Encoding
-     * attribute, the default value for which is determined by the contents 
+     * attribute, the default value for which is determined by the contents
      * of the FitsChan at the time the attribute is accessed. If you wish
      * to retain the original value of the CDMatrix attribute (that is,
-     * the value before reading the FrameSet) then you should enquire the 
+     * the value before reading the FrameSet) then you should enquire the
      * default value before doing the read, and then set that value
      * explicitly.
-     * <p>
      * 
      *
      * @return  this object's CDMatrix attribute
@@ -904,37 +911,36 @@ public class FitsChan extends Channel {
      * Set 
      * use CDi_j keywords to represent pixel scaling, rotation, etc.  
      * This attribute is a boolean value which specifies how the linear
-     * transformation from pixel coordinates to intermediate world 
+     * transformation from pixel coordinates to intermediate world
      * coordinates should be represented within a FitsChan when using
-     * FITS-WCS encoding. This transformation describes the scaling, 
+     * FITS-WCS encoding. This transformation describes the scaling,
      * rotation, shear, etc., of the pixel axes.
      * <p>
      * If the attribute has a non-zero value then the transformation is
-     * represented by a set of CDi_j keywords representing a square matrix 
-     * (where "i" is the index of an intermediate world coordinate axis 
-     * and "j" is the index of a pixel axis). If the attribute has a zero 
-     * value the transformation is represented by a set of PCi_j keywords 
-     * (which also represent a square matrix) together with a corresponding 
-     * set of CDELTi keywords representing the axis scalings. See FITS-WCS 
-     * paper II "Representation of Celestial Coordinates in FITS" by 
-     * M. Calabretta & E.W. Greisen, for a complete description of these two 
+     * represented by a set of CDi_j keywords representing a square matrix
+     * (where "i" is the index of an intermediate world coordinate axis
+     * and "j" is the index of a pixel axis). If the attribute has a zero
+     * value the transformation is represented by a set of PCi_j keywords
+     * (which also represent a square matrix) together with a corresponding
+     * set of CDELTi keywords representing the axis scalings. See FITS-WCS
+     * paper II "Representation of Celestial Coordinates in FITS" by
+     * M. Calabretta & E.W. Greisen, for a complete description of these two
      * schemes.
      * <p>
      * The default value of the CDMatrix attribute is determined by the
      * contents of the FitsChan at the time the attribute is accessed. If
-     * the FitsChan contains any CDi_j keywords then the default value is 
+     * the FitsChan contains any CDi_j keywords then the default value is
      * non-zero. Otherwise it is zero. Note, reading a FrameSet from a
-     * FitsChan will in general consume any CDi_j keywords present in the 
+     * FitsChan will in general consume any CDi_j keywords present in the
      * FitsChan. Thus the default value for CDMatrix following a read will
      * usually be zero, even if the FitsChan originally contained some
      * CDi_j keywords. This behaviour is similar to that of the Encoding
-     * attribute, the default value for which is determined by the contents 
+     * attribute, the default value for which is determined by the contents
      * of the FitsChan at the time the attribute is accessed. If you wish
      * to retain the original value of the CDMatrix attribute (that is,
-     * the value before reading the FrameSet) then you should enquire the 
+     * the value before reading the FrameSet) then you should enquire the
      * default value before doing the read, and then set that value
      * explicitly.
-     * <p>
      * 
      *
      * @param  CDMatrix   the CDMatrix attribute of this object
@@ -948,10 +954,10 @@ public class FitsChan extends Channel {
      * use FK4 B1950 as defaults.  
      * This attribute is a boolean value which specifies a default equinox
      * and reference frame to use when reading a FrameSet from a FitsChan
-     * with a foreign (i.e. non-native) encoding. It is only used if the FITS 
-     * header contains RA and DEC axes but contains no information about the 
-     * reference frame or equinox. If this is the case, then values of FK4 and 
-     * B1950 are assumed if the DefB1950 attribute has a non-zero value and 
+     * with a foreign (i.e. non-native) encoding. It is only used if the FITS
+     * header contains RA and DEC axes but contains no information about the
+     * reference frame or equinox. If this is the case, then values of FK4 and
+     * B1950 are assumed if the DefB1950 attribute has a non-zero value and
      * ICRS is assumed if DefB1950 is zero. The default value for DefB1950
      * depends on the value of the Encoding attribute: for FITS-WCS encoding
      * the default is zero, and for all other encodings it is one.
@@ -968,10 +974,10 @@ public class FitsChan extends Channel {
      * use FK4 B1950 as defaults.  
      * This attribute is a boolean value which specifies a default equinox
      * and reference frame to use when reading a FrameSet from a FitsChan
-     * with a foreign (i.e. non-native) encoding. It is only used if the FITS 
-     * header contains RA and DEC axes but contains no information about the 
-     * reference frame or equinox. If this is the case, then values of FK4 and 
-     * B1950 are assumed if the DefB1950 attribute has a non-zero value and 
+     * with a foreign (i.e. non-native) encoding. It is only used if the FITS
+     * header contains RA and DEC axes but contains no information about the
+     * reference frame or equinox. If this is the case, then values of FK4 and
+     * B1950 are assumed if the DefB1950 attribute has a non-zero value and
      * ICRS is assumed if DefB1950 is zero. The default value for DefB1950
      * depends on the value of the Encoding attribute: for FITS-WCS encoding
      * the default is zero, and for all other encodings it is one.
@@ -1030,6 +1036,7 @@ public class FitsChan extends Channel {
      * <h4>Encodings Available</h4>
      * The Encoding attribute can take any of the following (case
      * insensitive) string values to select the corresponding encoding
+     * <p>
      * system:
      * <p>
      * <br> - "DSS": Encodes coordinate system information in FITS header
@@ -1043,10 +1050,10 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - "FITS-WCS": Encodes coordinate system information in FITS
      * header cards using the conventions described in the FITS
-     * world coordinate system (FITS-WCS) papers by E.W. Greisen, 
-     * M. Calabretta, et al. The main advantages of this encoding are that 
-     * it should be understood by any FITS-WCS compliant application and 
-     * is likely to be adopted widely for FITS data in future. For further 
+     * world coordinate system (FITS-WCS) papers by E.W. Greisen,
+     * M. Calabretta, et al. The main advantages of this encoding are that
+     * it should be understood by any FITS-WCS compliant application and
+     * is likely to be adopted widely for FITS data in future. For further
      * details, see the section "The FITS-WCS Encoding" below.
      * <p>
      * <br> - "FITS-PC": Encodes coordinate system information in FITS
@@ -1054,10 +1061,10 @@ public class FitsChan extends Channel {
      * of the FITS world coordinate system papers by E.W. Greisen and
      * M. Calabretta. This encoding uses a combination of CDELTi and
      * PCiiijjj keywords to describe the scale and rotation of the pixel
-     * axes. This encoding is included to support existing data and  
+     * axes. This encoding is included to support existing data and
      * software which uses these now superceded conventions. In general,
-     * the "FITS-WCS" encoding (which uses CDi_j or PCi_j keywords to 
-     * describe the scale and rotation) should be used in preference to 
+     * the "FITS-WCS" encoding (which uses CDi_j or PCi_j keywords to
+     * describe the scale and rotation) should be used in preference to
      * "FITS-PC".
      * <p>
      * <br> - "FITS-IRAF": Encodes coordinate system information in FITS
@@ -1075,7 +1082,7 @@ public class FitsChan extends Channel {
      * FITS-WCS is likely to be well supported.
      * <p>
      * <br> - "FITS-AIPS": Encodes coordinate system information in FITS
-     * header cards using the conventions originally introduced by the 
+     * header cards using the conventions originally introduced by the
      * AIPS data analysis facility. This is base on the use of CDELTi and
      * CROTAi keuwords to desribe the scale and rotation of each axis.
      * These conventions have been superceded but are still widely used.
@@ -1106,6 +1113,7 @@ public class FitsChan extends Channel {
      * If the Encoding attribute of a FitsChan is not set, the default
      * value it takes is determined by the presence of certain critical
      * FITS keywords within the FitsChan. The sequence of decisions
+     * <p>
      * used to arrive at the default value is as follows:
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
@@ -1115,7 +1123,7 @@ public class FitsChan extends Channel {
      * of the rest frames used by class (e.g. "VELO-LSR").
      * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
      * represents a spectral axis using the conventions of the AIPS and
-     * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
+     * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or
      * FITS-AIPS++ encoding is used. FITS-AIPS++ is used if any of the
      * keywords CDi_j, PROJP, LONPOLE or LATPOLE are
      * found in the FitsChan. Otherwise FITS-AIPS is used.
@@ -1127,16 +1135,16 @@ public class FitsChan extends Channel {
      * FITS-IRAF encoding is used,
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
      * "CDi_j", and at least one of RADECSYS, PROJPi, or CjVALi
-     * where "i" and "j" are single digits, then FITS-IRAF encoding is 
+     * where "i" and "j" are single digits, then FITS-IRAF encoding is
      * used.
      * <br> - Otherwise, if the FitsChan contains any keywords of the form
-     * PROJPi, CjVALi or RADECSYS, where "i" and "j" are single digits, 
+     * PROJPi, CjVALi or RADECSYS, where "i" and "j" are single digits,
      * then FITS-PC encoding is used.
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
-     * CROTAi, where "i" is a single digit, then FITS-AIPS encoding is 
+     * CROTAi, where "i" is a single digit, then FITS-AIPS encoding is
      * used.
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
-     * CRVALi, where "i" is a single digit, then FITS-WCS encoding is 
+     * CRVALi, where "i" is a single digit, then FITS-WCS encoding is
      * used.
      * <br> - Otherwise, if the FitsChan contains the "PLTRAH" keyword, then
      * DSS encoding is used,
@@ -1144,10 +1152,10 @@ public class FitsChan extends Channel {
      * case when using an empty FitsChan), then NATIVE encoding is
      * used.
      * <p>
-     * Except for the NATIVE and DSS encodings, all the above checks 
+     * Except for the NATIVE and DSS encodings, all the above checks
      * also require that the header contains at least one CTYPE, CRPIX and
      * CRVAL keyword (otherwise the checking process continues to the next
-     * case). 
+     * case).
      * <p>
      * Setting an explicit value for the Encoding attribute always
      * over-rides this default behaviour.
@@ -1165,8 +1173,8 @@ public class FitsChan extends Channel {
      * declination). This encoding may only be used to store a single
      * AST Object in any set of FITS header cards, and that Object must
      * be a FrameSet which conforms to the STScI/DSS coordinate system
-     * model (this means the Mapping which relates its base and current 
-     * Frames must include either a DssMap or a WcsMap with type 
+     * model (this means the Mapping which relates its base and current
+     * Frames must include either a DssMap or a WcsMap with type
      * AST__TAN or AST__TPN).
      * <p>
      * When reading a DSS encoded Object (using astRead), the FitsChan
@@ -1183,9 +1191,9 @@ public class FitsChan extends Channel {
      * <p>
      * When astWrite is used to store a FrameSet using DSS encoding,
      * an attempt is first made to simplify the FrameSet to see if it
-     * conforms to the DSS model.  Specifically, the current Frame must 
-     * be a FK5 SkyFrame; the projection must be a tangent plane 
-     * (gnomonic) projection with polynomial corrections conforming to 
+     * conforms to the DSS model.  Specifically, the current Frame must
+     * be a FK5 SkyFrame; the projection must be a tangent plane
+     * (gnomonic) projection with polynomial corrections conforming to
      * DSS requirements, and north must be parallel to the second base
      * Frame axis.
      * <p>
@@ -1304,6 +1312,7 @@ public class FitsChan extends Channel {
      * <h4>Encodings Available</h4>
      * The Encoding attribute can take any of the following (case
      * insensitive) string values to select the corresponding encoding
+     * <p>
      * system:
      * <p>
      * <br> - "DSS": Encodes coordinate system information in FITS header
@@ -1317,10 +1326,10 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - "FITS-WCS": Encodes coordinate system information in FITS
      * header cards using the conventions described in the FITS
-     * world coordinate system (FITS-WCS) papers by E.W. Greisen, 
-     * M. Calabretta, et al. The main advantages of this encoding are that 
-     * it should be understood by any FITS-WCS compliant application and 
-     * is likely to be adopted widely for FITS data in future. For further 
+     * world coordinate system (FITS-WCS) papers by E.W. Greisen,
+     * M. Calabretta, et al. The main advantages of this encoding are that
+     * it should be understood by any FITS-WCS compliant application and
+     * is likely to be adopted widely for FITS data in future. For further
      * details, see the section "The FITS-WCS Encoding" below.
      * <p>
      * <br> - "FITS-PC": Encodes coordinate system information in FITS
@@ -1328,10 +1337,10 @@ public class FitsChan extends Channel {
      * of the FITS world coordinate system papers by E.W. Greisen and
      * M. Calabretta. This encoding uses a combination of CDELTi and
      * PCiiijjj keywords to describe the scale and rotation of the pixel
-     * axes. This encoding is included to support existing data and  
+     * axes. This encoding is included to support existing data and
      * software which uses these now superceded conventions. In general,
-     * the "FITS-WCS" encoding (which uses CDi_j or PCi_j keywords to 
-     * describe the scale and rotation) should be used in preference to 
+     * the "FITS-WCS" encoding (which uses CDi_j or PCi_j keywords to
+     * describe the scale and rotation) should be used in preference to
      * "FITS-PC".
      * <p>
      * <br> - "FITS-IRAF": Encodes coordinate system information in FITS
@@ -1349,7 +1358,7 @@ public class FitsChan extends Channel {
      * FITS-WCS is likely to be well supported.
      * <p>
      * <br> - "FITS-AIPS": Encodes coordinate system information in FITS
-     * header cards using the conventions originally introduced by the 
+     * header cards using the conventions originally introduced by the
      * AIPS data analysis facility. This is base on the use of CDELTi and
      * CROTAi keuwords to desribe the scale and rotation of each axis.
      * These conventions have been superceded but are still widely used.
@@ -1380,6 +1389,7 @@ public class FitsChan extends Channel {
      * If the Encoding attribute of a FitsChan is not set, the default
      * value it takes is determined by the presence of certain critical
      * FITS keywords within the FitsChan. The sequence of decisions
+     * <p>
      * used to arrive at the default value is as follows:
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
@@ -1389,7 +1399,7 @@ public class FitsChan extends Channel {
      * of the rest frames used by class (e.g. "VELO-LSR").
      * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
      * represents a spectral axis using the conventions of the AIPS and
-     * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
+     * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or
      * FITS-AIPS++ encoding is used. FITS-AIPS++ is used if any of the
      * keywords CDi_j, PROJP, LONPOLE or LATPOLE are
      * found in the FitsChan. Otherwise FITS-AIPS is used.
@@ -1401,16 +1411,16 @@ public class FitsChan extends Channel {
      * FITS-IRAF encoding is used,
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
      * "CDi_j", and at least one of RADECSYS, PROJPi, or CjVALi
-     * where "i" and "j" are single digits, then FITS-IRAF encoding is 
+     * where "i" and "j" are single digits, then FITS-IRAF encoding is
      * used.
      * <br> - Otherwise, if the FitsChan contains any keywords of the form
-     * PROJPi, CjVALi or RADECSYS, where "i" and "j" are single digits, 
+     * PROJPi, CjVALi or RADECSYS, where "i" and "j" are single digits,
      * then FITS-PC encoding is used.
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
-     * CROTAi, where "i" is a single digit, then FITS-AIPS encoding is 
+     * CROTAi, where "i" is a single digit, then FITS-AIPS encoding is
      * used.
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
-     * CRVALi, where "i" is a single digit, then FITS-WCS encoding is 
+     * CRVALi, where "i" is a single digit, then FITS-WCS encoding is
      * used.
      * <br> - Otherwise, if the FitsChan contains the "PLTRAH" keyword, then
      * DSS encoding is used,
@@ -1418,10 +1428,10 @@ public class FitsChan extends Channel {
      * case when using an empty FitsChan), then NATIVE encoding is
      * used.
      * <p>
-     * Except for the NATIVE and DSS encodings, all the above checks 
+     * Except for the NATIVE and DSS encodings, all the above checks
      * also require that the header contains at least one CTYPE, CRPIX and
      * CRVAL keyword (otherwise the checking process continues to the next
-     * case). 
+     * case).
      * <p>
      * Setting an explicit value for the Encoding attribute always
      * over-rides this default behaviour.
@@ -1439,8 +1449,8 @@ public class FitsChan extends Channel {
      * declination). This encoding may only be used to store a single
      * AST Object in any set of FITS header cards, and that Object must
      * be a FrameSet which conforms to the STScI/DSS coordinate system
-     * model (this means the Mapping which relates its base and current 
-     * Frames must include either a DssMap or a WcsMap with type 
+     * model (this means the Mapping which relates its base and current
+     * Frames must include either a DssMap or a WcsMap with type
      * AST__TAN or AST__TPN).
      * <p>
      * When reading a DSS encoded Object (using astRead), the FitsChan
@@ -1457,9 +1467,9 @@ public class FitsChan extends Channel {
      * <p>
      * When astWrite is used to store a FrameSet using DSS encoding,
      * an attempt is first made to simplify the FrameSet to see if it
-     * conforms to the DSS model.  Specifically, the current Frame must 
-     * be a FK5 SkyFrame; the projection must be a tangent plane 
-     * (gnomonic) projection with polynomial corrections conforming to 
+     * conforms to the DSS model.  Specifically, the current Frame must
+     * be a FK5 SkyFrame; the projection must be a tangent plane
+     * (gnomonic) projection with polynomial corrections conforming to
      * DSS requirements, and north must be parallel to the second base
      * Frame axis.
      * <p>
@@ -1619,11 +1629,11 @@ public class FitsChan extends Channel {
      * Get 
      * controls the issuing of warnings about various conditions.  
      * This attribute controls the issuing of warnings about selected
-     * conditions when an Object or keyword is read from or written to a 
-     * FitsChan. The value supplied for the Warnings attribute should 
-     * consist of a space separated list of condition names (see the 
-     * AllWarnings attribute for a list of the currently defined names). 
-     * Each name indicates a condition which should be reported. The default 
+     * conditions when an Object or keyword is read from or written to a
+     * FitsChan. The value supplied for the Warnings attribute should
+     * consist of a space separated list of condition names (see the
+     * AllWarnings attribute for a list of the currently defined names).
+     * Each name indicates a condition which should be reported. The default
      * value for Warnings is the string "Tnx Zpx BadCel BadMat BadPV BadCTYPE".
      * <p>
      * The text of any warning will be stored within the FitsChan in the
@@ -1634,11 +1644,11 @@ public class FitsChan extends Channel {
      * cards will be propagated to any output header unless they are
      * deleted from the FitsChan using astDelFits.
      * <h4>Notes</h4>
-     * This attribute only controls the warnings that are to be stored as 
+     * This attribute only controls the warnings that are to be stored as
      * a set of header cards in the FitsChan as described above. It has no
-     * effect on the storage of warnings in the parent Channel structure. 
-     * All warnings are stored in the parent Channel structure, from where 
-     * they can be retrieved using the 
+     * effect on the storage of warnings in the parent Channel structure.
+     * All warnings are stored in the parent Channel structure, from where
+     * they can be retrieved using the
      * astWarnings
      * function.
      * 
@@ -1653,11 +1663,11 @@ public class FitsChan extends Channel {
      * Set 
      * controls the issuing of warnings about various conditions.  
      * This attribute controls the issuing of warnings about selected
-     * conditions when an Object or keyword is read from or written to a 
-     * FitsChan. The value supplied for the Warnings attribute should 
-     * consist of a space separated list of condition names (see the 
-     * AllWarnings attribute for a list of the currently defined names). 
-     * Each name indicates a condition which should be reported. The default 
+     * conditions when an Object or keyword is read from or written to a
+     * FitsChan. The value supplied for the Warnings attribute should
+     * consist of a space separated list of condition names (see the
+     * AllWarnings attribute for a list of the currently defined names).
+     * Each name indicates a condition which should be reported. The default
      * value for Warnings is the string "Tnx Zpx BadCel BadMat BadPV BadCTYPE".
      * <p>
      * The text of any warning will be stored within the FitsChan in the
@@ -1668,11 +1678,11 @@ public class FitsChan extends Channel {
      * cards will be propagated to any output header unless they are
      * deleted from the FitsChan using astDelFits.
      * <h4>Notes</h4>
-     * This attribute only controls the warnings that are to be stored as 
+     * This attribute only controls the warnings that are to be stored as
      * a set of header cards in the FitsChan as described above. It has no
-     * effect on the storage of warnings in the parent Channel structure. 
-     * All warnings are stored in the parent Channel structure, from where 
-     * they can be retrieved using the 
+     * effect on the storage of warnings in the parent Channel structure.
+     * All warnings are stored in the parent Channel structure, from where
+     * they can be retrieved using the
      * astWarnings
      * function.
      * 
@@ -1691,14 +1701,15 @@ public class FitsChan extends Channel {
      * below.
      * <h4>Conditions</h4>
      * The following conditions are currently recognised (all are
+     * <p>
      * case-insensitive):
      * <p>
      * <br> - "BadCel": This condition arises when reading a FrameSet from a
-     * non-Native encoded FitsChan if an unknown celestial co-ordinate 
+     * non-Native encoded FitsChan if an unknown celestial co-ordinate
      * system is specified by the CTYPE keywords.
      * <p>
      * <br> - "BadCTYPE": This condition arises when reading a FrameSet from a
-     * non-Native encoded FitsChan if an illegal algorithm code is specified 
+     * non-Native encoded FitsChan if an illegal algorithm code is specified
      * by a CTYPE keyword, and the illegal code can be converted to an
      * equivalent legal code.
      * <p>
@@ -1708,24 +1719,24 @@ public class FitsChan extends Channel {
      * value used is set to exactly 90 degrees in these cases.
      * <p>
      * <br> - "BadMat": This condition arises if the matrix describing the
-     * transformation from pixel offsets to intermediate world coordinates 
-     * cannot be inverted. This matrix describes the scaling, rotation, shear, 
-     * etc., applied to the pixel axes, and is specified by keywords such as 
-     * PCi_j, CDi_j, CROTA, etc. For example, the matrix will not be invertable 
-     * if any rows or columns consist entirely of zeros. The FITS-WCS Paper I 
+     * transformation from pixel offsets to intermediate world coordinates
+     * cannot be inverted. This matrix describes the scaling, rotation, shear,
+     * etc., applied to the pixel axes, and is specified by keywords such as
+     * PCi_j, CDi_j, CROTA, etc. For example, the matrix will not be invertable
+     * if any rows or columns consist entirely of zeros. The FITS-WCS Paper I
      * "Representation of World Coordinates in FITS" by Greisen & Calabretta
      * requires that this matrix be invertable. Many operations (such as
      * grid plotting) will not be possible if the matrix cannot be inverted.
      * <p>
      * <br> - "BadPV": This condition arises when reading a FrameSet from a
-     * non-Native encoded FitsChan. It is issued if a PVi_m header is found 
-     * that refers to a projection parameter that is not used by the 
+     * non-Native encoded FitsChan. It is issued if a PVi_m header is found
+     * that refers to a projection parameter that is not used by the
      * projection type specified by CTYPE.
      * <p>
      * <br> - "BadVal": This condition arises when reading a FrameSet from a
      * non-Native encoded FitsChan if it is not possible to convert the
      * value of a FITS keywords to the expected type. For instance, this
-     * can occur if the FITS header contains a string value for a keyword 
+     * can occur if the FITS header contains a string value for a keyword
      * which should have a floating point value, or if the keyword has no
      * value at all (i.e. is a comment card).
      * <p>
@@ -1734,32 +1745,32 @@ public class FitsChan extends Channel {
      * unsupported distortion code using the "4-3-3" format specified in
      * FITS-WCS paper IV. Such distortion codes are ignored.
      * <p>
-     * <br> - "NoCTYPE": This condition arises if a default CTYPE value is used 
+     * <br> - "NoCTYPE": This condition arises if a default CTYPE value is used
      * within astRead, due to no value being present in the supplied FitsChan.
      * This condition is only tested for when using non-Native encodings.
      * <p>
-     * <br> - "NoEquinox": This condition arises if a default equinox value is used 
+     * <br> - "NoEquinox": This condition arises if a default equinox value is used
      * within astRead, due to no value being present in the supplied FitsChan.
      * This condition is only tested for when using non-Native encodings.
      * <p>
-     * <br> - "NoRadesys": This condition arises if a default reference frame is 
-     * used for an equatorial co-ordinate system within astRead, due to no 
-     * value being present in the supplied FitsChan. This condition is only 
+     * <br> - "NoRadesys": This condition arises if a default reference frame is
+     * used for an equatorial co-ordinate system within astRead, due to no
+     * value being present in the supplied FitsChan. This condition is only
      * tested for when using non-Native encodings.
      * <p>
-     * <br> - "NoLonpole": This condition arises if a default value is used for 
-     * the LONPOLE keyword within astRead, due to no value being present 
-     * in the supplied FitsChan. This condition is only tested for when 
+     * <br> - "NoLonpole": This condition arises if a default value is used for
+     * the LONPOLE keyword within astRead, due to no value being present
+     * in the supplied FitsChan. This condition is only tested for when
      * using non-Native encodings.
      * <p>
-     * <br> - "NoLatpole": This condition arises if a default value is used for 
-     * the LATPOLE keyword within astRead, due to no value being present 
-     * in the supplied FitsChan. This condition is only tested for when 
+     * <br> - "NoLatpole": This condition arises if a default value is used for
+     * the LATPOLE keyword within astRead, due to no value being present
+     * in the supplied FitsChan. This condition is only tested for when
      * using non-Native encodings.
      * <p>
-     * <br> - "NoMjd-obs": This condition arises if a default value is used for 
-     * the date of observation within astRead, due to no value being present 
-     * in the supplied FitsChan. This condition is only tested for when using 
+     * <br> - "NoMjd-obs": This condition arises if a default value is used for
+     * the date of observation within astRead, due to no value being present
+     * in the supplied FitsChan. This condition is only tested for when using
      * non-Native encodings.
      * <p>
      * <br> - "Tnx": This condition arises if a FrameSet is read from a FITS
@@ -1768,7 +1779,7 @@ public class FitsChan extends Channel {
      * FrameSet may be inaccurate.
      * <p>
      * <br> - "Zpx": This condition arises if a FrameSet is read from a FITS
-     * header containing an IRAF "ZPX" projection which includes "lngcor" 
+     * header containing an IRAF "ZPX" projection which includes "lngcor"
      * or "latcor" correction terms. These terms are not supported by AST
      * and are ignored. The resulting FrameSet may therefore be inaccurate.
      * 
@@ -1792,7 +1803,7 @@ public class FitsChan extends Channel {
      * the single alternate axis description character, as used in the
      * FITS-WCS header. The default value for "Iwc" is zero.
      * <p>
-     * FITS-WCS paper 1 defines IWC as a Cartesian coordinate system with one 
+     * FITS-WCS paper 1 defines IWC as a Cartesian coordinate system with one
      * axis for each WCS axis, and is the coordinate system produced by the
      * rotation matrix (represented by FITS keyword PCi_j, CDi_j, etc).
      * For instance, for a 2-D FITS-WCS header describing projected
@@ -1820,7 +1831,7 @@ public class FitsChan extends Channel {
      * the single alternate axis description character, as used in the
      * FITS-WCS header. The default value for "Iwc" is zero.
      * <p>
-     * FITS-WCS paper 1 defines IWC as a Cartesian coordinate system with one 
+     * FITS-WCS paper 1 defines IWC as a Cartesian coordinate system with one
      * axis for each WCS axis, and is the coordinate system produced by the
      * rotation matrix (represented by FITS keyword PCi_j, CDi_j, etc).
      * For instance, for a 2-D FITS-WCS header describing projected

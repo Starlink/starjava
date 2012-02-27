@@ -14,16 +14,20 @@ import java.io.OutputStream;
  * A XmlChan is a specialised form of Channel which supports XML I/O
  * operations. Writing an Object to an XmlChan (using
  * astWrite) will, if the Object is suitable, generate an
- * XML description of that Object, and reading from an XmlChan will 
+ * XML description of that Object, and reading from an XmlChan will
  * create a new Object from its XML description.
  * <p>
  * Normally, when you use an XmlChan, you should provide "source"
  * and "sink" functions which connect it to an external data store
  * by reading and writing the resulting XML text. These functions
- * should perform any conversions needed between external character 
- * encodings and the internal ASCII encoding. If no such functions 
- * are supplied, a Channel will read from standard input and write 
+ * should perform any conversions needed between external character
+ * encodings and the internal ASCII encoding. If no such functions
+ * are supplied, a Channel will read from standard input and write
  * to standard output.
+ * <p>
+ * Alternatively, an XmlChan can be told to read or write from
+ * specific text files using the SinkFile and SourceFile attributes,
+ * in which case no sink or source function need be supplied.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
@@ -37,8 +41,8 @@ import java.io.OutputStream;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_XmlChan'>AST XmlChan</a>  
@@ -80,8 +84,8 @@ public class XmlChan extends Channel {
      * XML representation.
      * <p>
      * The XmlChan class allows AST objects to be represented in the form
-     * of XML in several ways (conventions) and the XmlFormat attribute is 
-     * used to specify which of these should be used. The formatting options 
+     * of XML in several ways (conventions) and the XmlFormat attribute is
+     * used to specify which of these should be used. The formatting options
      * available are outlined in the "Formats Available" section below.
      * <p>
      * By default, an XmlChan will attempt to determine which format system
@@ -106,41 +110,47 @@ public class XmlChan extends Channel {
      * information is included which allows client code to convert the
      * XML into a form which can be read by a standard AST Channel. This
      * extra information indicates which AST attribute values should be
-     * enclosed in quotes before being passed to a Channel. 
+     * enclosed in quotes before being passed to a Channel.
      * <p>
-     * <br> - "IVOA": This is an experimental format which uses XML schemas
-     * being developed by the International Virtual Observatory Alliance
-     * (IVOA - see "http://www.ivoa.net/") to describe coordinate systems, 
-     * regions, mappings, etc. Current support is limited to the draft STC
-     * schema described at "http://hea-www.harvard.edu/~arots/nvometa/STC.html".
-     * Note, this format is under active development and is consequently
-     * liable to change. The current implementation reflects version 1.2
-     * of the draft STC document.
+     * <br> - "IVOA": This is a format that uses an early draft of the STC-X schema
+     * developed by the International Virtual Observatory Alliance (IVOA -
+     * see "http://www.ivoa.net/") to describe coordinate systems, regions,
+     * mappings, etc. Support is limited to V1.20 described at
+     * "http://www.ivoa.net/Documents/WD/STC/STC-20050225.html". Since the
+     * version of STC-X finally adopted by the IVOA differs in several
+     * significant respects from V1.20, this format is now mainly of
+     * historical interest. Note, the alternative "STC-S" format (a
+     * simpler non-XML encoding of the STC metadata) is supported by the
+     * StcsChan class.
      * <h4>The IVOA Format</h4>
-     * The IVOA format should be considered experimental. It currently
-     * caters only for certain parts of V1.20 of the the draft Space-Time 
-     * Coordinate (STC) schema (see http://hea-www.harvard.edu/~arots/nvometa/STC.ht$
+     * The IVOA support caters only for certain parts of V1.20 of the
+     * draft Space-Time Coordinate (STC) schema (see
+     * http://www.ivoa.net/Documents/WD/STC/STC-20050225.html). Note, this
+     * draft has now been superceded by an officially adopted version that
+     * differs in several significant respects from V1.20. Consequently,
+     * the "IVOA" XmlChan format is of historical interest only.
+     * <p>
      * The following points should be noted when using an XmlChan to read
      * or write STC information (note, this list is currently incomplete):
      * <p>
      * <br> - Objects can currently only be read using this format, not written.
-     * <br> - The AST object generated by reading an <STCMetadata> element will 
-     * be an instance of one of the AST "Stc" classes: StcResourceProfile, 
+     * <br> - The AST object generated by reading an <STCMetadata> element will
+     * be an instance of one of the AST "Stc" classes: StcResourceProfile,
      * StcSearchLocation, StcCatalogEntryLocation, StcObsDataLocation.
-     * <br> - When reading an <STCMetadata> element, the axes in the returned 
+     * <br> - When reading an <STCMetadata> element, the axes in the returned
      * AST Object will be in the order space, time, spectral, redshift,
      * irrespective of the order in which the axes occur in the <STCMetadata>
-     * element. If the supplied <STCMetadata> element does not contain all of 
-     * these axes, the returned AST Object will also omit them, but the 
-     * ordering of those axes which are present will be as stated above. If 
-     * the spatial frame represents a celestial coordinate system the 
-     * spatial axes will be in the order (longitude, latitude). 
+     * element. If the supplied <STCMetadata> element does not contain all of
+     * these axes, the returned AST Object will also omit them, but the
+     * ordering of those axes which are present will be as stated above. If
+     * the spatial frame represents a celestial coordinate system the
+     * spatial axes will be in the order (longitude, latitude).
      * <br> - Until such time as the AST TimeFrame is complete, a simple
-     * 1-dimensional Frame (with Domain set to TIME) will be used to 
+     * 1-dimensional Frame (with Domain set to TIME) will be used to
      * represent the STC <TimeFrame> element. Consequently, most of the
      * information within a <TimeFrame> element is currently ignored.
-     * <br> - <SpaceFrame> elements can only be read if they describe a celestial 
-     * longitude and latitude axes supported by the AST SkyFrame class. The 
+     * <br> - <SpaceFrame> elements can only be read if they describe a celestial
+     * longitude and latitude axes supported by the AST SkyFrame class. The
      * space axes will be returned in the order (longitude, latitude).
      * <br> - Velocities associated with SpaceFrames cannot be read.
      * <br> - Any <GenericCoordFrame> elements within an <AstroCoordSystem> element
@@ -151,10 +161,10 @@ public class XmlChan extends Channel {
      * STCMetaData element is ignored.
      * <br> - Any <OffsetCenter> found within a <SpaceFrame> is ignored.
      * <br> - Any CoordFlavor element found within a <SpaceFrame> is ignored.
-     * <br> - <SpaceFrame> elements can only be read if they refer to 
+     * <br> - <SpaceFrame> elements can only be read if they refer to
      * one of the following space reference frames: ICRS, GALACTIC_II,
      * SUPER_GALACTIC, HEE, FK4, FK5, ECLIPTIC.
-     * <br> - <SpaceFrame> elements can only be read if the reference 
+     * <br> - <SpaceFrame> elements can only be read if the reference
      * position is TOPOCENTER. Also, any planetary ephemeris is ignored.
      * <br> - Regions: there is currently no support for STC regions of type
      * Sector, ConvexHull or SkyIndex.
@@ -183,8 +193,8 @@ public class XmlChan extends Channel {
      * XML representation.
      * <p>
      * The XmlChan class allows AST objects to be represented in the form
-     * of XML in several ways (conventions) and the XmlFormat attribute is 
-     * used to specify which of these should be used. The formatting options 
+     * of XML in several ways (conventions) and the XmlFormat attribute is
+     * used to specify which of these should be used. The formatting options
      * available are outlined in the "Formats Available" section below.
      * <p>
      * By default, an XmlChan will attempt to determine which format system
@@ -209,41 +219,47 @@ public class XmlChan extends Channel {
      * information is included which allows client code to convert the
      * XML into a form which can be read by a standard AST Channel. This
      * extra information indicates which AST attribute values should be
-     * enclosed in quotes before being passed to a Channel. 
+     * enclosed in quotes before being passed to a Channel.
      * <p>
-     * <br> - "IVOA": This is an experimental format which uses XML schemas
-     * being developed by the International Virtual Observatory Alliance
-     * (IVOA - see "http://www.ivoa.net/") to describe coordinate systems, 
-     * regions, mappings, etc. Current support is limited to the draft STC
-     * schema described at "http://hea-www.harvard.edu/~arots/nvometa/STC.html".
-     * Note, this format is under active development and is consequently
-     * liable to change. The current implementation reflects version 1.2
-     * of the draft STC document.
+     * <br> - "IVOA": This is a format that uses an early draft of the STC-X schema
+     * developed by the International Virtual Observatory Alliance (IVOA -
+     * see "http://www.ivoa.net/") to describe coordinate systems, regions,
+     * mappings, etc. Support is limited to V1.20 described at
+     * "http://www.ivoa.net/Documents/WD/STC/STC-20050225.html". Since the
+     * version of STC-X finally adopted by the IVOA differs in several
+     * significant respects from V1.20, this format is now mainly of
+     * historical interest. Note, the alternative "STC-S" format (a
+     * simpler non-XML encoding of the STC metadata) is supported by the
+     * StcsChan class.
      * <h4>The IVOA Format</h4>
-     * The IVOA format should be considered experimental. It currently
-     * caters only for certain parts of V1.20 of the the draft Space-Time 
-     * Coordinate (STC) schema (see http://hea-www.harvard.edu/~arots/nvometa/STC.ht$
+     * The IVOA support caters only for certain parts of V1.20 of the
+     * draft Space-Time Coordinate (STC) schema (see
+     * http://www.ivoa.net/Documents/WD/STC/STC-20050225.html). Note, this
+     * draft has now been superceded by an officially adopted version that
+     * differs in several significant respects from V1.20. Consequently,
+     * the "IVOA" XmlChan format is of historical interest only.
+     * <p>
      * The following points should be noted when using an XmlChan to read
      * or write STC information (note, this list is currently incomplete):
      * <p>
      * <br> - Objects can currently only be read using this format, not written.
-     * <br> - The AST object generated by reading an <STCMetadata> element will 
-     * be an instance of one of the AST "Stc" classes: StcResourceProfile, 
+     * <br> - The AST object generated by reading an <STCMetadata> element will
+     * be an instance of one of the AST "Stc" classes: StcResourceProfile,
      * StcSearchLocation, StcCatalogEntryLocation, StcObsDataLocation.
-     * <br> - When reading an <STCMetadata> element, the axes in the returned 
+     * <br> - When reading an <STCMetadata> element, the axes in the returned
      * AST Object will be in the order space, time, spectral, redshift,
      * irrespective of the order in which the axes occur in the <STCMetadata>
-     * element. If the supplied <STCMetadata> element does not contain all of 
-     * these axes, the returned AST Object will also omit them, but the 
-     * ordering of those axes which are present will be as stated above. If 
-     * the spatial frame represents a celestial coordinate system the 
-     * spatial axes will be in the order (longitude, latitude). 
+     * element. If the supplied <STCMetadata> element does not contain all of
+     * these axes, the returned AST Object will also omit them, but the
+     * ordering of those axes which are present will be as stated above. If
+     * the spatial frame represents a celestial coordinate system the
+     * spatial axes will be in the order (longitude, latitude).
      * <br> - Until such time as the AST TimeFrame is complete, a simple
-     * 1-dimensional Frame (with Domain set to TIME) will be used to 
+     * 1-dimensional Frame (with Domain set to TIME) will be used to
      * represent the STC <TimeFrame> element. Consequently, most of the
      * information within a <TimeFrame> element is currently ignored.
-     * <br> - <SpaceFrame> elements can only be read if they describe a celestial 
-     * longitude and latitude axes supported by the AST SkyFrame class. The 
+     * <br> - <SpaceFrame> elements can only be read if they describe a celestial
+     * longitude and latitude axes supported by the AST SkyFrame class. The
      * space axes will be returned in the order (longitude, latitude).
      * <br> - Velocities associated with SpaceFrames cannot be read.
      * <br> - Any <GenericCoordFrame> elements within an <AstroCoordSystem> element
@@ -254,10 +270,10 @@ public class XmlChan extends Channel {
      * STCMetaData element is ignored.
      * <br> - Any <OffsetCenter> found within a <SpaceFrame> is ignored.
      * <br> - Any CoordFlavor element found within a <SpaceFrame> is ignored.
-     * <br> - <SpaceFrame> elements can only be read if they refer to 
+     * <br> - <SpaceFrame> elements can only be read if they refer to
      * one of the following space reference frames: ICRS, GALACTIC_II,
      * SUPER_GALACTIC, HEE, FK4, FK5, ECLIPTIC.
-     * <br> - <SpaceFrame> elements can only be read if the reference 
+     * <br> - <SpaceFrame> elements can only be read if the reference
      * position is TOPOCENTER. Also, any planetary ephemeris is ignored.
      * <br> - Regions: there is currently no support for STC regions of type
      * Sector, ConvexHull or SkyIndex.
@@ -278,15 +294,7 @@ public class XmlChan extends Channel {
 
     /**
      * Get 
-     * controls output of indentation and line feeds.  
-     * This attribute controls the appearance of the XML produced when an
-     * AST object is written to an XmlChan. If it is non-zero, then extra
-     * linefeed characters will be inserted as necessary to ensure that each 
-     * XML tag starts on a new line, and each tag will be indented to show 
-     * its depth in the containment hierarchy. If XmlIndent is zero (the
-     * default), then no linefeeds or indentation strings will be added to
-     * output text.
-     * 
+     * XmlIndent attribute.  
      *
      * @return  this object's XmlIndent attribute
      */
@@ -296,15 +304,7 @@ public class XmlChan extends Channel {
 
     /**
      * Set 
-     * controls output of indentation and line feeds.  
-     * This attribute controls the appearance of the XML produced when an
-     * AST object is written to an XmlChan. If it is non-zero, then extra
-     * linefeed characters will be inserted as necessary to ensure that each 
-     * XML tag starts on a new line, and each tag will be indented to show 
-     * its depth in the containment hierarchy. If XmlIndent is zero (the
-     * default), then no linefeeds or indentation strings will be added to
-     * output text.
-     * 
+     * XmlIndent attribute.  
      *
      * @param  xmlIndent   the XmlIndent attribute of this object
      */
@@ -315,12 +315,12 @@ public class XmlChan extends Channel {
     /**
      * Get 
      * controls output buffer length.  
-     * This attribute specifies the maximum length to use when writing out 
+     * This attribute specifies the maximum length to use when writing out
      * text through the sink function supplied when the XmlChan was created.
      * <p>
-     * The number of characters in each string written out through the sink 
+     * The number of characters in each string written out through the sink
      * function will not be greater than the value of this attribute (but
-     * may be less). A value of zero (the default) means there is no limit - 
+     * may be less). A value of zero (the default) means there is no limit -
      * each string can be of any length.
      * <p>
      * 
@@ -334,12 +334,12 @@ public class XmlChan extends Channel {
     /**
      * Set 
      * controls output buffer length.  
-     * This attribute specifies the maximum length to use when writing out 
+     * This attribute specifies the maximum length to use when writing out
      * text through the sink function supplied when the XmlChan was created.
      * <p>
-     * The number of characters in each string written out through the sink 
+     * The number of characters in each string written out through the sink
      * function will not be greater than the value of this attribute (but
-     * may be less). A value of zero (the default) means there is no limit - 
+     * may be less). A value of zero (the default) means there is no limit -
      * each string can be of any length.
      * <p>
      * 
@@ -356,13 +356,13 @@ public class XmlChan extends Channel {
      * This attribute is a string which is to be used as the namespace
      * prefix for all XML elements created as a result of writing an AST
      * Object out through an XmlChan. The URI associated with the namespace
-     * prefix is given by the symbolic constant AST__XMLNS defined in 
+     * prefix is given by the symbolic constant AST__XMLNS defined in
      * ast.h.
      * A definition of the namespace prefix is included in each top-level
      * element produced by the XmlChan.
      * <p>
      * The default value is a blank string which causes no prefix to be
-     * used. In this case each top-level element will set the default 
+     * used. In this case each top-level element will set the default
      * namespace to be the value of AST__XMLNS.
      * 
      *
@@ -378,13 +378,13 @@ public class XmlChan extends Channel {
      * This attribute is a string which is to be used as the namespace
      * prefix for all XML elements created as a result of writing an AST
      * Object out through an XmlChan. The URI associated with the namespace
-     * prefix is given by the symbolic constant AST__XMLNS defined in 
+     * prefix is given by the symbolic constant AST__XMLNS defined in
      * ast.h.
      * A definition of the namespace prefix is included in each top-level
      * element produced by the XmlChan.
      * <p>
      * The default value is a blank string which causes no prefix to be
-     * used. In this case each top-level element will set the default 
+     * used. In this case each top-level element will set the default
      * namespace to be the value of AST__XMLNS.
      * 
      *

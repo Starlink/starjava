@@ -8,29 +8,29 @@ package uk.ac.starlink.ast;
 
 /**
  * Java interface to the AST SelectorMap class
- *  - a Mapping that locates positions within one of a set of alternate 
+ *  - a Mapping that locates positions within one of a set of alternate
  * Regions. 
- * A SelectorMap is a Mapping that identifies which Region contains 
+ * A SelectorMap is a Mapping that identifies which Region contains
  * a given input position.
  * <p>
- * A SelectorMap encapsulates a number of Regions that all have the same 
- * number of axes and represent the same coordinate Frame. The number of 
- * inputs (Nin attribute) of the SelectorMap equals the number of axes 
- * spanned by one of the encapsulated Region. All SelectorMaps have only 
+ * A SelectorMap encapsulates a number of Regions that all have the same
+ * number of axes and represent the same coordinate Frame. The number of
+ * inputs (Nin attribute) of the SelectorMap equals the number of axes
+ * spanned by one of the encapsulated Region. All SelectorMaps have only
  * a single output. SelectorMaps do not define an inverse transformation.
  * <p>
- * For each input position, the forward transformation of a SelectorMap 
- * searches through the encapsulated Regions (in the order supplied when 
+ * For each input position, the forward transformation of a SelectorMap
+ * searches through the encapsulated Regions (in the order supplied when
  * the SelectorMap was created) until a Region is found which contains
  * the input position. The index associated with this Region is
  * returned as the SelectorMap output value (the index value is the
- * position of the Region within the list of Regions supplied when the 
+ * position of the Region within the list of Regions supplied when the
  * SelectorMap was created, starting at 1 for the first Region). If an
- * input position is not contained within any Region, a value of zero is 
+ * input position is not contained within any Region, a value of zero is
  * returned by the forward transformation.
  * <p>
  * If a compound Mapping contains a SelectorMap in series with its own
- * inverse, the combination of the two adjacent SelectorMaps will be 
+ * inverse, the combination of the two adjacent SelectorMaps will be
  * replaced by a UnitMap when the compound Mapping is simplified using
  * astSimplify.
  * <p>
@@ -48,8 +48,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SelectorMap'>AST SelectorMap</a>  
@@ -57,12 +57,12 @@ package uk.ac.starlink.ast;
 public class SelectorMap extends Mapping {
     /** 
      * Creates a SelectorMap.   
-     * @param  regs  An array of pointers to the Regions. All the supplied Regions must 
+     * @param  regs  An array of pointers to the Regions. All the supplied Regions must
      * relate to the same coordinate Frame. The number of axes in this
      * coordinate Frame defines the number of inputs for the SelectorMap.
      * 
      * @param  badval  The value to be returned by the forward transformation of the
-     * SelectorMap for any input positions that have a bad (AST__BAD) 
+     * SelectorMap for any input positions that have a bad (AST__BAD)
      * value on any axis.
      * 
      * @throws  AstException  if an error occurred in the AST library

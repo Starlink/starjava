@@ -44,16 +44,16 @@ f     The SphMap class does not define any new routines beyond those
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David Berry (Starlink)
@@ -132,7 +132,7 @@ static void (* parent_setattrib)( AstObject *, const char *, int * );
 /* Define macros for accessing each item of thread specific global data. */
 #ifdef THREAD_SAFE
 
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
    globals->Class_Init = 0; \
    globals->GetAttrib_Buff[ 0 ] = 0;
@@ -147,8 +147,8 @@ astMAKE_INITGLOBALS(SphMap)
 
 
 
-/* If thread safety is not needed, declare and initialise globals at static 
-   variables. */ 
+/* If thread safety is not needed, declare and initialise globals at static
+   variables. */
 #else
 
 static char getattrib_buff[ 101 ];
@@ -268,7 +268,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "sphmap.h"
-*     int Equal( AstObject *this, AstObject *that, int *status, int *status ) 
+*     int Equal( AstObject *this, AstObject *that, int *status, int *status )
 
 *  Class Membership:
 *     SphMap member function (over-rides the astEqual protected
@@ -297,8 +297,8 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 */
 
 /* Local Variables: */
-   AstSphMap *that;        
-   AstSphMap *this;        
+   AstSphMap *that;
+   AstSphMap *this;
    int nin;
    int nout;
    int result;
@@ -323,9 +323,9 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
       nout = astGetNout( this );
       if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
 
-/* If the Invert flags for the two SphMaps differ, it may still be possible 
-   for them to be equivalent. First compare the SphMaps if their Invert 
-   flags are the same. In this case all the attributes of the two SphMaps 
+/* If the Invert flags for the two SphMaps differ, it may still be possible
+   for them to be equivalent. First compare the SphMaps if their Invert
+   flags are the same. In this case all the attributes of the two SphMaps
    must be identical. */
          if( astGetInvert( this ) == astGetInvert( that ) ) {
 
@@ -334,7 +334,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
                result = 1;
             }
 
-/* If the Invert flags for the two SphMaps differ, the attributes of the two 
+/* If the Invert flags for the two SphMaps differ, the attributes of the two
    SphMaps must be inversely related to each other. */
          } else {
 
@@ -344,7 +344,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
          }
       }
    }
-   
+
 /* If an error occurred, clear the result value. */
    if ( !astOK ) result = 0;
 
@@ -404,7 +404,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;          /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS           /* Pointer to thread-specific global data */
    AstSphMap *this;              /* Pointer to the SphMap structure */
    const char *result;           /* Pointer value to return */
    double dval;                  /* Double precision attribute value */
@@ -413,7 +413,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 /* Initialise. */
    result = NULL;
 
-/* Check the global error status. */   
+/* Check the global error status. */
    if ( !astOK ) return result;
 
 /* Get a pointer to the thread specific global data structure. */
@@ -445,7 +445,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
    } else {
       result = (*parent_getattrib)( this_object, attrib, status );
    }
-   
+
 /* Return the result. */
    return result;
 }
@@ -480,14 +480,14 @@ void astInitSphMapVtab_(  AstSphMapVtab *vtab, const char *name, int *status ) {
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
@@ -505,7 +505,8 @@ void astInitSphMapVtab_(  AstSphMapVtab *vtab, const char *name, int *status ) {
    will be used (by astIsASphMap) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstMappingVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -549,9 +550,12 @@ void astInitSphMapVtab_(  AstSphMapVtab *vtab, const char *name, int *status ) {
    astSetDelete( (AstObjectVtab *) vtab, Delete );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
@@ -723,15 +727,15 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
       if ( astOK && !strcmp( class, "SphMap" ) ) {
 
 /* Check if the first SphMap is applied in the inverse direction and
-   the second in the forward direction. This combination can be 
+   the second in the forward direction. This combination can be
    simplified if the PolarLongitude attributes are equal.. */
          if( ( *invert_list )[ imap1 ] && !( *invert_list )[ imap2 ] ) {
-            simpler = ( astGetPolarLong( ( *map_list )[ imap1 ] ) == 
+            simpler = ( astGetPolarLong( ( *map_list )[ imap1 ] ) ==
                         astGetPolarLong( ( *map_list )[ imap2 ] ) );
 
-/* If the first SphMap is applied in the forward direction and the second in 
-   the inverse direction, the combination can only be simplified if the 
-   input vectors to the first SphMap all have unit length (as indicated by 
+/* If the first SphMap is applied in the forward direction and the second in
+   the inverse direction, the combination can only be simplified if the
+   input vectors to the first SphMap all have unit length (as indicated by
    the UnitRadius attribute). */
          } else if( !( *invert_list )[ imap1 ] && ( *invert_list )[ imap2 ] ) {
             simpler = astGetUnitRadius( ( *map_list )[ imap1 ] );
@@ -956,7 +960,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 *  Description:
 *     This function takes a SphMap and a set of points encapsulated in a
-*     PointSet and transforms the points from Cartesian coordinates to 
+*     PointSet and transforms the points from Cartesian coordinates to
 *     spherical coordinates.
 
 *  Parameters:
@@ -1025,7 +1029,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    PointSet and obtain pointers for accessing the input and output coordinate
    values. */
    npoint = astGetNpoint( in );
-   ptr_in = astGetPoints( in );      
+   ptr_in = astGetPoints( in );
    ptr_out = astGetPoints( result );
 
 /* Determine whether to apply the forward or inverse mapping, according to the
@@ -1075,7 +1079,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Otherwise use a SLALIB function to do the conversion (SLALIB always
    returns zero at either pole which is why we make the above check). */
                } else {
-                  palSlaDcc2s( v, q0++, q1++ );
+                  palDcc2s( v, q0++, q1++ );
                }
 
             } else {
@@ -1102,7 +1106,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* Apply the mapping to every point. */
          for( point = 0; point < npoint; point++ ){
             if( *q0 != AST__BAD && *q1 != AST__BAD ){
-               palSlaDcs2c( *q0, *q1, v );
+               palDcs2c( *q0, *q1, v );
                *(p0++) = v[ 0 ];
                *(p1++) = v[ 1 ];
                *(p2++) = v[ 2 ];
@@ -1389,7 +1393,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsASphMap and astCheckSphMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(SphMap,Mapping,check,&class_check)
+astMAKE_ISA(SphMap,Mapping)
 astMAKE_CHECK(SphMap)
 
 AstSphMap *astSphMap_( const char *options, int *status, ...) {
@@ -1492,7 +1496,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstSphMap *new;              /* Pointer to new SphMap */
    va_list args;                /* Variable argument list */
 
@@ -1539,7 +1543,7 @@ AstSphMap *astSphMapId_( const char *options, ...) {
 
 *  Synopsis:
 *     #include "sphmap.h"
-*     AstSphMap *astSphMapId_( const char *options, ... ) 
+*     AstSphMap *astSphMapId_( const char *options, ... )
 
 *  Class Membership:
 *     SphMap constructor.
@@ -1565,7 +1569,7 @@ AstSphMap *astSphMapId_( const char *options, ...) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstSphMap *new;              /* Pointer to new SphMap */
    va_list args;                /* Variable argument list */
    int *status;                 /* Pointer to inherited status value */
@@ -1691,8 +1695,8 @@ AstSphMap *astInitSphMap_( void *mem, size_t size, int init,
 
 /* Initialise the SphMap data. */
 /* --------------------------- */
-/* Are all input vectors of unit length? Store a value of -1 to indicate that 
-   no value has yet been set. This will cause a default value of 0 (no, i.e. 
+/* Are all input vectors of unit length? Store a value of -1 to indicate that
+   no value has yet been set. This will cause a default value of 0 (no, i.e.
    input vectors are not all of unit length) to be used. */
       new->unitradius = -1;
       new->polarlong = AST__BAD;
@@ -1782,7 +1786,7 @@ AstSphMap *astLoadSphMap_( void *mem, size_t size,
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstSphMap *new;               /* Pointer to the new SphMap */
 
 /* Initialise. */

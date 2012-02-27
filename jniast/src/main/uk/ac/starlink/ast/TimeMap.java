@@ -9,15 +9,15 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST TimeMap class
  *  - sequence of time coordinate conversions. 
- * A TimeMap is a specialised form of 1-dimensional Mapping which can be 
+ * A TimeMap is a specialised form of 1-dimensional Mapping which can be
  * used to represent a sequence of conversions between standard time
  * coordinate systems.
  * <p>
  * When a TimeMap is first created, it simply performs a unit
  * (null) Mapping. Using the astTimeAdd
  * function, a series of coordinate conversion steps may then be
- * added. This allows multi-step conversions between a variety of 
- * time coordinate systems to be assembled out of a set of building 
+ * added. This allows multi-step conversions between a variety of
+ * time coordinate systems to be assembled out of a set of building
  * blocks.
  * <p>
  * For details of the individual coordinate conversions available,
@@ -35,8 +35,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_TimeMap'>AST TimeMap</a>  
@@ -54,28 +54,28 @@ public class TimeMap extends Mapping {
      * This function creates a new TimeMap and optionally initialises
      * its attributes.
      * <p>
-     * A TimeMap is a specialised form of 1-dimensional Mapping which can be 
+     * A TimeMap is a specialised form of 1-dimensional Mapping which can be
      * used to represent a sequence of conversions between standard time
      * coordinate systems.
      * <p>
      * When a TimeMap is first created, it simply performs a unit
      * (null) Mapping. Using the astTimeAdd
      * function, a series of coordinate conversion steps may then be
-     * added. This allows multi-step conversions between a variety of 
-     * time coordinate systems to be assembled out of a set of building 
+     * added. This allows multi-step conversions between a variety of
+     * time coordinate systems to be assembled out of a set of building
      * blocks.
      * <p>
      * For details of the individual coordinate conversions available,
      * see the description of the astTimeAdd function.
      * <h4>Notes</h4>
      * <br> - The nature and units of the coordinate values supplied for the
-     * first input (i.e. the time input) of a TimeMap must be appropriate 
-     * to the first conversion step applied by the TimeMap. For instance, if 
+     * first input (i.e. the time input) of a TimeMap must be appropriate
+     * to the first conversion step applied by the TimeMap. For instance, if
      * the first conversion step is "MJDTOBEP" (Modified Julian Date to
      * Besselian epoch) then the coordinate values for the first input should
-     * be date in units of days. Similarly, the nature and units of the 
+     * be date in units of days. Similarly, the nature and units of the
      * coordinate values returned by a TimeMap will be determined by the
-     * last conversion step applied by the TimeMap. 
+     * last conversion step applied by the TimeMap.
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
@@ -116,9 +116,9 @@ public class TimeMap extends Mapping {
      * applied would be the inverse of the one most recently added.
      * <h4>Notes</h4>
      * <br> - When assembling a multi-stage conversion, it can sometimes be
-     * difficult to determine the most economical conversion path. A solution 
-     * to this is to include all the steps which are (logically) necessary, 
-     * but then to use 
+     * difficult to determine the most economical conversion path. A solution
+     * to this is to include all the steps which are (logically) necessary,
+     * but then to use
      * astSimplify to simplify the resulting
      * TimeMap. The simplification process will eliminate any steps
      * which turn out not to be needed.
@@ -131,7 +131,7 @@ public class TimeMap extends Mapping {
      * conversion is to be added to the TimeMap. Where arguments are needed by
      * the conversion, they are listed in parentheses. Values for
      * these arguments should be given, via the "args" array, in the
-     * order indicated. Units and argument names are described at the end of 
+     * order indicated. Units and argument names are described at the end of
      * the list of conversions, and "MJD" means Modified Julian Date.
      * <p>
      * <br> - "MJDTOMJD"  (MJDOFF1,MJDOFF2): Convert MJD from one offset to another.
@@ -145,46 +145,47 @@ public class TimeMap extends Mapping {
      * <br> - "UTCTOTAI" (MJDOFF): Convert a UTC MJD to a TAI MJD.
      * <br> - "TAITOTT"  (MJDOFF): Convert a TAI MJD to a TT MJD.
      * <br> - "TTTOTAI"  (MJDOFF): Convert a TT MJD to a TAI MJD.
-     * <br> - "TTTOTDB"  (MJDOFF, CLOCKLON, CLOCKLAT): Convert a TT MJD to a TDB MJD.
-     * <br> - "TDBTOTT"  (MJDOFF, CLOCKLON, CLOCKLAT): Convert a TDB MJD to a TT MJD.
+     * <br> - "TTTOTDB"  (MJDOFF, OBSLON, OBSLAT, OBSALT): Convert a TT MJD to a TDB MJD.
+     * <br> - "TDBTOTT"  (MJDOFF, OBSLON, OBSLAT, OBSALT): Convert a TDB MJD to a TT MJD.
      * <br> - "TTTOTCG"  (MJDOFF): Convert a TT MJD to a TCG MJD.
      * <br> - "TCGTOTT"  (MJDOFF): Convert a TCG MJD to a TT MJD.
      * <br> - "TDBTOTCB" (MJDOFF): Convert a TDB MJD to a TCB MJD.
      * <br> - "TCBTOTDB" (MJDOFF): Convert a TCB MJD to a TDB MJD.
      * <br> - "UTTOGMST" (MJDOFF): Convert a UT MJD to a GMST MJD.
      * <br> - "GMSTTOUT" (MJDOFF): Convert a GMST MJD to a UT MJD.
-     * <br> - "GMSTTOLMST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a GMST MJD to a LMST MJD.
-     * <br> - "LMSTTOGMST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a LMST MJD to a GMST MJD.
-     * <br> - "LASTTOLMST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a GMST MJD to a LMST MJD.
-     * <br> - "LMSTTOLAST" (MJDOFF, CLOCKLON, CLOCKLAT): Convert a LMST MJD to a GMST MJD.
+     * <br> - "GMSTTOLMST" (MJDOFF, OBSLON, OBSLAT): Convert a GMST MJD to a LMST MJD.
+     * <br> - "LMSTTOGMST" (MJDOFF, OBSLON, OBSLAT): Convert a LMST MJD to a GMST MJD.
+     * <br> - "LASTTOLMST" (MJDOFF, OBSLON, OBSLAT): Convert a GMST MJD to a LMST MJD.
+     * <br> - "LMSTTOLAST" (MJDOFF, OBSLON, OBSLAT): Convert a LMST MJD to a GMST MJD.
      * <br> - "UTTOUTC" (DUT1): Convert a UT1 MJD to a UTC MJD.
      * <br> - "UTCTOUT" (DUT1): Convert a UTC MJD to a UT1 MJD.
      * <br> - "LTTOUTC" (LTOFF): Convert a Local Time MJD to a UTC MJD.
      * <br> - "UTCTOLT" (LTOFF): Convert a UTC MJD to a Local Time MJD.
      * <p>
      * The units for the values processed by the above conversions are as
-     * follows: 
+     * follows:
      * <p>
      * <br> - Julian epochs and offsets: Julian years
      * <br> - Besselian epochs and offsets: Tropical years
      * <br> - Modified Julian Dates and offsets: days
      * <br> - Julian Dates and offsets: days
      * <p>
-     * The arguments used in the above conversions are the zero-points 
-     * used by the 
+     * The arguments used in the above conversions are the zero-points
+     * used by the
      * astTransform function.
-     * The axis values supplied and returned by 
-     * astTransform 
+     * The axis values supplied and returned by
+     * astTransform
      * are offsets away from these zero-points:
      * <p>
      * <br> - MJDOFF: The zero-point being used with MJD values.
      * <br> - JDOFF: The zero-point being used with Julian Date values.
      * <br> - BEPOFF: The zero-point being used with Besselian epoch values.
      * <br> - JEPOFF: The zero-point being used with Julian epoch values.
-     * <br> - CLOCKLON: Clock longitude in radians (+ve westwards).
-     * <br> - CLOCKLAT: Clock geodetic latitude in radians (+ve northwards).
-     * <br> - DUT1: The UT1-UTC value to use. 
-     * <br> - LTOFF: The offset between Local Time and UTC (in hours, positive 
+     * <br> - OBSLON: Observer longitude in radians (+ve westwards).
+     * <br> - OBSLAT: Observer geodetic latitude (IAU 1975) in radians (+ve northwards).
+     * <br> - OBSALT: Observer geodetic altitude (IAU 1975) in metres.
+     * <br> - DUT1: The UT1-UTC value to use.
+     * <br> - LTOFF: The offset between Local Time and UTC (in hours, positive
      * for time zones east of Greenwich).
      * @param   cvt
      * Pointer to a null-terminated string which identifies the

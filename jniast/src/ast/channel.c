@@ -21,7 +21,9 @@ c     and "sink" functions which connect it to an external data store
 f     and "sink" routines which connect it to an external data store
 *     by reading and writing the resulting text. By default, however,
 *     a Channel will read from standard input and write to standard
-*     output.
+*     output. Alternatively, a Channel can be told to read or write from
+*     specific text files using the SinkFile and SourceFile attributes,
+*     in which case no sink or source function need be supplied.
 
 *  Inheritance:
 *     The Channel class inherits from the Object class.
@@ -32,8 +34,11 @@ f     and "sink" routines which connect it to an external data store
 *
 *     - Comment: Include textual comments in output?
 *     - Full: Set level of output detail
+*     - Indent: Indentation increment between objects
 *     - ReportLevel: Selects the level of error reporting
+*     - SinkFile: The path to a file to which the Channel should write
 *     - Skip: Skip irrelevant data?
+*     - SourceFile: The path to a file from which the Channel should read
 *     - Strict: Generate errors instead of warnings?
 
 *  Functions:
@@ -61,16 +66,16 @@ f     - AST_WRITE: Write an Object to a Channel
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -103,6 +108,14 @@ f     - AST_WRITE: Write an Object to a Channel
 *        Added astPutChannelData and astChannelData functions.
 *     16-JAN-2009 (DSB):
 *        Added astAddWarning and astWarnings.
+*     11-JUN-2009 (DSB):
+*        Enable astChannelData to be used from within astRead.
+*     7-DEC-2009 (DSB):
+*        Added Indent attribute.
+*     12-FEB-2010 (DSB):
+*        Represent AST__BAD externally using the string "<bad>".
+*     23-JUN-2011 (DSB):
+*        Added attributes SinkFile and SourceFile.
 *class--
 */
 
@@ -119,11 +132,11 @@ f     - AST_WRITE: Write an Object to a Channel
    standards such as FITS. */
 #define MAX_NAME "8"
 
-/* Define the increment used for indenting output text. */
-#define INDENT_INC 3
-
 /* Max length of string returned by GetAttrib */
-#define GETATTRIB_BUFF_LEN 50    
+#define GETATTRIB_BUFF_LEN 50
+
+/* String used to represent AST__BAD externally. */
+#define BAD_STRING "<bad>"
 
 /* Include files. */
 /* ============== */
@@ -137,7 +150,7 @@ f     - AST_WRITE: Write an Object to a Channel
 #include "channel.h"             /* Interface definition for this class */
 #include "loader.h"              /* Interface to the global loader */
 #include "keymap.h"              /* Storing arbitrary data in an AST Object */
-#include "globals.h"             /* Thread-safe global data access */
+#include "pointset.h"            /* For AST__BAD */
 
 /* Error code definitions. */
 /* ----------------------- */
@@ -170,7 +183,7 @@ static void (* parent_setattrib)( AstObject *, const char *, int * );
 /* Define macros for accessing each item of thread specific global data. */
 #ifdef THREAD_SAFE
 
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
    globals->Class_Init = 0; \
    globals->AstReadClassData_Msg = 0; \
@@ -208,15 +221,15 @@ astMAKE_INITGLOBALS(Channel)
 
 
 static pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_MUTEX2 pthread_mutex_lock( &mutex2 ); 
-#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 ); 
+#define LOCK_MUTEX2 pthread_mutex_lock( &mutex2 );
+#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 );
 
 static pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_MUTEX3 pthread_mutex_lock( &mutex3 ); 
-#define UNLOCK_MUTEX3 pthread_mutex_unlock( &mutex3 ); 
+#define LOCK_MUTEX3 pthread_mutex_lock( &mutex3 );
+#define UNLOCK_MUTEX3 pthread_mutex_unlock( &mutex3 );
 
-/* If thread safety is not needed, declare and initialise globals at static 
-   variables. */ 
+/* If thread safety is not needed, declare and initialise globals at static
+   variables. */
 #else
 
 /* Contextual error message reported in astReadClassData? */
@@ -239,7 +252,7 @@ static int nest = -1;
 /* The number of times astWrite has been invoked. */
 static int nwrite_invoc = 0;
 
-/* Pointer to a user-supplied block of memory to be made available to 
+/* Pointer to a user-supplied block of memory to be made available to
    source or sink functions via the astChannelData function. */
 static void *channel_data = NULL;
 
@@ -312,14 +325,12 @@ static const char *GetAttrib( AstObject *, const char *, int * );
 static double ReadDouble( AstChannel *, const char *, double, int * );
 static int GetComment( AstChannel *, int * );
 static int GetFull( AstChannel *, int * );
-static int GetReportLevel( AstChannel *, int * );
 static int GetSkip( AstChannel *, int * );
 static int GetStrict( AstChannel *, int * );
 static int ReadInt( AstChannel *, const char *, int, int * );
 static int TestAttrib( AstObject *, const char *, int * );
 static int TestComment( AstChannel *, int * );
 static int TestFull( AstChannel *, int * );
-static int TestReportLevel( AstChannel *, int * );
 static int TestSkip( AstChannel *, int * );
 static int TestStrict( AstChannel *, int * );
 static int Use( AstChannel *, int, int, int * );
@@ -329,7 +340,6 @@ static void AppendValue( AstChannelValue *, AstChannelValue **, int * );
 static void ClearAttrib( AstObject *, const char *, int * );
 static void ClearComment( AstChannel *, int * );
 static void ClearFull( AstChannel *, int * );
-static void ClearReportLevel( AstChannel *, int * );
 static void ClearSkip( AstChannel *, int * );
 static void ClearStrict( AstChannel *, int * );
 static void ClearValues( AstChannel *, int * );
@@ -345,7 +355,6 @@ static void RemoveValue( AstChannelValue *, AstChannelValue **, int * );
 static void SetAttrib( AstObject *, const char *, int * );
 static void SetComment( AstChannel *, int, int * );
 static void SetFull( AstChannel *, int, int * );
-static void SetReportLevel( AstChannel *, int, int * );
 static void SetSkip( AstChannel *, int, int * );
 static void SetStrict( AstChannel *, int, int * );
 static void SinkWrap( void (*)( const char * ), const char *, int * );
@@ -358,9 +367,29 @@ static void WriteIsA( AstChannel *, const char *, const char *, int * );
 static void WriteObject( AstChannel *, const char *, int, int, AstObject *, const char *, int * );
 static void WriteString( AstChannel *, const char *, int, int, const char *, const char *, int * );
 
+static int GetReportLevel( AstChannel *, int * );
+static int TestReportLevel( AstChannel *, int * );
+static void ClearReportLevel( AstChannel *, int * );
+static void SetReportLevel( AstChannel *, int, int * );
+
+static int GetIndent( AstChannel *, int * );
+static int TestIndent( AstChannel *, int * );
+static void ClearIndent( AstChannel *, int * );
+static void SetIndent( AstChannel *, int, int * );
+
+static const char *GetSourceFile( AstChannel *, int * );
+static int TestSourceFile( AstChannel *, int * );
+static void ClearSourceFile( AstChannel *, int * );
+static void SetSourceFile( AstChannel *, const char *, int * );
+
+static const char *GetSinkFile( AstChannel *, int * );
+static int TestSinkFile( AstChannel *, int * );
+static void ClearSinkFile( AstChannel *, int * );
+static void SetSinkFile( AstChannel *, const char *, int * );
+
 /* Member functions. */
 /* ================= */
-static void AddWarning( AstChannel *this, int level, const char *msg, 
+static void AddWarning( AstChannel *this, int level, const char *msg,
                         const char *method, int *status ) {
 /*
 *+
@@ -375,7 +404,7 @@ static void AddWarning( AstChannel *this, int level, const char *msg,
 
 *  Synopsis:
 *     #include "channel.h"
-*     void astAddWarning( AstChannel *this, int level, const char *msg, 
+*     void astAddWarning( AstChannel *this, int level, const char *msg,
 *                         const char *method, int status, ... )
 
 *  Class Membership:
@@ -397,7 +426,7 @@ static void AddWarning( AstChannel *this, int level, const char *msg,
 *        currently stored in the Channel are removed.
 *     method
 *        The method name.
-*     status 
+*     status
 *        Inherited status value.
 *     ...
 *        Extra values to substitute into the message string as
@@ -437,7 +466,7 @@ static void AddWarning( AstChannel *this, int level, const char *msg,
 /* If we are being strict, issue an error rather than a warning. */
       if( astGetStrict( this ) ) {
          if( astOK ) {
-            astError( AST__BADIN, "%s(%s): %s", status, method, 
+            astError( AST__BADIN, "%s(%s): %s", status, method,
                       astGetClass( this ), msg );
          }
 
@@ -448,7 +477,7 @@ static void AddWarning( AstChannel *this, int level, const char *msg,
          a = astStore( NULL, msg, strlen( msg ) + 1 );
 
 /* Expand the array of warning pointers in ther Channel structure. */
-         this->warnings = astGrow( this->warnings, this->nwarn + 1, 
+         this->warnings = astGrow( this->warnings, this->nwarn + 1,
                                    sizeof( char * ) );
 
 /* If all is OK so far, store the new warning pointer, and increment the
@@ -545,10 +574,10 @@ c++
 *     Channel macro.
 
 *  Description:
-*     This macro is intended to be used within the source or sink 
-*     functions associated with a Channel. It returns any pointer 
+*     This macro is intended to be used within the source or sink
+*     functions associated with a Channel. It returns any pointer
 *     previously stored in the Channel (that is, the Channel that has
-*     invoked the source or sink function) using astPutChannelData. 
+*     invoked the source or sink function) using astPutChannelData.
 *
 *     This mechanism is a thread-safe alternative to passing file
 *     descriptors, etc, via static global variables.
@@ -628,6 +657,11 @@ static void ClearAttrib( AstObject *this_object, const char *attrib, int *status
    } else if ( !strcmp( attrib, "full" ) ) {
       astClearFull( this );
 
+/* Indent. */
+/* ------- */
+   } else if ( !strcmp( attrib, "indent" ) ) {
+      astClearIndent( this );
+
 /* ReportLevel. */
 /* ------------ */
    } else if ( !strcmp( attrib, "reportlevel" ) ) {
@@ -637,6 +671,16 @@ static void ClearAttrib( AstObject *this_object, const char *attrib, int *status
 /* ----- */
    } else if ( !strcmp( attrib, "skip" ) ) {
       astClearSkip( this );
+
+/* SourceFile. */
+/* ----------- */
+   } else if ( !strcmp( attrib, "sourcefile" ) ) {
+      astClearSourceFile( this );
+
+/* SinkFile. */
+/* --------- */
+   } else if ( !strcmp( attrib, "sinkfile" ) ) {
+      astClearSinkFile( this );
 
 /* Strict. */
 /* ------- */
@@ -696,11 +740,11 @@ static void ClearValues( AstChannel *this, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstChannelValue **head;       /* Address of pointer to values list */
    AstChannelValue *value;       /* Pointer to value list element */
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* If "values_class" is non-NULL, then the values list has previously
@@ -710,7 +754,7 @@ static void ClearValues( AstChannel *this, int *status ) {
 /* If "values_ok" is zero, however, then these Values have not yet
    been read by a class loader. This must be due to a bad class name
    associated with them or because the class data are not available in
-   the correct order. If we are using strict error reporting, then report 
+   the correct order. If we are using strict error reporting, then report
    an error (unless the error status is already set). */
       if ( astGetStrict( this ) && !values_ok[ nest ] && astOK ) {
          astError( AST__BADIN,
@@ -872,11 +916,12 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstChannel *this;             /* Pointer to the Channel structure */
    const char *result;           /* Pointer value to return */
    int comment;                  /* Comment attribute value */
    int full;                     /* Full attribute value */
+   int indent;                   /* Indent attribute value */
    int report_level;             /* ReportLevel attribute value */
    int skip;                     /* Skip attribute value */
    int strict;                   /* Report errors insead of warnings? */
@@ -884,10 +929,10 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 /* Initialise. */
    result = NULL;
 
-/* Check the global error status. */   
+/* Check the global error status. */
    if ( !astOK ) return result;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this_object);
 
 /* Obtain a pointer to the Channel structure. */
@@ -916,6 +961,15 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
          result = getattrib_buff;
       }
 
+/* Indent. */
+/* ------- */
+   } else if ( !strcmp( attrib, "indent" ) ) {
+      indent = astGetIndent( this );
+      if ( astOK ) {
+         (void) sprintf( getattrib_buff, "%d", indent );
+         result = getattrib_buff;
+      }
+
 /* ReportLevel. */
 /* ------------ */
    } else if ( !strcmp( attrib, "reportlevel" ) ) {
@@ -933,6 +987,16 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
          (void) sprintf( getattrib_buff, "%d", skip );
          result = getattrib_buff;
       }
+
+/* SourceFile. */
+/* ----------- */
+   } else if ( !strcmp( attrib, "sourcefile" ) ) {
+      result = astGetSourceFile( this );
+
+/* SinkFile. */
+/* --------- */
+   } else if ( !strcmp( attrib, "sinkfile" ) ) {
+      result = astGetSinkFile( this );
 
 /* Strict. */
 /* ------- */
@@ -1280,8 +1344,12 @@ static char *GetNextText( AstChannel *this, int *status ) {
 #define ERRBUF_LEN 80
 
 /* Local Variables: */
-   char errbuf[ ERRBUF_LEN ];    /* Buffer for system error message */
+   FILE *fd;                     /* Input file descriptor */
+   char *errstat;                /* Pointer for system error message */
    char *line;                   /* Pointer to line data to be returned */
+   char errbuf[ ERRBUF_LEN ];    /* Buffer for system error message */
+   const char *sink_file;        /* Path to output sink file */
+   const char *source_file;      /* Path to source file */
    int c;                        /* Input character */
    int len;                      /* Length of input line */
    int readstat;                 /* "errno" value set by "getchar" */
@@ -1293,31 +1361,78 @@ static char *GetNextText( AstChannel *this, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return line;
 
-/* About to call an externally supplied function which may not be
-   thread-safe, so lock a mutex first. */
-   LOCK_MUTEX3;
+/* If the SourceFile attribute of the Channel specifies an input file,
+   but no input file has yet been opened, open it now. Report an error if
+   it is the same as the sink file. */
+   if( astTestSourceFile( this ) && !this->fd_in ) {
+      source_file = astGetSourceFile( this );
 
-/* Source function defined. */
-/* ------------------------ */
-/* If a source function (and its wrapper function) is defined for the
+      if( this->fd_out ) {
+         sink_file = astGetSinkFile( this );
+         if( astOK && !strcmp( sink_file, source_file ) ) {
+            astError( AST__RDERR, "astRead(%s): Failed to open input "
+                      "SourceFile '%s' - the file is currently being used "
+                      "as the output SinkFile.", status, astGetClass( this ),
+                      source_file );
+         }
+      }
+
+      if( astOK ) {
+         this->fd_in = fopen( source_file, "r" );
+         if( !this->fd_in ) {
+            if ( errno ) {
+#if HAVE_STRERROR_R
+               strerror_r( errno, errbuf, ERRBUF_LEN );
+               errstat = errbuf;
+#else
+               errstat = strerror( errno );
+#endif
+               astError( AST__RDERR, "astRead(%s): Failed to open input "
+                         "SourceFile '%s' - %s.", status, astGetClass( this ),
+                         source_file, errstat );
+            } else {
+               astError( AST__RDERR, "astRead(%s): Failed to open input "
+                         "SourceFile '%s'.", status, astGetClass( this ),
+                         source_file );
+            }
+         }
+
+      }
+   }
+
+/* Source function defined, but no input file. */
+/* ------------------------------------------- */
+/* If no active input file descriptor is stored in the Channel, but
+   a source function (and its wrapper function) is defined for the
    Channel, use the wrapper function to invoke the source function to
    read a line of input text. This is returned in a dynamically
    allocated string. */
-   if ( this->source && this->source_wrap ) {
-      line = ( *this->source_wrap )( this->source, status );
+   if ( !this->fd_in && this->source && this->source_wrap ) {
 
-/* No source function. */
-/* ------------------- */
-/* Read the line from standard input. */
-   } else {
+/* About to call an externally supplied function which may not be
+   thread-safe, so lock a mutex first. Also store the channel data
+   pointer in a global variable so that it can be accessed in the source
+   function using macro astChannelData. */
+      astStoreChannelData( this );
+      LOCK_MUTEX3;
+      line = ( *this->source_wrap )( this->source, status );
+      UNLOCK_MUTEX3;
+
+/* Input file defined, or no source function. */
+/* ------------------------------------------ */
+/* Read the line from the input file or from standard input. */
+   } else if( astOK ) {
       c = '\0';
       len = 0;
       size = 0;
 
+/* Choose the file descriptor to use. */
+      fd = this->fd_in ? this->fd_in : stdin;
+
 /* Loop to read input characters, saving any "errno" value that may be
    set by "getchar" if an error occurs. Quit if an end of file (or
    error) occurs or if a newline character is read. */
-      while ( errno = 0, c = getchar(), readstat = errno,
+      while ( errno = 0, c = getc( fd ), readstat = errno,
               ( c != EOF ) && ( c != '\n' ) ) {
 
 /* If no memory has yet been allocated to hold the line, allocate some
@@ -1343,12 +1458,17 @@ static char *GetNextText( AstChannel *this, int *status ) {
    status, check the last character read and use "ferror" to see if a
    read error occurred. If so, report the error, using the saved
    "errno" value (but only if one was set). */
-      if ( astOK && ( c == EOF ) && ferror( stdin ) ) {
+      if ( astOK && ( c == EOF ) && ferror( fd ) ) {
          if ( readstat ) {
+#if HAVE_STRERROR_R
             strerror_r( readstat, errbuf, ERRBUF_LEN );
+            errstat = errbuf;
+#else
+            errstat = strerror( readstat );
+#endif
             astError( AST__RDERR,
                       "astRead(%s): Read error on standard input - %s.", status,
-                      astGetClass( this ), errbuf );
+                      astGetClass( this ), errstat );
          } else {
             astError( AST__RDERR,
                       "astRead(%s): Read error on standard input.", status,
@@ -1375,7 +1495,6 @@ static char *GetNextText( AstChannel *this, int *status ) {
       }
    }
 
-   UNLOCK_MUTEX3;
 
 /* Return the result pointer. */
    return line;
@@ -1400,7 +1519,7 @@ f     AST_WARNINGS
 
 *  Synopsis:
 c     #include "channel.h"
-c     AstKeyMap *Warnings( AstChannel *this )
+c     AstKeyMap *astWarnings( AstChannel *this )
 f     RESULT = AST_WARNINGS( THIS, STATUS )
 
 *  Class Membership:
@@ -1408,19 +1527,19 @@ f     RESULT = AST_WARNINGS( THIS, STATUS )
 
 *  Description:
 *     This function returns an AST KeyMap object holding the text of any
-*     warnings issued as a result of the previous invocation of the 
+*     warnings issued as a result of the previous invocation of the
 c     astRead or astWrite
 f     AST_READ or AST_WRITE
-*     function on the Channel. If no warnings were issued, a 
+*     function on the Channel. If no warnings were issued, a
 c     a NULL value
-f     AST__NULL 
-*     will be returned. 
+f     AST__NULL
+*     will be returned.
 *
 *     Such warnings are non-fatal and will not prevent the
 *     read or write operation succeeding. However, the converted object
 *     may not be identical to the original object in all respects.
-*     Differences which would usually be deemed as insignificant in most 
-*     usual cases will generate a warning, whereas more significant 
+*     Differences which would usually be deemed as insignificant in most
+*     usual cases will generate a warning, whereas more significant
 *     differences will generate an error.
 *
 *     The "Strict" attribute allows this warning facility to be switched
@@ -1437,10 +1556,10 @@ f        The global status.
 *  Returned Value:
 c     astWarnings()
 f     AST_WARNINGS = INTEGER
-*        A pointer to the KeyMap holding the warning messages, or 
+*        A pointer to the KeyMap holding the warning messages, or
 c        NULL
 f        AST__NULL
-*        if no warnings were issued during the previous read operation. 
+*        if no warnings were issued during the previous read operation.
 
 *  Applicability:
 *     Channel
@@ -1474,17 +1593,17 @@ f        AST__NULL
 *        The returned KeyMap will contain warnings for all conditions
 *        listed in the Warnings attribute.
 *     XmlChan
-*        Reports conversion errors that result in what are usally 
+*        Reports conversion errors that result in what are usally
 *        insignificant  changes.
 
 *  Notes:
 *     - The returned KeyMap uses keys of the form "Warning_1",
 *     "Warning_2", etc.
-*     - A value of 
+*     - A value of
 c     NULL will be returned if this function is invoked with the AST
 c     error status set,
-f     AST__NULL will be returned if this function is invoked with STATUS 
-f     set to an error value, 
+f     AST__NULL will be returned if this function is invoked with STATUS
+f     set to an error value,
 *     or if it should fail for any reason.
 *--
 */
@@ -1504,7 +1623,7 @@ f     set to an error value,
 /* Create the KeyMap. */
       result = astKeyMap( "", status );
 
-/* Loop round all warnings, adding them into the KeyMap. */      
+/* Loop round all warnings, adding them into the KeyMap. */
       for( i = 0; i < this->nwarn; i++ ){
          sprintf( key, "Warning_%d", i + 1 );
          astMapPut0C( result, key, (this->warnings)[ i ], " " );
@@ -1676,9 +1795,17 @@ AstChannel *astInitChannel_( void *mem, size_t size, int init,
       new->sink = sink;
       new->sink_wrap = sink_wrap;
 
+/* Indicate no input or output files have been associated with the
+   Channel. */
+      new->fd_in = NULL;
+      new->fn_in = NULL;
+      new->fd_out = NULL;
+      new->fn_out = NULL;
+
 /* Set all attributes to their undefined values. */
       new->comment = -INT_MAX;
       new->full = -INT_MAX;
+      new->indent = -INT_MAX;
       new->report_level = -INT_MAX;
       new->skip = -INT_MAX;
       new->strict = -INT_MAX;
@@ -1724,14 +1851,14 @@ void astInitChannelVtab_(  AstChannelVtab *vtab, const char *name, int *status )
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
 
 /* Check the local error status. */
@@ -1748,7 +1875,8 @@ void astInitChannelVtab_(  AstChannelVtab *vtab, const char *name, int *status )
    will be used (by astIsAChannel) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstObjectVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -1796,6 +1924,21 @@ void astInitChannelVtab_(  AstChannelVtab *vtab, const char *name, int *status )
    vtab->SetReportLevel = SetReportLevel;
    vtab->TestReportLevel = TestReportLevel;
 
+   vtab->ClearIndent = ClearIndent;
+   vtab->GetIndent = GetIndent;
+   vtab->SetIndent = SetIndent;
+   vtab->TestIndent = TestIndent;
+
+   vtab->ClearSourceFile = ClearSourceFile;
+   vtab->GetSourceFile = GetSourceFile;
+   vtab->SetSourceFile = SetSourceFile;
+   vtab->TestSourceFile = TestSourceFile;
+
+   vtab->ClearSinkFile = ClearSinkFile;
+   vtab->GetSinkFile = GetSinkFile;
+   vtab->SetSinkFile = SetSinkFile;
+   vtab->TestSinkFile = TestSinkFile;
+
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
    object = (AstObjectVtab *) vtab;
@@ -1818,9 +1961,12 @@ void astInitChannelVtab_(  AstChannelVtab *vtab, const char *name, int *status )
    astSetDump( vtab, Dump, "Channel", "Basic I/O Channel" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 static char *InputTextItem( AstChannel *this, int *status ) {
@@ -1978,7 +2124,7 @@ static AstChannelValue *LookupValue( const char *name, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstChannelValue **head;       /* Address of head of list pointer */
    AstChannelValue *result;      /* Pointer value to return */
    AstChannelValue *value;       /* Pointer to list element */
@@ -1989,7 +2135,7 @@ static AstChannelValue *LookupValue( const char *name, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return result;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(NULL);
 
 /* Check that the "values_ok" flag is set. If not, the Values in the
@@ -2062,12 +2208,12 @@ static void OutputTextItem( AstChannel *this, const char *line, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
 
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Write out the line of text using the astPutNextText method (which
@@ -2100,7 +2246,7 @@ c++
 *  Description:
 *     This function stores a supplied arbitrary pointer in the Channel.
 *     When a source or sink function is invoked by the Channel, the
-*     invoked function can use the astChannelData macro to retrieve the 
+*     invoked function can use the astChannelData macro to retrieve the
 *     pointer. This provides a thread-safe alternative to passing file
 *     descriptors, etc, via global static variables.
 
@@ -2166,27 +2312,82 @@ static void PutNextText( AstChannel *this, const char *line, int *status ) {
 *-
 */
 
+/* Local Constants: */
+#define ERRBUF_LEN 80
+
+/* Local Variables: */
+   char *errstat;                /* Pointer for system error message */
+   char errbuf[ ERRBUF_LEN ];    /* Buffer for system error message */
+   const char *sink_file;        /* Path to output sink file */
+   const char *source_file;      /* Path to output source file */
+
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* About to call an externally supplied function which may not be
-   thread-safe, so lock a mutex first. */
-   LOCK_MUTEX2;
+/* If the SinkFile attribute of the Channel specifies an output file,
+   but no output file has yet been opened, open it now. Report an error
+   if it is the same as the source file. */
+   if( astTestSinkFile( this ) && !this->fd_out ) {
+      sink_file = astGetSinkFile( this );
 
-/* If a sink function (and its wrapper function) is defined for the
-   Channel, use the wrapper function to invoke the sink function to
-   output the text line. */
-   if ( this->sink && this->sink_wrap ) {
-      ( *this->sink_wrap )( *this->sink, line, status );
+      if( this->fd_out ) {
+         source_file = astGetSourceFile( this );
+         if( astOK && !strcmp( sink_file, source_file ) ) {
+            astError( AST__WRERR, "astWrite(%s): Failed to open output "
+                      "SinkFile '%s' - the file is currently being used "
+                      "as the input SourceFile.", status, astGetClass( this ),
+                      sink_file );
+         }
+      }
+
+      if( astOK ) {
+         this->fd_out = fopen( sink_file, "w" );
+         if( !this->fd_out ) {
+            if ( errno ) {
+#if HAVE_STRERROR_R
+               strerror_r( errno, errbuf, ERRBUF_LEN );
+               errstat = errbuf;
+#else
+               errstat = strerror( errno );
+#endif
+               astError( AST__WRERR, "astWrite(%s): Failed to open output "
+                         "SinkFile '%s' - %s.", status, astGetClass( this ),
+                         sink_file, errstat );
+            } else {
+               astError( AST__WRERR, "astWrite(%s): Failed to open output "
+                         "SinkFile '%s'.", status, astGetClass( this ),
+                         sink_file );
+            }
+         }
+      }
+   }
+
+/* Check no error occurred above. */
+   if( astOK ) {
+
+/* If an active output file descriptor is stored in the channel, write
+   the text to it, with a newline appended. */
+      if( this->fd_out ) {
+         (void) fprintf( this->fd_out, "%s\n", line );
+
+/* Otherwise, if a sink function (and its wrapper function) is defined for
+   the Channel, use the wrapper function to invoke the sink function to
+   output the text line. Since we are about to call an externally supplied
+   function which may not be thread-safe, lock a mutex first. Also store
+   the channel data pointer in a global variable so that it can be accessed
+   in the source function using macro astChannelData. */
+      } else if ( this->sink && this->sink_wrap ) {
+         astStoreChannelData( this );
+         LOCK_MUTEX2;
+         ( *this->sink_wrap )( *this->sink, line, status );
+         UNLOCK_MUTEX2;
 
 /* Otherwise, simply write the text to standard output with a newline
    appended. */
-   } else {
-      (void) printf( "%s\n", line );
+      } else {
+         (void) printf( "%s\n", line );
+      }
    }
-
-   UNLOCK_MUTEX2;
-
 }
 
 static AstObject *Read( AstChannel *this, int *status ) {
@@ -2231,18 +2432,26 @@ f     AST_READ = INTEGER
 *  Applicability:
 *     FitsChan
 c        All successful use of astRead on a FitsChan is destructive, so that
-f        All successful use of AST_READ on a FitsChan is destructive, so that 
-*        FITS header cards are consumed in the process of reading an Object, 
-*        and are removed from the FitsChan (this deletion can be prevented 
+f        All successful use of AST_READ on a FitsChan is destructive, so that
+*        FITS header cards are consumed in the process of reading an Object,
+*        and are removed from the FitsChan (this deletion can be prevented
 *        for specific cards by calling the FitsChan
 c        astRetainFits function).
 f        AST_RETAINFITS routine).
-*        An unsuccessful call of 
+*        An unsuccessful call of
 c        astRead
 f        AST_READ
 *        (for instance, caused by the FitsChan not containing the necessary
 *        FITS headers cards needed to create an Object) results in the
 *        contents of the FitsChan being left unchanged.
+*     StcsChan
+*        The AST Object returned by a successful use of
+c        astRead
+f        AST_READ
+*        on an StcsChan, will be either a Region or a KeyMap, depending
+*        on the values of the StcsArea, StcsCoords and StcsProps
+*        attributes. See the documentation for these attributes for further
+*        information.
 
 *  Notes:
 *     - A null Object pointer (AST__NULL) will be returned, without
@@ -2255,7 +2464,7 @@ f     is invoked with STATUS set to an error value, or if it should fail
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstLoaderType *loader;        /* Pointer to loader for Object */
    AstObject *new;               /* Pointer to new Object */
    char *class;                  /* Pointer to Object class name string */
@@ -2269,7 +2478,7 @@ f     is invoked with STATUS set to an error value, or if it should fail
 /* Check the global error status. */
    if ( !astOK ) return new;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Determine if we are reading a top-level (i.e. user-level) Object
@@ -2450,7 +2659,7 @@ static void ReadClassData( AstChannel *this, const char *class, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstObject *object;            /* Pointer to new Object */
    AstChannelValue *value;       /* Pointer to Value structure */
    char *name;                   /* Pointer to data item name string */
@@ -2460,7 +2669,7 @@ static void ReadClassData( AstChannel *this, const char *class, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* If the "values_ok" flag is set, this indicates that the values list
@@ -2503,7 +2712,7 @@ static void ReadClassData( AstChannel *this, const char *class, int *status ) {
 /* If we need new values, loop to read input data items until the end
    of the data for a class is reached. */
    } else {
-      done = 0;   
+      done = 0;
       while ( astOK && !done ) {
 
 /* Read the next input data item. */
@@ -2715,7 +2924,7 @@ static double ReadDouble( AstChannel *this, const char *name, double def, int *s
    AstChannelValue *value;       /* Pointer to required Value structure */
    double result;                /* Value to be returned */
    int nc;                       /* Number of characters read by astSscanf */
-   
+
 /* Initialise. */
    result = 0.0;
 
@@ -2733,11 +2942,16 @@ static double ReadDouble( AstChannel *this, const char *name, double def, int *s
          if ( !value->is_object ) {
 
 /* If so, then attempt to decode the string to give a double value,
-   checking that the entire string is read. If this fails, then the
-   wrong name has probably been given, or the input data are corrupt,
-   so report an error. */
+   checking that the entire string is read (and checking for the magic string
+   used to represent bad values). If this fails, then the wrong name has
+   probably been given, or the input data are corrupt, so report an error. */
             nc = 0;
-            if ( !( ( 1 == astSscanf( value->ptr.string, " %lf %n",
+            if ( ( 0 == astSscanf( value->ptr.string, " " BAD_STRING " %n",
+                                                      &nc ) )
+                    && ( nc >= (int) strlen( value->ptr.string ) ) ) {
+               result = AST__BAD;
+
+            } else if ( !( ( 1 == astSscanf( value->ptr.string, " %lf %n",
                                                       &result, &nc ) )
                     && ( nc >= (int) strlen( value->ptr.string ) ) ) ) {
                astError( AST__BADIN,
@@ -2829,7 +3043,7 @@ static int ReadInt( AstChannel *this, const char *name, int def, int *status ) {
    AstChannelValue *value;       /* Pointer to required Value structure */
    int nc;                       /* Number of characters read by astSscanf */
    int result;                   /* Value to be returned */
-   
+
 /* Initialise. */
    result = 0;
 
@@ -3059,7 +3273,7 @@ static char *ReadString( AstChannel *this, const char *name,
    char *result;                 /* Pointer value to return */
 
 /* Initialise. */
-   result = NULL;   
+   result = NULL;
 
 /* Check the global error status. */
    if ( !astOK ) return result;
@@ -3206,10 +3420,13 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
    AstChannel *this;             /* Pointer to the Channel structure */
    int comment;                  /* Comment attribute value */
    int full;                     /* Full attribute value */
+   int indent;                   /* Indent attribute value */
    int len;                      /* Length of setting string */
    int nc;                       /* Number of characters read by "astSscanf" */
    int report_level;             /* Skip attribute value */
    int skip;                     /* Skip attribute value */
+   int sourcefile;               /* Offset of SourceFile string */
+   int sinkfile;                 /* Offset of SinkFile string */
    int strict;                   /* Report errors instead of warnings? */
 
 /* Check the global error status. */
@@ -3241,6 +3458,13 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
                && ( nc >= len ) ) {
       astSetFull( this, full );
 
+/* Indent. */
+/* ------- */
+   } else if ( nc = 0,
+               ( 1 == astSscanf( setting, "indent= %d %n", &indent, &nc ) )
+               && ( nc >= len ) ) {
+      astSetIndent( this, indent );
+
 /* ReportLavel. */
 /* ------------ */
    } else if ( nc = 0,
@@ -3254,6 +3478,20 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
                ( 1 == astSscanf( setting, "skip= %d %n", &skip, &nc ) )
                && ( nc >= len ) ) {
       astSetSkip( this, skip );
+
+/* SinkFile. */
+/* --------- */
+   } else if ( nc = 0,
+               ( 0 == astSscanf( setting, "sinkfile=%n%*[^\n]%n", &sinkfile, &nc ) )
+               && ( nc >= len ) ) {
+      astSetSinkFile( this, setting + sinkfile );
+
+/* SourceFile. */
+/* ----------- */
+   } else if ( nc = 0,
+               ( 0 == astSscanf( setting, "sourcefile=%n%*[^\n]%n", &sourcefile, &nc ) )
+               && ( nc >= len ) ) {
+      astSetSourceFile( this, setting + sourcefile );
 
 /* Strict. */
 /* ------- */
@@ -3380,6 +3618,51 @@ static char *SourceWrap( const char *(* source)( void ), int *status ) {
    return result;
 }
 
+void astStoreChannelData_( AstChannel *this, int *status ) {
+/*
+*+
+*  Name:
+*     astStoreChannelData
+
+*  Purpose:
+*     Store the Channel's channel-data pointer in a thread-specific
+*     global variable.
+
+*  Type:
+*     Protected virtual function.
+
+*  Synopsis:
+*     #include "channel.h"
+*     astStoreChannelData( AstChannel *this )
+
+*  Class Membership:
+*     Channel method.
+
+*  Description:
+*     This function stores the Channel's channel-data pointer (if any)
+*     established by the previous call to astPutChannelData, in a
+*     thread-specific global variable from where the astChannelData macro
+*     can access it.
+
+*  Parameters:
+*     this
+*        Pointer to the Channel.
+*-
+*/
+
+/* Local Variables: */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Get a pointer to the structure holding thread-specific global data. */
+   astGET_GLOBALS(this);
+
+/* Store the pointer int he global variable. */
+   channel_data = this->data;
+}
+
 static int TestAttrib( AstObject *this_object, const char *attrib, int *status ) {
 /*
 *  Name:
@@ -3446,6 +3729,11 @@ static int TestAttrib( AstObject *this_object, const char *attrib, int *status )
    } else if ( !strcmp( attrib, "full" ) ) {
       result = astTestFull( this );
 
+/* Indent. */
+/* ------- */
+   } else if ( !strcmp( attrib, "indent" ) ) {
+      result = astTestIndent( this );
+
 /* ReportLevel. */
 /* ------------ */
    } else if ( !strcmp( attrib, "reportlevel" ) ) {
@@ -3455,6 +3743,16 @@ static int TestAttrib( AstObject *this_object, const char *attrib, int *status )
 /* ----- */
    } else if ( !strcmp( attrib, "skip" ) ) {
       result = astTestSkip( this );
+
+/* SourceFile. */
+/* ----------- */
+   } else if ( !strcmp( attrib, "sourcefile" ) ) {
+      result = astTestSourceFile( this );
+
+/* SinkFile. */
+/* ----------- */
+   } else if ( !strcmp( attrib, "sinkfile" ) ) {
+      result = astTestSinkFile( this );
 
 /* Strict. */
 /* ------- */
@@ -3677,18 +3975,27 @@ f     AST_WRITE = INTEGER
 c        invocation of astWrite (normally, this will be one).
 f        invocation of AST_WRITE (normally, this will be one).
 
+*  Applicability:
+*     FitsChan
+*        If the FitsChan uses a foreign encoding (e.g. FITS-WCS) rather
+*        than the native AST encoding, then storing values in the
+*        FitsChan for keywords NAXIS1, NAXIS2, etc., before invoking
+c        astWrite
+f        AST_WRITE
+*        can help to produce a successful write.
+
 *  Notes:
 *     - A value of zero will be returned if this function is invoked
 c     with the AST error status set, or if it should fail for any
 f     with STATUS set to an error value, or if it should fail for any
 *     reason.
-*     - Invoking this function will usually cause the sink function 
+*     - Invoking this function will usually cause the sink function
 *     associated with the channel to be called in order to transfer a
 *     textual description of the supplied object to some external data
 *     store. However, the FitsChan class behaves differently. Invoking
 *     this function on a FitsChan causes new FITS header cards to be
-*     added to an internal buffer (the sink function is not invoked). 
-*     This buffer is written out through the sink function only when the 
+*     added to an internal buffer (the sink function is not invoked).
+*     This buffer is written out through the sink function only when the
 *     FitsChan is deleted.
 *--
 */
@@ -3752,7 +4059,7 @@ static void WriteBegin( AstChannel *this, const char *class,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    int i;                        /* Loop counter for indentation characters */
    int nc;                       /* Number of output characters */
@@ -3760,7 +4067,7 @@ static void WriteBegin( AstChannel *this, const char *class,
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Start building a dynamic string with an initial space. Then add
@@ -3788,7 +4095,7 @@ static void WriteBegin( AstChannel *this, const char *class,
 
 /* Increment the indentation level and clear the count of items written
    for this Object. */
-   current_indent += INDENT_INC;
+   current_indent += astGetIndent( this );
    items_written = 0;
 }
 
@@ -3884,7 +4191,7 @@ static void WriteDouble( AstChannel *this, const char *name,
 #define BUFF_LEN 100             /* Size of local formatting buffer */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    char buff[ BUFF_LEN + 1 ];    /* Local formatting buffer */
    int i;                        /* Loop counter for indentation characters */
@@ -3893,7 +4200,7 @@ static void WriteDouble( AstChannel *this, const char *name,
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Use the "set" and "helpful" flags, along with the Channel's
@@ -3914,11 +4221,15 @@ static void WriteDouble( AstChannel *this, const char *name,
       line = astAppendString( line, &nc, " = " );
 
 /* Format the value as a string and append this. Make sure "-0" isn't
-   produced. */
-      (void) sprintf( buff, "%.*g", DBL_DIG, value );
-      if ( !strcmp( buff, "-0" ) ) {
-         buff[ 0 ] = '0';
-         buff[ 1 ] = '\0';
+   produced. Use a magic string to represent bad values. */
+      if( value != AST__BAD ) {
+         (void) sprintf( buff, "%.*g", DBL_DIG, value );
+         if ( !strcmp( buff, "-0" ) ) {
+            buff[ 0 ] = '0';
+            buff[ 1 ] = '\0';
+         }
+      } else {
+         strcpy( buff, BAD_STRING );
       }
       line = astAppendString( line, &nc, buff );
 
@@ -3974,7 +4285,7 @@ static void WriteEnd( AstChannel *this, const char *class, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    int i;                        /* Loop counter for indentation characters */
    int nc;                       /* Number of output characters */
@@ -3982,12 +4293,12 @@ static void WriteEnd( AstChannel *this, const char *class, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Decrement the indentation level so that the "End" item matches the
    corresponding "Begin" item. */
-   current_indent -= INDENT_INC;
+   current_indent -= astGetIndent( this );
 
 /* Start building a dynamic string with an initial space. Then add
    further spaces to suit the current indentation level. */
@@ -4098,7 +4409,7 @@ static void WriteInt( AstChannel *this, const char *name, int set, int helpful,
 #define BUFF_LEN 50              /* Size of local formatting buffer */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    char buff[ BUFF_LEN + 1 ];    /* Local formatting buffer */
    int i;                        /* Loop counter for indentation characters */
@@ -4107,7 +4418,7 @@ static void WriteInt( AstChannel *this, const char *name, int set, int helpful,
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Use the "set" and "helpful" flags, along with the Channel's
@@ -4228,15 +4539,16 @@ static void WriteIsA( AstChannel *this, const char *class,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    int i;                        /* Loop counter for indentation characters */
+   int indent_inc;               /* Indentation increment */
    int nc;                       /* Number of output characters */
 
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Output an "IsA" item only if there has been at least one item
@@ -4249,8 +4561,9 @@ static void WriteIsA( AstChannel *this, const char *class,
    further spaces to suit the current indentation level, but reduced
    by one to allow the "IsA" item to match the "Begin" and "End" items
    which enclose it. */
+      indent_inc = astGetIndent( this );
       line = astAppendString( NULL, &nc, " " );
-      for ( i = 0; i < ( current_indent - INDENT_INC ); i++ ) {
+      for ( i = 0; i < ( current_indent - indent_inc ); i++ ) {
          line = astAppendString( line, &nc, " " );
       }
 
@@ -4364,15 +4677,16 @@ static void WriteObject( AstChannel *this, const char *name,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    int i;                        /* Loop counter for indentation characters */
+   int indent_inc;               /* Indentation increment */
    int nc;                       /* Number of output characters */
 
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Use the "set" and "helpful" flags, along with the Channel's
@@ -4410,9 +4724,10 @@ static void WriteObject( AstChannel *this, const char *name,
    well, suitably indented (this is omitted if the value is commented
    out). */
       if ( set ) {
-         current_indent += INDENT_INC;
+         indent_inc = astGetIndent( this );
+         current_indent += indent_inc;
          (void) astWrite( this, value );
-         current_indent -= INDENT_INC;
+         current_indent -= indent_inc;
       }
    }
 }
@@ -4507,7 +4822,7 @@ static void WriteString( AstChannel *this, const char *name,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    char *line;                   /* Pointer to dynamic output string */
    int i;                        /* Loop counter for characters */
    int nc;                       /* Number of output characters */
@@ -4517,7 +4832,7 @@ static void WriteString( AstChannel *this, const char *name,
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Use the "set" and "helpful" flags, along with the Channel's
@@ -4593,6 +4908,161 @@ static void WriteString( AstChannel *this, const char *name,
 /*
 *att++
 *  Name:
+*     SourceFile
+
+*  Purpose:
+*     Input file from which to read data.
+
+*  Type:
+*     Public attribute.
+
+*  Synopsis:
+*     String.
+
+*  Description:
+*     This attribute specifies the name of a file from which the Channel
+*     should read data. If specified it is used in preference to any source
+*     function specified when the Channel was created.
+*
+*     Assigning a new value to this attribute will cause any previously
+*     opened SourceFile to be closed. The first subsequent call to
+c     astRead
+f     AST_READ
+*     will attempt to open the new file (an error will be reported if the
+*     file cannot be opened), and read data from it. All subsequent call to
+c     astRead
+f     AST_READ
+*     will read data from the new file, until the SourceFile attribute is
+*     cleared or changed.
+*
+*     Clearing the attribute causes any open SourceFile to be closed. All
+*     subsequent data reads will use the source function specified when the
+*     Channel was created, or will read from standard input if no source
+*     function was specified.
+*
+*     If no value has been assigned to SourceFile, a null string will be
+*     returned if an attempt is made to get the attribute value.
+
+*  Notes:
+*     - Any open SourceFile is closed when the Channel is deleted.
+*     - If the Channel is copied or dumped
+c     (using astCopy or astShow)
+f     (using AST_COPY or AST_SHOW)
+*     the SourceFile attribute is left in a cleared state in the output
+*     Channel (i.e. the value of the SourceFile attribute is not copied).
+
+*  Applicability:
+*     FitsChan
+*        In the case of a FitsChan, the specified SourceFile supplements
+*        the source function specified when the FitsChan was created,
+*        rather than replacing the source function. The source file
+*        should be a text file (not a FITS file) containing one header per
+*        line. When a value is assigned to SourceFile, the file is opened
+*        and read immediately, and all headers read from the file are
+*        appended to the end of any header already in the FitsChan. The file
+*        is then closed. Clearing the SourceFile attribute has no further
+*        effect, other than nullifying the string (i.e. the file name)
+*        associated with the attribute.
+
+*att--
+*/
+
+/* Clear the SourceFile value by closing any open file, freeing the
+   allocated memory and assigning a NULL pointer. */
+astMAKE_CLEAR(Channel,SourceFile,fn_in,((this->fd_in=(this->fd_in?(fclose(this->fd_in),NULL):NULL)),astFree(this->fn_in)))
+
+/* If the SourceFile value is not set, supply a default in the form of a
+   pointer to the constant string "". */
+astMAKE_GET(Channel,SourceFile,const char *,NULL,( this->fn_in ? this->fn_in : "" ))
+
+/* Set a SourceFile value by closing any open file, freeing any previously
+   allocated memory, allocating new memory, storing the string and saving
+   the pointer to the copy. */
+astMAKE_SET(Channel,SourceFile,const char *,fn_in,((this->fd_in=(this->fd_in?(fclose(this->fd_in),NULL):NULL)),astStore( this->fn_in, value, strlen( value ) + (size_t) 1 )))
+
+/* The SourceFile value is set if the pointer to it is not NULL. */
+astMAKE_TEST(Channel,SourceFile,( this->fn_in != NULL ))
+
+/*
+*att++
+*  Name:
+*     SinkFile
+
+*  Purpose:
+*     Output file to which to data should be written.
+
+*  Type:
+*     Public attribute.
+
+*  Synopsis:
+*     String.
+
+*  Description:
+*     This attribute specifies the name of a file to which the Channel
+*     should write data. If specified it is used in preference to any sink
+*     function specified when the Channel was created.
+*
+*     Assigning a new value to this attribute will cause any previously
+*     opened SinkFile to be closed. The first subsequent call to
+c     astWrite
+f     AST_WRITE
+*     will attempt to open the new file (an error will be reported if the
+*     file cannot be opened), and write data to it. All subsequent call to
+c     astWrite
+f     AST_WRITE
+*     will write data to the new file, until the SinkFile attribute is
+*     cleared or changed.
+*
+*     Clearing the attribute causes any open SinkFile to be closed. All
+*     subsequent data writes will use the sink function specified when the
+*     Channel was created, or will write to standard output if no sink
+*     function was specified.
+*
+*     If no value has been assigned to SinkFile, a null string will be
+*     returned if an attempt is made to get the attribute value.
+
+*  Notes:
+*     - A new SinkFile will over-write any existing file with the same
+*     name unless the existing file is write protected, in which case an
+*     error will be reported.
+*     - Any open SinkFile is closed when the Channel is deleted.
+*     - If the Channel is copied or dumped
+c     (using astCopy or astShow)
+f     (using AST_COPY or AST_SHOW)
+*     the SinkFile attribute is left in a cleared state in the output
+*     Channel (i.e. the value of the SinkFile attribute is not copied).
+
+*  Applicability:
+*     FitsChan
+*        When the FitsChan is destroyed, any headers in the FitsChan will be
+*        written out to the sink file, if one is specified (if not, the
+*        sink function used when the FitsChan was created is used). The
+*        sink file is a text file (not a FITS file) containing one header
+*        per line.
+
+*att--
+*/
+
+/* Clear the SinkFile value by closing any open file, freeing the allocated
+   memory and assigning a NULL pointer. */
+astMAKE_CLEAR(Channel,SinkFile,fn_out,((this->fd_out=(this->fd_out?(fclose(this->fd_out),NULL):NULL)),astFree(this->fn_out)))
+
+/* If the SinkFile value is not set, supply a default in the form of a
+   pointer to the constant string "". */
+astMAKE_GET(Channel,SinkFile,const char *,NULL,( this->fn_out ? this->fn_out : "" ))
+
+/* Set a SinkFile value by closing any open file, freeing any previously
+   allocated memory, allocating new memory, storing the string and saving
+   the pointer to the copy. */
+astMAKE_SET(Channel,SinkFile,const char *,fn_out,((this->fd_out=(this->fd_out?(fclose(this->fd_out),NULL):NULL)),astStore( this->fn_out, value, strlen( value ) + (size_t) 1 )))
+
+/* The SinkFile value is set if the pointer to it is not NULL. */
+astMAKE_TEST(Channel,SinkFile,( this->fn_out != NULL ))
+
+
+/*
+*att++
+*  Name:
 *     Comment
 
 *  Purpose:
@@ -4610,7 +5080,7 @@ static void WriteString( AstChannel *this, const char *name,
 *     Channel. If included, they will describe what each item of
 *     output represents.
 *
-*     If Comment is non-zero, then comments will be included. If 
+*     If Comment is non-zero, then comments will be included. If
 *     it is zero, comments will be omitted.
 
 *  Applicability:
@@ -4664,6 +5134,9 @@ astMAKE_TEST(Channel,Comment,( this->comment != -INT_MAX ))
 *        The default value is zero for a FitsChan.
 *     XmlChan
 *        The default value is -1 for an XmlChan.
+*     StcsChan
+*        The default value is zero for an StcsChan. Set a positive value
+*        to cause default values to be included in STC-S descriptions.
 
 *  Notes:
 *     - All positive values supplied for this attribute are converted
@@ -4677,6 +5150,80 @@ astMAKE_CLEAR(Channel,Full,full,-INT_MAX)
 astMAKE_GET(Channel,Full,int,0,( this->full != -INT_MAX ? this->full : 0 ))
 astMAKE_SET(Channel,Full,int,full,( value > 0 ? 1 : ( value < 0 ? -1 : 0 ) ))
 astMAKE_TEST(Channel,Full,( this->full != -INT_MAX ))
+
+/*
+*att++
+*  Name:
+*     Indent
+
+*  Purpose:
+*     Specifies the indentation to use in text produced by a Channel.
+
+*  Type:
+*     Public attribute.
+
+*  Synopsis:
+*     Integer (boolean).
+
+*  Description:
+*     This attribute controls the indentation within the output text produced by
+f     the AST_WRITE function.
+c     the astWrite function.
+*     It gives the increase in the indentation for each level in the object
+*     heirarchy. If it is set to zero, no indentation will be used. [3]
+
+*  Applicability:
+*     Channel
+*        The default value is zero for a basic Channel.
+*     FitsChan
+*        The FitsChan class ignores this attribute.
+*     StcsChan
+*        The default value for an StcsChan is zero, which causes the entire
+*        STC-S description is written out by a single invocation of the sink
+*        function. The text supplied to the sink function will not contain
+*        any linefeed characters, and each pair of adjacent words will be
+*        separated by a single space. The text may thus be arbitrarily large
+*        and the StcsLength attribute is ignored.
+*
+*        If Indent is non-zero, then the text is written out via multiple
+*        calls to the sink function, each call corresponding to a single
+*        "line" of text (although no line feed characters will be inserted
+*        by AST). The complete STC-S description is broken into lines so that:
+*
+*        - the line length specified by attribute StcsLength is not exceeded
+*        - each sub-phrase (time, space, etc.) starts on a new line
+*        - each argument in a compound spatial region starts on a new line
+*
+*        If this causes a sub-phrase to extend to two or more lines, then the
+*        second and subsequent lines will be indented by three spaces compared
+*        to the first line. In addition, lines within a compound spatial region
+*        will have extra indentation to highlight the nesting produced by the
+*        parentheses. Each new level of nesting will be indented by a further
+*        three spaces.
+f
+f        Note, the default value of zero is unlikely to be appropriate when
+f        an StcsChan is used within Fortran code. In this case, Indent
+f        should usually be set non-zero, and the StcsLength attribute set to
+f        the size of the CHARACTER variable used to
+f        receive the text returned by AST_GETLINE within the sink function.
+f        This avoids the possibility of long lines being truncated invisibly
+f        within AST_GETLINE.
+*     XmlChan
+*        The default value for an XmlChan is zero, which results in no
+*        linefeeds or indentation strings being added to output text.
+*        If any non-zero value is assigned to Indent, then extra linefeed and
+*        space characters will be inserted as necessary to ensure that each
+*        XML tag starts on a new line, and each tag will be indented by
+*        a further 3 spaces to show its depth in the containment hierarchy.
+*att--
+*/
+
+/* This is an integer value with a value of -INT_MAX when undefined,
+   yielding a default of 3. Sub-classes may over-ride theis default. */
+astMAKE_CLEAR(Channel,Indent,indent,-INT_MAX)
+astMAKE_GET(Channel,Indent,int,3,( this->indent != -INT_MAX ? this->indent : 3 ))
+astMAKE_SET(Channel,Indent,int,indent,value)
+astMAKE_TEST(Channel,Indent,( this->indent != -INT_MAX ))
 
 /*
 *att++
@@ -4704,7 +5251,7 @@ astMAKE_TEST(Channel,Full,( this->full != -INT_MAX ))
 *     1 - Report only conditions where significant information content has been
 *     changed. For instance, an unsupported time-scale has been replaced by a
 *     supported near-equivalent time-scale. Another example is if a basic
-*     Channel unexpected encounters data items that may have been introduced 
+*     Channel unexpected encounters data items that may have been introduced
 *     by later versions of AST.
 *
 *     2 - Report the above, and in addition report significant default
@@ -4716,13 +5263,13 @@ astMAKE_TEST(Channel,Full,( this->full != -INT_MAX ))
 *     interesting conditions that have no significant effect on the
 *     conversion. For instance, report if a time-scale of "TT"
 *     (terrestrial time) is used in place of "ET" (ephemeris time). This
-*     change has no signficiant effect because ET is the predecessor of, 
+*     change has no signficiant effect because ET is the predecessor of,
 *     and is continuous with, TT. Synonyms such as "IAT" and "TAI" are
 *     another example.
 *
 *     The default value is 1. Note, there are many other conditions that
 *     can occur whilst reading or writing an Object that completely
-*     prevent the conversion taking place. Such conditions will always 
+*     prevent the conversion taking place. Such conditions will always
 *     generate errors, irrespective of the ReportLevel and Strict attributes.
 
 *  Applicability:
@@ -4802,22 +5349,22 @@ astMAKE_TEST(Channel,Skip,( this->skip != -INT_MAX ))
 *     This is a boolean attribute which indicates whether a warning
 *     rather than an error should be issed for insignificant conversion
 *     problems. If it is set non-zero, then fatal errors are issued
-*     instead of warnings, resulting in the 
+*     instead of warnings, resulting in the
 c     AST error status being set.
 f     inherited STATUS variable being set to an error value.
 *     If Strict is zero (the default), then execution continues after minor
 *     conversion problems, and a warning message is added to the Channel
-*     structure. Such messages can be retrieved using the 
+*     structure. Such messages can be retrieved using the
 c     astWarnings
 f     AST_WARNINGS
 *     function.
 
 *  Notes:
 *     - This attribute was introduced in AST version 5.0. Prior to this
-*     version of AST unexpected data items read by a basic Channel always 
-*     caused an error to be reported. So applications linked against 
-*     versions of AST prior to version 5.0 may not be able to read Object 
-*     descriptions created by later versions of AST, if the Object's class 
+*     version of AST unexpected data items read by a basic Channel always
+*     caused an error to be reported. So applications linked against
+*     versions of AST prior to version 5.0 may not be able to read Object
+*     descriptions created by later versions of AST, if the Object's class
 *     description has changed.
 
 *  Applicability:
@@ -4872,6 +5419,13 @@ static void Delete( AstObject *obj, int *status ) {
 /* Free memory used to store warnings. */
    astAddWarning( this, 0, NULL, NULL, status );
 
+/* Close any open input or output files. */
+   if( this->fd_in ) fclose( this->fd_in );
+   if( this->fd_out ) fclose( this->fd_out );
+
+/* Free file name memory. */
+   this->fn_in = astFree( this->fn_in );
+   this->fn_out = astFree( this->fn_out );
 }
 
 /* Copy constructor. */
@@ -4906,21 +5460,21 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 */
 
 /* Local Variables: */
-   AstChannel *in;                 /* Pointer to input Channel */
    AstChannel *out;                /* Pointer to output Channel */
 
 /* Check the global error status. */
    if ( !astOK ) return;
 
 /* Obtain pointers to the input and output Channels. */
-   in = (AstChannel *) objin;
    out = (AstChannel *) objout;
 
-/* For safety, first clear any references to the input memory from
-   the output Channel. */
+/* Just clear any references to the input memory from the output Channel. */
    out->warnings = NULL;
    out->nwarn = 0;
-
+   out->fd_in = NULL;
+   out->fn_in = NULL;
+   out->fd_out = NULL;
+   out->fn_out = NULL;
 }
 
 /* Dump function. */
@@ -4954,7 +5508,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 
 /* Local Variables: */
    AstChannel *this;             /* Pointer to the Channel structure */
-   char *comment;                /* Pointer to comment string */
+   const char *comment;          /* Pointer to comment string */
    int ival;                     /* Integer value */
    int set;                      /* Attribute value set? */
 
@@ -4979,6 +5533,12 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
    which is more useful to a human reader as it corresponds to the
    actual default attribute value.  Since "set" will be zero, these
    values are for information only and will not be read back. */
+
+/* Indent */
+/* ------------ */
+   set = TestIndent( this, status );
+   ival = set ? GetIndent( this, status ) : astGetIndent( this );
+   astWriteInt( channel, "Indnt", set, 0, ival, "Indentation increment" );
 
 /* ReportLevel. */
 /* ------------ */
@@ -5028,7 +5588,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsAChannel and astCheckChannel functions using the
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(Channel,Object,check,&class_check)
+astMAKE_ISA(Channel,Object)
 astMAKE_CHECK(Channel)
 
 AstChannel *astChannel_( const char *(* source)( void ),
@@ -5125,7 +5685,7 @@ AstChannel *astChannel_( const char *(* source)( void ),
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstChannel *new;              /* Pointer to new Channel */
    va_list args;                 /* Variable argument list */
 
@@ -5204,22 +5764,26 @@ c     and "sink" functions which connect it to an external data store
 f     and "sink" routines which connect it to an external data store
 *     by reading and writing the resulting text. By default, however,
 *     a Channel will read from standard input and write to standard
-*     output.
+*     output. Alternatively, a Channel can be told to read or write from
+*     specific text files using the SinkFile and SourceFile attributes,
+*     in which case no sink or source function need be supplied.
 
 *  Parameters:
 c     source
 f     SOURCE = SUBROUTINE (Given)
 c        Pointer to a source function that takes no arguments and
-c        returns a pointer to a null-terminated string.  This function
+c        returns a pointer to a null-terminated string.  If no value
+c        has been set for the SourceFile attribute, this function
 c        will be used by the Channel to obtain lines of input text. On
 c        each invocation, it should return a pointer to the next input
 c        line read from some external data store, and a NULL pointer
 c        when there are no more lines to read.
 c
-c        If "source" is NULL, the Channel will read from standard
-c        input instead.
+c        If "source" is NULL and no value has been set for the SourceFile
+c        attribute, the Channel will read from standard input instead.
 f        A source routine, which is a subroutine which takes a single
-f        integer error status argument.  This routine will be used by
+f        integer error status argument.   If no value has been set
+f        for the SourceFile attribute, this routine will be used by
 f        the Channel to obtain lines of input text. On each
 f        invocation, it should read the next input line from some
 f        external data store, and then return the resulting text to
@@ -5229,19 +5793,22 @@ f        If an error occurs, it should set its own error status
 f        argument to an error value before returning.
 f
 f        If the null routine AST_NULL is suppied as the SOURCE value,
+f        and no value has been set for the SourceFile attribute,
 f        the Channel will read from standard input instead.
 c     sink
 f     SINK = SUBROUTINE (Given)
 c        Pointer to a sink function that takes a pointer to a
-c        null-terminated string as an argument and returns void.  This
+c        null-terminated string as an argument and returns void.
+c        If no value has been set for the SinkFile attribute, this
 c        function will be used by the Channel to deliver lines of
 c        output text. On each invocation, it should deliver the
 c        contents of the string supplied to some external data store.
 c
-c        If "sink" is NULL, the Channel will write to standard output
-c        instead.
+c        If "sink" is NULL, and no value has been set for the SinkFile
+c        attribute, the Channel will write to standard output instead.
 f        A sink routine, which is a subroutine which takes a single
-f        integer error status argument.  This routine will be used by
+f        integer error status argument.  If no value has been set
+f        for the SinkFile attribute, this routine will be used by
 f        the Channel to deliver lines of output text. On each
 f        invocation, it should obtain the next output line from the
 f        AST library by calling AST_GETLINE, and then deliver the
@@ -5250,6 +5817,7 @@ f        occurs, it should set its own error status argument to an
 f        error value before returning.
 f
 f        If the null routine AST_NULL is suppied as the SINK value,
+f        and no value has been set for the SinkFile attribute,
 f        the Channel will write to standard output instead.
 c     options
 f     OPTIONS = CHARACTER * ( * ) (Given)
@@ -5310,7 +5878,7 @@ f     pointer.
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstChannel *new;              /* Pointer to new Channel */
    va_list args;                 /* Variable argument list */
 
@@ -5494,7 +6062,7 @@ AstChannel *astChannelForId_( const char *(* source)( void ),
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstChannel *new;              /* Pointer to new Channel */
    va_list args;                 /* Variable argument list */
    int *status;                  /* Pointer to inherited status value */
@@ -5610,7 +6178,7 @@ AstChannel *astLoadChannel_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstChannel *new;              /* Pointer to the new Channel */
 
 /* Initialise. */
@@ -5667,6 +6235,13 @@ AstChannel *astLoadChannel_( void *mem, size_t size,
       new->warnings = NULL;
       new->nwarn = 0;
 
+/* Indicate no input or output files have been associated with the
+   Channel. */
+      new->fd_in = NULL;
+      new->fn_in = NULL;
+      new->fd_out = NULL;
+      new->fn_out = NULL;
+
 /* Now read each individual data item from this list and use it to
    initialise the appropriate instance variable(s) for this class. */
 
@@ -5675,11 +6250,16 @@ AstChannel *astLoadChannel_( void *mem, size_t size,
    obtained, we then use the appropriate (private) Set... member
    function to validate and set the value properly. */
 
+/* Indent. */
+/* ------- */
+      new->indent = astReadInt( channel, "indnt", -INT_MAX );
+      if ( TestIndent( new, status ) ) SetIndent( new, new->indent, status );
+
 /* ReportLevel. */
 /* ------------ */
       new->report_level = astReadInt( channel, "rplev", -INT_MAX );
       if ( TestReportLevel( new, status ) ) SetReportLevel( new,
-                                                            new->report_level, 
+                                                            new->report_level,
                                                             status );
 
 /* Skip. */
@@ -5808,11 +6388,11 @@ AstKeyMap *astWarnings_( AstChannel *this, int *status ){
    astAddWarning method recieve the fully expanded message and so do not
    need a variable argument list. */
 
-void astAddWarning_( void *this_void, int level, const char *fmt, 
+void astAddWarning_( void *this_void, int level, const char *fmt,
                      const char *method, int *status, ... ) {
    AstChannel *this;
    char buff[ 201 ];
-   va_list args;                 
+   va_list args;
    int nc;
 
    this = astCheckChannel( this_void );
@@ -5836,16 +6416,14 @@ void astAddWarning_( void *this_void, int level, const char *fmt,
 }
 
 /* Count the number of times astWrite is invoked (excluding invocations
-   made from within the astWriteObject method - see below). The count is 
-   done here so that invocations of astWrite within a sub-class will be 
-   included. Also store pointer to channel data in a thread-specific global 
-   variable. */
+   made from within the astWriteObject method - see below). The count is
+   done here so that invocations of astWrite within a sub-class will be
+   included. */
 int astWrite_( AstChannel *this, AstObject *object, int *status ) {
-   astDECLARE_GLOBALS;           
+   astDECLARE_GLOBALS
    if ( !astOK ) return 0;
    astGET_GLOBALS(this);
    nwrite_invoc++;
-   channel_data = this->data;
    astAddWarning( this, 0, NULL, NULL, status );
    return (**astMEMBER(this,Channel,Write))( this, object, status );
 }
@@ -5853,15 +6431,13 @@ int astWrite_( AstChannel *this, AstObject *object, int *status ) {
 /* We do not want to count invocations of astWrite made from within the
    astWriteObject method. So decrement the number of invocations first
    (this assumes that each invocation of astWriteObject will only invoke
-   astWrite once). Also store pointer to channel data in a thread-specific 
-   global variable. */
+   astWrite once). */
 void astWriteObject_( AstChannel *this, const char *name, int set,
                       int helpful, AstObject *value, const char *comment, int *status ) {
-   astDECLARE_GLOBALS;           
+   astDECLARE_GLOBALS
    if ( !astOK ) return;
    astGET_GLOBALS(this);
    nwrite_invoc--;
-   channel_data = this->data;
    (**astMEMBER(this,Channel,WriteObject))( this, name, set, helpful, value,
                                             comment, status );
 }

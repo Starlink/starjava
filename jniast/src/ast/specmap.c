@@ -20,16 +20,16 @@ c     (null) Mapping. Using the astSpecAdd
 f     (null) Mapping. Using the AST_SPECADD
 c     function, a series of coordinate conversion steps may then be
 f     routine, a series of coordinate conversion steps may then be
-*     added. This allows multi-step conversions between a variety of 
-*     spectral coordinate systems to be assembled out of a set of building 
+*     added. This allows multi-step conversions between a variety of
+*     spectral coordinate systems to be assembled out of a set of building
 *     blocks.
 *
 *     Conversions are available to transform between standards of rest.
 *     Such conversions need to know the source position as an RA and DEC.
 *     This information can be supplied in the form of parameters for
-*     the relevant conversions, in which case the SpecMap is 1-dimensional, 
+*     the relevant conversions, in which case the SpecMap is 1-dimensional,
 *     simply transforming the spectral axis values. This means that the
-*     same source position will always be used by the SpecMap. However, this 
+*     same source position will always be used by the SpecMap. However, this
 *     may not be appropriate for an accurate description of a 3-D spectral
 *     cube, where changes of spatial position can produce significant
 *     changes in the Doppler shift introduced when transforming between
@@ -61,22 +61,24 @@ f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 *  Copyright:
 *     Copyright (C) 1997-2006 Council for the Central Laboratory of the
 *     Research Councils
+*     Copyright (C) 2009 Science & Technology Facilities Council.
+*     All Rights Reserved.
 
 *  Licence:
 *     This program is free software; you can redistribute it and/or
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -97,6 +99,10 @@ f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 *     15-NOV-2006 (DSB):
 *        Guard against division by zero when converting freq to wave in
 *        SystemChange.
+*     18-JUN-2009 (DSB):
+*        Add OBSALT argument to TPF2HL and HLF2TP conversions.
+*        Change GEOLON/LAT to OBSLON/LAT for consistency with other
+*        classes.
 *class--
 */
 
@@ -145,7 +151,7 @@ f     - AST_SPECADD: Add a spectral coordinate conversion to an SpecMap
 #define AST__HLF2GL     34       /* Heliocentric to galactic frequency */
 
 /* Maximum number of arguments required by a conversion. */
-#define MAX_ARGS 6
+#define MAX_ARGS 7
 
 /* The alphabet (used for generating keywords for arguments). */
 #define ALPHABET "abcdefghijklmnopqrstuvwxyz"
@@ -206,9 +212,9 @@ static double (* parent_rate)( AstMapping *, double *, int, int, int * );
 
 
 #ifdef THREAD_SAFE
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
-   globals->Class_Init = 0; 
+   globals->Class_Init = 0;
 
 /* Create the function that initialises global data for this module. */
 astMAKE_INITGLOBALS(SpecMap)
@@ -234,8 +240,9 @@ static int class_init = 0;       /* Virtual function table initialised? */
 /* Structure to hold parameters and intermediate values describing a
    reference frame */
 typedef struct FrameDef {
-   double geolat;     /* Observers geodetic latitude (rads) */
-   double geolon;     /* Observers geodetic longitude (rads, +ve east) */
+   double obsalt;     /* Observers geodetic altitude (m) */
+   double obslat;     /* Observers geodetic latitude (rads) */
+   double obslon;     /* Observers geodetic longitude (rads, +ve east) */
    double epoch;      /* Julian epoch of observation */
    double refdec;     /* RA of reference point (FK5 J2000) */
    double refra;      /* DEC of reference point (FK5 J2000) */
@@ -266,6 +273,7 @@ static double LsrdVel( double, double, FrameDef *, int * );
 static double LsrkVel( double, double, FrameDef *, int * );
 static double Rate( AstMapping *, double *, int, int, int * );
 static double Refrac( double, int * );
+static double Rverot( double, double, double, double, double, int * );
 static double TopoVel( double, double, FrameDef *, int * );
 static double UserVel( double, double, FrameDef *, int * );
 static int CvtCode( const char *, int * );
@@ -295,7 +303,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "specmap.h"
-*     int Equal( AstObject *this, AstObject *that, int *status ) 
+*     int Equal( AstObject *this, AstObject *that, int *status )
 
 *  Class Membership:
 *     SpecMap member function (over-rides the astEqual protected
@@ -322,18 +330,18 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 */
 
 /* Local Variables: */
-   AstSpecMap *that;        
-   AstSpecMap *this;        
-   const char *argdesc[ MAX_ARGS ]; 
-   const char *comment;      
-   int argdec;             
-   int argra;              
-   int i, j;           
-   int nargs;              
+   AstSpecMap *that;
+   AstSpecMap *this;
+   const char *argdesc[ MAX_ARGS ];
+   const char *comment;
+   int argdec;
+   int argra;
+   int i, j;
+   int nargs;
    int nin;
    int nout;
    int result;
-   int szargs;             
+   int szargs;
 
 /* Initialise. */
    result = 0;
@@ -355,9 +363,9 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
       nout = astGetNout( this );
       if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
 
-/* If the Invert flags for the two SpecMaps differ, it may still be possible 
-   for them to be equivalent. First compare the SpecMaps if their Invert 
-   flags are the same. In this case all the attributes of the two SpecMaps 
+/* If the Invert flags for the two SpecMaps differ, it may still be possible
+   for them to be equivalent. First compare the SpecMaps if their Invert
+   flags are the same. In this case all the attributes of the two SpecMaps
    must be identical. */
          if( astGetInvert( this ) == astGetInvert( that ) ) {
             if( this->ncvt == that->ncvt ) {
@@ -366,7 +374,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
                   if( this->cvttype[ i ] != that->cvttype[ i ] ) {
                      result = 0;
                   } else {
-                     CvtString( this->cvttype[ i ], &comment, &argra, 
+                     CvtString( this->cvttype[ i ], &comment, &argra,
                                 &argdec, &nargs, &szargs, argdesc, status );
                      for( j = 0; j < nargs; j++ ) {
                         if( !astEQUAL( this->cvtargs[ i ][ j ],
@@ -379,7 +387,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
                }
             }
 
-/* If the Invert flags for the two SpecMaps differ, the attributes of the two 
+/* If the Invert flags for the two SpecMaps differ, the attributes of the two
    SpecMaps must be inversely related to each other. */
          } else {
 
@@ -389,7 +397,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
          }
       }
    }
-   
+
 /* If an error occurred, clear the result value. */
    if ( !astOK ) result = 0;
 
@@ -410,7 +418,7 @@ static int GetObjSize( AstObject *this_object, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     int GetObjSize( AstObject *this, int *status ) 
+*     int GetObjSize( AstObject *this, int *status )
 
 *  Class Membership:
 *     SpecMap member function (over-rides the astGetObjSize protected
@@ -501,13 +509,13 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *
 *        Pointer to the SpecMap.
 *     cvttype
 *        A code to identify which spectral coordinate conversion is to be
-*        appended.  See the "Coordinate Conversions" section for details 
+*        appended.  See the "Coordinate Conversions" section for details
 *        of those available.
 *     args
 *        Pointer to an array of double containing the argument values
 *        required to fully specify the required coordinate
 *        conversion. The number of arguments depends on the conversion
-*        (see the "Coordinate Conversions" section for details). This 
+*        (see the "Coordinate Conversions" section for details). This
 *        value is ignored and may be NULL if no arguments are required.
 
 *  Returned Value:
@@ -518,54 +526,54 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *
 *     in order to specify the coordinate conversion to be performed.
 *     The argument(s) required to fully specify each conversion are
 *     indicated in parentheses after each value, and described at the end
-*     of the list. Values for these should be given in the array pointed 
-*     at by "args". 
+*     of the list. Values for these should be given in the array pointed
+*     at by "args".
 *
 *        AST__FRTOVL( RF )
 *           Convert frequency to relativistic velocity.
 *        AST__VLTOFR( RF )
 *           Convert relativistic velocity to Frequency.
-*        AST__ENTOFR      
+*        AST__ENTOFR
 *           Convert energy to frequency.
-*        AST__FRTOEN      
+*        AST__FRTOEN
 *           Convert frequency to energy.
-*        AST__WNTOFR      
+*        AST__WNTOFR
 *           Convert wave number to frequency.
-*        AST__FRTOWN      
+*        AST__FRTOWN
 *           Convert frequency to wave number.
-*        AST__WVTOFR      
+*        AST__WVTOFR
 *           Convert wavelength (vacuum) to frequency.
-*        AST__FRTOWV      
+*        AST__FRTOWV
 *           Convert frequency to wavelength (vacuum).
-*        AST__AWTOFR     
+*        AST__AWTOFR
 *           Convert wavelength (air) to frequency.
-*        AST__FRTOAW     
+*        AST__FRTOAW
 *           Convert frequency to wavelength (air).
-*        AST__VRTOVL     
+*        AST__VRTOVL
 *           Convert radio to relativistic velocity.
-*        AST__VLTOVR     
+*        AST__VLTOVR
 *           Convert relativistic to radio velocity.
-*        AST__VOTOVL     
+*        AST__VOTOVL
 *           Convert optical to relativistic velocity.
-*        AST__VLTOVO     
+*        AST__VLTOVO
 *           Convert relativistic to optical velocity.
-*        AST__ZOTOVL     
+*        AST__ZOTOVL
 *           Convert redshift to relativistic velocity.
-*        AST__VLTOZO     
+*        AST__VLTOZO
 *           Convert relativistic velocity to redshift.
-*        AST__BTTOVL     
+*        AST__BTTOVL
 *           Convert beta factor to relativistic velocity.
-*        AST__VLTOBT     
+*        AST__VLTOBT
 *           Convert relativistic velocity to beta factor.
 *        AST_USF2HL( VOFF, RA, DEC )
-*           Convert frequency from a user-defined reference frame to 
+*           Convert frequency from a user-defined reference frame to
 *           heliocentric.
 *        AST__HLF2US( VOFF, RA, DEC )
-*           Convert frequency from heliocentric reference frame to 
+*           Convert frequency from heliocentric reference frame to
 *           user-defined.
-*        AST__TPF2HL( GLON, GLAT, EPOCH, RA, DEC )
+*        AST__TPF2HL( OBSLON, OBSLAT, OBSALT, EPOCH, RA, DEC )
 *           Convert from Topocentric to heliocentric frequency
-*        AST__HLF2TP( GLON, GLAT, EPOCH, RA, DEC )
+*        AST__HLF2TP( OBSLON, OBSLAT, OBSALT, EPOCH, RA, DEC )
 *           Convert from Heliocentric to topocentric frequency.
 *        AST__GEF2HL( EPOCH, RA, DEC )
 *           Convert from Geocentric to heliocentric frequency.
@@ -593,7 +601,7 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *
 *           Convert from Heliocentric to galactic frequency.
 *
 *     The units for the values processed by the above conversions are as
-*     follows: 
+*     follows:
 *
 *     - all velocities: metres per second.
 *     - frequency: Hertz.
@@ -604,8 +612,9 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *
 *     The arguments used in the above conversions are as follows:
 *
 *     - RF: Rest frequency (Hz).
-*     - GLAT: Latitude of observer (radians, geodetic).
-*     - GLON: Longitude of observer (radians, positive eastwards).
+*     - OBSALT: Geodetic altitude of observer (IAU 1975, metres).
+*     - OBSLAT: Geodetic latitude of observer (IAU 1975, radians).
+*     - OBSLON: Longitude of observer (radians, positive eastwards).
 *     - EPOCH: Epoch of observation (UT1 expressed as a Modified Julian Date).
 *     - RA: Right Ascension of source (radians, FK5 J2000).
 *     - DEC: Declination of source (radians, FK5 J2000).
@@ -613,12 +622,12 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *
 *     position given by RA and DEC, measured in the heliocentric
 *     reference frame.
 *
-*     If the SpecMap is 3-dimensional, source positions are provided by the 
-*     values supplied to inputs 2 and 3 of the SpecMap (which are simply 
+*     If the SpecMap is 3-dimensional, source positions are provided by the
+*     values supplied to inputs 2 and 3 of the SpecMap (which are simply
 *     copied to outputs 2 and 3). Note, usable values are still required
-*     for the RA and DEC arguments in order to define the "user-defined" 
-*     reference frame used by USF2HL and HLF2US. However, AST__BAD can be 
-*     supplied for RA and DEC if the user-defined reference frame is not 
+*     for the RA and DEC arguments in order to define the "user-defined"
+*     reference frame used by USF2HL and HLF2US. However, AST__BAD can be
+*     supplied for RA and DEC if the user-defined reference frame is not
 *     required.
 
 *  Notes:
@@ -646,14 +655,14 @@ static void AddSpecCvt( AstSpecMap *this, int cvttype, const double *args, int *
    required user-supplied arguments, and the size of the array in which
    to put the user-supplied arguments (the array meay leave room after
    the user-supplied arguments for various useful pre-calculated values). */
-   cvt_string = CvtString( cvttype, &comment, &argra, &argdec, &nargs, 
+   cvt_string = CvtString( cvttype, &comment, &argra, &argdec, &nargs,
                            &szargs, argdesc, status );
 
 /* If the coordinate conversion type was not valid, then report an
    error. */
    if ( astOK && !cvt_string ) {
       astError( AST__SPCIN, "AddSpecCvt(%s): Invalid spectral coordinate "
-                "conversion type (%d).", status, astGetClass( this ),     
+                "conversion type (%d).", status, astGetClass( this ),
                 (int) cvttype );
    }
 
@@ -701,18 +710,18 @@ static double BaryVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double BaryVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double BaryVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
 *     This function finds the component of the velocity of the earth-sun
-*     barycentre away from a specified source position, at a given epoch, in 
+*     barycentre away from a specified source position, at a given epoch, in
 *     the frame of rest of the centre of the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -740,15 +749,15 @@ static double BaryVel( double ra, double dec, FrameDef *def, int *status ) {
 
 /* Get the Cartesian vector towards the source, in the Cartesian FK5
    J2000 system. */
-   palSlaDcs2c( ra, dec, v );
+   palDcs2c( ra, dec, v );
 
-/* If not already done so, get the Earth/Sun velocity and position vectors in 
-   the same system. Speed is returned in units of AU/s. Store in the supplied 
+/* If not already done so, get the Earth/Sun velocity and position vectors in
+   the same system. Speed is returned in units of AU/s. Store in the supplied
    frame definition structure. */
    if( def->dvb[ 0 ] == AST__BAD ) {
-      palSlaEvp( def->epoch, 2000.0, def->dvb, dpb, dvh, dph );
-  
-/* Change the barycentric velocity of the earth into the heliocentric 
+      palEvp( def->epoch, 2000.0, def->dvb, dpb, dvh, dph );
+
+/* Change the barycentric velocity of the earth into the heliocentric
    velocity of the barycentre. */
       def->dvb[ 0 ] = dvh[ 0 ] - def->dvb[ 0 ];
       def->dvb[ 1 ] = dvh[ 1 ] - def->dvb[ 1 ];
@@ -757,7 +766,7 @@ static double BaryVel( double ra, double dec, FrameDef *def, int *status ) {
 
 /* Return the component away from the source, of the velocity of the
    barycentre relative to the sun (in m/s). */
-   return -palSlaDvdv( v, def->dvb )*149.597870E9;
+   return -palDvdv( v, def->dvb )*149.597870E9;
 
 }
 
@@ -819,104 +828,104 @@ static int CvtCode( const char *cvt_string, int *status ) {
    } else if ( astChrMatch( cvt_string, "VLTOFR" ) ) {
       result = AST__VLTOFR;
 
-   } else if ( astChrMatch( cvt_string, "VLTOFR" ) ) { 
-      result = AST__VLTOFR; 
+   } else if ( astChrMatch( cvt_string, "VLTOFR" ) ) {
+      result = AST__VLTOFR;
 
-   } else if ( astChrMatch( cvt_string, "ENTOFR" ) ) { 
-      result = AST__ENTOFR; 
+   } else if ( astChrMatch( cvt_string, "ENTOFR" ) ) {
+      result = AST__ENTOFR;
 
-   } else if ( astChrMatch( cvt_string, "FRTOEN" ) ) { 
-      result = AST__FRTOEN; 
+   } else if ( astChrMatch( cvt_string, "FRTOEN" ) ) {
+      result = AST__FRTOEN;
 
-   } else if ( astChrMatch( cvt_string, "WNTOFR" ) ) { 
-      result = AST__WNTOFR; 
+   } else if ( astChrMatch( cvt_string, "WNTOFR" ) ) {
+      result = AST__WNTOFR;
 
-   } else if ( astChrMatch( cvt_string, "FRTOWN" ) ) { 
-      result = AST__FRTOWN; 
+   } else if ( astChrMatch( cvt_string, "FRTOWN" ) ) {
+      result = AST__FRTOWN;
 
-   } else if ( astChrMatch( cvt_string, "WVTOFR" ) ) { 
-      result = AST__WVTOFR; 
+   } else if ( astChrMatch( cvt_string, "WVTOFR" ) ) {
+      result = AST__WVTOFR;
 
-   } else if ( astChrMatch( cvt_string, "FRTOWV" ) ) { 
-      result = AST__FRTOWV; 
+   } else if ( astChrMatch( cvt_string, "FRTOWV" ) ) {
+      result = AST__FRTOWV;
 
-   } else if ( astChrMatch( cvt_string, "AWTOFR" ) ) { 
-      result = AST__AWTOFR; 
+   } else if ( astChrMatch( cvt_string, "AWTOFR" ) ) {
+      result = AST__AWTOFR;
 
-   } else if ( astChrMatch( cvt_string, "FRTOAW" ) ) { 
-      result = AST__FRTOAW; 
+   } else if ( astChrMatch( cvt_string, "FRTOAW" ) ) {
+      result = AST__FRTOAW;
 
-   } else if ( astChrMatch( cvt_string, "VRTOVL" ) ) { 
-      result = AST__VRTOVL; 
+   } else if ( astChrMatch( cvt_string, "VRTOVL" ) ) {
+      result = AST__VRTOVL;
 
-   } else if ( astChrMatch( cvt_string, "VLTOVR" ) ) { 
-      result = AST__VLTOVR; 
+   } else if ( astChrMatch( cvt_string, "VLTOVR" ) ) {
+      result = AST__VLTOVR;
 
-   } else if ( astChrMatch( cvt_string, "VOTOVL" ) ) { 
-      result = AST__VOTOVL; 
+   } else if ( astChrMatch( cvt_string, "VOTOVL" ) ) {
+      result = AST__VOTOVL;
 
-   } else if ( astChrMatch( cvt_string, "VLTOVO" ) ) { 
-      result = AST__VLTOVO; 
+   } else if ( astChrMatch( cvt_string, "VLTOVO" ) ) {
+      result = AST__VLTOVO;
 
-   } else if ( astChrMatch( cvt_string, "ZOTOVL" ) ) { 
-      result = AST__ZOTOVL; 
+   } else if ( astChrMatch( cvt_string, "ZOTOVL" ) ) {
+      result = AST__ZOTOVL;
 
-   } else if ( astChrMatch( cvt_string, "VLTOZO" ) ) { 
-      result = AST__VLTOZO; 
+   } else if ( astChrMatch( cvt_string, "VLTOZO" ) ) {
+      result = AST__VLTOZO;
 
-   } else if ( astChrMatch( cvt_string, "BTTOVL" ) ) { 
-      result = AST__BTTOVL; 
+   } else if ( astChrMatch( cvt_string, "BTTOVL" ) ) {
+      result = AST__BTTOVL;
 
-   } else if ( astChrMatch( cvt_string, "VLTOBT" ) ) { 
-      result = AST__VLTOBT; 
+   } else if ( astChrMatch( cvt_string, "VLTOBT" ) ) {
+      result = AST__VLTOBT;
 
-   } else if ( astChrMatch( cvt_string, "USF2HL" ) ) { 
-      result = AST__USF2HL; 
+   } else if ( astChrMatch( cvt_string, "USF2HL" ) ) {
+      result = AST__USF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2US" ) ) { 
-      result = AST__HLF2US; 
+   } else if ( astChrMatch( cvt_string, "HLF2US" ) ) {
+      result = AST__HLF2US;
 
-   } else if ( astChrMatch( cvt_string, "TPF2HL" ) ) { 
-      result = AST__TPF2HL; 
+   } else if ( astChrMatch( cvt_string, "TPF2HL" ) ) {
+      result = AST__TPF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2TP" ) ) { 
-      result = AST__HLF2TP; 
+   } else if ( astChrMatch( cvt_string, "HLF2TP" ) ) {
+      result = AST__HLF2TP;
 
-   } else if ( astChrMatch( cvt_string, "GEF2HL" ) ) { 
-      result = AST__GEF2HL; 
+   } else if ( astChrMatch( cvt_string, "GEF2HL" ) ) {
+      result = AST__GEF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2GE" ) ) { 
-      result = AST__HLF2GE; 
+   } else if ( astChrMatch( cvt_string, "HLF2GE" ) ) {
+      result = AST__HLF2GE;
 
-   } else if ( astChrMatch( cvt_string, "BYF2HL" ) ) { 
-      result = AST__BYF2HL; 
+   } else if ( astChrMatch( cvt_string, "BYF2HL" ) ) {
+      result = AST__BYF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2BY" ) ) { 
-      result = AST__HLF2BY; 
+   } else if ( astChrMatch( cvt_string, "HLF2BY" ) ) {
+      result = AST__HLF2BY;
 
-   } else if ( astChrMatch( cvt_string, "LKF2HL" ) ) { 
-      result = AST__LKF2HL; 
+   } else if ( astChrMatch( cvt_string, "LKF2HL" ) ) {
+      result = AST__LKF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2LK" ) ) { 
-      result = AST__HLF2LK; 
+   } else if ( astChrMatch( cvt_string, "HLF2LK" ) ) {
+      result = AST__HLF2LK;
 
-   } else if ( astChrMatch( cvt_string, "LDF2HL" ) ) { 
-      result = AST__LDF2HL; 
+   } else if ( astChrMatch( cvt_string, "LDF2HL" ) ) {
+      result = AST__LDF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2LD" ) ) { 
-      result = AST__HLF2LD; 
+   } else if ( astChrMatch( cvt_string, "HLF2LD" ) ) {
+      result = AST__HLF2LD;
 
-   } else if ( astChrMatch( cvt_string, "LGF2HL" ) ) { 
-      result = AST__LGF2HL; 
+   } else if ( astChrMatch( cvt_string, "LGF2HL" ) ) {
+      result = AST__LGF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2LG" ) ) { 
-      result = AST__HLF2LG; 
+   } else if ( astChrMatch( cvt_string, "HLF2LG" ) ) {
+      result = AST__HLF2LG;
 
-   } else if ( astChrMatch( cvt_string, "GLF2HL" ) ) { 
-      result = AST__GLF2HL; 
+   } else if ( astChrMatch( cvt_string, "GLF2HL" ) ) {
+      result = AST__GLF2HL;
 
-   } else if ( astChrMatch( cvt_string, "HLF2GL" ) ) { 
-      result = AST__HLF2GL; 
+   } else if ( astChrMatch( cvt_string, "HLF2GL" ) ) {
+      result = AST__HLF2GL;
 
    }
 
@@ -940,7 +949,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 *  Synopsis:
 *     #include "specmap.h"
 *     const char *CvtString( int cvt_code, const char **comment,
-*                            int *argra, int *argdec, int *nargs, 
+*                            int *argra, int *argdec, int *nargs,
 *                            int *szargs, const char *arg[ MAX_ARGS ], int *status )
 
 *  Class Membership:
@@ -970,7 +979,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 *        conversion does not have a source DEC argument.
 *     nargs
 *        Address of an int in which to return the number of arguments
-*        required from the user in order to perform the conversion (may 
+*        required from the user in order to perform the conversion (may
 *        be zero).
 *     szargs
 *        Address of an int in which to return the number of arguments
@@ -1009,7 +1018,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 
 /* Check the global error status. */
    if ( !astOK ) return result;
-      
+
 /* Test for each valid code value in turn and assign the appropriate
    return values. */
    switch ( cvt_code ) {
@@ -1171,31 +1180,33 @@ static const char *CvtString( int cvt_code, const char **comment,
    case AST__TPF2HL:
       *comment = "Convert from Topocentric to heliocentric frequency";
       result = "TPF2HL";
-      *argra = 3;
-      *argdec = 4;
-      *nargs = 5;
-      *szargs = 6;
+      *argra = 4;
+      *argdec = 5;
+      *nargs = 6;
+      *szargs = 7;
       arg[ 0 ] = "Longitude (positive eastwards, radians)";
       arg[ 1 ] = "Latitude (geodetic, radians)";
-      arg[ 2 ] = "UT1 epoch of observaton (Modified Julian Date)";
-      arg[ 3 ] = "RA of source (FK5 J2000, radians)";
-      arg[ 4 ] = "DEC of source (FK5 J2000, radians)";
-      arg[ 5 ] = "Frequency correction factor";
+      arg[ 2 ] = "Altitude (geodetic, metres)";
+      arg[ 3 ] = "UT1 epoch of observaton (Modified Julian Date)";
+      arg[ 4 ] = "RA of source (FK5 J2000, radians)";
+      arg[ 5 ] = "DEC of source (FK5 J2000, radians)";
+      arg[ 6 ] = "Frequency correction factor";
       break;
 
    case AST__HLF2TP:
       *comment = "Convert from Heliocentric to topocentric frequency";
       result = "HLF2TP";
-      *argra = 3;
-      *argdec = 4;
-      *nargs = 5;
-      *szargs = 6;
+      *argra = 4;
+      *argdec = 5;
+      *nargs = 6;
+      *szargs = 7;
       arg[ 0 ] = "Longitude (positive eastwards, radians)";
       arg[ 1 ] = "Latitude (geodetic, radians)";
-      arg[ 2 ] = "UT1 epoch of observaton (Modified Julian Date)";
-      arg[ 3 ] = "RA of source (FK5 J2000, radians)";
-      arg[ 4 ] = "DEC of source (FK5 J2000, radians)";
-      arg[ 5 ] = "Frequency correction factor";
+      arg[ 2 ] = "Altitude (geodetic, metres)";
+      arg[ 3 ] = "UT1 epoch of observaton (Modified Julian Date)";
+      arg[ 4 ] = "RA of source (FK5 J2000, radians)";
+      arg[ 5 ] = "DEC of source (FK5 J2000, radians)";
+      arg[ 6 ] = "Frequency correction factor";
       break;
 
    case AST__GEF2HL:
@@ -1353,7 +1364,7 @@ static const char *CvtString( int cvt_code, const char **comment,
 }
 
 static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *freq,
-                        double *args, int forward, int *status ){ 
+                        double *args, int forward, int *status ){
 /*
 *  Name:
 *     FrameChange
@@ -1366,7 +1377,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 
 *  Synopsis:
 *     #include "specmap.h"
-*     int FrameChange( int cvt_code, int np, double *ra, double *dec, 
+*     int FrameChange( int cvt_code, int np, double *ra, double *dec,
 *                      double *freq, double *args, int forward, int *status )
 
 *  Class Membership:
@@ -1386,17 +1397,17 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 *        The number of frequency values to transform.
 *     ra
 *        Pointer to an array of "np" RA (J2000 FK5) values at which the
-*        "np" frequencies are observed. These are unchanged on exit. If a 
-*        NULL pointer is supplied, then all frequencies are assumed to be 
+*        "np" frequencies are observed. These are unchanged on exit. If a
+*        NULL pointer is supplied, then all frequencies are assumed to be
 *        observed at the single RA value given by "refra"
 *     dec
 *        Pointer to an array of "np" Dec (J2000 FK5) values at which the
-*        "np" frequencies are observed. These are unchanged on exit. If a 
-*        NULL pointer is supplied, then all frequencies are assumed to be 
+*        "np" frequencies are observed. These are unchanged on exit. If a
+*        NULL pointer is supplied, then all frequencies are assumed to be
 *        observed at the single Dec value given by "refdec"
 *     freq
 *        Pointer to an array of "np" frequency values, measured in the
-*        input rest-frame. These are modified on return to hold the 
+*        input rest-frame. These are modified on return to hold the
 *        corresponding values measured in the output rest-frame.
 *     args
 *        Pointer to an array holding the conversion arguments. The number
@@ -1414,11 +1425,11 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 *     will not have been changed).
 
 *  Notes:
-*     - The "args" array contains RA and DEC values which give the "source" 
-*     position (FK5 J2000). If a NULL value is supplied for the "ra" 
+*     - The "args" array contains RA and DEC values which give the "source"
+*     position (FK5 J2000). If a NULL value is supplied for the "ra"
 *     parameter, then these args define the position of all the frequency
 *     values. In addition they also define the direction of motion of
-*     the "user-defined" rest-frame (see "veluser"). Thus they should still 
+*     the "user-defined" rest-frame (see "veluser"). Thus they should still
 *     be supplied even if "ra" is NULL.
 
 */
@@ -1426,10 +1437,10 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 /* Local Variables: */
    FrameDef def;      /* Structure holding frame parameters */
    double (* cvtFunc)( double, double, FrameDef *, int * ); /* Pointer to conversion function */
-   double *fcorr;     /* Pointer to frequency correction factor */   
-   double *pdec;      /* Pointer to next Dec value */   
-   double *pf;        /* Pointer to next frequency value */   
-   double *pra;       /* Pointer to next RA value */   
+   double *fcorr;     /* Pointer to frequency correction factor */
+   double *pdec;      /* Pointer to next Dec value */
+   double *pf;        /* Pointer to next frequency value */
+   double *pra;       /* Pointer to next RA value */
    double factor;     /* Frequency correction factor */
    double s;          /* Velocity correction (m/s) */
    int i;             /* Loop index */
@@ -1444,14 +1455,15 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
    fcorr = NULL;
    sign = 0;
 
-/* Set the return value to indicate that the supplied conversion code 
+/* Set the return value to indicate that the supplied conversion code
    represents a change of rest-frame. */
    result = 1;
 
 /* Initialise a structure which stores parameters which define the
    transformation. */
-   def.geolat = AST__BAD;
-   def.geolon = AST__BAD;
+   def.obsalt = AST__BAD;
+   def.obslat = AST__BAD;
+   def.obslon = AST__BAD;
    def.epoch = AST__BAD;
    def.refdec = AST__BAD;
    def.refra = AST__BAD;
@@ -1486,23 +1498,25 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 
    case AST__TPF2HL:
       cvtFunc = TopoVel;
-      def.geolon = args[ 0 ];
-      def.geolat = args[ 1 ];
-      def.epoch = args[ 2 ];
-      def.refra = args[ 3 ];
-      def.refdec = args[ 4 ];
-      fcorr = args + 5;
+      def.obslon = args[ 0 ];
+      def.obslat = args[ 1 ];
+      def.obsalt = args[ 2 ];
+      def.epoch = args[ 3 ];
+      def.refra = args[ 4 ];
+      def.refdec = args[ 5 ];
+      fcorr = args + 6;
       sign = -1;
       break;
 
    case AST__HLF2TP:
       cvtFunc = TopoVel;
-      def.geolon = args[ 0 ];
-      def.geolat = args[ 1 ];
-      def.epoch = args[ 2 ];
-      def.refra = args[ 3 ];
-      def.refdec = args[ 4 ];
-      fcorr = args + 5;
+      def.obslon = args[ 0 ];
+      def.obslat = args[ 1 ];
+      def.obsalt = args[ 2 ];
+      def.epoch = args[ 3 ];
+      def.refra = args[ 4 ];
+      def.refdec = args[ 5 ];
+      fcorr = args + 6;
       sign = +1;
       break;
 
@@ -1609,7 +1623,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 /* If the supplied code does not represent a change of rest-frame, clear
    the returned flag. */
    default:
-      result = 0;      
+      result = 0;
    }
 
 /* Check we have a rest-frame code. */
@@ -1622,7 +1636,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
 /* If the frequency correction factor has not been found, find it now. */
          if( *fcorr == AST__BAD ) {
 
-/* Get the velocity correction. This is the component of the velocity of the 
+/* Get the velocity correction. This is the component of the velocity of the
    output system, away from the source, as measured in the input system. */
             s = sign*cvtFunc( def.refra, def.refdec, &def, status );
 
@@ -1630,7 +1644,7 @@ static int FrameChange( int cvt_code, int np, double *ra, double *dec, double *f
    velocity correction is positive, the output frequency wil be lower than
    the input frequency. */
             if( s < AST__C && s > -AST__C ) {
-               *fcorr = sqrt( ( AST__C - s )/( AST__C + s ) );    
+               *fcorr = sqrt( ( AST__C - s )/( AST__C + s ) );
             }
          }
 
@@ -1704,18 +1718,18 @@ static double GalVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double GalVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double GalVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
 *     This function finds the component of the velocity of the galactic
-*     centre away from a specified source position, in the frame of rest 
+*     centre away from a specified source position, in the frame of rest
 *     of the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -1733,18 +1747,18 @@ static double GalVel( double ra, double dec, FrameDef *def, int *status ) {
 */
 
 /* Local Variables: */
-   double s1, s2;          
+   double s1, s2;
 
 /* Check the global error status. */
    if ( !astOK ) return 0.0;
 
 /* Get the component away from the source, of the velocity of the sun
    relative to the dynamic LSR (in km/s). */
-   s1 = (double) palSlaRvlsrd( (float) ra, (float) dec );
+   s1 = (double) palRvlsrd( (float) ra, (float) dec );
 
 /* Get the component away from the source, of the velocity of the
    dynamic LSR relative to the galactic centre (in km/s). */
-   s2 = (double) palSlaRvgalc( (float) ra, (float) dec );
+   s2 = (double) palRvgalc( (float) ra, (float) dec );
 
 /* Return the total velocity of the galactic centre away from the source,
    relative to the sun, in m/s. */
@@ -1764,18 +1778,18 @@ static double GeoVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double GeoVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double GeoVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
-*     This function finds the component of the velocity of the earth away 
+*     This function finds the component of the velocity of the earth away
 *     from a specified source position, at a given epoch, in the frame of
 *     rest of the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -1803,17 +1817,17 @@ static double GeoVel( double ra, double dec, FrameDef *def, int *status ) {
 
 /* Get the Cartesian vector towards the source, in the Cartesian FK5
    J2000 system. */
-   palSlaDcs2c( ra, dec, v );
+   palDcs2c( ra, dec, v );
 
-/* If not already done so, get the Earth/Sun velocity and position vectors in 
-   the same system. Speed is returned in units of AU/s. Store in the supplied 
+/* If not already done so, get the Earth/Sun velocity and position vectors in
+   the same system. Speed is returned in units of AU/s. Store in the supplied
    frame definition structure. */
-   if( def->dvh[ 0 ] == AST__BAD ) palSlaEvp( def->epoch, 2000.0, dvb, dpb,
+   if( def->dvh[ 0 ] == AST__BAD ) palEvp( def->epoch, 2000.0, dvb, dpb,
                                            def->dvh, dph );
-  
+
 /* Return the component away from the source, of the velocity of the earths
    centre relative to the sun (in m/s). */
-   return -palSlaDvdv( v, def->dvh )*149.597870E9;
+   return -palDvdv( v, def->dvh )*149.597870E9;
 }
 
 void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name, int *status ) {
@@ -1846,14 +1860,14 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name, int *status )
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
@@ -1871,7 +1885,8 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name, int *status )
    will be used (by astIsASpecMap) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstMappingVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -1905,9 +1920,12 @@ void astInitSpecMapVtab_(  AstSpecMapVtab *vtab, const char *name, int *status )
                "Conversion between spectral coordinate systems" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 static double LgVel( double ra, double dec, FrameDef *def, int *status ) {
@@ -1923,17 +1941,17 @@ static double LgVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double LgVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double LgVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
-*     This function finds the component of the Local Group velocity away 
+*     This function finds the component of the Local Group velocity away
 *     from a specified source position, in the frame of rest of the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -1952,7 +1970,7 @@ static double LgVel( double ra, double dec, FrameDef *def, int *status ) {
 
 /* Return the component away from the source, of the velocity of the
    local group relative to the sun (in m/s). */
-   return -1000.0*palSlaRvlg( (float) ra, (float) dec );
+   return -1000.0*palRvlg( (float) ra, (float) dec );
 }
 
 static double LsrdVel( double ra, double dec, FrameDef *def, int *status ) {
@@ -1968,18 +1986,18 @@ static double LsrdVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double LsrdVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double LsrdVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
-*     This function finds the component of the velocity of the Dynamical 
-*     LSR away from a specified source position, in the frame of rest of 
+*     This function finds the component of the velocity of the Dynamical
+*     LSR away from a specified source position, in the frame of rest of
 *     the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -1999,10 +2017,10 @@ static double LsrdVel( double ra, double dec, FrameDef *def, int *status ) {
    if ( !astOK ) return 0.0;
 
 /* Get the component away from the source, of the velocity of the sun
-   relative to the dynamical LSR (in m/s). This can also be thought of as the 
+   relative to the dynamical LSR (in m/s). This can also be thought of as the
    velocity of the LSR towards the source relative to the sun. Return the
    negated value (i.e. velocity of lsrd *away from* the source. */
-   return -1000.0*palSlaRvlsrd( (float) ra, (float) dec );
+   return -1000.0*palRvlsrd( (float) ra, (float) dec );
 }
 
 static double LsrkVel( double ra, double dec, FrameDef *def, int *status ) {
@@ -2018,18 +2036,18 @@ static double LsrkVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double LsrkVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double LsrkVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
 *     This function finds the component of the velocity of the Kinematic
-*     LSR away from a specified source position, in the frame of rest of 
+*     LSR away from a specified source position, in the frame of rest of
 *     the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -2049,10 +2067,10 @@ static double LsrkVel( double ra, double dec, FrameDef *def, int *status ) {
    if ( !astOK ) return 0.0;
 
 /* Get the component away from the source, of the velocity of the sun
-   relative to the kinematic LSR (in m/s). This can also be thought of as the 
+   relative to the kinematic LSR (in m/s). This can also be thought of as the
    velocity of the LSR towards the source relative to the sun. Return the
    negated value (i.e. velocity of lsrk *away from* the source. */
-   return -1000.0*palSlaRvlsrk( (float) ra, (float) dec );
+   return -1000.0*palRvlsrk( (float) ra, (float) dec );
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
@@ -2241,12 +2259,12 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
       nstep = ( (AstSpecMap *) ( *map_list )[ where ] )->ncvt;
 
 /* Search adjacent lower-numbered Mappings until one is found which is
-   not a SpecMap, or is a SpecMap with a different number of axes. Accumulate 
+   not a SpecMap, or is a SpecMap with a different number of axes. Accumulate
    the number of transformation steps involved in any SpecMaps found. */
       imap1 = where;
       while ( ( imap1 - 1 >= 0 ) && astOK ) {
          class = astGetClass( ( *map_list )[ imap1 - 1 ] );
-         if ( !astOK || strcmp( class, "SpecMap" ) || 
+         if ( !astOK || strcmp( class, "SpecMap" ) ||
               astGetNin( ( *map_list )[ imap1 - 1 ] ) != nin ) break;
          nstep += ( (AstSpecMap *) ( *map_list )[ imap1 - 1 ] )->ncvt;
          imap1--;
@@ -2293,7 +2311,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Store the transformation type code and use "CvtString" to determine
    the associated number of arguments. Then store these arguments. */
             cvttype[ nstep ] = specmap->cvttype[ icvt ];
-            (void) CvtString( cvttype[ nstep ], &comment, &argra, &argdec, 
+            (void) CvtString( cvttype[ nstep ], &comment, &argra, &argdec,
                               &narg, szarg + nstep, argdesc, status );
             if ( !astOK ) break;
             for ( iarg = 0; iarg < szarg[ nstep ]; iarg++ ) {
@@ -2359,25 +2377,25 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 
 /* Exchange transformation codes for their inverses. */
                SWAP_CODES( AST__FRTOVL, AST__VLTOFR )
-               SWAP_CODES( AST__ENTOFR, AST__FRTOEN ) 
-               SWAP_CODES( AST__WNTOFR, AST__FRTOWN ) 
-               SWAP_CODES( AST__WVTOFR, AST__FRTOWV ) 
-               SWAP_CODES( AST__AWTOFR, AST__FRTOAW ) 
-               SWAP_CODES( AST__VRTOVL, AST__VLTOVR ) 
-               SWAP_CODES( AST__VOTOVL, AST__VLTOVO ) 
-               SWAP_CODES( AST__ZOTOVL, AST__VLTOZO ) 
-               SWAP_CODES( AST__BTTOVL, AST__VLTOBT ) 
+               SWAP_CODES( AST__ENTOFR, AST__FRTOEN )
+               SWAP_CODES( AST__WNTOFR, AST__FRTOWN )
+               SWAP_CODES( AST__WVTOFR, AST__FRTOWV )
+               SWAP_CODES( AST__AWTOFR, AST__FRTOAW )
+               SWAP_CODES( AST__VRTOVL, AST__VLTOVR )
+               SWAP_CODES( AST__VOTOVL, AST__VLTOVO )
+               SWAP_CODES( AST__ZOTOVL, AST__VLTOZO )
+               SWAP_CODES( AST__BTTOVL, AST__VLTOBT )
 
 /* Exchange transformation codes for their inverses, and reciprocate the
    frequency correction factor. */
-               SWAP_CODES2( AST__TPF2HL, AST__HLF2TP, 5 ) 
-               SWAP_CODES2( AST__USF2HL, AST__HLF2US, 3 ) 
-               SWAP_CODES2( AST__GEF2HL, AST__HLF2GE, 3 ) 
-               SWAP_CODES2( AST__BYF2HL, AST__HLF2BY, 3 ) 
-               SWAP_CODES2( AST__LKF2HL, AST__HLF2LK, 2 ) 
-               SWAP_CODES2( AST__LDF2HL, AST__HLF2LD, 2 ) 
-               SWAP_CODES2( AST__LGF2HL, AST__HLF2LG, 2 ) 
-               SWAP_CODES2( AST__GLF2HL, AST__HLF2GL, 2 ) 
+               SWAP_CODES2( AST__TPF2HL, AST__HLF2TP, 6 )
+               SWAP_CODES2( AST__USF2HL, AST__HLF2US, 3 )
+               SWAP_CODES2( AST__GEF2HL, AST__HLF2GE, 3 )
+               SWAP_CODES2( AST__BYF2HL, AST__HLF2BY, 3 )
+               SWAP_CODES2( AST__LKF2HL, AST__HLF2LK, 2 )
+               SWAP_CODES2( AST__LDF2HL, AST__HLF2LD, 2 )
+               SWAP_CODES2( AST__LGF2HL, AST__HLF2LG, 2 )
+               SWAP_CODES2( AST__GLF2HL, AST__HLF2GL, 2 )
 
             }
 
@@ -2403,8 +2421,8 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Initially assume we will retain the current step. */
             keep = 1;
 
-/* The only simplifications for the conversions currently in this class act 
-   to combine adjacent transformation steps, so only apply them while there 
+/* The only simplifications for the conversions currently in this class act
+   to combine adjacent transformation steps, so only apply them while there
    are at least 2 steps left. */
             if ( istep < ( nstep - 1 ) ) {
 
@@ -2420,13 +2438,13 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                ( ( PAIR_CVT( code1, code2 ) ) || \
                  ( PAIR_CVT( code2, code1 ) ) )
 
-/* If a correction is followed by its inverse, and the user-supplied argument 
+/* If a correction is followed by its inverse, and the user-supplied argument
    values are unchanged (we do not need to test values stored in the
-   argument array which were not supplied by the user), we can eliminate them. 
+   argument array which were not supplied by the user), we can eliminate them.
    First check for conversions which have no user-supplied arguments. */
                if ( PAIR_CVT2( AST__ENTOFR, AST__FRTOEN ) ||
                     PAIR_CVT2( AST__WNTOFR, AST__FRTOWN ) ||
-                    PAIR_CVT2( AST__WVTOFR, AST__FRTOWV ) ||     
+                    PAIR_CVT2( AST__WVTOFR, AST__FRTOWV ) ||
                     PAIR_CVT2( AST__AWTOFR, AST__FRTOAW ) ||
                     PAIR_CVT2( AST__VRTOVL, AST__VLTOVR ) ||
                     PAIR_CVT2( AST__VOTOVL, AST__VLTOVO ) ||
@@ -2437,49 +2455,51 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 
 /* Now check for conversions which have a single user-supplied argument. */
                } else if( PAIR_CVT2( AST__FRTOVL, AST__VLTOFR ) &&
-                          EQUAL( cvtargs[ istep ][ 0 ], 
+                          EQUAL( cvtargs[ istep ][ 0 ],
                                  cvtargs[ istep + 1 ][ 0 ] ) ) {
                   istep++;
                   keep = 0;
 
 /* Now check for conversions which have two user-supplied arguments. */
-               } else if( ( PAIR_CVT2( AST__LKF2HL, AST__HLF2LK ) || 
-                            PAIR_CVT2( AST__LDF2HL, AST__HLF2LD ) || 
-                            PAIR_CVT2( AST__LGF2HL, AST__HLF2LG ) || 
+               } else if( ( PAIR_CVT2( AST__LKF2HL, AST__HLF2LK ) ||
+                            PAIR_CVT2( AST__LDF2HL, AST__HLF2LD ) ||
+                            PAIR_CVT2( AST__LGF2HL, AST__HLF2LG ) ||
                             PAIR_CVT2( AST__GLF2HL, AST__HLF2GL ) ) &&
-                          EQUAL( cvtargs[ istep ][ 0 ], 
+                          EQUAL( cvtargs[ istep ][ 0 ],
                                  cvtargs[ istep + 1 ][ 0 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 1 ], 
+                          EQUAL( cvtargs[ istep ][ 1 ],
                                  cvtargs[ istep + 1 ][ 1 ] ) ) {
                   istep++;
                   keep = 0;
 
 /* Now check for conversions which have three user-supplied arguments. */
-               } else if( ( PAIR_CVT2( AST__GEF2HL, AST__HLF2GE ) || 
+               } else if( ( PAIR_CVT2( AST__GEF2HL, AST__HLF2GE ) ||
                             PAIR_CVT2( AST__BYF2HL, AST__HLF2BY ) ||
                             PAIR_CVT2( AST__USF2HL, AST__HLF2US ) ) &&
-                          EQUAL( cvtargs[ istep ][ 0 ], 
+                          EQUAL( cvtargs[ istep ][ 0 ],
                                  cvtargs[ istep + 1 ][ 0 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 1 ], 
+                          EQUAL( cvtargs[ istep ][ 1 ],
                                  cvtargs[ istep + 1 ][ 1 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 2 ], 
+                          EQUAL( cvtargs[ istep ][ 2 ],
                                  cvtargs[ istep + 1 ][ 2 ] ) ) {
                   istep++;
                   keep = 0;
 
-/* Now check for conversions which have five user-supplied arguments (currently
-   no conversions have four user-supplied arguments). */
-               } else if( ( PAIR_CVT2( AST__TPF2HL, AST__HLF2TP ) ) && 
-                          EQUAL( cvtargs[ istep ][ 0 ], 
+/* Now check for conversions which have six user-supplied arguments (currently
+   no conversions have four or five user-supplied arguments). */
+               } else if( ( PAIR_CVT2( AST__TPF2HL, AST__HLF2TP ) ) &&
+                          EQUAL( cvtargs[ istep ][ 0 ],
                                  cvtargs[ istep + 1 ][ 0 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 1 ], 
+                          EQUAL( cvtargs[ istep ][ 1 ],
                                  cvtargs[ istep + 1 ][ 1 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 2 ], 
+                          EQUAL( cvtargs[ istep ][ 2 ],
                                  cvtargs[ istep + 1 ][ 2 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 3 ], 
+                          EQUAL( cvtargs[ istep ][ 3 ],
                                  cvtargs[ istep + 1 ][ 3 ] ) &&
-                          EQUAL( cvtargs[ istep ][ 4 ], 
-                                 cvtargs[ istep + 1 ][ 4 ] ) ) {
+                          EQUAL( cvtargs[ istep ][ 4 ],
+                                 cvtargs[ istep + 1 ][ 4 ] ) &&
+                          EQUAL( cvtargs[ istep ][ 5 ],
+                                 cvtargs[ istep + 1 ][ 5 ] ) ) {
                   istep++;
                   keep = 0;
 
@@ -2621,37 +2641,37 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 *     from the Mapping class ).
 
 *  Description:
-*     This function returns the rate of change of a specified output of 
-*     the supplied Mapping with respect to a specified input, at a 
-*     specified input position. 
+*     This function returns the rate of change of a specified output of
+*     the supplied Mapping with respect to a specified input, at a
+*     specified input position.
 
 *  Parameters:
 *     this
 *        Pointer to the Mapping to be applied.
 *     at
-*        The address of an array holding the axis values at the position 
-*        at which the rate of change is to be evaluated. The number of 
-*        elements in this array should equal the number of inputs to the 
+*        The address of an array holding the axis values at the position
+*        at which the rate of change is to be evaluated. The number of
+*        elements in this array should equal the number of inputs to the
 *        Mapping.
 *     ax1
-*        The index of the Mapping output for which the rate of change is to 
+*        The index of the Mapping output for which the rate of change is to
 *        be found (output numbering starts at 0 for the first output).
 *     ax2
 *        The index of the Mapping input which is to be varied in order to
-*        find the rate of change (input numbering starts at 0 for the first 
+*        find the rate of change (input numbering starts at 0 for the first
 *        input).
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     The rate of change of Mapping output "ax1" with respect to input 
-*     "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+*     The rate of change of Mapping output "ax1" with respect to input
+*     "ax2", evaluated at "at", or AST__BAD if the value cannot be
 *     calculated.
 
 *  Implementation Deficiencies:
 *     The initial version of this implementation only deals with
 *     frequency->wavelength conversions. This is because the slowness of
-*     the numerical differentiation implemented by the astRate method in 
+*     the numerical differentiation implemented by the astRate method in
 *     the parent Mapping class is cripples conversion between SpecFluxFrames.
 *     Such conversions only rely on rate of change of wavelength with
 *     respect to frequency. This implementation should be extended when
@@ -2679,7 +2699,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 /* If this is a 3D SpecMap or if it has more than one component, or if
    that conversion is not between frequency and wavelength, use the
    astRate method inherited form the parent Mapping class. */
-   if( astGetNin( map ) != 1 || map->ncvt != 1 || 
+   if( astGetNin( map ) != 1 || map->ncvt != 1 ||
        ( cvt != AST__WVTOFR && cvt != AST__FRTOWV ) ) {
       result = (*parent_rate)( this, at, ax1, ax2, status );
 
@@ -2688,7 +2708,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
    respect to frequency. */
    } else {
       result = ( *at != AST__BAD ) ? -AST__C/((*at)*(*at)) : AST__BAD;
-   } 
+   }
 
 /* Return the result. */
    return result;
@@ -2741,9 +2761,75 @@ static double Refrac( double wavelen, int *status ){
 /* Find the squared wave number in units of "(per um)**2". */
    w2 = 1.0E-12/( wavelen * wavelen );
 
-/* Apply the rest of the algorithm as described in the FITS WCS 
+/* Apply the rest of the algorithm as described in the FITS WCS
    paper III. */
    return 1.0 + 1.0E-6*( 287.6155 + 1.62887*w2 + 0.01360*w2*w2 );
+}
+
+static double Rverot( double phi, double h, double ra, double da,
+                      double st, int *status ) {
+/*
+*  Name:
+*     Rverot
+
+*  Purpose:
+*     Find the velocity component in a given direction due to Earth rotation.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "specmap.h"
+*     double Rverot( double phi, double h, double ra, double da,
+*                    double st, int *status )
+
+*  Class Membership:
+*     SpecMap method.
+
+*  Description:
+*     This function is like slaRverot, except that it takes account of the
+*     observers height (h), and does all calculations in double precision.
+
+*  Parameters:
+*     phi
+*        The geodetic latitude of the observer (radians, IAU 1976).
+*     h
+*        The geodetic height above the reference spheroid of the observer
+*        (metres, IAU 1976).
+*     ra
+*        The geocentric apparent RA (rads) of the source.
+*     da
+*        The geocentric apparent Dec (rads) of the source.
+*     st
+*        The local apparent sidereal time (radians).
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returns:
+*     The component of the Earth rotation in direction [RA,DA] (km/s).
+*     The result is positive when the observer is receding from the
+*     given point on the sky. Zero is returned if an error has already
+*     occurred.
+
+*/
+
+/* Local Variables: */
+   double pv[ 6 ];           /* Observer position and velocity */
+   double v[ 3 ];            /* Source direction vector */
+
+/* Check the global error status. */
+   if ( !astOK ) return 0.0;
+
+/* Get the Cartesian coordinates of the unit vector pointing towards the
+   given sky position. */
+   palDcs2c( ra, da, v );
+
+/* Get velocity and position of the observer. */
+   palPvobs( phi, h, st, pv );
+
+/* Return the component of the observer's velocity away from the sky
+   position, and convert from AU/s to km/s. */
+   return -palDvdv( v, pv + 3 )*149.597870E6;
 }
 
 static void SpecAdd( AstSpecMap *this, const char *cvt, const double args[], int *status ) {
@@ -2822,11 +2908,11 @@ f        The global status.
 *  Notes:
 *     - When assembling a multi-stage conversion, it can sometimes be
 *     difficult to determine the most economical conversion path. For
-*     example, when converting between reference frames, converting first 
-*     to the heliographic reference frame as an intermediate stage is often 
+*     example, when converting between reference frames, converting first
+*     to the heliographic reference frame as an intermediate stage is often
 *     sensible in formulating the problem, but may introduce unnecessary
-*     extra conversion steps. A solution to this is to include all the steps 
-*     which are (logically) necessary, but then to use 
+*     extra conversion steps. A solution to this is to include all the steps
+*     which are (logically) necessary, but then to use
 c     astSimplify to simplify the resulting
 f     AST_SIMPLIFY to simplify the resulting
 *     SpecMap. The simplification process will eliminate any steps
@@ -2844,7 +2930,7 @@ f     via the CVT argument to indicate which spectral coordinate
 *     the conversion, they are listed in parentheses. Values for
 c     these arguments should be given, via the "args" array, in the
 f     these arguments should be given, via the ARGS array, in the
-*     order indicated. Units and argument names are described at the end of 
+*     order indicated. Units and argument names are described at the end of
 *     the list of conversions.
 
 *     - "FRTOVL" (RF): Convert frequency to relativistic velocity.
@@ -2865,44 +2951,44 @@ f     these arguments should be given, via the ARGS array, in the
 *     - "VLTOZO": Convert relativistic velocity to redshift.
 *     - "BTTOVL": Convert beta factor to relativistic velocity.
 *     - "VLTOBT": Convert relativistic velocity to beta factor.
-*     - "USF2HL" (VOFF,RA,DEC): Convert frequency from a user-defined 
+*     - "USF2HL" (VOFF,RA,DEC): Convert frequency from a user-defined
 *     reference frame to heliocentric.
-*     - "HLF2US" (VOFF,RA,DEC): Convert frequency from heliocentric 
+*     - "HLF2US" (VOFF,RA,DEC): Convert frequency from heliocentric
 *     reference frame to user-defined.
-*     - "TPF2HL" (GLON,GLAT,EPOCH,RA,DEC): Convert frequency from 
+*     - "TPF2HL" (OBSLON,OBSLAT,OBSALT,EPOCH,RA,DEC): Convert frequency from
 *     topocentric reference frame to heliocentric.
-*     - "HLF2TP" (GLON,GLAT,EPOCH,RA,DEC): Convert frequency from 
+*     - "HLF2TP" (OBSLON,OBSLAT,OBSALT,EPOCH,RA,DEC): Convert frequency from
 *     heliocentric reference frame to topocentric.
-*     - "GEF2HL" (EPOCH,RA,DEC): Convert frequency from geocentric 
+*     - "GEF2HL" (EPOCH,RA,DEC): Convert frequency from geocentric
 *     reference frame to heliocentric.
-*     - "HLF2GE" (EPOCH,RA,DEC): Convert frequency from 
+*     - "HLF2GE" (EPOCH,RA,DEC): Convert frequency from
 *     heliocentric reference frame to geocentric.
-*     - "BYF2HL" (EPOCH,RA,DEC): Convert frequency from 
+*     - "BYF2HL" (EPOCH,RA,DEC): Convert frequency from
 *     barycentric reference frame to heliocentric.
-*     - "HLF2BY" (EPOCH,RA,DEC): Convert frequency from 
+*     - "HLF2BY" (EPOCH,RA,DEC): Convert frequency from
 *     heliocentric reference frame to barycentric.
-*     - "LKF2HL" (RA,DEC): Convert frequency from kinematic LSR 
+*     - "LKF2HL" (RA,DEC): Convert frequency from kinematic LSR
 *     reference frame to heliocentric.
-*     - "HLF2LK" (RA,DEC): Convert frequency from heliocentric 
+*     - "HLF2LK" (RA,DEC): Convert frequency from heliocentric
 *     reference frame to kinematic LSR.
 *     - "LDF2HL" (RA,DEC): Convert frequency from dynamical LSR
 *     reference frame to heliocentric.
-*     - "HLF2LD" (RA,DEC): Convert frequency from heliocentric 
+*     - "HLF2LD" (RA,DEC): Convert frequency from heliocentric
 *     reference frame to dynamical LSR.
-*     - "LGF2HL" (RA,DEC): Convert frequency from local group 
+*     - "LGF2HL" (RA,DEC): Convert frequency from local group
 *     reference frame to heliocentric.
-*     - "HLF2LG" (RA,DEC): Convert frequency from heliocentric 
+*     - "HLF2LG" (RA,DEC): Convert frequency from heliocentric
 *     reference frame to local group.
-*     - "GLF2HL" (RA,DEC): Convert frequency from galactic 
+*     - "GLF2HL" (RA,DEC): Convert frequency from galactic
 *     reference frame to heliocentric.
-*     - "HLF2GL" (RA,DEC): Convert frequency from heliocentric 
+*     - "HLF2GL" (RA,DEC): Convert frequency from heliocentric
 *     reference frame to galactic.
 
 *     The units for the values processed by the above conversions are as
-*     follows: 
+*     follows:
 *
-*     - all velocities: metres per second (positive if the source receeds from 
-*       the observer). 
+*     - all velocities: metres per second (positive if the source receeds from
+*       the observer).
 *     - frequency: Hertz.
 *     - all wavelengths: metres.
 *     - energy: Joules.
@@ -2911,8 +2997,9 @@ f     these arguments should be given, via the ARGS array, in the
 *     The arguments used in the above conversions are as follows:
 *
 *     - RF: Rest frequency (Hz).
-*     - GLAT: Geodetic latitude of observer (radians).
-*     - GLON: Geodetic longitude of observer (radians - positive eastwards).
+*     - OBSALT: Geodetic altitude of observer (IAU 1975, metres).
+*     - OBSLAT: Geodetic latitude of observer (IAU 1975, radians).
+*     - OBSLON: Longitude of observer (radians - positive eastwards).
 *     - EPOCH: Epoch of observation (UT1 expressed as a Modified Julian Date).
 *     - RA: Right Ascension of source (radians, FK5 J2000).
 *     - DEC: Declination of source (radians, FK5 J2000).
@@ -2920,12 +3007,12 @@ f     these arguments should be given, via the ARGS array, in the
 *     position given by RA and DEC, measured in the heliocentric
 *     reference frame.
 *
-*     If the SpecMap is 3-dimensional, source positions are provided by the 
-*     values supplied to inputs 2 and 3 of the SpecMap (which are simply 
+*     If the SpecMap is 3-dimensional, source positions are provided by the
+*     values supplied to inputs 2 and 3 of the SpecMap (which are simply
 *     copied to outputs 2 and 3). Note, usable values are still required
-*     for the RA and DEC arguments in order to define the "user-defined" 
-*     reference frame used by USF2HL and HLF2US. However, AST__BAD can be 
-*     supplied for RA and DEC if the user-defined reference frame is not 
+*     for the RA and DEC arguments in order to define the "user-defined"
+*     reference frame used by USF2HL and HLF2US. However, AST__BAD can be
+*     supplied for RA and DEC if the user-defined reference frame is not
 *     required.
 *
 *--
@@ -2952,8 +3039,8 @@ f     these arguments should be given, via the ARGS array, in the
    AddSpecCvt( this, cvttype, args, status );
 }
 
-static int SystemChange( int cvt_code, int np, double *values, double *args, 
-                         int forward, int *status ){ 
+static int SystemChange( int cvt_code, int np, double *values, double *args,
+                         int forward, int *status ){
 /*
 *  Name:
 *     SystemChange
@@ -2966,7 +3053,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 
 *  Synopsis:
 *     #include "specmap.h"
-*     int SystemChange( int cvt_code, int np, double *values, double *args, 
+*     int SystemChange( int cvt_code, int np, double *values, double *args,
 *                       int forward, int *status )
 
 *  Class Membership:
@@ -2974,7 +3061,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 
 *  Description:
 *     This function modifies the supplied values in order to change the
-*     spectral co-ordinate system (frequency, wavelength, etc) to which 
+*     spectral co-ordinate system (frequency, wavelength, etc) to which
 *     they refer.
 
 *  Parameters:
@@ -2985,7 +3072,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 *     np
 *        The number of frequency values to transform.
 *     values
-*        Pointer to an array of "np" spectral values. These are modified on 
+*        Pointer to an array of "np" spectral values. These are modified on
 *        return to hold the corresponding values measured in the output
 *        system.
 *     args
@@ -3000,15 +3087,15 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 
 *  Returned Value:
 *     Non-zero if the supplied conversion code corresponds to a change of
-*     system. Zero otherwise  (in which case the upplied values will not 
+*     system. Zero otherwise  (in which case the upplied values will not
 *     have been changed).
 
 */
 
 /* Local Variables: */
-   double *pv;        /* Pointer to next value */   
+   double *pv;        /* Pointer to next value */
    double d;          /* Intermediate value */
-   double f2;         /* Squared frequency */   
+   double f2;         /* Squared frequency */
    double temp;       /* Intermediate value */
    int i;             /* Loop index */
    int iter;          /* Iteration count */
@@ -3017,7 +3104,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 /* Check inherited status. */
    if( !astOK ) return 0;
 
-/* Set the return value to indicate that the supplied conversion code 
+/* Set the return value to indicate that the supplied conversion code
    represents a change of system. */
    result = 1;
 
@@ -3398,7 +3485,7 @@ static int SystemChange( int cvt_code, int np, double *values, double *args,
 /* If the supplied code does not represent a change of system, clear
    the returned flag. */
    default:
-      result = 0;      
+      result = 0;
    }
 
 /* Return the result. */
@@ -3418,18 +3505,18 @@ static double TopoVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double TopoVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double TopoVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
-*     This function finds the component of the velocity of the observer away 
+*     This function finds the component of the velocity of the observer away
 *     from a specified source position, at a given epoch, in the frame of
 *     rest of the Sun.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -3456,26 +3543,26 @@ static double TopoVel( double ra, double dec, FrameDef *def, int *status ) {
    if ( !astOK ) return 0.0;
 
 /* If not already done so, get the parameters defining the transformation
-   of mean ra and dec to apparent ra and dec, and store in the supplied frame 
+   of mean ra and dec to apparent ra and dec, and store in the supplied frame
    definition structure. */
-   if( def->amprms[ 0 ] == AST__BAD ) palSlaMappa( 2000.0, def->epoch, 
+   if( def->amprms[ 0 ] == AST__BAD ) palMappa( 2000.0, def->epoch,
                                                 def->amprms );
 
 /* Convert the source position from mean ra and dec to apparent ra and dec. */
-   palSlaMapqkz( ra, dec, def->amprms, &raa, &deca );
+   palMapqkz( ra, dec, def->amprms, &raa, &deca );
 
 /* If not already done so, get the local apparent siderial time (in radians)
    and store in the supplied frame definition structure. */
-   if( def->last == AST__BAD ) def->last = palSlaGmst( def->epoch ) + 
-                                           palSlaEqeqx( def->epoch ) +
-                                           def->geolon;
+   if( def->last == AST__BAD ) def->last = palGmst( def->epoch ) +
+                                           palEqeqx( def->epoch ) +
+                                           def->obslon;
 
-/* Get the component away from the source, of the velocity of the observer 
+/* Get the component away from the source, of the velocity of the observer
    relative to the centre of the earth (in m/s). */
-   vobs = 1000.0*palSlaRverot( (float) def->geolat, (float) raa, (float) deca, 
-                            (float) def->last );
+   vobs = 1000.0*Rverot( def->obslat, def->obsalt, raa, deca, def->last,
+                         status );
 
-/* Get the component away from the source, of the velocity of the earth's 
+/* Get the component away from the source, of the velocity of the earth's
    centre relative to the Sun, in m/s. */
    vearth = GeoVel( ra, dec, def, status );
 
@@ -3576,7 +3663,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    values. */
    ncoord_in = astGetNcoord( in );
    npoint = astGetNpoint( in );
-   ptr_in = astGetPoints( in );      
+   ptr_in = astGetPoints( in );
    ptr_out = astGetPoints( result );
 
 /* Determine whether to apply the forward or inverse transformation, according
@@ -3585,13 +3672,13 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 
 /* Transform the coordinate values. */
 /* -------------------------------- */
-/* Use "spec" as a synonym for the array of spectral axis values stored in 
+/* Use "spec" as a synonym for the array of spectral axis values stored in
    the output PointSet. */
    if ( astOK ) {
       spec = ptr_out[ 0 ];
 
-/* If this is a 3D SpecMap use "alpha" as a synonym for the array of RA axis 
-   values and "beta" as a synonym for the array of DEC axis values stored 
+/* If this is a 3D SpecMap use "alpha" as a synonym for the array of RA axis
+   values and "beta" as a synonym for the array of DEC axis values stored
    in the output PointSet. */
       map3d = ( ncoord_in == 3 );
       if( map3d ) {
@@ -3651,7 +3738,7 @@ static double UserVel( double ra, double dec, FrameDef *def, int *status ) {
 *     UserVel
 
 *  Purpose:
-*     Find the component of the velocity of the user-defined rest-frame 
+*     Find the component of the velocity of the user-defined rest-frame
 *     away from the source.
 
 *  Type:
@@ -3659,20 +3746,20 @@ static double UserVel( double ra, double dec, FrameDef *def, int *status ) {
 
 *  Synopsis:
 *     #include "specmap.h"
-*     double UserVel( double ra, double dec, FrameDef *def, int *status ) 
+*     double UserVel( double ra, double dec, FrameDef *def, int *status )
 
 *  Class Membership:
 *     SpecMap method.
 
 *  Description:
-*     This function finds the component of the velocity of the user-defined 
-*     rest-frame away from a specified position. The magnitude and direction 
-*     of the rest-frames velocity are defined within the supplied "def" 
-*     structure. The user-defined rest-frame is typically used to represent 
+*     This function finds the component of the velocity of the user-defined
+*     rest-frame away from a specified position. The magnitude and direction
+*     of the rest-frames velocity are defined within the supplied "def"
+*     structure. The user-defined rest-frame is typically used to represent
 *     the velocity of the source within the heliocentric rest-frame.
 
 *  Parameters:
-*     ra 
+*     ra
 *        The RA (rads, FK5 J2000) of the source.
 *     dec
 *        The Dec (rads, FK5 J2000) of the source.
@@ -3692,7 +3779,7 @@ static double UserVel( double ra, double dec, FrameDef *def, int *status ) {
 *     def->refdec (an FK5 J2000 position). The maginitude of the velocity
 *     is given by def->veluser, in m/s, positive when the source is moving
 *     away from the observer towards def->refra, def->refdec, and given
-*     with respect to the heliocentric rest-frame. 
+*     with respect to the heliocentric rest-frame.
 
 */
 
@@ -3702,7 +3789,7 @@ static double UserVel( double ra, double dec, FrameDef *def, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return 0.0;
 
-/* If not already done so, express the user velocity in the form of a 
+/* If not already done so, express the user velocity in the form of a
    J2000.0 x,y,z vector. */
    if( def->vuser[ 0 ] == AST__BAD ) {
       def->vuser[ 0 ] = def->veluser*cos( def->refra )*cos( def->refdec );
@@ -3711,12 +3798,12 @@ static double UserVel( double ra, double dec, FrameDef *def, int *status ) {
    }
 
 /* Convert given J2000 RA,Dec to x,y,z. */
-   palSlaDcs2c( ra, dec, vb );
+   palDcs2c( ra, dec, vb );
 
 /* Return the dot product with the user velocity. Invert it to get the
    velocity towards the observer (the def->veluser value is supposed to be
    positive if the source is moving away from the observer). */
-   return -palSlaDvdv( def->vuser, vb );
+   return -palDvdv( def->vuser, vb );
 }
 
 /* Copy constructor. */
@@ -3943,7 +4030,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
    obtain associated descriptive information. If the conversion code
    was not recognised, report an error and give up. */
       if ( astOK ) {
-         sval = CvtString( this->cvttype[ icvt ], &comment, &argra, &argdec, 
+         sval = CvtString( this->cvttype[ icvt ], &comment, &argra, &argdec,
                            &nargs, &szargs, argdesc, status );
          if ( astOK && !sval ) {
             astError( AST__SPCIN,
@@ -3986,7 +4073,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsASpecMap and astCheckSpecMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(SpecMap,Mapping,check,&class_check)
+astMAKE_ISA(SpecMap,Mapping)
 astMAKE_CHECK(SpecMap)
 
 AstSpecMap *astSpecMap_( int nin, int flags, const char *options, int *status, ...) {
@@ -4018,14 +4105,14 @@ f     RESULT = AST_SPECMAP( NIN, FLAGS, OPTIONS, STATUS )
 *     represent a sequence of conversions between standard spectral
 *     coordinate systems. This includes conversions between frequency,
 *     wavelength, and various forms of velocity, as well as conversions
-*     between different standards of rest. 
+*     between different standards of rest.
 *
 *     When a SpecMap is first created, it simply performs a unit
 c     (null) Mapping. Using the astSpecAdd function,
 f     (null) Mapping. Using the AST_SPECADD routine,
-*     a series of coordinate conversion steps may then be added, selected 
-*     from the list of supported conversions. This allows multi-step 
-*     conversions between a variety of spectral coordinate systems to 
+*     a series of coordinate conversion steps may then be added, selected
+*     from the list of supported conversions. This allows multi-step
+*     conversions between a variety of spectral coordinate systems to
 *     be assembled out of the building blocks provided by this class.
 *
 *     For details of the individual coordinate conversions available,
@@ -4035,9 +4122,9 @@ f     see the description of the AST_SPECADD routine.
 *     Conversions are available to transform between standards of rest.
 *     Such conversions need to know the source position as an RA and DEC.
 *     This information can be supplied in the form of parameters for
-*     the relevant conversions, in which case the SpecMap is 1-dimensional, 
+*     the relevant conversions, in which case the SpecMap is 1-dimensional,
 *     simply transforming the spectral axis values. This means that the
-*     same source position will always be used by the SpecMap. However, this 
+*     same source position will always be used by the SpecMap. However, this
 *     may not be appropriate for an accurate description of a 3-D spectral
 *     cube, where changes of spatial position can produce significant
 *     changes in the Doppler shift introduced when transforming between
@@ -4049,14 +4136,14 @@ f     see the description of the AST_SPECADD routine.
 *  Parameters:
 c     nin
 f     NIN = INTEGER (Given)
-*        The number of inputs to the Mapping (this will also equal the 
+*        The number of inputs to the Mapping (this will also equal the
 *        number of outputs). This value must be either 1 or 3. In either
 *        case, the first input and output correspoindis the spectral axis.
 *        For a 3-axis SpecMap, the second and third axes give the RA and
 *        DEC (J2000 FK5) of the source. This positional information is
 *        used by conversions which transform between standards of rest,
 *        and replaces the "RA" and "DEC" arguments for the individual
-*        conversions listed in description of the "SpecAdd" 
+*        conversions listed in description of the "SpecAdd"
 c        function.
 f        routine.
 c     flags
@@ -4095,13 +4182,13 @@ f     AST_SPECMAP = INTEGER
 
 *  Notes:
 *     - The nature and units of the coordinate values supplied for the
-*     first input (i.e. the spectral input) of a SpecMap must be appropriate 
-*     to the first conversion step applied by the SpecMap. For instance, if 
-*     the first conversion step is "FRTOVL" (frequency to relativistic 
+*     first input (i.e. the spectral input) of a SpecMap must be appropriate
+*     to the first conversion step applied by the SpecMap. For instance, if
+*     the first conversion step is "FRTOVL" (frequency to relativistic
 *     velocity), then the coordinate values for the first input should
-*     be frequency in units of Hz. Similarly, the nature and units of the 
+*     be frequency in units of Hz. Similarly, the nature and units of the
 *     coordinate values returned by a SpecMap will be determined by the
-*     last conversion step applied by the SpecMap. For instance, if the 
+*     last conversion step applied by the SpecMap. For instance, if the
 *     last conversion step is "VLTOVO" (relativistic velocity to optical
 *     velocity), then the coordinate values for the first output will be optical
 *     velocity in units of metres per second. See the description of the
@@ -4116,7 +4203,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstSpecMap *new;              /* Pointer to the new SpecMap */
    va_list args;                 /* Variable argument list */
 
@@ -4188,7 +4275,7 @@ AstSpecMap *astSpecMapId_( int nin, int flags, const char *options, ... ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstSpecMap *new;              /* Pointer to the new SpecMap */
    va_list args;                 /* Variable argument list */
 
@@ -4415,16 +4502,13 @@ AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
 */
 
 /* Local Constants: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
 #define KEY_LEN 50               /* Maximum length of a keyword */
 
 /* Local Variables: */
    AstSpecMap *new;              /* Pointer to the new SpecMap */
    char *sval;                   /* Pointer to string value */
-   char key[ KEY_LEN + 1 ];      /* Get a pointer to the thread specific global data structure. */
-   astGET_GLOBALS(channel);
-
-/* Buffer for keyword string */
+   char key[ KEY_LEN + 1 ];      /* Buffer for keyword string */
    const char *argdesc[ MAX_ARGS ]; /* Pointers to argument descriptions */
    const char *comment;          /* Pointer to comment string */
    int argdec;                   /* Index of DEC argument */
@@ -4433,6 +4517,9 @@ AstSpecMap *astLoadSpecMap_( void *mem, size_t size,
    int icvt;                     /* Loop counter for conversion steps */
    int nargs;                    /* Number of user-supplied arguments */
    int szargs;                   /* Number of stored arguments */
+
+/* Get a pointer to the thread specific global data structure. */
+   astGET_GLOBALS(channel);
 
 /* Initialise. */
    new = NULL;
