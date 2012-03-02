@@ -106,6 +106,9 @@ public class CoordsRadians {
         if ( Double.isNaN( rad ) ) {
             return null;
         }
+        while ( rad < 0 ) {
+            rad += Math.PI * 2;
+        }
         double degrees = radiansToDegrees( rad );
         int sign = degrees >= 0 ? +1 : -1;
         double hours = degrees / 15.0;

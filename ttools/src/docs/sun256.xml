@@ -8169,6 +8169,8 @@ but my thanks are especially due to the following:
         output rows with columns from only a single table,
         i.e. not representing an inter-table match, 
         even when <code>join*=default</code>.</li>
+    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+        negative angles.  Now the output is forced positive.</li>
     </ul>
     </p></dd>
 

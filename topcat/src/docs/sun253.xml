@@ -15331,6 +15331,8 @@ introduced since the last version:
     <li>Fixed bug in multi-table matches (&gt;2 tables) which could result in
         output rows with columns from only a single table,
         i.e. not representing an inter-table match.</li>
+    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+        negative angles.  Now the output is forced positive.</li>
     </ul>
     </p>
     </dd>
