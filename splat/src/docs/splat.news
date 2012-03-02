@@ -80,7 +80,6 @@
    have a correct coordinate value assigned to the removed region. This
    resulted in a non-monotonic spectrum.
 
-
    A bug in the flip toolbox that always reported the radial velocity as
    zero in the log file has been fixed. The log now also includes whether
    the values are redshifts.
