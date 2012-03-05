@@ -372,6 +372,7 @@ implements ActionListener, ItemListener
      *  Only minimal validation is performed.
      *  Returns 1 if no error occurred, 0 otherwise.
      */
+    protected int validateResource( String shortName, String accessURL ) 
     {
         int ok = 0;
         statusLabel.setForeground(Color.red);

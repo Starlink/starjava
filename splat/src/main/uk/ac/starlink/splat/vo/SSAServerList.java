@@ -68,6 +68,9 @@ public class SSAServerList
      */
     protected void addServer( SSAPRegResource server, boolean save )
     {
+        String shortname = server.getShortName();
+        if (shortname != null)
+            shortname = shortname.trim();
         serverList.put( server.getShortName(), server );
         if ( save ) {
             try {
@@ -86,10 +89,15 @@ public class SSAServerList
      */
     public void removeServer( SSAPRegResource server )
     {
-        serverList.remove( server.getShortName() );
+	String shortname = server.getShortName();
+        if (shortname != null)
+              shortname = shortname.trim();
+        serverList.remove( shortname );
     }
     public void removeServer( String shortName )
     {
+        if (shortName != null)
+              shortName = shortName.trim();
         serverList.remove( shortName );
     }
 
@@ -148,9 +156,26 @@ public class SSAServerList
      */
     public SSAPRegResource getResource(String shortname)
     {
+        if (shortname != null)
+           shortname = shortname.trim();
         return (SSAPRegResource) serverList.get(shortname);
     }
 
+
+    /**
+     * Return a base url string for the instance matching the short name given
+     * current list of servers.
+     * @param shortname
+     */
+    public String getBaseURL(String shortname)
+    {
+        if (shortname != null)
+            shortname = shortname.trim();
+        SSAPRegResource res = (SSAPRegResource) serverList.get(shortname);
+        SSAPRegCapability[] cap = res.getCapabilities();
+        return cap[0].getAccessUrl();
+    } 
+ 
     /**
      * Initialise the known servers which are kept in a resource file along
      * with SPLAT. The format of this file is determined by the
@@ -261,10 +286,9 @@ public class SSAServerList
             try {
                 server = (SSAPRegResource) decoder.readObject();
                 String name = server.getShortName();
-                if (name == null || name.length()==0)
-                    name = "<>";
-                serverList.put( name, server );
-                selectionList.put(name, true );
+	
+                // serverList.put( name, server );
+                // selectionList.put(name, true );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.
@@ -348,6 +372,8 @@ public class SSAServerList
      * set selection tag
      */
      public void selectServer(String shortname) {
+         if (shortname != null)
+              shortname = shortname.trim();
          if (serverList.containsKey(shortname))
                  selectionList.put(shortname, true);
      }
@@ -355,15 +381,19 @@ public class SSAServerList
       * set selection tag
       */
       public void unselectServer(String shortname) {
-          if (serverList.containsKey(shortname))
-                  selectionList.put(shortname, false);
+         if (shortname != null)
+              shortname = shortname.trim();
+         if (serverList.containsKey(shortname))
+              selectionList.put(shortname, false);
       }
       /**
        * returns selection tag
        */
        public boolean isServerSelected(String shortname) {
-           if (serverList.containsKey(shortname))
-                   return selectionList.get(shortname);
+          if (shortname != null)
+              shortname = shortname.trim();
+          if (serverList.containsKey(shortname))
+              return selectionList.get(shortname);
            return false;
        }
 }
