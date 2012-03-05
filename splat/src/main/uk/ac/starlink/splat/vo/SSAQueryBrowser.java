@@ -5,12 +5,15 @@
  *  History:
  *     11-NOV-2004 (Peter W. Draper):
  *       Original version.
+ *     23-FEB-2012 (Margarida Castro Neves, mcneves@ari.uni-heidelberg.de)
+ *       Added support for customized metadata parameters.  
+ *       Ported SwingWorker from jsky.util.SwingWorker to javax.swing.SwingWorker
  */
 package uk.ac.starlink.splat.vo;
 
+
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
@@ -20,6 +23,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -27,32 +32,33 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.border.TitledBorder;
+import javax.swing.SwingWorker;
 
 import jsky.catalog.BasicQueryArgs;
 import jsky.catalog.QueryArgs;
@@ -62,29 +68,27 @@ import jsky.catalog.skycat.SkycatCatalog;
 import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
-import jsky.util.SwingWorker;
+//import jsky.util.SwingWorker;
 
 import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
-import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.ToolButtonBar;
+import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.StarTableTransmitter;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
+//import uk.ac.starlink.splat.vo.SSAMetadataFrame.MetadataInputParameter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.ProxySetup;
@@ -97,13 +101,14 @@ import uk.ac.starlink.vo.DalResultXMLFilter;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOStarTable;
-import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.votable.VOTableWriter;
+
 
 /**
  * Display a page of controls for querying a list of  SSA servers and
@@ -113,22 +118,23 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @author Peter W. Draper
  * @author Mark Taylor
  * @version $Id$
+ *
  */
 public class SSAQueryBrowser
-    extends JFrame
-    implements ActionListener, MouseListener
+extends JFrame
+implements ActionListener, MouseListener, PropertyChangeListener
 {
     // Logger.
     private static Logger logger =
-        Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
+            Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
 
     /** UI preferences. */
     protected static Preferences prefs =
-        Preferences.userNodeForPackage( SSAQueryBrowser.class );
+            Preferences.userNodeForPackage( SSAQueryBrowser.class );
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-        new Rectangle( 0, 0, 600, 650 );
+            new Rectangle( 0, 0, 650, 700 );
 
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
@@ -148,6 +154,15 @@ public class SSAQueryBrowser
 
     /** Centre panel */
     protected JPanel centrePanel = null;
+
+    /** Query panel */
+    protected JPanel queryPanel = null;
+
+    /** Basic Query panel */
+    protected JPanel basicQueryPanel = null;
+
+    /** Customized Query panel */
+    protected JPanel customQueryPanel = null;
 
     /** Object name */
     protected JTextField nameField = null;
@@ -173,8 +188,18 @@ public class SSAQueryBrowser
     /** Deselect all spectra in all tables */
     protected JButton deselectAllButton = null;
 
+    /** Display basic search parameters */
+    protected JRadioButton  basicSearchButton;
+
+    /** Display extended search parameters */
+    protected JRadioButton  customSearchButton;
+
+
     /** Make the query to all known servers */
     protected JButton goButton = null;
+
+    /** Allows user to customize search parameters */
+    protected JButton customButton = null;
 
     /** Central RA */
     protected JTextField raField = null;
@@ -210,7 +235,7 @@ public class SSAQueryBrowser
     protected JTabbedPane resultsPane = null;
 
     /** The list of StarJTables in use */
-    protected ArrayList starJTables = null;
+    protected ArrayList<StarJTable> starJTables = null;
 
     /** NED name resolver catalogue */
     protected SkycatCatalog nedCatalogue = null;
@@ -227,10 +252,17 @@ public class SSAQueryBrowser
     /** The SSA servers window */
     protected SSAServerFrame serverWindow = null;
 
+    /** The list of all input parameters read from the servers */
+    protected static SSAMetadataFrame metaFrame = null;
+
     /** Make sure the proxy environment is setup */
     static {
         ProxySetup.getInstance().restore();
     }
+
+    /** The list of all input parameters read from the servers as a hash map */
+    private static HashMap<String, MetadataInputParameter> metaParam=null;
+
 
     /**
      * Create an instance.
@@ -241,7 +273,7 @@ public class SSAQueryBrowser
         this.browser = browser;
         initUI();
         initMenusAndToolbar();
-        initFrame();
+        initFrame();      
     }
 
     /**
@@ -274,15 +306,15 @@ public class SSAQueryBrowser
 
         //  Get icons.
         ImageIcon closeImage =
-            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon saveImage =
-            new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
         ImageIcon readImage =
-            new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
         ImageIcon helpImage =
-            new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
         ImageIcon ssaImage =
-            new ImageIcon( ImageHolder.class.getResource("ssapservers.gif") );
+                new ImageIcon( ImageHolder.class.getResource("ssapservers.gif") );
 
         //  Create the File menu.
         JMenu fileMenu = new JMenu( "File" );
@@ -291,30 +323,30 @@ public class SSAQueryBrowser
 
         //  Add options to save and restore the query result.
         LocalAction saveAction = new LocalAction( LocalAction.SAVE,
-                                                  "Save query results",
-                                                  saveImage,
-                                                  "Save results of query " +
-                                                  "to disk file" );
+                "Save query results",
+                saveImage,
+                "Save results of query " +
+                "to disk file" );
 
         fileMenu.add( saveAction );
         JButton saveButton = new JButton( saveAction );
         actionBarContainer.add( saveButton );
 
         LocalAction readAction = new LocalAction( LocalAction.READ,
-                                                  "Restore query results",
-                                                  readImage,
-                                                  "Read results of a " +
-                                                  "previous query back " +
-                                                  "from disk file" );
+                "Restore query results",
+                readImage,
+                "Read results of a " +
+                        "previous query back " +
+                "from disk file" );
         fileMenu.add( readAction );
         JButton readButton = new JButton( readAction );
         actionBarContainer.add( readButton );
 
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
-                                                   "Close", closeImage,
-                                                   "Close window",
-                                                   "control W" );
+                "Close", closeImage,
+                "Close window",
+                "control W" );
         fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         JButton closeButton = new JButton( closeAction );
@@ -326,15 +358,15 @@ public class SSAQueryBrowser
         menuBar.add( optionsMenu );
 
         LocalAction proxyAction = new LocalAction( LocalAction.PROXY,
-                                                   "Configure connection " +
-                                                   "proxy..." );
+                "Configure connection " +
+                "proxy..." );
         optionsMenu.add( proxyAction );
 
         //  Add item to control the use of SSA servers.
         LocalAction serverAction = new LocalAction(LocalAction.SERVER,
-                                                   "Configure SSAP servers...",
-                                                   ssaImage,
-                                                   "Configure SSAP servers" );
+                "Configure SSAP servers...",
+                ssaImage,
+                "Configure SSAP servers" );
         optionsMenu.add( serverAction );
         toolBar.add( serverAction );
 
@@ -356,7 +388,7 @@ public class SSAQueryBrowser
         jrbmi.setSelected( false );
         bg.add( jrbmi );
         jrbmi.setAction( new ResolverAction( "SIMBAD via CADC",
-                                             simbadCatalogue ) );
+                simbadCatalogue ) );
         jrbmi.setToolTipText( "SIMBAD service served by CADC" );
 
         jrbmi = new JRadioButtonMenuItem();
@@ -373,7 +405,7 @@ public class SSAQueryBrowser
         jrbmi.setAction( new ResolverAction( "CDS Sesame", null  ) );
         resolverCatalogue = null;
         jrbmi.setToolTipText
-            ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
+        ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
 
 
         //  Create a menu for inter-client communications.
@@ -388,13 +420,13 @@ public class SSAQueryBrowser
         // Add table transmit options.
         Transmitter transmitter = communicator.createTableTransmitter( this );
         interopMenu.add( transmitter.getBroadcastAction() )
-            .setMnemonic( KeyEvent.VK_B );
+        .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( transmitter.createSendMenu() )
-            .setMnemonic( KeyEvent.VK_T );
+        .setMnemonic( KeyEvent.VK_T );
 
         //  Create the Help menu.
         HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
-                                        menuBar, toolBar );
+                menuBar, toolBar );
 
         //  ActionBar goes at bottom.
         contentPane.add( actionBarContainer, BorderLayout.SOUTH );
@@ -408,7 +440,7 @@ public class SSAQueryBrowser
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
-                                    "SSAQueryBrowser" );
+                "SSAQueryBrowser" );
         setVisible( true );
     }
 
@@ -418,20 +450,23 @@ public class SSAQueryBrowser
      */
     private void initQueryComponents()
     {
-        JPanel queryPanel = new JPanel();
+        queryPanel = new JPanel();
         queryPanel.setBorder
-            ( BorderFactory.createTitledBorder( "Search region:" ) );
+        ( BorderFactory.createTitledBorder( "Search parameters:" ) );
+
+
+        centrePanel.add( queryPanel, BorderLayout.NORTH );
 
         GridBagLayouter layouter =
-            new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 );
-        centrePanel.add( queryPanel, BorderLayout.NORTH );
+                new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME4 /*SCHEME3*/ );
+
 
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
         nameField = new JTextField( 15 );
         nameField.setToolTipText( "Enter the name of an object " +
-                                  " -- press return to get coordinates" );
+                " -- press return to get coordinates" );
         nameField.addActionListener( this );
         layouter.add( nameLabel, false );
         layouter.add( nameField, false );
@@ -441,6 +476,15 @@ public class SSAQueryBrowser
         nameLookup.setToolTipText( "Press to get coordinates of Object" );
 
         layouter.add( nameLookup, false );
+        //  Do the search.
+        goButton = new JButton( "Go" );
+        goButton.addActionListener( this );
+        layouter.add( goButton, false );
+
+        customButton = new JButton( "More parameters" );
+        customButton.addActionListener(this);
+        layouter.add( customButton, false );
+
         layouter.eatLine();
 
         //  RA and Dec fields. We're free-formatting on these (decimal degrees
@@ -450,14 +494,14 @@ public class SSAQueryBrowser
         layouter.add( raLabel, false );
         layouter.add( raField, true );
         raField.setToolTipText( "Enter the RA of field centre, " +
-                                "decimal degrees or hh:mm:ss.ss" );
+                "decimal degrees or hh:mm:ss.ss" );
 
         JLabel decLabel = new JLabel( "Dec:" );
         decField = new JTextField( 30 );
         layouter.add( decLabel, false );
         layouter.add( decField, true );
         decField.setToolTipText( "Enter the Dec of field centre, " +
-                                 "decimal degrees or dd:mm:ss.ss" );
+                "decimal degrees or dd:mm:ss.ss" );
 
         //  Radius field.
         JLabel radiusLabel = new JLabel( "Radius:" );
@@ -465,7 +509,7 @@ public class SSAQueryBrowser
         layouter.add( radiusLabel, false );
         layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
-                                    " from given centre, arcminutes" );
+                " from given centre, arcminutes" );
         radiusField.addActionListener( this );
 
         //  Band fields.
@@ -491,9 +535,9 @@ public class SSAQueryBrowser
         layouter.add( bandLabel, false );
         layouter.add( bandPanel, true );
         lowerBandField.setToolTipText( "Lower limit, or single include " +
-                                       "value, for spectral band, in meters" );
+                "value, for spectral band, in meters" );
         upperBandField.setToolTipText
-            ( "Upper limit for spectral band, in meters" );
+        ( "Upper limit for spectral band, in meters" );
 
         //  Time fields, note this shares a line with the band fields.
         JLabel timeLabel = new JLabel( "Time:" );
@@ -517,20 +561,13 @@ public class SSAQueryBrowser
         layouter.add( timeLabel, false );
         layouter.add( timePanel, true );
         lowerTimeField.setToolTipText( "Lower limit, or single include " +
-                                       "value for time coverage, " +
-                                       "ISO 8601 format " +
-                                       "(e.g 2008-10-15T20:48Z)" );
+                "value for time coverage, " +
+                "ISO 8601 format " +
+                "(e.g 2008-10-15T20:48Z)" );
         upperTimeField.setToolTipText( "Upper limit for time coverage, " +
-                                       "in ISO 8601 format " +
-                                       "(e.g 2008-10-15T20:48Z)" );
+                "in ISO 8601 format " +
+                "(e.g 2008-10-15T20:48Z)" );
 
-        //  Do the search.
-        goButton = new JButton( "Go" );
-        goButton.addActionListener( this );
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add( goButton );
-
-        layouter.add( buttonPanel, true );
         layouter.eatSpare();
 
     }
@@ -544,9 +581,9 @@ public class SSAQueryBrowser
     {
         JPanel resultsPanel = new JPanel( new BorderLayout() );
         resultsPanel.setBorder
-            ( BorderFactory.createTitledBorder( "Query results:" ) );
+        ( BorderFactory.createTitledBorder( "Query results:" ) );
         resultsPanel.setToolTipText( "Results of query to the current list "+
-                                     "of SSAP servers. One table per server" );
+                "of SSAP servers. One table per server" );
 
         resultsPane = new JTabbedPane();
         resultsPanel.add( resultsPane, BorderLayout.CENTER );
@@ -559,27 +596,27 @@ public class SSAQueryBrowser
         displaySelectedButton = new JButton( "Display selected" );
         displaySelectedButton.addActionListener( this );
         displaySelectedButton.setToolTipText
-            ( "Download and display all spectra selected in all tables" );
+        ( "Download and display all spectra selected in all tables" );
         controlPanel1.add( displaySelectedButton );
 
 
         displayAllButton = new JButton( "Display all" );
         displayAllButton.addActionListener( this );
         displayAllButton.setToolTipText
-            ( "Download and display all spectra in all tables" );
+        ( "Download and display all spectra in all tables" );
         controlPanel1.add( displayAllButton );
 
         //  Just download.
         downloadSelectedButton = new JButton( "Download selected" );
         downloadSelectedButton.addActionListener( this );
         downloadSelectedButton.setToolTipText
-            ( "Download all spectra selected in all tables");
+        ( "Download all spectra selected in all tables");
         controlPanel1.add( downloadSelectedButton );
 
         downloadAllButton = new JButton( "Download all" );
         downloadAllButton.addActionListener( this );
         downloadAllButton.setToolTipText
-            ( "Download all spectra in all tables");
+        ( "Download all spectra in all tables");
         controlPanel1.add( downloadAllButton );
 
 
@@ -587,13 +624,13 @@ public class SSAQueryBrowser
         deselectVisibleButton = new JButton( "Deselect" );
         deselectVisibleButton.addActionListener( this );
         deselectVisibleButton.setToolTipText
-            ( "Deselect all spectra in displayed table" );
+        ( "Deselect all spectra in displayed table" );
         controlPanel2.add( deselectVisibleButton );
 
         deselectAllButton = new JButton( "Deselect all" );
         deselectAllButton.addActionListener( this );
         deselectAllButton.setToolTipText
-            ( "Deselect all spectra in all tables" );
+        ( "Deselect all spectra in all tables" );
         controlPanel2.add( deselectAllButton );
 
         controlPanel.add( controlPanel1, BorderLayout.NORTH );
@@ -698,24 +735,24 @@ public class SSAQueryBrowser
                     try {
                         if ( queryArgs == null ) {
                             ResolverInfo info =
-                                ResolverInfo.resolve( objectName );
+                                    ResolverInfo.resolve( objectName );
                             WorldCoords coords =
-                                new WorldCoords( info.getRaDegrees(),
-                                                 info.getDecDegrees() );
+                                    new WorldCoords( info.getRaDegrees(),
+                                            info.getDecDegrees() );
                             String[] radec = coords.format();
                             raField.setText( radec[0] );
                             decField.setText( radec[1] );
                         }
                         else {
                             QueryResult r =
-                                resolverCatalogue.query( queryArgs );
+                                    resolverCatalogue.query( queryArgs );
                             if ( r instanceof TableQueryResult ) {
                                 Coordinates coords =
-                                    ((TableQueryResult) r).getCoordinates( 0 );
+                                        ((TableQueryResult) r).getCoordinates( 0 );
                                 if ( coords instanceof WorldCoords ) {
                                     //  Enter values into RA and Dec fields.
                                     String[] radec =
-                                        ((WorldCoords) coords).format();
+                                            ((WorldCoords) coords).format();
                                     raField.setText( radec[0] );
                                     decField.setText( radec[1] );
                                 }
@@ -750,8 +787,8 @@ public class SSAQueryBrowser
         p1.setProperty( "long_name", "SIMBAD Names via CADC" );
         p1.setProperty( "short_name", "simbad_ns@cadc" );
         p1.setProperty
-            ( "url",
-              "http://cadcwww.dao.nrc.ca/cadcbin/sim-server?&o=%id" );
+        ( "url",
+                "http://cadcwww.dao.nrc.ca/cadcbin/sim-server?&o=%id" );
         SkycatConfigEntry entry = new SkycatConfigEntry( p1 );
         simbadCatalogue = new SkycatCatalog( entry );
 
@@ -760,8 +797,8 @@ public class SSAQueryBrowser
         p2.setProperty( "long_name", "NED Names" );
         p2.setProperty( "short_name", "ned@eso" );
         p2.setProperty
-            ( "url",
-              "http://archive.eso.org/skycat/servers/ned-server?&o=%id" );
+        ( "url",
+                "http://archive.eso.org/skycat/servers/ned-server?&o=%id" );
         entry = new SkycatConfigEntry( p2 );
         nedCatalogue = new SkycatCatalog( entry );
     }
@@ -777,7 +814,7 @@ public class SSAQueryBrowser
         String dec = decField.getText();
         String objectName = nameField.getText().trim();
         if ( ra == null || ra.length() == 0 ||
-             dec == null || dec.length() == 0 ) {
+                dec == null || dec.length() == 0 ) {
 
             //  Check for an object name. Need one or the other.
             if ( objectName != null && objectName.length() > 0 ) {
@@ -786,11 +823,11 @@ public class SSAQueryBrowser
             }
             else {
                 int n = JOptionPane.showConfirmDialog( this,
-                                              "You have not supplied " +
-                                              "a search centre or object " +
-                                              "name, do you want to proceed?",
-                                              "No RA or Dec",
-                                              JOptionPane.YES_NO_OPTION );
+                        "You have not supplied " +
+                                "a search centre or object " +
+                                "name, do you want to proceed?",
+                                "No RA or Dec",
+                                JOptionPane.YES_NO_OPTION );
                 if ( n == JOptionPane.NO_OPTION ) {
                     return;
                 }
@@ -811,7 +848,7 @@ public class SSAQueryBrowser
             }
             catch (NumberFormatException e) {
                 ErrorDialog.showError( this, "Cannot understand radius value",
-                                       e );
+                        e );
                 return;
             }
         }
@@ -854,7 +891,7 @@ public class SSAQueryBrowser
         }
 
         //  Create a stack of all queries to perform.
-        ArrayList queryList = new ArrayList();
+        ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
         Iterator i = serverList.getIterator();
         RegResource server = null;
         while( i.hasNext() ) {
@@ -878,8 +915,8 @@ public class SSAQueryBrowser
         }
         else {
             JOptionPane.showMessageDialog( this,
-               "There are no SSA servers currently selected",
-               "No SSA servers", JOptionPane.ERROR_MESSAGE );
+                    "There are no SSA servers currently selected",
+                    "No SSA servers", JOptionPane.ERROR_MESSAGE );
         }
     }
 
@@ -887,71 +924,77 @@ public class SSAQueryBrowser
      * Process a list of URL queries to SSA servers and display the
      * results. All processing is performed in a background Thread.
      */
-    protected void processQueryList( ArrayList queryList )
+    protected void processQueryList( ArrayList<SSAQuery> queryList )
     {
-        final ArrayList localQueryList = queryList;
+        //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
 
         final ProgressPanelFrame progressFrame =
-            new ProgressPanelFrame( "Querying SSAP servers" );
+                new ProgressPanelFrame( "Querying SSAP servers" );
 
-        Iterator i = queryList.iterator();
+        Iterator<SSAQuery> i = queryList.iterator();
         while ( i.hasNext() ) {
-            final SSAQuery ssaQuery = (SSAQuery) i.next();
-            final ProgressPanel progressPanel =
-                new ProgressPanel( "Querying: " + ssaQuery.getDescription() );
+            final SSAQuery ssaQuery = i.next();
+            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + ssaQuery.getDescription());
             progressFrame.addProgressPanel( progressPanel );
 
             final SwingWorker worker = new SwingWorker()
+            {
+                boolean interrupted = false;
+                //   public Object construct()
+                public Object doInBackground()
                 {
-                    boolean interrupted = false;
-                    public Object construct()
-                    {
-                        progressPanel.start();
-                        try {
-                            runProcessQuery( ssaQuery, progressPanel );
-                        }
-                        catch (InterruptedException e) {
-                            interrupted = true;
-                        }
-                        return null;
+                    progressPanel.start();
+                    try {
+                        runProcessQuery( ssaQuery, progressPanel );
                     }
-
-                    public void finished()
-                    {
-                        progressPanel.stop();
-                        queryThread = null;
-
-                        //  Display the results.
-                        if ( ! interrupted ) {
-                            addResultsDisplay( ssaQuery );
-                        }
+                    catch (InterruptedException e) {
+                        interrupted = true;
                     }
-                };
+                    return null;
+                }
+
+                public void done()
+                {
+                    progressPanel.stop();
+                    //                       queryThread = null;
+
+                    //  Display the results.
+                    if ( ! interrupted ) {
+                        addResultsDisplay( ssaQuery );
+                    }
+                }
+            };
 
             progressPanel.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
                 {
-                    public void actionPerformed( ActionEvent e )
-                    {
-                        if ( worker != null ) {
-                            worker.interrupt();
+                    if ( worker != null ) {
+                        if (worker.cancel(true))
+                        {
+                            // and do what?
                         }
-                    }
-                });
+                        // worker.interrupted = true;
 
-            worker.start();
+                        // worker.interrupt();
+                    }
+                }
+            });
+
+            worker.execute();
         }
     }
 
-    private Thread queryThread = null;
+    //  private Thread queryThread = null;
 
     /**
      * Do a query to an SSAP server.
      */
     private void runProcessQuery( SSAQuery ssaQuery,
-                                  ProgressPanel progressPanel )
-        throws InterruptedException
-    {
+            ProgressPanel progressPanel )
+                    throws InterruptedException
+                    {
         boolean failed = false;
 
         //  We just download VOTables, so avoid attempting to build the other
@@ -962,14 +1005,36 @@ public class SSAQueryBrowser
 
         try {
             URL url = ssaQuery.getQueryURL();
-            progressPanel.logMessage( ssaQuery.getBaseURL() );
+            logger.info( "Base Query string " + url );
+
+            // check if more parameters have been added
+            // Not very nice... should think of a better way to do that
+            //
+            if (metaFrame != null) {
+                String extendedQuery=metaFrame.getParamsQueryString();
+                logger.info( "Extended Query string " + extendedQuery );
+                if (extendedQuery != null && extendedQuery.length() > 0) {
+                    String newURL = url.toString() + extendedQuery;
+                    logger.info( "Query string " + newURL );
+                    //try 
+                    //{
+                    url = new URL(newURL);
+                    //} catch ( MalformedURLException e ) {
+                    //   logger.warning( "Malformed URL "+newURL );
+                    //	}
+                }
+
+            }
             logger.info( "Querying: " + url );
+
+            progressPanel.logMessage( ssaQuery.getBaseURL() );
 
             //  Do the query and get the result as a StarTable. Uses this
             //  method for efficiency as non-result tables are ignored.
             InputSource inSrc = new InputSource( url.openStream() );
             inSrc.setSystemId( url.toString() );
             VOElementFactory vofact = new VOElementFactory();
+
             starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
 
             //  Check parameter QUERY_STATUS, this should be set to OK
@@ -978,11 +1043,11 @@ public class SSAQueryBrowser
             String queryDescription = null;
             try {
                 queryOK = starTable
-                    .getParameterByName( "QUERY_STATUS" )
-                    .getValueAsString( 100 );
+                        .getParameterByName( "QUERY_STATUS" )
+                        .getValueAsString( 100 );
                 queryDescription = starTable
-                    .getParameterByName( "QUERY_STATUS" )
-                    .getInfo().getDescription();
+                        .getParameterByName( "QUERY_STATUS" )
+                        .getInfo().getDescription();
             }
             catch (NullPointerException ne) {
                 // Whoops, that's not good, but see what we can do.
@@ -1032,17 +1097,17 @@ public class SSAQueryBrowser
         if ( ! failed ) {
             progressPanel.logMessage( "Completed download" );
         }
-    }
+                    }
 
     /**
      * Display the results of the queries to the SSA servers. The results can
      * be either a list of SSAQuery instances, or the StarTables themselves
      * (usually these are from a disk-file restoration, not a live query).
      */
-    protected void makeResultsDisplay( ArrayList tableList )
+    protected void makeResultsDisplay( ArrayList<VOStarTable> tableList )
     {
         if ( starJTables == null ) {
-            starJTables = new ArrayList();
+            starJTables = new ArrayList<StarJTable>();
         }
 
         //  Remove existing tables.
@@ -1050,7 +1115,7 @@ public class SSAQueryBrowser
         starJTables.clear();
 
         if ( tableList != null ) {
-            Iterator i = tableList.iterator();
+            Iterator<VOStarTable> i = tableList.iterator();
             while ( i.hasNext() ) {
                 addResultsDisplay( i.next() );
             }
@@ -1112,9 +1177,9 @@ public class SSAQueryBrowser
     {
         if ( all ) {
             //  Visit all the tabbed StarJTables.
-            Iterator i = starJTables.iterator();
+            Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
-                ((StarJTable) i.next()).clearSelection();
+                i.next().clearSelection();
             }
         }
         else {
@@ -1138,18 +1203,18 @@ public class SSAQueryBrowser
      * spectra.
      */
     protected void displaySpectra( boolean selected, boolean display,
-                                   StarJTable table, int row )
+            StarJTable table, int row )
     {
         //  List of all spectra to be loaded and their data formats and short
         //  names etc.
-        ArrayList specList = new ArrayList();
+        ArrayList<Props> specList = new ArrayList<Props>();
 
         if ( table == null ) {
             //  Visit all the tabbed StarJTables.
-            Iterator i = starJTables.iterator();
+            Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
-                extractSpectraFromTable( (StarJTable) i.next(), specList,
-                                         selected, -1 );
+                extractSpectraFromTable( i.next(), specList,
+                        selected, -1 );
             }
         }
         else {
@@ -1166,7 +1231,7 @@ public class SSAQueryBrowser
                 mess = "No spectra available";
             }
             JOptionPane.showMessageDialog( this, mess, "No spectra",
-                                           JOptionPane.ERROR_MESSAGE );
+                    JOptionPane.ERROR_MESSAGE );
             return;
         }
 
@@ -1187,9 +1252,9 @@ public class SSAQueryBrowser
      * are returned or if a row value other than -1 is given just one row.
      */
     private void extractSpectraFromTable( StarJTable starJTable,
-                                          ArrayList specList,
-                                          boolean selected,
-                                          int row )
+            ArrayList<Props> specList,
+            boolean selected,
+            int row )
     {
         int[] selection = null;
 
@@ -1296,20 +1361,20 @@ public class SSAQueryBrowser
                         //  Using all rows.
                         rseq = starTable.getRowSequence();
                         while ( rseq.next() ) {
-                            value = ( (String)rseq.getCell( linkcol ) );
+                            value = ( (String) rseq.getCell( linkcol ).toString() );
                             value = value.trim();
                             props = new SpectrumIO.Props( value );
                             if ( typecol != -1 ) {
-                                value = ((String)rseq.getCell( typecol ) );
+                                value = ((String)rseq.getCell( typecol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     props.setType
-                                        ( specDataFactory
-                                          .mimeToSPLATType( value ) );
+                                    ( specDataFactory
+                                            .mimeToSPLATType( value ) );
                                 }
                             }
                             if ( namecol != -1 ) {
-                                value = ( (String)rseq.getCell( namecol ) );
+                                value = ( (String)rseq.getCell( namecol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     props.setShortName( value );
@@ -1319,7 +1384,7 @@ public class SSAQueryBrowser
                             if ( axescol != -1 ) {
 
                                 //  Old style column names.
-                                value = ( (String)rseq.getCell( axescol ) );
+                                value = ( (String)rseq.getCell( axescol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     axes = value.split("\\s");
@@ -1334,15 +1399,15 @@ public class SSAQueryBrowser
 
                                 //  Version 1.0 style.
                                 if ( specaxiscol != -1 ) {
-                                    value = (String)rseq.getCell(specaxiscol);
+                                    value = (String)rseq.getCell(specaxiscol).toString();
                                     props.setCoordColumn( value );
                                 }
                                 if ( fluxaxiscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxaxiscol);
+                                    value = (String)rseq.getCell(fluxaxiscol).toString();
                                     props.setDataColumn( value );
                                 }
                                 if ( fluxerrorcol != -1 ) {
-                                    value = (String)rseq.getCell(fluxerrorcol);
+                                    value = (String)rseq.getCell(fluxerrorcol).toString();
                                     props.setErrorColumn( value );
                                 }
                             }
@@ -1350,7 +1415,7 @@ public class SSAQueryBrowser
                             if ( unitscol != -1 ) {
 
                                 //  Old style column names.
-                                value = ( (String)rseq.getCell( unitscol ) );
+                                value = ( (String)rseq.getCell( unitscol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     units = value.split("\\s");
@@ -1363,11 +1428,11 @@ public class SSAQueryBrowser
 
                                 //  Version 1.0 style.
                                 if ( specunitscol != -1 ) {
-                                    value = (String)rseq.getCell(specunitscol);
+                                    value = (String)rseq.getCell(specunitscol).toString();
                                     props.setCoordUnits( value );
                                 }
                                 if ( fluxunitscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxunitscol);
+                                    value = (String)rseq.getCell(fluxunitscol).toString();
                                     props.setDataUnits( value );
                                 }
                             }
@@ -1386,27 +1451,27 @@ public class SSAQueryBrowser
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.
-                                value = ( (String)rseq.getCell( linkcol ) );
+                                value = ( (String)rseq.getCell( linkcol ).toString() );
                                 value = value.trim();
                                 props = new SpectrumIO.Props( value );
                                 if ( typecol != -1 ) {
-                                    value =((String)rseq.getCell(typecol));
+                                    value =((String)rseq.getCell(typecol).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setType
-                                            ( specDataFactory
-                                              .mimeToSPLATType( value ) );
+                                        ( specDataFactory
+                                                .mimeToSPLATType( value ) );
                                     }
                                 }
                                 if ( namecol != -1 ) {
-                                    value = ((String)rseq.getCell( namecol ));
+                                    value = ((String)rseq.getCell( namecol ).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setShortName( value );
                                     }
                                 }
                                 if ( axescol != -1 ) {
-                                    value = ((String)rseq.getCell( axescol ));
+                                    value = ((String)rseq.getCell( axescol ).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         axes = value.split("\\s");
@@ -1415,7 +1480,7 @@ public class SSAQueryBrowser
                                     }
                                 }
                                 if ( unitscol != -1 ) {
-                                    value = ((String)rseq.getCell(unitscol));
+                                    value = ((String)rseq.getCell(unitscol).toString());
                                     if ( value != null ) {
                                         units = value.split("\\s");
                                         props.setCoordUnits( units[0] );
@@ -1459,7 +1524,7 @@ public class SSAQueryBrowser
     {
         initFileChooser();
         int result = fileChooser.showOpenDialog( this );
-        if ( result == fileChooser.APPROVE_OPTION ) {
+        if ( result == JFileChooser.APPROVE_OPTION ) {
             File file = fileChooser.getSelectedFile();
             try {
                 readQuery( file );
@@ -1476,8 +1541,8 @@ public class SSAQueryBrowser
      *  the various query results as TABLEs.
      */
     protected void readQuery( File file )
-        throws SplatException
-    {
+            throws SplatException
+            {
         VOElement rootElement = null;
         try {
             rootElement = new VOElementFactory().makeVOElement( file );
@@ -1489,7 +1554,7 @@ public class SSAQueryBrowser
         //  First element should be a RESOURCE.
         VOElement[] resource = rootElement.getChildren();
         VOStarTable table = null;
-        ArrayList tableList = new ArrayList();
+        ArrayList<VOStarTable> tableList = new ArrayList<VOStarTable>();
         String tagName = null;
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
@@ -1517,7 +1582,7 @@ public class SSAQueryBrowser
         else {
             throw new SplatException( "No query results found" );
         }
-    }
+            }
 
     /**
      *  Interactively get a file name and save current query results to it as
@@ -1527,14 +1592,14 @@ public class SSAQueryBrowser
     {
         if ( starJTables == null || starJTables.size() == 0 ) {
             JOptionPane.showMessageDialog( this,
-                                           "There are no queries to save",
-                                           "No queries", JOptionPane.ERROR_MESSAGE );
+                    "There are no queries to save",
+                    "No queries", JOptionPane.ERROR_MESSAGE );
             return;
         }
 
         initFileChooser();
         int result = fileChooser.showSaveDialog( this );
-        if ( result == fileChooser.APPROVE_OPTION ) {
+        if ( result == JFileChooser.APPROVE_OPTION ) {
             File file = fileChooser.getSelectedFile();
             try {
                 saveQuery( file );
@@ -1549,8 +1614,8 @@ public class SSAQueryBrowser
      *  Save current query to a File, writing the results as a VOTable.
      */
     protected void saveQuery( File file )
-        throws SplatException
-    {
+            throws SplatException
+            {
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter( new FileWriter( file ) );
@@ -1565,7 +1630,7 @@ public class SSAQueryBrowser
         catch (IOException e) {
             throw new SplatException( e );
         }
-    }
+            }
 
     /**
      *  Save current query results to a BufferedWriter. The resulting document
@@ -1573,8 +1638,8 @@ public class SSAQueryBrowser
      *  query results.
      */
     protected void saveQuery( BufferedWriter writer )
-        throws SplatException
-    {
+            throws SplatException
+            {
         String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
         try {
             writer.write( xmlDec );
@@ -1593,9 +1658,9 @@ public class SSAQueryBrowser
             StarJTable starJTable = null;
             StarTable table = null;
             VOSerializer serializer = null;
-            Iterator i = starJTables.iterator();
+            Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
-                starJTable = (StarJTable) i.next();
+                starJTable = i.next();
                 table = starJTable.getStarTable();
 
                 //  Write <TABLE> element. First need to remove FIELD
@@ -1615,9 +1680,9 @@ public class SSAQueryBrowser
             writer.close();
         }
         catch (IOException e) {
-                throw new SplatException( "Failed to save queries", e );
+            throw new SplatException( "Failed to save queries", e );
         }
-    }
+            }
 
     /**
      * Return a StarTable of the currently selected tab of query results.
@@ -1627,7 +1692,7 @@ public class SSAQueryBrowser
         if ( starJTables != null && starJTables.size() > 0 ) {
             int index = resultsPane.getSelectedIndex();
             if ( index > -1 ) {
-                StarJTable jTable = (StarJTable) starJTables.get( index );
+                StarJTable jTable = starJTables.get( index );
                 return jTable.getStarTable();
             }
         }
@@ -1645,12 +1710,12 @@ public class SSAQueryBrowser
 
             //  Add a filter for XML files.
             BasicFileFilter xmlFileFilter =
-                new BasicFileFilter( "xml", "XML files" );
+                    new BasicFileFilter( "xml", "XML files" );
             fileChooser.addChoosableFileFilter( xmlFileFilter );
 
             //  But allow all files as well.
             fileChooser.addChoosableFileFilter
-                ( fileChooser.getAcceptAllFileFilter() );
+            ( fileChooser.getAcceptAllFileFilter() );
         }
     }
 
@@ -1690,7 +1755,7 @@ public class SSAQueryBrowser
     {
         try {
             SSAQueryBrowser b =
-                new SSAQueryBrowser( new SSAServerList(), null );
+                    new SSAQueryBrowser( new SSAServerList(), null );
             b.pack();
             b.setVisible( true );
         }
@@ -1705,13 +1770,26 @@ public class SSAQueryBrowser
     public void actionPerformed( ActionEvent e )
     {
         Object source = e.getSource();
+        String cmd = e.getActionCommand();
+
         if ( source.equals( nameLookup ) || source.equals( nameField ) ) {
             resolveName();
             return;
         }
 
         if ( source.equals( radiusField ) || source .equals( goButton ) ) {
-            doQuery();
+            {
+                doQuery();
+            } 
+            return;
+        }
+
+        if ( source.equals( customButton ) ) {
+            if (metaFrame == null) {
+                customParameters();
+            } else {
+                metaFrame.openWindow();
+            }
             return;
         }
 
@@ -1741,8 +1819,287 @@ public class SSAQueryBrowser
             deselectSpectra( true );
             return;
         }
+
     }
 
+    /**
+     * Event listener to trigger a metadata update. Triggered by SSAMetadataFrame
+     * when the "Refresh" Button is clicked
+     */
+    public void propertyChange(PropertyChangeEvent pvt)
+    {
+        customParameters();
+    }
+
+
+    /**
+     * Customize metadata parameters
+     * Query metadata from known servers to retrieve all possible parameters. Every
+     * query is performed in a different thread, which will perform the query and
+     * update the parameter table
+     */
+    private void customParameters() 
+    {
+        int nrServers = serverList.getSize();
+        final WorkQueue workQueue = new WorkQueue(nrServers);
+
+        metaParam = new HashMap<String, MetadataInputParameter>();
+
+        if ( metaFrame == null ) {
+            metaFrame = new SSAMetadataFrame( metaParam );
+            metaFrame.addPropertyChangeListener(this);
+        } else
+            metaFrame.updateMetadata( metaParam );
+
+        final ProgressPanelFrame metadataProgressFrame = new ProgressPanelFrame( "Querying Metadata" );
+
+        Iterator i = serverList.getIterator();
+
+        while( i.hasNext() ) {
+
+            final RegResource server = (RegResource) i.next();
+            final ProgressPanel metadataProgressPanel = new ProgressPanel( "Querying: " + server.getShortName());
+            metadataProgressFrame.addProgressPanel( metadataProgressPanel );
+            //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
+            final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(workQueue, server, metadataProgressPanel);
+            queryWorker.execute();
+            final MetadataProcessWorker processWorker  = new MetadataProcessWorker(workQueue);           
+            processWorker.execute();
+
+        }// while
+
+
+        /*
+         *  XXX to do eventually: create the parameter frame only after the first parameter has been found. After all threads are
+         *  done, show a dialog message in case no parameters have been found.
+         */
+    } // customParameters
+
+    /**
+     *  Metadata Query worker class
+     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
+     *  
+     * @author mm
+     *
+     */
+
+    class MetadataQueryWorker extends SwingWorker 
+    {
+        URL queryURL=null;
+        RegResource server=null;
+        ParamElement [] metadata = null;
+        WorkQueue workQueue=null;
+        ProgressPanel progressPanel = null;
+
+        /**
+         * Constructor
+         * @param queue  the work queue
+         * @param server the server which to query for metadata
+         */
+        public MetadataQueryWorker(WorkQueue queue, RegResource server) {
+            this.server=server;
+            this.workQueue=queue;
+        }
+        /**
+         * Constructor
+         * @param queue  the work queue
+         * @param server the server which to query for metadata
+         * @param panel  the progress panel
+         */
+        public MetadataQueryWorker(WorkQueue queue, RegResource server,ProgressPanel panel) {
+            this.server=server;
+            this.workQueue=queue;
+            this.progressPanel=panel;
+        }
+
+        public Object doInBackground()
+        {
+            final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
+            if (progressPanel != null)
+                progressPanel.start();            
+
+            try {
+                queryURL = ssaMetaParser.getQueryURL();
+                logger.info( "Querying metadata from " + queryURL + " contact:" + server.getContact() );
+            } catch (MalformedURLException e) {
+                if (progressPanel != null)
+                    progressPanel.logMessage("Malformed URL");
+                queryURL=null;
+            }
+            if ( queryURL != null ) 
+            {
+                try {                 
+                    if (progressPanel != null)
+                        metadata = ssaMetaParser.queryMetadata( queryURL, progressPanel );
+                    else
+                        metadata = ssaMetaParser.queryMetadata( queryURL );
+
+                } catch (InterruptedException e) {
+                    if (progressPanel != null)
+                        progressPanel.logMessage("Interrupted");
+                    metadata = null;
+                }
+                catch (Exception e) {
+                    if (progressPanel != null)
+                        progressPanel.logMessage("Other Exception"); // this should not happen
+                    e.printStackTrace();
+                    metadata = null;
+                }
+            } else
+                metadata = null;
+
+            if (progressPanel != null)
+                progressPanel.stop();  
+            // add results to the queue
+            workQueue.addWork(metadata);
+            return null;
+        } //doinbackground
+
+        public void done()
+        {
+            //  display the final status of the query
+            if ( metadata != null ) {
+                // adds parameter information into the metaParam hash
+                logger.info(queryURL+"returned "+ metadata.length +"parameters ");
+                progressPanel.logMessage( metadata.length +"  input parameters found");
+            } else {
+                logger.info( "No input parameters loaded from " + queryURL );                
+            }
+            if (progressPanel != null)
+                progressPanel.stop();  
+
+        } // done
+
+    };
+
+    /**
+     *  Metadata Process worker class
+     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
+     *  
+     * @author mm
+     *
+     */
+
+    class MetadataProcessWorker extends SwingWorker 
+    {
+        WorkQueue workQueue=null;
+
+        public MetadataProcessWorker( WorkQueue queue) {          
+            this.workQueue=queue;
+        }
+        public Object doInBackground()
+        {
+            // progressPanel.start();
+            try {
+                ParamElement [] data = workQueue.getWork();
+                if ( data != null)
+                    processMetadata(data);
+            } 
+            catch (InterruptedException e) {
+            }
+            catch (Exception e) {
+            }
+
+            return null;
+        } //construct
+
+
+        public void done()
+        {
+        } // done
+
+    };
+
+
+
+    /**
+     * queue that receives information from the MetadataQueryWorker threads
+     * and process them
+     */
+    class WorkQueue {
+        LinkedList<Object> queue = new LinkedList<Object>();
+        int workedItems = 0;
+        int maxItems=0;
+
+        public WorkQueue( int total ) {
+            maxItems = total;
+        }
+
+        // add work to the queue
+        public synchronized void addWork(Object o) {
+            //  logger.info( "ADDWORK " + workedItems);
+            queue.addLast(o);
+            this.notify();
+        }
+
+        // takes the work from the queue as soon as it's not empty
+        public synchronized ParamElement[] getWork() throws InterruptedException {
+            //  logger.info( "GETWORK " + workedItems + " " + maxItems);
+            if (workedItems >= maxItems) return null;
+            while (queue.isEmpty()) {
+                this.wait();
+            }
+            ParamElement [] data = (ParamElement[]) queue.removeFirst();     
+            workedItems++;
+            return (data);
+        }
+    } // WorkerQueue
+
+
+    /**
+     * adds the parameters to a hashmap. Every parameter should be unique, 
+     * and a counter shows how many servers support each parameter  
+     * Exclude the parameters that are already included in the main menues of splat query browser
+     * @param - metadata the parameters read from all servers 
+     * 
+     */
+    private void processMetadata( ParamElement[] metadata) {
+
+        int i=0;
+        //boolean changed = false;
+
+        while ( i < metadata.length ) {
+            String paramName = metadata[i].getName();
+            if (! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
+                    ! paramName.equalsIgnoreCase("INPUT:SIZE") &&
+                    ! paramName.equalsIgnoreCase("INPUT:BAND") &&
+                    ! paramName.equalsIgnoreCase("INPUT:TIME") && 
+                    ! paramName.equalsIgnoreCase("INPUT:FORMAT") && 
+                    ! paramName.equalsIgnoreCase("INPUT:WAVECALIB") && 
+                    ! paramName.equalsIgnoreCase("INPUT:FLUXCALIB") && 
+                    ! paramName.equalsIgnoreCase("INPUT:TARGETNAME") ) 
+            {
+                MetadataInputParameter mip = new MetadataInputParameter(metadata[i]);
+                addMetaParam(mip);    // call static synchronized method to change the data with mutual exclusion
+            } // if
+            i++;
+        } // while
+
+    }//processMetadata
+
+    /*
+     * Adds parameters to the hash and to the parameter table
+     * 
+     * @param mip - the metadata parameter object
+     */
+    private synchronized static void addMetaParam( MetadataInputParameter mip) {
+
+        if (! metaParam.containsKey(mip.getName())) 
+        {
+            metaParam.put( mip.getName(), mip );
+            // add new element to the parameter table
+            metaFrame.addRow(mip);
+
+        } else {
+            // increase counter of existing hash member
+            mip = metaParam.get(mip.getName());
+            mip.increase();
+            metaParam.put( mip.getName(), mip );
+            // update nr server column in the table
+            metaFrame.setNrServers(mip.getCounter(), mip.getName());
+        }
+
+    }
     //
     // MouseListener interface. Double clicks display the clicked spectrum.
     //
@@ -1764,7 +2121,7 @@ public class SSAQueryBrowser
     //  Action for switching name resolvers.
     //
     class ResolverAction
-        extends AbstractAction
+    extends AbstractAction
     {
         SkycatCatalog resolver = null;
         public ResolverAction( String name, SkycatCatalog resolver )
@@ -1782,7 +2139,7 @@ public class SSAQueryBrowser
     // LocalAction to encapsulate all trivial local Actions into one class.
     //
     class LocalAction
-        extends AbstractAction
+    extends AbstractAction
     {
         //  Types of action.
         public static final int PROXY = 0;
@@ -1801,7 +2158,7 @@ public class SSAQueryBrowser
         }
 
         public LocalAction( int actionType, String name, Icon icon,
-                            String help )
+                String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
@@ -1809,7 +2166,7 @@ public class SSAQueryBrowser
         }
 
         public LocalAction( int actionType, String name, Icon icon,
-                            String help, String accel )
+                String help, String accel )
         {
             this( actionType, name, icon, help );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
@@ -1842,4 +2199,87 @@ public class SSAQueryBrowser
             }
         }
     }
+
+    /**
+     * A Metadata input parameter class, to contain the parameter element and the number of servers that
+     * accept this parameter
+     */
+
+    public class MetadataInputParameter
+    {
+        ParamElement param;
+        String paramName = null;
+        String description = null;
+        String unit = null;
+        String value = null;
+        String nullValue = null;
+        String[] options;
+        //ValuesElement values = null;
+        String datatype = null;
+        String min=null;    
+        String max=null;
+
+
+        int counter;
+
+        MetadataInputParameter(ParamElement param) {
+
+            this.param = param; // TO DO  decide if it is really necessary to keep this object here...
+            counter=1; 
+            paramName = param.getName();
+            description = param.getDescription();
+            if (description == null)
+                description = "";
+            datatype = param.getDatatype();
+            value = param.getValue();
+            //if (value.equals("NaN") || value.contains("null") || value.contains("NULL") || value.contains("Null"))
+            //    value = "";
+            unit = param.getUnit();
+
+            /* To be done later after some questions have been cleared:
+             * what to do if different servers have parameter with same name and different default values, units and limits?
+             * 
+             * 
+    		ValuesElement values = param.getActualValues(); // or legal values??
+    		if  (values != null) {
+    		        options = values.getOptions();
+    		        max = values.getMaximum();
+    		        min = values.getMinimum();
+    		        nullValue=values.getNull();
+    		}
+             */	    		
+        }
+        protected int getCounter() {
+            return counter;
+        }
+        protected String getName() {
+            return paramName;
+        }
+        protected String getValue() {
+            return value;
+        }
+        protected String getDescription() {
+            return description;
+        }
+        protected String getDatatype() {
+            return datatype;
+        }
+        protected String getUnit() {
+            return unit;
+        }
+        /*
+    	protected void setDescription(String description) {
+    		 this.description = description;
+    	}
+    	protected void setDatatype(String datatype) {
+   		 this.datatype = datatype;
+    	}
+    	protected void setUnit(String unit) {
+      		 this.datatype = unit;
+       	}
+         */
+        protected void increase() {
+            counter++;
+        }
+    } // MetadataInputParameter
 }

@@ -4,6 +4,8 @@
  *  History:
  *     11-NOV-2004 (Peter W. Draper):
  *       Original version.
+ *     23-FEB-2012 (Margarida Castro Neves, mcneves@ari.uni-heidelberg.de)
+ *       Added getSize() method  
  */
 package uk.ac.starlink.splat.vo;
 
@@ -33,6 +35,7 @@ import uk.ac.starlink.vo.RegResource;
  *
  * @author Peter W. Draper
  * @version $Id$
+ * 
  */
 public class SSAServerList
 {
@@ -317,5 +320,9 @@ public class SSAServerList
             }
         }
         encoder.close();
+    }
+
+    public int getSize() {
+        return serverList.size();
     }
 }

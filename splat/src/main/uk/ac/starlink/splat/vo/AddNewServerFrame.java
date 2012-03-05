@@ -16,9 +16,7 @@ import java.awt.event.ActionListener;
 import java.net.URL;
 import java.net.MalformedURLException;
 
-import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -26,13 +24,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 //import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.vo.RegResource;
-import uk.ac.starlink.vo.RegCapabilityInterface;
 
 /**
  * Class AddNewServerFrame
@@ -43,8 +39,8 @@ import uk.ac.starlink.vo.RegCapabilityInterface;
  * @author Margarida Castro Neves
  */
 public class AddNewServerFrame
-    extends JFrame
-        implements ActionListener
+extends JFrame
+implements ActionListener
 {
 
     /**
@@ -180,7 +176,7 @@ public class AddNewServerFrame
      *  process the actions
      */
     public void actionPerformed(ActionEvent e) {
- 
+
         Object command = e.getActionCommand();
         int oldstatus = status; // save old status value
 
@@ -229,7 +225,7 @@ public class AddNewServerFrame
 
 
     /**
-     *  Add new server to the server list
+     *  Sets the new resource to be added to the server list
      */
     private void setResource()
     {
@@ -242,27 +238,27 @@ public class AddNewServerFrame
      *  Only minimal validation is performed.
      *  Returns 1 if no error occurred, 0 otherwise.
      */
-    private int validateResource( String shortName, String accessURL ) 
+    protected int validateResource( String shortName, String accessURL ) 
     {
         int ok = 0;
         statusLabel.setForeground(Color.red);
         if ( shortName.trim().length() == 0 ) {
-        // short name cannot be null
+            // short name cannot be null
 
             statusLabel.setText(new String( "Short Name cannot be empty!") );
 
         } else if  ( accessURL.trim().length() == 0 ) {
-        // access url cannot be null
+            // access url cannot be null
 
             statusLabel.setText(new String( "Access URL cannot be empty!") );
 
         } else if ( validateURL(accessURL) == false ) {
-        // check URL syntax 
+            // check URL syntax 
 
             statusLabel.setText(new String( "Malformed URL: "+accessURL));
 
         } else {
-        // else OK
+            // else OK
 
             statusLabel.setForeground(Color.black);
             ok=1;
@@ -294,7 +290,7 @@ public class AddNewServerFrame
     public boolean validateURL(String urlStr) 
     {
         try {
-            URL url = new URL(urlStr);
+            new URL(urlStr);
             return true;
         } catch (MalformedURLException e) {
             return false;
