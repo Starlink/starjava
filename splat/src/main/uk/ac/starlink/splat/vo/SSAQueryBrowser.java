@@ -3277,7 +3277,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
 
         public Object construct()
-        {   
+        {
             final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
                if (progressPanel != null)
                 progressPanel.start();            
