@@ -262,7 +262,6 @@ public class SSAMetadataFrame extends JFrame implements ActionListener
      */
     class SupportedComparator  implements Comparator<String[]>
     { 
-        @Override
         public int compare(String[] object1, String[] object2) {
             // compare the frequency counter
             return ( Integer.parseInt(object2[NR_SERVERS_INDEX]) - Integer.parseInt(object1[NR_SERVERS_INDEX]) );
@@ -748,7 +747,6 @@ public class SSAMetadataFrame extends JFrame implements ActionListener
      */
     class ParamCellRenderer  extends JLabel implements TableCellRenderer 
     {  
-        @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,  boolean hasFocus, int row,  int column)
         {   
            
