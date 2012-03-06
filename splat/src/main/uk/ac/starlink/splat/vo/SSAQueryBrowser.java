@@ -58,7 +58,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SwingWorker;
+//import javax.swing.SwingWorker;
 
 import jsky.catalog.BasicQueryArgs;
 import jsky.catalog.QueryArgs;
@@ -68,7 +68,7 @@ import jsky.catalog.skycat.SkycatCatalog;
 import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
-//import jsky.util.SwingWorker;
+import jsky.util.SwingWorker;
 
 import org.xml.sax.InputSource;
 
@@ -941,8 +941,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
             final SwingWorker worker = new SwingWorker()
             {
                 boolean interrupted = false;
-                //   public Object construct()
-                public Object doInBackground()
+                public Object construct() 
                 {
                     progressPanel.start();
                     try {
@@ -954,11 +953,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
                     return null;
                 }
 
-                public void done()
+                public void finished()
                 {
                     progressPanel.stop();
-                    //                       queryThread = null;
-
                     //  Display the results.
                     if ( ! interrupted ) {
                         addResultsDisplay( ssaQuery );
@@ -971,22 +968,14 @@ implements ActionListener, MouseListener, PropertyChangeListener
                 public void actionPerformed( ActionEvent e )
                 {
                     if ( worker != null ) {
-                        if (worker.cancel(true))
-                        {
-                            // and do what?
-                        }
-                        // worker.interrupted = true;
-
-                        // worker.interrupt();
+                         worker.interrupt();
                     }
                 }
             });
 
-            worker.execute();
+            worker.start();  
         }
     }
-
-    //  private Thread queryThread = null;
 
     /**
      * Do a query to an SSAP server.
@@ -1862,9 +1851,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
             metadataProgressFrame.addProgressPanel( metadataProgressPanel );
             //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
             final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(workQueue, server, metadataProgressPanel);
-            queryWorker.execute();
+            queryWorker.start();
             final MetadataProcessWorker processWorker  = new MetadataProcessWorker(workQueue);           
-            processWorker.execute();
+            processWorker.start();
 
         }// while
 
@@ -1912,7 +1901,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
             this.progressPanel=panel;
         }
 
-        public Object doInBackground()
+        public Object construct()
         {
             final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
             if (progressPanel != null)
@@ -1955,7 +1944,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
             return null;
         } //doinbackground
 
-        public void done()
+        public void finished()
         {
             //  display the final status of the query
             if ( metadata != null ) {
@@ -1987,7 +1976,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         public MetadataProcessWorker( WorkQueue queue) {          
             this.workQueue=queue;
         }
-        public Object doInBackground()
+        public Object construct()
         {
             // progressPanel.start();
             try {
@@ -2004,7 +1993,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         } //construct
 
 
-        public void done()
+        public void finished()
         {
         } // done
 
