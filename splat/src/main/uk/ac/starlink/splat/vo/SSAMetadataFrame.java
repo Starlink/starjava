@@ -453,7 +453,7 @@ public class SSAMetadataFrame extends JFrame implements ActionListener
 
         //  Add action to query the servers for parameters 
         JButton queryButton = new JButton( "Update" , updateImage); 
-        queryButton.setActionCommand( "load" );
+        queryButton.setActionCommand( "refresh" );
         queryButton.setToolTipText( "Query the servers for a current list of parameters" );
         queryButton.addActionListener( this );
         buttonsPanel.add( queryButton );
