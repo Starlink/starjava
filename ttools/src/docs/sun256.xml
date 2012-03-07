@@ -8171,6 +8171,8 @@ but my thanks are especially due to the following:
         even when <code>join*=default</code>.</li>
     <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
         negative angles.  Now the output is forced positive.</li>
+    <li>Upgrade to official v1.0 of Gr&#x00e9;gory Mantelet's
+        ADQL library for TAP query parsing.</li>
     </ul>
     </p></dd>
 

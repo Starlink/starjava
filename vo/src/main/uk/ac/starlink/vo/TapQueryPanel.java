@@ -1,7 +1,9 @@
 package uk.ac.starlink.vo;
 
+import adql.db.exception.UnresolvedIdentifiersException;
 import adql.parser.ParseException;
 import adql.parser.Token;
+import adql.query.TextPosition;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -485,7 +487,7 @@ public class TapQueryPanel extends JPanel {
      */
     private class ParseTextArea extends JTextArea {
 
-        private Rectangle errorRect_;
+        private Rectangle[] errorRects_;
         private final Color highlighter_;
 
         /**
@@ -494,15 +496,18 @@ public class TapQueryPanel extends JPanel {
         public ParseTextArea() {
             super( new PlainDocument() );
             highlighter_ = new Color( 0x40ff0000, true );
+            errorRects_ = new Rectangle[ 0 ];
         }
 
         protected void paintComponent( Graphics g ) {
             super.paintComponent( g );
             Color col0 = g.getColor();
             g.setColor( highlighter_ );
-            if ( errorRect_ != null ) {
-                g.fillRect( errorRect_.x, errorRect_.y,
-                            errorRect_.width, errorRect_.height );
+            if ( errorRects_.length > 0 ) {
+                for ( int ir = 0; ir < errorRects_.length; ir++ ) {
+                    Rectangle erect = errorRects_[ ir ];
+                    g.fillRect( erect.x, erect.y, erect.width, erect.height );
+                }
             }
             g.setColor( col0 );
         }
@@ -513,34 +518,55 @@ public class TapQueryPanel extends JPanel {
          * @param  perr  parse error, or null if there is none
          */
         public void setParseError( ParseException perr ) {
-            Rectangle er = toRectangle( perr );
-            if ( ( er == null && errorRect_ != null ) ||
-                 ( er != null && ! er.equals( errorRect_ ) ) ) {
-                if ( er != null ) {
-                    repaint( er );
-                }
-                if ( errorRect_ != null ) {
-                    repaint( errorRect_ );
+            Rectangle[] ers = toRectangles( perr );
+            if ( ! Arrays.equals( errorRects_, ers ) ) {
+                errorRects_ = ers;
+                repaint();
+            }
+        }
+
+        /**
+         * Returns zero or more rectangles on this text area which mark
+         * the positions of tokens corresponding to parse errors indicated
+         * by the given parse exception.
+         *
+         * @param  perr  parse error (may be null)
+         * @return  array of error token rectangles
+         */
+        private Rectangle[] toRectangles( ParseException perr ) {
+            List<Rectangle> rectList = new ArrayList<Rectangle>();
+            if ( perr instanceof UnresolvedIdentifiersException ) {
+                for ( ParseException pe :
+                      (UnresolvedIdentifiersException) perr ) {
+                    Rectangle rect = toRectangle( pe );
+                    if ( rect != null ) {
+                        rectList.add( rect );
+                    }
                 }
             }
-            errorRect_ = er;
+            else if ( perr != null ) {
+                Rectangle rect = toRectangle( perr );
+                if ( rect != null ) {
+                    rectList.add( rect );
+                }
+            }
+            return rectList.toArray( new Rectangle[ 0 ] );
         }
 
         /**
          * Indicates the coordinates of a rectangle on this text area
          * corresponding to the token indicated by a parse error.
          *
-         * @param  perr  parse error
+         * @param  perr  parse error (may be null)
          * @return   rectangle coordinates of error-causing token
          */
         private Rectangle toRectangle( ParseException perr ) {
-            if ( perr == null ) {
+            TextPosition tpos = perr == null ? null : perr.getPosition();
+            if ( tpos == null ) {
                 return null;
             }
-            Rectangle r0 =
-                toRectangle( perr.getBeginLine(), perr.getBeginColumn() );
-            Rectangle r1 =
-                toRectangle( perr.getEndLine(), perr.getEndColumn() + 1 );
+            Rectangle r0 = toRectangle( tpos.beginLine, tpos.beginColumn );
+            Rectangle r1 = toRectangle( tpos.endLine, tpos.endColumn );
             if ( r0 == null || r1 == null ) {
                 return null;
             }

@@ -15333,6 +15333,9 @@ introduced since the last version:
         i.e. not representing an inter-table match.</li>
     <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
         negative angles.  Now the output is forced positive.</li>
+    <li>ADQL parsing in the TAP window can now highlight all unknown symbols
+        not just one of them.  This is possible by upgrading to the
+        official v1.0 of Gr&#x00e9;gory Mantelet's ADQL library.</li>
     </ul>
     </p>
     </dd>
