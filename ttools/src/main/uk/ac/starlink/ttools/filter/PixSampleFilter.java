@@ -24,9 +24,8 @@ public class PixSampleFilter extends BasicFilter {
      */
     public PixSampleFilter() {
         super( "addpixsample",
-               "[-radius <expr-rad>] [-equ2gal]"
-             + " <expr-lon> <expr-lat>"
-             + " <healpix-file>" );
+               "[-radius <expr-rad>] [-systems <in-sys> <pix-sys>]\n"
+             + "<expr-lon> <expr-lat> <healpix-file>" );
     }
 
     public String[] getDescriptionLines() {
@@ -36,7 +35,7 @@ public class PixSampleFilter extends BasicFilter {
             "in HEALPix format.",
             "The <code>&lt;healpix-file&gt;</code> argument must be",
             "the filename of a table containing HEALPix pixel data.",
-            "The URL of such a file can be used as well, but local files",
+            "The URL of such a file can be used instead, but local files",
             "are likely to be more efficient.",
             "</p>",
             "<p>The <code>&lt;expr-lon&gt;</code>",
@@ -44,20 +43,14 @@ public class PixSampleFilter extends BasicFilter {
             "give expressions for the longitude and latitude in degrees",
             "for each row of the input table;",
             "this is usually just the column names.",
-            "The long/lat must in general be in the same coordinate system",
+            "The long/lat must usually be in the same coordinate system",
             "as that used for the HEALPix data, so if the one is in",
             "galactic coordinates the other must be as well.",
-            "Since HEALPix pixel data is often in galactic coordinates",
-            "and your data may not be, a special convenience flag",
-            "<code>-equ2gal</code> is available.",
-            "If this is given and the HEALPix data is in galactic coordinates,",
-            "then you can use Right Ascension and Declination columns for",
-            "the <code>&lt;expr-lon&gt;</code>",
-            "and <code>&lt;expr-lat&gt;</code> values respectively.",
-            "An alternative, and more general, way to perform the",
-            "necessary transformation is by using the",
-            "<ref id='" + addSkyCoordsName + "'>"
-                + "<code>" + addSkyCoordsName + "</code></ref> filter.",
+            "If this is not the case, use the <code>-systems</code> flag",
+            "to give the input long/lat and healpix data coordinate system",
+            "names respectively.",
+            "The available coordinate system names are:",
+            SkySystem.getSystemUsage(),
             "</p>",
             "<p>The <code>&lt;expr-rad&gt;</code>, if present,",
             "is a constant or expression",
@@ -89,13 +82,18 @@ public class PixSampleFilter extends BasicFilter {
             "If the filename given does not appear to point to a file",
             "of the appropriate format, an error will result.",
             "Note the LAMBDA files mostly (all?) use galactic coordinates,",
-            "so use of the <code>-equ2gal</code> flag may be appropriate,",
-            "see above.",
+            "so coordinate conversion using the <code>-systems</code> flag",
+            "may be appropriate, see above.",
             "</p>",
             explainSyntax( new String[] { "expr-lon", "expr-lat",
                                           "expr-rad" } ),
             "<p>This filter is somewhat experimental, and its usage may be",
             "changed or replaced in a future version.",
+            "</p>",
+            "<p><strong>Note: you may prefer to use the",
+            "<code><ref id='pixsample'>pixsample</ref></code>",
+            "command instead.",
+            "</strong>",
             "</p>",
         };
     }
@@ -107,7 +105,7 @@ public class PixSampleFilter extends BasicFilter {
         String sLon = null;
         String sLat = null;
         String sPixfile = null;
-        boolean equToGal = false;
+        String[] sysStrings = null;
         List<String> unknownFlags = new ArrayList<String>();
         while ( argIt.hasNext() &&
                 ( sLon == null || sLat == null || sPixfile == null ) ) {
@@ -117,9 +115,16 @@ public class PixSampleFilter extends BasicFilter {
                 sRadius = (String) argIt.next();
                 argIt.remove();
             }
-            else if ( arg.equals( "-equ2gal" ) ) {
+            else if ( arg.equals( "-systems" ) && argIt.hasNext() ) {
                 argIt.remove();
-                equToGal = true;
+                List<String> syslist = new ArrayList<String>();
+                syslist.add( (String) argIt.next() );
+                argIt.remove();
+                if ( argIt.hasNext() ) {
+                    syslist.add( (String) argIt.next() );
+                    argIt.remove();
+                }
+                sysStrings = syslist.toArray( new String[ 0 ] );
             }
             else if ( sLon == null ) {
                 argIt.remove();
@@ -150,9 +155,10 @@ public class PixSampleFilter extends BasicFilter {
             ? PixSampler.POINT_MODE
             : PixSampler.MEAN_MODE;
         final PixSample.CoordReader coordReader =
-              equToGal
-            ? PixSample.createCoordReader( SkySystem.FK5, SkySystem.GALACTIC )
-            : PixSample.createCoordReader( null, null );
+              sysStrings == null
+            ? PixSample.createCoordReader( null, null )
+            : PixSample.createCoordReader( getSystem( sysStrings[ 0 ] ),
+                                           getSystem( sysStrings[ 1 ] ) );
         final String lonExpr = sLon;
         final String latExpr = sLat;
         final String radExpr = sRadius == null ? "0" : sRadius;
@@ -178,5 +184,21 @@ public class PixSampleFilter extends BasicFilter {
                 return new AddColumnsTable( base, sampleTable );
             }
         };
+    }
+
+    /**
+     * Turns a coordinate system string into a SkySystem.
+     *
+     * @param  sysString  coordinate system string representation
+     * @return  coordinate system object
+     */
+    private static SkySystem getSystem( String sysString ) throws ArgException {
+        try {
+            return SkySystem.getSystemFor( sysString );
+        }
+        catch ( IllegalArgumentException e ) {
+            throw new ArgException( "Unknown coordinate system"
+                                  + "\"" + sysString + "\"", e );
+        }
     }
 }

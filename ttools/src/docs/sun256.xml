@@ -4367,9 +4367,7 @@ stilts pixsample in=szdata.fits pixdata=wmap_ilc_7yr_v4.fits
 <dt><verbatim>
 stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
                  stat=mean radius=5./60.
-                 icmd='addskycoords icrs galactic ra dec glon glat'
-                 lon=glon lat=glat
-                 ocmd='delcols "glon glat"'
+                 insys=icrs pixsys=galactic lon=RA2000 lat=DEC2000
 </verbatim></dt>
 <dd><p>Samples data from a HEALPix table, averaging over a sampling radius
     of 5 arcmin.  The coordinates in the input table are only available
@@ -4377,26 +4375,13 @@ stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
     in the pixel data file uses galactic coordinates
     (you can only determine this by looking at the FITS headers or
     documentation of that file), so it is necessary to use the
-    <ref id='addskycoords'><code>addskycoords</code></ref> filter
-    to generate galactic coordinates to supply as the 
-    <code>lon</code> and <code>lat</code> parameters.
-    The galactic coordinates are erased from the output table before
-    writing it.
+    <code>insys</code> and <code>pixsys</code> parameters for conversion.
     </p>
     <p>
     The pixdata file used here can be found (at time of writing) at
     <webref
       url='http://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits'
     /> (25 Mbyte).
-    </p></dd>
-
-<dt><verbatim>
-stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
-                 stat=mean radius=5./60.
-                 equ2gal=true lon=ra lat=dec
-</verbatim></dt>
-<dd><p>This does the same as the previous example but uses the
-    <code>equ2gal=true</code> shortcut.
     </p></dd>
 
 </dl>

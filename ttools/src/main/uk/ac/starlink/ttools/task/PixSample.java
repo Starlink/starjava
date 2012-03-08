@@ -5,10 +5,10 @@ import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.filter.CalculatorTable;
@@ -21,6 +21,8 @@ import uk.ac.starlink.ttools.filter.JELColumnTable;
  * @since    6 Dec 2011
  */
 public class PixSample extends MapperTask {
+
+    private static final String pixdataName_ = "pixdata";
 
     /**
      * Constructor.
@@ -36,9 +38,10 @@ public class PixSample extends MapperTask {
      */
     private static class PixSampleMapper implements TableMapper {
         private final ChoiceParameter<PixSampler.StatMode> modeParam_;
-        private final BooleanParameter equ2galParam_;
         private final Parameter lonParam_;
         private final Parameter latParam_;
+        private final ChoiceParameter<SkySystem> insysParam_;
+        private final ChoiceParameter<SkySystem> outsysParam_;
         private final Parameter radiusParam_;
         private final ChoiceParameter<HealpixScheme> schemeParam_;
 
@@ -60,7 +63,12 @@ public class PixSample extends MapperTask {
                 }
             };
             radiusParam_ = new Parameter( "radius" );
-            equ2galParam_ = new BooleanParameter( "equ2gal" );
+            insysParam_ =
+                new ChoiceParameter<SkySystem>( "insys",
+                                                SkySystem.getKnownSystems() );
+            outsysParam_ =
+                new ChoiceParameter<SkySystem>( "pixsys",
+                                                SkySystem.getKnownSystems() );
 
             modeParam_.setPrompt( "Statistical quantity to gather"
                                 + " from pixels" );
@@ -107,6 +115,23 @@ public class PixSample extends MapperTask {
                 "</p>",
             } );
 
+            String postxt = new StringBuffer()
+                .append( "This will usually be the name or ID of a column\n" )
+                .append( "in the input table,\n" )
+                .append( "or an expression involving one.\n" )
+                .append( "If this coordinate does not match the coordinate\n" )
+                .append( "system used by the pixel data table,\n" )
+                .append( "both coordinate systems must be set using the\n" )
+                .append( "<code>" )
+                .append( insysParam_.getName() )
+                .append( "</code>" )
+                .append( " and " )
+                .append( "<code>" )
+                .append( outsysParam_.getName() )
+                .append( "</code>" )
+                .append( " parameters.\n" )
+                .toString();
+
             lonParam_ = new Parameter( "lon" );
             lonParam_.setPrompt( "Input table longitude in degrees" );
             lonParam_.setUsage( "<expr>" );
@@ -114,13 +139,7 @@ public class PixSample extends MapperTask {
                 "<p>Expression which evaluates to the longitude coordinate",
                 "in degrees in the input table at which",
                 "positions are to be sampled from the pixel data table.",
-                "This will usually be the name or ID of a column",
-                "in the input table, or an expression involving one.",
-                "Note that this coordinate must match the coordinate",
-                "system used by the pixel data table",
-                "(though see also the <code>" + equ2galParam_.getName()
-                                              + "</code> parameter).",
- 
+                postxt,
                 "</p>",
             } );
 
@@ -131,13 +150,7 @@ public class PixSample extends MapperTask {
                 "<p>Expression which evaluates to the latitude coordinate",
                 "in degrees in the input table at which",
                 "positions are to be sampled from the pixel data table.",
-                "This will usually be the name or ID of a column",
-                "in the input table, or an expression involving one.",
-                "Note that this coordinate must match the coordinate",
-                "system used by the pixel data table",
-                "(though see also the <code>" + equ2galParam_.getName()
-                                              + "</code> parameter).",
- 
+                postxt,
                 "</p>",
             } );
 
@@ -162,26 +175,45 @@ public class PixSample extends MapperTask {
             } );
             schemeParam_.setDefaultOption( HealpixScheme.AUTO );
 
-            equ2galParam_.setPrompt( "Convert " + lonParam_.getName() + "/"
-                                   + latParam_.getName()
-                                   + " from RA/Dec to Galactic?" );
-            equ2galParam_.setDescription( new String[] {
-                "<p>Under normal circumstances, the",
-                "<code>" + lonParam_.getName() + "</code> and",
-                "<code>" + latParam_.getName() + "</code> parameters",
-                "must be specified in the same coordinate system",
-                "as that used by the pixel data file.",
-                "As a convenience, this flag can be set true for the case",
-                "in which the pixel data file uses galactic coordinates",
-                "and the <code>" + lonParam_.getName()
-                    + "</code>/<code>" + latParam_.getName() + "</code>",
-                "parameters are equatorial (RA/Dec).",
-                "For more general coordinate transformations you can use",
-                "the <ref id='addskycoords'><code>addskycoords</code></ref>",
-                "filter.",
+            String systxt = new StringBuffer()
+                .append( "If the sample positions are given\n" )
+                .append( "in the same coordinate system as that given by\n" )
+                .append( "the pixel data table, both the " )
+                .append( "<code>" )
+                .append( insysParam_.getName() )
+                .append( "</code>" )
+                .append( " and " )
+                .append( "<code>" )
+                .append( outsysParam_.getName() )
+                .append( "</code>" )
+                .append( " parameters may be set <code>null</code>.\n" )
+                .append( "</p>\n" )
+                .append( "<p>The available coordinate systems are:\n" )
+                .append( SkySystem.getSystemUsage() )
+                .toString();
+
+            insysParam_.setPrompt( "Sky coordinate system"
+                                 + " for sample positions" );
+            insysParam_.setDescription( new String[] {
+                "<p>Specifies the sky coordinate system in which",
+                "sample positions are provided by the",
+                "<code>" + lonParam_.getName() + "</code>" + "/" +
+                "<code>" + latParam_.getName() + "</code>",
+                "parameters.",
+                systxt,
                 "</p>",
             } );
-            equ2galParam_.setDefault( Boolean.FALSE.toString() );
+            insysParam_.setNullPermitted( true );
+
+            outsysParam_.setPrompt( "Sky coordinate system"
+                                  + " for pixel positions" );
+            outsysParam_.setDescription( new String[] {
+                "<p>Specifies the sky coordinate system",
+                "used for the HEALPix data in the " + pixdataName_ + " file.",
+                systxt,
+                "</p>",
+            } );
+            outsysParam_.setNullPermitted( true );
         }
 
         public Parameter[] getParameters() {
@@ -190,8 +222,9 @@ public class PixSample extends MapperTask {
                 modeParam_,
                 lonParam_,
                 latParam_,
+                insysParam_,
+                outsysParam_,
                 radiusParam_,
-                equ2galParam_,
             };
         }
 
@@ -201,10 +234,8 @@ public class PixSample extends MapperTask {
                 throw new TaskException( "Wrong number of tables" );
             }
             final PixSampler.StatMode statMode = modeParam_.objectValue( env );
-            boolean equ2gal = equ2galParam_.booleanValue( env );
             final CoordReader coordReader =
-                equ2gal ? createCoordReader( SkySystem.FK5, SkySystem.GALACTIC )
-                        : createCoordReader( null, null );
+                createCoordReader( insysParam_, outsysParam_, env );
             final String lonExpr = lonParam_.stringValue( env );
             final String latExpr = latParam_.stringValue( env );
             final String radiusExpr = statMode.isPoint()
@@ -272,7 +303,7 @@ public class PixSample extends MapperTask {
                 inFilterParam_.getDescription(),
             } );
 
-            pixTableParam_ = new InputTableParameter( "pixdata" );
+            pixTableParam_ = new InputTableParameter( pixdataName_ );
             pixTableParam_.setUsage( "<pix-table>" );
             pixTableParam_.setPrompt( "HEALPix table location" );
             pixTableParam_.setDescription( new String[] {
@@ -392,6 +423,37 @@ public class PixSample extends MapperTask {
                 return pixSampler.sampleValues( lon, lat, radius, statMode );
             }
         };
+    }
+
+    /**
+     * Returns a coordinate reader which converts between coordinate
+     * systems specified by two given parameters.
+     * Null values are permitted for both, but not just one, of the parameters.
+     *
+     * @param  insysParam   input coordinate system parameter
+     * @param  outsysParam  output coordinate system parameter
+     * @return   coordinate reader that converts
+     */
+    private static CoordReader
+                   createCoordReader( ChoiceParameter<SkySystem> insysParam,
+                                      ChoiceParameter<SkySystem> outsysParam,
+                                      Environment env ) throws TaskException {
+        SkySystem insys = insysParam.objectValue( env );
+        outsysParam.setNullPermitted( insys == null );
+        SkySystem outsys = outsysParam.objectValue( env );
+        if ( ( insys == null ) != ( outsys == null ) ) {
+            String msg = new StringBuffer()
+                .append( "If one of " )
+                .append( insysParam.getName() )
+                .append( " and " )
+                .append( outsysParam.getName() )
+                .append( " is null, they must both be" )
+                .toString();
+            throw new ParameterValueException( outsysParam, msg );
+        }
+        else {
+            return createCoordReader( insys, outsys );
+        }
     }
 
     /**
