@@ -39,6 +39,7 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
   <!ENTITY pixsample-summary SYSTEM 'pixsample-summary.xml'>
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
   <!ENTITY plot3d-summary SYSTEM 'plot3d-summary.xml'>
@@ -207,8 +208,9 @@ same ground as the STIL and TOPCAT user documents
     <ref id="plothist"><code>plothist</code></ref>
     (see <ref id="plot" plaintextref="yes"/>).
     </p></dd>
-<dt>Pixel Sampling</dt>
+<dt>Sky Pixel Operations</dt>
 <dd><p>
+    <ref id="pixfoot"><code>pixfoot</code></ref> and
     <ref id="pixsample"><code>pixsample</code></ref>.
     </p></dd>
 <dt>VOTable</dt>
@@ -440,6 +442,7 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>funcs</code></li>
 <li><code>coneskymatch</code></li>
+<li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
 <li><code>plot2d</code></li>
 <li><code>plot3d</code></li>
@@ -1781,6 +1784,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
+           <ref id="pixfoot"><code>pixfoot</code></ref>,
            <ref id="pixsample"><code>pixsample</code></ref>,
            <ref id="plot2d"><code>plot2d</code></ref>,
            <ref id="plot3d"><code>plot3d</code></ref>,
@@ -3898,9 +3902,12 @@ Detailed descriptions and examples for each command can be found in
     See also <ref id="plot" plaintextref="yes"/>.
     </p></dd>
 
-<dt>Pixel Sampling:</dt>
+<dt>Sky Pixel Operations:</dt>
 <dd><p>
     <ul>
+    <li><ref id="pixfoot" plaintextref="yes"><code>pixfoot</code></ref>:
+        &pixfoot-purpose;
+        </li>
     <li><ref id="pixsample" plaintextref="yes"><code>pixsample</code></ref>:
         &pixsample-purpose;
         </li>
@@ -4290,6 +4297,56 @@ There are no parameters.
 &funcs-summary;
 
 </subsect>
+
+<subsect id="pixfoot" tocleaf="yes">
+<subhead><title><code>pixfoot</code>: &pixfoot-purpose;</title></subhead>
+
+<p><code>pixfoot</code> takes a list of sky positions from an input
+table and generates a pixel map describing a sky region which includes
+them all.
+Currently the output is to a format known as a Multi-Order Coverage map (MOC),
+which is a HEALPix-based format composed of a list of HEALPix pixels
+of different sizes, which can efficiently describe complex regions.
+Other output formats may be introduced in the future.
+</p>
+
+&pixfoot-summary;
+
+<subsubsect id="pixfoot-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>pixfoot</code>:
+<dl>
+
+<dt><verbatim>
+stilts pixfoot in=survey.vot ra=RA2000 dec=DEC2000
+               order=8 mocfmt=fits out=sfoot.fits
+</verbatim></dt>
+<dd><p>Generates an order-8 FITS MOC file from the point positions of
+    rows in the given VOTable.
+    </p></dd>
+
+<dt><verbatim>
+stilts pixfoot in='jdbc:mysql://localhost/astro1#SELECT * FROM first1'
+               icmd='addskycoords galactic icrs GLON GLAT RA DEC'
+               ra=RA dec=DEC radius=20./3600.
+               order=13 mocfmt=fits out=first.moc
+</verbatim></dt>
+<dd><p>Generates an order-13 FITS MOC file from positions in a table
+    held in a database.  The positions in the original table are in
+    galactic coordinates, so have to be converted to ecliptic (ICRS) first.  
+    The map is formed in this case by surrounding each point by a
+    disc of 20 arcsec.
+    Note that JDBC database access will have to be set up as per
+    <ref id="jdbcConfig"/> for this command to work.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+</subsect>
+
 
 <subsect id="pixsample" tocleaf="yes">
 <subhead><title><code>pixsample</code>: &pixsample-purpose;</title></subhead>
@@ -8158,6 +8215,8 @@ but my thanks are especially due to the following:
         negative angles.  Now the output is forced positive.</li>
     <li>Upgrade to official v1.0 of Gr&#x00e9;gory Mantelet's
         ADQL library for TAP query parsing.</li>
+    <li>Add new task <code><ref id="pixfoot">pixfoot</ref></code> for
+        generating MOC (Multi-Order Coverage) maps.</li>
     </ul>
     </p></dd>
 
