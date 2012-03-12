@@ -14,18 +14,18 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.vo.AbstractAdqlExample;
 import uk.ac.starlink.vo.AdqlExample;
+import uk.ac.starlink.vo.AdqlSyntax;
+import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapQueryPanel;
 import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.vo.UwsJob;
 
@@ -37,10 +37,20 @@ import uk.ac.starlink.vo.UwsJob;
  */
 public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
+    private final AdqlExample[] examples_;
     private volatile DeletionPolicy deletionPolicy_;
 
     public TopcatTapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "tap", false );
+
+        /* Prepare ADQL examples: basic and upload-based. */
+        List<AdqlExample> exampleList = new ArrayList<AdqlExample>();
+        exampleList.addAll( Arrays.asList( AbstractAdqlExample
+                                          .createSomeExamples() ) );
+        JList tcList = ControlWindow.getInstance().getTablesList();
+        exampleList.addAll( Arrays.asList( UploadAdqlExample
+                                          .createSomeExamples( tcList ) ) );
+        examples_ = exampleList.toArray( new AdqlExample[ 0 ] );
     }
 
     public Component createQueryComponent() {
@@ -82,41 +92,18 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     protected StarTable getUploadTable( String upLabel ) {
 
-        /* Get the list of known TopcatModels, since these are the ones
-         * that may be referred to as an upload table. */
-        ListModel tcListModel =
-            ControlWindow.getInstance().getTablesListModel();
-        TopcatModel[] tcModels = new TopcatModel[ tcListModel.getSize() ];
-        for ( int i = 0; i < tcModels.length; i++ ) {
-            tcModels[ i ] = (TopcatModel) tcListModel.getElementAt( i );
-        }
+        /* Get list of loaded tables. */
+        TopcatModel[] tcModels = getTopcatModels();
 
-        /* Check for a match against the label of a known table. 
-         * If found and syntactically legal, return the appropriate table.
-         * If found and illegal, reject with a helpful message. */
-        for ( int i = 0; i < tcModels.length; i++ ) {
-            TopcatModel tcModel = tcModels[ i ];
-            String tlabel = tcModel.getLabel();
-            if ( upLabel.equalsIgnoreCase( tlabel ) ||
-                 upLabel.equalsIgnoreCase( '"' + tlabel + '"' ) ) {
-                if ( tlabel.matches( "[A-Za-z][A-Za-z0-9_]*" ) ) {
+        /* Check the given label against the permitted upload aliases of
+         * each one. */
+        for ( int it = 0; it < tcModels.length; it++ ) {
+            TopcatModel tcModel = tcModels[ it ];
+            String[] aliases = getUploadAliases( tcModel );
+            for ( int ia = 0; ia < aliases.length; ia++ ) {
+                if ( upLabel.equalsIgnoreCase( aliases[ ia ] ) ) {
                     return tcModel.getApparentStarTable();
                 }
-                else {
-                    String msg = "Illegal upload table name \"" + upLabel + "\""
-                               + "\nMust be alphanumeric or of form T<n>;"
-                               + " try T" + tcModel.getID();
-                    throw new IllegalArgumentException( msg );
-                }
-            }
-        }
-
-        /* Check for a match of the form "T<n>", where <n> is table ID of
-         * a currently loaded table. */
-        for ( int i = 0; i < tcModels.length; i++ ) {
-            TopcatModel tcModel = tcModels[ i ];
-            if ( upLabel.equalsIgnoreCase( "T" + tcModel.getID() ) ) {
-                return tcModel.getApparentStarTable();
             }
         }
 
@@ -181,35 +168,101 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     }
 
     @Override
-    protected AdqlExample[] createAdqlExamples() {
+    protected TapQueryPanel createTapQueryPanel() {
+        return new TapQueryPanel( examples_ ) {
+            @Override
+            protected AdqlValidator.ValidatorTable[] getExtraTables() {
 
-        /* The text of the upload examples will be dependent on the
-         * current content and selection of the application main table list.
-         * So make sure they are reconfigured when that changes. */
-        JList tablesList = ControlWindow.getInstance().getTablesList();
-        tablesList.addListSelectionListener( new ListSelectionListener() {
-            public void valueChanged( ListSelectionEvent evt ) {
-                configureExamples();
+                /* Return a list of tables in the TAP_UPLOAD schema which may
+                 * be used in ADQL as well as those declared by the service. */
+                TopcatModel[] tcModels = getTopcatModels();
+                List<AdqlValidator.ValidatorTable> vtList =
+                    new ArrayList<AdqlValidator.ValidatorTable>();
+                for ( int it = 0; it < tcModels.length; it++ ) {
+                    TopcatModel tcModel = tcModels[ it ];
+                    String[] aliases = getUploadAliases( tcModel );
+                    for ( int ia = 0; ia < aliases.length; ia++ ) {
+                        String tname = "TAP_UPLOAD." + aliases[ ia ];
+                        vtList.add( toValidatorTable( tcModel, tname ) );
+                    }
+                }
+                return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
             }
-        } );
-        tablesList.getModel().addListDataListener( new ListDataListener() {
-            public void contentsChanged( ListDataEvent evt ) {
-                configureExamples();
-            }
-            public void intervalAdded( ListDataEvent evt ) {
-                configureExamples();
-            }
-            public void intervalRemoved( ListDataEvent evt ) {
-                configureExamples();
-            }
-        } );
+        };
+    }
 
-        /* Prepare the new examples and add them to the inherited list. */
-        List<AdqlExample> exampleList =
-            new ArrayList( Arrays.asList( super.createAdqlExamples( ) ) );
-        exampleList.addAll( Arrays.asList( UploadAdqlExample
-                                          .createSomeExamples( tablesList ) ) );
-        return exampleList.toArray( new AdqlExample[ 0 ] );
+    /**
+     * Returns a list of table names within the TAP_UPLOAD schema
+     * which can be used to refer to a given loaded TOPCAT table.
+     *
+     * @param  tcModel  topcat model referencing a loaded table
+     * @return   array of alternative names for referencing the table
+     *           in an ADQL upload query; the "TAP_UPLOAD." prefix is omitted
+     */
+    private String[] getUploadAliases( TopcatModel tcModel ) {
+        List<String> aliasList = new ArrayList<String>();
+
+        /* Use "T<n>", where <n> is table ID of a currently loaded table. */
+        aliasList.add( "T" + tcModel.getID() );
+
+        /* Use the table label if it is syntactically appropriate. */
+        String tcLabel = tcModel.getLabel();
+        if ( AdqlSyntax.getInstance().isIdentifier( tcLabel ) ) {
+            aliasList.add( tcLabel );
+        }
+        return aliasList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Utility method providing the list of tables currently loaded into
+     * the application.
+     *
+     * @return   array of currently loaded TopcatModels
+     */
+    private TopcatModel[] getTopcatModels() {
+        ListModel tcList = ControlWindow.getInstance().getTablesListModel();
+        TopcatModel[] tcModels = new TopcatModel[ tcList.getSize() ];
+        for ( int it = 0; it < tcModels.length; it++ ) {
+            tcModels[ it ] = (TopcatModel) tcList.getElementAt( it );
+        }
+        return tcModels;
+    }
+
+    /**
+     * Adapts a TopcatModel for use as a table metadata object indicating to
+     * the ADQL validator a permitted (upload) table.
+     *
+     * @param  tcModel  loaded table
+     * @param  tname  schema-qualified table name
+     * @return   table metadata object suitable for passing to validator
+     */
+    private static AdqlValidator.ValidatorTable
+            toValidatorTable( TopcatModel tcModel, final String tname ) {
+        StarTable dataTable = tcModel.getDataModel();
+        int ncol = dataTable.getColumnCount();
+        final AdqlValidator.ValidatorColumn[] vcols =
+            new AdqlValidator.ValidatorColumn[ ncol ];
+        final AdqlValidator.ValidatorTable vtable =
+                new AdqlValidator.ValidatorTable() {
+            public String getName() {
+                return tname;
+            }
+            public AdqlValidator.ValidatorColumn[] getColumns() {
+                return vcols;
+            }
+        };
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            final String cname = dataTable.getColumnInfo( ic ).getName();
+            vcols[ ic ] = new AdqlValidator.ValidatorColumn() {
+                public String getName() {
+                    return cname;
+                }
+                public AdqlValidator.ValidatorTable getTable() {
+                    return vtable;
+                }
+            };
+        }
+        return vtable;
     }
 
     /**
