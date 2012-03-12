@@ -8,6 +8,7 @@ import adql.db.DefaultDBTable;
 import adql.parser.ADQLParser;
 import adql.parser.ParseException;
 import adql.parser.QueryChecker;
+import adql.parser.TokenMgrError;
 import adql.query.ADQLIterator;
 import adql.query.ADQLObject;
 import adql.query.ADQLQuery;
@@ -41,14 +42,25 @@ public class AdqlValidator {
 
     /**
      * Validates an ADQL string.
+     * Any throwable returned hopefully includes useful information about
+     * the location and nature of the parse error, but that depends on the
+     * implementation.
      *
      * @param  query   ADQL query string
-     * @throws  ParseException   if the string is not valid ADQL
+     * @throws  Throwable   if the string is not valid ADQL
      */
-    public void validate( String query ) throws ParseException {
+    public void validate( String query ) throws Throwable {
         ADQLQuery pq = parser_.parseQuery( query );
         if ( checker_ != null ) {
-            checker_.check( pq );
+            try {
+                checker_.check( pq );
+            }
+            catch ( ParseException e ) {
+                throw e;
+            }
+            catch ( TokenMgrError e ) {
+                throw e;
+            }
         }
 
         /* Another possible check would be to identify unknown
@@ -122,7 +134,7 @@ public class AdqlValidator {
      * Tests parser.  Use <code>-h</code> for usage.
      */
     public static void main( String[] args )
-            throws ParseException,
+            throws Throwable,
             java.io.IOException, org.xml.sax.SAXException {
         String usage = "\n   Usage: " + AdqlValidator.class.getName()
                      + " [-meta <tmeta-url>] <query>\n";
