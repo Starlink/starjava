@@ -11,8 +11,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,7 +51,6 @@ public class TapQueryPanel extends JPanel {
     private URL serviceUrl_;
     private Thread metaFetcher_;
     private Thread capFetcher_;
-    private AdqlValidator validator_;
     private ParseException parseError_;
     private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
@@ -127,7 +124,7 @@ public class TapQueryPanel extends JPanel {
                 String text = textPanel_.getText();
                 if ( text.trim().length() > 0 ) {
                     try {
-                        validator_.validate( text );
+                        validateAdql( text );
                         setParseError( null );
                     }
                     catch ( ParseException e ) {
@@ -150,17 +147,20 @@ public class TapQueryPanel extends JPanel {
                 Object src = evt.getSource();
                 if ( src instanceof Component ) {
                     Component comp = (Component) src;
+
+                    /* The example text will be affected by various aspects
+                     * of the state of this component; they must be configured
+                     * appropriately before display.  It would be possible
+                     * to keep them up to date at all times by monitoring
+                     * the state of constituent components, but it needs
+                     * a lot of listeners and plumbing. */
+                    configureExamples();
                     examplesMenu.show( comp, 0, 0 );
                 }
             }
         };
         examplesAct_.putValue( Action.SHORT_DESCRIPTION,
                                "Choose from example ADQL quries" );
-        tmetaPanel_.getTableSelector().addItemListener( new ItemListener() {
-            public void itemStateChanged( ItemEvent evt ) {
-                configureExamples();
-            }
-        } );
 
         /* Controls for ADQL text panel. */
         Box buttLine = Box.createHorizontalBox();
@@ -343,7 +343,6 @@ public class TapQueryPanel extends JPanel {
                     public void run() {
                         if ( fetcher == capFetcher_ ) {
                             tcapPanel_.setCapability( cap );
-                            configureExamples();
                         }
                     }
                 } );
@@ -351,6 +350,21 @@ public class TapQueryPanel extends JPanel {
         };
         capFetcher_.setDaemon( true );
         capFetcher_.start();
+    }
+
+    /**
+     * Returns any extra tables available for valid queries.
+     * By default ADQL validation is done on a list of tables acquired
+     * by reading the service's declared table metadata.
+     * Subclasses which override this method can arrange for additional
+     * tables to be passed by the validator.
+     * This method is called immediately prior to any validation attempt.
+     * The default implementation returns an empty array.
+     *
+     * @return   array of additional tables to be passed by the validator
+     */
+    protected AdqlValidator.ValidatorTable[] getExtraTables() {
+        return new AdqlValidator.ValidatorTable[ 0 ];
     }
 
     /**
@@ -362,9 +376,6 @@ public class TapQueryPanel extends JPanel {
 
         /* Populate table metadata JTable. */
         tmetaPanel_.setTables( tmetas );
-
-        /* Set validator. */
-        validator_ = new AdqlValidator( tmetas );
 
         /* Display number of tables. */
         String countText;
@@ -378,14 +389,13 @@ public class TapQueryPanel extends JPanel {
             countText = "(" + tmetas.length + " tables)";
         }
         countLabel_.setText( countText );
-        configureExamples();
     }
 
     /**
      * Works with the known table and service metadata currently displayed
      * to set up example queries.
      */
-    public void configureExamples() {
+    private void configureExamples() {
         String lang = tcapPanel_.getQueryLanguage();
         TapCapability tcap = tcapPanel_.getCapability();
         TableMeta[] tables = tmetaPanel_.getTables();
@@ -396,6 +406,32 @@ public class TapQueryPanel extends JPanel {
                 exAct.getExample().getText( true, lang, tcap, tables, table );
             exAct.setAdqlText( adql );
         }
+    }
+
+    /**
+     * Validates ADQL text.
+     * The ParseException thrown on failure contains useful information
+     * about the location and nature of the parse error.
+     *
+     * @param  adqlText  ADQL query string to validate
+     * @throws  ParseException  if validation failed
+     */
+    private void validateAdql( String adqlText ) throws ParseException {
+
+        /* Prepare a list of table metadata objects to inform the validator
+         * what tables and columns are available. */
+        List<AdqlValidator.ValidatorTable> vtList =
+            new ArrayList<AdqlValidator.ValidatorTable>();
+        TableMeta[] tmetas = tmetaPanel_.getTables();
+        for ( int it = 0; it < tmetas.length; it++ ) {
+            vtList.add( AdqlValidator.toValidatorTable( tmetas[ it ] ) );
+        }
+        vtList.addAll( Arrays.asList( getExtraTables() ) );
+        AdqlValidator.ValidatorTable[] vtables =
+            vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+
+        /* Construct and use a validator. */
+        new AdqlValidator( vtables ).validate( adqlText );
     }
 
     /**
