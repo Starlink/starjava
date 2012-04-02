@@ -178,10 +178,11 @@ public class AddSkyCoordsFilter extends BasicFilter {
                     outColInfos[ i ] = cinfo;
                 }
 
-                StarTable inCoordsTable =
-                    new ColumnPermutedStarTable( base, inColIndices );
-                StarTable outCoordsTable = new CalculatorTable( inCoordsTable,
-                                                                outColInfos ) {
+                ColumnSupplement inCoordsSup =
+                    new PermutedColumnSupplement( base, inColIndices );
+                ColumnSupplement outCoordsSup =
+                        new CalculatorColumnSupplement( inCoordsSup,
+                                                        outColInfos ) {
                     protected Object[] calculate( Object[] inputs ) {
                         double[] inRads =
                             inUnits.decode( inputs[ 0 ], inputs[ 1 ] );
@@ -194,7 +195,7 @@ public class AddSkyCoordsFilter extends BasicFilter {
                         return outVals;
                     }
                 };
-                return new AddColumnsTable( base, outCoordsTable );
+                return new AddColumnsTable( base, outCoordsSup );
             }
         };
     }

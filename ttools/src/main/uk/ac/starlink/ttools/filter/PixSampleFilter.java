@@ -177,11 +177,12 @@ public class PixSampleFilter extends BasicFilter {
         /* Return a new processing step that does the work. */
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
-                StarTable sampleTable =
-                    PixSample.createSampleTable( base, pixSampler, statMode,
-                                                 coordReader, lonExpr, latExpr,
-                                                 radExpr );
-                return new AddColumnsTable( base, sampleTable );
+                ColumnSupplement sampleSup =
+                    PixSample
+                   .createSampleSupplement( base, pixSampler,
+                                            statMode, coordReader,
+                                            lonExpr, latExpr, radExpr );
+                return new AddColumnsTable( base, sampleSup );
             }
         };
     }

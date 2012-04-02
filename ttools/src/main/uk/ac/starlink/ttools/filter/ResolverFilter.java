@@ -89,15 +89,15 @@ public class ResolverFilter extends BasicFilter {
                 public StarTable wrap( StarTable base ) throws IOException {
                     int iNameCol = new ColumnIdentifier( base )
                                   .getColumnIndex( objId0 );
-                    StarTable inNameTable =
-                        new ColumnPermutedStarTable( base,
-                                                     new int[] { iNameCol } );
-                    StarTable outCoordsTable =
-                        new ResolverTable( inNameTable, resolver,
-                                           raName0, decName0,
-                                           Tables.getColumnInfos( base ),
-                                           100000 );
-                    return new AddColumnsTable( base, outCoordsTable );
+                    ColumnSupplement inNameSup =
+                        new PermutedColumnSupplement( base,
+                                                      new int[] { iNameCol } );
+                    ColumnSupplement outCoordsSup =
+                        new ResolverSupplement( inNameSup, resolver,
+                                                raName0, decName0,
+                                                Tables.getColumnInfos( base ),
+                                                100000 );
+                    return new AddColumnsTable( base, outCoordsSup );
                 }
             };
         }
@@ -107,10 +107,10 @@ public class ResolverFilter extends BasicFilter {
     }
 
     /**
-     * Wrapper table which adds RA, Dec columns to an existing table by
-     * performing name resolution.
+     * ColumnSupplement which provides RA, Dec columns by performing
+     * name resolution.
      */
-    private static class ResolverTable extends CalculatorTable {
+    private static class ResolverSupplement extends CalculatorColumnSupplement {
 
         private final Resolver resolver_;
         private final Map<String,Pair> cache_;
@@ -118,7 +118,8 @@ public class ResolverFilter extends BasicFilter {
         /**
          * Constructor.
          *
-         * @param  base  base table
+         * @param  nameSup  column supplement with a single column,
+         *                  the name to be resolved
          * @param  resolver  resolver implementation to use
          * @param  raName  name of new RA column
          * @param  decName  name of new Declination column
@@ -127,12 +128,12 @@ public class ResolverFilter extends BasicFilter {
          * @param  cacheSize  max size of resolver cache;
          *                    if &lt;=0 cache size is unlimited
          */
-        ResolverTable( StarTable nameTable, Resolver resolver,
-                       String raName, String decName,
-                       ColumnInfo[] baseColInfos, final int cacheSize )
+        ResolverSupplement( ColumnSupplement nameSup, Resolver resolver,
+                            String raName, String decName,
+                            ColumnInfo[] baseColInfos, final int cacheSize )
                 throws IOException {
-            super( nameTable, createColumnInfos( raName, decName, resolver,
-                                                 baseColInfos ) );
+            super( nameSup, createColumnInfos( raName, decName, resolver,
+                                               baseColInfos ) );
             resolver_ = resolver;
             Map<String,Pair> cache =
                 cacheSize >= 0 ? new LinkedHashMap<String,Pair>() {

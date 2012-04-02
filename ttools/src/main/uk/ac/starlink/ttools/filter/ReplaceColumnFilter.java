@@ -132,11 +132,12 @@ public class ReplaceColumnFilter extends BasicFilter {
             cinfo.setElementSize( -1 );
             cinfo.setShape( new int[] { -1 } );
 
-            /* Create a table with the new column. */
-            StarTable jelTable = new JELColumnTable( base, expr_, cinfo );
+            /* Create a column supplement with the new column. */
+            ColumnSupplement jelSup =
+                new JELColumnSupplement( base, expr_, cinfo );
 
             /* Add the new column just after the one it's replacing. */
-            StarTable addTable = new AddColumnsTable( base, jelTable, icol );
+            StarTable addTable = new AddColumnsTable( base, jelSup, icol );
 
             /* Delete the old column. */
             StarTable removed =

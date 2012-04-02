@@ -17,10 +17,10 @@ import uk.ac.starlink.table.WrapperStarTable;
  */
 public class AddColumnsTable extends WrapperStarTable {
 
-    private final StarTable table0_;
-    private final StarTable table1_;
+    private final StarTable baseTable_;
+    private final ColumnSupplement colSup_;
     private final int ncol_;
-    private final boolean[] jtabs_; // false for t0 (base), true for t1 (added)
+    private final boolean[] jtabs_; // false for base, true for supplement
     private final int[] jcols_;     // column index in table indicated by jtabs_
 
     /**
@@ -28,17 +28,17 @@ public class AddColumnsTable extends WrapperStarTable {
      * given position.
      *
      * @param  baseTable  base table
-     * @param  addTable  table whose columns are to be added
+     * @param  colSup   object supplying columns to be added
      * @param  ipos  column index within the output table at which
-     *               the first <code>addTable</code> column should appear
+     *               the first <code>colSup</code> column should appear
      */
-    public AddColumnsTable( StarTable baseTable, StarTable addTable,
+    public AddColumnsTable( StarTable baseTable, ColumnSupplement colSup,
                             int ipos ) {
         super( baseTable );
-        table0_ = baseTable;
-        table1_ = addTable;
-        int nc0 = table0_.getColumnCount();
-        int nc1 = table1_.getColumnCount();
+        baseTable_ = baseTable;
+        colSup_ = colSup;
+        int nc0 = baseTable_.getColumnCount();
+        int nc1 = colSup_.getColumnCount();
         ncol_ = nc0 + nc1;
 
         /* Store a lookup table for where to find output columns. */
@@ -70,36 +70,30 @@ public class AddColumnsTable extends WrapperStarTable {
      * columns of the base table.
      *
      * @param   baseTable   base table
-     * @param  addTable  table whose columns are to be added
+     * @param  colSup   object supplying columns to be added
      */
-    public AddColumnsTable( StarTable baseTable, StarTable addTable ) {
-        this( baseTable, addTable, baseTable.getColumnCount() );
+    public AddColumnsTable( StarTable baseTable, ColumnSupplement colSup ) {
+        this( baseTable, colSup, baseTable.getColumnCount() );
     }
 
     public int getColumnCount() {
         return jcols_.length;
     }
 
-    public long getRowCount() {
-        return Math.min( table0_.getRowCount(), table1_.getRowCount() );
-    }
-
-    public boolean isRandom() {
-        return table0_.isRandom() && table1_.isRandom();
-    }
-
     public ColumnInfo getColumnInfo( int icol ) {
-        return ( jtabs_[ icol ] ? table1_ : table0_ )
-              .getColumnInfo( jcols_[ icol ] );
+        int jcol = jcols_[ icol ];
+        return jtabs_[ icol ] ? colSup_.getColumnInfo( jcol )
+                              : baseTable_.getColumnInfo( jcol );
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
-        return ( jtabs_[ icol ] ? table1_ : table0_ )
-              .getCell( irow, jcols_[ icol ] );
+        int jcol = jcols_[ icol ];
+        return jtabs_[ icol ] ? colSup_.getCell( irow, jcol )
+                              : baseTable_.getCell( irow, jcol );
     }
 
     public Object[] getRow( long irow ) throws IOException {
-        return combineRows( table0_.getRow( irow ), table1_.getRow( irow ) );
+        return combineRows( baseTable_.getRow( irow ), colSup_.getRow( irow ) );
     }
 
     /**
@@ -120,22 +114,35 @@ public class AddColumnsTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final RowSequence rseq0 = table0_.getRowSequence();
-        final RowSequence rseq1 = table1_.getRowSequence();
+        final RowSequence baseSeq = baseTable_.getRowSequence();
+        final SupplementSequence supSeq = colSup_.createSequence( baseSeq );
         return new RowSequence() {
+            long lrow_ = -1;
             public boolean next() throws IOException {
-                return rseq0.next() && rseq1.next();
+                if ( baseSeq.next() ) {
+                    lrow_++;
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
             public Object getCell( int icol ) throws IOException {
-                return ( jtabs_[ icol ] ? rseq1 : rseq0 )
-                      .getCell( jcols_[ icol ] );
+                if ( lrow_ >= 0 ) {
+                    int jcol = jcols_[ icol ];
+                    return jtabs_[ icol ] ? supSeq.getCell( lrow_, jcol )
+                                          : baseSeq.getCell( jcol );
+                }
+                else {
+                    throw new IllegalStateException();
+                }
             }
             public Object[] getRow() throws IOException {
-                return combineRows( rseq0.getRow(), rseq1.getRow() );
+                return combineRows( baseSeq.getRow(),
+                                    supSeq.getRow( lrow_ ) );
             }
             public void close() throws IOException {
-                rseq0.close();
-                rseq1.close();
+                baseSeq.close();
             }
         };
     }

@@ -19,7 +19,8 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
-import uk.ac.starlink.ttools.filter.JELColumnTable;
+import uk.ac.starlink.ttools.filter.ColumnSupplement;
+import uk.ac.starlink.ttools.filter.JELColumnSupplement;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -105,9 +106,10 @@ public class ExtAppMode implements ProcessingMode {
     }
 
     private StarTable doctor( StarTable table ) throws IOException {
-        StarTable oidTable =
-            new JELColumnTable( table, "\"id_\"+$0", new ColumnInfo( "_OID" ) );
-        return new AddColumnsTable( table, oidTable );
+        ColumnSupplement oidSup =
+            new JELColumnSupplement( table, "\"id_\"+$0",
+                                     new ColumnInfo( "_OID" ) );
+        return new AddColumnsTable( table, oidSup );
     }
 
     private String[] getSelectedIds( StarTable table, String selexpr )
@@ -115,8 +117,8 @@ public class ExtAppMode implements ProcessingMode {
         int idcol = table.getColumnCount() - 1;
         ColumnInfo flagInfo = new ColumnInfo( "flag", Boolean.class, null );
         table = new AddColumnsTable( table,
-                                     new JELColumnTable( table, selexpr,
-                                                         flagInfo ) );
+                                     new JELColumnSupplement( table, selexpr,
+                                                              flagInfo ) );
         int flagcol = table.getColumnCount() - 1;
         List idList = new ArrayList();
         RowSequence rseq = table.getRowSequence();

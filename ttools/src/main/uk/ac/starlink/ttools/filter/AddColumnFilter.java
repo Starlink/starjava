@@ -129,8 +129,9 @@ public class AddColumnFilter extends BasicFilter {
             else {
                 ipos = base.getColumnCount();
             }
-            StarTable jelTable = new JELColumnTable( base, expr_, cinfo_ );
-            return new AddColumnsTable( base, jelTable, ipos );
+            ColumnSupplement jelSup =
+                new JELColumnSupplement( base, expr_, cinfo_ );
+            return new AddColumnsTable( base, jelSup, ipos );
         }
     }
 }

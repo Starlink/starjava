@@ -1,28 +1,24 @@
 package uk.ac.starlink.ttools.filter;
 
 import java.io.IOException;
-import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 
 /**
- * Creates a new table whose columns are derived by calculating values
+ * ColumnSupplement whose columns are derived by calculating values
  * based on all the columns of another table.
  * To generate any of the columns of this table, a whole row of the
- * input table must be read.
+ * input supplement must be read.
  * Concrete implementations of this abstract class must implement the
  * {@link #calculate} method.
  *
- * <p>Table randomness, row count etc is taken from the input table,
- * but not table parameters.
- *
  * @author   Mark Taylor
- * @since    2 Dec 2011
+ * @since    2 Apr 2012
  */
-public abstract class CalculatorTable extends AbstractStarTable {
+public abstract class CalculatorColumnSupplement implements ColumnSupplement {
 
-    private final StarTable inTable_;
+    private final ColumnSupplement baseSup_;
     private final ColumnInfo[] outColInfos_;
     private Object[] currentOutRow_;
     private long iCurrentRow_;
@@ -30,19 +26,20 @@ public abstract class CalculatorTable extends AbstractStarTable {
     /**
      * Constructor.
      *
-     * @param  inTable   input table
-     * @param  outColInfos  column metadata for the constructed table
-     *                      (defines column count)
+     * @param  baseSup   base supplement
+     * @param  outColInfos  column metadata for the supplementary columns
+     *         (length defines column count)
      */
-    public CalculatorTable( StarTable inTable, ColumnInfo[] outColInfos ) {
-        inTable_ = inTable;
+    public CalculatorColumnSupplement( ColumnSupplement baseSup,
+                                       ColumnInfo[] outColInfos ) {
+        baseSup_ = baseSup;
         outColInfos_ = outColInfos;
         iCurrentRow_ = -1;
     }
 
     /**
      * Performs the calculations which populate the columns of this table.
-     * The input is a row of the input table, and the output is the
+     * The input is a row of the base table, and the output is the
      * row of this table.
      *
      * <p>The implementation must return a new array each time,
@@ -53,10 +50,6 @@ public abstract class CalculatorTable extends AbstractStarTable {
      */
     protected abstract Object[] calculate( Object[] inRow ) throws IOException;
 
-    public long getRowCount() {
-        return inTable_.getRowCount();
-    }
-
     public int getColumnCount() {
         return outColInfos_.length;
     }
@@ -65,12 +58,8 @@ public abstract class CalculatorTable extends AbstractStarTable {
         return outColInfos_[ icol ];
     }
 
-    public boolean isRandom() {
-        return inTable_.isRandom();
-    }
-
     public synchronized Object[] getRow( long irow ) throws IOException {
-        return calculate( inTable_.getRow( irow ) );
+        return calculate( baseSup_.getRow( irow ) );
     }
 
     public synchronized Object getCell( long irow, int icol )
@@ -82,30 +71,23 @@ public abstract class CalculatorTable extends AbstractStarTable {
         return currentOutRow_[ icol ];
     }
 
-    public RowSequence getRowSequence() throws IOException {
-        final RowSequence inSeq = inTable_.getRowSequence();
-        return new RowSequence() {
+    public SupplementSequence createSequence( RowSequence rseq )
+            throws IOException {
+        final SupplementSequence sseq = baseSup_.createSequence( rseq );
+        return new SupplementSequence() {
+            private long iSeq_ = -1;
             private Object[] row_;
-            public boolean next() throws IOException {
-                if ( inSeq.next() ) {
-                    row_ = null;
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            public Object[] getRow() throws IOException {
-                if ( row_ == null ) {
-                    row_ = calculate( inSeq.getRow() );
+            public Object[] getRow( long irow ) throws IOException {
+                if ( irow != iSeq_ ) {
+                    row_ = calculate( sseq.getRow( irow ) );
+                    iSeq_ = irow;
                 }
                 return row_;
             }
-            public Object getCell( int icol ) throws IOException {
-                return getRow()[ icol ];
-            }
-            public void close() throws IOException {
-                inSeq.close();
+            public Object getCell( long irow, int icol ) throws IOException {
+                Object[] row = getRow( irow );
+                assert row == row_;
+                return row[ icol ];
             }
         };
     }

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.SelectorStarTable;
@@ -16,7 +15,9 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
-import uk.ac.starlink.ttools.filter.CalculatorTable;
+import uk.ac.starlink.ttools.filter.CalculatorColumnSupplement;
+import uk.ac.starlink.ttools.filter.ColumnSupplement;
+import uk.ac.starlink.ttools.filter.PermutedColumnSupplement;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 
 /**
@@ -196,11 +197,12 @@ public class JdbcConeSearcher implements ConeSearcher {
                   hasTiles
                 ? new int[] { raRsetIndex_, decRsetIndex_, tileRsetIndex_ }
                 : new int[] { raRsetIndex_, decRsetIndex_ };
-            StarTable radecTable =
-                new ColumnPermutedStarTable( result, colMap );
+            ColumnSupplement radecSup =
+                new PermutedColumnSupplement( result, colMap );
             ColumnInfo[] addInfos =
                 (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
-            StarTable addTable = new CalculatorTable( radecTable, addInfos ) {
+            ColumnSupplement addSup =
+                    new CalculatorColumnSupplement( radecSup, addInfos ) {
                 protected Object[] calculate( Object[] inValues ) {
 
                     /* Get input row values. */
@@ -240,7 +242,7 @@ public class JdbcConeSearcher implements ConeSearcher {
                     return calcValues;
                 }
             };
-            result = new AddColumnsTable( result, addTable );
+            result = new AddColumnsTable( result, addSup );
         }
 
         /* Return the result table. */

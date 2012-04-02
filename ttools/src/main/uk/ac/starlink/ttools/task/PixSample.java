@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
 import java.io.IOException;
-import uk.ac.starlink.table.JoinFixAction;
-import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -11,8 +9,10 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.convert.SkySystem;
-import uk.ac.starlink.ttools.filter.CalculatorTable;
-import uk.ac.starlink.ttools.filter.JELColumnTable;
+import uk.ac.starlink.ttools.filter.AddColumnsTable;
+import uk.ac.starlink.ttools.filter.CalculatorColumnSupplement;
+import uk.ac.starlink.ttools.filter.ColumnSupplement;
+import uk.ac.starlink.ttools.filter.JELColumnSupplement;
 
 /**
  * Samples data from a HEALPix pixel file.
@@ -242,8 +242,6 @@ public class PixSample extends MapperTask {
                                     ? "0"
                                     : radiusParam_.stringValue( env );
             final HealpixScheme scheme = schemeParam_.objectValue( env );
-            final JoinFixAction pixJoinFixAction =
-                JoinFixAction.makeRenameDuplicatesAction( "_pix" );
             return new TableMapping() {
                 public StarTable mapTables( InputTableSpec[] ins )
                         throws TaskException, IOException {
@@ -263,17 +261,11 @@ public class PixSample extends MapperTask {
                     }
                     PixSampler pixSampler =
                         new PixSampler( pixTable, nside, isNested );
-                    StarTable sampleTable =
-                        createSampleTable( baseTable, pixSampler, statMode,
-                                           coordReader, lonExpr, latExpr,
-                                           radiusExpr );
-                    JoinFixAction[] fixActs = new JoinFixAction[] {
-                        JoinFixAction.NO_ACTION,
-                        pixJoinFixAction,
-                    };
-                    return new JoinStarTable( new StarTable[] { baseTable,
-                                                                sampleTable },
-                                              fixActs );
+                    ColumnSupplement sampleSup =
+                        createSampleSupplement( baseTable, pixSampler, statMode,
+                                                coordReader, lonExpr, latExpr,
+                                                radiusExpr );
+                    return new AddColumnsTable( baseTable, sampleSup );
                 }
             };
         }
@@ -396,23 +388,25 @@ public class PixSample extends MapperTask {
      * @param   radExpr  JEL expression for averaging radius
      * @return   table containing sampled columns
      */
-    public static StarTable
-            createSampleTable( StarTable base, final PixSampler pixSampler,
-                               final PixSampler.StatMode statMode,
-                               final CoordReader coordReader,
-                               String lonExpr, String latExpr, String radExpr )
+    public static ColumnSupplement
+            createSampleSupplement( StarTable base, final PixSampler pixSampler,
+                                    final PixSampler.StatMode statMode,
+                                    final CoordReader coordReader,
+                                    String lonExpr, String latExpr,
+                                    String radExpr )
             throws IOException {
 
         /* Put together a table containing just the input lon, lat, radius. */
-        StarTable calcInputTable =
-            new JELColumnTable( base,
-                                new String[] { lonExpr, latExpr, radExpr },
-                                null );
+        ColumnSupplement calcInputSup =
+            new JELColumnSupplement( base,
+                                     new String[] { lonExpr, latExpr, radExpr },
+                                     null );
 
         /* Feed it to a calculator table that turns those inputs into the
          * required pixel samples. */
-        return new CalculatorTable( calcInputTable,
-                                    pixSampler.getValueInfos( statMode ) ) {
+        return new CalculatorColumnSupplement( calcInputSup,
+                                               pixSampler
+                                              .getValueInfos( statMode ) ) {
             protected Object[] calculate( Object[] inRow ) throws IOException {
                 double[] coords =
                     coordReader.getCoords( getDouble( inRow[ 0 ] ),

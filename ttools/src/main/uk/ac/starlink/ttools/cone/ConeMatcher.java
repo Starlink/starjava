@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
-import uk.ac.starlink.table.ConstantStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
@@ -25,7 +24,10 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
-import uk.ac.starlink.ttools.filter.CalculatorTable;
+import uk.ac.starlink.ttools.filter.CalculatorColumnSupplement;
+import uk.ac.starlink.ttools.filter.ColumnSupplement;
+import uk.ac.starlink.ttools.filter.PermutedColumnSupplement;
+import uk.ac.starlink.ttools.filter.SupplementSequence;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -384,21 +386,21 @@ public class ConeMatcher implements TableProducer {
             throw new IllegalArgumentException( "Bad column info type" );
         }
         int ncolIn = inTable.getColumnCount();
-        ColumnInfo[] addCols = new ColumnInfo[] { distInfo };
-        final StarTable addTable;
+        ColumnInfo[] distCols = new ColumnInfo[] { distInfo };
+        final ColumnSupplement distSup;
         if ( ira < 0 || idec < 0 ) {
             Object[] blankRow = new Object[] { new Double( Double.NaN ) };
-            long nrow = inTable.getRowCount();
-            addTable = new ConstantStarTable( addCols, blankRow, nrow );
+            distSup = new ConstantColumnSupplement( distCols, blankRow );
         }
         else {
             final double raUnit =
                 getAngleUnit( inTable.getColumnInfo( ira ).getUnitString() );
             final double decUnit =
                 getAngleUnit( inTable.getColumnInfo( idec ).getUnitString() );
-            StarTable radecTable =
-                new ColumnPermutedStarTable( inTable, new int[] { ira, idec } );
-            addTable = new CalculatorTable( radecTable, addCols ) {
+            ColumnSupplement radecSup =
+                new PermutedColumnSupplement( inTable,
+                                              new int[] { ira, idec } );
+            distSup = new CalculatorColumnSupplement( radecSup, distCols ) {
                 protected Object[] calculate( Object[] inValues ) {
                     double ra1 = getDouble( inValues[ 0 ] ) * raUnit;
                     double dec1 = getDouble( inValues[ 1 ] ) * decUnit;
@@ -408,7 +410,7 @@ public class ConeMatcher implements TableProducer {
                 }
             };
         }
-        return new AddColumnsTable( inTable, addTable );
+        return new AddColumnsTable( inTable, distSup );
     }
 
     /**
@@ -723,6 +725,52 @@ public class ConeMatcher implements TableProducer {
                 }
                 public boolean isRandom() {
                     return false;
+                }
+            };
+        }
+    }
+
+    /**
+     * ColumnSupplement implementation that has a constant value for each row.
+     */
+    private static class ConstantColumnSupplement implements ColumnSupplement {
+        private final ColumnInfo[] colInfos_;
+        private final Object[] row_;
+
+        /**
+         * Constructor.
+         *
+         * @param   colInfos  column metadata array
+         * @param   row   column data array, same for each row
+         */
+        ConstantColumnSupplement( ColumnInfo[] colInfos, Object[] row ) {
+            colInfos_ = colInfos;
+            row_ = row;
+        }
+
+        public int getColumnCount() {
+            return colInfos_.length;
+        }
+
+        public ColumnInfo getColumnInfo( int icol ) {
+            return colInfos_[ icol ];
+        }
+
+        public Object getCell( long irow, int icol ) {
+            return row_[ icol ];
+        }
+
+        public Object[] getRow( long irow ) {
+            return row_.clone();
+        }
+
+        public SupplementSequence createSequence( RowSequence rseq ) {
+            return new SupplementSequence() {
+                public Object getCell( long irow, int icol ) {
+                    return row_[ icol ];
+                }
+                public Object[] getRow( long irow ) {
+                    return row_.clone();
                 }
             };
         }
