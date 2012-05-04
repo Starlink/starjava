@@ -9,6 +9,7 @@ The stripping was done by proguard, using the following incantation:
         -keep 'class com.lowagie.text.Document {*;}' \
         -keep 'class com.lowagie.text.pdf.PdfWriter {*;}' \
         -keep 'class com.lowagie.text.pdf.PdfContentByte {*;}' \
+        -keep 'class com.lowagie.text.FontFactory {*;}' \
         -dontoptimize -dontobfuscate \
         -outjars iText_shrunk.jar
 
