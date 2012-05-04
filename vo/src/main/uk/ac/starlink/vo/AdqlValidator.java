@@ -143,6 +143,10 @@ public class AdqlValidator {
         ArrayList<String> argList =
             new ArrayList<String>( java.util.Arrays.asList( args ) );
         try {
+            if ( argList.get( 0 ).startsWith( "-h" ) ) {
+                System.out.println( usage );
+                return;
+            }
             if ( argList.get( 0 ).equals( "-meta" ) ) {
                 argList.remove( 0 );
                 String loc = argList.remove( 0 );
