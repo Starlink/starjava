@@ -223,7 +223,7 @@ public class MocMode implements ProcessingMode {
      * @param  moc  MOC to affect
      * @param  checked   true iff continuous checking should be performed
      */
-    private static void setChecked( HealpixMoc moc, boolean checked )
+    public static void setChecked( HealpixMoc moc, boolean checked )
             throws IOException {
         try {
             moc.setCheckConsistencyFlag( checked );

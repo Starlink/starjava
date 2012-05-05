@@ -4,6 +4,7 @@ import cds.moc.HealpixImpl;
 import cds.moc.HealpixMoc;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import uk.ac.starlink.ttools.mode.MocMode;
 
 /**
  * Footprint implementation giving the coverage defined by a sequence of
@@ -47,6 +48,7 @@ public class ConeQueryFootprint extends MocFootprint {
         }
 
         /* Add coverage for each item in the query sequence. */
+        MocMode.setChecked( moc, false );
         try {
             HealpixImpl healpix = PixtoolsHealpix.getInstance();
             while ( qseq_.next() ) {
@@ -83,6 +85,7 @@ public class ConeQueryFootprint extends MocFootprint {
                     }
                 }
             }
+            MocMode.setChecked( moc, true );
             return moc;
         }
         finally {
