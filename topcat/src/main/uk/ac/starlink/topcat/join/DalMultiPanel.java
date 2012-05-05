@@ -1,6 +1,5 @@
 package uk.ac.starlink.topcat.join;
 
-import cds.moc.HealpixMoc;
 import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Color;
