@@ -49,6 +49,16 @@ public class Conversions {
     }
 
     /**
+     * Turns a single character value into a string.
+     *
+     * @param  charVal  character numeric value
+     * @return  a string representation of <code>charVal</code>
+     */
+    public static String toString( char charVal ) {
+        return Character.toString( charVal );
+    }
+
+    /**
      * Turns any value into a string.
      * As applied to existing string values this isn't really useful,
      * but it means that you can apply <code>toString()</code>
