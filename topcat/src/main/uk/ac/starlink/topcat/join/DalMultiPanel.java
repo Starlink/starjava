@@ -283,10 +283,15 @@ public class DalMultiPanel extends JPanel {
         footprintModel_.setSelected( service_.hasFootprints() );
         footprintModel_.setEnabled( service_.hasFootprints() );
         footprintModel_.addChangeListener( new ChangeListener() {
+            private boolean wasSelected_ = footprintModel_.isSelected();
             public void stateChanged( ChangeEvent evt ) {
-                updateServiceFootprint();
-                updateQueryFootprint();
-                updateOverlapFootprint();
+                boolean isSelected = footprintModel_.isSelected();
+                if ( isSelected ^ wasSelected_ ) {
+                    updateServiceFootprint();
+                    updateQueryFootprint();
+                    updateOverlapFootprint();
+                    wasSelected_ = isSelected;
+                }
             }
         } );
 
@@ -619,7 +624,9 @@ public class DalMultiPanel extends JPanel {
         /* Assemble objects based on this information. */
         ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
         searcher = erract.adjustConeSearcher( searcher );
-        Footprint footprint = service_.getFootprint( serviceUrl );
+        Footprint footprint = footprintModel_.isSelected()
+                            ? service_.getFootprint( serviceUrl )
+                            : null;
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher =
