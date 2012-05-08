@@ -18,7 +18,7 @@ import uk.ac.starlink.table.StarTable;
  * This table will have <tt>colMap.length</tt> columns.
  *
  * @author   Mark Taylor
- * @sine     2 Apr 2012
+ * @since    2 Apr 2012
  */
 public class PermutedColumnSupplement implements ColumnSupplement {
 
