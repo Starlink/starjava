@@ -1442,6 +1442,9 @@ public class TopcatModel {
         }
         public void intervalRemoved( ListDataEvent evt ) {
             fireIntervalRemoved( this, evt.getIndex0(), evt.getIndex1() );
+            if ( ! subsets_.contains( getSelectedItem() ) ) {
+                setSelectedItem( subsets_.getElementAt( 0 ) );
+            }
         }
     }
 }

@@ -13044,8 +13044,8 @@ functionality:
     (now deprecated within TOPCAT)</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
     (Ptolemy) for 2D axis plotting</li>
-<li><webref url="http://www.1t3xt.com/about/">iText</webref>
-    (1T3XT BVBA) for PDF output</li>
+<li><webref url="http://itextpdf.com/">iText</webref>
+    for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
@@ -15338,6 +15338,8 @@ introduced since the last version:
         official v1.0 of Gr&#x00e9;gory Mantelet's ADQL library.
         Fixed parsing so that TAP_UPLOAD tables in ADQL are treated
         correctly.</li>
+    <li>Fixed minor bug associated with deleting the current row subset
+        (this now causes All to become current).</li>
     </ul>
     </p>
     </dd>
