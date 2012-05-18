@@ -133,6 +133,9 @@ public class TapQueryPanel extends JPanel {
                         setParseError( e );
                     }
                 }
+                else {
+                    setParseError( null );
+                }
             }
         } );
 
