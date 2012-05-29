@@ -4304,10 +4304,17 @@ There are no parameters.
 <p><code>pixfoot</code> takes a list of sky positions from an input
 table and generates a pixel map describing a sky region which includes
 them all.
-Currently the output is to a format known as a Multi-Order Coverage map (MOC),
+Currently the output is to a format known as a 
+<webref url="http://www.ivoa.net/Documents/Notes/MOC/"
+        >Multi-Order Coverage map</webref> (MOC),
 which is a HEALPix-based format composed of a list of HEALPix pixels
 of different sizes, which can efficiently describe complex regions.
 Other output formats may be introduced in the future.
+</p>
+
+<p>See also the
+<ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref> class
+for MOC-related functions.
 </p>
 
 &pixfoot-summary;
@@ -8218,6 +8225,10 @@ but my thanks are especially due to the following:
         ADQL library for TAP query parsing.</li>
     <li>Add new task <code><ref id="pixfoot">pixfoot</ref></code> for
         generating MOC (Multi-Order Coverage) maps.</li>
+    <li>Add new class 
+        <ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref>
+        to the expression language containing MOC-related functions
+        (currently, just <code>inMoc</code>).</li>
     </ul>
     </p></dd>
 

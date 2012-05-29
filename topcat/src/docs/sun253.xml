@@ -15340,6 +15340,11 @@ introduced since the last version:
         correctly.</li>
     <li>Fixed minor bug associated with deleting the current row subset
         (this now causes All to become current).</li>
+    <li>Add new class
+        <ref id="Footprints">Footprints</ref>
+        to the expression language
+        containing MOC-related functions
+        (currently, just <code>inMoc</code>).</li>
     </ul>
     </p>
     </dd>

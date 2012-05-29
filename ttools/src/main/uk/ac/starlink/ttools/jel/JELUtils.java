@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.func.Distances;
 import uk.ac.starlink.ttools.func.Fluxes;
+import uk.ac.starlink.ttools.func.Footprints;
 import uk.ac.starlink.ttools.func.Formats;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
@@ -81,6 +82,7 @@ public class JELUtils {
                 CoordsRadians.class,
                 Distances.class,
                 Fluxes.class,
+                Footprints.class,
                 Formats.class,
                 Maths.class,
                 Strings.class,
