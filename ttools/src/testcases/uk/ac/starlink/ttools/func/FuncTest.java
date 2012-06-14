@@ -530,8 +530,8 @@ public class FuncTest extends TestCase {
     }
 
     public void testJELClasses() {
-        checkClassesLookOK( (Class[]) JELUtils.getStaticClasses()
-                                              .toArray( new Class[ 0 ] ) );
+        checkClassesLookOK( JELUtils.getStaticClasses()
+                                    .toArray( new Class[ 0 ] ) );
     }
 
     public void checkClassesLookOK( Class[] classes ) {

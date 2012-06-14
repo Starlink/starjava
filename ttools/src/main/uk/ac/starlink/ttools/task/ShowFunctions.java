@@ -30,8 +30,8 @@ public class ShowFunctions implements Task, Executable {
 
     public void execute() {
         MethodBrowser browser = new MethodBrowser();
-        browser.addStaticClasses( (Class[]) JELUtils.getStaticClasses()
-                                           .toArray( new Class[ 0 ] ) );
+        browser.addStaticClasses( JELUtils.getStaticClasses()
+                                          .toArray( new Class[ 0 ] ) );
         JFrame frame = new JFrame( "Functions" );
         frame.getContentPane().add( browser );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );

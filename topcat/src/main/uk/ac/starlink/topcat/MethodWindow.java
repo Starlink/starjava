@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
@@ -50,15 +49,13 @@ public class MethodWindow extends AuxWindow {
         final DefaultMutableTreeNode root = browser_.getRoot();
 
         /* Put class information into the tree. */
-        for ( Iterator it = TopcatJELUtils.getStaticClasses().iterator();
-              it.hasNext(); ) {
-            browser_.addStaticClass( (Class) it.next(), root );
+        for ( Class clazz : TopcatJELUtils.getStaticClasses() ) {
+            browser_.addStaticClass( clazz, root );
         }
         activNode_ = new DefaultMutableTreeNode( Heading.ACTIVATION, true );
         root.add( activNode_ );
-        for ( Iterator it = TopcatJELUtils.getActivationStaticClasses()
-                                          .iterator(); it.hasNext(); ) {
-            browser_.addStaticClass( (Class) it.next(), activNode_ );
+        for ( Class clazz : TopcatJELUtils.getActivationStaticClasses() ) {
+            browser_.addStaticClass( clazz, activNode_ );
         }
 
         /* Action for adding a new class. */

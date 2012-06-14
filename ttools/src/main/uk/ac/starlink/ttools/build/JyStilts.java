@@ -125,7 +125,7 @@ public class JyStilts {
 
         /* Imports providing calculation static functions for use by users. */
         Class[] calcClazzes =
-            (Class[]) JELUtils.getStaticClasses().toArray( new Class[ 0 ] );
+            JELUtils.getStaticClasses().toArray( new Class[ 0 ] );
         for ( int ic = 0; ic < calcClazzes.length; ic++ ) {
             Class clazz = calcClazzes[ ic ];
             String clazzName = clazz.getName();

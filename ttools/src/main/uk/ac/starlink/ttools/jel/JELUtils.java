@@ -37,7 +37,7 @@ import uk.ac.starlink.util.Loader;
  */
 public class JELUtils {
 
-    private static List staticClasses_;
+    private static List<Class> staticClasses_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /** 
@@ -70,11 +70,12 @@ public class JELUtils {
      *
      * @return   list of classes with static methods
      */
-    public static List getStaticClasses() {
+    public static List<Class> getStaticClasses() {
         if ( staticClasses_ == null ) {
 
             /* Basic classes always present. */
-            List classList = new ArrayList( Arrays.asList( new Class[] {
+            List<Class> classList =
+                    new ArrayList<Class>( Arrays.asList( new Class[] {
                 Arithmetic.class,
                 uk.ac.starlink.ttools.func.Arrays.class,
                 Conversions.class,

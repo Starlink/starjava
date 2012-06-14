@@ -73,12 +73,12 @@ public class SummaryXmlDoclet extends XmlDoclet {
         for ( int i = 0; i < options.length; i++ ) {
             String opt = options[ i ][ 0 ];
             if ( opt.equals( "-gen" ) ) {
-                classes_ = (Class[]) TopcatJELUtils.getStaticClasses()
-                                                   .toArray( new Class[ 0 ] );
+                classes_ = TopcatJELUtils.getStaticClasses()
+                                         .toArray( new Class[ 0 ] );
             }
             else if ( opt.equals( "-act" ) ) {
-                classes_ = (Class[]) TopcatJELUtils.getActivationStaticClasses()
-                                                   .toArray( new Class[ 0 ] );
+                classes_ = TopcatJELUtils.getActivationStaticClasses()
+                                         .toArray( new Class[ 0 ] );
             }
             else if ( opt.equals( "-headonly" ) ) {
                 headOnly_ = true;

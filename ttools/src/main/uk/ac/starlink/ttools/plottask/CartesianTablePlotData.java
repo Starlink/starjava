@@ -106,9 +106,10 @@ public class CartesianTablePlotData extends TablePlotData {
          * This is like a standard one, but contains an additional static
          * library, the PairCreator class.  This is used for evaluating
          * expressions of the form "lo,hi". */
-        List staticClassList = new ArrayList( JELUtils.getStaticClasses() );
+        List<Class> staticClassList =
+            new ArrayList<Class>( JELUtils.getStaticClasses() );
         staticClassList.add( PairCreator.class );
-        Class[] staticLib = (Class[]) staticClassList.toArray( new Class[ 0 ] );
+        Class[] staticLib = staticClassList.toArray( new Class[ 0 ] );
         Class[] dynamicLib = new Class[] { jelReader.getClass(), };
         Class[] dotClasses = new Class[ 0 ];
         Library lib =
