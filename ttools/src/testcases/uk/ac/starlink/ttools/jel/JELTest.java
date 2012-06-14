@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.jel;
 
+import gnu.jel.CompilationException;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -58,6 +59,18 @@ public class JELTest extends TableTestCase {
             fail();
         }
         catch ( IllegalArgumentException e ) {
+        }
+    }
+
+    public void testJELFunction() throws CompilationException {
+        assertEquals( 30, new JELFunction( "x", "x+29" ).evaluate( 1 ) );
+        assertEquals( 16, new JELFunction( "exponent", "pow(2,exponent)" )
+                         .evaluate( 4 ) );
+        try {
+            new JELFunction( "mjd", "mjdToDate(mjd)" );
+            fail();
+        }
+        catch ( CompilationException e ) {
         }
     }
 }
