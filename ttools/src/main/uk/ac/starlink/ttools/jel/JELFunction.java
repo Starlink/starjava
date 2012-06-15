@@ -22,19 +22,23 @@ import uk.ac.starlink.ttools.jel.JELUtils;
  */
 public class JELFunction {
 
+    private final String xvarname_;
+    private final String fexpr_;
     private final XResolver xResolver_;
-    private final CompiledExpression yExpr_;
+    private final CompiledExpression fCompex_;
     private final Object[] args_;
 
     /**
      * Constructor.
      *
      * @param   xvarname  name of the independent variable (for instance "x")
-     * @param   yexpr  text of expression giving the function value,
+     * @param   fexpr  text of expression giving the function value,
      *                 in terms of <code>xvarname</code> (for instance "x+1")
      */
-    public JELFunction( String xvarname, String yexpr )
+    public JELFunction( String xvarname, String fexpr )
             throws CompilationException {
+        xvarname_ = xvarname;
+        fexpr_ = fexpr;
         Class[] staticLib =
             (Class[]) JELUtils.getStaticClasses().toArray( new Class[ 0 ] );
         xResolver_ = new XResolver( xvarname );
@@ -43,7 +47,7 @@ public class JELFunction {
         Hashtable cnmap = null;
         Library lib = new Library( staticLib, dynamicLib, dotClasses,
                                    xResolver_, cnmap );
-        yExpr_ = Evaluator.compile( yexpr, lib, double.class );
+        fCompex_ = Evaluator.compile( fexpr, lib, double.class );
         args_ = new Object[] { xResolver_ };
     }
 
@@ -57,11 +61,29 @@ public class JELFunction {
     public double evaluate( double x ) {
         xResolver_.setXValue( x );
         try {
-            return yExpr_.evaluate_double( args_ );
+            return fCompex_.evaluate_double( args_ );
         }
         catch ( Throwable e ) {
             return Double.NaN;
         }
+    }
+
+    /**
+     * Returns the name of the independent variable.
+     *
+     * @return   x variable name
+     */
+    public String getXVarName() {
+        return xvarname_;
+    }
+
+    /**
+     * Returns the text of the function expression.
+     *
+     * @return  function expression
+     */
+    public String getExpression() {
+        return fexpr_;
     }
 
     /**
@@ -101,13 +123,13 @@ public class JELFunction {
             System.exit( 1 );
         }
         String xvarname = args[ 0 ];
-        String yexpr = args[ 1 ];
+        String fexpr = args[ 1 ];
         String value = args[ 2 ];
         try {
-            JELFunction f = new JELFunction( xvarname, yexpr );
+            JELFunction f = new JELFunction( xvarname, fexpr );
             double x = Double.parseDouble( value );
             double y = f.evaluate( x );
-            System.out.println( "f(" + xvarname + ")=" + yexpr + "\n"
+            System.out.println( "f(" + xvarname + ")=" + fexpr + "\n"
                               + "f(" + value + ")=" + y );
         }
         catch ( Throwable e ) {
