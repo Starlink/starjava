@@ -183,4 +183,9 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
     public boolean isSelected() {
         return super.isSelected();
     }
+
+    @Override
+    public void fireActionPerformed( ActionEvent evt ) {
+        super.fireActionPerformed( evt );
+    }
 }
