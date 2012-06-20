@@ -1123,24 +1123,26 @@ public abstract class ErrorRenderer {
                     0,     height, 0,
                     1,     1,      1,
                 };
-                int[] xo = xoffs;
-                int[] yo = yoffs;
-                double[] m2 = new double[] {
-                    x + xo[1] + xo[2], x + xo[0] + xo[3], x + xo[0] + xo[2],
-                    y + yo[1] + yo[2], y + yo[0] + yo[3], y + yo[0] + yo[2],
-                    1,                 1,                 1,
-                };
                 if ( Matrices.det( m1 ) != 0 ) {
+                    int[] xo = xoffs;
+                    int[] yo = yoffs;
+                    double[] m2 = new double[] {
+                        x + xo[1] + xo[2], x + xo[0] + xo[3], x + xo[0] + xo[2],
+                        y + yo[1] + yo[2], y + yo[0] + yo[3], y + yo[0] + yo[2],
+                        1,                 1,                 1,
+                    };
                     double[] m3 = Matrices.mmMult( m2, Matrices.invert( m1 ) );
                     AffineTransform trans =
                         new AffineTransform( m3[ 0 ], m3[ 3 ],
                                              m3[ 1 ], m3[ 4 ],
                                              m3[ 2 ], m3[ 5 ] );
-                    AffineTransform oldTrans = g2.getTransform();
-                    g2.transform( trans );
-                    drawOblong( g2, 0, 0, (int) Math.round( width ),
-                                (int) Math.round( height ) );
-                    g2.setTransform( oldTrans );
+                    if ( trans.getDeterminant() != 0 ) {
+                        AffineTransform oldTrans = g2.getTransform();
+                        g2.transform( trans );
+                        drawOblong( g2, 0, 0, (int) Math.round( width ),
+                                    (int) Math.round( height ) );
+                        g2.setTransform( oldTrans );
+                    }
                 }
             }
 
