@@ -152,6 +152,14 @@ public abstract class ErrorRenderer {
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
+    private static ErrorRenderer[] OPTIONS_VECTOR = new ErrorRenderer[] {
+        new CappedLine( "Small Arrow", true, new ArrowCapper( 3 ) ),
+        new CappedLine( "Medium Arrow", true, new ArrowCapper( 4 ) ),
+        new CappedLine( "Large Arrow", true, new ArrowCapper( 5 ) ),
+        DEFAULT,
+        EXAMPLE,
+    };
+
     private static final Stroke CAP_ROUND =
         new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
     private static final Stroke CAP_BUTT = 
@@ -402,6 +410,16 @@ public abstract class ErrorRenderer {
      */
     public static ErrorRenderer[] getOptionsEllipse() {
         return OPTIONS_ELLIPSE.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which is suitable for
+     * vector-like applications.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsVector() {
+        return OPTIONS_VECTOR.clone();
     }
 
     /**
