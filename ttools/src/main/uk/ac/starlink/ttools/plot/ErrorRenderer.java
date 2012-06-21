@@ -140,6 +140,18 @@ public abstract class ErrorRenderer {
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
+    private static ErrorRenderer[] OPTIONS_ELLIPSE = new ErrorRenderer[] {
+        new OpenEllipse( "Ellipse", false ),
+        new OpenEllipse( "Crosshair Ellipse", true ),
+        new FilledEllipse( "Filled Ellipse" ),
+        new OpenRectangle( "Rectangle", false ),
+        new OpenRectangle( "Crosshair Rectangle", true ),
+        new FilledRectangle( "Filled Rectangle" ),
+        DEFAULT,
+        EXAMPLE,
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+    };
+
     private static final Stroke CAP_ROUND =
         new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
     private static final Stroke CAP_BUTT = 
@@ -348,7 +360,7 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptions2d() {
-        return (ErrorRenderer[]) OPTIONS_2D.clone();
+        return OPTIONS_2D.clone();
     }
 
     /**
@@ -357,7 +369,7 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptions3d() {
-        return (ErrorRenderer[]) OPTIONS_3D.clone();
+        return OPTIONS_3D.clone();
     }
 
     /**
@@ -369,7 +381,7 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptionsSpherical() {
-        return (ErrorRenderer[]) OPTIONS_SPHERE.clone();
+        return OPTIONS_SPHERE.clone();
     }
 
     /**
@@ -379,7 +391,17 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptionsGeneral() {
-        return (ErrorRenderer[]) OPTIONS_GENERAL.clone();
+        return OPTIONS_GENERAL.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which is suitable for 2d
+     * ellipse-like applications.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsEllipse() {
+        return OPTIONS_ELLIPSE.clone();
     }
 
     /**
