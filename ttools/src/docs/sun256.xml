@@ -8229,6 +8229,7 @@ but my thanks are especially due to the following:
         <ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref>
         to the expression language containing MOC-related functions
         (currently, just <code>inMoc</code>).</li>
+    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
     </ul>
     </p></dd>
 

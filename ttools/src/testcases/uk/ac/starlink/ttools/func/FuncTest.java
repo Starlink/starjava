@@ -327,6 +327,8 @@ public class FuncTest extends TestCase {
         assertEquals( 256.0, Maths.pow( 2, 8 ) );
 
         assertEquals( 32.0, Maths.sqrt( 1024.0 ) );
+
+        assertEquals( 5.0, Maths.hypot( 3, -4 ) );
        
         double delta = 1e-7;
         for ( int i = 0; i < 1000; i++ ) {
