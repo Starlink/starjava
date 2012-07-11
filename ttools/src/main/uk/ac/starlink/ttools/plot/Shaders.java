@@ -919,6 +919,33 @@ public class Shaders {
     }
 
     /**
+     * Creates a shader by applying an existing shader to a given base colour.
+     * This only does useful work if the existing shader is non-absolute.
+     *
+     * @param  shader  shader to apply (presumably non-absolute)
+     * @param  baseColor  colour to which the shader will be applied
+     * @param  nsample  number of samples in the lookup table
+     * @return  new absolute shader
+     */
+    public static Shader applyShader( Shader shader, Color baseColor,
+                                      int nsample ) {
+        float[] baseRgba = baseColor.getRGBColorComponents( new float[ 4 ] );
+        float[] rgba = new float[ 4 ];
+        final float[] lut  = new float[ 3 * nsample ];
+        for ( int is = 0; is < nsample; is++ ) {
+            float level = (float) is / (float) ( nsample - 1 );
+            System.arraycopy( baseRgba, 0, rgba, 0, 4 );
+            shader.adjustRgba( rgba, level );
+            System.arraycopy( rgba, 0, lut, is * 3, 3 );
+        }
+        return new LutShader( shader.getName() + "-fix" ) {
+            protected float[] getRgbLut() {
+                return lut;
+            }
+        };
+    }
+
+    /**
      * Constructs an icon which represents a shader in one dimension.
      * A horizontal or vertical bar is drawn
      * which gives the full range of colours produced by the shader as
