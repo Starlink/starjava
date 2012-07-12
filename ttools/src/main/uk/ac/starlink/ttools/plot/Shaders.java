@@ -852,6 +852,71 @@ public class Shaders {
     }
 
     /**
+     * LutShader which creates a lookup table by applying an existing
+     * (presumably non-absolute) shader to a given colour.
+     */
+    private static class AppliedLutShader extends LutShader {
+        private final Shader baseShader_;
+        private final Color baseColor_;
+        private final int nsample_;
+        private final float[] lut_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseShader  shader which will be applied
+         * @param  baseColor   colour to which shader will be applied
+         * @param  nsample   number of entries in the lookup table
+         *                   which will be created
+         */
+        AppliedLutShader( Shader baseShader, Color baseColor, int nsample ) {
+            super( baseShader.getName() + "-fix" );
+            baseShader_ = baseShader;
+            baseColor_ = baseColor;
+            nsample_ = nsample;
+            float[] baseRgba =
+                baseColor.getRGBColorComponents( new float[ 4 ] );
+            float[] rgba = new float[ 4 ];
+            lut_  = new float[ 3 * nsample ];
+            for ( int is = 0; is < nsample; is++ ) {
+                float level = (float) is / (float) ( nsample - 1 );
+                System.arraycopy( baseRgba, 0, rgba, 0, 4 );
+                baseShader.adjustRgba( rgba, level );
+                System.arraycopy( rgba, 0, lut_, is * 3, 3 );
+            }
+        }
+
+        protected float[] getRgbLut() {
+            return lut_;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof AppliedLutShader ) {
+                AppliedLutShader other = (AppliedLutShader) o;
+                return this.baseShader_.equals( other.baseShader_ )
+                    && ( baseShader_.isAbsolute()
+                         || this.baseColor_.equals( other.baseColor_ ) )
+                    && this.nsample_ == other.nsample_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 5501;
+            code = code * 23 + baseShader_.hashCode();
+            code = code * 23 + ( baseShader_.isAbsolute()
+                                     ? 99
+                                     : baseColor_.hashCode() );
+            code = code * 23 + nsample_;
+            return code;
+        }
+    }
+
+    /**
      * Creates a new RGB array with a specificied number of samples 
      * from a given one by interpolation.
      *
@@ -929,20 +994,7 @@ public class Shaders {
      */
     public static Shader applyShader( Shader shader, Color baseColor,
                                       int nsample ) {
-        float[] baseRgba = baseColor.getRGBColorComponents( new float[ 4 ] );
-        float[] rgba = new float[ 4 ];
-        final float[] lut  = new float[ 3 * nsample ];
-        for ( int is = 0; is < nsample; is++ ) {
-            float level = (float) is / (float) ( nsample - 1 );
-            System.arraycopy( baseRgba, 0, rgba, 0, 4 );
-            shader.adjustRgba( rgba, level );
-            System.arraycopy( rgba, 0, lut, is * 3, 3 );
-        }
-        return new LutShader( shader.getName() + "-fix" ) {
-            protected float[] getRgbLut() {
-                return lut;
-            }
-        };
+        return new AppliedLutShader( shader, baseColor, nsample );
     }
 
     /**
