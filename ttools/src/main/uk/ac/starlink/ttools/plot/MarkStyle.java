@@ -110,7 +110,7 @@ public abstract class MarkStyle extends DefaultStyle {
      *
      * @param  g  graphics context
      */
-    protected abstract void drawShape( Graphics g );
+    public abstract void drawShape( Graphics g );
 
     /**
      * Draws this marker's shape centred at the origin suitable for display
@@ -121,7 +121,7 @@ public abstract class MarkStyle extends DefaultStyle {
      *
      * @param   g  graphics context
      */
-    protected void drawLegendShape( Graphics g ) {
+    public void drawLegendShape( Graphics g ) {
         drawShape( g );
     }
 
@@ -609,7 +609,7 @@ public abstract class MarkStyle extends DefaultStyle {
                               null, 1, 7 ) {
             final Stroke stroke_ = new BasicStroke( 2, BasicStroke.CAP_ROUND,
                                                     BasicStroke.JOIN_ROUND );
-            protected void drawShape( Graphics g ) {
+            public void drawShape( Graphics g ) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setStroke( stroke_ );
                 g2.drawOval( -6, -6, 13, 13 );
