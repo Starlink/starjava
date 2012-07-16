@@ -500,8 +500,9 @@
 
     <!-- Make the mirror tree with the pre-processed spectra, note
      !   requires JNIAST to be available for the current platform, so
-     !   we set the LD_LIBRARY_PATH. -->
-    <java classname="uk.ac.starlink.splat.util.LineIDTree" fork="true">
+     !   we set the LD_LIBRARY_PATH. Fail if doesn't work, don't want
+     !   a corrupt jar file. -->
+    <java classname="uk.ac.starlink.splat.util.LineIDTree" failonerror="true" fork="true">
       <classpath refid="classpath"/>
       <sysproperty key="java.library.path" value="${jni-ldpath}"/>
       <arg value="${src.etc}/ids"/>
