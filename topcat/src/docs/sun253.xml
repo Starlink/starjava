@@ -1954,7 +1954,8 @@ matching criteria it is given to identifying multi-object groups.
 
 <p>In a multi-object match context, the matcher identifies a matched
 group as the largest possible group of objects in which each is
-linked by a pair match to <em>any</em> other object in the group.
+linked by a pair match to <em>any</em> other object in the group -
+it is a group of "friends of friends".
 Formally, the set of matched groups is a set of disjoint graphs whose nodes
 are input table rows and whose edges are successful pair matches,
 where no successful pair match exists between nodes in
