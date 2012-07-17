@@ -1935,6 +1935,51 @@ menu.
 
 </subsect>
 
+<subsect id="matchGroup">
+<subhead><title>Multi-Object Matches</title></subhead>
+
+<p>The matching in TOPCAT is determined by specified
+match criteria, as described in <ref id="matchCriteria"/>.
+These criteria give conditions for whether two items (table rows)
+count as matched with each other.  In the case of a pair match,
+it is clear how this is to be interpreted.
+</p>
+
+<p>However, some of the matching operations such as the
+<ref id="MatchWindow1">Internal Match</ref>
+search for match groups which may have more than two members.
+This section explains how TOPCAT applies the pair-wise
+matching criteria it is given to identifying multi-object groups.
+</p>
+
+<p>In a multi-object match context, the matcher identifies a matched
+group as the largest possible group of objects in which each is
+linked by a pair match to <em>any</em> other object in the group.
+Formally, the set of matched groups is a set of disjoint graphs whose nodes
+are input table rows and whose edges are successful pair matches,
+where no successful pair match exists between nodes in
+different elements of that set.
+Thus the set has a minimal number of elements, and each of its elements
+is a matched group of maximal size.
+The important point to note
+is that for any particular pair in a matched group,
+there is no guarantee that the two objects match each other,
+only that you can hop from one to the other via pairs which do match.
+</p>
+
+<p>So in the case of a multi-object sky match
+on a field which is very crowded compared to the specified error radius,
+it is quite possible for <em>all</em> the objects in the input table(s)
+to end up as part of the same large matching group.
+Results at or near this percolation threshold are
+(a) probably not useful and
+(b) likely to take a long time to run.
+Some care should therefore be exercised when specifying match criteria
+in multi-object match contexts.
+</p>
+
+</subsect>
+
 <subsect id="matchAlgorithm">
 <subhead><title>Notes on Matching</title></subhead>
 
@@ -1964,8 +2009,8 @@ During this process a number of optimisations may be applied depending
 on the details of the data and the requested match.
 </p>
 
-<p>This means that the matching algorithm is 
-basically an <m>O(N log(N))</m> process, 
+<p>The matching algorithm described above is 
+roughly an <m>O(N log(N))</m> process, 
 where <m>N</m> is the total number of rows in all the tables participating
 in a match.  This is good news, since the naive interpretation 
 would be <m>O(N<sup>2</sup>)</m>.  
@@ -15346,6 +15391,8 @@ introduced since the last version:
         containing MOC-related functions
         (currently, just <code>inMoc</code>).</li>
     <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
+    <li>Add explanatory section to manual on
+        <ref id="matchGroup">Multi-Object Matches</ref>.</li>
     </ul>
     </p>
     </dd>
