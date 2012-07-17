@@ -189,7 +189,7 @@ public abstract class NamedObjectParameter extends Parameter {
      * @return   object list
      */
     public Object[] getOptions() {
-        Object[] options = new String[ optList_.size() ];
+        Object[] options = new Object[ optList_.size() ];
         for ( int i = 0; i < options.length; i++ ) {
             options[ i ] = ((NamedOption) optList_.get( i )).option_;
         }
