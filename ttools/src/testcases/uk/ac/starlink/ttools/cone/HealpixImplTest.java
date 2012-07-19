@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Set;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 
 public class HealpixImplTest extends TestCase {
 
@@ -59,6 +60,49 @@ public class HealpixImplTest extends TestCase {
                               + "npExtra: " + npExtra + ", "
                               + "ngExtra: " + ngExtra );
         }
+    }
+
+    public void testOverlaps() throws Exception {
+        checkOverlaps( new Healpix() );
+        checkOverlaps( PixtoolsHealpix.getInstance() );
+    }
+
+    private void checkOverlaps( HealpixImpl hpi ) throws Exception {
+        Random rnd = new Random( 2301L );
+        double scale = 0.1; // degree
+        for ( int i = 0; i < 1000; i++ ) {
+            double ra1 = rnd.nextDouble() * 360;
+            double dec1 = rnd.nextDouble() * 180 - 90;
+            double ra2 = Math.min( ra1 + rnd.nextDouble() * scale, 360 );
+            double dec2 = Math.max( Math.min( dec1 + rnd.nextDouble() * scale,
+                                              90 ), -90 );
+            for ( int order = 5; order < 12; order++ ) {
+                checkOverlap( hpi, order, ra1, dec1, ra2, dec2 );
+            }
+        }
+
+        /* This one is known to cause trouble with some versions of PixTools.
+         * Thanks to Heinz Andernach for coming up with it. */
+        checkOverlap( hpi, 8, 0, -89.983888, 180, -89.983888 );
+    }
+
+    private void checkOverlap( HealpixImpl hpi, int order,
+                               double lon1, double lat1,
+                               double lon2, double lat2 )
+            throws Exception {
+
+        /* Two discs with radius slightly greater than half the distance
+         * between them must overlap, so must have at least one pixel in
+         * common (this is exactly the fact that the crossmatching 
+         * relies on). */
+        double distance =
+            CoordsDegrees.skyDistanceDegrees( lon1, lat1, lon2, lat2 );
+        double radius = 0.5001 * distance;
+        Set<Long> disc1 = toSet( hpi.queryDisc( order, lon1, lat1, radius ) );
+        Set<Long> disc2 = toSet( hpi.queryDisc( order, lon2, lat2, radius ) );
+        Set<Long> intersect = new TreeSet<Long>( disc1 );
+        intersect.retainAll( disc2 );
+        assertTrue( ! intersect.isEmpty() );
     }
 
     /**

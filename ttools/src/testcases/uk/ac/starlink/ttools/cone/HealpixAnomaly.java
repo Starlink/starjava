@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools;
+package uk.ac.starlink.ttools.cone;
 
 import cds.moc.Healpix;
 import cds.moc.HealpixImpl;
@@ -16,10 +16,33 @@ import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 public class HealpixAnomaly {
 
     public static void main( String[] args ) throws Exception {
-        int order = 8;
-        double lon = 114.112;
-        double lat = 80.700;
-        double radius = 0.17866;
+        final int order;
+        final double lon;
+        final double lat;
+        final double radius;
+        if ( args.length == 0 ) {
+            order = 8;
+            lon = 114.112;
+            lat = 80.700;
+            radius = 0.17866;
+        }
+        else if ( args.length == 4 ) {
+            order = Integer.parseInt( args[ 0 ] );
+            lon = Double.parseDouble( args[ 1 ] );
+            lat = Double.parseDouble( args[ 2 ] );
+            radius = Double.parseDouble( args[ 3 ] );
+        }
+        else {
+            System.err.println( "usage: " + HealpixAnomaly.class.getName()
+                              + " <order> <lon> <lat> <radius>" );
+            System.exit( 1 );
+            return;
+        }
+        printResults( order, lon, lat, radius );
+    }
+
+    public static void printResults( int order, double lon, double lat,
+                                     double radius ) throws Exception {
         HealpixImpl gHpi = new Healpix();
         HealpixImpl pHpi = PixtoolsHealpix.getInstance();
         printPixels( gHpi.queryDisc( order, lon, lat, radius ) );
