@@ -15395,6 +15395,8 @@ introduced since the last version:
     <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
     <li>Add explanatory section to manual on
         <ref id="matchGroup">Multi-Object Matches</ref>.</li>
+    <li>Work around change in VizieR output so that VizieR catalogue
+        searching works again.  This may be a temporary change.</li>
     </ul>
     </p>
     </dd>
