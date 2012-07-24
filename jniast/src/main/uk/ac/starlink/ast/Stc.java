@@ -9,14 +9,14 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST Stc class
  *  - represents an instance of the IVOA STC class. 
- * The Stc class is an implementation of the IVOA STC class which forms 
+ * The Stc class is an implementation of the IVOA STC class which forms
  * part of the IVOA Space-Time Coordinate Metadata system. See:
  * <p>
  * http://hea-www.harvard.edu/~arots/nvometa/STC.html
  * <p>
- * The Stc class does not have a constructor function of its own, as it 
+ * The Stc class does not have a constructor function of its own, as it
  * is simply a container class for a family of specialised sub-classes
- * including StcCatalogEntryLocation, StcResourceProfile, StcSearchLocation 
+ * including StcCatalogEntryLocation, StcResourceProfile, StcSearchLocation
  * and StcObsDataLocation.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Stc'>AST Stc</a>  

@@ -30,8 +30,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_WinMap'>AST WinMap</a>  
@@ -45,19 +45,19 @@ public class WinMap extends Mapping {
      * to both input and output points.
      * 
      * @param  ina  An array containing the "ncoord"
-     * coordinates of corner A of the window in the input coordinate 
+     * coordinates of corner A of the window in the input coordinate
      * system.
      * 
      * @param  inb  An array containing the "ncoord"
-     * coordinates of corner B of the window in the input coordinate 
+     * coordinates of corner B of the window in the input coordinate
      * system.
      * 
      * @param  outa  An array containing the "ncoord"
-     * coordinates of corner A of the window in the output coordinate 
+     * coordinates of corner A of the window in the output coordinate
      * system.
      * 
      * @param  outb  An array containing the "ncoord"
-     * coordinates of corner B of the window in the output coordinate 
+     * coordinates of corner B of the window in the output coordinate
      * system.
      * 
      * @throws  AstException  if an error occurred in the AST library

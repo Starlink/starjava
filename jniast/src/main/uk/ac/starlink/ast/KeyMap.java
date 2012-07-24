@@ -9,17 +9,19 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST KeyMap class
  *  - store a set of key/value pairs. 
- * The KeyMap class is used to store a set of values with associated keys 
- * which identify the values. The keys are strings (case-sensitive,
- * trailing spaces are ignored), and the data type of the values can be 
- * integer, floating point, 
- * void pointer, 
- * character string or AST Object pointer. Each 
+ * The KeyMap class is used to store a set of values with associated keys
+ * which identify the values. The keys are strings. These may be case
+ * sensitive or insensitive as selected by the KeyCase attribute, and
+ * trailing spaces are ignored. The value associated with a key can be
+ * integer (signed 4 and 2 byte, or unsigned 1 byte), floating point
+ * (single or double precision),
+ * void pointer,
+ * character string or AST Object pointer. Each
  * value can be a scalar or a one-dimensional vector. A KeyMap is
  * conceptually similar to a Mapping in that a KeyMap transforms an
  * input into an output - the input is the key, and the output is the
  * value associated with the key. However, this is only a conceptual
- * similarity, and it should be noted that the KeyMap class inherits from 
+ * similarity, and it should be noted that the KeyMap class inherits from
  * the Object class rather than the Mapping class. The methods of the
  * Mapping class cannot be used with a KeyMap.
  * <h4>Licence</h4>
@@ -35,8 +37,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * <p>
  *        In Java, you are probably better off using a {@link java.util.Map}.
@@ -76,7 +78,7 @@ public class KeyMap extends AstObject {
 
     /** 
      * Removed a named entry from a KeyMap.   
-     * This function 
+     * This function
      * removes a named entry from a KeyMap. It returns without action if the
      * KeyMap does not contain the specified key.
      * 
@@ -106,8 +108,10 @@ public class KeyMap extends AstObject {
      * occurred, or if this function should fail for any reason.
      * 
      * @param   key
-     * The character string identifying the KeyMap entry. Trailing 
+     * The character string identifying the KeyMap entry. Trailing
      * spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @return  The length of the entry. One for a scalar, greater than one for
      * a vector. A value of zero is returned if the KeyMap does not
@@ -122,14 +126,20 @@ public class KeyMap extends AstObject {
      * This function returns a flag indicating if the KeyMap contains an
      * entry with the given key.
      * <h4>Notes</h4>
-     * <br> - A function value of 
-     * zero 
-     * will be returned if an error has already occurred, or if this 
+     * <br> - A non-zero function value
+     * is returned if the key exists but has an undefined value (that is,
+     * the returned value does not depend on whether the entry has a
+     * defined value or not).
+     * <br> - A function value of
+     * zero
+     * will be returned if an error has already occurred, or if this
      * function should fail for any reason.
      * 
      * @param   key
-     * The character string identifying the KeyMap entry. Trailing spaces are 
+     * The character string identifying the KeyMap entry. Trailing spaces are
      * ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          true iff this map contains an entry for <tt>key</tt>
@@ -143,16 +153,15 @@ public class KeyMap extends AstObject {
      * This function returns a string holding the key for the entry with
      * the given index within the KeyMap.
      * <p>
-     * This function is intended primarily as a means of iterating round all 
+     * This function is intended primarily as a means of iterating round all
      * the elements in a KeyMap. For this purpose, the number of entries in
      * the KeyMap should first be found using
      * astMapSize
      * and this function should then be called in a loop, with the index
-     * value going from 
+     * value going from
      * zero to one less than the size of the KeyMap.
-     * The index associated with a given entry is not, in general, related to 
-     * the order in which the entries are added to the KeyMap, and may change
-     * if other entries are added to or removed from the KeyMap. 
+     * The index associated with a given entry is determined by the SortBy
+     * attribute.
      * <h4>Notes</h4>
      * <br> - The returned pointer is guaranteed to remain valid and the
      * string to which it points will not be over-written for a total
@@ -179,18 +188,27 @@ public class KeyMap extends AstObject {
      * named entry in a KeyMap. This is the data type which was used when the
      * entry was added to the KeyMap.
      * <h4>Notes</h4>
-     * <br> - A function value of AST__BADTYPE will be returned if an error has 
+     * <br> - A function value of AST__BADTYPE will be returned if an error has
      * already occurred, or if this function should fail for any reason.
      * 
      * @param   key
-     * The character string identifying the KeyMap entry. Trailing 
+     * The character string identifying the KeyMap entry. Trailing
      * spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
-     * @return  One of AST__INTTYPE (for integer), AST__DOUBLETYPE (for double
-     * precision floating point), AST__FLOATTYPE (for single 
-     * precision floating point), AST__STRINGTYPE (for character string)
-     * or AST__OBJECTTYPE (for AST Object pointer). AST__BADTYPE is
-     * returned if the supplied key is not found in the KeyMap.
+     * @return  One of AST__INTTYPE (for integer), AST__SINTTYPE (for
+     * short int),
+     * AST__BYTETYPE (for unsigned bytes
+     * <br> - i.e. unsigned chars
+     * ) AST__DOUBLETYPE (for double
+     * precision floating point), AST__FLOATTYPE (for single
+     * precision floating point), AST__STRINGTYPE (for character string),
+     * AST__OBJECTTYPE (for AST Object pointer), AST__POINTERTYPE (for
+     * arbitrary C pointer) or AST__UNDEFTYPE (for undefined values
+     * created by
+     * astMapPutU).
+     * AST__BADTYPE is returned if the supplied key is not found in the KeyMap.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -201,12 +219,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the value, which can later
      * be used to identify the value. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * value to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * value. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * value. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -218,12 +238,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the value, which can later
      * be used to identify the value. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * value to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * value. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * value. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -235,12 +257,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the value, which can later
      * be used to identify the value. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * value to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * value. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * value. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -252,12 +276,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the value, which can later
      * be used to identify the value. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * value to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * value. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * value. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -267,8 +293,9 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve a double value.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
-     * spaces are ignored.
+     * The character string identifying the value to be retrieved. Trailing
+     * spaces are ignored. The supplied string is converted to upper
+     * case before use if the KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          object holding value stored in this map under <tt>key</tt>,
@@ -281,8 +308,9 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve an integer value.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
-     * spaces are ignored.
+     * The character string identifying the value to be retrieved. Trailing
+     * spaces are ignored. The supplied string is converted to upper
+     * case before use if the KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          object holding value stored in this map under <tt>key</tt>,
@@ -295,8 +323,9 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve a string value.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
-     * spaces are ignored.
+     * The character string identifying the value to be retrieved. Trailing
+     * spaces are ignored. The supplied string is converted to upper
+     * case before use if the KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          object holding value stored in this map under <tt>key</tt>,
@@ -309,8 +338,9 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve an AstObject.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
-     * spaces are ignored.
+     * The character string identifying the value to be retrieved. Trailing
+     * spaces are ignored. The supplied string is converted to upper
+     * case before use if the KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          object holding value stored in this map under <tt>key</tt>,
@@ -325,12 +355,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the values, which can later
      * be used to identify the values. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * array to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * values. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * values. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -342,12 +374,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the values, which can later
      * be used to identify the values. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * array to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * values. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * values. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -359,12 +393,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the values, which can later
      * be used to identify the values. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * array to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * values. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * values. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -376,12 +412,14 @@ public class KeyMap extends AstObject {
      * @param   key
      * A character string to be stored with the values, which can later
      * be used to identify the values. Trailing spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   value
      * array to store
      * @param   comment
-     * A pointer to a null-terminated comment string to be stored with the 
-     * values. A NULL pointer may be supplied, in which case no comment is 
+     * A pointer to a null-terminated comment string to be stored with the
+     * values. A NULL pointer may be supplied, in which case no comment is
      * stored.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -391,8 +429,10 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve a double array.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
+     * The character string identifying the value to be retrieved. Trailing
      * spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          value stored in this map under <code>key</code> 
@@ -405,8 +445,10 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve an integer array.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
+     * The character string identifying the value to be retrieved. Trailing
      * spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          value stored in this map under <code>key</code> 
@@ -419,8 +461,10 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve a string array.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
+     * The character string identifying the value to be retrieved. Trailing
      * spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @param   sleng
      * maximum length of any of the strings in the returned array;
@@ -437,8 +481,10 @@ public class KeyMap extends AstObject {
     /** 
      * Retrieve an array of AstObjects.   
      * @param   key
-     * The character string identifying the value to be retrieved. Trailing 
+     * The character string identifying the value to be retrieved. Trailing
      * spaces are ignored.
+     * The supplied string is converted to upper case before use if the
+     * KeyCase attribute is currently set to zero.
      * 
      * @return  
      *          value stored in this map under <code>key</code> 

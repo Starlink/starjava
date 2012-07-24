@@ -49,10 +49,12 @@ c     - astInvert: Invert a Mapping
 c     - astLinearApprox: Calculate a linear approximation to a Mapping
 c     - astMapBox: Find a bounding box for a Mapping
 c     - astMapSplit: Split a Mapping up into parallel component Mappings
+c     - astQuadApprox: Calculate a quadratic approximation to a 2D Mapping
 c     - astRate: Calculate the rate of change of a Mapping output
 c     - astRebin<X>: Rebin a region of a data grid
 f     - astRebinSeq<X>: Rebin a region of a sequence of data grids
 c     - astResample<X>: Resample a region of a data grid
+c     - astRemoveRegions: Remove any Regions from a Mapping
 c     - astSimplify: Simplify a Mapping
 c     - astTran1: Transform 1-dimensional coordinates
 c     - astTran2: Transform 2-dimensional coordinates
@@ -62,11 +64,13 @@ f     - AST_DECOMPOSE: Decompose a Mapping into two component Mappings
 f     - AST_TRANGRID: Transform a grid of positions
 f     - AST_INVERT: Invert a Mapping
 f     - AST_LINEARAPPROX: Calculate a linear approximation to a Mapping
+f     - AST_QUADAPPROX: Calculate a quadratic approximation to a 2D Mapping
 f     - AST_MAPBOX: Find a bounding box for a Mapping
 f     - AST_MAPSPLIT: Split a Mapping up into parallel component Mappings
 f     - AST_RATE: Calculate the rate of change of a Mapping output
 f     - AST_REBIN<X>: Rebin a region of a data grid
 f     - AST_REBINSEQ<X>: Rebin a region of a sequence of data grids
+f     - AST_REMOVEREGIONS: Remove any Regions from a Mapping
 f     - AST_RESAMPLE<X>: Resample a region of a data grid
 f     - AST_SIMPLIFY: Simplify a Mapping
 f     - AST_TRAN1: Transform 1-dimensional coordinates
@@ -82,16 +86,16 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -196,7 +200,7 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 *	 because it may be possible to simplify such a Mapping and the
 *	 simplified Mapping may have defined transformations. E.g. if a
 *	 Mapping which has only a forward transformation is combined in
-*	 series with its own inverse, the combination CmpMap will simplify 
+*	 series with its own inverse, the combination CmpMap will simplify
 *        to a UnitMap (usually).
 *        - Reset the "issimple" flag when the Invert flag is changed.
 *     9-MAY-2006 (DSB):
@@ -217,7 +221,7 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 *        chars to have negative values.
 *     23-AUG-2006 (DSB):
 *        Change the Equal function so that it reports an error when
-*        called, rather than using astSimplify to determine if two Mappings 
+*        called, rather than using astSimplify to determine if two Mappings
 *        are equal. All concrete Mapping classes should now provide
 *        their own implementation of astEqual, avoiding the use of
 *        astSimplify. This is so that astSimplify can use astEqual safely
@@ -235,17 +239,17 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 *        calculating output variances on the basis of spread of input values in
 *        astReinSeq.
 *     28-APR-2007 (DSB):
-*        Correct code within Rebin... and Resample... functions that provides 
-*        optimal handling for 1- and 2- dimensional mappings. Previously, the 
-*        check for whether or not to use these optimisations was based only on  
+*        Correct code within Rebin... and Resample... functions that provides
+*        optimal handling for 1- and 2- dimensional mappings. Previously, the
+*        check for whether or not to use these optimisations was based only on
 *        the dimensionality of either input (Rebin) or output (Resample). This
-*        could cause the optimised code to be used at inappropriate times, 
-*        leading to an incorrect effective Mapping between input and output. The 
+*        could cause the optimised code to be used at inappropriate times,
+*        leading to an incorrect effective Mapping between input and output. The
 *        checks now check both input and output dimensionality in all cases.
 *     3-MAY-2007 (DSB):
 *        An extra parameter ("nused") has been added to astRebinSeq, and
 *        all the rebinning stuff has been modified to keep "nused" up to date.
-*        This is needed to correct a fault in the generation of GENVAR 
+*        This is needed to correct a fault in the generation of GENVAR
 *        variances.
 *     12-DEC-2007 (DSB):
 *        Some rebinning kernels (e.g. SINCSINC) have negative values and
@@ -260,6 +264,51 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 *        in astRebinSeq.
 *     9-MAY-2008 (DSB):
 *        Prevent memory over-run in RebinSeq<X>.
+*     5-MAY-2009 (DSB):
+*        Added astRemoveRegions.
+*     11-NOV-2009 (DSB):
+*        In astRebinSeq initialise "*nused" to zero (as documented) if the
+*        AST__REBININIT flag is supplied.
+*     17-NOV-2009 (DSB):
+*        Added AST_DISVAR flag for use with astRebinSeq.
+*     15-DEC-2009 (DSB):
+*        Ensure that all axes span at least one pixel when calling
+*        astLinearApprox.
+*     18-DEC-2009 (DSB):
+*        When using a 1D spreading kernel (in astRebin(Seq)), if the kernel
+*        is not contained completely within the output array, reflect the
+*        section of the kernel that falls outside the output array back into
+*        the output array so that no flux is lost. Also discovered that the
+*        n-D code (i.e. the KERNEL_ND macro) incorrectly uses the first
+*        user-supplied parameter as the full kernel width rather than the
+*        half-width. This has been fixed.
+*     26-FEB-2010 (DSB):
+*        Add astQuadApprox.
+*     27-FEB-2010 (DSB):
+*        - Make astQuadApprox faster, and fix a bug in the calculation of
+*        the matrix.
+*     7-JUN-2010 (DSB):
+*        In the KERNEL_<x>D rebinning macros, correct the test for the
+*        central point being outside the bounds of the output image.
+*     13-AUG-2010 (DSB):
+*        In astRebinSeq<X>, scale WLIM to take account of weighting by
+*        input variances.
+*     13-DEC-2010 (DSB):
+*        Ensure that astMapSplit returns a Mapping that is independent of
+*        the supplied Mapping (i.e. return a deep copy). This means that
+*        subsequent changes to the supplied Mapping cannot affect the returned
+*        Mapping.
+*     10-FEB-2011 (DSB):
+*        When rebinning (in macros NEAR_1/2/ND, KERNEL_1/2/ND, LINEAR_1/2/ND),
+*        do not treat a zero variance as bad unless the reciprocals of the
+*        variances are being used as weights.
+*     16-JUN-2011 (DSB):
+*        Allow a check for NaNs to be performed as a debugging tool after
+*        every invocation of astTransform. This is controlled by the
+*        AST_REPLACE_NAN environment variable: if unset, no check is
+*        performed, if set to "1" NaNs are changed to AST__BAD but no
+*        error is reported, if set to anything else NaNs are changed to
+*        AST__BAD and an error is reported.
 *class--
 */
 
@@ -279,7 +328,9 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 
 /* Configuration results  */
 /* ---------------------- */
-#include "config.h" 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* Interface definitions. */
 /* ---------------------- */
@@ -294,6 +345,7 @@ f     - AST_TRANN: Transform N-dimensional coordinates
 #include "cmpmap.h"              /* Compund Mappings */
 #include "unitmap.h"             /* Unit Mappings */
 #include "permmap.h"             /* Axis permutations */
+#include "winmap.h"              /* Window scalings */
 #include "pal.h"                 /* SLALIB interface */
 #include "globals.h"             /* Thread-safe global data access */
 
@@ -354,6 +406,8 @@ typedef struct PN {
    double xlo;                   /* The lower x limit covered by the polynomial */
    double xhi;                   /* The upper x limit covered by the polynomial */
    double y0;                    /* The y offset to be added to the polynomial value */
+   int too_small;                /* Dynamic range of function value over h is
+                                    close to zero */
 } PN;
 
 /* Convert from floating point to floating point or integer */
@@ -377,12 +431,12 @@ static int (* parent_equal)( AstObject *, AstObject *, int * );
 /* Define macros for accessing each item of thread specific global data. */
 #ifdef THREAD_SAFE
 
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
    globals->Class_Init = 0; \
    globals->GetAttrib_Buff[ 0 ] = 0; \
    globals->Unsimplified_Mapping = NULL; \
-   globals->Rate_Disabled = 0; 
+   globals->Rate_Disabled = 0;
 
 
 /* Create the function that initialises global data for this module. */
@@ -401,24 +455,24 @@ astMAKE_INITGLOBALS(Mapping)
 
 
 
-/* If thread safety is not needed, declare and initialise globals at static 
-   variables. */ 
+/* If thread safety is not needed, declare and initialise globals at static
+   variables. */
 #else
 
-/* Buffer returned by GetAttrib. */ 
+/* Buffer returned by GetAttrib. */
 static char getattrib_buff[ GETATTRIB_BUFF_LEN + 1 ];
 
-/* Pointer to origin (unsimplified) Mapping, only used for reporting 
-   error messages. */ 
+/* Pointer to origin (unsimplified) Mapping, only used for reporting
+   error messages. */
 static AstMapping *unsimplified_mapping = NULL;
 
-/* A flag which indicates if the astRate method should be disabled in 
-   order to improve algorithm speed in cases where the rate value is not 
-   significant. If astRate is disabled then it always returns a constant 
-   value of 1.0. */ 
+/* A flag which indicates if the astRate method should be disabled in
+   order to improve algorithm speed in cases where the rate value is not
+   significant. If astRate is disabled then it always returns a constant
+   value of 1.0. */
 static int rate_disabled = 0;
 
-/* static values used in function "FunPN". */ 
+/* static values used in function "FunPN". */
 static AstPointSet *funpn_pset1_cache[ FUNPN_MAX_CACHE ];
 static AstPointSet *funpn_pset2_cache[ FUNPN_MAX_CACHE ];
 static int funpn_next_slot;
@@ -435,7 +489,7 @@ static int class_init = 0;       /* Virtual function table initialised? */
 /* Prototypes for private member functions. */
 /* ======================================== */
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
-static void InterpolateBlockAverageLD( int, const int[], const int[], const long double [], const long double [], int, const int[], const double *const[], const double[], int, long double, long double *, long double *, int * ); 
+static void InterpolateBlockAverageLD( int, const int[], const int[], const long double [], const long double [], int, const int[], const double *const[], const double[], int, long double, long double *, long double *, int * );
 static int InterpolateKernel1LD( AstMapping *, int, const int *, const int *, const long double *, const long double *, int, const int *, const double *const *, void (*)( double, const double *, int, double *, int * ), void (*)( double, const double *, int, double *), int, const double *, int, long double, long double *, long double *, int * );
 static int InterpolateLinearLD( int, const int *, const int *, const long double *, const long double *, int, const int *, const double *const *, int, long double, long double *, long double *, int * );
 static int InterpolateNearestLD( int, const int *, const int *, const long double *, const long double *, int, const int *, const double *const *, int, long double, long double *, long double *, int * );
@@ -448,6 +502,7 @@ static void RebinSeqLD( AstMapping *, double, int, const int [], const int [], c
 static void ConserveFluxLD( double, int, const int *, long double, long double *, long double *, int * );
 #endif
 
+static AstMapping *RemoveRegions( AstMapping *, int * );
 static AstMapping *Simplify( AstMapping *, int * );
 static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
 static PN *FitPN( AstMapping *, double *, int, int, double, double, double *, int * );
@@ -509,6 +564,7 @@ static int MapList( AstMapping *, int, int, int *, AstMapping ***, int **, int *
 static int MapMerge( AstMapping *, int, int, int *, AstMapping ***, int **, int * );
 static int MaxI( int, int, int * );
 static int MinI( int, int, int * );
+static int QuadApprox( AstMapping *, const double[2], const double[2], int, int, double *, double *, int * );
 static int ResampleAdaptively( AstMapping *, int, const int *, const int *, const void *, const void *, DataType, int, void (*)(), const double *, int, double, int, const void *, int, const int *, const int *, const int *, const int *, void *, void *, int * );
 static int ResampleB( AstMapping *, int, const int [], const int [], const signed char [], const signed char [], int, void (*)(), const double [], int, double, int, signed char, int, const int [], const int [], const int [], const int [], signed char [], signed char [], int * );
 static int ResampleD( AstMapping *, int, const int [], const int [], const double [], const double [], int, void (*)(), const double [], int, double, int, double, int, const int [], const int [], const int [], const int [], double [], double [], int * );
@@ -547,16 +603,16 @@ static void Dump( AstObject *, AstChannel *, int * );
 static void FunPN( AstMapping *, double *, int, int, int, double *, double *, int * );
 static void Gauss( double, const double [], int, double *, int * );
 static void GlobalBounds( MapData *, double *, double *, double [], double [], int * );
-static void InterpolateBlockAverageB( int, const int[], const int[], const signed char [], const signed char [], int, const int[], const double *const[], const double[], int, signed char, signed char *, signed char *, int * ); 
-static void InterpolateBlockAverageD( int, const int[], const int[], const double [], const double [], int, const int[], const double *const[], const double[], int, double, double *, double *, int * ); 
-static void InterpolateBlockAverageF( int, const int[], const int[], const float [], const float [], int, const int[], const double *const[], const double[], int, float, float *, float *, int * ); 
-static void InterpolateBlockAverageI( int, const int[], const int[], const int [], const int [], int, const int[], const double *const[], const double[], int, int, int *, int *, int * ); 
-static void InterpolateBlockAverageL( int, const int[], const int[], const long int [], const long int [], int, const int[], const double *const[], const double[], int, long int, long int *, long int *, int * ); 
-static void InterpolateBlockAverageS( int, const int[], const int[], const short int [], const short int [], int, const int[], const double *const[], const double[], int, short int, short int *, short int *, int * ); 
-static void InterpolateBlockAverageUB( int, const int[], const int[], const unsigned char [], const unsigned char [], int, const int[], const double *const[], const double[], int, unsigned char, unsigned char *, unsigned char *, int * ); 
-static void InterpolateBlockAverageUI( int, const int[], const int[], const unsigned int [], const unsigned int [], int, const int[], const double *const[], const double[], int, unsigned int, unsigned int *, unsigned int *, int * ); 
-static void InterpolateBlockAverageUL( int, const int[], const int[], const unsigned long int [], const unsigned long int [], int, const int[], const double *const[], const double[], int, unsigned long int, unsigned long int *, unsigned long int *, int * ); 
-static void InterpolateBlockAverageUS( int, const int[], const int[], const unsigned short int [], const unsigned short int [], int, const int[], const double *const[], const double[], int, unsigned short int, unsigned short int *, unsigned short int *, int * ); 
+static void InterpolateBlockAverageB( int, const int[], const int[], const signed char [], const signed char [], int, const int[], const double *const[], const double[], int, signed char, signed char *, signed char *, int * );
+static void InterpolateBlockAverageD( int, const int[], const int[], const double [], const double [], int, const int[], const double *const[], const double[], int, double, double *, double *, int * );
+static void InterpolateBlockAverageF( int, const int[], const int[], const float [], const float [], int, const int[], const double *const[], const double[], int, float, float *, float *, int * );
+static void InterpolateBlockAverageI( int, const int[], const int[], const int [], const int [], int, const int[], const double *const[], const double[], int, int, int *, int *, int * );
+static void InterpolateBlockAverageL( int, const int[], const int[], const long int [], const long int [], int, const int[], const double *const[], const double[], int, long int, long int *, long int *, int * );
+static void InterpolateBlockAverageS( int, const int[], const int[], const short int [], const short int [], int, const int[], const double *const[], const double[], int, short int, short int *, short int *, int * );
+static void InterpolateBlockAverageUB( int, const int[], const int[], const unsigned char [], const unsigned char [], int, const int[], const double *const[], const double[], int, unsigned char, unsigned char *, unsigned char *, int * );
+static void InterpolateBlockAverageUI( int, const int[], const int[], const unsigned int [], const unsigned int [], int, const int[], const double *const[], const double[], int, unsigned int, unsigned int *, unsigned int *, int * );
+static void InterpolateBlockAverageUL( int, const int[], const int[], const unsigned long int [], const unsigned long int [], int, const int[], const double *const[], const double[], int, unsigned long int, unsigned long int *, unsigned long int *, int * );
+static void InterpolateBlockAverageUS( int, const int[], const int[], const unsigned short int [], const unsigned short int [], int, const int[], const double *const[], const double[], int, unsigned short int, unsigned short int *, unsigned short int *, int * );
 static void Invert( AstMapping *, int * );
 static void MapBox( AstMapping *, const double [], const double [], int, int, double *, double *, double [], double [], int * );
 static void RebinAdaptively( AstMapping *, int, const int *, const int *, const void *, const void *, DataType, int, const double *, int, double, int, const void *, int, const int *, const int *, const int *, const int *, int, void *, void *, double *, int *, int * );
@@ -696,8 +752,8 @@ static void CombinePN( PN *lo, PN *hi, int *status ) {
 *     Mapping member function.
 
 *  Description:
-*     This function combines polynomials "lo" and "hi", both of order N, 
-*     into a polynomial of order N+1, and return the new polynomial in 
+*     This function combines polynomials "lo" and "hi", both of order N,
+*     into a polynomial of order N+1, and return the new polynomial in
 *     "lo". It is used to implemtn Neville's algorithm for finding an
 *     interpolating polynomial. See:
 *
@@ -747,8 +803,8 @@ static void CombinePN( PN *lo, PN *hi, int *status ) {
 *     ConserveFlux<X>
 
 *  Purpose:
-*     Scale the output data and variance values produced by ResampleSection 
-*     by the given flux conservation factor. 
+*     Scale the output data and variance values produced by ResampleSection
+*     by the given flux conservation factor.
 
 *  Type:
 *     Private function.
@@ -756,15 +812,15 @@ static void CombinePN( PN *lo, PN *hi, int *status ) {
 *  Synopsis:
 *     #include "mapping.h"
 *     void ConserveFlux<X>( double factor, int npoint, const int *offset,
-*                           <Xtype> badval, <Xtype> *out, 
+*                           <Xtype> badval, <Xtype> *out,
 *                           <Xtype> *out_var )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This is a set of functions which scale the supplied resampled data 
-*     values by the given flux conservation factor. It also scales any 
+*     This is a set of functions which scale the supplied resampled data
+*     values by the given flux conservation factor. It also scales any
 *     variances by the square of the factor.
 
 *  Parameters:
@@ -796,7 +852,7 @@ static void CombinePN( PN *lo, PN *hi, int *status ) {
 *     out_var
 *        An optional pointer to an array with the same data type and
 *        size as the "out" array, in which variance estimates for
-*        the resampled values are supplied. If no output variance estimates 
+*        the resampled values are supplied. If no output variance estimates
 *        are available, a NULL pointer should be given.
 
 *  Notes:
@@ -833,13 +889,13 @@ static void ConserveFlux##X( double factor, int npoint, const int *offset, \
 }
 
 
-/* Expand the macro above to generate a function for each required 
+/* Expand the macro above to generate a function for each required
    data type. */
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
 MAKE_CONSERVEFLUX(LD,long double)
 #endif
 MAKE_CONSERVEFLUX(D,double)
-MAKE_CONSERVEFLUX(F,float) 
+MAKE_CONSERVEFLUX(F,float)
 MAKE_CONSERVEFLUX(L,long int)
 MAKE_CONSERVEFLUX(I,int)
 MAKE_CONSERVEFLUX(S,short int)
@@ -852,7 +908,7 @@ MAKE_CONSERVEFLUX(UB,unsigned char)
 /* Undefine the macros used above. */
 #undef MAKE_CONSERVEFLUX
 
-static void Decompose( AstMapping *this, AstMapping **map1, AstMapping **map2, 
+static void Decompose( AstMapping *this, AstMapping **map1, AstMapping **map2,
                        int *series, int *invert1, int *invert2, int *status ) {
 /*
 *+
@@ -867,9 +923,9 @@ static void Decompose( AstMapping *this, AstMapping **map1, AstMapping **map2,
 
 *  Synopsis:
 *     #include "mapping.h"
-*     void astDecompose( AstMapping *this, AstMapping **map1, 
-*                        AstMapping **map2, int *series, int *invert1, 
-*                        int *invert2  ) 
+*     void astDecompose( AstMapping *this, AstMapping **map1,
+*                        AstMapping **map2, int *series, int *invert1,
+*                        int *invert2  )
 
 *  Class Membership:
 *     Mapping method.
@@ -880,28 +936,28 @@ static void Decompose( AstMapping *this, AstMapping **map1, AstMapping **map2,
 *
 *     Since the Frame class inherits from the Mapping class, Frames can
 *     be considered as special types of Mappings and so this method can
-*     be used to decompose either CmpMaps or CmpFrames.
+*     be used to decompose CmpMaps, CmpFrames, CmpRegions or Prisms.
 
 *  Parameters:
 *     this
 *        Pointer to the Mapping.
 *     map1
 *        Address of a location to receive a pointer to first component
-*        Mapping. 
+*        Mapping.
 *     map2
 *        Address of a location to receive a pointer to second component
-*        Mapping. 
+*        Mapping.
 *     series
 *        Address of a location to receive a value indicating if the
 *        component Mappings are applied in series or parallel. A non-zero
-*        value means that the supplied Mapping is equivalent to applying map1 
+*        value means that the supplied Mapping is equivalent to applying map1
 *        followed by map2 in series. A zero value means that the supplied
 *        Mapping is equivalent to applying map1 to the lower numbered axes
 *        and map2 to the higher numbered axes, in parallel.
 *     invert1
-*        The value of the Invert attribute to be used with map1. 
+*        The value of the Invert attribute to be used with map1.
 *     invert2
-*        The value of the Invert attribute to be used with map2. 
+*        The value of the Invert attribute to be used with map2.
 
 *  Applicability:
 *     CmpMap
@@ -918,16 +974,16 @@ static void Decompose( AstMapping *this, AstMapping **map1, AstMapping **map2,
 *        create the CmpFrame. The component Frames are considered to be in
 *        applied in parallel.
 *     Frame
-*        For any class of Frame other than a CmpFrame, map1 will be 
+*        For any class of Frame other than a CmpFrame, map1 will be
 *        returned holding a clone of the supplied Frame pointer, and map2
 *        will be returned holding a NULL pointer.
 
 *  Notes:
 *     - Any changes made to the component Mappings using the returned
 *     pointers will be reflected in the supplied Mapping.
-*     - The returned Invert values should be used in preference to the 
+*     - The returned Invert values should be used in preference to the
 *     current values of the Invert attribute in map1 and map2. This is
-*     because the attributes may have changed value since the Mappings 
+*     because the attributes may have changed value since the Mappings
 *     were combined.
 
 *  Implementation Notes:
@@ -972,7 +1028,7 @@ int astRateState_( int disabled, int *status ) {
 
 *  Description:
 *     Some algorithms which use use the astRate method do not actually need
-*     to know what the Rate value is. For instance, when the Plot class draws 
+*     to know what the Rate value is. For instance, when the Plot class draws
 *     a border it evaluates the GRAPHICS->Current Mapping hundreds of time.
 *     If the Mapping includes a RateMap then this can be very very slow
 *     (depending on how the astRate method is implemented). In fact the
@@ -994,12 +1050,14 @@ int astRateState_( int disabled, int *status ) {
 
 *-
 */
-   astDECLARE_GLOBALS;
+   astDECLARE_GLOBALS
+   int result;
    astGET_GLOBALS(NULL);
-   int result = rate_disabled;
+
+   result = rate_disabled;
    rate_disabled = disabled;
    return result;
-}   
+}
 
 static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
 /*
@@ -1014,7 +1072,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "mapping.h"
-*     int Equal( AstObject *this, AstObject *that, int *status ) 
+*     int Equal( AstObject *this, AstObject *that, int *status )
 
 *  Class Membership:
 *     Mapping member function (over-rides the astEqual protected
@@ -1026,12 +1084,12 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 *
 *     The implementation provided by this class (the base Mapping class)
 *     simply reports an error when called, since all concrete Mapping
-*     subclasses should provide their own implementation. 
+*     subclasses should provide their own implementation.
 *
 *     Note, sub-class implementations should not use astSimplify (e.g.
-*     combining the two Mapping and then simplifying it), since the 
-*     astSimplify method for certain classes (e.g. CmpMap) may use 
-*     astEqual. Consequently, if astEqual called astSimplify, there would 
+*     combining the two Mapping and then simplifying it), since the
+*     astSimplify method for certain classes (e.g. CmpMap) may use
+*     astEqual. Consequently, if astEqual called astSimplify, there would
 *     be possibilities for infinite loops.
 
 *  Parameters:
@@ -1088,7 +1146,7 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
 *     FunPN
 
 *  Purpose:
-*     Find the value of the function currently being differentiated by the 
+*     Find the value of the function currently being differentiated by the
 *     astRate method.
 
 *  Type:
@@ -1106,28 +1164,28 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
 *     This is a service function for the astRate method. It evaluates the
 *     function being differentiated at specified axis values.
 *
-*     This function uses static resources in order to avoid the overhead 
+*     This function uses static resources in order to avoid the overhead
 *     of creating new PointSets each time this function is called. These
-*     static resources which must be initialised before the first invocation 
-*     with a given Mapping, and must be released after the final invocation. 
+*     static resources which must be initialised before the first invocation
+*     with a given Mapping, and must be released after the final invocation.
 *     See "ax1".
 
 *  Parameters:
 *     map
 *        Pointer to a Mapping which yields the value of the function at x.
-*        The Mapping may have any number of inputs and outputs; the specific 
-*        output representing the function value, f, is specified by ax1 and 
+*        The Mapping may have any number of inputs and outputs; the specific
+*        output representing the function value, f, is specified by ax1 and
 *        the specific input representing the argument, x, is specified by ax2.
 *     at
-*        A pointer to an array holding axis values at the position at which 
+*        A pointer to an array holding axis values at the position at which
 *        the function is to be evaluated. The number of values supplied
-*        must equal the number of inputs to the Mapping. The value supplied 
+*        must equal the number of inputs to the Mapping. The value supplied
 *        for axis "ax2" is ignored (the value of "x" is used for axis "ax2").
-*     ax1 
+*     ax1
 *        The zero-based index of the Mapping output which is to be
-*        differentiated. Set this to -1 to allocate, or -2 to release, 
+*        differentiated. Set this to -1 to allocate, or -2 to release,
 *        the static resources used by this function.
-*     ax2 
+*     ax2
 *        The zero-based index of the Mapping input which is to be varied.
 *     n
 *        The number of elements in the "x" and "y" arrays. This should not
@@ -1135,7 +1193,7 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
 *     x
 *        The value of the Mapping input specified by ax2 at which the
 *        function is to be evaluated. If "ax2" is set to -1, then the
-*        supplied value is used as flag indicating if the static resources 
+*        supplied value is used as flag indicating if the static resources
 *        used by this function should be initialised (if x >= 0 ) or
 *        freed (if x < 0).
 *     y
@@ -1147,7 +1205,7 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;
+   astDECLARE_GLOBALS
    AstPointSet *pset1;
    AstPointSet *pset2;
    double **ptr1;
@@ -1166,7 +1224,7 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
 
 /* Get a pointer to the thread specific global data structure. */
    astGET_GLOBALS(map);
- 
+
 /* Initialise variables to avoid "used of uninitialised variable"
    messages from dumb compilers. */
    pset2 = NULL;
@@ -1219,7 +1277,7 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
             for( k = 0; k < n; k++, p++ ) *p = xx;
          }
 
-/* Add these new PointSets to the cache, removing any existing 
+/* Add these new PointSets to the cache, removing any existing
    PointSets. */
          if( funpn_pset_size[ funpn_next_slot ] > 0 ) {
             (void) astAnnul( funpn_pset1_cache[ funpn_next_slot ] );
@@ -1234,7 +1292,7 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
       } else {
          ptr1 = astGetPoints( pset1 );
          ptr2 = astGetPoints( pset2 );
-      }         
+      }
 
 /* Store the input X values in the input PointSet data array. */
       oldx = ptr1[ ax2 ];
@@ -1250,8 +1308,8 @@ static void FunPN( AstMapping *map, double *at, int ax1, int ax2,
 /* Re-instate the original arrays in the PointSets. */
       ptr1[ ax2 ] = oldx;
       ptr2[ ax1 ] = oldy;
- 
-   } 
+
+   }
 }
 
 static double EvaluateDPN( PN *pn, double x, int *status ) {
@@ -1267,13 +1325,13 @@ static double EvaluateDPN( PN *pn, double x, int *status ) {
 
 *  Synopsis:
 *     #include "mapping.h"
-*     double EvaluateDPN( PN *pn, double x, int *status ) 
+*     double EvaluateDPN( PN *pn, double x, int *status )
 
 *  Class Membership:
 *     Mapping method.
 
 *  Description:
-*     This function evaluates the gradient of the supplied polynomial 
+*     This function evaluates the gradient of the supplied polynomial
 *     at the supplied x value.
 
 *  Parameters:
@@ -1363,7 +1421,7 @@ static double EvaluatePN( PN *pn, double x, int *status ) {
 
 }
 
-static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0, 
+static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
                   double h, double *rms, int *status ){
 /*
 *  Name:
@@ -1378,7 +1436,7 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 
 *  Synopsis:
 *     #include "mapping.h"
-*     PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0, 
+*     PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 *                double h, double *rms, int *status )
 
 *  Class Membership:
@@ -1394,22 +1452,22 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 *  Parameters:
 *     map
 *        Pointer to a Mapping which yields the value of the function at x.
-*        The Mapping may have any number of inputs and outputs; the specific 
-*        output representing the function value, f, is specified by ax1 and 
+*        The Mapping may have any number of inputs and outputs; the specific
+*        output representing the function value, f, is specified by ax1 and
 *        the specific input representing the argument, x, is specified by ax2.
 *     at
-*        A pointer to an array holding axis values at the position at which 
+*        A pointer to an array holding axis values at the position at which
 *        the function is to be evaluated. The number of values supplied
-*        must equal the number of inputs to the Mapping. The value supplied 
+*        must equal the number of inputs to the Mapping. The value supplied
 *        for axis "ax2" is ignored (the value of "x" is used for axis "ax2").
-*     ax1 
+*     ax1
 *        The zero-based index of the Mapping output which is to be
-*        differentiated. Set this to -1 to allocate, or -2 to release, 
+*        differentiated. Set this to -1 to allocate, or -2 to release,
 *        the static resources used by this function.
-*     ax2 
+*     ax2
 *        The zero-based index of the Mapping input which is to be varied.
 *     x0
-*        The central axis value at which the function is to be evaluated. 
+*        The central axis value at which the function is to be evaluated.
 *     h
 *        The interval over which the fitting is to be performed.
 *     rms
@@ -1421,15 +1479,16 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 
 *  Returns:
 *     The PN structure holding the polynomial coefficients, etc, or NULL
-*     if no polynomial can be fitted. The independant variable of the 
+*     if no polynomial can be fitted. The independant variable of the
 *     polynomial is (x-x0) and the dependant variable is (y(x)-y(x0)).
-*     The value of y(x0) is stored in the returned PN structure. The 
-*     memory used to store the polynomial should be freed using astFree 
+*     The value of y(x0) is stored in the returned PN structure. The
+*     memory used to store the polynomial should be freed using astFree
 *     when no longer needed.
 */
 
 /* Local Variables: */
-   double x[ RATE_ORDER + 2 ], y[ RATE_ORDER + 2 ], dh, off, s2, e;   
+   double x[ RATE_ORDER + 2 ], y[ RATE_ORDER + 2 ], dh, off, s2, e, mean,
+          max, min;
    PN *ret;
    int i0, i, n;
 
@@ -1439,7 +1498,7 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 /* Check the global error status. */
    if ( !astOK ) return ret;
 
-/* Store the x values at (RATE_ORDER+1) evenly spaced points over the interval 
+/* Store the x values at (RATE_ORDER+1) evenly spaced points over the interval
    "h" centred on "x0". */
    i0 = RATE_ORDER/2;
    dh = h/RATE_ORDER;
@@ -1450,6 +1509,24 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 
 /* Get the function values at these positions. */
    FunPN( map, at, ax1, ax2, RATE_ORDER + 1, x, y, status );
+
+/* Get the mean, max and min function value. */
+   mean = max = min = y[ 0 ];
+   if( mean == AST__BAD ) return NULL;
+   for( i = 1; i <= RATE_ORDER; i++ ) {
+
+      if( y[ i ] == AST__BAD ) return NULL;
+
+      mean += y[ i ];
+
+      if( y[ i ] > max ) {
+         max = y[ i ];
+
+      } else if( y[ i ] < min ) {
+         min = y[ i ];
+
+      }
+   }
 
 /* Convert the x values into x offsets from "x0", and convert the y
    values into y offsets from the central y value. */
@@ -1466,11 +1543,14 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
 
 /* Find the polynomial which interpolates these points. */
    ret = InterpPN( RATE_ORDER + 1, x, y, status );
-
-/* If required, find the rms error between the polynomial and the 
-   function at points mid-way between the interpolating points. */
    if( ret ) {
       ret->y0 = off;
+
+/* Indicate if the dynamic range of the function values is clsoe to zero. */
+      ret->too_small = ( max - min <= 1.0E-6*fabs( mean )/( RATE_ORDER + 1 ) );
+
+/* If required, find the rms error between the polynomial and the
+   function at points mid-way between the interpolating points. */
       if( rms ) {
 
 /* Store the x values at which to evaluate the function. These are the
@@ -1496,7 +1576,7 @@ static PN *FitPN( AstMapping *map, double *at, int ax1, int ax2, double x0,
                n++;
             }
          }
-   
+
 /* Evaluate the rms residual. */
          if( n > 1 ) {
             *rms = sqrt( s2/( RATE_ORDER + 2 ) );
@@ -1607,7 +1687,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstMapping *this;             /* Pointer to the Mapping structure */
    const char *result;           /* Pointer value to return */
    int invert;                   /* Invert attribute value */
@@ -1622,12 +1702,12 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 /* Initialise. */
    result = NULL;
 
-/* Check the global error status. */   
+/* Check the global error status. */
    if ( !astOK ) return result;
 
 /* Get a pointer to the thread specific global data structure. */
    astGET_GLOBALS(this_object);
- 
+
 /* Obtain a pointer to the Mapping structure. */
    this = (AstMapping *) this_object;
 
@@ -2625,14 +2705,14 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
 
 /* Check the local error status. */
@@ -2649,7 +2729,8 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
    will be used (by astIsAMapping) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstObjectVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -2677,6 +2758,7 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
    vtab->MapList = MapList;
    vtab->MapMerge = MapMerge;
    vtab->MapSplit = MapSplit;
+   vtab->QuadApprox = QuadApprox;
    vtab->Rate = Rate;
    vtab->ReportPoints = ReportPoints;
    vtab->RebinD = RebinD;
@@ -2685,6 +2767,7 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
    vtab->RebinSeqD = RebinSeqD;
    vtab->RebinSeqF = RebinSeqF;
    vtab->RebinSeqI = RebinSeqI;
+   vtab->RemoveRegions = RemoveRegions;
    vtab->ResampleB = ResampleB;
    vtab->ResampleD = ResampleD;
    vtab->ResampleF = ResampleF;
@@ -2728,9 +2811,12 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
    astSetDump( vtab, Dump, "Mapping", "Mapping between coordinate systems" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 /*
@@ -2861,11 +2947,11 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
 *        this parameter specifies the value which is used to identify
 *        bad data and/or variance values in the input array(s). Its
 *        numerical type must match that of the "in" (and "in_var")
-*        arrays. Unles the AST__NOBAD flag is specified in "flags", the 
-*        same value will also be used to flag any output array elements 
-*        for which resampled values could not be obtained.  The output 
-*        arrays(s) may be flagged with this value whether or not the 
-*        AST__USEBAD flag is set (the function return value indicates 
+*        arrays. Unles the AST__NOBAD flag is specified in "flags", the
+*        same value will also be used to flag any output array elements
+*        for which resampled values could not be obtained.  The output
+*        arrays(s) may be flagged with this value whether or not the
+*        AST__USEBAD flag is set (the function return value indicates
 *        whether any such values have been produced).
 *     out
 *        Pointer to an array with the same data type as the "in"
@@ -2895,7 +2981,7 @@ void astInitMappingVtab_(  AstMappingVtab *vtab, const char *name, int *status )
 *        should be given.
 
 *  Returned Value:
-*     The number of output grid points for which no valid output value 
+*     The number of output grid points for which no valid output value
 *     could be obtained.
 
 *  Notes:
@@ -2923,7 +3009,7 @@ static int InterpolateKernel1##X( AstMapping *this, int ndim_in, \
                                   Xtype *out, Xtype *out_var, int *status ) { \
 \
 /* Local Variables: */ \
-   astDECLARE_GLOBALS;           /* Thread-specific data */ \
+   astDECLARE_GLOBALS            /* Thread-specific data */ \
    Xfloattype hi_lim;            /* Upper limit on output values */ \
    Xfloattype lo_lim;            /* Lower limit on output values */ \
    Xfloattype sum;               /* Weighted sum of pixel data values */ \
@@ -3784,7 +3870,7 @@ static int InterpolateKernel1##X( AstMapping *this, int ndim_in, \
    The data type of each limit should be that of the smallest
    precision floating point type which will accommodate the full range
    of values that the target type may take. */
-   
+
 /* If <X> is a floating point type, the limits are not actually used,
    but must be present to permit error-free compilation. */
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
@@ -3832,7 +3918,7 @@ MAKE_INTERPOLATE_KERNEL1(LD,long double,1,long double,1)
 MAKE_INTERPOLATE_KERNEL1(L,long int,0,long double,1)
 #else
 MAKE_INTERPOLATE_KERNEL1(L,long int,0,double,1)
-#endif     
+#endif
 MAKE_INTERPOLATE_KERNEL1(D,double,1,double,1)
 MAKE_INTERPOLATE_KERNEL1(F,float,1,float,1)
 MAKE_INTERPOLATE_KERNEL1(I,int,0,double,1)
@@ -3850,7 +3936,7 @@ MAKE_INTERPOLATE_KERNEL1(B,signed char,0,float,1)
 MAKE_INTERPOLATE_KERNEL1(UL,unsigned long int,0,long double,0)
 #else
 MAKE_INTERPOLATE_KERNEL1(UL,unsigned long int,0,double,0)
-#endif     
+#endif
 MAKE_INTERPOLATE_KERNEL1(UI,unsigned int,0,double,0)
 MAKE_INTERPOLATE_KERNEL1(US,unsigned short int,0,float,0)
 MAKE_INTERPOLATE_KERNEL1(UB,unsigned char,0,float,0)
@@ -3993,11 +4079,11 @@ MAKE_INTERPOLATE_KERNEL1(UB,unsigned char,0,float,0)
 *        this parameter specifies the value which is used to identify
 *        bad data and/or variance values in the input array(s). Its
 *        numerical type must match that of the "in" (and "in_var")
-*        arrays. Unles the AST__NOBAD flag is specified in "flags", the 
-*        same value will also be used to flag any output array elements 
-*        for which resampled values could not be obtained.  The output 
-*        arrays(s) may be flagged with this value whether or not the 
-*        AST__USEBAD flag is set (the function return value indicates 
+*        arrays. Unles the AST__NOBAD flag is specified in "flags", the
+*        same value will also be used to flag any output array elements
+*        for which resampled values could not be obtained.  The output
+*        arrays(s) may be flagged with this value whether or not the
+*        AST__USEBAD flag is set (the function return value indicates
 *        whether any such values have been produced).
 *     out
 *        Pointer to an array with the same data type as the "in"
@@ -4795,7 +4881,7 @@ MAKE_INTERPOLATE_LINEAR(LD,long double,1,long double,1)
 MAKE_INTERPOLATE_LINEAR(L,long int,0,long double,1)
 #else
 MAKE_INTERPOLATE_LINEAR(L,long int,0,double,1)
-#endif     
+#endif
 MAKE_INTERPOLATE_LINEAR(D,double,1,double,1)
 MAKE_INTERPOLATE_LINEAR(F,float,1,float,1)
 MAKE_INTERPOLATE_LINEAR(I,int,0,double,1)
@@ -4813,7 +4899,7 @@ MAKE_INTERPOLATE_LINEAR(B,signed char,0,float,1)
 MAKE_INTERPOLATE_LINEAR(UL,unsigned long int,0,long double,0)
 #else
 MAKE_INTERPOLATE_LINEAR(UL,unsigned long int,0,double,0)
-#endif     
+#endif
 MAKE_INTERPOLATE_LINEAR(UI,unsigned int,0,double,0)
 MAKE_INTERPOLATE_LINEAR(US,unsigned short int,0,float,0)
 MAKE_INTERPOLATE_LINEAR(UB,unsigned char,0,float,0)
@@ -4931,11 +5017,11 @@ MAKE_INTERPOLATE_LINEAR(UB,unsigned char,0,float,0)
 *        this parameter specifies the value which is used to identify
 *        bad data and/or variance values in the input array(s). Its
 *        numerical type must match that of the "in" (and "in_var")
-*        arrays. Unles the AST__NOBAD flag is specified in "flags", the 
-*        same value will also be used to flag any output array elements 
-*        for which resampled values could not be obtained.  The output 
-*        arrays(s) may be flagged with this value whether or not the 
-*        AST__USEBAD flag is set (the function return value indicates 
+*        arrays. Unles the AST__NOBAD flag is specified in "flags", the
+*        same value will also be used to flag any output array elements
+*        for which resampled values could not be obtained.  The output
+*        arrays(s) may be flagged with this value whether or not the
+*        AST__USEBAD flag is set (the function return value indicates
 *        whether any such values have been produced).
 *     out
 *        Pointer to an array with the same data type as the "in"
@@ -5447,14 +5533,14 @@ MAKE_INTERPOLATE_NEAREST(UB,unsigned char,0)
 *  Synopsis:
 *     #include "mapping.h"
 *     void InterpolateBlockAverage<X>( int ndim_in,
-*                                      const int lbnd_in[], 
+*                                      const int lbnd_in[],
 *                                      const int ubnd_in[],
-*                                      const <Xtype> in[], 
+*                                      const <Xtype> in[],
 *                                      const <Xtype> in_var[],
 *                                      int npoint, const int offset[],
 *                                      const double *const coords[],
 *                                      const double params[], int flags,
-*                                      <Xtype> badval, <Xtype> *out, 
+*                                      <Xtype> badval, <Xtype> *out,
 *                                      <Xtype> *out_var, int *nbad )
 
 *  Class Membership:
@@ -5463,18 +5549,18 @@ MAKE_INTERPOLATE_NEAREST(UB,unsigned char,0)
 *  Description:
 *     This is a set of functions which resample a rectangular input
 *     grid of data (and, optionally, associated statistical variance
-*     values) so as to place them into a new output grid. To generate 
+*     values) so as to place them into a new output grid. To generate
 *     an output grid pixel, a block average is taken over an ndim-
 *     dimensional hypercube of pixels in the input grid.  If variances
 *     are being used then the input pixels will be weighted according
-*     to the reciprocals of the corresponding variance values, and 
+*     to the reciprocals of the corresponding variance values, and
 *     input pixels without a valid variance will be ignored;
 *     otherwise an unweighted average will be taken over
 *     all non-bad pixels in the cube.  The size of the cube over which
-*     the average is taken is determined by the first element of the 
+*     the average is taken is determined by the first element of the
 *     params array.
 *
-*     This "interpolation" scheme is appropriate where an input grid 
+*     This "interpolation" scheme is appropriate where an input grid
 *     is to be resampled onto a much coarser output grid.
 
 *  Parameters:
@@ -5538,10 +5624,10 @@ MAKE_INTERPOLATE_NEAREST(UB,unsigned char,0)
 *        AST__NOBAD flag is specified).
 *     params
 *        A pointer to an array of doubles giving further information
-*        about how the resampling is to proceed.  Only the first 
-*        element is significant; the nearest integer to this gives 
+*        about how the resampling is to proceed.  Only the first
+*        element is significant; the nearest integer to this gives
 *        the number of pixels on either side of the central input
-*        grid pixel to use in each dimension.  Therefore 
+*        grid pixel to use in each dimension.  Therefore
 *        (1 + 2*params[0])**ndim_in pixels will be averaged over to
 *        generate each output pixel.
 *     flags
@@ -5556,11 +5642,11 @@ MAKE_INTERPOLATE_NEAREST(UB,unsigned char,0)
 *        this parameter specifies the value which is used to identify
 *        bad data and/or variance values in the input array(s). Its
 *        numerical type must match that of the "in" (and "in_var")
-*        arrays. Unles the AST__NOBAD flag is specified in "flags", the 
-*        same value will also be used to flag any output array elements 
-*        for which resampled values could not be obtained.  The output 
-*        arrays(s) may be flagged with this value whether or not the 
-*        AST__USEBAD flag is set (the function return value indicates 
+*        arrays. Unles the AST__NOBAD flag is specified in "flags", the
+*        same value will also be used to flag any output array elements
+*        for which resampled values could not be obtained.  The output
+*        arrays(s) may be flagged with this value whether or not the
+*        AST__USEBAD flag is set (the function return value indicates
 *        whether any such values have been produced).
 *     out
 *        Pointer to an array with the same data type as the "in"
@@ -5591,7 +5677,7 @@ MAKE_INTERPOLATE_NEAREST(UB,unsigned char,0)
 *     nbad
 *        Pointer to an int in which to return the number of
 *        interpolation points at which an output data value (and/or a
-*        variance value if relevant) equal to "badval" has been 
+*        variance value if relevant) equal to "badval" has been
 *        assigned because no valid interpolated value could be
 *        obtained.  The maximum value that will be returned is
 *        "npoint" and the minimum is zero (indicating that all output
@@ -5995,7 +6081,7 @@ static void InterpolateBlockAverage##X( int ndim_in, \
 
 /* This subsidiary macro assembles the input data needed in
    preparation for forming the interpolated value in the 2-dimensional
-   case. */ 
+   case. */
 #define ASSEMBLE_INPUT_2D(X,Xtype,Xfloating,Xfloattype,Xsigned,Usebad,Usevar) \
 \
 /* Obtain the x coordinate of the current point and test if it is bad. */ \
@@ -6067,7 +6153,7 @@ static void InterpolateBlockAverage##X( int ndim_in, \
          } \
       } \
    }
- 
+
 /* This subsidiary macro assembles the input data needed in
    preparation for forming the interpolated value in the n-dimensional
    case. */
@@ -6376,7 +6462,7 @@ static PN *InterpPN( int np, double *x, double *y, int *status ) {
 *     InterpPN
 
 *  Purpose:
-*     Find a polynomial which interpolates the given points. 
+*     Find a polynomial which interpolates the given points.
 
 *  Type:
 *     Private function.
@@ -6391,8 +6477,8 @@ static PN *InterpPN( int np, double *x, double *y, int *status ) {
 *  Description:
 *     This function finds the coefficients of a polynomial which
 *     interpolates the supplied positions. The order of the returned
-*     polynomial is one less than the the number of supplied points 
-*     (thus if 2 points are supplied, the polynomial will be of order 
+*     polynomial is one less than the the number of supplied points
+*     (thus if 2 points are supplied, the polynomial will be of order
 *     1 - a straight line).
 
 *  Parameters:
@@ -6556,7 +6642,7 @@ static double J1Bessel( double x, int *status ) {
 *     The calculated J1(x) value.
 
 *  Notes:
-*     - The algorithm is taken from the SCUBA routine SCULIB_BESSJ1, by 
+*     - The algorithm is taken from the SCUBA routine SCULIB_BESSJ1, by
 *     J.Lightfoot.
 *     - This function does not perform error checking and does not
 *     generate errors.
@@ -6616,7 +6702,7 @@ static double J1Bessel( double x, int *status ) {
 
 }
 
-static int LinearApprox( AstMapping *this, const double *lbnd, 
+static int LinearApprox( AstMapping *this, const double *lbnd,
                          const double *ubnd, double tol, double *fit, int *status ) {
 /*
 *++
@@ -6632,7 +6718,7 @@ f     AST_LINEARAPPROX
 
 *  Synopsis:
 c     #include "mapping.h"
-c     int astLinearApprox( AstMapping *this, const double *lbnd, 
+c     int astLinearApprox( AstMapping *this, const double *lbnd,
 c                          const double *ubnd, double tol, double *fit )
 f     RESULT = AST_LINEARAPPROX( THIS, LBND, UBND, TOL, FIT, STATUS )
 
@@ -6645,20 +6731,20 @@ f     RESULT = AST_LINEARAPPROX( THIS, LBND, UBND, TOL, FIT, STATUS )
 *     the transformation is found to be linear to a specified level of
 *     accuracy, then an array of fit coefficients is returned. These
 *     may be used to implement a linear approximation to the Mapping's
-*     forward transformation within the specified range of output coordinates. 
-*     If the transformation is not sufficiently linear, no coefficients 
+*     forward transformation within the specified range of output coordinates.
+*     If the transformation is not sufficiently linear, no coefficients
 *     are returned.
 
 *  Parameters:
 c     this
 f     THIS = INTEGER (Given)
-*        Pointer to the Mapping. 
+*        Pointer to the Mapping.
 c     lbnd
 f     LBND( * ) = DOUBLE PRECISION (Given)
 c        Pointer to an array of doubles
 f        An array
-*        containing the lower bounds of a box defined within the input 
-*        coordinate system of the Mapping. The number of elements in this 
+*        containing the lower bounds of a box defined within the input
+*        coordinate system of the Mapping. The number of elements in this
 *        array should equal the value of the Mapping's Nin attribute. This
 *        box should specify the region over which linearity is required.
 c     ubnd
@@ -6672,26 +6758,26 @@ f     TOL = DOUBLE PRECISION (Given)
 *        The maximum permitted deviation from linearity, expressed as
 *        a positive Cartesian displacement in the output coordinate
 *        space of the Mapping. If a linear fit to the forward
-*        transformation of the Mapping deviates from the true transformation 
+*        transformation of the Mapping deviates from the true transformation
 *        by more than this amount at any point which is tested, then no fit
 *        coefficients will be returned.
 c     fit
 f     FIT( * ) = DOUBLE PRECISION (Returned)
-c        Pointer to an array of doubles 
+c        Pointer to an array of doubles
 f        An array
 *        in which to return the co-efficients of the linear
 *        approximation to the specified transformation. This array should
-*        have at least "( Nin + 1 ) * Nout", elements. The first Nout elements 
-*        hold the constant offsets for the transformation outputs. The 
-*        remaining elements hold the gradients. So if the Mapping has 2 inputs 
-*        and 3 outputs the linear approximation to the forward transformation 
+*        have at least "( Nin + 1 ) * Nout", elements. The first Nout elements
+*        hold the constant offsets for the transformation outputs. The
+*        remaining elements hold the gradients. So if the Mapping has 2 inputs
+*        and 3 outputs the linear approximation to the forward transformation
 *        is:
 *
-c           X_out = fit[0] + fit[3]*X_in + fit[4]*Y_in 
-f           X_out = fit(1) + fit(4)*X_in + fit(5)*Y_in 
+c           X_out = fit[0] + fit[3]*X_in + fit[4]*Y_in
+f           X_out = fit(1) + fit(4)*X_in + fit(5)*Y_in
 *
-c           Y_out = fit[1] + fit[5]*X_in + fit[6]*Y_in 
-f           Y_out = fit(2) + fit(6)*X_in + fit(7)*Y_in 
+c           Y_out = fit[1] + fit[5]*X_in + fit[6]*Y_in
+f           Y_out = fit(2) + fit(6)*X_in + fit(7)*Y_in
 *
 c           Z_out = fit[2] + fit[7]*X_in + fit[8]*Y_in
 f           Z_out = fit(3) + fit(8)*X_in + fit(9)*Y_in
@@ -6703,7 +6789,7 @@ f        The global status.
 c     astLinearApprox()
 f     AST_LINEARAPPROX = LOGICAL
 *        If the forward transformation is sufficiently linear,
-c        a non-zero value is returned. Otherwise zero is returned 
+c        a non-zero value is returned. Otherwise zero is returned
 f        .TRUE is returned. Otherwise .FALSE. is returned
 *        and the fit co-efficients are set to AST__BAD.
 
@@ -6722,7 +6808,7 @@ f     - A value of .FALSE.
 
 *  Implementation Deficiencies:
 *     Sub-classes which implement linear mappings should probably
-*     over-ride this function to get better accuracy and faster execution, 
+*     over-ride this function to get better accuracy and faster execution,
 *     but currently they do not.
 
 */
@@ -6768,7 +6854,7 @@ f     - A value of .FALSE.
 
 /* Initialise. */
    result = 0;
-   
+
 /* Check the global error status. */
    if ( !astOK ) return result;
 
@@ -6909,7 +6995,7 @@ f     - A value of .FALSE.
       npoint = 1 + 2 * ( ndim_in + npoint );
 
 /* Set up test points in the input coordinate system. */
-/* --------------------------------------------------- */   
+/* --------------------------------------------------- */
 /* Create a PointSet to hold the test coordinates and obtain an array
    of pointers to its coordinate data. */
       pset_in_t = astPointSet( npoint, ndim_in, "", status );
@@ -7210,7 +7296,7 @@ static double LocalMaximum( const MapData *mapdata, double acc, double fract,
          fract /= 1000.0;
       }
    }
-   
+
 /* Free the workspace. */
    dx = astFree( dx );
 
@@ -7472,7 +7558,7 @@ static void MapBox( AstMapping *this,
       x_l = astFree( x_l );
       x_u = astFree( x_u );
    }
-      
+
 /* If an error occurred, then return bad bounds values and
    coordinates. */
    if ( !astOK ) {
@@ -7735,7 +7821,7 @@ static int MapList( AstMapping *this, int series, int invert, int *nmap,
 *     or if it should fail for any reason, then the *nmap value, the
 *     list of Mapping pointers and the list of Invert values will all
 *     be returned unchanged.
-*- 
+*-
 */
 
 /* Check the global error status. */
@@ -7898,7 +7984,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    return -1;
 }
 
-static int *MapSplit( AstMapping *this, int nin, const int *in, 
+static int *MapSplit( AstMapping *this, int nin, const int *in,
                       AstMapping **map, int *status ){
 /*
 *+
@@ -7914,20 +8000,22 @@ static int *MapSplit( AstMapping *this, int nin, const int *in,
 
 *  Synopsis:
 *     #include "mapping.h"
-*     int *astMapSplit( AstMapping *this, int nin, const int *in, 
+*     int *astMapSplit( AstMapping *this, int nin, const int *in,
 *                       AstMapping **map )
 
 *  Class Membership:
 *     Mapping method.
 
 *  Description:
-*     This function creates a new Mapping by picking specified inputs from 
+*     This function creates a new Mapping by picking specified inputs from
 *     an existing Mapping. This is only possible if the specified inputs
 *     correspond to some subset of the Mapping outputs. That is, there
 *     must exist a subset of the Mapping outputs for which each output
 *     depends only on the selected Mapping inputs, and not on any of the
-*     inputs which have not been selected. If this condition is not met
-*     by the supplied Mapping, then a NULL Mapping is returned.
+*     inputs which have not been selected. Also, any output which is not in
+*     this subset must not depend on any of the selected inputs. If these
+*     conditions are not met by the supplied Mapping, then a NULL Mapping
+*     is returned.
 
 *  Parameters:
 *     this
@@ -7938,18 +8026,19 @@ static int *MapSplit( AstMapping *this, int nin, const int *in,
 *     in
 *        Pointer to an array of indices (zero based) for the inputs which
 *        are to be picked. This array should have "nin" elements. If "Nin"
-*        is the number of inputs of the supplied Mapping, then each element 
+*        is the number of inputs of the supplied Mapping, then each element
 *        should have a value in the range zero to Nin-1.
 *     map
 *        Address of a location at which to return a pointer to the new
 *        Mapping. This Mapping will have "nin" inputs (the number of
 *        outputs may be differetn to "nin"). A NULL pointer will be
-*        returned if the supplied Mapping has no subset of outputs which 
-*        depend only on the selected inputs.
+*        returned if the supplied Mapping has no subset of outputs which
+*        depend only on the selected inputs. The returned Mapping is a
+*        deep copy of the required parts of the supplied Mapping.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
-*     elements in this array will equal the number of outputs for the 
+*     elements in this array will equal the number of outputs for the
 *     returned Mapping. Each element will hold the index of the
 *     corresponding output in the supplied Mapping. The array should be
 *     freed using astFree when no longer needed. A NULL pointer will
@@ -7959,7 +8048,7 @@ static int *MapSplit( AstMapping *this, int nin, const int *in,
 *     - If this function is invoked with the global error status set,
 *     or if it should fail for any reason, then NULL values will be
 *     returned as the function value and for the "map" pointer.
-*- 
+*-
 
 *  Implementation Notes:
 *     - This function implements the basic astMapSplit method available
@@ -7971,7 +8060,7 @@ static int *MapSplit( AstMapping *this, int nin, const int *in,
 /* Local Variables: */
    AstCmpMap *rmap;           /* Unsimplified result mapping */
    AstPermMap *pm;            /* PermMap which rearranges the inputs */
-   int *outperm;              /* PermMap output axis permutation array */   
+   int *outperm;              /* PermMap output axis permutation array */
    int *result;               /* Pointer to returned array */
    int iin;                   /* Input index */
    int iout;                  /* Output index */
@@ -7993,7 +8082,7 @@ static int *MapSplit( AstMapping *this, int nin, const int *in,
       if( in[ iin ] < 0 || in[ iin ] >= mapnin ) {
          astError( AST__AXIIN, "astMapSplit(%s): One of the supplied Mapping "
                    "input indices has value %d which is invalid; it should "
-                   "be in the range 1 to %d.", status, astGetClass( this ), 
+                   "be in the range 1 to %d.", status, astGetClass( this ),
                    in[ iin ] + 1, mapnin );
          break;
       }
@@ -8011,7 +8100,7 @@ static int *MapSplit( AstMapping *this, int nin, const int *in,
       outperm = astMalloc( sizeof(int)*(size_t) nin );
       if( astOK ) {
 
-/* Store the input index for each output in the outperm array and check that 
+/* Store the input index for each output in the outperm array and check that
    each input has been selected once and only once. Also set a flag
    indicating if a PermMap is needed. */
          perm = 0;
@@ -8140,7 +8229,7 @@ static double MatrixDet( int ndim, const double *matrix, int *status ){
       y = astMalloc( sizeof( double )*(size_t) ndim );
       if( y ) {
          for( i = 0; i < ndim; i++ ) y[ i ] = 1.0;
-         palSlaDmat( ndim, a, y, &result, &jf, iw );
+         palDmat( ndim, a, y, &result, &jf, iw );
       }
       y = astFree( y );
       iw = astFree( iw );
@@ -8352,7 +8441,7 @@ static double NewVertex( const MapData *mapdata, int lo, double scale,
 
 /* Check the global error status. */
    if ( !astOK ) return fnew;
-   
+
 /* Obtain the number of Mapping input coordinates from the MapData
    structure and calculate the number of simplex vertices. */
    ncoord = mapdata->nin;
@@ -8383,7 +8472,7 @@ static double NewVertex( const MapData *mapdata, int lo, double scale,
 
 /* Evaluate the Mapping function at the new vertex. */
    fnew = MapFunction( mapdata, xnew, ncall, status );
- 
+
 /* If the result is not bad and exceeds the previous value at the
    lowest vertex, then replace the lowest vertex with this new one. */
    if ( astOK && ( fnew != AST__BAD ) && ( fnew > f[ lo ] ) ) {
@@ -8395,6 +8484,432 @@ static double NewVertex( const MapData *mapdata, int lo, double scale,
 
 /* Return the value at the new vertex. */
    return fnew;
+}
+
+static int QuadApprox( AstMapping *this,  const double lbnd[2],
+                       const double ubnd[2], int nx, int ny, double *fit,
+                       double *rms, int *status ){
+/*
+*++
+*  Name:
+c     astQuadApprox
+f     AST_QUADAPPROX
+
+*  Purpose:
+*     Obtain a quadratic approximation to a 2D Mapping.
+
+*  Type:
+*     Public virtual function.
+
+*  Synopsis:
+c     #include "mapping.h"
+c     int QuadApprox( AstMapping *this,  const double lbnd[2],
+c                     const double ubnd[2], int nx, int ny, double *fit,
+c                     double *rms )
+f     RESULT = AST_QUADAPPROX( THIS, LBND, UBND, NX, NY, FIT, RMS, STATUS )
+
+*  Class Membership:
+*     Mapping function.
+
+*  Description:
+*     This function returns the co-efficients of a quadratic fit to the
+*     supplied Mapping over the input area specified by
+c     "lbnd" and "ubnd".
+f     LBND and UBND.
+*     The Mapping must have 2 inputs, but may have any number of outputs.
+*     The i'th Mapping output is modelled as a quadratic function of the
+*     2 inputs (x,y):
+*
+*     output_i = a_i_0 + a_i_1*x + a_i_2*y + a_i_3*x*y + a_i_4*x*x +
+*                a_i_5*y*y
+*
+c     The "fit"
+f     The FIT
+*     array is returned holding the values of the co-efficients a_0_0,
+*     a_0_1, etc.
+
+*  Parameters:
+c     this
+f     THIS = INTEGER (Given)
+*        Pointer to the Mapping.
+c     lbnd
+f     LBND( * ) = DOUBLE PRECISION (Given)
+c        Pointer to an array of doubles
+f        An array
+*        containing the lower bounds of a box defined within the input
+*        coordinate system of the Mapping. The number of elements in this
+*        array should equal the value of the Mapping's Nin attribute. This
+*        box should specify the region over which the fit is to be
+*        performed.
+c     ubnd
+f     UBND( * ) = DOUBLE PRECISION (Given)
+c        Pointer to an array of doubles
+f        An array
+*        containing the upper bounds of the box specifying the region over
+*        which the fit is to be performed.
+c     nx
+f     NX = INTEGER (Given)
+*        The number of points to place along the first Mapping input. The
+*        first point is at
+c        "lbnd[0]" and the last is at "ubnd[0]".
+f        LBND( 1 ) and the last is at UBND( 1 ).
+*        If a value less than three is supplied a value of three will be used.
+c     ny
+f     NY = INTEGER (Given)
+*        The number of points to place along the second Mapping input. The
+*        first point is at
+c        "lbnd[1]" and the last is at "ubnd[1]".
+f        LBND( 2 ) and the last is at UBND( 2 ).
+*        If a value less than three is supplied a value of three will be used.
+c     fit
+f     FIT( * ) = DOUBLE PRECISION (Returned)
+c        Pointer to an array of doubles
+f        An array
+*        in which to return the co-efficients of the quadratic
+*        approximation to the specified transformation. This array should
+*        have at least "6*Nout", elements. The first 6 elements hold the
+*        fit to the first Mapping output. The next 6 elements hold the
+*        fit to the second Mapping output, etc. So if the Mapping has 2
+*        inputs and 2 outputs the quadratic approximation to the forward
+*        transformation is:
+*
+c           X_out = fit[0] + fit[1]*X_in + fit[2]*Y_in + fit[3]*X_in*Y_in +
+c                   fit[4]*X_in*X_in + fit[5]*Y_in*Y_in
+c           Y_out = fit[6] + fit[7]*X_in + fit[8]*Y_in + fit[9]*X_in*Y_in +
+c                   fit[10]*X_in*X_in + fit[11]*Y_in*Y_in
+f           X_out = fit(1) + fit(2)*X_in + fit(3)*Y_in + fit(4)*X_in*Y_in +
+f                   fit(5)*X_in*X_in + fit(6)*Y_in*Y_in
+f           Y_out = fit(7) + fit(8)*X_in + fit(9)*Y_in + fit(10)*X_in*Y_in +
+f                   fit(11)*X_in*X_in + fit(12)*Y_in*Y_in
+*
+c     rms
+f     RMS = DOUBLE PRECISION (Returned)
+c        Pointer to a double in which to return the
+f        The
+*        RMS residual between the fit and the Mapping, summed over all
+*        Mapping outputs.
+f     STATUS = INTEGER (Given and Returned)
+f        The global status.
+
+*  Returned Value:
+c     astQuadApprox()
+f     AST_QUADAPPROX = LOGICAL
+*        If a quadratic approximation was created,
+c        a non-zero value is returned. Otherwise zero is returned
+f        .TRUE is returned. Otherwise .FALSE. is returned
+*        and the fit co-efficients are set to AST__BAD.
+
+*  Notes:
+*     - This function fits the Mapping's forward transformation. To fit
+*     the inverse transformation, the Mapping should be inverted using
+c     astInvert
+f     AST_INVERT
+*     before invoking this function.
+c     - A value of zero
+f     - A value of .FALSE.
+*     will be returned if this function is invoked
+*     with the global error status set, or if it should fail for any
+*     reason.
+*--
+
+*/
+
+/* Local Variables: */
+   AstPointSet *pset1;
+   AstPointSet *pset2;
+   double **pdat1;
+   double **pdat2;
+   double *ofit;
+   double *px;
+   double *py;
+   double *pz;
+   double det;
+   double dx;
+   double dy;
+   double mat[ 6*6 ];
+   double sx2;
+   double sx2y2;
+   double sx2y;
+   double sx3;
+   double sx3y;
+   double sx4;
+   double sx;
+   double sxy2;
+   double sxy3;
+   double sxy;
+   double sy2;
+   double sy3;
+   double sy4;
+   double sy;
+   double sz;
+   double sz2;
+   double szx2;
+   double szx;
+   double szxy;
+   double szy2;
+   double szy;
+   double x;
+   double xx;
+   double xy;
+   double y;
+   double yy;
+   double z;
+   int i;
+   int iout;
+   int iw[ 6 ];
+   int ix;
+   int iy;
+   int n;
+   int nin;
+   int nout;
+   int np;
+   int ntot;
+   int result;
+   int sing;
+
+/* Initialise the returned values. */
+   result = 0;
+   fit[ 0 ] = AST__BAD;
+   *rms = AST__BAD;
+   ntot = 0;
+
+/* Check the global error status. */
+   if( !astOK ) return result;
+
+/* Get the number of Mapping inputs and outputs. Report an error if not
+   correct. */
+   nin = astGetI( this, "Nin" );
+   nout = astGetI( this, "Nout" );
+   if( nin != 2 && astOK ) {
+      astError( AST__BADNI, "astQuadApprox(%s): Input Mapping has %d %s - "
+                "it must have 2 inputs.", status, astGetClass( this ), nin,
+                (nin==1)?"input":"inputs" );
+   }
+
+/* Ensure we are using at least 3 points on each of the two input axes. */
+   if( nx < 3 ) nx = 3;
+   if( ny < 3 ) ny = 3;
+
+/* Get the total number of grid points. */
+   np = nx*ny;
+
+/* Create a PointSet to hold the 2D grid of input positions. */
+   pset1 = astPointSet( np, 2, " ", status );
+   pdat1 = astGetPoints( pset1 );
+
+/* Create a PointSet to hold the N-D grid of output positions. */
+   pset2 = astPointSet( np, nout, " ", status );
+   pdat2 = astGetPoints( pset2 );
+
+/* Check the memory allocation (and everything else) was succesful. */
+   if( astOK ) {
+
+/* Find the cell dimensions on X and Y input axes. */
+      dx = ( ubnd[ 0 ] - lbnd[ 0 ] )/( nx - 1 );
+      dy = ( ubnd[ 1 ] - lbnd[ 1 ] )/( ny - 1 );
+
+/* Create a regular grid of input positions. */
+      px = pdat1[ 0 ];
+      py = pdat1[ 1 ];
+      for( iy = 0; iy < ny; iy++ ) {
+         x = lbnd[ 0 ];
+         y = lbnd[ 1 ] + iy*dy;
+         for( ix = 0; ix < nx; ix++ ) {
+            *(px++) = x;
+            *(py++) = y;
+            x += dx;
+         }
+      }
+
+/* Use the supplied Mapping to transform this grid into the output space. */
+      (void) astTransform( this, pset1, 1, pset2 );
+
+/* Assume the approximation can be created. */
+      result = 1;
+      *rms = 0.0;
+
+/* Loop round each Mapping output. */
+      for( iout = 0; iout < nout && astOK; iout++ ) {
+
+/* Get a pointer to the first element of the fit array for this output. */
+         ofit = fit + 6*iout;
+
+/* Form the required sums. */
+         n = 0;
+         sx = 0.0;
+         sy = 0.0;
+         sxy = 0.0;
+         sx2 = 0.0;
+         sy2 = 0.0;
+         sx2y = 0.0;
+         sx3 = 0.0;
+         sxy2 = 0.0;
+         sy3 = 0.0;
+         sx2y2 = 0.0;
+         sx3y = 0.0;
+         sxy3 = 0.0;
+         sx4 = 0.0;
+         sy4 = 0.0;
+         sz = 0.0;
+         sz2 = 0.0;
+         szx = 0.0;
+         szy = 0.0;
+         szxy = 0.0;
+         szx2 = 0.0;
+         szy2 = 0.0;
+
+         px = pdat1[ 0 ];
+         py = pdat1[ 1 ];
+         pz = pdat2[ iout ];
+
+         for( i = 0; i < np; i++ ) {
+            x = *(px++);
+            y = *(py++);
+            z = *(pz++);
+
+            if( z != AST__BAD ) {
+               xx = x*x;
+               yy = y*y;
+               xy = x*y;
+
+               n++;
+               sx += x;
+               sy += y;
+               sxy += xy;
+               sx2 += xx;
+               sy2 += yy;
+               sx2y += xx*y;
+               sx3 += xx*x;
+               sxy2 += x*yy;
+               sy3 += yy*y;
+               sx2y2 += xx*yy;
+               sx3y += xx*xy;
+               sxy3 += xy*yy;
+               sx4 += xx*xx;
+               sy4 += yy*yy;
+               sz += z;
+               sz2 += z*z;
+               szx += z*x;
+               szy += z*y;
+               szxy += z*xy;
+               szx2 += z*xx;
+               szy2 += z*yy;
+            }
+         }
+
+/* Form a matrix (M) and vector (V) such that M.X = V, where X is the
+   solution vector holding the required best fit parameter values (V is
+   stored in ofit). */
+         mat[ 0 ] = n;
+         mat[ 1 ] = sx;
+         mat[ 2 ] = sy;
+         mat[ 3 ] = sxy;
+         mat[ 4 ] = sx2;
+         mat[ 5 ] = sy2;
+
+         mat[ 6 ] = sx;
+         mat[ 7 ] = sx2;
+         mat[ 8 ] = sxy;
+         mat[ 9 ] = sx2y;
+         mat[ 10 ] = sx3;
+         mat[ 11 ] = sxy2;
+
+         mat[ 12 ] = sy;
+         mat[ 13 ] = sxy;
+         mat[ 14 ] = sy2;
+         mat[ 15 ] = sxy2;
+         mat[ 16 ] = sx2y;
+         mat[ 17 ] = sy3;
+
+         mat[ 18 ] = sxy;
+         mat[ 19 ] = sx2y;
+         mat[ 20 ] = sxy2;
+         mat[ 21 ] = sx2y2;
+         mat[ 22 ] = sx3y;
+         mat[ 23 ] = sxy3;
+
+         mat[ 24 ] = sx2;
+         mat[ 25 ] = sx3;
+         mat[ 26 ] = sx2y;
+         mat[ 27 ] = sx3y;
+         mat[ 28 ] = sx4;
+         mat[ 29 ] = sx2y2;
+
+         mat[ 30 ] = sy2;
+         mat[ 31 ] = sxy2;
+         mat[ 32 ] = sy3;
+         mat[ 33 ] = sxy3;
+         mat[ 34 ] = sx2y2;
+         mat[ 35 ] = sy4;
+
+         ofit[ 0 ] = sz;
+         ofit[ 1 ] = szx;
+         ofit[ 2 ] = szy;
+         ofit[ 3 ] = szxy;
+         ofit[ 4 ] = szx2;
+         ofit[ 5 ] = szy2;
+
+/* Now find the solution vector (the solution over-writes teh current
+   contents of "ofit"). */
+         palDmat( 6, mat, ofit, &det, &sing, iw );
+
+/* If the fit failed, fill the coefficient array with bad values. */
+         if( sing != 0 ) {
+            for( i = 0; i < 6; i++ ) ofit[ i ] = AST__BAD;
+            result = 0;
+            break;
+
+/* If the fit succeeded, update the summ of the squared residuals. */
+         } else {
+            ntot += n;
+            *rms += ofit[ 0 ]*ofit[ 0 ]*n +
+                    2*ofit[ 0 ]*ofit[ 1 ]*sx +
+                    2*ofit[ 0 ]*ofit[ 2 ]*sy +
+                    2*( ofit[ 0 ]*ofit[ 3 ] + ofit[ 1 ]*ofit[ 2 ] )*sxy +
+                    ( 2*ofit[ 0 ]*ofit[ 4 ] + ofit[ 1 ]*ofit[ 1 ] )*sx2 +
+                    ( 2*ofit[ 0 ]*ofit[ 5 ] + ofit[ 2 ]*ofit[ 2 ] )*sy2 +
+                    2*ofit[ 1 ]*ofit[ 4 ]*sx3 +
+                    2*( ofit[ 1 ]*ofit[ 3 ] + ofit[ 2 ]*ofit[ 4 ] )*sx2y +
+                    2*( ofit[ 1 ]*ofit[ 5 ] + ofit[ 2 ]*ofit[ 3 ] )*sxy2 +
+                    2*ofit[ 2 ]*ofit[ 5 ]*sy3 +
+                    ofit[ 4 ]*ofit[ 4 ]*sx4 +
+                    2*ofit[ 3 ]*ofit[ 4 ]*sx3y +
+                    ( 2*ofit[ 4 ]*ofit[ 5 ] + ofit[ 3 ]*ofit[ 3 ] )*sx2y2 +
+                    2*ofit[ 3 ]*ofit[ 5 ]*sxy3 +
+                    ofit[ 5 ]*ofit[ 5 ]*sy4 +
+                    sz2 - 2*(
+                       ofit[ 0 ]*sz +
+                       ofit[ 1 ]*szx +
+                       ofit[ 2 ]*szy +
+                       ofit[ 3 ]*szxy +
+                       ofit[ 4 ]*szx2 +
+                       ofit[ 5 ]*szy2
+                    );
+         }
+      }
+   }
+
+/* Free resources. */
+   pset1 = astAnnul( pset1 );
+   pset2 = astAnnul( pset2 );
+
+/* Return AST__BAD if anything went wrong. */
+   if( !astOK || ntot == 0 ) {
+      result = 0;
+      fit[ 0 ] = AST__BAD;
+      *rms = AST__BAD;
+
+/* Otherwise normalise the returned RMS. */
+   } else {
+      if( *rms > 0.0 ) {
+         *rms = sqrt( *rms/ntot );
+      } else {
+         *rms = 0.0;
+      }
+   }
+
+/* Return result */
+   return result;
 }
 
 static double Random( long int *seed, int *status ) {
@@ -8467,9 +8982,9 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 *     Mapping method.
 
 *  Description:
-*     This function evaluates the rate of change of a specified output of 
-*     the supplied Mapping with respect to a specified input, at a 
-*     specified input position. 
+*     This function evaluates the rate of change of a specified output of
+*     the supplied Mapping with respect to a specified input, at a
+*     specified input position.
 *
 *     The result is estimated by interpolating the function using a
 *     fourth order polynomial in the neighbourhood of the specified
@@ -8481,22 +8996,22 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 *     this
 *        Pointer to the Mapping to be applied.
 *     at
-*        The address of an array holding the axis values at the position 
-*        at which the rate of change is to be evaluated. The number of 
-*        elements in this array should equal the number of inputs to the 
+*        The address of an array holding the axis values at the position
+*        at which the rate of change is to be evaluated. The number of
+*        elements in this array should equal the number of inputs to the
 *        Mapping.
 *     ax1
-*        The index of the Mapping output for which the rate of change is to 
+*        The index of the Mapping output for which the rate of change is to
 *        be found (output numbering starts at 0 for the first output).
 *     ax2
 *        The index of the Mapping input which is to be varied in order to
-*        find the rate of change (input numbering starts at 0 for the first 
+*        find the rate of change (input numbering starts at 0 for the first
 *        input).
 
 *  Returned Value:
 *     astRate()
-*        The rate of change of Mapping output "ax1" with respect to input 
-*        "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+*        The rate of change of Mapping output "ax1" with respect to input
+*        "ax2", evaluated at "at", or AST__BAD if the value cannot be
 *        calculated.
 
 *  Notes:
@@ -8515,7 +9030,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 /* Local Variables: */
 #define MXY 100
    double x0, h, s1, s2, sp, r, dh, ed2, ret, rms, h0, x[MXY], y[MXY];
-   int nin, nout, i, ixy, fitted, fitok;
+   int ntry, nin, nout, i, ixy, fitted, fitok;
    PN *fit;
 
 /* Initialise */
@@ -8534,21 +9049,21 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 /* Validate the output index. */
    if ( astOK && ( ax1 < 0 || ax1 >= nout ) ) {
       astError( AST__AXIIN, "astRate(%s): The supplied Mapping output "
-                "index (%d) is invalid; it should be in the range 1 to %d.", status, 
+                "index (%d) is invalid; it should be in the range 1 to %d.", status,
                 astGetClass( this ), ax1 + 1, nout );
    }
 
 /* Validate the input index. */
    if ( astOK && ( ax2 < 0 || ax2 >= nin ) ) {
       astError( AST__AXIIN, "astRate(%s): The supplied Mapping input "
-                "index (%d) is invalid; it should be in the range 1 to %d.", status, 
+                "index (%d) is invalid; it should be in the range 1 to %d.", status,
                 astGetClass( this ), ax2 + 1, nin );
    }
 
 /* Check the Mapping has a forward transformation. */
    if ( astOK && !astGetTranForward( this ) ) {
       astError( AST__NODEF, "astRate(%s): The supplied Mapping does not "
-                "have a defined forward transformation.", status, 
+                "have a defined forward transformation.", status,
                 astGetClass( this ) );
    }
 
@@ -8566,16 +9081,23 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
   polynomial and so the returned value is inaccurate. If "h" is too small,
   then the returned value is dominated by rounding errors and so is again
   inaccurate. The process tries a series of different values for "h". The
-  initial estimate is formed as a fixed small fraction of the supplied 
+  initial estimate is formed as a fixed small fraction of the supplied
   "x0", or 1.0 if "x0" is zero. */
       h = ( x0 != 0.0 ) ? DBL_EPSILON*1.0E10*x0 : 1.0;
 
 /* We next find a more reliable estimate based on the probable accuracy
    of the calculated function values and the rate of change of the
-   derivative of the function in the region of "x0". Find a polynomial fit 
-   to the function over this initial interval. The independant variable 
-   of this fit is (x-x0) and the dependant variable is (y(x)-y(x0). */
+   derivative of the function in the region of "x0". Find a polynomial fit
+   to the function over this initial interval. The independant variable
+   of this fit is (x-x0) and the dependant variable is (y(x)-y(x0). If
+   this fails, repeat up to ten times with a larger "h" value. */
       fit = FitPN( this, at, ax1, ax2, x0, h, NULL, status );
+      ntry = 0;
+      while( ( !fit || fit->too_small ) && ntry++ < 10 ) {
+         (void) astFree( fit );
+         h *= 1000;
+         fit = FitPN( this, at, ax1, ax2, x0, h, NULL, status );
+      }
       if( !fit ) return AST__BAD;
 
 /* We need an estimate of how much the derivative may typically change
@@ -8584,8 +9106,8 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
    Calculate the rate of change of the polynomial (i.e the derivative
    estimate) at a set of 5 evenly spaced points over the interval "h"
    and then find the standard deviation of the derivative estimates
-   divided by the interval size. At the same time form an estimate of 
-   the RMS polynomial value over the step ("sp"). */  
+   divided by the interval size. At the same time form an estimate of
+   the RMS polynomial value over the step ("sp"). */
       s1 = 0.0;
       s2 = 0.0;
       sp = 0.0;
@@ -8606,25 +9128,25 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
          ed2 = 0.0;
       }
       sp = sqrt( sp/RATE_ORDER );
-   
+
       fit = astFree( fit );
 
-/* If the derivative estimate does not change significantly over the interval, 
+/* If the derivative estimate does not change significantly over the interval,
    return it. */
       if( ed2 <= 1.0E-10*fabs( s1/h ) ) {
          ret = s1;
- 
+
       } else {
 
 /* Otherwise, we find a better estimate for the step size by assuming a
-   fixed relative error in the function value, and a second derivative 
+   fixed relative error in the function value, and a second derivative
    based on the "ed2" value found above. The total error in the
    derivative estimate is assumed to be of the form:
 
      (a/h)**2 + (d2*h)**2
 
-   where "a" is the accuracy with which the function can be evaluated 
-   (assumed to be 1.0E5*DBL_EPSILON*sp) and f2 is the second derivative. 
+   where "a" is the accuracy with which the function can be evaluated
+   (assumed to be 1.0E5*DBL_EPSILON*sp) and d2 is the second derivative.
    The value of "h" below is the value which minimises the above
    total error expression. */
 
@@ -8640,12 +9162,12 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
    which corresponds to the optimal step size. It also turns out that the
    error in the derivative is a monotonic increasing function for step
    sizes above the optimal step size. We find the optimal step size by
-   working our way down this monotonic function, in powers of ten, until 
-   the first increase in error is encountered. 
+   working our way down this monotonic function, in powers of ten, until
+   the first increase in error is encountered.
 
    Starting at the step size found above, note log10( normalised rms error of
    fit ) at increasing step sizes until the rms error exceeds the 0.2 of
-   the rms function value. Each new step size is a factor 10 times the previous 
+   the rms function value. Each new step size is a factor 10 times the previous
    step size. Once the step size is so large rgat we cannot fit the
    polynomial, break out of the loop. */
          h0 = h;
@@ -8661,7 +9183,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 
 /* If we come across an exact fit, use it to determine the returned
    values and break. */
-               if( rms == 0.0 ) { 
+               if( rms == 0.0 ) {
                   ret = fit->coeff[ 1 ];
                   fit = astFree( fit );
                   break;
@@ -8683,27 +9205,27 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
             h0 *= 10.0;
          }
 
-/* If we found a step size which gave zero rms error, use it. Otherwise, run 
-   down from the largest step size to the smallest looking for the first step 
+/* If we found a step size which gave zero rms error, use it. Otherwise, run
+   down from the largest step size to the smallest looking for the first step
    size at which the error increases rather than decreasing. */
          if( ret == AST__BAD ) {
             h0 = AST__BAD;
             ixy--;
             while( --ixy > 0 ){
-               if( y[ ixy - 1 ] != AST__BAD && 
+               if( y[ ixy - 1 ] != AST__BAD &&
                    y[ ixy ] != AST__BAD &&
-                   y[ ixy + 1 ] != AST__BAD ) {         
-                  if( y[ ixy - 1 ] > y[ ixy ] ) {         
+                   y[ ixy + 1 ] != AST__BAD ) {
+                  if( y[ ixy - 1 ] > y[ ixy ] ) {
                      h0 = x[ ixy ];
-         
+
                      x[ 0 ] = x[ ixy - 1 ];
                      x[ 1 ] = x[ ixy ];
                      x[ 2 ] = x[ ixy + 1 ];
-         
+
                      y[ 0 ] = y[ ixy - 1 ];
                      y[ 1 ] = y[ ixy ];
                      y[ 2 ] = y[ ixy + 1 ];
-         
+
                      break;
                   }
                }
@@ -8715,7 +9237,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
                h0 = h;
                ixy = 0;
                while( y[ 0 ] < y[ 1 ] ) {
-      
+
                   h0 *= 0.1;
                   ixy--;
                   fit = FitPN( this, at, ax1, ax2, x0, h0, &rms, status );
@@ -8725,7 +9247,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
                      y[ 2 ] = y[ 1 ];
                      y[ 1 ] = y[ 0 ];
 
-                     if( rms == 0.0 ) { 
+                     if( rms == 0.0 ) {
                         ret = fit->coeff[ 1 ];
                         fit = astFree( fit );
                         break;
@@ -8764,7 +9286,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 
 /* Use the best estimate of h to calculate the returned derivatives. */
                fit = FitPN( this, at, ax1, ax2, x0, h0, &rms, status );
-               if( fit ) {         
+               if( fit ) {
                   ret = fit->coeff[ 1 ];
                   fit = astFree( fit );
                }
@@ -8825,8 +9347,8 @@ f                        LBND, UBND, OUT, OUT_VAR, STATUS )
 *     rebined output data. Propagation of missing data (bad pixels)
 *     is supported.
 *
-*     Note, if you will be rebining a sequence of input arrays and then 
-*     co-adding them into a single array, the alternative 
+*     Note, if you will be rebining a sequence of input arrays and then
+*     co-adding them into a single array, the alternative
 c     astRebinSeq<X> functions
 f     AST_REBINSEQ<X> routines
 *     will in general be more efficient.
@@ -8847,12 +9369,12 @@ f     with type REAL, you should use the function AST_REBINR (see
 *     value is then divided up and assigned to the output pixels in the
 *     neighbourhood of the central output coordinates. A choice of
 *     schemes are provided for determining how each input pixel value is
-*     divided up between the output pixels. In general, each output pixel 
-*     may be assigned values from more than one input pixel. All 
+*     divided up between the output pixels. In general, each output pixel
+*     may be assigned values from more than one input pixel. All
 *     contributions to a given output pixel are summed to produce the
 *     final output pixel value. Output pixels can be set to the supplied
 *     bad value if they receive contributions from an insufficient number
-*     of input pixels. This is controlled by the 
+*     of input pixels. This is controlled by the
 c     "wlim" parameter.
 f     WLIM argument.
 *
@@ -8873,7 +9395,7 @@ f     WLIM argument.
 *     algorithm, under control of an accuracy criterion which
 *     expresses the maximum tolerable geometrical distortion which may
 *     be introduced, as a fraction of a pixel.
-*     
+*
 *     This algorithm first attempts to approximate the Mapping with a
 *     linear transformation applied over the whole region of the
 *     input grid which is being used. If this proves to be
@@ -8890,7 +9412,7 @@ c     this
 f     THIS = INTEGER (Given)
 *        Pointer to a Mapping, whose forward transformation will be
 *        used to transform the coordinates of pixels in the input
-*        grid into the coordinate system of the output grid. 
+*        grid into the coordinate system of the output grid.
 *
 *        The number of input coordinates used by this Mapping (as
 *        given by its Nin attribute) should match the number of input
@@ -8904,7 +9426,7 @@ c     wlim
 f     WLIM = DOUBLE PRECISION (Given)
 *        Gives the required number of input pixel values which must contribute
 *        to an output pixel in order for the output pixel value to be
-*        considered valid. If the sum of the input pixel weights contributing 
+*        considered valid. If the sum of the input pixel weights contributing
 *        to an output pixel is less than the supplied
 c        "wlim"
 f        WLIM
@@ -9020,10 +9542,10 @@ f     TOL = DOUBLE PRECISION (Given)
 *        of zero may be given. This will ensure that the Mapping is
 *        used without any approximation, but may increase execution
 *        time.
-*        
+*
 *        If the value is too high, discontinuities between the linear
 *        approximations used in adjacent panel will be higher, and may
-*        cause the edges of the panel to be visible when viewing the output 
+*        cause the edges of the panel to be visible when viewing the output
 *        image at high contrast. If this is a problem, reduce the
 *        tolerance value used.
 c     maxpix
@@ -9074,7 +9596,7 @@ c        elements in the "out" (and "out_var") array(s) for which
 f        elements in the OUT (and OUT_VAR) array(s) for which
 *        rebined values could not be obtained (see the "Propagation
 *        of Missing Data" section below for details of the
-*        circumstances under which this may occur). 
+*        circumstances under which this may occur).
 c     ndim_out
 f     NDIM_OUT = INTEGER (Given)
 *        The number of dimensions in the output grid. This should be
@@ -9187,29 +9709,29 @@ f     For example, AST_REBIND would be used to process DOUBLE
 f     PRECISION data, while AST_REBINI would be used to process
 f     integer data (stored in an INTEGER array), etc.
 *
-*     Note that, unlike 
+*     Note that, unlike
 c     astResample<X>, the astRebin<X>
 f     AST_RESAMPLE<X>, the AST_REBIN<X>
 *     set of functions does not yet support unsigned integer data types
 *     or integers of different sizes.
 
 *  Pixel Spreading Schemes:
-*     The pixel spreading scheme specifies the Point Spread Function (PSF) 
-*     applied to each input pixel value as it is copied into the output 
-*     array. It can be thought of as the inverse of the sub-pixel 
+*     The pixel spreading scheme specifies the Point Spread Function (PSF)
+*     applied to each input pixel value as it is copied into the output
+*     array. It can be thought of as the inverse of the sub-pixel
 *     interpolation schemes used by the
-c     astResample<X> 
+c     astResample<X>
 f     AST_RESAMPLE<X>
-*     group of functions. That is, in a sub-pixel interpolation scheme the 
+*     group of functions. That is, in a sub-pixel interpolation scheme the
 *     kernel specifies the weight to assign to each input pixel when
-*     forming the weighted mean of the input pixels, whereas the kernel in a 
-*     pixel spreading scheme specifies the fraction of the input data value 
-*     which is to be assigned to each output pixel. As for interpolation, the 
-*     choice of suitable pixel spreading scheme involves stricking a balance 
-*     between schemes which tend to degrade sharp features in the data by 
-*     smoothing them, and those which attempt to preserve sharp features but 
+*     forming the weighted mean of the input pixels, whereas the kernel in a
+*     pixel spreading scheme specifies the fraction of the input data value
+*     which is to be assigned to each output pixel. As for interpolation, the
+*     choice of suitable pixel spreading scheme involves stricking a balance
+*     between schemes which tend to degrade sharp features in the data by
+*     smoothing them, and those which attempt to preserve sharp features but
 *     which often tend to introduce unwanted artifacts. See the
-c     astResample<X> 
+c     astResample<X>
 f     AST_RESAMPLE<X>
 *     documentation for further discussion.
 *
@@ -9224,16 +9746,16 @@ f     AST_RESAMPLE<X>
 *     effect more clearly than the other functions, and for this reason
 *     should be used with caution.
 *
-*     The following values (defined in the 
+*     The following values (defined in the
 c     "ast.h" header file)
 f     AST_PAR include file)
-*     may be assigned to the 
-c     "spread" 
-f     SPREAD 
-*     parameter. See the 
-c     astResample<X> 
+*     may be assigned to the
+c     "spread"
+f     SPREAD
+*     parameter. See the
+c     astResample<X>
 f     AST_RESAMPLE<X>
-*     documentation for details of these schemes including the use of the 
+*     documentation for details of these schemes including the use of the
 c     "fspread" and "params" parameters:
 f     FSPREAD and PARAMS arguments:
 *
@@ -9245,21 +9767,21 @@ f     FSPREAD and PARAMS arguments:
 *     - AST__SINCGAUSS
 *     - AST__SOMBCOS
 *
-*     In addition, the following schemes can be used with 
+*     In addition, the following schemes can be used with
 f     AST_REBIN<X> but not with AST_RESAMPLE<X>:
 c     astRebin<X> but not with astResample<X>:
 *
-*     - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with k 
+*     - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with k
 *     a positive constant determined by the full-width at half-maximum (FWHM).
-*     The FWHM should be supplied in units of output pixels by means of the 
+*     The FWHM should be supplied in units of output pixels by means of the
 c     "params[1]"
-f     PARAMS(2) 
-*     value and should be at least 0.1. The 
-c     "params[0]" 
+f     PARAMS(2)
+*     value and should be at least 0.1. The
+c     "params[0]"
 f     PARAMS(1)
-*     value should be used to specify at what point the Gaussian is truncated 
-*     to zero. This should be given as a number of output pixels on either 
-*     side of the central output point in each dimension (the nearest integer 
+*     value should be used to specify at what point the Gaussian is truncated
+*     to zero. This should be given as a number of output pixels on either
+*     side of the central output point in each dimension (the nearest integer
 *     value is used).
 
 *  Control Flags:
@@ -9289,12 +9811,12 @@ f     in the Fortran interface to AST.)
 *     Instances of missing data (bad pixels) in the output grid are
 c     identified by occurrences of the "badval" value in the "out"
 f     identified by occurrences of the BADVAL value in the OUT
-*     array. These are produced if the sum of the weights of the 
-*     contributing input pixels is less than 
+*     array. These are produced if the sum of the weights of the
+*     contributing input pixels is less than
 c     "wlim".
 f     WLIM.
 *
-*     An input pixel is considered bad (and is consequently ignored) if 
+*     An input pixel is considered bad (and is consequently ignored) if
 *     its
 c     data value is equal to "badval" and the AST__USEBAD flag is
 c     set via the "flags" parameter.
@@ -9321,7 +9843,7 @@ static void Rebin##X( AstMapping *this, double wlim, int ndim_in, \
                      const int ubnd[], Xtype out[], Xtype out_var[], int *status ) { \
 \
 /* Local Variables: */ \
-   astDECLARE_GLOBALS;           /* Thread-specific data */ \
+   astDECLARE_GLOBALS            /* Thread-specific data */ \
    AstMapping *simple;           /* Pointer to simplified Mapping */ \
    Xtype *d;                     /* Pointer to next output data value */ \
    Xtype *v;                     /* Pointer to next output variance value */ \
@@ -9563,7 +10085,7 @@ static void Rebin##X( AstMapping *this, double wlim, int ndim_in, \
 MAKE_REBIN(LD,long double,0)
 #endif
 MAKE_REBIN(D,double,0)
-MAKE_REBIN(F,float,0) 
+MAKE_REBIN(F,float,0)
 MAKE_REBIN(I,int,1)
 
 /* Undefine the macro. */
@@ -9572,12 +10094,12 @@ MAKE_REBIN(I,int,1)
 static void RebinAdaptively( AstMapping *this, int ndim_in,
                             const int *lbnd_in, const int *ubnd_in,
                             const void *in, const void *in_var,
-                            DataType type, int spread, 
+                            DataType type, int spread,
                             const double *params, int flags, double tol,
                             int maxpix, const void *badval_ptr,
                             int ndim_out, const int *lbnd_out,
                             const int *ubnd_out, const int *lbnd,
-                            const int *ubnd, int npix_out, void *out, 
+                            const int *ubnd, int npix_out, void *out,
                             void *out_var, double *work, int *nused, int *status ){
 /*
 *  Name:
@@ -9594,32 +10116,32 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 *     void RebinAdaptively( AstMapping *this, int ndim_in,
 *                          const int *lbnd_in, const int *ubnd_in,
 *                          const void *in, const void *in_var,
-*                          DataType type, int spread, 
+*                          DataType type, int spread,
 *                          const double *params, int flags, double tol,
 *                          int maxpix, const void *badval_ptr,
 *                          int ndim_out, const int *lbnd_out,
 *                          const int *ubnd_out, const int *lbnd,
-*                          const int *ubnd, int npix_out, void *out, 
+*                          const int *ubnd, int npix_out, void *out,
 *                          void *out_var, double *work, int *nused, int *status )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This function rebins a specified section of a rectangular grid of 
-*     data (with any number of dimensions) into another rectangular grid 
-*     (with a possibly different number of dimensions). The coordinate 
-*     transformation used to convert input pixel coordinates into positions 
-*     in the output grid is given by the forward transformation of the 
-*     Mapping which is supplied.  Any pixel spreading scheme may be specified 
+*     This function rebins a specified section of a rectangular grid of
+*     data (with any number of dimensions) into another rectangular grid
+*     (with a possibly different number of dimensions). The coordinate
+*     transformation used to convert input pixel coordinates into positions
+*     in the output grid is given by the forward transformation of the
+*     Mapping which is supplied.  Any pixel spreading scheme may be specified
 *     for distributing the flux of an input pixel amongst the output
 *     pixels.
 *
-*     This function is very similar to RebinWithBlocking and RebinSection 
-*     which lie below it in the calling hierarchy. However, this function 
-*     also attempts to adapt to the Mapping supplied and to sub-divide the 
-*     section being rebinned into smaller sections within which a linear 
-*     approximation to the Mapping may be used.  This reduces the number of 
+*     This function is very similar to RebinWithBlocking and RebinSection
+*     which lie below it in the calling hierarchy. However, this function
+*     also attempts to adapt to the Mapping supplied and to sub-divide the
+*     section being rebinned into smaller sections within which a linear
+*     approximation to the Mapping may be used.  This reduces the number of
 *     Mapping evaluations, thereby improving efficiency particularly when
 *     complicated Mappings are involved.
 
@@ -9681,16 +10203,16 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 *        to the pixel spread algorithm, if required. If no parameters
 *        are required, a NULL pointer should be supplied.
 *     flags
-*        The bitwise OR of a set of flag values which provide additional 
+*        The bitwise OR of a set of flag values which provide additional
 *        control over the resampling operation.
 *     tol
 *        The maximum permitted positional error in transforming input
 *        pixel positions into the output grid in order to rebin
 *        it. This should be expressed as a displacement in pixels in
 *        the output grid's coordinate system. If the Mapping's forward
-*        transformation can be approximated by piecewise linear functions 
-*        to this accuracy, then such functions may be used instead of the 
-*        Mapping in order to improve performance. Otherwise, every input 
+*        transformation can be approximated by piecewise linear functions
+*        to this accuracy, then such functions may be used instead of the
+*        Mapping in order to improve performance. Otherwise, every input
 *        pixel position will be transformed individually using the Mapping.
 *
 *        If linear approximation is not required, a "tol" value of
@@ -9705,7 +10227,7 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 *        "maxpix" pixels in any dimension, before it attempts to
 *        approximate the Mapping by a linear function over each
 *        sub-section.
-* 
+*
 *        If the value given is larger than the largest dimension of
 *        the input section (the normal recommendation), the function
 *        will initially search for non-linearity on a scale determined
@@ -9759,9 +10281,9 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 *        section of the input data grid which is to be rebinned.
 *
 *        Note that "lbnd" and "ubnd" define the shape and position of
-*        the section of the input grid which is to be rebinned. This section 
-*        should lie wholly within the extent of the input grid (as defined 
-*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input 
+*        the section of the input grid which is to be rebinned. This section
+*        should lie wholly within the extent of the input grid (as defined
+*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input
 *        grid lying outside this section will be ignored.
 *     npix_out
 *        The number of pixels in the output array.
@@ -9780,10 +10302,10 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 *        If no output variance estimates are required, a NULL pointer
 *        should be given.
 *     work
-*        An optional pointer to a double array with the same size as 
+*        An optional pointer to a double array with the same size as
 *        the "out" array. The contents of this array (if supplied) are
 *        incremented by the accumulated weights assigned to each output pixel.
-*        If no accumulated weights are required, a NULL pointer should be 
+*        If no accumulated weights are required, a NULL pointer should be
 *        given.
 *     nused
 *        An optional pointer to an int which will be incremented by the
@@ -9791,7 +10313,7 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 *     status
 *        Pointer to the inherited status variable.
 */
-                      
+
 /* Local Variables: */
    double *flbnd;                /* Array holding floating point lower bounds */
    double *fubnd;                /* Array holding floating point upper bounds */
@@ -9828,7 +10350,7 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
       dim = ubnd[ coord_in ] - lbnd[ coord_in ] + 1;
       npix *= dim;
 
-/* Find the maximum dimension size of this input section and note which 
+/* Find the maximum dimension size of this input section and note which
    dimension has this size. */
       if ( dim > mxdim ) {
          mxdim = dim;
@@ -9838,8 +10360,8 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 /* Calculate how many vertices the output section has. */
       nvertex *= 2;
    }
-   
-/* Calculate how many sample points will be needed (by the astLinearApprox 
+
+/* Calculate how many sample points will be needed (by the astLinearApprox
    function) to obtain a linear fit to the Mapping's forward transformation. */
    npoint = 1 + 4 * ndim_in + 2 * nvertex;
 
@@ -9875,8 +10397,8 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 
 /* If neither of the above apply, then attempt to fit a linear
    approximation to the Mapping's forward transformation over the
-   range of coordinates covered by the input section. We need to 
-   temporarily copy the integer bounds into floating point arrays to 
+   range of coordinates covered by the input section. We need to
+   temporarily copy the integer bounds into floating point arrays to
    use astLinearApprox. */
    } else {
 
@@ -9887,10 +10409,13 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
                               (size_t) ( ndim_out*( ndim_in + 1 ) ) );
       if( astOK ) {
 
-/* Copy the bounds into these arrays */
+/* Copy the bounds into these arrays, and change them so that they refer
+   to the lower and upper edges of the cell rather than the centre. This
+   is essential if one of the axes is spanned by a single cell, since
+   otherwise the upper and lower bounds would be identical. */
          for( i = 0; i < ndim_in; i++ ) {
-            flbnd[ i ] = (double) lbnd[ i ];
-            fubnd[ i ] = (double) ubnd[ i ];
+            flbnd[ i ] = (double) lbnd[ i ] - 0.5;
+            fubnd[ i ] = (double) ubnd[ i ] + 0.5;
          }
 
 /* Get the linear approximation to the forward transformation. */
@@ -9920,8 +10445,8 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
    if ( astOK ) {
       if ( !divide ) {
          RebinWithBlocking( this, linear_fit, ndim_in, lbnd_in, ubnd_in,
-                            in, in_var, type, spread,  params, flags, 
-                            badval_ptr, ndim_out, lbnd_out, ubnd_out, lbnd, 
+                            in, in_var, type, spread,  params, flags,
+                            badval_ptr, ndim_out, lbnd_out, ubnd_out, lbnd,
                             ubnd, npix_out, out, out_var, work, nused, status );
 
 /* Otherwise, allocate workspace to perform the sub-division. */
@@ -9944,7 +10469,7 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 
 /* Rebin the resulting smaller section using a recursive invocation
    of this function. */
-            RebinAdaptively( this, ndim_in, lbnd_in, ubnd_in, in, in_var, 
+            RebinAdaptively( this, ndim_in, lbnd_in, ubnd_in, in, in_var,
                              type, spread, params, flags, tol, maxpix,
                              badval_ptr, ndim_out, lbnd_out, ubnd_out,
                              lo, hi, npix_out, out, out_var, work, nused, status );
@@ -9957,7 +10482,7 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 /* If this section contains pixels, resample it in the same way,
    summing the returned values. */
             if ( lo[ dimx ] <= hi[ dimx ] ) {
-               RebinAdaptively( this, ndim_in, lbnd_in, ubnd_in, in, in_var, 
+               RebinAdaptively( this, ndim_in, lbnd_in, ubnd_in, in, in_var,
                                 type, spread, params, flags, tol, maxpix,
                                 badval_ptr,  ndim_out, lbnd_out, ubnd_out,
                                 lo, hi, npix_out, out, out_var, work, nused, status );
@@ -9977,12 +10502,12 @@ static void RebinAdaptively( AstMapping *this, int ndim_in,
 
 static void RebinSection( AstMapping *this, const double *linear_fit,
                           int ndim_in, const int *lbnd_in, const int *ubnd_in,
-                          const void *in, const void *in_var, DataType type, 
+                          const void *in, const void *in_var, DataType type,
                           int spread, const double *params, int flags,
                           const void *badval_ptr, int ndim_out,
                           const int *lbnd_out, const int *ubnd_out,
                           const int *lbnd, const int *ubnd, int npix_out,
-                          void *out, void *out_var, double *work, 
+                          void *out, void *out_var, double *work,
                           int *nused, int *status ) {
 /*
 *  Name:
@@ -9998,26 +10523,26 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 *     #include "mapping.h"
 *     void RebinSection( AstMapping *this, const double *linear_fit,
 *                        int ndim_in, const int *lbnd_in, const int *ubnd_in,
-*                        const void *in, const void *in_var, DataType type, 
+*                        const void *in, const void *in_var, DataType type,
 *                        int spread, const double *params, int flags,
 *                        const void *badval_ptr, int ndim_out,
 *                        const int *lbnd_out, const int *ubnd_out,
 *                        const int *lbnd, const int *ubnd, int npix_out,
-*                        void *out, void *out_var, double *work, 
+*                        void *out, void *out_var, double *work,
 *                        int *nused )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This function rebins a specified section of a rectangular grid of 
-*     data (with any number of dimensions) into another rectangular grid 
-*     (with a possibly different number of dimensions). The coordinate 
-*     transformation used to convert input pixel coordinates into positions 
-*     in the output grid is given by the forward transformation of the 
-*     Mapping which is supplied or, alternatively, by a linear approximation 
-*     fitted to a Mapping's forward transformation. Any pixel spreading scheme 
-*     may be specified for distributing the flux of an input pixel amongst 
+*     This function rebins a specified section of a rectangular grid of
+*     data (with any number of dimensions) into another rectangular grid
+*     (with a possibly different number of dimensions). The coordinate
+*     transformation used to convert input pixel coordinates into positions
+*     in the output grid is given by the forward transformation of the
+*     Mapping which is supplied or, alternatively, by a linear approximation
+*     fitted to a Mapping's forward transformation. Any pixel spreading scheme
+*     may be specified for distributing the flux of an input pixel amongst
 *     the output pixels.
 
 *  Parameters:
@@ -10091,7 +10616,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 *        to the pixel spread algorithm, if required. If no parameters
 *        are required, a NULL pointer should be supplied.
 *     flags
-*        The bitwise OR of a set of flag values which provide additional 
+*        The bitwise OR of a set of flag values which provide additional
 *        control over the resampling operation.
 *     badval_ptr
 *        If the AST__USEBAD flag is set (above), this parameter is a
@@ -10130,9 +10655,9 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 *        section of the input data grid which is to be rebinned.
 *
 *        Note that "lbnd" and "ubnd" define the shape and position of
-*        the section of the input grid which is to be rebinned. This section 
-*        should lie wholly within the extent of the input grid (as defined 
-*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input 
+*        the section of the input grid which is to be rebinned. This section
+*        should lie wholly within the extent of the input grid (as defined
+*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input
 *        grid lying outside this section will be ignored.
 *     npix_out
 *        The number of pixels in the output array.
@@ -10151,10 +10676,10 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 *        If no output variance estimates are required, a NULL pointer
 *        should be given.
 *     work
-*        An optional pointer to a double array with the same size as 
+*        An optional pointer to a double array with the same size as
 *        the "out" array. The contents of this array (if supplied) are
 *        incremented by the accumulated weights assigned to each output pixel.
-*        If no accumulated weights are required, a NULL pointer should be 
+*        If no accumulated weights are required, a NULL pointer should be
 *        given.
 *     nused
 *        An optional pointer to an int which will be incremented by the
@@ -10168,7 +10693,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific data */ 
+   astDECLARE_GLOBALS            /* Thread-specific data */
    AstPointSet *pset_in;         /* Input PointSet for transformation */
    AstPointSet *pset_out;        /* Output PointSet for transformation */
    const double *grad;           /* Pointer to gradient matrix of linear fit */
@@ -10208,7 +10733,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 
 /* Get a pointer to a structure holding thread-specific global data values */
    astGET_GLOBALS(this);
- 
+
 /* Further initialisation. */
    pset_in = NULL;
    ptr_in = NULL;
@@ -10307,7 +10832,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
                }
 
 /* Handle other numbers of dimensions. */
-/* ----------------------------------- */               
+/* ----------------------------------- */
             } else {
 
 /* Allocate workspace. */
@@ -10316,8 +10841,8 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
                dim = astMalloc( sizeof( int ) * (size_t) ndim_in );
                if ( astOK ) {
 
-/* Initialise an array of pixel indices for the input grid which refer to the 
-   first pixel which we will rebin. Also calculate the offset of this pixel 
+/* Initialise an array of pixel indices for the input grid which refer to the
+   first pixel which we will rebin. Also calculate the offset of this pixel
    within the input array. */
                   off = 0;
                   for ( coord_in = 0; coord_in < ndim_in; coord_in++ ) {
@@ -10358,7 +10883,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 /*
                         ptr_out[ coord_out ][ point ] = zero[ coord_out ];
                         for ( idim = 0; idim < ndim_in; idim++ ) {
-                           ptr_out[ coord_out ][ point ] += 
+                           ptr_out[ coord_out ][ point ] +=
                                  grad[ idim + coord_out*ndim_in ] *
                                  dim[ idim ];
                         }
@@ -10387,8 +10912,8 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
                      coord_in = 0;
                      do {
 
-/* The least significant index which currently has less than its maximum 
-   value is incremented by one. The offset into the input array is updated 
+/* The least significant index which currently has less than its maximum
+   value is incremented by one. The offset into the input array is updated
    accordingly. */
                         if ( dim[ coord_in ] < ubnd[ coord_in ] ) {
                            dim[ coord_in ]++;
@@ -10448,7 +10973,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 
 /* Loop through the required range of input y coordinates,
    calculating an interim pixel offset into the input array. */
-               off1 = stride[ 1 ] * ( lbnd[ 1 ] - lbnd_in[ 1 ] - 1 ) 
+               off1 = stride[ 1 ] * ( lbnd[ 1 ] - lbnd_in[ 1 ] - 1 )
                       - lbnd_in[ 0 ];
                for ( iy = lbnd[ 1 ]; iy <= ubnd[ 1 ]; iy++ ) {
                   off1 += stride[ 1 ];
@@ -10473,7 +10998,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
                if ( astOK ) {
 
 /* Initialise an array of pixel indices for the input grid which
-   refer to the first pixel to be rebinned. Also calculate the offset 
+   refer to the first pixel to be rebinned. Also calculate the offset
    of this pixel within the input array. */
                   off = 0;
                   for ( coord_in = 0; coord_in < ndim_in; coord_in++ ) {
@@ -10564,7 +11089,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
                                     npix_out, (Xtype *) out, \
                                     (Xtype *) out_var, work, nused, status ); \
                   break;
-       
+
 /* Use the above macro to invoke the appropriate function. */
             switch ( type ) {
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
@@ -10586,7 +11111,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
 
 /* Undefine the macro. */
 #undef CASE_NEAREST
-               
+
 /* Linear spreading. */
 /* ----------------- */
 /* Note this is also the default if zero is given. */
@@ -10836,7 +11361,7 @@ static void RebinSection( AstMapping *this, const double *linear_fit,
                          "pixel spreading scheme (%d) specified.", status, \
                          astGetClass( unsimplified_mapping ), spread ); \
                break;
-                                 
+
 /* Use the above macro to report an appropriate error message. */
             switch ( type ) {
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
@@ -10887,64 +11412,64 @@ c     void astRebinSeq<X>( AstMapping *this, double wlim, int ndim_in,
 c                          const int lbnd_in[], const int ubnd_in[],
 c                          const <Xtype> in[], const <Xtype> in_var[],
 c                          int spread, const double params[], int flags,
-c                          double tol, int maxpix, <Xtype> badval, 
-c                          int ndim_out, const int lbnd_out[], 
-c                          const int ubnd_out[], const int lbnd[], 
-c                          const int ubnd[], <Xtype> out[], <Xtype> out_var[], 
+c                          double tol, int maxpix, <Xtype> badval,
+c                          int ndim_out, const int lbnd_out[],
+c                          const int ubnd_out[], const int lbnd[],
+c                          const int ubnd[], <Xtype> out[], <Xtype> out_var[],
 c                          double weights[], int *nused );
 f     CALL AST_REBINSEQ<X>( THIS, WLIM, NDIM_IN, LBND_IN, UBND_IN, IN, IN_VAR,
 f                           SPREAD, PARAMS, FLAGS, TOL, MAXPIX, BADVAL,
-f                           NDIM_OUT, LBND_OUT, UBND_OUT, LBND, UBND, OUT, 
+f                           NDIM_OUT, LBND_OUT, UBND_OUT, LBND, UBND, OUT,
 f                           OUT_VAR, WEIGHTS, NUSED, STATUS )
 
 *  Class Membership:
 *     Mapping method.
 
 *  Description:
-*     This set of 
+*     This set of
 c     functions is identical to astRebin<X>
 f     routines is identical to AST_REBIN<X>
 *     except that the rebinned input data is added into the supplied
-*     output arrays, rather than simply over-writing the contents of the 
-*     output arrays. Thus, by calling this 
+*     output arrays, rather than simply over-writing the contents of the
+*     output arrays. Thus, by calling this
 c     function
 f     routine
-*     repeatedly, a sequence of input arrays can be rebinned and accumulated 
+*     repeatedly, a sequence of input arrays can be rebinned and accumulated
 *     into a single output array, effectively forming a mosaic of the
 *     input data arrays.
 *
 *     In addition, the weights associated with each output pixel are
-*     returned. The weight of an output pixel indicates the number of input 
+*     returned. The weight of an output pixel indicates the number of input
 *     pixels which have been accumulated in that output pixel. If the entire
-*     value of an input pixel is assigned to a single output pixel, then the 
-*     weight of that output pixel is incremented by one. If some fraction of 
-*     the value of an input pixel is assigned to an output pixel, then the 
+*     value of an input pixel is assigned to a single output pixel, then the
+*     weight of that output pixel is incremented by one. If some fraction of
+*     the value of an input pixel is assigned to an output pixel, then the
 *     weight of that output pixel is incremented by the fraction used.
 *
-*     The start of a new sequence is indicated by specifying the 
+*     The start of a new sequence is indicated by specifying the
 *     AST__REBININIT flag via the
 c     "flags" parameter.
 f     FLAGS argument.
-*     This causes the supplied arrays to be filled with zeros before the 
+*     This causes the supplied arrays to be filled with zeros before the
 *     rebinned input data is added into them. Subsequenct invocations
 *     within the same sequence should omit the AST__REBININIT flag.
 *
-*     The last call in a sequence is indicated by specifying the AST__REBINEND 
-*     flag. This causes the output data and variance arrays to be normalised 
-*     before being returned. This normalisation consists of dividing the data 
-*     array by the weights array, and can eliminate artifacts which may be 
-*     introduced into the rebinned data as a consequence of aliasing between 
-*     the input and output grids. However, it can also result in small changes to 
+*     The last call in a sequence is indicated by specifying the AST__REBINEND
+*     flag. This causes the output data and variance arrays to be normalised
+*     before being returned. This normalisation consists of dividing the data
+*     array by the weights array, and can eliminate artifacts which may be
+*     introduced into the rebinned data as a consequence of aliasing between
+*     the input and output grids. However, it can also result in small changes to
 *     the total pixel value in any given area of the output array. In addition to
-*     normalisation of the output data values, any output variances are also 
-*     appropriately normalised, and any output data values with weight less 
-*     than 
+*     normalisation of the output data values, any output variances are also
+*     appropriately normalised, and any output data values with weight less
+*     than
 c     "wlim" are set to "badval".
 f     WLIM are set to BADVAL.
 *
 *     Output variances can be generated in two ways; by rebinning the supplied
-*     input variances with appropriate weights, or by finding the spread of 
-*     input data values contributing to each output pixel (see the AST__GENVAR 
+*     input variances with appropriate weights, or by finding the spread of
+*     input data values contributing to each output pixel (see the AST__GENVAR
 *     and AST__USEVAR flags).
 
 *  Parameters:
@@ -10952,7 +11477,7 @@ c     this
 f     THIS = INTEGER (Given)
 *        Pointer to a Mapping, whose forward transformation will be
 *        used to transform the coordinates of pixels in the input
-*        grid into the coordinate system of the output grid. 
+*        grid into the coordinate system of the output grid.
 *
 *        The number of input coordinates used by this Mapping (as
 *        given by its Nin attribute) should match the number of input
@@ -10967,13 +11492,13 @@ c        Mapping must still be supplied.
 c     wlim
 f     WLIM = DOUBLE PRECISION (Given)
 *        This value is only used if the AST__REBINEND flag is specified
-*        via the 
+*        via the
 c        "flags" parameter.
 f        FLAGS argument.
-*        It gives the required number of input pixel values which must 
-*        contribute to an output pixel (i.e. the output pixel weight) in 
-*        order for the output pixel value to be considered valid. If the sum 
-*        of the input pixel weights contributing to an output pixel is less 
+*        It gives the required number of input pixel values which must
+*        contribute to an output pixel (i.e. the output pixel weight) in
+*        order for the output pixel value to be considered valid. If the sum
+*        of the input pixel weights contributing to an output pixel is less
 *        than the supplied
 c        "wlim"
 f        WLIM
@@ -11031,23 +11556,23 @@ c        the output arrays, but any initialisation or normalisation
 c        requested by "flags" is still performed.
 c     in_var
 f     IN_VAR( * ) = <Xtype> (Given)
-*        An optional 
-c        pointer to a 
-*        second array with the same size and type as the 
-c        "in" 
-f        IN 
-*        array. If given, this should contain a set of non-negative values 
-*        which represent estimates of the statistical variance associated 
+*        An optional
+c        pointer to a
+*        second array with the same size and type as the
+c        "in"
+f        IN
+*        array. If given, this should contain a set of non-negative values
+*        which represent estimates of the statistical variance associated
 *        with each element of the
-c        "in" 
-f        IN 
-*        array. 
-*        If neither the AST__USEVAR nor the AST__VARWGT flag is set, no 
-*        input variance estimates are required and this 
-f        array 
-c        pointer 
-*        will not be used. 
-f        A dummy (e.g. one-element) array 
+c        "in"
+f        IN
+*        array.
+*        If neither the AST__USEVAR nor the AST__VARWGT flag is set, no
+*        input variance estimates are required and this
+f        array
+c        pointer
+*        will not be used.
+f        A dummy (e.g. one-element) array
 c        A NULL pointer
 *        may then be supplied.
 c     spread
@@ -11058,10 +11583,10 @@ f        This argument specifies the scheme to be used for dividing
 *        It may be used to select
 *        from a set of pre-defined schemes by supplying one of the
 *        values described in the "Pixel Spreading Schemes"
-*        section in the description of the 
+*        section in the description of the
 c        astRebin<X> functions.
 f        AST_REBIN<X> routines.
-*        If a value of zero is supplied, then the default linear spreading 
+*        If a value of zero is supplied, then the default linear spreading
 *        scheme is used (equivalent to supplying the value AST__LINEAR).
 c        Not used if "in" is NULL.
 c     params
@@ -11070,8 +11595,8 @@ c        An optional pointer to an array of double which should contain
 f        An optional array which should contain
 *        any additional parameter values required by the pixel
 *        spreading scheme. If such parameters are required, this
-*        will be noted in the "Pixel Spreading Schemes" section in the 
-*        description of the 
+*        will be noted in the "Pixel Spreading Schemes" section in the
+*        description of the
 c        astRebin<X> functions.
 f        AST_REBIN<X> routines.
 *
@@ -11100,10 +11625,10 @@ f     TOL = DOUBLE PRECISION (Given)
 *        of zero may be given. This will ensure that the Mapping is
 *        used without any approximation, but may increase execution
 *        time.
-*        
+*
 *        If the value is too high, discontinuities between the linear
 *        approximations used in adjacent panel will be higher, and may
-*        cause the edges of the panel to be visible when viewing the output 
+*        cause the edges of the panel to be visible when viewing the output
 *        image at high contrast. If this is a problem, reduce the
 *        tolerance value used.
 c        Not used if "in" is NULL.
@@ -11156,7 +11681,7 @@ c        elements in the "out" (and "out_var") array(s) for which
 f        elements in the OUT (and OUT_VAR) array(s) for which
 *        rebined values could not be obtained (see the "Propagation
 *        of Missing Data" section below for details of the
-*        circumstances under which this may occur). 
+*        circumstances under which this may occur).
 c     ndim_out
 f     NDIM_OUT = INTEGER (Given)
 *        The number of dimensions in the output grid. This should be
@@ -11211,7 +11736,7 @@ f     OUT( * ) = <Xtype> (Given and Returned)
 c        Pointer to an array, with one element for each pixel in the
 f        An array, with one element for each pixel in the
 *        output grid. The rebined data values will be added into the
-*        original contents of this array. The numerical type of this array 
+*        original contents of this array. The numerical type of this array
 *        should match that of the
 c        "in" array, and the data storage order should be such
 f        IN array, and the data storage order should be such
@@ -11222,44 +11747,44 @@ f        (i.e. normal Fortran array storage order).
 c     out_var
 f     OUT_VAR( * ) = <Xtype> (Given and Returned)
 *        A
-c        pointer to an 
-*        array with the same type and size as the 
-c        "out" 
+c        pointer to an
+*        array with the same type and size as the
+c        "out"
 f        OUT
-*        array. This 
+*        array. This
 c        pointer
-f        array 
+f        array
 *        will only be used if the AST__USEVAR or AST__GENVAR flag is set
 f        via the FLAGS argument,
 f        via the "flags" parameter,
-*        in which case variance estimates for the rebined data values will 
-*        be added into the array. If neither the AST__USEVAR flag nor the 
-*        AST__GENVAR flag is set, no output variance estimates will be 
-*        calculated and this 
+*        in which case variance estimates for the rebined data values will
+*        be added into the array. If neither the AST__USEVAR flag nor the
+*        AST__GENVAR flag is set, no output variance estimates will be
+*        calculated and this
 c        pointer
-f        array 
+f        array
 *        will not be used. A
 c        NULL pointer
-f        dummy (e.g. one-element) array 
+f        dummy (e.g. one-element) array
 *        may then be supplied.
 c     weights
 f     WEIGHTS( * ) = DOUBLE PRECISION (Given and Returned)
-c        Pointer to an array of double, 
-f        An array 
+c        Pointer to an array of double,
+f        An array
 *        with one or two elements for each pixel in the output grid,
-*        depending on whether or not the AST__GENVAR flag has been supplied 
+*        depending on whether or not the AST__GENVAR flag has been supplied
 *        via the
-c        "flags" parameter. 
+c        "flags" parameter.
 f        FLAGS parameter.
 *        If AST__GENVAR has not been specified then the array should have
 *        one element for each output pixel, and it will be used to
 *        accumulate the weight associated with each output pixel.
 *        If AST__GENVAR has been specified then the array should have
 *        two elements for each output pixel. The first half of the array
-*        is again used to accumulate the weight associated with each output 
+*        is again used to accumulate the weight associated with each output
 *        pixel, and the second half is used to accumulate the square of
-*        the weights. In each half, the data storage order should be such that 
-*        the index of the first grid dimension varies most rapidly and that of 
+*        the weights. In each half, the data storage order should be such that
+*        the index of the first grid dimension varies most rapidly and that of
 *        the final dimension least rapidly
 c        (i.e. Fortran array indexing is used).
 f        (i.e. normal Fortran array storage order).
@@ -11268,9 +11793,9 @@ f     NUSED = INTEGER (Given and Returned)
 c        A pointer to an int containing the
 f        The
 *        number of input data values that have been added into the output
-*        array so far. The supplied value is incremented on exit by the 
-*        number of input values used. The value is initially set to zero 
-*        if the AST__REBININIT flag is set in 
+*        array so far. The supplied value is incremented on exit by the
+*        number of input values used. The value is initially set to zero
+*        if the AST__REBININIT flag is set in
 c        "flags".
 f        FLAGS.
 f     STATUS = INTEGER (Given and Returned)
@@ -11296,7 +11821,7 @@ f     For example, AST_REBIND would be used to process DOUBLE
 f     PRECISION data, while AST_REBINI would be used to process
 f     integer data (stored in an INTEGER array), etc.
 *
-*     Note that, unlike 
+*     Note that, unlike
 c     astResample<X>, the astRebinSeq<X>
 f     AST_RESAMPLE<X>, the AST_REBINSEQ<X>
 *     set of functions does not yet support unsigned integer data types
@@ -11311,25 +11836,25 @@ c     bitwise OR of their values via the "flags" parameter:
 f     sum of their values via the FLAGS argument:
 *
 *     - AST__REBININIT: Used to mark the first call in a sequence. It indicates
-*     that the supplied 
-c     "out", "out_var" and "weights" 
+*     that the supplied
+c     "out", "out_var" and "weights"
 f     OUT, OUT_VAR and WEIGHTS
 *     arrays should be filled with zeros (thus over-writing any supplied
 *     values) before adding the rebinned input data into them. This flag
 *     should be used when rebinning the first input array in a sequence.
 *     - AST__REBINEND: Used to mark the last call in a sequence. It causes
-*     each value in the 
-c     "out" and "out_var" 
-f     OUT and OUT_VAR 
-*     arrays to be divided by a normalisation factor before being 
-*     returned. The normalisation factor for each output data value is just the 
-*     corresponding value from the weights array. The normalisation factor 
-*     for each output variance value is the square of the data value 
+*     each value in the
+c     "out" and "out_var"
+f     OUT and OUT_VAR
+*     arrays to be divided by a normalisation factor before being
+*     returned. The normalisation factor for each output data value is just the
+*     corresponding value from the weights array. The normalisation factor
+*     for each output variance value is the square of the data value
 *     normalisation factor. It also causes output data values to be set
 *     bad if the corresponding weight is less than the value supplied for
 c     parameter "wlim".
 f     argument WLIM.
-*     It also causes any temporary values stored in the output variance array 
+*     It also causes any temporary values stored in the output variance array
 *     (see flag AST__GENVAR below) to be converted into usable variance values.
 *     - AST__USEBAD: Indicates that there may be bad pixels in the
 *     input array(s) which must be recognised by comparing with the
@@ -11344,24 +11869,35 @@ f     and the BADVAL value is only used for flagging output array
 *     error will be reported if both this flag and the AST__GENVAR flag
 *     are supplied.
 *     - AST__GENVAR: Indicates that output variance estimates should be
-*     created based on the spread of input data values contributing to each 
-*     output pixel. An error will be reported if both this flag and the 
+*     created based on the spread of input data values contributing to each
+*     output pixel. An error will be reported if both this flag and the
 *     AST__USEVAR flag are supplied. If the AST__GENVAR flag is specified,
-*     the supplied output variance array is first used as a work array to 
+*     the supplied output variance array is first used as a work array to
 *     accumulate the temporary values needed to generate the output
 *     variances. When the sequence ends (as indicated by the
-*     AST__REBINEND flag), the contents of the output variance array are 
-*     converted into the required variance estimates. If the generation of 
-*     such output variances is required, this flag should be used on every 
+*     AST__REBINEND flag), the contents of the output variance array are
+*     converted into the required variance estimates. If the generation of
+*     such output variances is required, this flag should be used on every
 *     invocation of this
 c     function
 f     routine
-*     within a sequence, and any supplied input variances will have no effect 
-*     on the output variances (although input variances will still be used 
+*     within a sequence, and any supplied input variances will have no effect
+*     on the output variances (although input variances will still be used
 *     to weight the input data if the AST__VARWGT flag is also supplied).
+*     The statistical meaning of these output varianes is determined by
+*     the presence or absence of the AST__DISVAR flag (see below).
+*     - AST__DISVAR: This flag is ignored unless the AST__GENVAR flag
+*     has also been specified. It determines the statistical meaning of
+*     the generated output variances. If AST__DISVAR is not specified,
+*     generated variances represent variances on the output mean  values. If
+*     AST__DISVAR is specified, the generated variances represent the variance
+*     of the distribution from which the input values were taken. Eaxch output
+*     variance created with AST__DISVAR will be larger than that created
+*     without AST__DISVAR by a factor equal to the number of input samples
+*     that contribute to the output sample.
 *     - AST__VARWGT: Indicates that the input data should be weighted by
-*     the reciprocal of the input variances. Otherwise, all input data are 
-*     given equal weight. If this flag is specified, the calculation of the 
+*     the reciprocal of the input variances. Otherwise, all input data are
+*     given equal weight. If this flag is specified, the calculation of the
 *     output variances (if any) is modified to take account of the
 *     varying weights assigned to the input data values.
 
@@ -11372,7 +11908,7 @@ f     identified by occurrences of the BADVAL value in the OUT
 *     array. These are only produced if the AST__REBINEND flag is
 *     specified and a pixel has zero weight.
 *
-*     An input pixel is considered bad (and is consequently ignored) if 
+*     An input pixel is considered bad (and is consequently ignored) if
 *     its
 c     data value is equal to "badval" and the AST__USEBAD flag is
 c     set via the "flags" parameter.
@@ -11400,7 +11936,7 @@ static void RebinSeq##X( AstMapping *this, double wlim, int ndim_in, \
                      double weights[], int *nused, int *status ) { \
 \
 /* Local Variables: */ \
-   astDECLARE_GLOBALS;           /* Thread-specific data */ \
+   astDECLARE_GLOBALS            /* Thread-specific data */ \
    AstMapping *simple;           /* Pointer to simplified Mapping */ \
    Xtype *d;                     /* Pointer to next output data value */ \
    Xtype *v;                     /* Pointer to next output variance value */ \
@@ -11644,6 +12180,7 @@ static void RebinSeq##X( AstMapping *this, double wlim, int ndim_in, \
             w = weights + npix_out; \
             for( ipix_out = 0; ipix_out < npix_out; ipix_out++, w++ ) *w = 0; \
          } \
+         *nused = 0; \
       } \
 \
 /* Perform the rebinning. Note that we pass all gridded data, the \
@@ -11672,22 +12209,27 @@ static void RebinSeq##X( AstMapping *this, double wlim, int ndim_in, \
 /* Ensure "wlim" is not zero. */ \
       if( wlim < 1.0E-10 ) wlim = 1.0E-10; \
 \
-/* If required create the output variances from the spread of the input \
-   data values.*/ \
-      if( flags & AST__GENVAR ) { \
-\
 /* Find the average weight per input pixel, if we do not already know it \
-   to be 1.0. */ \
-         if( flags & AST__VARWGT ) { \
+   to be 1.0. Also scale "wlim" by the mean weight. */ \
+      if( flags & AST__VARWGT ) { \
+         if( *nused > 0 ) { \
             sw = 0.0; \
             for( i = 0; i < npix_out; i++ ) { \
                sw += weights[ i ]; \
             } \
             mwpip = sw/( *nused ); \
-\
          } else { \
-            mwpip = 1.0; \
+            mwpip = AST__BAD; \
          } \
+         wlim *= mwpip; \
+\
+      } else { \
+         mwpip = 1.0; \
+      } \
+\
+/* If required set the output variances so that they are estimates of \
+   the variance on the mean of the distribution of input values. */ \
+      if( ( flags & AST__GENVAR ) && !( flags & AST__DISVAR ) ) { \
 \
 /* Calculate the variance. We apply a factor that accounts for the \
    reduction in the number of degrees of freedom when finding the \
@@ -11696,7 +12238,7 @@ static void RebinSeq##X( AstMapping *this, double wlim, int ndim_in, \
    by the mean weight per input pixel. */ \
          for( i = 0; i < npix_out; i++ ) { \
             sw = weights[ i ]; \
-            nn = sw/mwpip; \
+            nn = ( mwpip != AST__BAD ) ? sw/mwpip : 0.0; \
             if( nn > 2.0 && fabs( sw ) >= wlim ) { \
                a = out[ i ]/sw; \
                out_var[ i ] = ( out_var[ i ]/sw - a*a )*weights[ i + npix_out ]; \
@@ -11705,6 +12247,20 @@ static void RebinSeq##X( AstMapping *this, double wlim, int ndim_in, \
                } else { \
                   out_var[ i ] *= nn/( nn - 1.0 ); \
                } \
+            } else { \
+               out_var[ i ] = badval; \
+            } \
+         } \
+\
+/* If required set the output variances so that they are estimates of \
+   the variance of the distribution of input values. */ \
+      } else if( flags & AST__GENVAR ) { \
+         for( i = 0; i < npix_out; i++ ) { \
+            sw = weights[ i ]; \
+            if( fabs( sw ) >= wlim ) { \
+               a = out[ i ]; \
+               out_var[ i ] = ( sw*out_var[ i ] - a*a ); \
+               if( out_var[ i ] < 0.0 ) out_var[ i ] = badval; \
             } else { \
                out_var[ i ] = badval; \
             } \
@@ -11736,7 +12292,7 @@ static void RebinSeq##X( AstMapping *this, double wlim, int ndim_in, \
 #if HAVE_LONG_DOUBLE  /* Not normally implemented */
 MAKE_REBINSEQ(LD,long double,0)
 #endif
-MAKE_REBINSEQ(D,double,0)  
+MAKE_REBINSEQ(D,double,0)
 MAKE_REBINSEQ(F,float,0)
 MAKE_REBINSEQ(I,int,1)
 
@@ -11744,8 +12300,8 @@ MAKE_REBINSEQ(I,int,1)
 #undef MAKE_REBIN
 
 static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
-                               int ndim_in, const int *lbnd_in, 
-                               const int *ubnd_in, const void *in, 
+                               int ndim_in, const int *lbnd_in,
+                               const int *ubnd_in, const void *in,
                                const void *in_var, DataType type, int spread,
                                const double *params, int flags,
                                const void *badval_ptr, int ndim_out,
@@ -11766,8 +12322,8 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
 *  Synopsis:
 *     #include "mapping.h"
 *     void RebinWithBlocking( AstMapping *this, const double *linear_fit,
-*                             int ndim_in, const int *lbnd_in, 
-*                             const int *ubnd_in, const void *in, 
+*                             int ndim_in, const int *lbnd_in,
+*                             const int *ubnd_in, const void *in,
 *                             const void *in_var, DataType type, int spread,
 *                             const double *params, int flags,
 *                             const void *badval_ptr, int ndim_out,
@@ -11780,12 +12336,12 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
 *     Mapping member function.
 
 *  Description:
-*     This function rebins a specified section of a rectangular grid of 
-*     data (with any number of dimensions) into another rectangular grid 
-*     (with a possibly different number of dimensions). The coordinate 
-*     transformation used to convert input pixel coordinates into positions 
-*     in the output grid is given by the forward transformation of the 
-*     Mapping which is supplied.  Any pixel spreading scheme may be specified 
+*     This function rebins a specified section of a rectangular grid of
+*     data (with any number of dimensions) into another rectangular grid
+*     (with a possibly different number of dimensions). The coordinate
+*     transformation used to convert input pixel coordinates into positions
+*     in the output grid is given by the forward transformation of the
+*     Mapping which is supplied.  Any pixel spreading scheme may be specified
 *     for distributing the flux of an input pixel amongst the output
 *     pixels.
 *
@@ -11867,7 +12423,7 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
 *        to the pixel spread algorithm, if required. If no parameters
 *        are required, a NULL pointer should be supplied.
 *     flags
-*        The bitwise OR of a set of flag values which provide additional 
+*        The bitwise OR of a set of flag values which provide additional
 *        control over the resampling operation.
 *     badval_ptr
 *        If the AST__USEBAD flag is set (above), this parameter is a
@@ -11906,9 +12462,9 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
 *        section of the input data grid which is to be rebinned.
 *
 *        Note that "lbnd" and "ubnd" define the shape and position of
-*        the section of the input grid which is to be rebinned. This section 
-*        should lie wholly within the extent of the input grid (as defined 
-*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input 
+*        the section of the input grid which is to be rebinned. This section
+*        should lie wholly within the extent of the input grid (as defined
+*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input
 *        grid lying outside this section will be ignored.
 *     npix_out
 *        The number of pixels in the output array.
@@ -11927,10 +12483,10 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
 *        If no output variance estimates are required, a NULL pointer
 *        should be given.
 *     work
-*        An optional pointer to a double array with the same size as 
+*        An optional pointer to a double array with the same size as
 *        the "out" array. The contents of this array (if supplied) are
 *        incremented by the accumulated weights assigned to each output pixel.
-*        If no accumulated weights are required, a NULL pointer should be 
+*        If no accumulated weights are required, a NULL pointer should be
 *        given.
 *     nused
 *        An optional pointer to an int which will be incremented by the
@@ -12040,9 +12596,9 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
       while ( !done && astOK ) {
 
 /* Rebin the current block, accumulating the sum of bad pixels produced. */
-         RebinSection( this, linear_fit, ndim_in, lbnd_in, ubnd_in, in, 
+         RebinSection( this, linear_fit, ndim_in, lbnd_in, ubnd_in, in,
                        in_var, type, spread, params, flags, badval_ptr,
-                       ndim_out, lbnd_out, ubnd_out, lbnd_block, ubnd_block, 
+                       ndim_out, lbnd_out, ubnd_out, lbnd_block, ubnd_block,
                        npix_out, out, out_var, work, nused, status );
 
 /* Update the block extent to identify the next block of input pixels. */
@@ -12082,6 +12638,89 @@ static void RebinWithBlocking( AstMapping *this, const double *linear_fit,
    lbnd_block = astFree( lbnd_block );
    ubnd_block = astFree( ubnd_block );
    dim_block = astFree( dim_block );
+}
+
+static AstMapping *RemoveRegions( AstMapping *this, int *status ) {
+/*
+*++
+*  Name:
+c     astRemoveRegions
+f     AST_REMOVEREGIONS
+
+*  Purpose:
+*     Remove any Regions from a Mapping.
+
+*  Type:
+*     Public function.
+
+*  Synopsis:
+c     #include "mapping.h"
+c     AstMapping *astRemoveRegions( AstMapping *this )
+f     RESULT = AST_REMOVEREGIONS( THIS, STATUS )
+
+*  Class Membership:
+*     Mapping method.
+
+*  Description:
+*     This function searches the suppliedMapping (which may be a
+*     compound Mapping such as a CmpMap) for any component Mappings
+*     that are instances of the AST Region class. It then creates a new
+*     Mapping from which all Regions have been removed. If a Region
+*     cannot simply be removed (for instance, if it is a component of a
+*     parallel CmpMap), then it is replaced with an equivalent UnitMap
+*     in the returned Mapping.
+
+*  Parameters:
+c     this
+f     THIS = INTEGER (Given)
+*        Pointer to the original Mapping.
+f     STATUS = INTEGER (Given and Returned)
+f        The global status.
+
+*  Returned Value:
+c     astRemoveRegions()
+f     AST_REMOVEREGIONS = INTEGER
+*        A new pointer to the (possibly modified) Mapping.
+
+*  Applicability:
+*     CmpFrame
+*        If the supplied Mapping is a CmpFrame, any component Frames that
+*        are instances of the Region class are replaced by the equivalent
+*        Frame.
+*     FrameSet
+*        If the supplied Mapping is a FrameSet, the returned Mapping
+*        will be a copy of the supplied FrameSet in which Regions have
+*        been removed from all the inter-Frame Mappings, and any Frames
+*        which are instances of the Region class are repalced by the
+*        equivalent Frame.
+*     Mapping
+*        This function applies to all Mappings.
+*     Region
+*        If the supplied Mapping is a Region, the returned Mapping will
+*        be the equivalent Frame.
+
+*  Notes:
+*     - This function can safely be applied even to Mappings which
+*     contain no Regions. If no Regions are found, it
+c     behaves exactly like astClone and returns a pointer to the
+f     behaves exactly like AST_CLONE and returns a pointer to the
+*     original Mapping.
+*     - The Mapping returned by this function may not be independent
+*     of the original (even if some Regions were removed), and
+*     modifying it may therefore result in indirect modification of
+*     the original. If a completely independent result is required, a
+c     copy should be made using astCopy.
+f     copy should be made using AST_COPY.
+*     - A null Object pointer (AST__NULL) will be returned if this
+c     function is invoked with the AST error status set, or if it
+f     function is invoked with STATUS set to an error value, or if it
+*     should fail for any reason.
+*--
+*/
+
+/* This base iplementation just returns a clone of the supplied Mapping
+   pointer. Sub-classes should override it as necessary. */
+   return astClone( this );
 }
 
 static void ReportPoints( AstMapping *this, int forward,
@@ -12150,7 +12789,7 @@ static void ReportPoints( AstMapping *this, int forward,
    if ( !astOK ) return;
 
 /* Obtain the numbers of points and coordinates associated with each
-   PointSet. */ 
+   PointSet. */
    npoint_in = astGetNpoint( in_points );
    npoint_out = astGetNpoint( out_points );
    ncoord_in = astGetNcoord( in_points );
@@ -12261,10 +12900,10 @@ f     with type REAL, you should use the function AST_RESAMPLER (see
 *     choice of sub-pixel interpolation schemes is provided, but you
 *     may also implement your own.
 *
-*     This algorithm samples the input data value, it does not integrate 
+*     This algorithm samples the input data value, it does not integrate
 *     it. Thus total data value in the input image will not, in general,
 *     be conserved. However, an option is provided (see the "Control Flags"
-*     section below) which can produce approximate flux conservation by 
+*     section below) which can produce approximate flux conservation by
 *     scaling the output values using the ratio of the output pixel size
 *     to the input pixel size. However, if accurate flux conservation is
 *     important to you, consder using the
@@ -12290,7 +12929,7 @@ f     AST_REBIN<X> or AST_REBINSEQ<X> family of routines
 *     algorithm, under control of an accuracy criterion which
 *     expresses the maximum tolerable geometrical distortion which may
 *     be introduced, as a fraction of a pixel.
-*     
+*
 *     This algorithm first attempts to approximate the Mapping with a
 *     linear transformation applied over the whole region of the
 *     output grid which is being used. If this proves to be
@@ -12619,8 +13258,8 @@ f        The global status.
 c     astResample<X>()
 f     AST_RESAMPLE<X> = INTEGER
 *        The number of output pixels for which no valid resampled value
-*        could be obtained. Thus, in the absence of any error, a returned 
-*        value of zero indicates that all the required output pixels 
+*        could be obtained. Thus, in the absence of any error, a returned
+*        value of zero indicates that all the required output pixels
 *        received valid resampled data values (and variances). See the
 c        "badval" and "flags" parameters.
 f        BADVAL and FLAGS arguments.
@@ -12769,6 +13408,16 @@ f     A value of zero or less may be given for PARAMS(1)
 c     In each of these cases, the "finterp" parameter is not used:
 f     In each of these cases, the FINTERP argument is not used:
 *
+*     - AST__GAUSS: This scheme uses a kernel of the form exp(-k*x*x), with
+*     k a positive constant. The full-width at half-maximum (FWHM) is
+*     given by
+c     "params[1]"
+f     PARAMS(2)
+f     value, which should be at least 0.1 (in addition, setting PARAMS(1)
+*     to zero will select the number of contributing pixels so as to utilise
+*     the width of the kernel out to where the envelope declines to 1% of its
+*     maximum value). This kernel suppresses noise at the expense of
+*     smoothing the output array.
 *     - AST__SINC: This scheme uses a sinc(pi*x) kernel, where x is the
 *     pixel offset from the interpolation point and sinc(z)=sin(z)/z. This
 *     sometimes features as an "optimal" interpolation kernel in books on
@@ -12834,13 +13483,13 @@ f     envelope function, given by PARAMS(2), to the point spread function
 *     of the input data. However, there does not seem to be any theoretical
 *     reason for this.
 *     - AST__SOMB: This scheme uses a somb(pi*x) kernel (a "sombrero"
-*     function), where x is the pixel offset from the interpolation point 
+*     function), where x is the pixel offset from the interpolation point
 *     and somb(z)=2*J1(z)/z  (J1 is a Bessel function of the first kind of
-*     order 1). It is similar to the AST__SINC kernel, and has the same 
+*     order 1). It is similar to the AST__SINC kernel, and has the same
 *     parameter usage.
-*     - AST__SOMBCOS: This scheme uses a kernel of the form 
+*     - AST__SOMBCOS: This scheme uses a kernel of the form
 *     somb(pi*x).cos(k*pi*x), with k a constant, out to the point where
-*     cos(k*pi*x) goes to zero, and zero beyond. It is similar to the 
+*     cos(k*pi*x) goes to zero, and zero beyond. It is similar to the
 *     AST__SINCCOS kernel, and has the same parameter usage.
 *
 *     In addition, the following schemes are provided which are not based
@@ -12859,10 +13508,10 @@ f     central point.  Hence a block of (2 * PARAMS(1))**NDIM_IN
 c     (var_in or var_out = NULL) then all valid pixels in this cube
 f     (USEVAR = .FALSE.) then all valid pixels in this cube
 *     will be averaged in to the result with equal weight.
-*     If variances are being used, then each input pixel will be 
+*     If variances are being used, then each input pixel will be
 *     weighted proportionally to the reciprocal of its variance; any
 *     pixel without a valid variance will be discarded.  This scheme
-*     is suitable where the output grid is much coarser than the 
+*     is suitable where the output grid is much coarser than the
 *     input grid; if the ratio of pixel sizes is R then a suitable
 c     value of params[0] may be R/2.
 f     value of PARAMS(1) may be R/2.
@@ -12930,7 +13579,7 @@ f     sum of their values via the FLAGS argument:
 *
 *     - AST__NOBAD: Indicates that any output array elements for which no
 *     resampled value could be obtained should be left set to the value
-*     they had on entry to this function. If this flag is not supplied, 
+*     they had on entry to this function. If this flag is not supplied,
 *     such output array elements are set to the value supplied for
 c     parameter "badval". Note, this flag cannot be used in conjunction
 f     argument BADVAL. Note, this flag cannot be used in conjunction
@@ -12957,49 +13606,49 @@ f     no variance processing will occur and the IN_VAR and OUT_VAR
 f     arrays will not be used. (Note that this flag is only available
 f     in the Fortran interface to AST.)
 *     - AST__CONSERVEFLUX: Indicates that the output pixel values should
-*     be scaled in such a way as to preserve (approximately) the total data 
-*     value in a feature on the sky. Without this flag, each output pixel 
-*     value represents an instantaneous sample of the input data values at 
+*     be scaled in such a way as to preserve (approximately) the total data
+*     value in a feature on the sky. Without this flag, each output pixel
+*     value represents an instantaneous sample of the input data values at
 *     the corresponding input position. This is appropriate if the input
 *     data represents the spatial density of some quantity (e.g. surface
 *     brightness in Janskys per square arc-second) because the output
 *     pixel values will have the same normalisation and units as the
 *     input pixel values. However, if the input data values represent
-*     flux (or some other physical quantity) per pixel, then the 
+*     flux (or some other physical quantity) per pixel, then the
 *     AST__CONSERVEFLUX flag could be used. This causes each output
 *     pixel value to be scaled by the ratio of the output pixel size to
-*     the input pixel size. 
+*     the input pixel size.
 *
-*     This flag can only be used if the Mapping is succesfully approximated 
-*     by one or more linear transformations. Thus an error will be reported 
-*     if it used when the 
+*     This flag can only be used if the Mapping is succesfully approximated
+*     by one or more linear transformations. Thus an error will be reported
+*     if it used when the
 c     "tol" parameter
 f     TOL argument
 *     is set to zero (which stops the use of linear approximations), or
 *     if the Mapping is too non-linear to be approximated by a piece-wise
-*     linear transformation. The ratio of output to input pixel size is 
-*     evaluated once for each panel of the piece-wise linear approximation to 
-*     the Mapping, and is assumed to be constant for all output pixels in the 
+*     linear transformation. The ratio of output to input pixel size is
+*     evaluated once for each panel of the piece-wise linear approximation to
+*     the Mapping, and is assumed to be constant for all output pixels in the
 *     panel. The scaling factors for adjacent panels will in general
-*     differ slightly, and so the joints between panels may be visible when 
+*     differ slightly, and so the joints between panels may be visible when
 *     viewing the output image at high contrast. If this is a problem,
-*     reduce the value of the 
+*     reduce the value of the
 c     "tol" parameter
 f     TOL argument
 *     until the difference between adjacent panels is sufficiently small
-*     to be insignificant. 
+*     to be insignificant.
 *
-*     Note, this flag cannot be used in conjunction with the AST__NOBAD 
+*     Note, this flag cannot be used in conjunction with the AST__NOBAD
 *     flag (an error will be reported if both flags are specified).
 *
 *     Flux conservation can only be approximate when using a resampling
-*     algorithm. For accurate flux conservation use the 
+*     algorithm. For accurate flux conservation use the
 c     astRebin<X> or astRebinSeq<X> function
 f     AST_REBIN<X> or AST_REBINSEQ<X> routine
 *     instead.
 
 *  Propagation of Missing Data:
-*     Unless the AST__NOBAD flag is specified, instances of missing data 
+*     Unless the AST__NOBAD flag is specified, instances of missing data
 *     (bad pixels) in the output grid are
 c     identified by occurrences of the "badval" value in the "out"
 f     identified by occurrences of the BADVAL value in the OUT
@@ -13052,7 +13701,7 @@ f     represented using the data type of the OUT_VAR array.
 *     If the AST__NOBAD flag is specified via
 c     parameter "flags",
 f     argument FLAGS,
-*     then output array elements that would otherwise be set to 
+*     then output array elements that would otherwise be set to
 c     "badval"
 f     BADVAL
 *     are instead left holding the value they had on entry to this
@@ -13074,7 +13723,7 @@ static int Resample##X( AstMapping *this, int ndim_in, \
                         const int ubnd[], Xtype out[], Xtype out_var[], int *status ) { \
 \
 /* Local Variables: */ \
-   astDECLARE_GLOBALS;           /* Thread-specific data */ \
+   astDECLARE_GLOBALS            /* Thread-specific data */ \
    AstMapping *simple;           /* Pointer to simplified Mapping */ \
    int idim;                     /* Loop counter for coordinate dimensions */ \
    int nin;                      /* Number of Mapping input coordinates */ \
@@ -13436,7 +14085,7 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
 *        "maxpix" pixels in any dimension, before it attempts to
 *        approximate the Mapping by a linear function over each
 *        sub-section.
-* 
+*
 *        If the value given is larger than the largest dimension of
 *        the output section (the normal recommendation), the function
 *        will initially search for non-linearity on a scale determined
@@ -13458,11 +14107,11 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
 *        pointer to a value which is used to identify bad data and/or
 *        variance values in the input array(s). The referenced value's
 *        data type must match that of the "in" (and "in_var")
-*        arrays. Unless the AST__NOBAD flag is set, the same value will 
-*        also be used to flag any output array elements for which 
-*        resampled values could not be obtained.  The output arrays(s) 
-*        may be flagged with this value whether or not the AST__USEBAD 
-*        flag is set (the function return value indicates whether any 
+*        arrays. Unless the AST__NOBAD flag is set, the same value will
+*        also be used to flag any output array elements for which
+*        resampled values could not be obtained.  The output arrays(s)
+*        may be flagged with this value whether or not the AST__USEBAD
+*        flag is set (the function return value indicates whether any
 *        such values have been produced).
 *     ndim_out
 *        The number of dimensions in the output grid. This should be
@@ -13513,7 +14162,7 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
 *        should be given.
 
 *  Returned Value:
-*     The number of output grid points for which no valid output value 
+*     The number of output grid points for which no valid output value
 *     could be obtained.
 
 *  Notes:
@@ -13521,7 +14170,7 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
 *     with the global error status set, or if it should fail for any
 *     reason.
 */
-                      
+
 /* Local Variables: */
    double *flbnd;                /* Array holding floating point lower bounds */
    double *fubnd;                /* Array holding floating point upper bounds */
@@ -13573,7 +14222,7 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
 /* Calculate how many vertices the output section has. */
       nvertex *= 2;
    }
-   
+
 /* Calculate how many sample points will be needed (by the
    astLinearApprox function) to obtain a linear fit to the Mapping's
    inverse transformation. */
@@ -13611,8 +14260,8 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
 
 /* If neither of the above apply, then attempt to fit a linear
    approximation to the Mapping's inverse transformation over the
-   range of coordinates covered by the output section. We need to 
-   temporarily copy the integer bounds into floating point arrays to 
+   range of coordinates covered by the output section. We need to
+   temporarily copy the integer bounds into floating point arrays to
    use astLinearApprox. */
    } else {
 
@@ -13623,10 +14272,13 @@ static int ResampleAdaptively( AstMapping *this, int ndim_in,
                               (size_t) ( ndim_in*( ndim_out + 1 ) ) );
       if( astOK ) {
 
-/* Copy the bounds into these arrays */
+/* Copy the bounds into these arrays, and change them so that they refer
+   to the lower and upper edges of the cell rather than the centre. This
+   is essential if one of the axes is spanned by a single cell, since
+   otherwise the upper and lower bounds would be identical. */
          for( i = 0; i < ndim_out; i++ ) {
-            flbnd[ i ] = (double) lbnd[ i ];
-            fubnd[ i ] = (double) ubnd[ i ];
+            flbnd[ i ] = (double) lbnd[ i ] - 0.5;
+            fubnd[ i ] = (double) ubnd[ i ] + 0.5;
          }
 
 /* Get the linear approximation to the inverse transformation. The
@@ -13854,7 +14506,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 *     factor
 *        A factor by which to scale the resampled output data values before
 *        returning them. If flux is being conserved this should be set to
-*        the ratio of the output pixel size to the input pixel size in the 
+*        the ratio of the output pixel size to the input pixel size in the
 *        section. Otherwise it should be set to 1.0.
 *     flags
 *        The bitwise OR of a set of flag values which provide
@@ -13864,11 +14516,11 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 *        pointer to a value which is used to identify bad data and/or
 *        variance values in the input array(s). The referenced value's
 *        data type must match that of the "in" (and "in_var")
-*        arrays. Unless the AST__NOBAD flag is set, the same value will 
-*        also be used to flag any output array elements for which 
-*        resampled values could not be obtained.  The output arrays(s) 
-*        may be flagged with this value whether or not the AST__USEBAD 
-*        flag is set (the function return value indicates whether any 
+*        arrays. Unless the AST__NOBAD flag is set, the same value will
+*        also be used to flag any output array elements for which
+*        resampled values could not be obtained.  The output arrays(s)
+*        may be flagged with this value whether or not the AST__USEBAD
+*        flag is set (the function return value indicates whether any
 *        such values have been produced).
 *     ndim_out
 *        The number of dimensions in the output grid. This should be
@@ -13919,7 +14571,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 *        should be given.
 
 *  Returned Value:
-*       The number of output grid points for which no valid output value 
+*       The number of output grid points for which no valid output value
 *       could be obtained.
 
 *  Notes:
@@ -13933,7 +14585,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific data */ 
+   astDECLARE_GLOBALS            /* Thread-specific data */
    AstPointSet *pset_in;         /* Input PointSet for transformation */
    AstPointSet *pset_out;        /* Output PointSet for transformation */
    const double *grad;           /* Pointer to gradient matrix of linear fit */
@@ -13992,7 +14644,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
    conserve = flags & AST__CONSERVEFLUX;
 
 /* If we are conserving flux, then we need some way to tell which output
-   array elements have been assigned a value and which have not. If the  
+   array elements have been assigned a value and which have not. If the
    AST__NOBAD flag has been specified then this is not possible to report
    an error. */
    if( ( flags & AST__NOBAD ) && conserve ) {
@@ -14082,7 +14734,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
                }
 
 /* Handle other numbers of dimensions. */
-/* ----------------------------------- */               
+/* ----------------------------------- */
             } else {
 
 /* Allocate workspace. */
@@ -14190,12 +14842,12 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 
 /* If flux conseravtion was requested, report an error, since we can only
    conserve flux if a linear approximation is available. */
-         if( conserve && astOK ) { 
+         if( conserve && astOK ) {
             astError( AST__CNFLX, "astResampleSection(%s): Flux conservation "
                 "was requested but cannot be performed because either the Mapping "
                 "is too non-linear, or the requested tolerance is too small.", status,
-                 astGetClass( this ) ); 
-         } 
+                 astGetClass( this ) );
+         }
 
 /* Create a PointSet to hold the coordinates of the output pixels and
    obtain a pointer to its coordinate data. */
@@ -14346,7 +14998,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
                                          flags, *( (Xtype *) badval_ptr ), \
                                          (Xtype *) out, (Xtype *) out_var, status ); \
                   break;
-       
+
 /* Use the above macro to invoke the appropriate function. */
             switch ( type ) {
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
@@ -14367,7 +15019,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 
 /* Undefine the macro. */
 #undef CASE_NEAREST
-               
+
 /* Linear interpolation. */
 /* --------------------- */
 /* Note this is also the default if zero is given. */
@@ -14410,6 +15062,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 
 /* Interpolation using a 1-d kernel. */
 /* --------------------------------- */
+         case AST__GAUSS:
          case AST__SINC:
          case AST__SINCCOS:
          case AST__SINCGAUSS:
@@ -14521,6 +15174,29 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
                                                                 lpar[ 0 ] ) );
                   break;
 
+/* exp(-k*x*x) interpolation. */
+/* -------------------------- */
+/* Assign the kernel function. */
+               case AST__GAUSS:
+                  kernel = Gauss;
+
+/* Constrain the full width half maximum of the gaussian. */
+                  fwhm = MaxD( 0.1, params[ 1 ], status );
+
+/* Store the required value of "k" in a local parameter array and pass
+   this array to the kernel function. */
+                  lpar[ 0 ] = 4.0 * log( 2.0 ) / ( fwhm * fwhm );
+                  par = lpar;
+
+/* Obtain the number of neighbouring pixels to use. If this is zero or
+   less, use the number of neighbouring pixels required by the width
+   of the kernel (out to where the gaussian term falls to 1% of its
+   peak value). */
+                  neighb = (int) floor( params[ 0 ] + 0.5 );
+                  if ( neighb <= 0 ) neighb = (int) ceil( sqrt( -log( 0.01 ) /
+                                                                lpar[ 0 ] ) );
+                  break;
+
 /* sinc(pi*x)*sinc(k*pi*x) interpolation. */
 /* -------------------------------------- */
 /* Assign the kernel function. */
@@ -14599,7 +15275,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
          case AST__BLOCKAVE:
          case AST__UINTERP:
 
-/* Define a macro to use a "case" statement to invoke the general 
+/* Define a macro to use a "case" statement to invoke the general
    sub-pixel interpolation function appropriate to a given type and
    the selected value of the interp variable. */
 #define CASE_GINTERP(X,Xtype) \
@@ -14626,7 +15302,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 /* Invoke the general interpolation function.  It has to be cast to the \
    right type (i.e. a function with the correctly typed arguments) \
    to prevent default promotion (to int or double) of its arguments. \
-   The cast here corresponds to the declaration of 
+   The cast here corresponds to the declaration of
    ast_resample_uinterp##Xtype. */ \
                   ( *( (void (*)( int, const int[], const int[], \
                                   const Xtype[], \
@@ -14691,7 +15367,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
                          "sub-pixel interpolation scheme (%d) specified.", status, \
                          astGetClass( unsimplified_mapping ), interp ); \
                break;
-                                 
+
 /* Use the above macro to report an appropriate error message. */
             switch ( type ) {
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
@@ -14718,7 +15394,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 /* Now scale the output values to conserve flux if required. */
    if( conserve ) {
 
-/* Define a macro to use a "case" statement to invoke the function 
+/* Define a macro to use a "case" statement to invoke the function
    appropriate to a given data type. These simply multiple the output data
    value by the factor, and the output variance by the square of the
    factor. */
@@ -14728,7 +15404,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
                           (Xtype *) out, \
                           (Xtype *) ( usevar ? out_var : NULL ), status ); \
          break;
-       
+
 /* Use the above macro to invoke the appropriate function. */
       switch ( type ) {
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
@@ -14748,7 +15424,7 @@ static int ResampleSection( AstMapping *this, const double *linear_fit,
 
 /* Undefine the macro. */
 #undef CASE_CONSERVE
-   }               
+   }
 
 /* Annul the PointSet used to hold input coordinates. */
    pset_in = astAnnul( pset_in );
@@ -14903,11 +15579,11 @@ static int ResampleWithBlocking( AstMapping *this, const double *linear_fit,
 *        pointer to a value which is used to identify bad data and/or
 *        variance values in the input array(s). The referenced value's
 *        data type must match that of the "in" (and "in_var")
-*        arrays. Unless the AST__NOBAD flag is set, the same value will 
-*        also be used to flag any output array elements for which 
-*        resampled values could not be obtained.  The output arrays(s) 
-*        may be flagged with this value whether or not the AST__USEBAD 
-*        flag is set (the function return value indicates whether any 
+*        arrays. Unless the AST__NOBAD flag is set, the same value will
+*        also be used to flag any output array elements for which
+*        resampled values could not be obtained.  The output arrays(s)
+*        may be flagged with this value whether or not the AST__USEBAD
+*        flag is set (the function return value indicates whether any
 *        such values have been produced).
 *     ndim_out
 *        The number of dimensions in the output grid. This should be
@@ -14960,7 +15636,7 @@ static int ResampleWithBlocking( AstMapping *this, const double *linear_fit,
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     The number of output grid points for which no valid output value 
+*     The number of output grid points for which no valid output value
 *     could be obtained.
 
 *  Notes:
@@ -15510,7 +16186,7 @@ static void SincSinc( double offset, const double params[], int flags,
 
 /* Find the offset scaled by the "k" factor. */
    offset_k = offset * params[ 0 ];
-   
+
 /* If the sinc(k*pi*x) term has not reached zero, calculate the
    result. */
    if ( offset_k < halfpi ) {
@@ -15684,7 +16360,7 @@ f     function is invoked with STATUS set to an error value, or if it
    if ( !astOK ) result = astAnnul( result );
 
 /* Return the result. */
-   return result;   
+   return result;
 }
 
 static void Somb( double offset, const double params[], int flags,
@@ -15711,7 +16387,7 @@ static void Somb( double offset, const double params[], int flags,
 *     This function calculates the value of a 1-dimensional sub-pixel
 *     interpolation kernel. The function used is somb(pi*x), where
 *     somb(z)=2*J1(z)/z  (J1 is a Bessel function of the first kind of
-*     order 1). 
+*     order 1).
 
 *  Parameters:
 *     offset
@@ -15774,7 +16450,7 @@ static void SombCos( double offset, const double params[], int flags,
 *     interpolation kernel. The function used is somb(pi*x)*cos(k*pi*x)
 *     out to the point where cos(k*pi*x) = 0, and zero beyond. Here,
 *     somb(z)=2*J1(z)/z  (J1 is a Bessel function of the first kind of
-*     order 1). 
+*     order 1).
 
 *  Parameters:
 *     offset
@@ -15944,7 +16620,7 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 /* Also include placing one at the centre of every face and one at the
    centroid of the constrained coordinate space. */
    npoint += 2 * ncoord + 1;
-   
+
 /* Determine if the origin lies within the bounds. If so, include it
    as a further point. */
    origin = 1;
@@ -15972,7 +16648,7 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
    ptr_in = astGetPoints( pset_in );
    limit = astMalloc( sizeof( int ) * (size_t) ncoord );
    if ( astOK ) {
-   
+
 /* Initialise the workspace. */
       for ( coord = 0; coord < ncoord; coord++ ) limit[ coord ] = 0;
 
@@ -15993,7 +16669,7 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 
 /* Increment the count of points (i.e. corners). */
          point++;
-      
+
 /* Now update the limit array to identify the next corner. */
          coord = 0;
          do {
@@ -16044,7 +16720,7 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
    towards the centroid. */
       for ( ic = 0; ic < ncorner; ic++ ) {
          for ( coord = 0; coord < ncoord; coord++ ) {
-            ptr_in[ coord ][ point ] = 0.999*ptr_in[ coord ][ ic ] + 
+            ptr_in[ coord ][ point ] = 0.999*ptr_in[ coord ][ ic ] +
                                        0.001*ptr_in[ coord ][ icen ];
          }
          point++;
@@ -16159,19 +16835,19 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *     void SpreadKernel1<X>( AstMapping *this, int ndim_out,
 *                           const int *lbnd_out, const int *ubnd_out,
 *                           const <Xtype> *in, const <Xtype> *in_var,
-*                           int npoint, const int *offset, 
+*                           int npoint, const int *offset,
 *                           const double *const *coords,
 *                           void (* kernel)( double, const double [], int,
 *                                            double *, int * ),
 *                           int neighb, const double *params, int flags,
-*                           <Xtype> badval, int npix_out,  <Xtype> *out, 
+*                           <Xtype> badval, int npix_out,  <Xtype> *out,
 *                           <Xtype> *out_var, double *work, int *nused )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This is a set of functions which rebins a rectangular region of an 
+*     This is a set of functions which rebins a rectangular region of an
 *     input grid of data (and, optionally, associated statistical variance
 *     values) so as to place them into a new output grid. Each input
 *     grid point may be mapped on to a position in the output grid in
@@ -16180,9 +16856,9 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *
 *     Where the input positions given do not correspond with a pixel centre
 *     in the output grid, the each input pixel value is spread out between the
-*     surrounding output pixels using weights determined by a separable kernel 
-*     which is the product of a 1-dimensional kernel function evaluated along 
-*     each output dimension. A pointer should be supplied to the 1-dimensional 
+*     surrounding output pixels using weights determined by a separable kernel
+*     which is the product of a 1-dimensional kernel function evaluated along
+*     each output dimension. A pointer should be supplied to the 1-dimensional
 *     kernel function to be used.
 
 *  Parameters:
@@ -16210,12 +16886,12 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *     in
 *        Pointer to the array of data to be rebinned. The numerical type
 *        of these data should match the function used, as given by the
-*        suffix on the function name. Note that details of how the input 
-*        grid maps on to this array (e.g. the storage order, number of 
-*        dimensions, etc.) is arbitrary and is specified entirely by means 
-*        of the "offset" array. The "in" array should therefore contain 
-*        sufficient elements to accommodate the "offset" values supplied.  
-*        There is no requirement that all elements of the "in" array 
+*        suffix on the function name. Note that details of how the input
+*        grid maps on to this array (e.g. the storage order, number of
+*        dimensions, etc.) is arbitrary and is specified entirely by means
+*        of the "offset" array. The "in" array should therefore contain
+*        sufficient elements to accommodate the "offset" values supplied.
+*        There is no requirement that all elements of the "in" array
 *        should be rebinned, and any which are not addressed by the
 *        contents of the "offset" array will be ignored.
 *     in_var
@@ -16225,8 +16901,8 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *        with each element of the "in" array. If this second array is
 *        given (along with the corresponding "out_var" array), then
 *        estimates of the variance of the resampled data will also be
-*        returned. It is addressed in exactly the same way (via the 
-*        "offset" array) as the "in" array. 
+*        returned. It is addressed in exactly the same way (via the
+*        "offset" array) as the "in" array.
 *
 *        If no variance estimates are required, a NULL pointer should
 *        be given.
@@ -16235,15 +16911,15 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *     offset
 *        Pointer to an array of integers with "npoint" elements. For
 *        each input point, this array should contain the zero-based
-*        offset in the input array(s) (i.e. the "in" and, optionally, 
+*        offset in the input array(s) (i.e. the "in" and, optionally,
 *        the "in_var" arrays) from which the value to be rebinned should
 *        be obtained.
 *     coords
-*        An array of pointers to double, with "ndim_out" elements. 
-*        Element "coords[coord]" should point at the first element of 
-*        an array of double (with "npoint" elements) which contains the 
+*        An array of pointers to double, with "ndim_out" elements.
+*        Element "coords[coord]" should point at the first element of
+*        an array of double (with "npoint" elements) which contains the
 *        values of coordinate number "coord" for each point being
-*        rebinned. The value of coordinate number "coord" for 
+*        rebinned. The value of coordinate number "coord" for
 *        rebinning point number "point" is therefore given by
 *        "coords[coord][point]" (assuming both indices are
 *        zero-based).  If any point has a coordinate value of AST__BAD
@@ -16254,22 +16930,22 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *     neighb
 *        The number of neighbouring pixels in each dimension (on each
 *        side of the interpolation position) which are to receive
-*        contributions from the input pixel value. This value should be at 
+*        contributions from the input pixel value. This value should be at
 *        least 1.
 *     params
 *        Pointer to an optional array of parameter values to be passed
-*        to the kernel function. If no parameters are required by this 
+*        to the kernel function. If no parameters are required by this
 *        function, then a NULL pointer may be supplied.
 *     flags
 *        The bitwise OR of a set of flag values which control the
 *        operation of the function. These are chosend from:
 *
-*        - AST__USEBAD: indicates whether there are "bad" (i.e. missing) data 
-*        in the input array(s) which must be recognised.  If this flag is not 
+*        - AST__USEBAD: indicates whether there are "bad" (i.e. missing) data
+*        in the input array(s) which must be recognised.  If this flag is not
 *        set, all input values are treated literally.
-*        - AST__GENVAR: Indicates that output variances should be generated 
+*        - AST__GENVAR: Indicates that output variances should be generated
 *        from the spread of values contributing to each output pixel.
-*        - AST__USEVAR: Indicates that output variances should be generated 
+*        - AST__USEVAR: Indicates that output variances should be generated
 *        by rebinning the input variances.
 *        - AST__VARWGT: Indicates that input variances should be used to
 *        create weights for the input data values.
@@ -16290,25 +16966,25 @@ static int SpecialBounds( const MapData *mapdata, double *lbnd, double *ubnd,
 *        Number of pixels in output array.
 *     out
 *        Pointer to an array with the same data type as the "in"
-*        array, into which the rebinned data will be returned. The 
+*        array, into which the rebinned data will be returned. The
 *        storage order should be such that the index of the first grid
-*        dimension varies most rapidly and that of the final dimension 
+*        dimension varies most rapidly and that of the final dimension
 *        least rapidly (i.e. Fortran array storage order).
 *     out_var
 *        An optional pointer to an array with the same data type and
 *        size as the "out" array, into which variance estimates for
 *        the rebinned values may be returned. This array will only be
-*        used if the "in_var" array has been given. The values returned 
-*        are estimates of the statistical variance of the corresponding 
-*        values in the "out" array, on the assumption that all errors in 
-*        input grid values (in the "in" array) are statistically independent 
-*        and that their variance estimates (in the "in_var" array) may 
+*        used if the "in_var" array has been given. The values returned
+*        are estimates of the statistical variance of the corresponding
+*        values in the "out" array, on the assumption that all errors in
+*        input grid values (in the "in" array) are statistically independent
+*        and that their variance estimates (in the "in_var" array) may
 *        simply be summed (with appropriate weighting factors).
 *
 *        If no output variance estimates are required, a NULL pointer
 *        should be given.
 *     work
-*        A pointer to an array with the same data type and size as the "out" 
+*        A pointer to an array with the same data type and size as the "out"
 *        array which is used as work space. The values in the supplied
 *        array are incremented on exit by the sum of the weights used
 *        with each output pixel.
@@ -16337,66 +17013,71 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
                               int *nused, int *status ) { \
 \
 /* Local Variables: */ \
-   astDECLARE_GLOBALS;           /* Thread-specific data */ \
-   Xtype in_val;                 /* Input pixel value */ \
+   astDECLARE_GLOBALS            /* Thread-specific data */ \
    Xtype c; \
-   double error; \
+   Xtype in_val;                 /* Input pixel value */ \
    double **wtptr;               /* Pointer to array of weight pointers */ \
+   double **wtptr_last;          /* Array of highest weight pointer values */ \
    double *filter;               /* Pointer to Nd array of filter values */ \
+   double *kp;                   /* Pointer to next weight values */ \
    double *kstart;               /* Pointer to next kernel value */ \
    double *kval;                 /* Pointer to 1d array of kernel values */ \
    double *wtprod;               /* Accumulated weight value array pointer */ \
-   double **wtptr_last;          /* Array of highest weight pointer values */ \
+   double *xfilter;              /* Pointer to 1d array of x axis filter values */ \
    double *xnl;                  /* Pointer to previous ofset array (n-d) */ \
-   double xxn; \
-   double xxl;                   /* Previous X offset */ \
-   double yyl;                   /* Previous Y offset */ \
+   double error; \
    double pixwt;                 /* Weight to apply to individual pixel */ \
-   double x;                     /* x coordinate value */ \
-   double xn;                    /* Coordinate value (n-d) */ \
-   double y;                     /* y coordinate value */ \
    double sum;                   /* Sum of all filter values */ \
    double wgt;                   /* Weight for input value */ \
+   double x;                     /* x coordinate value */ \
+   double xn;                    /* Coordinate value (n-d) */ \
    double xx;                    /* X offset */ \
+   double xxl;                   /* Previous X offset */ \
+   double xxn; \
+   double y;                     /* y coordinate value */ \
    double yy;                    /* Y offset */ \
-   double *kp;                   /* Pointer to next weight values */ \
+   double yyl;                   /* Previous Y offset */ \
    int *hi;                      /* Pointer to array of upper indices */ \
-   int *lo;                      /* Pointer to array of lower indices */ \
    int *jhi;                     /* Pointer to array of filter upper indices */ \
    int *jlo;                     /* Pointer to array of filter lower indices */ \
+   int *lo;                      /* Pointer to array of lower indices */ \
    int *stride;                  /* Pointer to array of dimension strides */ \
    int bad;                      /* Output pixel bad? */ \
    int done;                     /* All pixel indices done? */ \
+   int genvar;                   /* Generate output variances? */ \
    int hi_ix;                    /* Upper output pixel index (x dimension) */ \
    int hi_iy;                    /* Upper output pixel index (y dimension) */ \
    int hi_jx;                    /* Upper filter pixel index (x dimension) */ \
    int hi_jy;                    /* Upper filter pixel index (y dimension) */ \
+   int idim;                     /* Loop counter for dimensions */ \
+   int ii;                       /* Loop counter for dimensions */ \
+   int ix;                       /* Pixel index in output grid x dimension */ \
+   int iy;                       /* Pixel index in output grid y dimension */ \
+   int jjx;                      /* Reflected pixel index in filter grid x dimension */ \
+   int jjy;                      /* Reflected pixel index in filter grid y dimension */ \
+   int jx;                       /* Pixel index in filter grid x dimension */ \
+   int jxn; \
+   int jy;                       /* Pixel index in filter grid y dimension */ \
+   int kerror;                   /* Error signalled by kernel function? */ \
    int lo_ix;                    /* Lower output pixel index (x dimension) */ \
    int lo_iy;                    /* Lower output pixel index (y dimension) */ \
    int lo_jx;                    /* Lower filter pixel index (x dimension) */ \
    int lo_jy;                    /* Lower filter pixel index (y dimension) */ \
-   int idim;                     /* Loop counter for dimensions */ \
-   int ii;                       /* Loop counter for dimensions */ \
-   int ix;                       /* Pixel index in output grid x dimension */ \
-   int jx;                       /* Pixel index in filter grid x dimension */ \
-   int ixn;                      /* Pixel index in input grid (n-d) */ \
-   int ixn0;                     /* First pixel index in input grid (n-d) */ \
-   int iy;                       /* Pixel index in output grid y dimension */ \
-   int jy;                       /* Pixel index in filter grid y dimension */ \
-   int kerror;                   /* Error signalled by kernel function? */ \
    int nb2;                      /* The total number of neighbouring pixels */ \
    int nf;                       /* Number of pixels in filter array */ \
+   int nwx;                      /* Used X width of kernel function (*2) */ \
+   int nwy;                      /* Used Y width of kernel function (*2) */ \
    int off1;                     /* Input pixel offset due to y index */ \
    int off_in;                   /* Offset to input pixel */ \
    int off_out;                  /* Offset to output pixel */ \
+   int off_xedge;                /* Does filter box overlap array edge on the X axis? */ \
+   int off_yedge;                /* Does filter box overlap array edge on the Y axis? */ \
    int point;                    /* Loop counter for output points */ \
    int s;                        /* Temporary variable for strides */ \
-   int genvar;                   /* Generate output variances? */ \
    int usebad;                   /* Use "bad" input pixel values? */ \
    int usevar;                   /* Process variance array? */ \
    int varwgt;                   /* Use input variances as weights? */ \
    int ystride;                  /* Stride along input grid y dimension */ \
-   int jxn; \
 \
 /* Check the global error status. */ \
    if ( !astOK ) return; \
@@ -16484,6 +17165,9 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
 /* ---------------------------------------- */ \
       } else if ( ndim_out == 2 ) { \
 \
+/* Allocate workspace to hold the X axis filter values. */ \
+         xfilter = astMalloc( sizeof( double ) * (size_t) nb2 ); \
+\
 /* Calculate the stride along the y dimension of the output grid. */ \
          ystride = ubnd_out[ 0 ] - lbnd_out[ 0 ] + 1; \
 \
@@ -16529,6 +17213,9 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
                } \
             } \
          } \
+\
+/* Free work space */ \
+         xfilter = astFree( xfilter ); \
 \
 /* Exit point on error in kernel function */ \
          Kernel_SError_2d: ; \
@@ -16645,29 +17332,37 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
       off_in = offset[ point ]; \
       in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
       if ( Usebad ) { \
          bad = ( in_val == badval ); \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = bad || ( in_var[ off_in ] == badval ) \
                       || ( in_var[ off_in ] <= 0.0 ); \
+         } else if ( Usevar ) { \
+            bad = bad || ( in_var[ off_in ] == badval ); \
          } \
       } else { \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = ( in_var[ off_in ] <= 0.0 ); \
          } else { \
             bad = 0; \
          } \
       } \
 \
-/* Obtain the x coordinate of the current point and test if it is bad. */ \
+/* Obtain the x coordinate of the current point and test if it is bad. \
+   Also test that the central point falls within the output array. */ \
       x = coords[ 0 ][ point ]; \
+      ix = (int) floor( x + 0.5 ); \
+      if( ix < lbnd_out[ 0 ] || ix > ubnd_out[ 0 ] ) bad = 1; \
       bad = bad || ( x == AST__BAD ); \
 \
 /* If OK, calculate the lowest and highest indices (in the x \
-   dimension) of the region of neighbouring pixels that will \
-   contribute to the interpolated result. Constrain these values to \
-   lie within the output grid. */ \
+   dimension) of the region of neighbouring output pixels that will \
+   receive contributions from the current input pixel. Constrain these \
+   values to lie within the output grid. */ \
       if ( !bad ) { \
          ix = (int) floor( x ) - neighb + 1; \
          lo_ix = MaxI( ix, lbnd_out[ 0 ], status ); \
@@ -16685,27 +17380,65 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
             lo_jx = lo_ix - ix; \
             hi_jx = hi_ix - ix; \
 \
+/* See if the kernel extends off the edge of the output array. */ \
+            nwx =  hi_jx - lo_jx + 1; \
+            off_xedge = ( nwx < nb2 ); \
+\
 /* Use the kernel function to fill the work array with weights for all output \
    pixels whether or not they fall within the output array. At the same \
    time find the sum of all the factors. */ \
             xx = (double) ix - x; \
-            if( xx != xxl ) { \
-               xxl = xx; \
-\
+            if( xx != xxl || off_xedge ) { \
                sum = 0.0; \
-               for ( jx = 0; jx < nb2; jx++ ) { \
-                  ( *kernel )( xx, params, flags, &pixwt, status ); \
 \
-/* Check for errors arising in the kernel function. */ \
-                  if ( !astOK ) { \
-                     kerror = 1; \
-                     goto Kernel_SError_1d; \
+/* First handle cases where the kernel box overlaps an edge of the output \
+   array. In these cases, in order to conserve flux, the bit of the \
+   kernel function that is off the edge is reflected back onto the array. \
+   Care must be taken since the reflected part of the kernel may itself \
+   overlap the opposite edge of the array, in which case the overlapping \
+   part must again be reflected back onto the array. This iterative \
+   reflection is implemented using a fractional division (%) operator. */ \
+               if( off_xedge ) { \
+                  nwx *= 2; \
+                  xxl = AST__BAD; \
+                  for( jx = 0; jx < nb2; jx++ ) filter[ jx ] = 0.0; \
+\
+                  for ( jx = 0; jx < nb2; jx++ ) { \
+                     ( *kernel )( xx, params, flags, &pixwt, status ); \
+                     if ( !astOK ) { \
+                        kerror = 1; \
+                        goto Kernel_SError_1d; \
+                     } \
+\
+                     jjx =  ( jx - lo_jx ) % nwx + lo_jx; \
+                     if( jjx < lo_jx ) jjx += nwx; \
+                     if( jjx > hi_jx ) jjx = 2*hi_jx - jjx + 1; \
+\
+                     filter[ jjx ] += pixwt; \
+                     sum += pixwt; \
+                     xx += 1.0; \
                   } \
 \
+/* Now handle cases where the kernel box is completely within the output \
+   array. */ \
+               } else { \
+                  xxl = xx; \
+\
+                  for ( jx = 0; jx < nb2; jx++ ) { \
+                     ( *kernel )( xx, params, flags, &pixwt, status ); \
+\
+/* Check for errors arising in the kernel function. */ \
+                     if ( !astOK ) { \
+                        kerror = 1; \
+                        goto Kernel_SError_1d; \
+                     } \
+\
 /* Store the kernel factor and increment the sum of all factors. */ \
-                  filter[ jx ] = pixwt; \
-                  sum += pixwt; \
-                  xx += 1.0; \
+                     filter[ jx ] = pixwt; \
+                     sum += pixwt; \
+                     xx += 1.0; \
+                  } \
+\
                } \
 \
 /* Ensure we do not divide by zero. */ \
@@ -16767,29 +17500,39 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
       off_in = offset[ point ]; \
       in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
       if ( Usebad ) { \
          bad = ( in_val == badval ); \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = bad || ( in_var[ off_in ] == badval ) \
                       || ( in_var[ off_in ] <= 0.0 ); \
+         } else if ( Usevar ) { \
+            bad = bad || ( in_var[ off_in ] == badval ); \
          } \
       } else { \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = ( in_var[ off_in ] <= 0.0 ); \
          } else { \
             bad = 0; \
          } \
       } \
 \
-/* Obtain the x coordinate of the current point and test if it is bad. */ \
+/* Obtain the x coordinate of the current point and test if it is bad. \
+   Also test that the central point falls within the output array. */ \
       x = coords[ 0 ][ point ]; \
+      ix = (int) floor( x + 0.5 ); \
+      if( ix < lbnd_out[ 0 ] || ix > ubnd_out[ 0 ] ) bad = 1; \
       bad = bad || ( x == AST__BAD ); \
       if ( !bad ) { \
 \
 /* Similarly obtain and test the y coordinate. */ \
          y = coords[ 1 ][ point ]; \
-         bad = ( y == AST__BAD ); \
+         iy = (int) floor( y + 0.5 ); \
+         if( iy < lbnd_out[ 1 ] || iy > ubnd_out[ 1 ] ) bad = 1; \
+         bad = bad || ( y == AST__BAD ); \
          if ( !bad ) { \
 \
 /* If OK, calculate the lowest and highest indices (in each dimension) \
@@ -16817,6 +17560,13 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
                lo_jy = lo_iy - iy; \
                hi_jy = hi_iy - iy; \
 \
+/* See if the kernel extends off the edge of the output array on either \
+   axis. */ \
+               nwx =  hi_jx - lo_jx + 1; \
+               nwy =  hi_jy - lo_jy + 1; \
+               off_xedge = ( nwx < nb2 ); \
+               off_yedge = ( nwy < nb2 ); \
+\
 /* Loop to evaluate the kernel function along the y dimension, storing \
    the resulting weight values in all elements of each associated row \
    in the kvar array. The function's argument is the offset of the \
@@ -16824,51 +17574,123 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
    position. */ \
                yy = (double) iy - y; \
                xx = (double) ix - x; \
-               if( xx != xxl || yy != yyl ) { \
-                  xxl = xx; \
-                  yyl = yy; \
+               if( xx != xxl || yy != yyl || off_xedge || off_yedge ) { \
 \
-                  kp = filter; \
-                  for ( jy = 0; jy < nb2; jy++ ) { \
-                     ( *kernel )( yy, params, flags, &pixwt, status ); \
+/* First handle cases where the kernel box extends beyond the top or \
+   bottom edge of the output array. In these cases, in order to conserve \
+   flux, the bit of the kernel function that is off the edge is reflected \
+   back onto the array. Care must be taken since the reflected part of the \
+   kernel may itself overlap the opposite edge of the array, in which \
+   case the overlapping part must again be reflected back onto the \
+   array. This iterative reflection is implemented using a fractional \
+   division (%) operator. */ \
+                  if( off_yedge ) { \
+                     nwy *= 2; \
+                     xxl = AST__BAD; \
+                     yyl = AST__BAD; \
+                     for( jy = 0; jy < nb2*nb2; jy++ ) filter[ jy ] = 0.0; \
 \
-/* Check for errors arising in the kernel function. */ \
-                     if ( !astOK ) { \
-                        kerror = 1; \
-                        goto Kernel_SError_2d; \
+                     for ( jy = 0; jy < nb2; jy++ ) { \
+                        ( *kernel )( yy, params, flags, &pixwt, status ); \
+                        if ( !astOK ) { \
+                           kerror = 1; \
+                           goto Kernel_SError_2d; \
+                        } \
+\
+                        jjy =  ( jy - lo_jy ) % nwy + lo_jy; \
+                        if( jjy < lo_jy ) jjy += nwy; \
+                        if( jjy > hi_jy ) jjy = 2*hi_jy - jjy + 1; \
+\
+                        kp = filter + jjy*nb2; \
+                        for( jx = 0; jx < nb2; jx++ ) *(kp++) += pixwt; \
+                        yy += 1.0; \
                      } \
 \
+/* Now handles cases where the kernel does not overlap the top or bottom edge \
+   of the output array. */ \
+                  } else { \
+                     xxl = xx; \
+                     yyl = yy; \
+                     kp = filter; \
+                     for ( jy = 0; jy < nb2; jy++ ) { \
+                        ( *kernel )( yy, params, flags, &pixwt, status ); \
+\
+/* Check for errors arising in the kernel function. */ \
+                        if ( !astOK ) { \
+                           kerror = 1; \
+                           goto Kernel_SError_2d; \
+                        } \
+\
 /* Store the kernel factor in all elements of the current row. */ \
-                     for( jx = 0; jx < nb2; jx++ ) *(kp++) = pixwt; \
+                        for( jx = 0; jx < nb2; jx++ ) *(kp++) = pixwt; \
 \
 /* Move on to the next row. */ \
-                     yy += 1.0; \
+                        yy += 1.0; \
+                     } \
                   } \
 \
 /* Loop to evaluate the kernel function along the x dimension, multiplying \
    the resulting weight values by the values already stored in the the \
    associated column in the kvar array. The function's argument is the \
    offset of the output pixel (along this dimension) from the central output \
-   position. Also form the total data sum in the filter array. */ \
+   position. Also form the total data sum in the filter array. First \
+   handle cases where the kernel overlaps the left or right edge of the \
+   output array. */ \
                   sum = 0.0; \
-                  for ( jx = 0; jx < nb2; jx++ ) { \
-                     ( *kernel )( xx, params, flags, &pixwt, status ); \
+\
+/* First deal with cases where the kernel extends beyond the left or \
+   right edge of the output array. */ \
+                  if( off_xedge ) { \
+                     nwx *= 2; \
+                     xxl = AST__BAD; \
+                     for( jx = 0; jx < nb2; jx++ ) xfilter[ jx ] = 0.0; \
+\
+                     for ( jx = 0; jx < nb2; jx++ ) { \
+                        ( *kernel )( xx, params, flags, &pixwt, status ); \
+                        if ( !astOK ) { \
+                           kerror = 1; \
+                           goto Kernel_SError_2d; \
+                        } \
+\
+                        jjx =  ( jx - lo_jx ) % nwx + lo_jx; \
+                        if( jjx < lo_jx ) jjx += nwx; \
+                        if( jjx > hi_jx ) jjx = 2*hi_jx - jjx + 1; \
+\
+                        xfilter[ jjx ] += pixwt; \
+                        xx += 1.0; \
+                     } \
+\
+                     for ( jx = 0; jx < nb2; jx++ ) { \
+                        kp = filter + jx; \
+                        for( jy = 0; jy < nb2; jy++, kp += nb2 ) { \
+                           *kp *= xfilter[ jx ]; \
+                           sum += *kp; \
+                        } \
+                     } \
+\
+/* Now deal with cases where the kernel does not extends beyond the left or \
+   right edge of the output array. */ \
+                  } else { \
+\
+                     for ( jx = 0; jx < nb2; jx++ ) { \
+                        ( *kernel )( xx, params, flags, &pixwt, status ); \
 \
 /* Check for errors arising in the kernel function. */ \
-                     if ( !astOK ) { \
-                        kerror = 1; \
-                        goto Kernel_SError_2d; \
-                     } \
+                        if ( !astOK ) { \
+                           kerror = 1; \
+                           goto Kernel_SError_2d; \
+                        } \
 \
 /* Multiply the kernel factor by all elements of the current column. */ \
-                     kp = filter + jx; \
-                     for( jy = 0; jy < nb2; jy++, kp += nb2 ) { \
-                        *kp *= pixwt; \
-                        sum += *kp; \
-                     } \
+                        kp = filter + jx; \
+                        for( jy = 0; jy < nb2; jy++, kp += nb2 ) { \
+                           *kp *= pixwt; \
+                           sum += *kp; \
+                        } \
 \
 /* Move on to the next column. */ \
-                     xx += 1.0; \
+                        xx += 1.0; \
+                     } \
                   } \
 \
 /* Ensure we do not divide by zero. */ \
@@ -16939,15 +17761,20 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
       off_in = offset[ point ]; \
       in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
       if ( Usebad ) { \
          bad = ( in_val == badval ); \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = bad || ( in_var[ off_in ] == badval ) \
                       || ( in_var[ off_in ] <= 0.0 ); \
+         } else if ( Usevar ) { \
+            bad = bad || ( in_var[ off_in ] == badval ); \
          } \
       } else { \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = ( in_var[ off_in ] <= 0.0 ); \
          } else { \
             bad = 0; \
@@ -16964,18 +17791,19 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
 \
 /* Test if the coordinate is bad. If true, the corresponding output pixel \
    value will be bad, so give up on this point. */ \
-            bad = ( xn == AST__BAD ); \
+            ix = (int) floor( xn + 0.5 ); \
+            if( ix < lbnd_out[ idim ] || ix > ubnd_out[ idim ] ) bad = 1; \
+            bad = bad || ( xn == AST__BAD ); \
             if ( bad ) break; \
 \
 /* Calculate the lowest and highest indices (in the current dimension) \
    of the region of neighbouring output pixels that will be modified. \
    Constrain these values to lie within the output grid. */ \
-            ixn = (int) floor( xn ); \
-            ixn0 = ixn - neighb + 1; \
-            lo[ idim ] = MaxI( ixn0, lbnd_out[ idim ], status ); \
-            hi[ idim ] = MinI( ixn + neighb, ubnd_out[ idim ], status ); \
-            jlo[ idim ] = lo[ idim ] - ixn0; \
-            jhi[ idim ] = hi[ idim ] - ixn0; \
+            ix = (int) floor( xn ) - neighb + 1; \
+            lo[ idim ] = MaxI( ix, lbnd_out[ idim ], status ); \
+            hi[ idim ] = MinI( ix + nb2 - 1, ubnd_out[ idim ], status ); \
+            jlo[ idim ] = lo[ idim ] - ix; \
+            jhi[ idim ] = hi[ idim ] - ix; \
 \
 /* Check there is some overlap with the output array on this axis. */ \
             if( lo[ idim ] > hi[ idim ] ) { \
@@ -16992,25 +17820,66 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
             wtptr[ idim ] = kval + nb2*idim; \
             wtptr_last[ idim ] = wtptr[ idim ] + nb2 - 1; \
 \
+/* See if the kernel extends off the edge of the output array on the current \
+   axis. */ \
+            lo_jx = jlo[ idim ]; \
+            hi_jx = jhi[ idim ]; \
+            nwx =  hi_jx - lo_jx + 1; \
+            off_xedge = ( nwx < nb2 ); \
+\
 /* Loop to evaluate the kernel function along each dimension, storing \
    the resulting values. The function's argument is the offset of the \
    output pixel (along the relevant dimension) from the central output \
    point. */ \
-            xxn = (double) ( ixn - neighb + 1 ) - xn; \
-            if( xxn != xnl[ idim ] ) { \
+            xxn = (double) ix - xn; \
+            if( xxn != xnl[ idim ] || off_xedge ) { \
                sum = AST__BAD; \
-               xnl[ idim ] = xxn; \
-               for ( jxn = 0; jxn < nb2; jxn++ ) { \
-                  ( *kernel )( xxn, params, flags, wtptr[ idim ] + jxn, status ); \
 \
-/* Check for errors arising in the kernel function. */ \
-                  if ( !astOK ) { \
-                     kerror = 1; \
-                     goto Kernel_SError_Nd; \
+/* First handle cases where the kernel box overlaps an edge of the output \
+   array. In these cases, in order to conserve flux, the bit of the \
+   kernel function that is off the edge is reflected back onto the array. \
+   Care must be taken since the reflected part of the kernel may itself \
+   overlap the opposite edge of the array, in which case the overlapping \
+   part must again be reflected back onto the array. This iterative \
+   reflection is implemented using a fractional division (%) operator. */ \
+               if( off_xedge ) { \
+                  nwx *= 2; \
+                  xnl[ idim ] = AST__BAD; \
+                  kp = wtptr[ idim ]; \
+                  for( jx = 0; jx < nb2; jx++ ) *(kp++) = 0.0; \
+\
+                  kp = wtptr[ idim ]; \
+                  for ( jx = 0; jx < nb2; jx++ ) { \
+                     ( *kernel )( xxn, params, flags, &pixwt, status ); \
+                     if ( !astOK ) { \
+                        kerror = 1; \
+                        goto Kernel_SError_1d; \
+                     } \
+\
+                     jjx =  ( jx - lo_jx ) % nwx + lo_jx; \
+                     if( jjx < lo_jx ) jjx += nwx; \
+                     if( jjx > hi_jx ) jjx = 2*hi_jx - jjx + 1; \
+\
+                     kp[ jjx ] += pixwt; \
+                     xxn += 1.0; \
                   } \
 \
+/* Now handle cases where the kernel box is completely within the output \
+   array. */ \
+               } else { \
+                  xnl[ idim ] = xxn; \
+                  for ( jxn = 0; jxn < nb2; jxn++ ) { \
+                     ( *kernel )( xxn, params, flags, wtptr[ idim ] + jxn, status ); \
+\
+/* Check for errors arising in the kernel function. */ \
+                     if ( !astOK ) { \
+                        kerror = 1; \
+                        goto Kernel_SError_Nd; \
+                     } \
+\
 /* Increment the kernel position. */ \
-                  xxn += 1.0; \
+                     xxn += 1.0; \
+                  } \
                } \
             } \
          } \
@@ -17169,8 +18038,8 @@ static void SpreadKernel1##X( AstMapping *this, int ndim_out, \
    required signed data type. */
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
 MAKE_SPREAD_KERNEL1(LD,long double,0)
-#endif     
-MAKE_SPREAD_KERNEL1(D,double,0) 
+#endif
+MAKE_SPREAD_KERNEL1(D,double,0)
 MAKE_SPREAD_KERNEL1(F,float,0)
 MAKE_SPREAD_KERNEL1(I,int,1)
 
@@ -17195,24 +18064,24 @@ MAKE_SPREAD_KERNEL1(I,int,1)
 *     void SpreadLinear<X>( int ndim_out,
 *                           const int *lbnd_out, const int *ubnd_out,
 *                           const <Xtype> *in, const <Xtype> *in_var,
-*                           int npoint, const int *offset, 
-*                           const double *const *coords, int flags, 
-*                           <Xtype> badval, int npix_out, <Xtype> *out, 
-*                           <Xtype> *out_var, double *work, int *nused  ) 
+*                           int npoint, const int *offset,
+*                           const double *const *coords, int flags,
+*                           <Xtype> badval, int npix_out, <Xtype> *out,
+*                           <Xtype> *out_var, double *work, int *nused  )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This is a set of functions which rebins a rectangular region of an 
+*     This is a set of functions which rebins a rectangular region of an
 *     input grid of data (and, optionally, associated statistical variance
 *     values) so as to place them into a new output grid. Each input
 *     grid point may be mapped on to a position in the output grid in
 *     an arbitrary way. Where the positions given do not correspond
 *     with a pixel centre in the input grid, the spreading scheme
-*     used divides the input pixel value up linearly between the 
-*     nearest neighbouring output pixels in each dimension (there are 2 
-*     nearest neighbours in 1 dimension, 4 in 2 dimensions, 8 in 3 
+*     used divides the input pixel value up linearly between the
+*     nearest neighbouring output pixels in each dimension (there are 2
+*     nearest neighbours in 1 dimension, 4 in 2 dimensions, 8 in 3
 *     dimensions, etc.).
 
 *  Parameters:
@@ -17237,12 +18106,12 @@ MAKE_SPREAD_KERNEL1(I,int,1)
 *     in
 *        Pointer to the array of data to be rebinned. The numerical type
 *        of these data should match the function used, as given by the
-*        suffix on the function name. Note that details of how the input 
-*        grid maps on to this array (e.g. the storage order, number of 
-*        dimensions, etc.) is arbitrary and is specified entirely by means 
-*        of the "offset" array. The "in" array should therefore contain 
-*        sufficient elements to accommodate the "offset" values supplied.  
-*        There is no requirement that all elements of the "in" array 
+*        suffix on the function name. Note that details of how the input
+*        grid maps on to this array (e.g. the storage order, number of
+*        dimensions, etc.) is arbitrary and is specified entirely by means
+*        of the "offset" array. The "in" array should therefore contain
+*        sufficient elements to accommodate the "offset" values supplied.
+*        There is no requirement that all elements of the "in" array
 *        should be rebinned, and any which are not addressed by the
 *        contents of the "offset" array will be ignored.
 *     in_var
@@ -17252,8 +18121,8 @@ MAKE_SPREAD_KERNEL1(I,int,1)
 *        with each element of the "in" array. If this second array is
 *        given (along with the corresponding "out_var" array), then
 *        estimates of the variance of the resampled data will also be
-*        returned. It is addressed in exactly the same way (via the 
-*        "offset" array) as the "in" array. 
+*        returned. It is addressed in exactly the same way (via the
+*        "offset" array) as the "in" array.
 *
 *        If no variance estimates are required, a NULL pointer should
 *        be given.
@@ -17262,15 +18131,15 @@ MAKE_SPREAD_KERNEL1(I,int,1)
 *     offset
 *        Pointer to an array of integers with "npoint" elements. For
 *        each input point, this array should contain the zero-based
-*        offset in the input array(s) (i.e. the "in" and, optionally, 
+*        offset in the input array(s) (i.e. the "in" and, optionally,
 *        the "in_var" arrays) from which the value to be rebinned should
 *        be obtained.
 *     coords
-*        An array of pointers to double, with "ndim_out" elements. 
-*        Element "coords[coord]" should point at the first element of 
-*        an array of double (with "npoint" elements) which contains the 
+*        An array of pointers to double, with "ndim_out" elements.
+*        Element "coords[coord]" should point at the first element of
+*        an array of double (with "npoint" elements) which contains the
 *        values of coordinate number "coord" for each point being
-*        rebinned. The value of coordinate number "coord" for 
+*        rebinned. The value of coordinate number "coord" for
 *        rebinning point number "point" is therefore given by
 *        "coords[coord][point]" (assuming both indices are
 *        zero-based).  If any point has a coordinate value of AST__BAD
@@ -17279,8 +18148,8 @@ MAKE_SPREAD_KERNEL1(I,int,1)
 *        The bitwise OR of a set of flag values which control the
 *        operation of the function. These are chosend from:
 *
-*        - AST__USEBAD: indicates whether there are "bad" (i.e. missing) data 
-*        in the input array(s) which must be recognised.  If this flag is not 
+*        - AST__USEBAD: indicates whether there are "bad" (i.e. missing) data
+*        in the input array(s) which must be recognised.  If this flag is not
 *        set, all input values are treated literally.
 *        - AST__GENVAR: Indicates that any input variances are to be
 *        ignored, and that the output variances should be generated from
@@ -17300,28 +18169,28 @@ MAKE_SPREAD_KERNEL1(I,int,1)
 *        Number of pixels in output array.
 *     out
 *        Pointer to an array with the same data type as the "in"
-*        array, into which the rebinned data will be returned. The 
+*        array, into which the rebinned data will be returned. The
 *        storage order should be such that the index of the first grid
-*        dimension varies most rapidly and that of the final dimension 
+*        dimension varies most rapidly and that of the final dimension
 *        least rapidly (i.e. Fortran array storage order).
 *     out_var
 *        An optional pointer to an array with the same data type and
 *        size as the "out" array, into which variance estimates for
 *        the rebinned values may be returned. This array will only be
-*        used if the "in_var" array has been given. The values returned 
-*        are estimates of the statistical variance of the corresponding 
-*        values in the "out" array, on the assumption that all errors in 
-*        input grid values (in the "in" array) are statistically independent 
-*        and that their variance estimates (in the "in_var" array) may 
+*        used if the "in_var" array has been given. The values returned
+*        are estimates of the statistical variance of the corresponding
+*        values in the "out" array, on the assumption that all errors in
+*        input grid values (in the "in" array) are statistically independent
+*        and that their variance estimates (in the "in_var" array) may
 *        simply be summed (with appropriate weighting factors).
 *
 *        If no output variance estimates are required, a NULL pointer
 *        should be given.
 *     work
-*        An optional pointer to a double array with the same size as 
+*        An optional pointer to a double array with the same size as
 *        the "out" array. The contents of this array (if supplied) are
 *        incremented by the accumulated weights assigned to each output pixel.
-*        If no accumulated weights are required, a NULL pointer should be 
+*        If no accumulated weights are required, a NULL pointer should be
 *        given.
 *     nused
 *        An optional pointer to an int which will be incremented by the
@@ -17619,15 +18488,20 @@ static void SpreadLinear##X( int ndim_out, \
       off_in = offset[ point ]; \
       in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
       if ( Usebad ) { \
          bad = ( in_val == badval ); \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = bad || ( in_var[ off_in ] == badval ) \
                       || ( in_var[ off_in ] <= 0.0 ); \
+         } else if ( Usevar ) { \
+            bad = bad || ( in_var[ off_in ] == badval ); \
          } \
       } else { \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = ( in_var[ off_in ] <= 0.0 ); \
          } else { \
             bad = 0; \
@@ -17704,15 +18578,20 @@ static void SpreadLinear##X( int ndim_out, \
       off_in = offset[ point ]; \
       in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
       if ( Usebad ) { \
          bad = ( in_val == badval ); \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = bad || ( in_var[ off_in ] == badval ) \
                       || ( in_var[ off_in ] <= 0.0 ); \
+         } else if ( Usevar ) { \
+            bad = bad || ( in_var[ off_in ] == badval ); \
          } \
       } else { \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = ( in_var[ off_in ] <= 0.0 ); \
          } else { \
             bad = 0; \
@@ -17839,15 +18718,20 @@ static void SpreadLinear##X( int ndim_out, \
       off_in = offset[ point ]; \
       in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
       if ( Usebad ) { \
          bad = ( in_val == badval ); \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = bad || ( in_var[ off_in ] == badval ) \
                       || ( in_var[ off_in ] <= 0.0 ); \
+         } else if ( Usevar ) { \
+            bad = bad || ( in_var[ off_in ] == badval ); \
          } \
       } else { \
-         if ( Usevar || Varwgt ) { \
+         if ( Varwgt ) { \
             bad = ( in_var[ off_in ] <= 0.0 ); \
          } else { \
             bad = 0; \
@@ -17982,7 +18866,7 @@ static void SpreadLinear##X( int ndim_out, \
    required signed data type. */
 #if HAVE_LONG_DOUBLE     /* Not normally implemented */
 MAKE_SPREAD_LINEAR(LD,long double,0)
-#endif     
+#endif
 MAKE_SPREAD_LINEAR(D,double,0)
 MAKE_SPREAD_LINEAR(F,float,0)
 MAKE_SPREAD_LINEAR(I,int,1)
@@ -18008,16 +18892,16 @@ MAKE_SPREAD_LINEAR(I,int,1)
 *     void SpreadNearest<X>( int ndim_out,
 *                           const int *lbnd_out, const int *ubnd_out,
 *                           const <Xtype> *in, const <Xtype> *in_var,
-*                           int npoint, const int *offset, 
-*                           const double *const *coords, int flags, 
-*                           <Xtype> badval, int npix_out, <Xtype> *out, 
-*                           <Xtype> *out_var, double *work, int *nused ) 
+*                           int npoint, const int *offset,
+*                           const double *const *coords, int flags,
+*                           <Xtype> badval, int npix_out, <Xtype> *out,
+*                           <Xtype> *out_var, double *work, int *nused )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This is a set of functions which rebins a rectangular region of an 
+*     This is a set of functions which rebins a rectangular region of an
 *     input grid of data (and, optionally, associated statistical variance
 *     values) so as to place them into a new output grid. Each input
 *     grid point may be mapped on to a position in the output grid in
@@ -18048,12 +18932,12 @@ MAKE_SPREAD_LINEAR(I,int,1)
 *     in
 *        Pointer to the array of data to be rebinned. The numerical type
 *        of these data should match the function used, as given by the
-*        suffix on the function name. Note that details of how the input 
-*        grid maps on to this array (e.g. the storage order, number of 
-*        dimensions, etc.) is arbitrary and is specified entirely by means 
-*        of the "offset" array. The "in" array should therefore contain 
-*        sufficient elements to accommodate the "offset" values supplied.  
-*        There is no requirement that all elements of the "in" array 
+*        suffix on the function name. Note that details of how the input
+*        grid maps on to this array (e.g. the storage order, number of
+*        dimensions, etc.) is arbitrary and is specified entirely by means
+*        of the "offset" array. The "in" array should therefore contain
+*        sufficient elements to accommodate the "offset" values supplied.
+*        There is no requirement that all elements of the "in" array
 *        should be rebinned, and any which are not addressed by the
 *        contents of the "offset" array will be ignored.
 *     in_var
@@ -18063,8 +18947,8 @@ MAKE_SPREAD_LINEAR(I,int,1)
 *        with each element of the "in" array. If this second array is
 *        given (along with the corresponding "out_var" array), then
 *        estimates of the variance of the resampled data will also be
-*        returned. It is addressed in exactly the same way (via the 
-*        "offset" array) as the "in" array. 
+*        returned. It is addressed in exactly the same way (via the
+*        "offset" array) as the "in" array.
 *
 *        If no variance estimates are required, a NULL pointer should
 *        be given.
@@ -18073,15 +18957,15 @@ MAKE_SPREAD_LINEAR(I,int,1)
 *     offset
 *        Pointer to an array of integers with "npoint" elements. For
 *        each input point, this array should contain the zero-based
-*        offset in the input array(s) (i.e. the "in" and, optionally, 
+*        offset in the input array(s) (i.e. the "in" and, optionally,
 *        the "in_var" arrays) from which the value to be rebinned should
 *        be obtained.
 *     coords
-*        An array of pointers to double, with "ndim_out" elements. 
-*        Element "coords[coord]" should point at the first element of 
-*        an array of double (with "npoint" elements) which contains the 
+*        An array of pointers to double, with "ndim_out" elements.
+*        Element "coords[coord]" should point at the first element of
+*        an array of double (with "npoint" elements) which contains the
 *        values of coordinate number "coord" for each point being
-*        rebinned. The value of coordinate number "coord" for 
+*        rebinned. The value of coordinate number "coord" for
 *        rebinning point number "point" is therefore given by
 *        "coords[coord][point]" (assuming both indices are
 *        zero-based).  If any point has a coordinate value of AST__BAD
@@ -18091,12 +18975,12 @@ MAKE_SPREAD_LINEAR(I,int,1)
 *        The bitwise OR of a set of flag values which control the
 *        operation of the function. These are chosend from:
 *
-*        - AST__USEBAD: indicates whether there are "bad" (i.e. missing) data 
-*        in the input array(s) which must be recognised.  If this flag is not 
+*        - AST__USEBAD: indicates whether there are "bad" (i.e. missing) data
+*        in the input array(s) which must be recognised.  If this flag is not
 *        set, all input values are treated literally.
-*        - AST__GENVAR: Indicates that output variances should be generated 
+*        - AST__GENVAR: Indicates that output variances should be generated
 *        from the spread of values contributing to each output pixel.
-*        - AST__USEVAR: Indicates that output variances should be generated 
+*        - AST__USEVAR: Indicates that output variances should be generated
 *        by rebinning the input variances.
 *        - AST__VARWGT: Indicates that input variances should be used to
 *        create weights for the input data values.
@@ -18117,25 +19001,25 @@ MAKE_SPREAD_LINEAR(I,int,1)
 *        Number of pixels in output array.
 *     out
 *        Pointer to an array with the same data type as the "in"
-*        array, into which the rebinned data will be returned. The 
+*        array, into which the rebinned data will be returned. The
 *        storage order should be such that the index of the first grid
-*        dimension varies most rapidly and that of the final dimension 
+*        dimension varies most rapidly and that of the final dimension
 *        least rapidly (i.e. Fortran array storage order).
 *     out_var
 *        An optional pointer to an array with the same data type and
 *        size as the "out" array, into which variance estimates for
 *        the rebinned values may be returned. This array will only be
-*        used if the "in_var" array has been given. The values returned 
-*        are estimates of the statistical variance of the corresponding 
-*        values in the "out" array, on the assumption that all errors in 
-*        input grid values (in the "in" array) are statistically independent 
-*        and that their variance estimates (in the "in_var" array) may 
+*        used if the "in_var" array has been given. The values returned
+*        are estimates of the statistical variance of the corresponding
+*        values in the "out" array, on the assumption that all errors in
+*        input grid values (in the "in" array) are statistically independent
+*        and that their variance estimates (in the "in_var" array) may
 *        simply be summed (with appropriate weighting factors).
 *
 *        If no output variance estimates are required, a NULL pointer
 *        should be given.
 *     work
-*        A pointer to an array with the same data type and size as the "out" 
+*        A pointer to an array with the same data type and size as the "out"
 *        array which is used as work space. The values in the supplied
 *        array are incremented on exit by the sum of the weights used
 *        with each output pixel.
@@ -18396,15 +19280,20 @@ static void SpreadNearest##X( int ndim_out, \
                off_in = offset[ point ]; \
                in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
                if ( Usebad ) { \
                   bad = ( in_val == badval ); \
-                  if ( Usevar || Varwgt ) { \
+                  if ( Varwgt ) { \
                      bad = bad || ( in_var[ off_in ] == badval ) \
                                || ( in_var[ off_in ] <= 0.0 ); \
+                  } else if ( Usevar ) { \
+                     bad = bad || ( in_var[ off_in ] == badval ); \
                   } \
                } else { \
-                  if ( Usevar || Varwgt ) { \
+                  if ( Varwgt ) { \
                      bad = ( in_var[ off_in ] <= 0.0 ); \
                   } else { \
                      bad = 0; \
@@ -18493,15 +19382,20 @@ static void SpreadNearest##X( int ndim_out, \
                off_in = offset[ point ]; \
                in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad (or zero). */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
                if ( Usebad ) { \
                   bad = ( in_val == badval ); \
-                  if ( Usevar || Varwgt ) { \
+                  if ( Varwgt ) { \
                      bad = bad || ( in_var[ off_in ] == badval ) \
                                || ( in_var[ off_in ] <= 0.0 ); \
+                  } else if ( Usevar ) { \
+                     bad = bad || ( in_var[ off_in ] == badval ); \
                   } \
                } else { \
-                  if ( Usevar || Varwgt ) { \
+                  if ( Varwgt ) { \
                      bad = ( in_var[ off_in ] <= 0.0 ); \
                   } else { \
                      bad = 0; \
@@ -18596,15 +19490,20 @@ static void SpreadNearest##X( int ndim_out, \
                off_in = offset[ point ]; \
                in_val = in[ off_in ]; \
 \
-/* If necessary, test if the input data value or variance is bad. */ \
+/* If necessary, test if the input data value or variance is bad. If we \
+   are using the reciprocal of the input variances as weights, then \
+   variance values of zero are also effectively bad (but we can use input \
+   variances of zero otherwise). */ \
                if ( Usebad ) { \
                   bad = ( in_val == badval ); \
-                  if ( Usevar || Varwgt ) { \
+                  if ( Varwgt ) { \
                      bad = bad || ( in_var[ off_in ] == badval ) \
                                || ( in_var[ off_in ] <= 0.0 ); \
+                  } else if ( Usevar ) { \
+                     bad = bad || ( in_var[ off_in ] == badval ); \
                   } \
                } else { \
-                  if ( Usevar || Varwgt ) { \
+                  if ( Varwgt ) { \
                      bad = ( in_var[ off_in ] <= 0.0 ); \
                   } else { \
                      bad = 0; \
@@ -19030,13 +19929,13 @@ f        The global status.
    }
 }
 
-static void TranGrid( AstMapping *this, int ncoord_in, const int lbnd[], 
-                      const int ubnd[], double tol, int maxpix, int forward, 
+static void TranGrid( AstMapping *this, int ncoord_in, const int lbnd[],
+                      const int ubnd[], double tol, int maxpix, int forward,
                       int ncoord_out, int outdim, double *out, int *status ) {
 /*
 *++
 *  Name:
-c     astTranGrid 
+c     astTranGrid
 f     AST_TRANGRID
 
 *  Purpose:
@@ -19051,22 +19950,22 @@ c     void astTranGrid( AstMapping *this, int ncoord_in,
 c                       const int lbnd[], const int ubnd[],
 c                       double tol, int maxpix, int forward,
 c                       int ncoord_out, int outdim, double *out );
-f     CALL AST_TRANGRID( THIS, NCOORD_IN, LBND, UBND, TOL, MAXPIX, 
+f     CALL AST_TRANGRID( THIS, NCOORD_IN, LBND, UBND, TOL, MAXPIX,
 f                        FORWARD, NCOORD_OUT, OUTDIM, OUT, STATUS )
 
 *  Class Membership:
 *     Mapping method.
 
 *  Description:
-*     This function uses the supplied Mapping to transforms a regular square 
+*     This function uses the supplied Mapping to transforms a regular square
 *     grid of points covering a specified box. It attempts to do this
-*     quickly by first approximating the Mapping with a linear transformation 
-*     applied over the whole region of the input grid which is being used. 
-*     If this proves to be insufficiently accurate, the input region is 
-*     sub-divided into two along its largest dimension and the process is 
+*     quickly by first approximating the Mapping with a linear transformation
+*     applied over the whole region of the input grid which is being used.
+*     If this proves to be insufficiently accurate, the input region is
+*     sub-divided into two along its largest dimension and the process is
 *     repeated within each of the resulting sub-regions. This process of
-*     sub-division continues until a sufficiently good linear approximation 
-*     is found, or the region to which it is being applied becomes too small 
+*     sub-division continues until a sufficiently good linear approximation
+*     is found, or the region to which it is being applied becomes too small
 *     (in which case the original Mapping is used directly).
 
 *  Parameters:
@@ -19112,13 +20011,13 @@ f     TOL = DOUBLE PRECISION (Given)
 *        of zero may be given. This will ensure that the Mapping is
 *        used without any approximation, but may increase execution
 *        time.
-*        
+*
 *        If the value is too high, discontinuities between the linear
-*        approximations used in adjacent panel will be higher. If this 
+*        approximations used in adjacent panel will be higher. If this
 *        is a problem, reduce the tolerance value used.
 c     maxpix
 f     MAXPIX = INTEGER (Given)
-*        A value which specifies an initial scale size (in input grid points) 
+*        A value which specifies an initial scale size (in input grid points)
 *        for the adaptive algorithm which approximates non-linear Mappings
 *        with piece-wise linear transformations. Normally, this should
 *        be a large value (larger than any dimension of the region of
@@ -19136,7 +20035,7 @@ f        divided into sub-regions whose size does not exceed MAXPIX
 *        convergence of the adaptive algorithm in cases where the
 *        Mapping appears approximately linear on large scales, but has
 *        irregularities (e.g. holes) on smaller scales. A value of,
-*        say, 50 to 100 grid points can also be employed as a safeguard 
+*        say, 50 to 100 grid points can also be employed as a safeguard
 *        in general-purpose software, since the effect on performance is
 *        minimal.
 *
@@ -19170,7 +20069,7 @@ f        The number of elements along the first dimension of the OUT
 *        given should not be less than the number of points in the grid.
 c     out
 f     OUT( OUTDIM, NCOORD_OUT ) = DOUBLE PRECISION (Returned)
-c        The address of the first element in a 2-dimensional array of 
+c        The address of the first element in a 2-dimensional array of
 c        shape "[ncoord_out][outdim]", into
 c        which the coordinates of the output (transformed) points will
 c        be written. These will be stored such that the value of
@@ -19181,7 +20080,7 @@ f        (transformed) points will be written. These will be stored
 f        such that the value of coordinate number COORD for output
 f        point number POINT will be found in element OUT(POINT,COORD).
 *        The points are ordered such that the first axis of the input
-*        grid changes most rapidly. For example, if the input grid is 
+*        grid changes most rapidly. For example, if the input grid is
 *        2-dimensional and extends from (2,-1) to (3,1), the output
 *        points will be stored in the order (2,-1), (3, -1), (2,0), (3,0),
 *        (2,1), (3,1).
@@ -19202,58 +20101,58 @@ f     be reversed.
 *--
 */
 
-/* Local Variables: */ 
-   astDECLARE_GLOBALS;           /* Thread-specific data */ 
-   AstMapping *simple;           /* Pointer to simplified Mapping */ 
+/* Local Variables: */
+   astDECLARE_GLOBALS            /* Thread-specific data */
+   AstMapping *simple;           /* Pointer to simplified Mapping */
    double **out_ptr;             /* Pointer to array of output data pointers */
    int coord;                    /* Loop counter for coordinates */
-   int idim;                     /* Loop counter for coordinate dimensions */ 
-   int npoint;                   /* Number of points in the grid */ 
+   int idim;                     /* Loop counter for coordinate dimensions */
+   int npoint;                   /* Number of points in the grid */
 
-/* Check the global error status. */ 
-   if ( !astOK ) return; 
+/* Check the global error status. */
+   if ( !astOK ) return;
 
 /* Get a pointer to a structure holding thread-specific global data values */
    astGET_GLOBALS(this);
 
-/* Calculate the number of points in the grid, and check that the lower and 
-   upper bounds of the input grid are consistent. Report an error if any 
-   pair is not. */ 
+/* Calculate the number of points in the grid, and check that the lower and
+   upper bounds of the input grid are consistent. Report an error if any
+   pair is not. */
    npoint = 1;
-   for ( idim = 0; idim < ncoord_in; idim++ ) { 
-      if ( lbnd[ idim ] > ubnd[ idim ] ) { 
-         astError( AST__GBDIN, "astTranGrid(%s): Lower bound of " 
-                   "input grid (%d) exceeds corresponding upper bound " 
-                   "(%d).", status, astGetClass( this ), 
-                   lbnd[ idim ], ubnd[ idim ] ); 
-         astError( AST__GBDIN, "Error in input dimension %d.", status, 
-                   idim + 1 ); 
-         break; 
+   for ( idim = 0; idim < ncoord_in; idim++ ) {
+      if ( lbnd[ idim ] > ubnd[ idim ] ) {
+         astError( AST__GBDIN, "astTranGrid(%s): Lower bound of "
+                   "input grid (%d) exceeds corresponding upper bound "
+                   "(%d).", status, astGetClass( this ),
+                   lbnd[ idim ], ubnd[ idim ] );
+         astError( AST__GBDIN, "Error in input dimension %d.", status,
+                   idim + 1 );
+         break;
       } else {
-         npoint *= ubnd[ idim ] - lbnd[ idim ] + 1; 
+         npoint *= ubnd[ idim ] - lbnd[ idim ] + 1;
       }
-   } 
+   }
 
 /* Validate the mapping and numbers of points/coordinates. */
    ValidateMapping( this, forward, npoint, ncoord_in, ncoord_out,
                     "astTranGrid", status );
 
-/* Check that the positional accuracy tolerance supplied is valid and 
-   report an error if necessary. */ 
-   if ( astOK && ( tol < 0.0 ) ) { 
-      astError( AST__PATIN, "astTranGrid(%s): Invalid positional " 
-                "accuracy tolerance (%.*g pixel).", status, 
-                astGetClass( this ), DBL_DIG, tol ); 
-      astError( AST__PATIN, "This value should not be less than zero." , status); 
-   } 
+/* Check that the positional accuracy tolerance supplied is valid and
+   report an error if necessary. */
+   if ( astOK && ( tol < 0.0 ) ) {
+      astError( AST__PATIN, "astTranGrid(%s): Invalid positional "
+                "accuracy tolerance (%.*g pixel).", status,
+                astGetClass( this ), DBL_DIG, tol );
+      astError( AST__PATIN, "This value should not be less than zero." , status);
+   }
 
-/* Check that the initial scale size in grid points supplied is valid and 
-   report an error if necessary. */ 
-   if ( astOK && ( maxpix < 0 ) ) { 
-      astError( AST__SSPIN, "astTranGrid(%s): Invalid initial scale " 
-                "size in grid points (%d).", status, astGetClass( this ), maxpix ); 
-      astError( AST__SSPIN, "This value should not be less than zero." , status); 
-   } 
+/* Check that the initial scale size in grid points supplied is valid and
+   report an error if necessary. */
+   if ( astOK && ( maxpix < 0 ) ) {
+      astError( AST__SSPIN, "astTranGrid(%s): Invalid initial scale "
+                "size in grid points (%d).", status, astGetClass( this ), maxpix );
+      astError( AST__SSPIN, "This value should not be less than zero." , status);
+   }
 
 /* Validate the output array dimension argument. */
    if ( astOK && ( outdim < npoint ) ) {
@@ -19263,35 +20162,35 @@ f     be reversed.
                 "grid points being transformed (%d).", status, npoint );
    }
 
-/* If there are sufficient pixels to make it worthwhile, simplify the 
-   Mapping supplied to improve performance. Otherwise, just clone the 
-   Mapping pointer. Note we save a pointer to the original Mapping so 
-   that lower-level functions can use it if they need to report an error. */ 
-   simple = NULL; 
-   unsimplified_mapping = this; 
-   if ( astOK ) { 
-      if ( npoint > 1024 ) { 
-         simple = astSimplify( this ); 
+/* If there are sufficient pixels to make it worthwhile, simplify the
+   Mapping supplied to improve performance. Otherwise, just clone the
+   Mapping pointer. Note we save a pointer to the original Mapping so
+   that lower-level functions can use it if they need to report an error. */
+   simple = NULL;
+   unsimplified_mapping = this;
+   if ( astOK ) {
+      if ( npoint > 1024 ) {
+         simple = astSimplify( this );
 
-/* Report an error if the required transformation of this simplified 
-   Mapping is not defined. */ 
+/* Report an error if the required transformation of this simplified
+   Mapping is not defined. */
          if( astOK ) {
-            if ( forward && !astGetTranForward( simple ) ) { 
-               astError( AST__TRNND, "astTranGrid(%s): A forward coordinate " 
-                         "transformation is not defined by the %s supplied.", status, 
-                         astGetClass( unsimplified_mapping ), 
-                         astGetClass( unsimplified_mapping ) ); 
-            } else if ( !forward && !astGetTranInverse( simple ) ) { 
-               astError( AST__TRNND, "astTranGrid(%s): An inverse coordinate " 
-                         "transformation is not defined by the %s supplied.", status, 
-                         astGetClass( unsimplified_mapping ), 
-                         astGetClass( unsimplified_mapping ) ); 
+            if ( forward && !astGetTranForward( simple ) ) {
+               astError( AST__TRNND, "astTranGrid(%s): A forward coordinate "
+                         "transformation is not defined by the %s supplied.", status,
+                         astGetClass( unsimplified_mapping ),
+                         astGetClass( unsimplified_mapping ) );
+            } else if ( !forward && !astGetTranInverse( simple ) ) {
+               astError( AST__TRNND, "astTranGrid(%s): An inverse coordinate "
+                         "transformation is not defined by the %s supplied.", status,
+                         astGetClass( unsimplified_mapping ),
+                         astGetClass( unsimplified_mapping ) );
             }
-         } 
+         }
 
-      } else { 
-         simple = astClone( this ); 
-      } 
+      } else {
+         simple = astClone( this );
+      }
 
 /* Allocate memory to hold the array of output data pointers. */
       out_ptr = astMalloc( sizeof( double * ) * (size_t) ncoord_out );
@@ -19306,7 +20205,7 @@ f     be reversed.
          if( !forward ) astInvert( simple );
 
 /* Perform the transformation. */
-         TranGridAdaptively( simple, ncoord_in, lbnd, ubnd, lbnd, ubnd, tol, 
+         TranGridAdaptively( simple, ncoord_in, lbnd, ubnd, lbnd, ubnd, tol,
                              maxpix, ncoord_out, out_ptr, status );
 
 /* If required, uninvert the Mapping. */
@@ -19317,15 +20216,15 @@ f     be reversed.
 /* Free the memory used for the data pointers. */
       out_ptr = astFree( out_ptr );
 
-/* Annul the pointer to the simplified/cloned Mapping. */ 
-      simple = astAnnul( simple ); 
+/* Annul the pointer to the simplified/cloned Mapping. */
+      simple = astAnnul( simple );
    }
 }
 
-static void TranGridAdaptively( AstMapping *this, int ncoord_in, 
+static void TranGridAdaptively( AstMapping *this, int ncoord_in,
                                 const int *lbnd_in, const int *ubnd_in,
-                                const int lbnd[], const int ubnd[], 
-                                double tol, int maxpix, int ncoord_out, 
+                                const int lbnd[], const int ubnd[],
+                                double tol, int maxpix, int ncoord_out,
                                 double *out[], int *status ){
 /*
 *  Name:
@@ -19339,25 +20238,25 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 
 *  Synopsis:
 *     #include "mapping.h"
-*     void TranGridAdaptively( AstMapping *this, int ncoord_in, 
+*     void TranGridAdaptively( AstMapping *this, int ncoord_in,
 *                              const int *lbnd_in, const int *ubnd_in,
-*                              const int lbnd[], const int ubnd[], 
-*                              double tol, int maxpix, int ncoord_out, 
+*                              const int lbnd[], const int ubnd[],
+*                              double tol, int maxpix, int ncoord_out,
 *                              double *out[] )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This function transforms grid points within a specified section of a 
+*     This function transforms grid points within a specified section of a
 *     rectangular grid (with any number of dimensions) using the forward
 *     transformation of the specified Mapping.
 *
 *     This function is very similar to TranGridWithBlocking and TranGridSection
-*     which lie below it in the calling hierarchy. However, this function 
-*     also attempts to adapt to the Mapping supplied and to sub-divide the 
-*     section being transformed into smaller sections within which a linear 
-*     approximation to the Mapping may be used.  This reduces the number of 
+*     which lie below it in the calling hierarchy. However, this function
+*     also attempts to adapt to the Mapping supplied and to sub-divide the
+*     section being transformed into smaller sections within which a linear
+*     approximation to the Mapping may be used.  This reduces the number of
 *     Mapping evaluations, thereby improving efficiency particularly when
 *     complicated Mappings are involved.
 
@@ -19411,12 +20310,12 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 *        of zero may be given. This will ensure that the Mapping is
 *        used without any approximation, but may increase execution
 *        time.
-*        
+*
 *        If the value is too high, discontinuities between the linear
-*        approximations used in adjacent panel will be higher. If this 
+*        approximations used in adjacent panel will be higher. If this
 *        is a problem, reduce the tolerance value used.
 *     maxpix
-*        A value which specifies an initial scale size (in grid points) 
+*        A value which specifies an initial scale size (in grid points)
 *        for the adaptive algorithm which approximates non-linear Mappings
 *        with piece-wise linear transformations. Normally, this should
 *        be a large value (larger than any dimension of the region of
@@ -19433,7 +20332,7 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 *        convergence of the adaptive algorithm in cases where the
 *        Mapping appears approximately linear on large scales, but has
 *        irregularities (e.g. holes) on smaller scales. A value of,
-*        say, 50 to 100 grid points can also be employed as a safeguard 
+*        say, 50 to 100 grid points can also be employed as a safeguard
 *        in general-purpose software, since the effect on performance is
 *        minimal.
 *
@@ -19442,19 +20341,19 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 *        setting "tol" to zero). Although this may degrade
 *        performance, accurate results will still be obtained.
 *     ncoord_out
-*        The number of dimensions of the space in which the output points 
+*        The number of dimensions of the space in which the output points
 *        reside.
 *     out
 *        Pointer to an array with "ndim_out" elements. Element [i] of
-*        this array is a pointer to an array in which to store the 
-*        transformed values for output axis "i". The points are ordered 
-*        such that the first axis of the input grid changes most rapidly. 
-*        For example, if the input grid is 2-dimensional and extends from 
-*        (2,-1) to (3,1), the output points will be stored in the order 
+*        this array is a pointer to an array in which to store the
+*        transformed values for output axis "i". The points are ordered
+*        such that the first axis of the input grid changes most rapidly.
+*        For example, if the input grid is 2-dimensional and extends from
+*        (2,-1) to (3,1), the output points will be stored in the order
 *        (2,-1), (3, -1), (2,0), (3,0), (2,1), (3,1).
 
 */
-                      
+
 /* Local Variables: */
    double *flbnd;                /* Array holding floating point lower bounds */
    double *fubnd;                /* Array holding floating point upper bounds */
@@ -19491,7 +20390,7 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
       dim = ubnd[ coord_in ] - lbnd[ coord_in ] + 1;
       npix *= dim;
 
-/* Find the maximum dimension size of this input section and note which 
+/* Find the maximum dimension size of this input section and note which
    dimension has this size. */
       if ( dim > mxdim ) {
          mxdim = dim;
@@ -19501,8 +20400,8 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 /* Calculate how many vertices the output section has. */
       nvertex *= 2;
    }
-   
-/* Calculate how many sample points will be needed (by the astLinearApprox 
+
+/* Calculate how many sample points will be needed (by the astLinearApprox
    function) to obtain a linear fit to the Mapping's forward transformation. */
    npoint = 1 + 4 * ncoord_in + 2 * nvertex;
 
@@ -19537,9 +20436,9 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
       divide = 1;
 
 /* If neither of the above apply, then attempt to fit a linear
-   approximation to the forward transformation of the Mapping over 
-   the range of coordinates covered by the input section. We need to 
-   temporarily copy the integer bounds into floating point arrays to 
+   approximation to the forward transformation of the Mapping over
+   the range of coordinates covered by the input section. We need to
+   temporarily copy the integer bounds into floating point arrays to
    use astLinearApprox. */
    } else {
 
@@ -19550,10 +20449,13 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
                               (size_t) ( ncoord_out*( ncoord_in + 1 ) ) );
       if( astOK ) {
 
-/* Copy the bounds into these arrays */
+/* Copy the bounds into these arrays, and change them so that they refer
+   to the lower and upper edges of the cell rather than the centre. This
+   is essential if one of the axes is spanned by a single cell, since
+   otherwise the upper and lower bounds would be identical. */
          for( i = 0; i < ncoord_in; i++ ) {
-            flbnd[ i ] = (double) lbnd[ i ];
-            fubnd[ i ] = (double) ubnd[ i ];
+            flbnd[ i ] = (double) lbnd[ i ] - 0.5;
+            fubnd[ i ] = (double) ubnd[ i ] + 0.5;
          }
 
 /* Get the linear approximation to the forward transformation. */
@@ -19605,7 +20507,7 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 
 /* Rebin the resulting smaller section using a recursive invocation
    of this function. */
-            TranGridAdaptively( this, ncoord_in, lbnd_in, ubnd_in, lo, hi, 
+            TranGridAdaptively( this, ncoord_in, lbnd_in, ubnd_in, lo, hi,
                                 tol, maxpix, ncoord_out, out, status );
 
 /* Now set up a second section which covers the remaining half of the
@@ -19615,7 +20517,7 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 
 /* If this section contains pixels, transform it in the same way. */
             if ( lo[ dimx ] <= hi[ dimx ] ) {
-               TranGridAdaptively( this, ncoord_in, lbnd_in, ubnd_in, lo, hi, 
+               TranGridAdaptively( this, ncoord_in, lbnd_in, ubnd_in, lo, hi,
                                    tol, maxpix, ncoord_out, out, status );
             }
          }
@@ -19632,8 +20534,8 @@ static void TranGridAdaptively( AstMapping *this, int ncoord_in,
 }
 
 static void TranGridSection( AstMapping *this, const double *linear_fit,
-                             int ndim_in, const int *lbnd_in,  
-                             const int *ubnd_in, const int *lbnd, 
+                             int ndim_in, const int *lbnd_in,
+                             const int *ubnd_in, const int *lbnd,
                              const int *ubnd, int ndim_out, double *out[], int *status ){
 /*
 *  Name:
@@ -19648,18 +20550,18 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
 *  Synopsis:
 *     #include "mapping.h"
 *     void TranGridSection( AstMapping *this, const double *linear_fit,
-*                           int ndim_in, const int *lbnd_in,  
-*                           const int *ubnd_in, const int *lbnd, 
+*                           int ndim_in, const int *lbnd_in,
+*                           const int *ubnd_in, const int *lbnd,
 *                           const int *ubnd, int ndim_out, double *out[] )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This function transforms grid points within a specified section of a 
+*     This function transforms grid points within a specified section of a
 *     rectangular grid (with any number of dimensions) using a specified
-*     Mapping or, alternatively, a linear approximation fitted to the 
-*     Mapping's forward transformation. 
+*     Mapping or, alternatively, a linear approximation fitted to the
+*     Mapping's forward transformation.
 
 *  Parameters:
 *     this
@@ -19712,20 +20614,20 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
 *        section of the input data grid which is to be rebinned.
 *
 *        Note that "lbnd" and "ubnd" define the shape and position of
-*        the section of the input grid which is to be rebinned. This section 
-*        should lie wholly within the extent of the input grid (as defined 
-*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input 
+*        the section of the input grid which is to be rebinned. This section
+*        should lie wholly within the extent of the input grid (as defined
+*        by the "lbnd_out" and "ubnd_out" arrays). Regions of the input
 *        grid lying outside this section will be ignored.
 *     ndim_out
 *        The number of dimensions in the output grid. This should be
 *        at least one.
 *     out
 *        Pointer to an array with "ndim_out" elements. Element [i] of
-*        this array is a pointer to an array in which to store the 
-*        transformed values for output axis "i". The points are ordered 
-*        such that the first axis of the input grid changes most rapidly. 
-*        For example, if the input grid is 2-dimensional and extends from 
-*        (2,-1) to (3,1), the output points will be stored in the order 
+*        this array is a pointer to an array in which to store the
+*        transformed values for output axis "i". The points are ordered
+*        such that the first axis of the input grid changes most rapidly.
+*        For example, if the input grid is 2-dimensional and extends from
+*        (2,-1) to (3,1), the output points will be stored in the order
 *        (2,-1), (3, -1), (2,0), (3,0), (2,1), (3,1).
 
 *  Notes:
@@ -19866,7 +20768,7 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
                }
 
 /* Handle other numbers of dimensions. */
-/* ----------------------------------- */               
+/* ----------------------------------- */
             } else {
 
 /* Allocate workspace. */
@@ -19875,8 +20777,8 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
                dim = astMalloc( sizeof( int ) * (size_t) ndim_in );
                if ( astOK ) {
 
-/* Initialise an array of pixel indices for the input grid which refer to the 
-   first pixel which we will rebin. Also calculate the offset of this pixel 
+/* Initialise an array of pixel indices for the input grid which refer to the
+   first pixel which we will rebin. Also calculate the offset of this pixel
    within the input array. */
                   off = 0;
                   for ( coord_in = 0; coord_in < ndim_in; coord_in++ ) {
@@ -19937,8 +20839,8 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
                      coord_in = 0;
                      do {
 
-/* The least significant index which currently has less than its maximum 
-   value is incremented by one. The offset into the input array is updated 
+/* The least significant index which currently has less than its maximum
+   value is incremented by one. The offset into the input array is updated
    accordingly. */
                         if ( dim[ coord_in ] < ubnd[ coord_in ] ) {
                            dim[ coord_in ]++;
@@ -19998,7 +20900,7 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
 
 /* Loop through the required range of input y coordinates,
    calculating an interim pixel offset into the input array. */
-               off1 = stride[ 1 ] * ( lbnd[ 1 ] - lbnd_in[ 1 ] - 1 ) 
+               off1 = stride[ 1 ] * ( lbnd[ 1 ] - lbnd_in[ 1 ] - 1 )
                       - lbnd_in[ 0 ];
                for ( iy = lbnd[ 1 ]; iy <= ubnd[ 1 ]; iy++ ) {
                   off1 += stride[ 1 ];
@@ -20023,7 +20925,7 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
                if ( astOK ) {
 
 /* Initialise an array of pixel indices for the input grid which
-   refer to the first pixel to be rebinned. Also calculate the offset 
+   refer to the first pixel to be rebinned. Also calculate the offset
    of this pixel within the input array. */
                   off = 0;
                   for ( coord_in = 0; coord_in < ndim_in; coord_in++ ) {
@@ -20110,9 +21012,9 @@ static void TranGridSection( AstMapping *this, const double *linear_fit,
 }
 
 static void TranGridWithBlocking( AstMapping *this, const double *linear_fit,
-                                  int ndim_in, const int *lbnd_in, 
-                                  const int *ubnd_in, const int *lbnd, 
-                                  const int *ubnd, int ndim_out, 
+                                  int ndim_in, const int *lbnd_in,
+                                  const int *ubnd_in, const int *lbnd,
+                                  const int *ubnd, int ndim_out,
                                   double *out[], int *status ){
 /*
 *  Name:
@@ -20127,16 +21029,16 @@ static void TranGridWithBlocking( AstMapping *this, const double *linear_fit,
 *  Synopsis:
 *     #include "mapping.h"
 *     void TranGridWithBlocking( AstMapping *this, const double *linear_fit,
-*                                int ndim_in, const int *lbnd_in, 
-*                                const int *ubnd_in, const int *lbnd, 
-*                                const int *ubnd, int ndim_out, 
+*                                int ndim_in, const int *lbnd_in,
+*                                const int *ubnd_in, const int *lbnd,
+*                                const int *ubnd, int ndim_out,
 *                                double *out[], int *status )
 
 *  Class Membership:
 *     Mapping member function.
 
 *  Description:
-*     This function transforms positions within a specified section of a 
+*     This function transforms positions within a specified section of a
 *     rectangular grid (with any number of dimensions) using the forward
 *     transformation of the supplied Mapping.
 *
@@ -20197,18 +21099,18 @@ static void TranGridWithBlocking( AstMapping *this, const double *linear_fit,
 *        This should give the coordinates of the last pixel in the
 *        section of the input data grid which is to be transformed.
 *
-*        Note that "lbnd" and "ubnd" define the shape and position of the 
-*        section of the input grid which is to be transformed. 
+*        Note that "lbnd" and "ubnd" define the shape and position of the
+*        section of the input grid which is to be transformed.
 *     ndim_out
 *        The number of dimensions in the output grid. This should be
 *        at least one.
 *     out
 *        Pointer to an array with "ndim_out" elements. Element [i] of
-*        this array is a pointer to an array in which to store the 
-*        transformed values for output axis "i". The points are ordered 
-*        such that the first axis of the input grid changes most rapidly. 
-*        For example, if the input grid is 2-dimensional and extends from 
-*        (2,-1) to (3,1), the output points will be stored in the order 
+*        this array is a pointer to an array in which to store the
+*        transformed values for output axis "i". The points are ordered
+*        such that the first axis of the input grid changes most rapidly.
+*        For example, if the input grid is 2-dimensional and extends from
+*        (2,-1) to (3,1), the output points will be stored in the order
 *        (2,-1), (3, -1), (2,0), (3,0), (2,1), (3,1).
 *     status
 *        Pointer to the inherited status variable.
@@ -20347,7 +21249,7 @@ static void TranGridWithBlocking( AstMapping *this, const double *linear_fit,
 
 /* All the blocks have been processed once the position along the most
    significant dimension has been reset. */
-               done = ( ++idim == ndim_out );
+               done = ( ++idim == ndim_in );
             }
          } while ( !done );
       }
@@ -20422,7 +21324,7 @@ c        given should not be less than "npoint".
 f        given should not be less than NPOINT.
 c     in
 f     IN( INDIM, NCOORD_IN ) = DOUBLE PRECISION (Given)
-c        The address of the first element in a 2-dimensional array of 
+c        The address of the first element in a 2-dimensional array of
 c        shape "[ncoord_in][indim]",
 c        containing the coordinates of the input (untransformed)
 c        points. These should be stored such that the value of
@@ -20460,7 +21362,7 @@ c        given should not be less than "npoint".
 f        given should not be less than NPOINT.
 c     out
 f     OUT( OUTDIM, NCOORD_OUT ) = DOUBLE PRECISION (Returned)
-c        The address of the first element in a 2-dimensional array of 
+c        The address of the first element in a 2-dimensional array of
 c        shape "[ncoord_out][outdim]", into
 c        which the coordinates of the output (transformed) points will
 c        be written. These will be stored such that the value of
@@ -20996,8 +21898,8 @@ f        point number POINT is found in element COORDS(POINT,COORD).
 c        to the value AST__BAD (as defined in the "ast.h" header
 f        to the value AST__BAD (as defined in the AST_PAR include
 *        file), then the corresponding output data (and variance)
-c        should either be set to the value given by "badval", 
-f        should either be set to the value given by BADVAL, 
+c        should either be set to the value given by "badval",
+f        should either be set to the value given by BADVAL,
 *        or left unchanged, depending on whether the AST__NOBAD flag is
 c        specified by "flags".
 f        specified by FLAGS.
@@ -21037,7 +21939,7 @@ f        type as the data being processed (i.e. as elements of the IN
 f        array).  It should be used to test for bad pixels in the
 f        input grid (but only if the AST__USEBAD flag is set via the
 f        FLAGS argument) and (unless the AST__NOBAD flag is set in
-f        FLAGS) for identifying bad output values in the OUT (and 
+f        FLAGS) for identifying bad output values in the OUT (and
 f        OUT_VAR) array(s).
 c     out
 f     OUT( * ) = <Xtype> (Returned)
@@ -21734,9 +22636,9 @@ astMAKE_TEST(Mapping,Invert,( this->invert != CHAR_MAX ))
 
 *  Description:
 *     This attribute indicates whether a Mapping is an instance of a
-*     class that always represents a linear transformation. Note, some 
+*     class that always represents a linear transformation. Note, some
 *     Mapping classes can represent linear or non-linear transformations
-*     (the MathMap class for instance). Such classes have a zero value for 
+*     (the MathMap class for instance). Such classes have a zero value for
 *     the IsLinear attribute. Specific instances of such classes can be
 *     tested for linearity using the
 *     astLinearApprox function.
@@ -21777,7 +22679,7 @@ astMAKE_TEST(Mapping,Invert,( this->invert != CHAR_MAX ))
 
 *  Description:
 *     This attribute indicates whether a Mapping has been simplified
-*     by the 
+*     by the
 c     astSimplify
 f     AST_SIMPLIFY
 *     method. If the IsSimple value is non-zero, then the Mapping has
@@ -21785,7 +22687,7 @@ f     AST_SIMPLIFY
 *     it again. Indeed, the
 c     astSimplify
 f     AST_SIMPLIFY
-*     method will immediately return the Mapping unchanged if the IsSimple 
+*     method will immediately return the Mapping unchanged if the IsSimple
 *     attribute indicates that the Mapping has already been simplified.
 
 *  Applicability:
@@ -21845,7 +22747,7 @@ astMAKE_GET(Mapping,IsSimple,int,0,this->issimple)
 *        axes (Naxes attribute) of its base Frame (as specified by the
 *        FrameSet's Base attribute). The Nin attribute value may
 *        therefore change if a new base Frame is selected.
-*att-- 
+*att--
 */
 
 /*
@@ -22220,7 +23122,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* --------- */
    ival = astGetIsSimple( this );
    astWriteInt( channel, "IsSimp", ival, 0, ival,
-                ival ? "Mapping has been simplified" : 
+                ival ? "Mapping has been simplified" :
                        "Mapping has not been simplified" );
 
 /* Invert. */
@@ -22264,7 +23166,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsAMapping and astCheckMapping functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(Mapping,Object,check,&class_check)
+astMAKE_ISA(Mapping,Object)
 astMAKE_CHECK(Mapping)
 
 AstMapping *astInitMapping_( void *mem, size_t size, int init,
@@ -22489,7 +23391,7 @@ AstMapping *astLoadMapping_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstMapping *new;              /* Pointer to the new Mapping */
 
 /* Initialise. */
@@ -22592,7 +23494,7 @@ AstMapping *astLoadMapping_( void *mem, size_t size,
    it may have been over-ridden by a derived class. However, it should
    still have the same interface. */
 
-void astDecompose_( AstMapping *this, AstMapping **map1, AstMapping **map2, 
+void astDecompose_( AstMapping *this, AstMapping **map1, AstMapping **map2,
                     int *series, int *invert1, int *invert2, int *status ) {
    if ( !astOK ) return;
    (**astMEMBER(this,Mapping,Decompose))( this, map1, map2, series, invert1, invert2, status );
@@ -22635,11 +23537,21 @@ int astMapList_( AstMapping *this, int series, int invert, int *nmap,
    return (**astMEMBER(this,Mapping,MapList))( this, series, invert,
                                         nmap, map_list, invert_list, status );
 }
-int *astMapSplit_( AstMapping *this, int nin, const int *in, AstMapping **map, 
+int *astMapSplit_( AstMapping *this, int nin, const int *in, AstMapping **map,
                    int *status ){
+   int *result = NULL;
+   AstMapping *tmap;
+
    if( map ) *map = NULL;
    if ( !astOK ) return NULL;
-   return (**astMEMBER(this,Mapping,MapSplit))( this, nin, in, map, status );
+
+   result = (**astMEMBER(this,Mapping,MapSplit))( this, nin, in, &tmap, status );
+   if( tmap ) {
+      *map = astCopy( tmap );
+      tmap = astAnnul( tmap );
+   }
+
+   return result;
 }
 int astMapMerge_( AstMapping *this, int where, int series, int *nmap,
                   AstMapping ***map_list, int **invert_list, int *status ) {
@@ -22755,7 +23667,7 @@ double astRate_( AstMapping *this, double *at, int ax1, int ax2, int *status ){
       astError( AST__AXIIN, "astRate(%s): Invalid output index (%d) "
                 "specified - should be in the range 1 to %d.", status,
                 astGetClass( this ), ax1 + 1, astGetNout( this ) );
-      
+
    } else if( ax2 < 0 || ax2 >= astGetNin( this ) ) {
       astError( AST__AXIIN, "astRate(%s): Invalid input index (%d) "
                 "specified - should be in the range 1 to %d.", status,
@@ -22764,9 +23676,13 @@ double astRate_( AstMapping *this, double *at, int ax1, int ax2, int *status ){
 
    if( rate_disabled ) {
       return ( at[ ax2 ] != AST__BAD ) ? 1.0 : AST__BAD;
-   } else {    
+   } else {
       return (**astMEMBER(this,Mapping,Rate))( this, at, ax1, ax2, status );
-   }   
+   }
+}
+AstMapping *astRemoveRegions_( AstMapping *this, int *status ) {
+   if ( !astOK ) return NULL;
+   return (**astMEMBER(this,Mapping,RemoveRegions))( this, status );
 }
 AstMapping *astSimplify_( AstMapping *this, int *status ) {
    AstMapping *result;
@@ -22781,8 +23697,11 @@ AstMapping *astSimplify_( AstMapping *this, int *status ) {
 }
 AstPointSet *astTransform_( AstMapping *this, AstPointSet *in,
                             int forward, AstPointSet *out, int *status ) {
+   AstPointSet *result;
    if ( !astOK ) return NULL;
-   return (**astMEMBER(this,Mapping,Transform))( this, in, forward, out, status );
+   result = (**astMEMBER(this,Mapping,Transform))( this, in, forward, out, status );
+   (void) astReplaceNaN( result );
+   return result;
 }
 void astTran1_( AstMapping *this, int npoint, const double xin[],
                 int forward, double xout[], int *status ) {
@@ -22796,12 +23715,12 @@ void astTran2_( AstMapping *this,
    (**astMEMBER(this,Mapping,Tran2))( this, npoint, xin, yin,
                                       forward, xout, yout, status );
 }
-void astTranGrid_( AstMapping *this, int ncoord_in, const int lbnd[], 
-                   const int ubnd[], double tol, int maxpix, int forward, 
+void astTranGrid_( AstMapping *this, int ncoord_in, const int lbnd[],
+                   const int ubnd[], double tol, int maxpix, int forward,
                    int ncoord_out, int outdim, double *out, int *status ) {
    if ( !astOK ) return;
-   (**astMEMBER(this,Mapping,TranGrid))( this, ncoord_in, lbnd, ubnd, tol, 
-                                         maxpix, forward, ncoord_out, outdim, 
+   (**astMEMBER(this,Mapping,TranGrid))( this, ncoord_in, lbnd, ubnd, tol,
+                                         maxpix, forward, ncoord_out, outdim,
                                          out, status );
 }
 void astTranN_( AstMapping *this, int npoint,
@@ -22820,11 +23739,22 @@ void astTranP_( AstMapping *this, int npoint,
                                       ncoord_in, ptr_in,
                                       forward, ncoord_out, ptr_out, status );
 }
-int astLinearApprox_( AstMapping *this, const double *lbnd, 
+int astLinearApprox_( AstMapping *this, const double *lbnd,
                        const double *ubnd, double tol, double *fit, int *status ){
    if ( !astOK ) return 0;
    return (**astMEMBER(this,Mapping,LinearApprox))( this, lbnd, ubnd, tol, fit, status );
 }
+
+
+int astQuadApprox_( AstMapping *this,  const double lbnd[2],
+                    const double ubnd[2], int nx, int ny, double *fit,
+                    double *rms, int *status ){
+   if ( !astOK ) return 0;
+   return (**astMEMBER(this,Mapping,QuadApprox))( this, lbnd, ubnd, nx,
+                                                  ny, fit, rms, status );
+}
+
+
 
 /* Public Interface Function Prototypes. */
 /* ------------------------------------- */
@@ -22834,13 +23764,13 @@ int astLinearApprox_( AstMapping *this, const double *lbnd,
 void DecomposeId_( AstMapping *, AstMapping **, AstMapping **, int *, int *, int *, int * );
 void MapBoxId_( AstMapping *, const double [], const double [], int, int, double *, double *, double [], double [], int * );
 double astRateId_( AstMapping *, double *, int, int, int * );
-void astMapSplitId_( AstMapping *, int, const int *, int *, AstMapping **, 
+void astMapSplitId_( AstMapping *, int, const int *, int *, AstMapping **,
                      int * );
 
 /* Special interface function implementations. */
 /* ------------------------------------------- */
-void astDecomposeId_( AstMapping *this, AstMapping **map1, 
-                      AstMapping **map2, int *series, int *invert1, 
+void astDecomposeId_( AstMapping *this, AstMapping **map1,
+                      AstMapping **map2, int *series, int *invert1,
                       int *invert2, int *status ) {
 /*
 *++
@@ -22856,9 +23786,9 @@ f     AST_DECOMPOSE
 
 *  Synopsis:
 c     #include "mapping.h"
-c     void astDecompose( AstMapping *this, AstMapping **map1, 
-c                        AstMapping **map2, int *series, int *invert1, 
-c                        int *invert2  ) 
+c     void astDecompose( AstMapping *this, AstMapping **map1,
+c                        AstMapping **map2, int *series, int *invert1,
+c                        int *invert2  )
 f     CALL AST_DECOMPOSE( THIS, MAP1, MAP2, SERIES, INVERT1, INVERT2, STATUS )
 
 *  Class Membership:
@@ -22881,34 +23811,34 @@ c     map1
 f     MAP1 = INTEGER (Returned)
 c        Address of a location to receive a pointer to first component
 f        A pointer to first component
-*        Mapping. 
+*        Mapping.
 c     map2
 f     MAP2 = INTEGER (Returned)
 c        Address of a location to receive a pointer to second component
 f        A pointer to second component
-*        Mapping. 
+*        Mapping.
 c     series
 f     SERIES = LOGICAL (Returned)
 c        Address of a location to receive a value indicating if the
 c        component Mappings are applied in series or parallel. A non-zero
-c        value means that the supplied Mapping is equivalent to applying map1 
+c        value means that the supplied Mapping is equivalent to applying map1
 c        followed by map2 in series. A zero value means that the supplied
 c        Mapping is equivalent to applying map1 to the lower numbered axes
 c        and map2 to the higher numbered axes, in parallel.
 f        Indicates if the
 f        component Mappings are applied in series or parallel. A .TRUE.
-f        value means that the supplied Mapping is equivalent to applying MAP1 
+f        value means that the supplied Mapping is equivalent to applying MAP1
 f        followed by MAP2 in series. A zero value means that the supplied
 f        Mapping is equivalent to applying MAP1 to the lower numbered axes
 f        and MAP2 to the higher numbered axes, in parallel.
 c     invert1
 f     INVERT1 = INTEGER (Returned)
-c        The value of the Invert attribute to be used with map1. 
-f        The value of the Invert attribute to be used with MAP1. 
+c        The value of the Invert attribute to be used with map1.
+f        The value of the Invert attribute to be used with MAP1.
 c     invert2
 f     INVERT2 = INTEGER (Returned)
-c        The value of the Invert attribute to be used with map2. 
-f        The value of the Invert attribute to be used with MAP2. 
+c        The value of the Invert attribute to be used with map2.
+f        The value of the Invert attribute to be used with MAP2.
 
 *  Applicability:
 *     CmpMap
@@ -22918,7 +23848,7 @@ f        If the supplied Mapping is a CmpMap, then MAP1 and MAP2 will be
 *        create the CmpMap, either in series or parallel. Note, changing
 *        the Invert attribute of either of the component Mappings using
 *        the returned pointers will have no effect on the supplied CmpMap.
-*        This is because the CmpMap remembers and uses the original settings 
+*        This is because the CmpMap remembers and uses the original settings
 *        of the Invert attributes (that is, the values of the Invert
 *        attributes when the CmpMap was first created). These are the
 c        Invert values which are returned in invert1 and invert2.
@@ -22926,15 +23856,15 @@ f        Invert values which are returned in INVERT1 and INVERT2.
 *     TranMap
 c        If the supplied Mapping is a TranMap, then map1 and map2 will be
 f        If the supplied Mapping is a TranMap, then MAP1 and MAP2 will be
-*        returned holding pointers to the forward and inverse Mappings 
+*        returned holding pointers to the forward and inverse Mappings
 *        represented by the TranMap (zero will be returned for
 c        series).
 f        SERIES).
-*        Note, changing the Invert attribute of 
-*        either of the component Mappings using the returned pointers will 
-*        have no effect on the supplied TranMap. This is because the TranMap 
-*        remembers and uses the original settings of the Invert attributes 
-*        (that is, the values of the Invert attributes when the TranMap was 
+*        Note, changing the Invert attribute of
+*        either of the component Mappings using the returned pointers will
+*        have no effect on the supplied TranMap. This is because the TranMap
+*        remembers and uses the original settings of the Invert attributes
+*        (that is, the values of the Invert attributes when the TranMap was
 *        first created). These are the
 c        Invert values which are returned in invert1 and invert2.
 f        Invert values which are returned in INVERT1 and INVERT2.
@@ -22942,12 +23872,12 @@ f        Invert values which are returned in INVERT1 and INVERT2.
 c        For any class of Mapping other than a CmpMap, map1 will be
 c        returned holding a clone of the supplied Mapping pointer, and map2
 c        will be returned holding a NULL pointer. Invert1 will be returned
-c        holding the current value of the Invert attribute for the supplied 
+c        holding the current value of the Invert attribute for the supplied
 c        Mapping, and invert2 will be returned holding zero.
 f        For any class of Mapping other than a CmpMap, MAP1 will be
 f        returned holding a clone of the supplied Mapping pointer, and MAP2
 f        will be returned holding AST__NULL. INVERT1 will be returned
-f        holding the current value of the Invert attribute for the supplied 
+f        holding the current value of the Invert attribute for the supplied
 f        Mapping, and INVERT2 will be returned holding zero.
 *     CmpFrame
 c        If the supplied Mapping is a CmpFrame, then map1 and map2 will be
@@ -22956,20 +23886,20 @@ f        If the supplied Mapping is a CmpFrame, then MAP1 and MAP2 will be
 *        create the CmpFrame. The component Frames are considered to be in
 *        applied in parallel.
 *     Frame
-c        For any class of Frame other than a CmpFrame, map1 will be 
+c        For any class of Frame other than a CmpFrame, map1 will be
 c        returned holding a clone of the supplied Frame pointer, and map2
 c        will be returned holding a NULL pointer.
-f        For any class of Frame other than a CmpFrame, MAP1 will be 
+f        For any class of Frame other than a CmpFrame, MAP1 will be
 f        returned holding a clone of the supplied Frame pointer, and MAP2
 f        will be returned holding AST__NULL.
 
 *  Notes:
-*     - The returned Invert values should be used in preference to the 
+*     - The returned Invert values should be used in preference to the
 *     current values of the Invert attribute in map1 and map2. This is
-*     because the attributes may have changed value since the Mappings 
+*     because the attributes may have changed value since the Mappings
 *     were combined.
 *     - Any changes made to the component Mappings using the returned
-*     pointers will be reflected in the supplied Mapping. 
+*     pointers will be reflected in the supplied Mapping.
 
 *--
 
@@ -23226,11 +24156,11 @@ f     RESULT = AST_RATE( THIS, AT, AX1, AX2, STATUS )
 *     Mapping method.
 
 *  Description:
-c     This function 
-f     This routine 
+c     This function
+f     This routine
 *     evaluates the rate of change of a specified output of the supplied
 *     Mapping with respect to a specified input, at a specified input
-*     position. 
+*     position.
 *
 *     The result is estimated by interpolating the function using a
 *     fourth order polynomial in the neighbourhood of the specified
@@ -23246,19 +24176,19 @@ f     THIS = INTEGER (Given)
 *        Pointer to the Mapping to be applied.
 c     at
 f     AT( * ) = DOUBLE PRECISION (Given)
-c        The address of an 
+c        The address of an
 f        An
 *        array holding the axis values at the position at which the rate
 *        of change is to be evaluated. The number of elements in this
 *        array should equal the number of inputs to the Mapping.
 c     ax1
 f     AX1 = INTEGER (Given)
-*        The index of the Mapping output for which the rate of change is to 
+*        The index of the Mapping output for which the rate of change is to
 *        be found (output numbering starts at 1 for the first output).
 c     ax2
 f     AX2 = INTEGER (Given)
 *        The index of the Mapping input which is to be varied in order to
-*        find the rate of change (input numbering starts at 1 for the first 
+*        find the rate of change (input numbering starts at 1 for the first
 *        input).
 f     STATUS = INTEGER (Given and Returned)
 f        The global status.
@@ -23266,11 +24196,11 @@ f        The global status.
 *  Returned Value:
 c     astRate()
 f     AST_RATE = DOUBLE PRECISION
-c        The rate of change of Mapping output "ax1" with respect to input 
-c        "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+c        The rate of change of Mapping output "ax1" with respect to input
+c        "ax2", evaluated at "at", or AST__BAD if the value cannot be
 c        calculated.
-f        The rate of change of Mapping output AX1 with respect to input 
-f        AX2, evaluated at AT, or AST__BAD if the value cannot be 
+f        The rate of change of Mapping output AX1 with respect to input
+f        AX2, evaluated at AT, or AST__BAD if the value cannot be
 f        calculated.
 
 *  Notes:
@@ -23296,7 +24226,7 @@ f        calculated.
    return astRate( this, at, ax1 - 1, ax2 - 1 );
 }
 
-void astMapSplitId_( AstMapping *this, int nin, const int *in, int *out, 
+void astMapSplitId_( AstMapping *this, int nin, const int *in, int *out,
                      AstMapping **map, int *status ){
 /*
 *++
@@ -23320,17 +24250,19 @@ f     CALL AST_MAPSPLIT( THIS, NIN, IN, OUT, MAP, STATUS )
 *     Mapping method.
 
 *  Description:
-c     This function 
+c     This function
 f     This routine
 *     creates a new Mapping which connects specified inputs within a
-*     supplied Mapping to the corresponding outputs of the supplied Mapping. 
-*     This is only possible if the specified inputs correspond to some 
-*     subset of the Mapping outputs. That is, there must exist a subset of 
-*     the Mapping outputs for which each output depends only on the selected 
-*     Mapping inputs, and not on any of the inputs which have not been 
-*     selected. If this condition is not met by the supplied Mapping, then
-c     a NULL 
-f     an AST__NULL 
+*     supplied Mapping to the corresponding outputs of the supplied Mapping.
+*     This is only possible if the specified inputs correspond to some
+*     subset of the Mapping outputs. That is, there must exist a subset of
+*     the Mapping outputs for which each output depends only on the selected
+*     Mapping inputs, and not on any of the inputs which have not been
+*     selected. Also, any output which is not in this subset must not depend
+*     on any of the selected inputs. If these conditions are not met by the
+*     supplied Mapping, then
+c     a NULL
+f     an AST__NULL
 *     Mapping pointer is returned.
 
 *  Parameters:
@@ -23343,52 +24275,53 @@ c        The number of inputs to pick from "this".
 f        The number of inputs to pick from THIS.
 c     in
 f     IN( NIN ) = INTEGER (Given)
-c        Pointer to an 
+c        Pointer to an
 f        An
-*        array holding the indices within the supplied Mapping of the inputs 
-*        which are to be picked from the Mapping. 
-c        This array should have "nin" elements. 
-*        If "Nin" is the number of inputs of the supplied Mapping, then each 
+*        array holding the indices within the supplied Mapping of the inputs
+*        which are to be picked from the Mapping.
+c        This array should have "nin" elements.
+*        If "Nin" is the number of inputs of the supplied Mapping, then each
 *        element should have a value in the range 1 to Nin.
 c     out
 f     OUT( * ) = INTEGER (Returned)
-c        Pointer to an 
+c        Pointer to an
 f        An
-*        array in which to return the indices of the outputs of the supplied 
+*        array in which to return the indices of the outputs of the supplied
 *        Mapping which are fed by the picked inputs. A value of one is
-*        used to refer to the first Mapping output. The supplied array should 
+*        used to refer to the first Mapping output. The supplied array should
 *        have a length at least equal to the number of outputs in the
 *        supplied Mapping. The number of values stored in the array on
 *        exit will equal the number of outputs in the returned Mapping.
 *        The i'th element in the returned array holds the index within
-*        the supplied Mapping which corresponds to the i'th output of 
+*        the supplied Mapping which corresponds to the i'th output of
 *        the returned Mapping.
 c     map
 f     MAP = INTEGER (Returned)
-c        Address of a location at which to return a pointer to the 
+c        Address of a location at which to return a pointer to the
 f        The
-*        returned Mapping. This Mapping will have 
+*        returned Mapping. This Mapping will have
 c        "nin" inputs (the number of outputs may be different to "nin"). NULL
 f        NIN inputs (the number of outputs may be different to NIN). AST__NULL
-*        is returned if the supplied Mapping has no subset of outputs which 
-*        depend only on the selected inputs.
+*        is returned if the supplied Mapping has no subset of outputs which
+*        depend only on the selected inputs. The returned Mapping is a
+*        deep copy of the required parts of the supplied Mapping.
 
 *  Notes:
-*     - If this 
-c     function 
+*     - If this
+c     function
 f     routine
-*     is invoked with the global error status set, or if it should fail for 
-*     any reason, then 
+*     is invoked with the global error status set, or if it should fail for
+*     any reason, then
 c     a NULL value
 f     AST__NULL
-*     will be returned for 
+*     will be returned for
 c     the "map" pointer.
 f     MAP.
 *--
 
 *  Implementation Notes:
-*     - This function implements the astMapSplit method available via the 
-*     public interface to the Mapping class and uses 1-based axis indices. 
+*     - This function implements the astMapSplit method available via the
+*     public interface to the Mapping class and uses 1-based axis indices.
 *     The protected interface method is provided by the astMapSplit function
 *     and uses zero-based axis indices. Also, an ID value is returned for
 *     "map" rather than a pointer.

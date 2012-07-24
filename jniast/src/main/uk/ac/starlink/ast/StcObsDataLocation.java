@@ -9,27 +9,27 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST StcObsDataLocation class
  *  - correspond to the IVOA ObsDataLocation class. 
- * The StcObsDataLocation class is a sub-class of Stc used to describe 
+ * The StcObsDataLocation class is a sub-class of Stc used to describe
  * the coordinate space occupied by a particular observational dataset.
  * <p>
  * See http://hea-www.harvard.edu/~arots/nvometa/STC.html
  * <p>
  * An STC ObsDataLocation element specifies the extent of the
- * observation within a specified coordinate system, and also specifies 
+ * observation within a specified coordinate system, and also specifies
  * the observatory location within a second coordinate system.
  * <p>
- * The AST StcObsDataLocation class inherits from Stc, and therefore 
- * an StcObsDataLocation can be used directly as an Stc. When used 
- * in this way, the StcObsDataLocation describes the location of the 
+ * The AST StcObsDataLocation class inherits from Stc, and therefore
+ * an StcObsDataLocation can be used directly as an Stc. When used
+ * in this way, the StcObsDataLocation describes the location of the
  * observation (not the observatory).
  * <p>
  * Eventually, this class will have a method for returning an Stc
- * describing the observatory location. However, AST currently does not 
- * include any classes of Frame for describing terrestrial or solar 
- * system positions. Therefore, the provision for returning observatory 
+ * describing the observatory location. However, AST currently does not
+ * include any classes of Frame for describing terrestrial or solar
+ * system positions. Therefore, the provision for returning observatory
  * location as an Stc is not yet available. However, for terrestrial
- * observations, the position of the observatory can still be recorded 
- * using the ObsLon and ObsLat attributes of the Frame encapsulated 
+ * observations, the position of the observatory can still be recorded
+ * using the ObsLon and ObsLat attributes of the Frame encapsulated
  * within the Stc representing the observation location (this assumes
  * the observatory is located at sea level).
  * <h4>Licence</h4>
@@ -45,8 +45,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_StcObsDataLocation'>AST StcObsDataLocation</a>  

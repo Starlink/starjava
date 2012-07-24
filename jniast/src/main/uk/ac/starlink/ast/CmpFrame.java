@@ -20,12 +20,12 @@ package uk.ac.starlink.ast;
  * complexity may be built from simple individual Frames in this
  * way.
  * <p>
- * Also since a Frame is a Mapping, a CmpFrame can also be used as a 
+ * Also since a Frame is a Mapping, a CmpFrame can also be used as a
  * Mapping. Normally, a CmpFrame is simply equivalent to a UnitMap,
- * but if either of the component Frames within a CmpFrame is a Region 
+ * but if either of the component Frames within a CmpFrame is a Region
  * (a sub-class of Frame), then the CmpFrame will use the Region as a
- * Mapping when transforming values for axes described by the Region. 
- * Thus input axis values corresponding to positions which are outside the 
+ * Mapping when transforming values for axes described by the Region.
+ * Thus input axis values corresponding to positions which are outside the
  * Region will result in bad output axis values.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -40,8 +40,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_CmpFrame'>AST CmpFrame</a>  

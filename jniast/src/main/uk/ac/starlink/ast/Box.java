@@ -9,14 +9,14 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST Box class
  *  - a box region with sides parallel to the axes of a Frame. 
- * The Box class implements a Region which represents a box with sides 
- * parallel to the axes of a Frame (i.e. an area which encloses a given 
+ * The Box class implements a Region which represents a box with sides
+ * parallel to the axes of a Frame (i.e. an area which encloses a given
  * range of values on each axis). A Box is similar to an Interval, the
  * only real difference being that the Interval class allows some axis
  * limits to be unspecified. Note, a Box will only look like a box if
  * the Frame geometry is approximately flat. For instance, a Box centred
  * close to a pole in a SkyFrame will look more like a fan than a box
- * (the Polygon class can be used to create a box-like region close to a 
+ * (the Polygon class can be used to create a box-like region close to a
  * pole).
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Box'>AST Box</a>  
@@ -43,14 +43,14 @@ public class Box extends Region {
      * This function creates a new Box and optionally initialises its
      * attributes.
      * <p>
-     * The Box class implements a Region which represents a box with sides 
-     * parallel to the axes of a Frame (i.e. an area which encloses a given 
+     * The Box class implements a Region which represents a box with sides
+     * parallel to the axes of a Frame (i.e. an area which encloses a given
      * range of values on each axis). A Box is similar to an Interval, the
      * only real difference being that the Interval class allows some axis
      * limits to be unspecified. Note, a Box will only look like a box if
      * the Frame geometry is approximately flat. For instance, a Box centred
      * close to a pole in a SkyFrame will look more like a fan than a box
-     * (the Polygon class can be used to create a box-like region close to a 
+     * (the Polygon class can be used to create a box-like region close to a
      * pole).
      * <h4>Notes</h4>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
@@ -68,8 +68,8 @@ public class Box extends Region {
      * will have no effect the Region.
      * 
      * @param  form  Indicates how the box is described by the remaining parameters.
-     * A value of zero indicates that the box is specified by a centre 
-     * position and a corner position. A value of one indicates that the 
+     * A value of zero indicates that the box is specified by a centre
+     * position and a corner position. A value of one indicates that the
      * box is specified by a two opposite corner positions.
      * 
      * @param  point1  An array of double, with one element for each Frame axis
@@ -86,33 +86,33 @@ public class Box extends Region {
      * (Naxes attribute) containing the coordinates at any corner of the
      * box.
      * 
-     * @param  unc  An optional pointer to an existing Region which specifies the 
-     * uncertainties associated with the boundary of the Box being created. 
-     * The uncertainty in any point on the boundary of the Box is found by 
-     * shifting the supplied "uncertainty" Region so that it is centred at 
+     * @param  unc  An optional pointer to an existing Region which specifies the
+     * uncertainties associated with the boundary of the Box being created.
+     * The uncertainty in any point on the boundary of the Box is found by
+     * shifting the supplied "uncertainty" Region so that it is centred at
      * the boundary point being considered. The area covered by the
      * shifted uncertainty Region then represents the uncertainty in the
      * boundary position. The uncertainty is assumed to be the same for
      * all points.
      * <p>
-     * If supplied, the uncertainty Region must be of a class for which 
-     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.) 
-     * or be a Prism containing centro-symetric component Regions. A deep 
-     * copy of the supplied Region will be taken, so subsequent changes to 
-     * the uncertainty Region using the supplied pointer will have no 
-     * effect on the created Box. Alternatively, 
-     * a NULL Object pointer 
-     * may be supplied, in which case a default uncertainty is used 
+     * If supplied, the uncertainty Region must be of a class for which
+     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.)
+     * or be a Prism containing centro-symetric component Regions. A deep
+     * copy of the supplied Region will be taken, so subsequent changes to
+     * the uncertainty Region using the supplied pointer will have no
+     * effect on the created Box. Alternatively,
+     * a NULL Object pointer
+     * may be supplied, in which case a default uncertainty is used
      * equivalent to a box 1.0E-6 of the size of the Box being created.
      * <p>
-     * The uncertainty Region has two uses: 1) when the 
+     * The uncertainty Region has two uses: 1) when the
      * astOverlap
      * function compares two Regions for equality the uncertainty
      * Region is used to determine the tolerance on the comparison, and 2)
      * when a Region is mapped into a different coordinate system and
-     * subsequently simplified (using 
+     * subsequently simplified (using
      * astSimplify),
-     * the uncertainties are used to determine if the transformed boundary 
+     * the uncertainties are used to determine if the transformed boundary
      * can be accurately represented by a specific shape of Region.
      * 
      * @throws  AstException  if an error occurred in the AST library

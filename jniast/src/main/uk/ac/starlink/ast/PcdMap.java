@@ -21,13 +21,13 @@ package uk.ac.starlink.ast;
  * <p>
  *    RD = R * ( 1 + C * R * R )
  * <p>
- * where R is the undistorted radial distance from the distortion 
- * centre (specified by attribute PcdCen), RD is the radial distance 
- * from the same centre in the presence of distortion, and C is the 
+ * where R is the undistorted radial distance from the distortion
+ * centre (specified by attribute PcdCen), RD is the radial distance
+ * from the same centre in the presence of distortion, and C is the
  * distortion coefficient (given by attribute Disco).
  * <p>
  * The inverse transformation of a PcdMap removes the distortion
- * produced by the forward transformation. The expression used to derive 
+ * produced by the forward transformation. The expression used to derive
  * R from RD is an approximate inverse of the expression above.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -42,8 +42,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_PcdMap'>AST PcdMap</a>  
@@ -52,7 +52,7 @@ public class PcdMap extends Mapping {
     /** 
      * Creates a PcdMap.   
      * @param  disco  The distortion coefficient. Negative values give barrel
-     * distortion, positive values give pincushion distortion, and 
+     * distortion, positive values give pincushion distortion, and
      * zero gives no distortion.
      * 
      * @param  pcdcen  A 2-element array containing the coordinates of the centre of the
@@ -75,10 +75,10 @@ public class PcdMap extends Mapping {
      * the value should be positive. For barrel distortion, it should be
      * negative.
      * <p>
-     * Note that the forward transformation of a PcdMap applies the 
-     * distortion specified by this attribute and the inverse 
-     * transformation removes this distortion. If the PcdMap is inverted 
-     * (e.g. using astInvert), then the forward transformation will 
+     * Note that the forward transformation of a PcdMap applies the
+     * distortion specified by this attribute and the inverse
+     * transformation removes this distortion. If the PcdMap is inverted
+     * (e.g. using astInvert), then the forward transformation will
      * remove the distortion and the inverse transformation will apply
      * it. The distortion itself will still be given by the same value of
      * Disco.
@@ -100,10 +100,10 @@ public class PcdMap extends Mapping {
      * the value should be positive. For barrel distortion, it should be
      * negative.
      * <p>
-     * Note that the forward transformation of a PcdMap applies the 
-     * distortion specified by this attribute and the inverse 
-     * transformation removes this distortion. If the PcdMap is inverted 
-     * (e.g. using astInvert), then the forward transformation will 
+     * Note that the forward transformation of a PcdMap applies the
+     * distortion specified by this attribute and the inverse
+     * transformation removes this distortion. If the PcdMap is inverted
+     * (e.g. using astInvert), then the forward transformation will
      * remove the distortion and the inverse transformation will apply
      * it. The distortion itself will still be given by the same value of
      * Disco.
@@ -127,9 +127,9 @@ public class PcdMap extends Mapping {
      * later be modified. If the attribute is cleared, the default value for
      * both axes is zero.
      * <h4>Notes</h4>
-     * <br> - If no axis is specified, (e.g. "PcdCen" instead of 
-     * "PcdCen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of both axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "PcdCen" instead of
+     * "PcdCen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of both axes, while a "get" or "test"
      * operation will use just the PcdCen(1) value. 
      * @param   axis  the index of the axis to get the value for (1 or 2)
      * @return        the PcdCen attribute for the indicated axis of this
@@ -159,9 +159,9 @@ public class PcdMap extends Mapping {
      * later be modified. If the attribute is cleared, the default value for
      * both axes is zero.
      * <h4>Notes</h4>
-     * <br> - If no axis is specified, (e.g. "PcdCen" instead of 
-     * "PcdCen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of both axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "PcdCen" instead of
+     * "PcdCen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of both axes, while a "get" or "test"
      * operation will use just the PcdCen(1) value.
      * @param   axis  the index of the axis to set the value for (1 or 2)
      * @param   pcdCen  the PcdCen attribute for the indicated axis of

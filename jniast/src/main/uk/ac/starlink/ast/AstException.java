@@ -403,7 +403,7 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__INTRD" );
        }
    }
-   /** Status constant for error "Circular dependency between KeyMaps" */
+   /** Status constant for error "circular dependency between KeyMaps" */
    public static final int AST__KYCIR;
    static {
        try { AST__KYCIR = getErrConst( "AST__KYCIR" ); }
@@ -1301,6 +1301,177 @@ public class AstException extends RuntimeException {
        catch( IllegalArgumentException e ) {
            throw new LinkageError(
                 "Unknown AST error constant AST__FUNDEF" );
+       }
+   }
+   /** Status constant for error "invalid integer index supplied for a KeyMap vector element" */
+   public static final int AST__MPVIN;
+   static {
+       try { AST__MPVIN = getErrConst( "AST__MPVIN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__MPVIN" );
+       }
+   }
+   /** Status constant for error "operation specifier invalid" */
+   public static final int AST__OPRIN;
+   static {
+       try { AST__OPRIN = getErrConst( "AST__OPRIN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__OPRIN" );
+       }
+   }
+   /** Status constant for error "no inside point found" */
+   public static final int AST__NONIN;
+   static {
+       try { AST__NONIN = getErrConst( "AST__NONIN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__NONIN" );
+       }
+   }
+   /** Status constant for error "requested key not found in KeyMap" */
+   public static final int AST__MPKER;
+   static {
+       try { AST__MPKER = getErrConst( "AST__MPKER" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__MPKER" );
+       }
+   }
+   /** Status constant for error "error putting a named value into a KeyMap" */
+   public static final int AST__MPPER;
+   static {
+       try { AST__MPPER = getErrConst( "AST__MPPER" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__MPPER" );
+       }
+   }
+   /** Status constant for error "Attempt made to add an entry to a locked KeyMap" */
+   public static final int AST__BADKEY;
+   static {
+       try { AST__BADKEY = getErrConst( "AST__BADKEY" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADKEY" );
+       }
+   }
+   /** Status constant for error "Bad data type" */
+   public static final int AST__BADTYP;
+   static {
+       try { AST__BADTYP = getErrConst( "AST__BADTYP" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADTYP" );
+       }
+   }
+   /** Status constant for error "Column already exists with different properties" */
+   public static final int AST__OLDCOL;
+   static {
+       try { AST__OLDCOL = getErrConst( "AST__OLDCOL" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__OLDCOL" );
+       }
+   }
+   /** Status constant for error "Bad null value for a FITS table column" */
+   public static final int AST__BADNULL;
+   static {
+       try { AST__BADNULL = getErrConst( "AST__BADNULL" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADNULL" );
+       }
+   }
+   /** Status constant for error "Key string is too long" */
+   public static final int AST__BIGKEY;
+   static {
+       try { AST__BIGKEY = getErrConst( "AST__BIGKEY" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BIGKEY" );
+       }
+   }
+   /** Status constant for error "No such column exists in the table" */
+   public static final int AST__BADCOL;
+   static {
+       try { AST__BADCOL = getErrConst( "AST__BADCOL" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADCOL" );
+       }
+   }
+   /** Status constant for error "Table is too large" */
+   public static final int AST__BIGTAB;
+   static {
+       try { AST__BIGTAB = getErrConst( "AST__BIGTAB" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BIGTAB" );
+       }
+   }
+   /** Status constant for error "Invalid array size" */
+   public static final int AST__BADSIZ;
+   static {
+       try { AST__BADSIZ = getErrConst( "AST__BADSIZ" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADSIZ" );
+       }
+   }
+   /** Status constant for error "Error reading WCS from FITS binary table" */
+   public static final int AST__BADTAB;
+   static {
+       try { AST__BADTAB = getErrConst( "AST__BADTAB" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADTAB" );
+       }
+   }
+   /** Status constant for error "Cannot access FITS binary table" */
+   public static final int AST__NOTAB;
+   static {
+       try { AST__NOTAB = getErrConst( "AST__NOTAB" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__NOTAB" );
+       }
+   }
+   /** Status constant for error "Error in levmar Levenberg-Marquardt code" */
+   public static final int AST__LEVMAR;
+   static {
+       try { AST__LEVMAR = getErrConst( "AST__LEVMAR" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__LEVMAR" );
+       }
+   }
+   /** Status constant for error "Fit failed" */
+   public static final int AST__NOFIT;
+   static {
+       try { AST__NOFIT = getErrConst( "AST__NOFIT" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__NOFIT" );
+       }
+   }
+   /** Status constant for error "A transformation generated one or more NaN values" */
+   public static final int AST__ISNAN;
+   static {
+       try { AST__ISNAN = getErrConst( "AST__ISNAN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__ISNAN" );
+       }
+   }
+   /** Status constant for error "write error" */
+   public static final int AST__WRERR;
+   static {
+       try { AST__WRERR = getErrConst( "AST__WRERR" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__WRERR" );
        }
    }
 }

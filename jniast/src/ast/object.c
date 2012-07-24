@@ -1,5 +1,6 @@
 /*
 *class++
+
 *  Name:
 *     Object
 
@@ -45,17 +46,21 @@ c     - astEscapes: Control whether graphical escape sequences are removed
 c     - astExempt: Exempt an Object pointer from AST context handling
 c     - astExport: Export an Object pointer to an outer context
 c     - astGet<X>: Get an attribute value for an Object
+c     - astHasAttribute: Test if an Object has a named attribute
 c     - astImport: Import an Object pointer to the current context
 c     - astIsA<Class>: Test class membership
 c     - astLock: Lock an Object for use by the calling thread
+c     - astToString: Create an in-memory serialisation of an Object
 c     - astSame: Do two AST pointers refer to the same Object?
 c     - astSet: Set attribute values for an Object
 c     - astSet<X>: Set an attribute value for an Object
 c     - astShow: Display a textual representation of an Object on standard
 c     output
 c     - astTest: Test if an attribute value is set for an Object
-c     - astTune: Set or get an AST tuning parameter
+c     - astTune: Set or get an integer AST tuning parameter
+c     - astTuneC: Set or get a character AST tuning parameter
 c     - astUnlock: Unlock an Object for use by other threads
+c     - astFromString: Re-create an Object from an in-memory serialisation
 c     - astVersion: Return the verson of the AST library being used.
 f     - AST_ANNUL: Annul a pointer to an Object
 f     - AST_BEGIN: Begin a new AST context
@@ -68,6 +73,7 @@ f     - AST_ESCAPES: Control whether graphical escape sequences are removed
 f     - AST_EXEMPT: Exempt an Object pointer from AST context handling
 f     - AST_EXPORT: Export an Object pointer to an outer context
 f     - AST_GET<X>: Get an attribute value for an Object
+f     - AST_HASATTRIBUTE: Test if an Object has a named attribute
 f     - AST_IMPORT: Import an Object pointer to the current context
 f     - AST_ISA<CLASS>: Test class membership
 f     - AST_SAME: Do two AST pointers refer to the same Object?
@@ -76,28 +82,31 @@ f     - AST_SET<X>: Set an attribute value for an Object
 f     - AST_SHOW: Display a textual representation of an Object on standard
 f     output
 f     - AST_TEST: Test if an attribute value is set for an Object
-f     - AST_TUNE: Set or get an AST tuning parameter
+f     - AST_TUNE: Set or get an integer AST tuning parameter
+f     - AST_TUNEC: Set or get a character AST tuning parameter
 f     - AST_VERSION: Return the verson of the AST library being used.
 
 *  Copyright:
 *     Copyright (C) 1997-2006 Council for the Central Laboratory of the
 *     Research Councils
+*     Copyright (C) 2010 Science & Technology Facilities Council.
+*     All Rights Reserved.
 
 *  Licence:
 *     This program is free software; you can redistribute it and/or
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -131,13 +140,13 @@ f     - AST_VERSION: Return the verson of the AST library being used.
 *        Zero all memory allocated for a new Object in InitObject before
 *        storing any new values in the memory.
 *     3-APR-2001 (DSB):
-*        Added the Ident attribute. 
+*        Added the Ident attribute.
 *     28-SEP-2001 (DSB):
-*        Modified VSet to ensure a non-null string always follows the equal 
+*        Modified VSet to ensure a non-null string always follows the equal
 *        sign in the attribute setting passed to SetAttrib.
 *     27-NOV-2002 (DSB):
-*        Modified astShow to use astWrite instead of astDump, so that 
-*        invocations of astShow will be included in the count of the 
+*        Modified astShow to use astWrite instead of astDump, so that
+*        invocations of astShow will be included in the count of the
 *        number of invocations of astWrite returned by astWriteInvocations.
 *     8-JAN-2003 (DSB):
 *        Changed private InitVtab method to protected astInitObjectVtab
@@ -172,7 +181,7 @@ f     - AST_VERSION: Return the verson of the AST library being used.
 *     21-JUN-2007 (DSB):
 *        In astSet<X>, ignore trailing spaces in the attribute name.
 *     22-JUN-2007 (DSB):
-*        - Make astVSet return a pointer to dynamic memory holding the 
+*        - Make astVSet return a pointer to dynamic memory holding the
 *        expanded setting string.
 *        - Add astSetVtab, and astCast.
 *     27-JUN-2007 (DSB):
@@ -190,6 +199,22 @@ f     - AST_VERSION: Return the verson of the AST library being used.
 *        Object ID.
 *     28-JAN-2008 (DSB):
 *        Allow unlocked objects to be annulled using astAnnul.
+*     14-OCT-2009 (DSB):
+*        Modify astCast to make it a virtual function and add type
+*        checking.
+*     7-APR-2010 (DSB):
+*        Added method astHasAttribute.
+*     24-AUG-2010 (DSB):
+*        Allow commas to be included in attribute values supplied to
+*        astSet or astVSet by putting quotes around the attribute value.
+*     16-JUN-2011 (DSB):
+*        Added component "iref" to the Object structure. This is an
+*        integer identifier for each object that is unique within the
+*        class of the object. Useful for debugging.
+*     22-JUL-2011 (DSB):
+*        Add methods astSetProxy and astGetProxy.
+*     2-SEP-2011 (DSB):
+*        Add functions astToString and astFromString
 *class--
 */
 
@@ -212,7 +237,9 @@ f     - AST_VERSION: Return the verson of the AST library being used.
 /* Configuration information */
 /* ------------------------ */
 #include "version.h"             /* Version numbers */
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 /* Interface definitions. */
 /* ---------------------- */
@@ -238,6 +265,16 @@ f     - AST_VERSION: Return the verson of the AST library being used.
 #include <string.h>
 #include <limits.h>
 
+/* Type Definitions */
+/* ================ */
+/* Structure used to pass data between astToString/FromString and the
+   corresponding Channel source and sink functions. */
+typedef struct StringData {
+   char *ptr;      /* Pointer to serialisation text */
+   char *buff;     /* Pointer to a buffer for a single line of text */
+   int len;        /* Current length of serialisation text */
+} StringData;
+
 /* Module Variables. */
 /* ================= */
 
@@ -245,17 +282,27 @@ f     - AST_VERSION: Return the verson of the AST library being used.
    not need to be in thread-specific data. */
 /* ------------------------------------------------------------------ */
 
+/* Character-valued tuning parameters. */
+#define MAXLEN_TUNEC 200
+static char hrdel[ MAXLEN_TUNEC ] = "%-%^50+%s70+h%+";
+static char mndel[ MAXLEN_TUNEC ] = "%-%^50+%s70+m%+";
+static char scdel[ MAXLEN_TUNEC ] = "%-%^50+%s70+s%+";
+static char dgdel[ MAXLEN_TUNEC ] = "%-%^53+%s60+o%+";
+static char amdel[ MAXLEN_TUNEC ] = "%-%^20+%s85+'%+";
+static char asdel[ MAXLEN_TUNEC ] = "%-%^20+%s85+\"%+";
+static char exdel[ MAXLEN_TUNEC ] = "10%-%^50+%s70+";
+
 /* A pointer full of zeros. */
-static AstObject *zero_ptr;   
+static AstObject *zero_ptr;
 
 /* A flag which indicates what should happen when an AST Object is
    deleted. If this flag is non-zero, the memory used by the Object is
-   not freed, but a pointer to it is placed on the end of a list of free 
+   not freed, but a pointer to it is placed on the end of a list of free
    memory chunk pointers so that the memory can be re-used if necessary
-   avoiding the need to re-allocate memory with malloc (which is slow). 
-   A separate list of free memory chunks is kept for each class because 
-   each class object will require chunks of a different size. Pointers 
-   to these lists are stored in the virtual function table associated 
+   avoiding the need to re-allocate memory with malloc (which is slow).
+   A separate list of free memory chunks is kept for each class because
+   each class object will require chunks of a different size. Pointers
+   to these lists are stored in the virtual function table associated
    with each class. All memory on these lists is freed when object
    caching is switched off via the astTune function. */
 static int object_caching = 0;
@@ -291,11 +338,17 @@ astMAKE_INITGLOBALS(Object)
 #define nvtab astGLOBAL(Object,Nvtab)
 #define known_vtabs astGLOBAL(Object,Known_Vtabs)
 
-/* mutex2 is used to prevent the global lists of object handles being 
+/* mutex1 is used to prevent tuning parameters being accessed by more
+   than one thread at any one time.  */
+static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_MUTEX1 pthread_mutex_lock( &mutex1 );
+#define UNLOCK_MUTEX1 pthread_mutex_unlock( &mutex1 );
+
+/* mutex2 is used to prevent the global lists of object handles being
    accessed by more than one thread at any one time.  */
 static pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
 #define LOCK_MUTEX2 pthread_mutex_lock( &mutex2 );
-#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 ); 
+#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 );
 
 /* Each Object contains two mutexes. The primary mutex (mutex1) is used
    to guard access to all aspects of the Object except for the "locker"
@@ -313,8 +366,8 @@ static pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
 
 
 
-/* If thread safety is not needed, declare and initialise globals at static 
-   variables. */ 
+/* If thread safety is not needed, declare and initialise globals at static
+   variables. */
 #else
 
 /* Define the class virtual function table and its initialisation flag as
@@ -326,31 +379,33 @@ static AstObjectVtab class_vtab; /* Virtual function table */
 static int nvtab = 0;
 static AstObjectVtab **known_vtabs = NULL;
 
-/* A flag which indicates if AST functions which return text strings 
-   should retain any graphical escape sequences (as interpreted by the 
-   Plot class). */ 
+/* A flag which indicates if AST functions which return text strings
+   should retain any graphical escape sequences (as interpreted by the
+   Plot class). */
 static int retain_esc = 0;
 
-/* Context level (Begin/End/Exempt/Export) */ 
+/* Context level (Begin/End/Exempt/Export) */
 static int context_level = 0;
 
 /* Array of list heads for each context (each list is a list of Handle
-   structures). */ 
-static int *active_handles = NULL; 
+   structures). */
+static int *active_handles = NULL;
 
-/* String returned by GetAttrib. */ 
-static char getattrib_buff[ AST__GETATTRIB_BUFF_LEN + 1 ] = ""; 
+/* String returned by GetAttrib. */
+static char getattrib_buff[ AST__GETATTRIB_BUFF_LEN + 1 ] = "";
 
-/* Pointers to string buffers returned by astGetC. */ 
-static char *astgetc_strings[ AST__ASTGETC_MAX_STRINGS ]; 
+/* Pointers to string buffers returned by astGetC. */
+static char *astgetc_strings[ AST__ASTGETC_MAX_STRINGS ];
 
-/* Offset of next string in "AstGetC_Strings" */ 
-static int astgetc_istr = 0;          
+/* Offset of next string in "AstGetC_Strings" */
+static int astgetc_istr = 0;
 
-/* "AstGetC_Strings" array initialised? */ 
+/* "AstGetC_Strings" array initialised? */
 static int astgetc_init = 0;
 
 /* Null macros for mutex locking and unlocking */
+#define LOCK_MUTEX1
+#define UNLOCK_MUTEX1
 #define LOCK_MUTEX2
 #define UNLOCK_MUTEX2
 #define LOCK_PMUTEX(this)
@@ -363,23 +418,28 @@ static int astgetc_init = 0;
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
-static const char *Get( AstObject *, const char *, int * );
-static const char *GetAttrib( AstObject *, const char *, int * );
+static AstObject *Cast( AstObject *, AstObject *, int * );
 static const char *GetID( AstObject *, int * );
+static const char *GetAttrib( AstObject *, const char *, int * );
 static const char *GetIdent( AstObject *, int * );
+static const char *Get( AstObject *, const char *, int * );
+static const char *FromStringSource( void );
 static int Equal( AstObject *, AstObject *, int * );
 static int GetObjSize( AstObject *, int * );
+static int HasAttribute( AstObject *, const char *, int * );
 static int Same( AstObject *, AstObject *, int * );
 static int TestAttrib( AstObject *, const char *, int * );
 static int TestID( AstObject *, int * );
 static int TestIdent( AstObject *, int * );
 static unsigned long Magic( const AstObject *, size_t, int * );
+static void CleanAttribs( AstObject *, int * );
 static void Clear( AstObject *, const char *, int * );
 static void ClearAttrib( AstObject *, const char *, int * );
-static void ClearID( AstObject *, int * );
 static void ClearIdent( AstObject *, int * );
+static void ClearID( AstObject *, int * );
 static void Dump( AstObject *, AstChannel *, int * );
 static void EmptyObjectCache( int * );
+static void ToStringSink( const char * );
 static void SetAttrib( AstObject *, const char *, int * );
 static void SetID( AstObject *, const char *, int * );
 static void SetIdent( AstObject *, const char *, int * );
@@ -477,7 +537,7 @@ f     error value
        char buf[100];
        rc = this->ref_count;
        sprintf(buf,"annulled (refcnt: %d -> %d)", rc, rc-1 );
-       astMemoryUse( this, buf );   
+       astMemoryUse( this, buf );
    }
 #endif
 
@@ -495,7 +555,7 @@ f     error value
    return NULL;
 }
 
-AstObject *astCast_( AstObject *this, AstObject *obj, int *status ) {
+static AstObject *Cast( AstObject *this, AstObject *obj, int *status ) {
 /*
 *+
 *  Name:
@@ -505,53 +565,168 @@ AstObject *astCast_( AstObject *this, AstObject *obj, int *status ) {
 *     Cast an Object into an instance of a sub-class.
 
 *  Type:
-*     Protected function.
+*     Protected virtual function.
 
 *  Synopsis:
 *     #include "object.h"
-*     AstObject *astCast( AstObject *this, AstObject *obj ) 
+*     AstObject *astCast( AstObject *this, AstObject *obj )
 
 *  Class Membership:
 *     Object method.
 
 *  Description:
-*     This function returns a deep copy of the supplied Object, but cast into
-*     an instance of the ancestor class specified by "obj".
+*     This function returns a deep copy of an ancestral component of the
+*     supplied object. The required class of the ancestral component is
+*     specified by another object. Specifically, if "this" and "new" are
+*     of the same class, a copy of "this" is returned. If "this" is an
+*     instance of a subclass of "obj", then a copy of the component
+*     of "this" that matches the class of "obj" is returned. Otherwise,
+*     a NULL pointer is returned without error.
 
 *  Parameters:
 *     this
 *        Pointer to the Object to be cast.
 *     obj
-*        Pointer to an Object that defines the class of the returned Object. 
-*        The returned Object will be of the same class as "obj". "this" 
-*        should be a sub-class of "obj".
+*        Pointer to an Object that defines the class of the returned Object.
+*        The returned Object will be of the same class as "obj".
+
+*  Returned Value:
+*     A pointer to the new Object. NULL if "this" is not a sub-class of
+*     "obj", or if an error occurs.
+
+*  Notes:
+*     - A NULL pointer will be returned if this function is invoked
+*     with the global error status set, or if it should fail for any
+*     reason.
 *-
 */
 
 /* Local Variables: */
-   AstObjectVtab *old_vtab;
    AstObject *new;
+   int generation_gap;
 
 /* Initialise */
    new = NULL;
 
+/* Check inherited status */
+   if( !astOK ) return new;
+
 /* Check pointer have been supplied. */
    if( this && obj ) {
 
-/* Temporarily change the vtab of the supplied object to the supplied
-   vtab. */
-      old_vtab = this->vtab;
-      this->vtab = obj->vtab;
+/* See how many steps up the class inheritance ladder it is from "this" to
+   "obj". A positive value is returned if "this" is a sub-class of "obj".
+   A negative value is returned if "obj" is a sub-class of "this". Zero
+   is returned if they are of the same class. AST__COUSIN is returned if
+   they share a common ancestor but are not on the same line of descent. */
+      generation_gap = astClassCompare( astVTAB( this ), astVTAB( obj ) );
 
-/* Now take a copy of the object (now considered to be an instance of the
-   class specified by "vtab"). */
-      new = astCopy( this );
+/* If the two objects are of the same class, just return a copy of
+   "this". */
+      if( generation_gap == 0 ) {
+         new = astCopy( this );
 
-/* Re-instate the original Object vtab. */
-      this->vtab = old_vtab;
+/* If "this" is a subclass of "obj", return a deep copy of "this" cast
+   into the class of "obj". */
+      } else if( generation_gap != AST__COUSIN && generation_gap > 0 ) {
+         new = astCastCopy( this, obj );
+
+      }
    }
 
-/* Return the copy pointer. */
+/* Return the new pointer. */
+   return new;
+}
+
+AstObject *astCastCopy_( AstObject *this, AstObject *obj, int *status ) {
+/*
+*+
+*  Name:
+*     astCastCopy
+
+*  Purpose:
+*     Cast an Object into an instance of a sub-class, without type-checking.
+
+*  Type:
+*     Protected function.
+
+*  Synopsis:
+*     #include "object.h"
+*     AstObject *astCastCopy( AstObject *this, AstObject *obj )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function returns a deep copy of an ancestral component of the
+*     supplied object. The required class of the ancestral component is
+*     specified by another object. No checks are performed that "this" is
+*     a sub-class of "obj".
+*
+*     It works by temporarily changing the vtab in "this" to be the same
+*     as in "obj", and then doing a deep copy, and then re-instating the
+*     original vtab.
+
+*  Parameters:
+*     this
+*        Pointer to the Object to be cast.
+*     obj
+*        Pointer to an Object that defines the class of the returned Object.
+*        The returned Object will be of the same class as "obj".
+
+*  Returned Value:
+*     A pointer to the new Object.
+
+*  Notes:
+*     - A NULL pointer will be returned if this function is invoked
+*     with the global error status set, or if it should fail for any
+*     reason.
+*-
+*/
+
+/* Local Variables: */
+   AstObject *new;
+   AstObjectVtab *this_vtab;
+   size_t this_size;
+
+/* Initialise */
+   new = NULL;
+
+/* Check inherited status */
+   if( !astOK ) return new;
+
+/* Check pointer have been supplied. */
+   if( this && obj ) {
+
+/* Save a pointer to the original virtual function tables for "this". */
+      this_vtab = astVTAB( this );
+
+/* Temporarily change the vtab of "this" to that of "obJ". */
+      this->vtab = astVTAB( obj );
+
+/* Temporarily change the size of "this" to be the size of "obj". */
+      this_size = this->size;
+      this->size = obj->size;
+
+/* Now take a copy of the object (now considered to be an instance of the
+   class specified by "obj"). */
+      new = astCopy( this );
+
+/* Re-instate the original Object vtab and size. */
+      this->vtab = this_vtab;
+      this->size = this_size;
+
+/* The sub-clas to which "this" originally belonged may have extended the
+   range of values allowed for one or more of the attributes inherited from
+   the "obj" class. This means that the current attribute values stored
+   in the returned object may be inappropriate for the class of "obj". An
+   example is the System attribute defined by the Frame class, and extended
+   by sub-classes of Frame. So we now call astCleanAttribs to ensure that
+   any inappropriate attribute values are cleared in the returned object. */
+      astCleanAttribs( new );
+   }
+
+/* Return the new pointer. */
    return new;
 }
 
@@ -578,13 +753,13 @@ static void ChangeThreadVtab( AstObject *this, int *status ){
 *  Description:
 *     Each Object structure contains a pointer to a virtual function
 *     table (vtab) that identifies information about the class to
-*     which the Object belongs (function pointers, Object caches, 
+*     which the Object belongs (function pointers, Object caches,
 *     etc). In order to avoid use of mutexes (which can slow down AST
 *     applications enormously), each thread has its own set of vtab
-*     structures (one for each AST class) stored in thread-specific 
-*     data. Each time an Object is locked by the currently executing 
-*     thread, this function should be called to change the vtab pointer 
-*     in the Object to refer to the vtab relevant to the currently 
+*     structures (one for each AST class) stored in thread-specific
+*     data. Each time an Object is locked by the currently executing
+*     thread, this function should be called to change the vtab pointer
+*     in the Object to refer to the vtab relevant to the currently
 *     executing thread.
 
 *  Parameters:
@@ -596,7 +771,7 @@ static void ChangeThreadVtab( AstObject *this, int *status ){
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;          
+   astDECLARE_GLOBALS
    const char *class;
    int i;
 
@@ -620,11 +795,11 @@ static void ChangeThreadVtab( AstObject *this, int *status ){
       for( i = 0; i < nvtab; i++ ) {
 
 /* If the current vtab is for a class that matches the class of the
-   supplied Object, then store a pointer to the vtab in the Object 
+   supplied Object, then store a pointer to the vtab in the Object
    structure, and exit. */
          if( !strcmp( class, known_vtabs[ i ]->class ) ) {
             this->vtab = known_vtabs[ i ];
-            break; 
+            break;
          }
       }
    }
@@ -645,7 +820,7 @@ AstObject *astCheckLock_( AstObject *this, int *status ) {
 
 *  Synopsis:
 *     #include "object.h"
-*     AstObject *astCheckLock( AstObject *this ) 
+*     AstObject *astCheckLock( AstObject *this )
 
 *  Class Membership:
 *     Object method.
@@ -678,7 +853,7 @@ AstObject *astCheckLock_( AstObject *this, int *status ) {
 /* Check the supplied pointer. */
    if( this ) {
 
-/* First use the private ManageLock function rather than the virtual 
+/* First use the private ManageLock function rather than the virtual
    astManageLock method to check the top level Object is locked for use
    by the current thread. This saves time and allows a more appropriate
    error message to be issued. */
@@ -690,15 +865,15 @@ AstObject *astCheckLock_( AstObject *this, int *status ) {
                       astGetClass( this ) );
          }
 
-/* If the top level Object is locked, now use the virtual astManageLock 
+/* If the top level Object is locked, now use the virtual astManageLock
    method to check any objects contained within the top level Object. */
       } else if( astManageLock( this, AST__CHECKLOCK, 0, &fail ) ) {
          if( astOK ) {
             astError( AST__LCKERR, "astCheckLock(%s): The supplied %s cannot "
                       "be used since a %s contained within the %s is not "
                       "locked for use by the current thread (programming "
-                      "error).", status, astGetClass( this ), 
-                       astGetClass( this ), astGetClass( fail ), 
+                      "error).", status, astGetClass( this ),
+                       astGetClass( this ), astGetClass( fail ),
                        astGetClass( this ) );
          }
       }
@@ -707,6 +882,138 @@ AstObject *astCheckLock_( AstObject *this, int *status ) {
 
 /* Return the supploed pointer. */
    return this;
+
+}
+
+int astClassCompare_( AstObjectVtab *class1, AstObjectVtab *class2,
+                      int *status ) {
+/*
+*+
+*  Name:
+*     astClassCompare
+
+*  Purpose:
+*     Determine the relationship between two AST classes.
+
+*  Type:
+*     Protected function.
+
+*  Synopsis:
+*     #include "object.h"
+*     int astClassCompare( AstObjectVtab *class1, AstObjectVtab *class2 )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function returns the number of steps up the class inheritance
+*     ladder from the class specified by "class1" to the class specified
+*     by "class2".
+
+*  Parameters:
+*     class1
+*        Pointer to a virtual function table describing the first AST class.
+*     class2
+*        Pointer to a virtual function table describing the second AST class.
+
+*  Returned Value:
+*     The generation gap between "class1" and "class2". The result will be
+*     positive if "class1" is a subclass of "class2", negative if "class2"
+*     is a subclass of "class1", zero if they are of the same class (or
+*     an error occurs), or AST__COUSIN if they are not on the same line
+*     of descent.
+
+*-
+*/
+
+/* Local Variables: */
+   AstClassIdentifier *class1_id;
+   AstClassIdentifier *class2_id;
+   AstClassIdentifier *id;
+   int *class1_check;
+   int *class2_check;
+   int result;
+
+/* Initialise */
+   result = 0;
+
+/* Check inherited status */
+   if( !astOK ) return result;
+
+/* Check pointer have been supplied. */
+   if( class1 && class2 ) {
+
+/* Get pointers to the AstClassIdentifier that identifies the top-level
+   class of each vtab. */
+      class1_id = class1->top_id;
+      class2_id = class2->top_id;
+
+/* Class membership is specified by the "check" value in each class
+   identifier. Get the check values for both vtabs. */
+      class1_check = class1_id->check;
+      class2_check = class2_id->check;
+
+/* Try walking up the class heirarchy of "class1" until the class of
+   "class2" is reached. The top-level AstObject class has a NULL "parent"
+   pointer in its class identifier structure. */
+      id = class1_id;
+      while( id && ( id->check != class2_check ) ) {
+         id = id->parent;
+         result++;
+      }
+
+/* If "class1" is not a subclass of "class2", try walking up the class
+   heirarchy of "class2" until the class of "class1" is reached. */
+      if( !id ) {
+         result = 0;
+         id = class2_id;
+         while( id && ( id->check != class1_check ) ) {
+            id = id->parent;
+            result--;
+         }
+
+/* If "class2" is not a subclass of "class1", return AST__COUSIN. */
+         if( !id ) result = AST__COUSIN;
+      }
+   }
+
+/* Return the generation gap. */
+   return result;
+}
+
+static void CleanAttribs( AstObject *this_object, int *status ) {
+/*
+*+
+*  Name:
+*     astCleanAttribs
+
+*  Purpose:
+*     Clear any invalid set attribute values.
+
+*  Type:
+*     Protected virtual function.
+
+*  Synopsis:
+*     #include "object.h"
+*     void astCleanAttribs( AstObject *this, int *status )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function clears any attributes that are currently set to
+*     invalid values in the supplied object. This can happen for instance
+*     when an object is cast into an instance of a parent class using
+*     astCast, since sub-classes can extend the range of valid values
+*     an attribute can take.
+
+*  Parameters:
+*     this
+*        Pointer to the Object to be cleaned.
+*-
+*/
+
+/* The base Object class has no attributes that need cleaning. */
 
 }
 
@@ -801,7 +1108,7 @@ f        This routine applies to all Objects.
             for ( i = j = 0; name[ i ]; i++ ) {
                if ( !isspace( name[ i ] ) ) name[ j++ ] = tolower( name[ i ] );
             }
-            
+
 /* Terminate the attribute name and pass it to astClearAttrib to clear
    the attribute (unless it is all blank, in which case we ignore
    it). */
@@ -964,7 +1271,7 @@ f     function is invoked with STATUS set to an error value, or if it
        char buf[100];
        rc = this->ref_count;
        sprintf(buf,"cloned (refcnt: %d -> %d)", rc, rc+1 );
-       astMemoryUse( this, buf );   
+       astMemoryUse( this, buf );
    }
 #endif
 
@@ -1043,7 +1350,7 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Check the global error status. */
    if ( !astOK ) return new;
 
-/* Re-use cached memory, or allocate new memory using the size of the input 
+/* Re-use cached memory, or allocate new memory using the size of the input
    object, to store the output Object. */
 
    vtab = this->vtab;
@@ -1072,6 +1379,7 @@ f     function is invoked with STATUS set to an error value, or if it
       new->dynamic = 1;
       new->ref_count = 1;
       new->id = NULL;   /* ID attribute is not copied (but Ident is copied) */
+      new->proxy = NULL;
 
 /* Copy the persistent identifier string. */
       if( this->ident ) {
@@ -1083,12 +1391,12 @@ f     function is invoked with STATUS set to an error value, or if it
 #ifdef THREAD_SAFE
       if( pthread_mutex_init( &(new->mutex1), NULL ) != 0 && astOK ) {
          astError( AST__INTER, "astInitObject(%s): Failed to "
-                   "initialise POSIX mutex1 for the new Object.", status, 
+                   "initialise POSIX mutex1 for the new Object.", status,
                    vtab->class );
       }
       if( pthread_mutex_init( &(new->mutex2), NULL ) != 0 && astOK ) {
          astError( AST__INTER, "astInitObject(%s): Failed to "
-                   "initialise POSIX mutex2 for the new Object.", status, 
+                   "initialise POSIX mutex2 for the new Object.", status,
                    vtab->class );
       }
       new->locker = -1;
@@ -1237,8 +1545,8 @@ f     value
    (void) memset( this, 0, size );
 
 /* If necessary, free the Object's memory. If object caching is switched
-   on, the memory is not in fact freed; it is merely placed onto the end 
-   of the list of free memory blocks included in the virtual function table 
+   on, the memory is not in fact freed; it is merely placed onto the end
+   of the list of free memory blocks included in the virtual function table
    of the AST class concerned. astGrow returns immediately if an error
    has already occurred, so we need to reset the error status explicitly
    before calling astGrow. */
@@ -1248,7 +1556,7 @@ f     value
 
          status_value = astStatus;
          astClearStatus;
-         vtab->free_list = astGrow( vtab->free_list, vtab->nfree, 
+         vtab->free_list = astGrow( vtab->free_list, vtab->nfree,
                                     sizeof(AstObject *) );
          astSetStatus( status_value );
 
@@ -1435,7 +1743,7 @@ static void EmptyObjectCache( int *status ){
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;   /* Thread-specific global data */
+   astDECLARE_GLOBALS    /* Thread-specific global data */
    int iblock;           /* Index of next entry in free list */
    int itab;             /* Index of next virtual function table */
    AstObjectVtab *vtab;  /* Pointer to next virtual function table */
@@ -1463,7 +1771,7 @@ static int Equal( AstObject *this, AstObject *that, int *status ){
 /*
 *+
 *  Name:
-*     astEqual 
+*     astEqual
 
 *  Purpose:
 *     Check equality of two AST Objects.
@@ -1492,7 +1800,7 @@ static int Equal( AstObject *this, AstObject *that, int *status ){
 *     Non-zero if the objects are equivalent.
 
 *  Notes:
-*    - This function is available in the public interface even though it is 
+*    - This function is available in the public interface even though it is
 *    documented as protected. This is because it is difficult to document
 *    precisely which aspects of two Objects must be equal in order for this
 *    function to return a non-zero value. Each class of Object supplies
@@ -1522,7 +1830,7 @@ static int Equal( AstObject *this, AstObject *that, int *status ){
       result = ( this->size == that->size &&
                  !strcmp( astGetClass( this ), astGetClass( that ) ) );
    }
-                 
+
    return result;
 }
 
@@ -1585,13 +1893,13 @@ static const char *Get( AstObject *this, const char *attrib, int *status ) {
    const char *result;           /* Pointer value to return */
    int i;                        /* Loop counter for characters */
    int j;                        /* Non-blank character count */
-   
+
 /* Initialise. */
-   result = NULL;   
+   result = NULL;
 
 /* Check the global error status. */
    if ( !astOK ) return result;
-   
+
 /* Allocate a local buffer long enough to hold the attribute name
    string. */
    buff = astMalloc( strlen( attrib ) + (size_t) 1 );
@@ -1681,17 +1989,17 @@ static const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    const char *result;           /* Pointer value to return */
    int nobject;                  /* Nobject attribute value */
    int objsize;                  /* ObjSize attribute value */
    int ref_count;                /* RefCount attribute value */
    int usedefs;                  /* UseDefs attribute value */
-  
+
 /* Initialise. */
    result = NULL;
 
-/* Check the global error status. */   
+/* Check the global error status. */
    if ( !astOK ) return result;
 
 /* Get a pointer to Thread-specific global data. */
@@ -1699,7 +2007,7 @@ static const char *GetAttrib( AstObject *this, const char *attrib, int *status )
 
 /* Compare "attrib" with each recognised attribute name in turn,
    obtaining the value of the required attribute. If necessary, write
-   the value into "getattrib_buff" as a null-terminated string in an 
+   the value into "getattrib_buff" as a null-terminated string in an
    appropriate format.  Set "result" to point at the result string. */
 
 /* Class. */
@@ -1913,6 +2221,50 @@ static int GetObjSize( AstObject *this, int *status ) {
 
 /* Return the object size. */
    return this->size;
+}
+
+void *astGetProxy_( AstObject *this, int *status ) {
+/*
+*+
+*  Name:
+*     astGetProxy
+
+*  Purpose:
+*     Get a pointer to the foreign language proxy used to represent a
+*     given AST Object.
+
+*  Type:
+*     Undocumented public function.
+
+*  Synopsis:
+*     #include "object.h"
+*     void *astGetProxy( AstObject *this )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function returns any pointer stored previously in the AST
+*     Object using astSetProxy. If no such pointer has been stored, a
+*     NULL pointer is returned.
+
+*  Parameters:
+*     this
+*        Pointer to the Object.
+
+*  Returned Value:
+*     Pointer to the proxy object, or NULL.
+
+*  Notes:
+*     - This function is public, but is currently undocumented since it
+*     is only of interest to people writing AST interfaces for other
+*     languages.
+*     - This function attempts to execute even if the AST error status
+*     is set on entry, although no further error report will be made
+*     if it subsequently fails under these circumstances.
+*-
+*/
+   return this ? this->proxy : NULL;
 }
 
 int astGetRefCount_( AstObject *this, int *status ) {
@@ -2131,11 +2483,11 @@ MAKE_GETX(L,long,"%ld")
 const char *astGetC_( AstObject *this, const char *attrib, int *status ) {
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    const char *result;           /* Pointer value to return */
    const char *value;            /* Pointer to attribute value */
    int i;                        /* Loop count */
-  
+
 /* Initialise. */
    result = NULL;
 
@@ -2165,7 +2517,7 @@ const char *astGetC_( AstObject *this, const char *attrib, int *status ) {
    if ( astOK ) {
 
       astBeginPM;
-      astgetc_strings[ astgetc_istr ] = astStore( astgetc_strings[ astgetc_istr ], 
+      astgetc_strings[ astgetc_istr ] = astStore( astgetc_strings[ astgetc_istr ],
                                              value, strlen( value ) + (size_t) 1 );
       astEndPM;
 
@@ -2181,6 +2533,93 @@ const char *astGetC_( AstObject *this, const char *attrib, int *status ) {
 /* Return the result. */
    return result;
 
+}
+
+static int HasAttribute( AstObject *this, const char *attrib, int *status ) {
+/*
+*++
+*  Name:
+c     astHasAttribute
+f     AST_HASATTRIBUTE
+
+*  Purpose:
+*     Test if an Object has a named attribute.
+
+*  Type:
+*     Public function.
+
+*  Synopsis:
+c     #include "object.h"
+c     int astHasAttribute( AstObject *this, const char *attrib )
+f     RESULT = AST_HASATTRIBUTE( THIS, ATTRIB, STATUS )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+c     This function returns a boolean result (0 or 1) to indicate
+f     This function returns a logical result to indicate
+*     whether the supplied Object has an attribute with the supplied name.
+
+*  Parameters:
+c     this
+f     THIS = INTEGER (Given)
+*        Pointer to the first Object.
+c     attrib
+f     ATTRIB = INTEGER (Given)
+c        Pointer to a string holding the
+f        The
+*        name of the attribute to be tested.
+f     STATUS = INTEGER (Given and Returned)
+f        The global status.
+
+*  Returned Value:
+c     astHasAttribute()
+c        One if the Object has the named attribute, otherwise zero.
+f     AST_SAME = LOGICAL
+f        .TRUE. if the Object has the named attribute, otherwise
+f        .FALSE.
+
+*  Applicability:
+*     Object
+c        This function applies to all Objects.
+f        This routine applies to all Objects.
+
+*  Notes:
+c     - A value of zero will be returned if this function is invoked
+c     with the AST error status set, or if it should fail for any reason.
+f     - A value of .FALSE. will be returned if this function is invoked
+f     with STATUS set to an error value, or if it should fail for any reason.
+*--
+*/
+
+/* Local Variables: */
+   int oldrep;           /* Original AST error reporting flag */
+   int result;           /* Returned value */
+
+/* Check the global error status. */
+   if ( !astOK ) return 0;
+
+/* Temporarily switch off error reporting. */
+   oldrep = astReporting( 0 );
+
+/* Attempt to get a value for the specified attribute. */
+   (void) Get( this, attrib, status );
+
+/* An error will have been reported if the object does not have the
+   requested attribute. Set the result and clear the error status. */
+   if( !astOK ) {
+      result = 0;
+      astClearStatus;
+   } else {
+      result = 1;
+   }
+
+/* Re-instate the original error reporting flag. */
+   (void) astReporting( oldrep );
+
+/* Return the result. */
+   return result;
 }
 
 static unsigned long Magic( const AstObject *this, size_t size, int *status ) {
@@ -2230,7 +2669,7 @@ static unsigned long Magic( const AstObject *this, size_t size, int *status ) {
 }
 
 #if defined(THREAD_SAFE)
-static int ManageLock( AstObject *this, int mode, int extra, 
+static int ManageLock( AstObject *this, int mode, int extra,
                        AstObject **fail, int *status ) {
 /*
 *+
@@ -2245,15 +2684,15 @@ static int ManageLock( AstObject *this, int mode, int extra,
 
 *  Synopsis:
 *     #include "object.h"
-*     int astManageLock( AstObject *this, int mode, int extra, 
-*                        AstObject **fail ) 
+*     int astManageLock( AstObject *this, int mode, int extra,
+*                        AstObject **fail )
 
 *  Class Membership:
 *     Object method.
 
 *  Description:
 *     This function manages the thread lock on the supplied Object. The
-*     lock can be locked, unlocked or checked by this function as 
+*     lock can be locked, unlocked or checked by this function as
 *     deteremined by parameter "mode". See astLock for details of the way
 *     these locks are used.
 
@@ -2272,26 +2711,26 @@ static int ManageLock( AstObject *this, int mode, int extra,
 *        AST__CHECKLOCK: Check that the object is locked for use by the
 *        calling thread.
 *     extra
-*        Extra mode-specific information. 
+*        Extra mode-specific information.
 *     fail
 *        If a non-zero function value is returned, a pointer to the
 *        Object that caused the failure is returned at "*fail". This may
 *        be "this" or it may be an Object contained within "this". Note,
 *        the Object's reference count is not incremented, and so the
-*        returned pointer should not be annulled. A NULL pointer is 
+*        returned pointer should not be annulled. A NULL pointer is
 *        returned if this function returns a value of zero.
 
 *  Returned Value:
 *     A status value:
 *        0 - Success.
-*        1 - Could not lock or unlock the object because it was already 
+*        1 - Could not lock or unlock the object because it was already
 *            locked by another thread.
 *        2 - Failed to lock a POSIX mutex
 *        3 - Failed to unlock a POSIX mutex
 *        4 - Bad "mode" value supplied.
 *        5 - Check failed - object is locked by a different thread
-*        6 - Check failed - object is unlocked 
-*     
+*        6 - Check failed - object is unlocked
+*
 
 *  Notes:
 *     - This function attempts to execute even if an error has already
@@ -2301,7 +2740,7 @@ static int ManageLock( AstObject *this, int mode, int extra,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int result;                   /* Returned value */
 
 /* Initialise */
@@ -2315,18 +2754,18 @@ static int ManageLock( AstObject *this, int mode, int extra,
    astGET_GLOBALS(NULL);
 
 /* Get a lock on the object's secondary mutex. This gives us exclusive
-   access to the "locker" (and "ref_count") component in the AstObject 
+   access to the "locker" (and "ref_count") component in the AstObject
    structure. All other components in the structure are guarded by the
    primary mutex (this->mutex1). */
    if( LOCK_SMUTEX(this) ) {
       result = 2;
 
 /* If the secondary mutex was locked succesfully, first deal with cases
-   where the caller wants to lock the Object for exclusive use by the 
+   where the caller wants to lock the Object for exclusive use by the
    calling thread. */
    } else if( mode == AST__LOCK ) {
 
-/* If the Object is not currently locked, lock the Object primary mutex 
+/* If the Object is not currently locked, lock the Object primary mutex
    and record the identity of the calling thread in the Object. */
       if( this->locker == -1 ) {
          if( LOCK_PMUTEX(this) ) result = 2;
@@ -2338,12 +2777,12 @@ static int ManageLock( AstObject *this, int mode, int extra,
       } else if( this->locker == AST__THREAD_ID ) {
 
 /* If the object is locked by a different thread, and the caller is
-   willing to wait, attempt to lock the Object primary mutex. This will 
+   willing to wait, attempt to lock the Object primary mutex. This will
    cause the calling thread to block until the Object is release by the
-   thread that currently has it locked. Then store the identity of the 
-   calling thread (the new lock owner). We first need to release the 
-   secondary mutex so that the other thread can modify the "locker" 
-   component in the AstObject structure when it releases the Object 
+   thread that currently has it locked. Then store the identity of the
+   calling thread (the new lock owner). We first need to release the
+   secondary mutex so that the other thread can modify the "locker"
+   component in the AstObject structure when it releases the Object
    (using this function). We then re-lock the secondary mutex so this
    thread can change the "locker" component safely. */
       } else if( extra ) {
@@ -2353,17 +2792,17 @@ static int ManageLock( AstObject *this, int mode, int extra,
             result = 2;
          } else if( LOCK_SMUTEX(this) ) {
             result = 2;
-         } 
+         }
          this->locker = AST__THREAD_ID;
          this->globals = AST__GLOBALS;
          ChangeThreadVtab( this, status );
-      
+
 /* If the caller does not want to wait until the Object is available,
    return a status of 1. */
       } else {
          result = 1;
       }
-   
+
 /* Unlock the Object for use by other threads. */
    } else if( mode == AST__UNLOCK ) {
 
@@ -2371,7 +2810,7 @@ static int ManageLock( AstObject *this, int mode, int extra,
       if( this->locker == -1 ) {
 
 /* If the object is currently locked by the calling thread, clear the
-   identity of the thread that owns the lock and unlock the primary 
+   identity of the thread that owns the lock and unlock the primary
    mutex. */
       } else if( this->locker == AST__THREAD_ID ) {
          this->locker = -1;
@@ -2392,11 +2831,11 @@ static int ManageLock( AstObject *this, int mode, int extra,
       } else if( this->locker != AST__THREAD_ID ) {
          result = 5;
       }
-   
+
 /* Return a status of 4 for any other modes. */
    } else {
       result = 4;
-   } 
+   }
 
 /* Unlock the secondary mutex so that other threads can access the "locker"
    component in the Object to see if it is locked. */
@@ -2409,6 +2848,126 @@ static int ManageLock( AstObject *this, int mode, int extra,
    return result;
 }
 #endif
+
+char *astToString_( AstObject *this, int *status ) {
+/*
+c++
+*  Name:
+*     astToString
+
+*  Purpose:
+*     Create an in-memory serialisation of an Object
+
+*  Type:
+*     Public function.
+
+*  Synopsis:
+*     #include "object.h"
+*     char *astToString( AstObject *this )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function returns a string holding a minimal textual
+*     serialisation of the supplied AST Object. The Object can re
+*     re-created from the serialisation using astFromString.
+
+*  Parameters:
+*     this
+*        Pointer to the Object to be serialised.
+
+*  Returned Value:
+*     astToString()
+*        Pointer to dynamically allocated memory holding the
+*        serialisation, or NULL if an error occurs. The pointer
+*        should be freed when no longer needed using astFree.
+
+c--
+*/
+
+/* Local Variables: */
+   StringData data;              /* Data passed to the sink function */
+   AstChannel *channel;          /* Pointer to output Channel */
+
+/* Check the global error status. */
+   if ( !astOK ) return NULL;
+
+/* Create a Channel which will write to an expanding dynamically
+   allocated memory buffer. Set Channel attributes to exclude all
+   non-essential characters. */
+   channel = astChannel( NULL, ToStringSink, "Comment=0,Full=-1,Indent=0",
+                         status );
+
+/* Initialise the data structure used to communicate with the sink
+   function, and store a pointer to it in the Channel. */
+   data.ptr = NULL;
+   data.buff = NULL;
+   data.len = 0;
+   astPutChannelData( channel, &data );
+
+/* Write the Object to the Channel. */
+   astWrite( channel, this );
+
+/* Annul the Channel pointer. */
+   channel = astAnnul( channel );
+
+/* Free the returned string if an error has occurred. */
+   if( !astOK ) data.ptr = astFree( data.ptr );
+
+/* Return the pointer. */
+   return data.ptr;
+}
+
+static void ToStringSink( const char *text ){
+/*
+*  Name:
+*     ToStringSink
+
+*  Purpose:
+*     A Channel sink function for use by the astToString method.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "object.h"
+*      ToStringSink( const char *text )
+
+*  Class Membership:
+*     Object member function.
+
+*  Description:
+*     This function appends the supplied line of text to the end of a
+*     dynamically growing memory block.
+
+*  Parameters:
+*     text
+*        Pointer to the null-terminated line of text to be stored.
+
+*/
+
+/* Local Variables: */
+   StringData *data;     /* Data passed to the sink function */
+   int *status;          /* Pointer to local status value */
+   int status_value;     /* Local status value */
+
+/* Set up the local status */
+   status_value = 0;
+   status = &status_value;
+
+/* Get a pointer to the structure holding the current memory pointer and
+   the length of the currently allocated memory. */
+   data = astChannelData;
+
+/* Append the supplied text to the end of the string, and update the
+   string length. */
+   data->ptr = astAppendString( data->ptr, &(data->len), text );
+
+/* Append a newline character to the end of the string, and update the
+   string length. */
+   data->ptr = astAppendString( data->ptr, &(data->len), "\n" );
+}
 
 void astSet_( void *this_void, const char *settings, int *status, ... ) {
 /*
@@ -2498,17 +3057,14 @@ f        string.
 *     - White space may also surround attribute values, where it will
 *     generally be ignored (except for string-valued attributes where
 *     it is significant and forms part of the value to be assigned).
-c     - It is not possible to include a comma directly in the value
-c     assigned to an attribute via the "settings" string. To achieve
-c     this, you should use "%s" format and supply the value as a
+*     - To include a literal comma in the value assigned to an attribute,
+*     the whole attribute value should be enclosed in quotation markes.
+c     Alternatively, you can use "%s" format and supply the value as a
 c     separate additional argument to astSet (or use the astSetC
 c     function instead).
 c     - The same procedure may be adopted if "%" signs are to be included
 c     and are not to be interpreted as format specifiers (alternatively,
 c     the "printf" convention of writing "%%" may be used).
-f     - It is not possible to include a comma in the value to be
-f     assigned to an attribute using this routine. If such a value is
-f     needed, then AST_SETC should be used instead.
 *     - An error will result if an attempt is made to set a value for
 *     a read-only attribute.
 *--
@@ -2522,7 +3078,7 @@ f     needed, then AST_SETC should be used instead.
 *     validated within the function itself.
 *     - This implementation of astSet is designed to be used within AST,
 *     and has an explicit status parameter. From outside AST, the astSet
-*     macro will invoke the astSetId_ function which does not have an 
+*     macro will invoke the astSetId_ function which does not have an
 *     status parameter.
 
 *--
@@ -2726,7 +3282,7 @@ void astSetCopy_( AstObjectVtab *vtab,
       vtab->copy[ vtab->ncopy++ ] = copy;
    }
 
-/* Mark the end of the section in which memory allocations may never be freed 
+/* Mark the end of the section in which memory allocations may never be freed
    (other than by any AST exit handler). */
    astEndPM;
 
@@ -2800,7 +3356,7 @@ void astSetDelete_( AstObjectVtab *vtab, void (* delete)( AstObject *, int * ), 
       vtab->delete[ vtab->ndelete++ ] = delete;
    }
 
-/* Mark the end of the section in which memory allocations may never be freed 
+/* Mark the end of the section in which memory allocations may never be freed
    (other than by any AST exit handler). */
    astEndPM;
 
@@ -2832,9 +3388,9 @@ void astSetDump_( AstObjectVtab *vtab,
 *  Description:
 *     This function is provided so that class definitions can declare
 *     a dump function to be associated with an Object that is being
-*     constructed.  When the astWrite (or astShow) method is later
-*     used to write the Object to a Channel, the dump function of each
-*     class to which the Object belongs will be invoked in turn
+*     constructed.  When the astWrite (or astShow or astToString) method
+*     is later used to write the Object to a Channel, the dump function
+*     of each class to which the Object belongs will be invoked in turn
 *     (working down the class hierarchy). The dump function is passed
 *     pointers to the Object and the output Channel. It should write
 *     out any internal values (e.g. instance variables) for its class
@@ -2889,9 +3445,61 @@ void astSetDump_( AstObjectVtab *vtab,
       vtab->ndump++;
    }
 
-/* Mark the end of the section in which memory allocations may never be 
+/* Mark the end of the section in which memory allocations may never be
    freed (other than by any AST exit handler). */
    astEndPM;
+}
+
+void astSetProxy_( AstObject *this, void *proxy, int *status ) {
+/*
+*+
+*  Name:
+*     astSetProxy
+
+*  Purpose:
+*     Store a pointer to the foreign language proxy used to represent a
+*     given AST Object.
+
+*  Type:
+*     Undocumented public function.
+
+*  Synopsis:
+*     #include "object.h"
+*     void astSetProxy( AstObject *this, void *proxy )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function stores the supplied pointer in the AST Object so that
+*     it can be retrieved later using astGetProxy.
+*
+*     The supplied pointer should point to a structure that is used
+*     to represent the AST Object within some external system. It is
+*     expected that the external system will check each object reference
+*     returned by AST to see if it has an associated proxy object. If not
+*     (i.e. if astGetProxy returns NULL), a new external object will be
+*     created to represent the AST Object, and a pointer to it will be
+*     stored in the AST Object using astSetProxy. If the AST Object
+*     already has a proxy, the AST reference is annulled and the existing
+*     proxy object is used by the external system.
+
+*  Parameters:
+*     this
+*        Pointer to the Object.
+*     proxy
+*        Pointer to the proxy object, or NULL.
+
+*  Notes:
+*     - The suppied pointer is not used within AST itself, other than to
+*     be returned by the astGetProxy method.
+*     - This function is public, but is currently undocumented since it
+*     is only of interest to people writing AST interfaces for other
+*     languages.
+*-
+*/
+   if( !astOK ) return;
+   this->proxy = proxy;
 }
 
 void astSetVtab_( AstObject *this, AstObjectVtab *vtab, int *status ) {
@@ -2908,7 +3516,7 @@ void astSetVtab_( AstObject *this, AstObjectVtab *vtab, int *status ) {
 
 *  Synopsis:
 *     #include "object.h"
-*     void astSetVtab( AstObject *this, AstObjectVtab *vtab ) 
+*     void astSetVtab( AstObject *this, AstObjectVtab *vtab )
 
 *  Class Membership:
 *     Object method.
@@ -2920,7 +3528,7 @@ void astSetVtab_( AstObject *this, AstObjectVtab *vtab, int *status ) {
 *     vtab of the parent class to be used instead of the super-class.
 *     Whilst the super-class object is being constructed its inherited methods
 *     will be determined by the parent class. Once the super-class object
-*     has been constructed, it can invoke this fuction in order to 
+*     has been constructed, it can invoke this fuction in order to
 *     set the vtab to the super-class vtab, thus causing the method
 *     implementations provided by the super-cvlass to be used.
 
@@ -3140,9 +3748,9 @@ MAKE_SETX(L,long,"%.*ld",5,1)
 /* The astSetC_ function is implemented separately so that commas can be
    handled. Since astSetC can only be used to set a single attribute
    value, we know that any commas in the supplied value are included
-   within the attribuite value, rather than being used as delimiters 
+   within the attribuite value, rather than being used as delimiters
    between adjacent attribute settings. To avoid VSet using them as
-   delimiters, they are replaced here by '\r' before calling astSet, and 
+   delimiters, they are replaced here by '\r' before calling astSet, and
    VSet then converts them back to commas. */
 
 void astSetC_( AstObject *this, const char *attrib, const char *value, int *status ) {
@@ -3168,12 +3776,12 @@ void astSetC_( AstObject *this, const char *attrib, const char *value, int *stat
             *d = '\r';
          } else {
             *d = *c;
-         }            
+         }
          c++;
          d++;
       }
       *d = 0;
-   
+
 /* Obtain the length of the attribute name and allocate memory to hold
    this name plus the format specifier to be appended to it. */
       len = (int) astChrLen( attrib );
@@ -3345,7 +3953,7 @@ f     - A value of .FALSE. will also be returned if this function is used
       for ( i = j = 0; buff[ i ]; i++ ) {
          if ( !isspace( buff[ i ] ) ) buff[ j++ ] = tolower( buff[ i ] );
       }
-            
+
 /* Terminate the attribute name and pass it to astTestAttrib to test
    the attribute. */
       buff[ j ] = '\0';
@@ -3454,7 +4062,7 @@ c     astTune
 f     AST_TUNE
 
 *  Purpose:
-*     Set or get an AST global tuning parameter.
+*     Set or get an integer-valued AST global tuning parameter.
 
 *  Type:
 *     Public function.
@@ -3468,8 +4076,11 @@ f     RESULT = AST_TUNE( NAME, VALUE, STATUS )
 *     Object function.
 
 *  Description:
-*     This function returns the current value of an AST global tuning 
-*     parameter, optionally storing a new value for the parameter.
+*     This function returns the current value of an integer-valued AST
+*     global tuning parameter, optionally storing a new value for the
+*     parameter. For character-valued tuning parameters, see
+c     astTuneC.
+f     AST_TUNEC.
 
 *  Parameters:
 c     name
@@ -3489,27 +4100,29 @@ c        The original value of the tuning parameter. A default value will
 *        be returned if no value has been set for the parameter.
 
 *  Tuning Parameters:
-*     - ObjectCaching: A boolean flag which indicates what should happen 
-*     to the memory occupied by an AST Object when the Object is deleted 
-*     (i.e. when its reference count falls to zero or it is deleted using 
-c     astDelete). 
-f     AST_DELETE).
-*     If this is zero, the memory is simply freed using the systems "free" 
-*     function. If it is non-zero, the memory is not freed. Instead a pointer 
-*     to it is stored in a pool of such pointers, all of which refer to 
-*     allocated but currently unused blocks of memory. This allows AST to
-*     speed up subsequent Object creation by re-using previously
-*     allocated memory blocks rather than allocating new memory using the
-*     systems malloc function. The default value for this parameter is
-*     zero. Setting it to a non-zero value will result in Object memory
-*     being cached in future. Setting it back to zero causes any memory
-*     blocks currently in the pool to be freed. Note, this tuning parameter 
-*     only controls the caching of memory used to store AST Objects. To 
-*     cache other memory blocks allocated by AST, use MemoryCaching.
-*     - MemoryCaching: A boolean flag similar to ObjectCaching except
-*     that it controls caching of all memory blocks of less than 300 bytes
-*     allocated by AST (whether for internal or external use), not just 
-*     memory used to store AST Objects. 
+*     ObjectCaching
+*        A boolean flag which indicates what should happen
+*        to the memory occupied by an AST Object when the Object is deleted
+*        (i.e. when its reference count falls to zero or it is deleted using
+c        astDelete).
+f        AST_DELETE).
+*        If this is zero, the memory is simply freed using the systems "free"
+*        function. If it is non-zero, the memory is not freed. Instead a
+*        pointer to it is stored in a pool of such pointers, all of which
+*        refer to allocated but currently unused blocks of memory. This allows
+*        AST to speed up subsequent Object creation by re-using previously
+*        allocated memory blocks rather than allocating new memory using the
+*        systems malloc function. The default value for this parameter is
+*        zero. Setting it to a non-zero value will result in Object memory
+*        being cached in future. Setting it back to zero causes any memory
+*        blocks currently in the pool to be freed. Note, this tuning parameter
+*        only controls the caching of memory used to store AST Objects. To
+*        cache other memory blocks allocated by AST, use MemoryCaching.
+*     MemoryCaching
+*        A boolean flag similar to ObjectCaching except
+*        that it controls caching of all memory blocks of less than 300 bytes
+*        allocated by AST (whether for internal or external use), not just
+*        memory used to store AST Objects.
 
 *  Notes:
 c     - This function attempts to execute even if the AST error
@@ -3527,27 +4140,337 @@ f     error value
 
    if( name ) {
 
+      LOCK_MUTEX1;
+
       if( astChrMatch( name, "ObjectCaching" ) ) {
          result = object_caching;
          if( value != AST__TUNULL ) {
             object_caching = value;
             if( !object_caching ) EmptyObjectCache( status );
          }
-         
+
       } else if( astChrMatch( name, "MemoryCaching" ) ) {
          result = astMemCaching( value );
-         
+
       } else if( astOK ) {
          astError( AST__TUNAM, "astTune: Unknown AST tuning parameter "
                    "specified \"%s\".", status, name );
       }
+
+      UNLOCK_MUTEX1;
 
    }
 
    return result;
 }
 
-static void VSet( AstObject *this, const char *settings, char **text, 
+void astTuneC_( const char *name, const char *value, char *buff,
+                int bufflen, int *status ) {
+/*
+*++
+*  Name:
+c     astTuneC
+f     AST_TUNEC
+
+*  Purpose:
+*     Set or get a character-valued AST global tuning parameter.
+
+*  Type:
+*     Public function.
+
+*  Synopsis:
+c     #include "object.h"
+c     void astTuneC( const char *name, const char *value, char *buff,
+c                    int bufflen )
+f     CALL AST_TUNEC( NAME, VALUE, BUFF, STATUS )
+
+*  Class Membership:
+*     Object function.
+
+*  Description:
+*     This function returns the current value of a character-valued
+*     AST global tuning parameter, optionally storing a new value
+*     for the parameter. For integer-valued tuning parameters, see
+c     astTune.
+f     AST_TUNE.
+
+*  Parameters:
+c     name
+f     NAME = CHARACTER * ( * ) (Given)
+*        The name of the tuning parameter (case-insensitive).
+c     value
+f     VALUE = CHARACTER * ( ) (Given)
+*        The new value for the tuning parameter. If this is
+f        AST__TUNULLC,
+c        NULL,
+*        the existing current value will be retained.
+c     buff
+f     BUFF = CHARACTER * ( ) (Given)
+*        A character string in which to return the original value of
+*        the tuning parameter. An error will be reported if the buffer
+*        is too small to hold the value.
+c        NULL may be supplied if the old value is not required.
+c     bufflen
+c        The size of the supplied "buff" array. Ignored if "buff" is NULL.
+f     STATUS = INTEGER (Given and Returned)
+f        The global status.
+
+*  Tuning Parameters:
+*     HRDel
+*        A string to be drawn following the hours field in a formatted
+*        sky axis value when "g" format is in use (see the Format
+*        attribute). This string may include escape sequences to produce
+*        super-scripts, etc. (see the Escapes attribute for details
+*        of the escape sequences allowed). The default value is
+*        "%-%^50+%s70+h%+" which produces a super-script "h".
+*     MNDel
+*        A string to be drawn following the minutes field in a formatted
+*        sky axis value when "g" format is in use. The default value is
+*        "%-%^50+%s70+m%+" which produces a super-script "m".
+*     SCDel
+*        A string to be drawn following the seconds field in a formatted
+*        sky axis value when "g" format is in use. The default value is
+*        "%-%^50+%s70+s%+" which produces a super-script "s".
+*     DGDel
+*        A string to be drawn following the degrees field in a formatted
+*        sky axis value when "g" format is in use. The default value is
+*        "%-%^53+%s60+o%+" which produces a super-script "o".
+*     AMDel
+*        A string to be drawn following the arc-minutes field in a formatted
+*        sky axis value when "g" format is in use. The default value is
+*        "%-%^20+%s85+'%+" which produces a super-script "'" (single quote).
+*     ASDel
+*        A string to be drawn following the arc-seconds field in a formatted
+*        sky axis value when "g" format is in use. The default value is
+*        "%-%^20+%s85+\"%+" which produces a super-script """ (double quote).
+*     EXDel
+*        A string to be drawn to introduce the exponent in a value when "g"
+*        format is in use. The default value is "10%-%^50+%s70+" which
+*        produces "10" followed by the exponent as a super-script.
+
+*  Notes:
+c     - This function attempts to execute even if the AST error
+c     status is set
+f     - This routine attempts to execute even if STATUS is set to an
+f     error value
+*     on entry, although no further error report will be
+*     made if it subsequently fails under these circumstances.
+*     - All threads in a process share the same AST tuning parameters
+*     values.
+*--
+*/
+
+/* Local Variables: */
+   char *p;
+   int len;
+
+/* Check the name of a tuning parameter was supplied. */
+   if( name ) {
+
+/* Serialise access to the tuning parameters since they are common to all
+   threads. */
+      LOCK_MUTEX1;
+
+/* Get a pointer to the buffer that holds the value of the requested
+   tuning parameter. */
+      if( astChrMatch( name, "hrdel" ) ) {
+         p = hrdel;
+      } else if( astChrMatch( name, "mndel" ) ) {
+         p = mndel;
+      } else if( astChrMatch( name, "scdel" ) ) {
+         p = scdel;
+      } else if( astChrMatch( name, "dgdel" ) ) {
+         p = dgdel;
+      } else if( astChrMatch( name, "amdel" ) ) {
+         p = amdel;
+      } else if( astChrMatch( name, "asdel" ) ) {
+         p = asdel;
+      } else if( astChrMatch( name, "exdel" ) ) {
+         p = exdel;
+
+/* Report an error if an the tuning parameter name is unknown. */
+      } else if( astOK ) {
+         p = NULL;
+         astError( AST__TUNAM, "astTuneC: Unknown AST tuning parameter "
+                   "specified \"%s\".", status, name );
+      }
+
+/* If the existing value was found. */
+      if( p ) {
+
+/* And is to be returned in the supplied buffer... */
+         if( buff ) {
+
+/* Check that the buffer is long enough. If so, copy the current value
+   into the buffer, otherwise report an error. */
+            len = strlen( p ) ;
+            if( len < bufflen ) {
+               strcpy( buff, p );
+            } else {
+               astError( AST__TUNAM, "astTuneC: Supplied string variable "
+                         "is too small - the current '%s' value (%s) has "
+                         "%d characters.", status, name, p, len );
+            }
+         }
+
+/* If a new value is to be stored.... */
+         if( value ) {
+
+/* Report an error if it is too long to fit in the static buffer. */
+            len = strlen( value ) ;
+            if( len >= MAXLEN_TUNEC ) {
+               astError( AST__TUNAM, "astTuneC: Supplied value for '%s' "
+                         "(%s) is too long - must not be longer than %d "
+                         "characters.", status, name, value, MAXLEN_TUNEC );
+
+/* Otherwise, copy the new value into the static buffer. */
+            } else {
+               strcpy( p, value );
+            }
+         }
+      }
+
+      UNLOCK_MUTEX1;
+   }
+}
+
+AstObject *astFromString_( const char *string, int *status ) {
+/*
+c++
+*  Name:
+*     astFromString
+
+*  Purpose:
+*     Re-create an Object from an in-memory serialisation
+
+*  Type:
+*     Public function.
+
+*  Synopsis:
+*     #include "object.h"
+*     AstObject *astFromString( const char *string )
+
+*  Class Membership:
+*     Object method.
+
+*  Description:
+*     This function returns a pointer to a new Object created from the
+*     supplied text string, which should have been created by astToString.
+
+*  Parameters:
+*     string
+*        Pointer to a text string holding an Object serialisation created
+*        previously by astToString.
+
+*  Returned Value:
+*     astFromString()
+*        Pointer to a new Object created from the supplied serialisation,
+*        or NULL if the serialisation was invalid, or an error occurred.
+
+c--
+*/
+
+/* Local Variables: */
+   StringData data;              /* Data passed to the source function */
+   AstChannel *channel;          /* Pointer to output Channel */
+   AstObject *result;            /* Pointer to returned Object */
+
+/* Check the global error status and supplied serialisation. */
+   if ( !astOK || !string ) return NULL;
+
+/* Create a Channel which will read from the supplied serialisation. */
+   channel = astChannel( FromStringSource, NULL, "", status );
+
+/* Initialise the data structure used to communicate with the source
+   function, and store a pointer to it in the Channel. */
+   data.ptr = (char *) string;
+   data.buff = NULL;
+   data.len = 0;
+   astPutChannelData( channel, &data );
+
+/* Read an Object from the Channel. */
+   result = astRead( channel );
+
+/* Annul the Channel pointer. */
+   channel = astAnnul( channel );
+
+/* Free the line buffer. */
+   data.buff = astFree( data.buff );
+
+/* Annul the returned Object if an error has occurred. */
+   if( !astOK ) result = astAnnul( result );
+
+/* Return the Object pointer. */
+   return result;
+}
+
+static const char *FromStringSource( void ){
+/*
+*  Name:
+*     FromStringSource
+
+*  Purpose:
+*     A Channel source function for use by the astFromString method.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "object.h"
+*     result = FromStringSource( void )
+
+*  Class Membership:
+*     Object member function.
+
+*  Description:
+*     This function reads the next line of text from a serialisation and
+*     returns a pointer to it, or NULL if no lines remain.
+
+*  Returned Value:
+*     Pointer to the null terminated line of text or NULL if no lines
+*     remain.
+*/
+
+/* Local Variables: */
+   StringData *data;     /* Data passed to the sink function */
+   char *nl;             /* Pointer to next newline character */
+   int *status;          /* Pointer to local status value */
+   int nc;               /* Number of characters to read from serialisation */
+   int status_value;     /* Local status value */
+
+/* Set up the local status */
+   status_value = 0;
+   status = &status_value;
+
+/* Get a pointer to the structure holding a pointer to the next line, and
+   to the buffer to return. */
+   data = astChannelData;
+
+/* Return NULL if no text remains to be read. */
+   if( !data->ptr || (data->ptr)[0] == 0 ) return NULL;
+
+/* Find the next newline (if any) in the serialisation. */
+   nl = strchr( data->ptr, '\n' );
+
+/* Get the number of characters to copy. */
+   nc = nl ? nl - data->ptr : strlen( data->ptr );
+
+/* Copy them into the returned buffer, including an extra character for
+   the terminating null. */
+   data->buff = astStore( data->buff, data->ptr, nc + 1 );
+
+/* Store the terminating null. */
+   (data->buff)[ nc ] = 0;
+
+/* Update the pointer to the next character to read from the
+   serialisation. */
+   data->ptr = nl ? nl + 1 : NULL;
+
+/* Return the buffer. */
+   return data->buff;
+}
+
+static void VSet( AstObject *this, const char *settings, char **text,
                   va_list args, int *status ) {
 /*
 *+
@@ -3562,7 +4485,7 @@ static void VSet( AstObject *this, const char *settings, char **text,
 
 *  Synopsis:
 *     #include "object.h"
-*     void astVSet( AstObject *this, const char *settings, char **text, 
+*     void astVSet( AstObject *this, const char *settings, char **text,
 *                   va_list args )
 
 *  Class Membership:
@@ -3595,7 +4518,7 @@ static void VSet( AstObject *this, const char *settings, char **text,
 *        comma-separated list of attribute settings.
 *     text
 *        Pointer to a location at which to return a pointer to dynamic
-*        memory holding a copy of the expanded setting string. This memory 
+*        memory holding a copy of the expanded setting string. This memory
 *        should be freed using astFree when no longer needed. If a NULL
 *        pointer is supplied, no string is created.
 *     args
@@ -3632,6 +4555,7 @@ static void VSet( AstObject *this, const char *settings, char **text,
 
 /* Local Variables: */
    char errbuf[ ERRBUF_LEN ];    /* Buffer for system error message */
+   char *errstat;                /* Pointer to error message */
    char *assign;                 /* Pointer to assigment substring */
    char *assign_end;             /* Pointer to null at end of assignment */
    char *buff1;                  /* Pointer to temporary string buffer */
@@ -3644,7 +4568,9 @@ static void VSet( AstObject *this, const char *settings, char **text,
    int len;                      /* Length of settings string */
    int lo;                       /* Convert next character to lower case? */
    int nc;                       /* Number of vsprintf output characters */
+   int quoted;                   /* Are we in a quoted string? */
    int stat;                     /* Value of errno after an error */
+   int tq;                       /* Test if the next non-space is a quote? */
 
 /* Initialise */
    if( text ) *text = NULL;
@@ -3664,12 +4590,22 @@ static void VSet( AstObject *this, const char *settings, char **text,
 /* Convert each comma in the string into '\n'. This is to distinguish
    commas initially present from those introduced by the formatting to
    be performed below. We only do this if there is more than one equals
-   sign in the setting string, since otherwise any commas are probably 
-   characters contained within a string attribute value. */
+   sign in the setting string, since otherwise any commas are probably
+   characters contained within a string attribute value. Ignore commas
+   that occur within quoted strings. */
          eq1 = strchr( buff1, '=' );
          if( eq1 && strchr( eq1 + 1, '=' ) ) {
+            quoted = 0;
             for ( i = 0; i < len; i++ ) {
-               if ( buff1[ i ] == ',' ) buff1[ i ] = '\n';
+               if( !quoted ) {
+                  if ( buff1[ i ] == ',' ) {
+                     buff1[ i ] = '\n';
+                  } else if( buff1[ i ] == '"' ) {
+                     quoted = 1;
+                  }
+               } else if( buff1[ i ] == '"' ){
+                  quoted = 0;
+               }
             }
          }
 
@@ -3687,7 +4623,7 @@ static void VSet( AstObject *this, const char *settings, char **text,
             errno = 0;
             nc = vsprintf( buff2, buff1, args );
 
-/* Get a copy of the expanded string to return as the function value and 
+/* Get a copy of the expanded string to return as the function value and
    convert newlines back to commas. */
             if( text ) {
                *text = astStore( NULL, buff2, nc + 1 );
@@ -3704,16 +4640,22 @@ static void VSet( AstObject *this, const char *settings, char **text,
             if ( nc < 0 ) {
                if( astOK ) {
                   stat = errno;
-   
+
                   if( stat ) {
+#if HAVE_STRERROR_R
                      strerror_r( stat, errbuf, ERRBUF_LEN );
+                     errstat = errbuf;
+#else
+                     errstat = strerror( stat );
+#endif
                   } else {
                      *errbuf = 0;
+                     errstat = errbuf;
                   }
-   
+
                   astError( AST__ATSER, "astVSet(%s): Error formatting an "
                             "attribute setting%s%s.", status, astGetClass( this ),
-                            stat? " - " : "", errbuf );
+                            stat? " - " : "", errstat );
                   astError( AST__ATSER, "The setting string was \"%s\".", status,
                             settings );
                }
@@ -3747,6 +4689,8 @@ static void VSet( AstObject *this, const char *settings, char **text,
 /* Before making the assignment, loop to remove white space and upper
    case characters from the attribute name. */
                   lo = 1;
+                  tq = -1;
+                  quoted = 0;
                   for ( i = j = 0; assign[ i ]; i++ ) {
 
 /* Note when an '=' sign is encountered (this signals the end of the
@@ -3755,16 +4699,41 @@ static void VSet( AstObject *this, const char *settings, char **text,
 
 /* Before the '=' sign, convert all characters to lower case and move
    everything to the left to eliminate white space. Afer the '=' sign,
-   copy all characters to their new location unchanged. astSetC replaces 
-   commas in the attribute value by '\r' characters. Reverse this now. */
+   copy all characters to their new location unchanged, except for any
+   delimiting quotes, which are removed. astSetC replaces commas in the
+   attribute value by '\r' characters. Reverse this now. */
                      if ( !lo || !isspace( assign[ i ] ) ) {
                         if( assign[ i ] == '\r' ) {
                            assign[ j++ ] = ',';
+
+                        } else if( lo ) {
+                           assign[ j++ ] = tolower( assign[ i ] );
+
                         } else {
-                           assign[ j++ ] = ( lo ? tolower( assign[ i ] ) :
-                                               assign[ i ] );
+                           assign[ j++ ] = assign[ i ];
+
+                           if( tq > 0 && !isspace( assign[ i ] ) ) {
+                              if( assign[ i ] == '"' ) {
+                                 quoted = 1;
+                                 j--;
+                              }
+                              tq = 0;
+                           }
+
                         }
                      }
+
+/* If the current character is the initial '=' sign, set "tq" positive,
+   meaning "check if the next non-space character is a quote". */
+                     if ( assign[ i ] == '=' && tq == -1 ) tq = 1;
+                  }
+
+/* if the value was quoted. remove the trailing quote. */
+                  if( quoted ) {
+                     j--;
+                     while( isspace( assign[ j ] ) ) j--;
+                     if( assign[ j ] == '"' ) j--;
+                     j++;
                   }
 
 /* Terminate the revised assignment string and pass it to astSetAttrib
@@ -3774,11 +4743,11 @@ static void VSet( AstObject *this, const char *settings, char **text,
                   if ( j ) {
 
 /* If there are no characters to the right of the equals sign append a
-   space after the equals sign. Without this, a string such as "Title=" 
+   space after the equals sign. Without this, a string such as "Title="
    would not be succesfully matched against the attribute name "Title"
    within SetAttrib. */
                      if( assign[ j - 1 ] == '=' ) {
-                        buff3 = astStore( NULL, assign, 
+                        buff3 = astStore( NULL, assign,
                                           (size_t) j + 2 );
                         if ( astOK ) {
                            buff3[ j ] = ' ';
@@ -3911,9 +4880,9 @@ astMAKE_TEST(Object,ID,( this->id != NULL ))
 *     String.
 
 *  Description:
-*     This attribute is like the ID attribute, in that it contains a 
-*     string which may be used to identify the Object to which it is 
-*     attached. The only difference between ID and Ident is that Ident 
+*     This attribute is like the ID attribute, in that it contains a
+*     string which may be used to identify the Object to which it is
+*     attached. The only difference between ID and Ident is that Ident
 *     is transferred when an Object is copied, but ID is not.
 
 *  Applicability:
@@ -3954,20 +4923,20 @@ astMAKE_TEST(Object,Ident,( this->ident != NULL ))
 
 *  Description:
 *     This attribute specifies whether default values should be used
-*     internally for object attributes which have not been assigned a 
-*     value explicitly. If a non-zero value (the default) is supplied for 
-*     UseDefs, then default values will be used for attributes which have 
-*     not explicitly been assigned a value. If zero is supplied for UseDefs, 
-*     then an error will be reported if an attribute for which no explicit 
-*     value has been supplied is needed internally within AST. 
+*     internally for object attributes which have not been assigned a
+*     value explicitly. If a non-zero value (the default) is supplied for
+*     UseDefs, then default values will be used for attributes which have
+*     not explicitly been assigned a value. If zero is supplied for UseDefs,
+*     then an error will be reported if an attribute for which no explicit
+*     value has been supplied is needed internally within AST.
 *
-*     Many attributes (including the UseDefs attribute itself) are unaffected 
-*     by the setting of the UseDefs attribute, and default values will always 
-*     be used without error for such attributes. The "Applicability:" section 
+*     Many attributes (including the UseDefs attribute itself) are unaffected
+*     by the setting of the UseDefs attribute, and default values will always
+*     be used without error for such attributes. The "Applicability:" section
 *     below lists the attributes which are affected by the setting of UseDefs.
 
 *     Note, UseDefs only affects access to attributes internally within
-*     AST. The public accessor functions such as 
+*     AST. The public accessor functions such as
 c     astGetC
 f     AST_GETC
 *     is unaffected by the UseDefs attribute - default values will always
@@ -3991,28 +4960,28 @@ f     AST_TEST
 *        The default value of UseDefs for a Region is redefined to be
 *        the UseDefs value of its encapsulated Frame.
 *     Frame
-*        If UseDefs is zero, an error is reported when aligning Frames if the 
-*        Epoch, ObsLat or ObsLon attribute is required but has not been 
+*        If UseDefs is zero, an error is reported when aligning Frames if the
+*        Epoch, ObsLat or ObsLon attribute is required but has not been
 *        assigned a value explicitly.
 *     SkyFrame
-*        If UseDefs is zero, an error is reported when aligning SkyFrames 
-*        if any of the following attributes are required but have not been 
+*        If UseDefs is zero, an error is reported when aligning SkyFrames
+*        if any of the following attributes are required but have not been
 *        assigned a value explicitly: Epoch, Equinox.
 *     SpecFrame
-*        If UseDefs is zero, an error is reported when aligning SpecFrames 
-*        if any of the following attributes are required but have not been 
-*        assigned a value explicitly: Epoch, RefRA, RefDec, RestFreq, 
+*        If UseDefs is zero, an error is reported when aligning SpecFrames
+*        if any of the following attributes are required but have not been
+*        assigned a value explicitly: Epoch, RefRA, RefDec, RestFreq,
 *        SourceVel, StdOfRest.
 *     DSBSpecFrame
-*        If UseDefs is zero, an error is reported when aligning DSBSpecFrames 
-*        or when accessing the ImagFreq attribute if any of the following 
+*        If UseDefs is zero, an error is reported when aligning DSBSpecFrames
+*        or when accessing the ImagFreq attribute if any of the following
 *        attributes are required but have not been assigned a value explicitly:
 *        Epoch, DSBCentre, IF.
 *att--
 */
 astMAKE_CLEAR(Object,UseDefs,usedefs,CHAR_MAX)
 astMAKE_GET(Object,UseDefs,int,1,((this->usedefs!=CHAR_MAX)?this->usedefs:1))
-astMAKE_SET(Object,UseDefs,int,usedefs,(this->usedefs=(value)?1:0))
+astMAKE_SET(Object,UseDefs,int,usedefs,((value)?1:0))
 astMAKE_TEST(Object,UseDefs,(this->usedefs!=CHAR_MAX))
 
 /*
@@ -4284,14 +5253,14 @@ void astInitObjectVtab_(  AstObjectVtab *vtab, const char *name, int *status ) {
 *        Pointer to the virtual function table.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int ivtab;                    /* Index of next entry in known_vtabs */
 
 /* Check the local error status. */
@@ -4299,6 +5268,11 @@ void astInitObjectVtab_(  AstObjectVtab *vtab, const char *name, int *status ) {
 
 /* Get a pointer to Thread-specific global data. */
    astGET_GLOBALS(NULL);
+
+/* Initialise the contents of the class identifier. Since this is the
+   base class, we assign null values to the fields. */
+   vtab->id.check = NULL;
+   vtab->id.parent = NULL;
 
 /* Store pointers to the member functions (implemented here) that provide
    virtual methods for this class. */
@@ -4311,6 +5285,7 @@ void astInitObjectVtab_(  AstObjectVtab *vtab, const char *name, int *status ) {
    vtab->GetAttrib = GetAttrib;
    vtab->GetID = GetID;
    vtab->GetIdent = GetIdent;
+   vtab->HasAttribute = HasAttribute;
    vtab->Same = Same;
    vtab->SetAttrib = SetAttrib;
    vtab->SetID = SetID;
@@ -4320,8 +5295,9 @@ void astInitObjectVtab_(  AstObjectVtab *vtab, const char *name, int *status ) {
    vtab->TestID = TestID;
    vtab->TestIdent = TestIdent;
    vtab->VSet = VSet;
-
+   vtab->Cast = Cast;
    vtab->GetObjSize = GetObjSize;
+   vtab->CleanAttribs = CleanAttribs;
 
    vtab->TestUseDefs = TestUseDefs;
    vtab->SetUseDefs = SetUseDefs;
@@ -4369,7 +5345,7 @@ void astInitObjectVtab_(  AstObjectVtab *vtab, const char *name, int *status ) {
 
    if( astOK && known_vtabs ) known_vtabs[ ivtab ] = vtab;
 
-/* Fill a pointer value with zeros (not necessarily the same thing as a 
+/* Fill a pointer value with zeros (not necessarily the same thing as a
    NULL pointer) for subsequent use. */
    (void) memset( &zero_ptr, 0, sizeof( AstObject * ) );
 
@@ -4454,9 +5430,9 @@ AstObject *astInitObject_( void *mem, size_t size, int init,
 
 /* Determine if memory must be allocated dynamically. If so, use the last
    block of memory in the list of previously allocated but currently
-   unused blocks identified by the vtab "free_list" array, reducing the 
-   length of the free list by one, and nullifying the entry in the list 
-   for safety. If the list is originally empty, allocate memory for a new 
+   unused blocks identified by the vtab "free_list" array, reducing the
+   length of the free list by one, and nullifying the entry in the list
+   for safety. If the list is originally empty, allocate memory for a new
    object using astMalloc. */
    if( !mem ) {
       if( object_caching ) {
@@ -4466,7 +5442,7 @@ AstObject *astInitObject_( void *mem, size_t size, int init,
             if( astSizeOf( mem ) != size && astOK ) {
                astError( AST__INTER, "astInitObject(%s): Free block has size "
                          "%d but the %s requires %d bytes (internal AST "
-                         "programming error).", status, vtab->class, 
+                         "programming error).", status, vtab->class,
                          (int) astSizeOf( mem ), vtab->class, (int) size );
             }
          } else {
@@ -4481,7 +5457,7 @@ AstObject *astInitObject_( void *mem, size_t size, int init,
    the size of the allocated memory. */
    } else {
       size = astSizeOf( mem );
-   }      
+   }
 
 /* Obtain a pointer to the new Object. */
    if ( astOK ) {
@@ -4525,8 +5501,14 @@ AstObject *astInitObject_( void *mem, size_t size, int init,
 /* Use default values for unspecified attributes. */
          new->usedefs = CHAR_MAX;
 
-/* Increment the count of active Objects in the virtual function table. */
-         vtab->nobject++;
+/* Increment the count of active Objects in the virtual function table.
+   Use the count as a unique identifier (unique within the class) for
+   the Object. */
+         new->iref = vtab->nobject++;
+
+/* Initialise the pointer to an external object that acts as a proxy for
+   the AST Object within foreign language interfaces. */
+         new->proxy = NULL;
       }
 
 /* If an error occurred, clean up by deleting the new Object. Otherwise
@@ -4538,12 +5520,12 @@ AstObject *astInitObject_( void *mem, size_t size, int init,
       } else {
          if( pthread_mutex_init( &(new->mutex1), NULL ) != 0 && astOK ) {
             astError( AST__INTER, "astInitObject(%s): Failed to "
-                      "initialise POSIX mutex1 for the new Object.", status, 
+                      "initialise POSIX mutex1 for the new Object.", status,
                       vtab->class );
          }
          if( pthread_mutex_init( &(new->mutex2), NULL ) != 0 && astOK ) {
             astError( AST__INTER, "astInitObject(%s): Failed to "
-                      "initialise POSIX mutex2 for the new Object.", status, 
+                      "initialise POSIX mutex2 for the new Object.", status,
                       vtab->class );
          }
          new->locker = -1;
@@ -4558,7 +5540,7 @@ AstObject *astInitObject_( void *mem, size_t size, int init,
    return new;
 }
 
-AstObject *astLoadObject_( void *mem, size_t size, 
+AstObject *astLoadObject_( void *mem, size_t size,
                            AstObjectVtab *vtab, const char *name,
                            AstChannel *channel, int *status ) {
 /*
@@ -4574,7 +5556,7 @@ AstObject *astLoadObject_( void *mem, size_t size,
 
 *  Synopsis:
 *     #include "object.h"
-*     AstObject *astLoadObject( void *mem, size_t size, 
+*     AstObject *astLoadObject( void *mem, size_t size,
 *                               AstObjectVtab *vtab, const char *name,
 *                               AstChannel *channel )
 
@@ -4631,7 +5613,7 @@ AstObject *astLoadObject_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    AstObject *new;               /* Pointer to the new Object */
 
 /* Initialise. */
@@ -4682,6 +5664,10 @@ AstObject *astLoadObject_( void *mem, size_t size,
    input. */
       (void) astReadInt( channel, "refcnt", 0 );
       (void) astReadInt( channel, "nobj", 0 );
+
+/* Initialise the pointer to an external object that acts as a proxy for
+   the AST Object within foreign language interfaces. */
+      new->proxy = NULL;
 
 /* If an error occurred, clean up by deleting the new Object. */
       if ( !astOK ) new = astDelete( new );
@@ -4752,9 +5738,21 @@ int astGetObjSize_( AstObject *this, int *status ) {
    if ( !astOK || !this ) return 0;
    return (**astMEMBER(this,Object,GetObjSize))( this, status );
 }
+void astCleanAttribs_( AstObject *this, int *status ) {
+   if ( !astOK ) return;
+   (**astMEMBER(this,Object,CleanAttribs))( this, status );
+}
+AstObject *astCast_( AstObject *this, AstObject *obj, int *status ) {
+   if ( !astOK ) return NULL;
+   return (**astMEMBER(this,Object,Cast))( this, obj, status );
+}
 int astSame_( AstObject *this, AstObject *that, int *status ) {
    if ( !astOK ) return 0;
    return (**astMEMBER(this,Object,Same))( this, that, status );
+}
+int astHasAttribute_( AstObject *this, const char *attrib, int *status ) {
+   if ( !astOK ) return 0;
+   return (**astMEMBER(this,Object,HasAttribute))( this, attrib, status );
 }
 
 /* External interface. */
@@ -4784,11 +5782,11 @@ typedef struct Handle {
 #endif
 
 #if defined(MEM_DEBUG)
-   int id;                       /* The id associated with the memory block 
-                                    holding the Object last associated with 
+   int id;                       /* The id associated with the memory block
+                                    holding the Object last associated with
                                     this handle. */
    AstObjectVtab *vtab;          /* Pointer to the firtual function table of
-                                    the Object last associated with this 
+                                    the Object last associated with this
                                     handle. */
 #endif
 
@@ -4815,25 +5813,25 @@ typedef union MixedInts {
    unsigned u;
 } MixedInts;
 
-/* Static Variables. */ 
-/* ----------------- */ 
+/* Static Variables. */
+/* ----------------- */
 /* The array of Handle structures is a pool of resources available to all
-   threads. Each thread has its own conext level and its own "active_handles" 
+   threads. Each thread has its own conext level and its own "active_handles"
    array to identify the first Handle at each context level. */
-static Handle *handles = NULL; /* Pointer to allocated array of Handles */ 
-static int free_handles = -1; /* Offset to head of free Handle list */ 
-static int nhandles = 0; /* Number of Handles in "handles" array */ 
+static Handle *handles = NULL; /* Pointer to allocated array of Handles */
+static int free_handles = -1; /* Offset to head of free Handle list */
+static int nhandles = 0; /* Number of Handles in "handles" array */
 static unsigned nids = 0; /* Number of IDs issued to external users */
 
 #if defined(THREAD_SAFE)
 static int unowned_handles = -1; /* Offset to head of unowned Handle
-                                    list. In a single threaded environment, 
-                                    all handles must be owned by a thread. */ 
+                                    list. In a single threaded environment,
+                                    all handles must be owned by a thread. */
 #endif
 
 #ifdef MEM_DEBUG
 static int Watched_Handle = -1; /* A handle index to be watched. Activity
-                                   on this handle is reported using 
+                                   on this handle is reported using
                                    astHandleUse and astHandleAlarm. */
 #endif
 
@@ -4841,8 +5839,8 @@ static int Watched_Handle = -1; /* A handle index to be watched. Activity
 /* External Interface Function Prototypes. */
 /* --------------------------------------- */
 /* MYSTATIC should normally be set to "static" to make the following
-   function have local symbols. But it may be set to blank for debugging 
-   purposes in order to enable these functions to appear in a backtrace 
+   function have local symbols. But it may be set to blank for debugging
+   purposes in order to enable these functions to appear in a backtrace
    such as produced by the astBacktrace function. */
 #define MYSTATIC
 
@@ -4919,7 +5917,7 @@ MYSTATIC void AnnulHandle( int ihandle, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    AstObject *ptr;               /* Object pointer */
    int context;                  /* Context level where Handle was issued */
 
@@ -4955,9 +5953,9 @@ MYSTATIC void AnnulHandle( int ihandle, int *status ) {
 
 /* If the Handle is active, annul its Object pointer. The astAnnul
    function may call Delete functions supplied by any class, and these
-   Delete functions may involve annulling external Object IDs, which in 
-   turn requires access to the handles array. For this reason, we release 
-   the mutex that protects access to the handles arrays so that it can 
+   Delete functions may involve annulling external Object IDs, which in
+   turn requires access to the handles array. For this reason, we release
+   the mutex that protects access to the handles arrays so that it can
    potentially be re-aquired within astAnnul without causing deadlock. */
       } else {
 
@@ -4991,7 +5989,7 @@ MYSTATIC void AnnulHandle( int ihandle, int *status ) {
                       status );
          }
 
-/* Reset the Handle's "context" value (making it inactive) and its "check" 
+/* Reset the Handle's "context" value (making it inactive) and its "check"
    value (so it is no longer associated with an identifier value). */
          handles[ ihandle ].ptr = NULL;
          handles[ ihandle ].context = INVALID_CONTEXT;
@@ -5243,10 +6241,10 @@ f     depth.
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int stat;                     /* Copy of global status */
    int *status;                  /* Pointer to inherited status value */
-  
+
 /* Get a pointer to thread-specific global data. */
    astGET_GLOBALS(NULL);
 
@@ -5324,7 +6322,7 @@ MYSTATIC int CheckId( AstObject *this_id, int lock_check, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    MixedInts work;               /* Union for decoding ID value */
    int id;                       /* ID value as an int */
    int ihandle;                  /* Result to return */
@@ -5570,9 +6568,9 @@ f     depth.
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int ihandle;                  /* Offset of Handle to be annulled */
-  
+
 /* Get a pointer to Thread-specific global data. */
    astGET_GLOBALS(NULL);
 
@@ -5676,7 +6674,7 @@ f        This routine applies to all Objects.
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int context;                  /* Handle context level */
    int ihandle;                  /* Offset of Handle in "handles" array */
 
@@ -5789,10 +6787,10 @@ f     and have not been rendered exempt using AST_EXEMPT.
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int context;                  /* Handle context level */
    int ihandle;                  /* Offset of Handle in "handles" array */
-  
+
 /* Check the global error status. */
    if ( !astOK ) return;
 
@@ -5834,7 +6832,7 @@ f     and have not been rendered exempt using AST_EXEMPT.
    and insert it into the list appropriate to its new context
    level. */
                RemoveHandle( ihandle, &active_handles[ context ], status );
-               InsertHandle( ihandle, &active_handles[ context_level - 1 ], 
+               InsertHandle( ihandle, &active_handles[ context_level - 1 ],
                              status );
 
 /* If required, tell the user that the handle has been exempted. */
@@ -5871,8 +6869,8 @@ f     CALL AST_IMPORT( THIS, STATUS )
 *     Object method.
 
 *  Description:
-c     This function 
-f     This routine 
+c     This function
+f     This routine
 *     imports an Object pointer that was created in a higher or lower
 *     level context, into the current AST context.
 *     This means that the pointer will be annulled when the current context
@@ -5900,10 +6898,10 @@ f        This routine applies to all Objects.
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    int context;                  /* Handle context level */
    int ihandle;                  /* Offset of Handle in "handles" array */
-  
+
 /* Check the global error status. */
    if ( !astOK ) return;
 
@@ -5970,15 +6968,15 @@ c++
 *  Description:
 *     The thread-safe public interface to AST is designed so that an
 *     error is reported if any thread attempts to use an Object that it
-*     has not previously locked for its own exclusive use using this 
+*     has not previously locked for its own exclusive use using this
 *     function. When an Object is created, it is initially locked by the
 *     thread that creates it, so newly created objects do not need to be
 *     explicitly locked. However, if an Object pointer is passed to
-*     another thread, the original thread must first unlock it (using 
+*     another thread, the original thread must first unlock it (using
 *     astUnlock) and the new thread must then lock it (using astLock)
 *     before the new thread can use the Object.
 *
-*     The "wait" parameter determines what happens if the supplied Object 
+*     The "wait" parameter determines what happens if the supplied Object
 *     is curently locked by another thread when this function is invoked.
 
 *  Parameters:
@@ -5986,9 +6984,9 @@ c++
 *        Pointer to the Object to be locked.
 *     wait
 *        If the Object is curently locked by another thread then this
-*        function will either report an error or block. If a non-zero value 
-*        is supplied for "wait", the calling thread waits until the object 
-*        is available for it to use. Otherwise, an error is reported and 
+*        function will either report an error or block. If a non-zero value
+*        is supplied for "wait", the calling thread waits until the object
+*        is available for it to use. Otherwise, an error is reported and
 *        the function returns immediately without locking the Object.
 
 *  Applicability:
@@ -5996,21 +6994,21 @@ c++
 *        This function applies to all Objects.
 
 *  Notes:
-*     - The astAnnul function is exceptional in that it can be used on 
+*     - The astAnnul function is exceptional in that it can be used on
 *     pointers for Objects that are not currently locked by the calling
 *     thread. All other AST functions will report an error.
 *     - The Locked object will belong to the current AST context.
-*     - This function returns without action if the Object is already 
+*     - This function returns without action if the Object is already
 *     locked by the calling thread.
 *     - If simultaneous use of the same object is required by two or more
-*     threads, astCopy should be used to to produce a deep copy of 
-*     the Object for each thread. Each copy should then be unlocked by 
-*     the parent thread (i.e. the thread that created the copy), and then 
+*     threads, astCopy should be used to to produce a deep copy of
+*     the Object for each thread. Each copy should then be unlocked by
+*     the parent thread (i.e. the thread that created the copy), and then
 *     locked by the child thread (i.e. the thread that wants to use the
 *     copy).
 *     - This function is only available in the C interface.
-*     - This function returns without action if the AST library has 
-*     been built without POSIX thread support (i.e. the "-with-pthreads" 
+*     - This function returns without action if the AST library has
+*     been built without POSIX thread support (i.e. the "-with-pthreads"
 *     option was not specified when running the "configure" script).
 c--
 */
@@ -6019,7 +7017,7 @@ c--
 #if defined(THREAD_SAFE)
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    AstObject *fail;              /* Pointer to Object that failed to lock */
    AstObject *this;              /* Pointer to Object */
    int ihandle;                  /* Index of supplied objetc handle */
@@ -6028,7 +7026,7 @@ c--
 /* Obtain the Object pointer from the ID supplied and validate the
    pointer to ensure it identifies a valid Object (this generates an
    error if it doesn't). Note, we use the "astMakePointer_NoLockCheck",
-   since the usual "astMakePointer" macro invokes astCheckLock to report 
+   since the usual "astMakePointer" macro invokes astCheckLock to report
    an error if the Object is not currently locked by the calling thread. */
    if ( !astIsAObject( this = astMakePointer_NoLockCheck( this_id ) ) ) return;
 
@@ -6055,7 +7053,7 @@ c--
 /* Check the object pointer was valid. */
    if( ihandle != -1 ){
 
-/* The protected astManageLock function implements the public functions, 
+/* The protected astManageLock function implements the public functions,
    astLock and astUnlock. */
       lstat = astManageLock( this, AST__LOCK, wait, &fail );
       if( astOK ) {
@@ -6063,13 +7061,13 @@ c--
             if( fail == this ) {
                astError( AST__LCKERR, "astLock(%s): Failed to lock the %s because"
                          " it is already locked by another thread (programming "
-                         "error).", status, astGetClass( this ), 
+                         "error).", status, astGetClass( this ),
                          astGetClass( this ) );
 
             } else {
                astError( AST__LCKERR, "astLock(%s): Failed to lock the %s because"
                          " a %s contained within it is already locked by another "
-                         "thread (programming error).", status, 
+                         "thread (programming error).", status,
                          astGetClass( this ), astGetClass( this ),
                          astGetClass( fail ) );
             }
@@ -6084,7 +7082,7 @@ c--
 /* We need access to the handles arrays again. */
             LOCK_MUTEX2;
 
-/* If the supplied handle is not currently assigned to any thread, assign 
+/* If the supplied handle is not currently assigned to any thread, assign
    it to the running thread. */
             if( handles[ ihandle ].context == UNOWNED_CONTEXT ) {
                RemoveHandle( ihandle, &unowned_handles, status );
@@ -6096,7 +7094,7 @@ c--
 
                handles[ ihandle ].thread = AST__THREAD_ID;
                handles[ ihandle ].context = context_level;
-               InsertHandle( ihandle, &active_handles[ context_level ], 
+               InsertHandle( ihandle, &active_handles[ context_level ],
                                 status );
             }
 
@@ -6151,12 +7149,12 @@ c++
 *     - All unlocked Objects are excluded from AST context handling until
 *     they are re-locked using astLock.
 *     - This function is only available in the C interface.
-*     - This function returns without action if the Object is not currently 
+*     - This function returns without action if the Object is not currently
 *     locked by any thread. If it is locked by the running thread, it is
-*     unlocked. If it is locked by another thread, an error will be reported 
+*     unlocked. If it is locked by another thread, an error will be reported
 *     if "error" is non-zero.
-*     - This function returns without action if the AST library has 
-*     been built without POSIX thread support (i.e. the "-with-pthreads" 
+*     - This function returns without action if the AST library has
+*     been built without POSIX thread support (i.e. the "-with-pthreads"
 *     option was not specified when running the "configure" script).
 c--
 */
@@ -6165,7 +7163,7 @@ c--
 #if defined(THREAD_SAFE)
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    AstErrorContext error_context;/* Info about the current error context */
    AstObject *fail;              /* Pointer to Object that failed */
    AstObject *this;              /* Pointer to Object */
@@ -6175,14 +7173,14 @@ c--
 /* Obtain the Object pointer from the ID supplied and validate the
    pointer to ensure it identifies a valid Object (this generates an
    error if it doesn't). Note, we use the "astMakePointer_NoLockCheck",
-   since the usual "astMakePointer" macro invokes astCheckLock to report 
+   since the usual "astMakePointer" macro invokes astCheckLock to report
    an error if the Object is not currently locked by the calling thread. */
    if ( !astIsAObject( this = astMakePointer_NoLockCheck( this_id ) ) ) return;
 
 /* Ensure the global data for this class is accessable. */
    astGET_GLOBALS(this);
 
-/* Start a new error reporting context. This saves any existing error status 
+/* Start a new error reporting context. This saves any existing error status
    and then clear the status value. It also defer further error reporting. */
    astErrorBegin( &error_context );
 
@@ -6192,21 +7190,21 @@ c--
 /* Ensure the Handles arrays have been initialised. */
    if ( !active_handles ) InitContext( status );
 
-/* Get the Handle index for the supplied object identifier. Report an error 
+/* Get the Handle index for the supplied object identifier. Report an error
    if the handle is not curently associated with the running thread. */
    ihandle = CheckId( this_id, 1, status );
 
-/* Break the associated of the handle with the current thread so that the 
+/* Break the associated of the handle with the current thread so that the
    handle is not assigned to any thread. We do this before unlocking the
    Object structure (using astManageLock) since as soon as astManageLock
    returns, another thread that is waiting for the object to be unlocked
    may start up and modify the handle properties. */
    if( handles[ ihandle ].context >= 0 ) {
-      RemoveHandle( ihandle, &active_handles[ handles[ ihandle ].context ], 
+      RemoveHandle( ihandle, &active_handles[ handles[ ihandle ].context ],
                     status );
 #if defined(MEM_DEBUG)
       astHandleUse( ihandle, "unlocked from thread %d at context "
-                    "level %d", handles[ ihandle ].thread, 
+                    "level %d", handles[ ihandle ].thread,
                     handles[ ihandle ].context );
 #endif
       handles[ ihandle ].thread = -1;
@@ -6220,7 +7218,7 @@ c--
 /* Check the supplied object pointer was valid. */
    if( ihandle != -1 ){
 
-/* The protected astManageLock function implements the public functions, 
+/* The protected astManageLock function implements the public functions,
    astLock and astUnlock. */
       lstat = astManageLock( this, AST__UNLOCK, 0, &fail );
       if( astOK ) {
@@ -6229,23 +7227,23 @@ c--
                if( fail == this ) {
                   astError( AST__LCKERR, "astUnlock(%s): Failed to unlock the %s "
                             "because it is locked by another thread (programming "
-                            "error).", status, astGetClass( this ), 
+                            "error).", status, astGetClass( this ),
                             astGetClass( this ) );
-      
+
                } else {
                   astError( AST__LCKERR, "astUnlock(%s): Failed to unlock the %s "
                             "because a %s contained within it is locked by another "
-                            "thread (programming error).", status, 
+                            "thread (programming error).", status,
                             astGetClass( this ), astGetClass( this ),
                             astGetClass( fail ) );
                }
-            }   
-   
+            }
+
          } else if( lstat == 3 ) {
             astError( AST__LCKERR, "astUnlock(%s): Failed to unlock a POSIX mutex.", status,
                       astGetClass( this ) );
 
-         } 
+         }
       }
    }
 
@@ -6256,7 +7254,7 @@ c--
    re-instated. */
    astErrorEnd( &error_context );
 
-#endif 
+#endif
 }
 
 AstObject *astI2P_( int integer, int *status ) {
@@ -6353,7 +7351,7 @@ MYSTATIC void InitContext( int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
 
 /* Check the global error status. */
    if ( !astOK ) return;
@@ -6430,7 +7428,7 @@ MYSTATIC void InsertHandle( int ihandle, int *head, int *status ) {
 
 #if defined(MEM_DEBUG)
    char buf[80];
-   astHandleUse( ihandle, "about to be inserted into %s (%d)", 
+   astHandleUse( ihandle, "about to be inserted into %s (%d)",
                  HeadString( head, buf ), head );
    CheckList( head, status );
    CheckInList( ihandle, head, 0, status );
@@ -6509,7 +7507,7 @@ AstObject *astMakeId_( AstObject *this, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Thread-specific global data */
+   astDECLARE_GLOBALS            /* Thread-specific global data */
    AstObject *id;                /* ID value to return */
    int ihandle;                  /* Handle offset */
 
@@ -6651,7 +7649,7 @@ AstObject *astMakePointer_( AstObject *this_id, int *status ) {
 
 *  Notes:
 *     - In a thread-safe context, an error is reported if the supplied
-*     Object has not been locked by the calling thread (using astLock) 
+*     Object has not been locked by the calling thread (using astLock)
 *     prior to invoking this function.
 *     - The object reference count is not modified by this function,
 *     so the returned pointer should not be annulled by the caller.
@@ -7012,24 +8010,24 @@ c++
 
 *  Returned Value:
 *     astThread()
-*        A value of AST__UNLOCKED is returned if the Object (or pointer) 
+*        A value of AST__UNLOCKED is returned if the Object (or pointer)
 *        is currently unlocked (i.e. has been unlocked using astUnlock
-*        but has not yet been locked using astLock). A value of 
-*        AST__RUNNING is returned if the Object (or pointer) is currently 
-*        locked by the running thread. A value of AST__OTHER is returned 
-*        if the Object (or pointer) is currently locked by the another 
+*        but has not yet been locked using astLock). A value of
+*        AST__RUNNING is returned if the Object (or pointer) is currently
+*        locked by the running thread. A value of AST__OTHER is returned
+*        if the Object (or pointer) is currently locked by the another
 *        thread.
 
-*  Object Pointers and Structures: 
+*  Object Pointers and Structures:
 *     At any one time, an AST Object can have several distinct pointers,
-*     any one of which can be used to access the Object structure. For 
-*     instance, the astClone function will produce a new distinct pointer 
-*     for a given Object. In fact, an AST "pointer" is not a real pointer 
-*     at all - it is an identifier for a "handle" structure, encoded to 
-*     make it look like a pointer. Each handle contains (amongst othere 
-*     things) a "real" pointer to the Object structure. This allows more 
-*     than one handle to refer to the same Object structure. So when you 
-*     call astClone (for instance) you get back an identifier for a new 
+*     any one of which can be used to access the Object structure. For
+*     instance, the astClone function will produce a new distinct pointer
+*     for a given Object. In fact, an AST "pointer" is not a real pointer
+*     at all - it is an identifier for a "handle" structure, encoded to
+*     make it look like a pointer. Each handle contains (amongst othere
+*     things) a "real" pointer to the Object structure. This allows more
+*     than one handle to refer to the same Object structure. So when you
+*     call astClone (for instance) you get back an identifier for a new
 *     handle that refers to the same Object as the supplied handle.
 *
 *     In order to use an Object for anything useful, it must be locked
@@ -7037,20 +8035,20 @@ c++
 *     explicitly using astLock). The identity of the thread is stored in
 *     both the Object structure, and in the handle that was passed to
 *     astLock (or returned by the constructor function). Thus it is
-*     possible for a thread to have active pointers for Objects that are 
-*     currently locked by another thread. In general, if such a pointer is 
-*     passed to an AST function an error will be reported indicating that 
+*     possible for a thread to have active pointers for Objects that are
+*     currently locked by another thread. In general, if such a pointer is
+*     passed to an AST function an error will be reported indicating that
 *     the Object is currently locked by another thread. The two exceptions
 *     to this is that astAnnul can be used to annull such a pointer, and
 *     this function can be used to return information about the pointer.
 *
 *     The other practical consequence of this is that when astEnd is
-*     called, all active pointers currently owned by the running thread 
-*     (at the current context level) are annulled. This includes pointers 
+*     called, all active pointers currently owned by the running thread
+*     (at the current context level) are annulled. This includes pointers
 *     for Objects that are currently locked by other threads.
-*     
-*     If the "ptr" parameter is zero, then the returned value describes 
-*     the Object structure itself. If "ptr" is non-zero, then the returned 
+*
+*     If the "ptr" parameter is zero, then the returned value describes
+*     the Object structure itself. If "ptr" is non-zero, then the returned
 *     value describes the supplied Object pointer (i.e. handle), rather
 *     than the Object structure.
 
@@ -7059,21 +8057,17 @@ c++
 *     status is set, but no further error report will be made if it
 *     subsequently fails under these circumstances.
 *     - This function is only available in the C interface.
-*     - This function always returns AST__RUNNING if the AST library has 
-*     been built without POSIX thread support (i.e. the "-with-pthreads" 
+*     - This function always returns AST__RUNNING if the AST library has
+*     been built without POSIX thread support (i.e. the "-with-pthreads"
 *     option was not specified when running the "configure" script).
 c--
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;      /* Thread-specific global data */
+   astDECLARE_GLOBALS       /* Thread-specific global data */
    int result;              /* The returned value */
 
-/* Initialise the returned value */
-   result = AST__RUNNING;
-
-/* Nothing more to do if AST was not build with thread support. */
-#if defined(THREAD_SAFE)  
+#if defined(THREAD_SAFE)
 
 /* More local Variables: */
    AstObject *this;
@@ -7082,6 +8076,13 @@ c--
 
 /* Ensure global variables are accessable. */
    astGET_GLOBALS(NULL);
+#endif
+
+/* Initialise the returned value */
+   result = AST__RUNNING;
+
+/* Nothing more to do if AST was not build with thread support. */
+#if defined(THREAD_SAFE)
 
 /* If the ownership of the handle is being queried... */
    if( ptr ) {
@@ -7106,11 +8107,11 @@ c--
 /* Unlock the mutex that guards access to the handles array */
       UNLOCK_MUTEX2;
 
-/* Otherwise, the ownership of the Object is being queried. Obtain the 
-   Object pointer from the ID supplied and validate the pointer to ensure 
-   it identifies a valid Object (this generates an error if it doesn't). 
-   Note, we use the "astMakePointer_NoLockCheck", since the usual 
-   "astMakePointer" macro invokes astCheckLock to report an error if the 
+/* Otherwise, the ownership of the Object is being queried. Obtain the
+   Object pointer from the ID supplied and validate the pointer to ensure
+   it identifies a valid Object (this generates an error if it doesn't).
+   Note, we use the "astMakePointer_NoLockCheck", since the usual
+   "astMakePointer" macro invokes astCheckLock to report an error if the
    Object is not currently locked by the calling thread. */
    } else if( astIsAObject( this = astMakePointer_NoLockCheck( this_id ) ) ) {
 
@@ -7122,7 +8123,7 @@ c--
          result = AST__OTHER;
       } else if( check == 6 ) {
          result = AST__UNLOCKED;
-      }        
+      }
    }
 
 #endif
@@ -7153,13 +8154,13 @@ f     RESULT = AST_VERSION()
 *     Object class function.
 
 *  Description:
-c     This macro invokes a function which 
-f     This function 
+c     This macro invokes a function which
+f     This function
 *     returns an integer representing the version of the AST library
-*     being used. The library version is formatted as a string such as 
-*     "2.0-7" which contains integers representing the "major version" (2), 
-*     the "minor version" (0) and the "release" (7). The integer returned 
-*     by this function combines all three integers together into a single 
+*     being used. The library version is formatted as a string such as
+*     "2.0-7" which contains integers representing the "major version" (2),
+*     the "minor version" (0) and the "release" (7). The integer returned
+*     by this function combines all three integers together into a single
 *     integer using the expresion:
 *
 *     (major version)*1E6 + (minor version)*1E3 + (release)
@@ -7206,11 +8207,11 @@ f     RESULT = AST_ESCAPES( NEWVAL, STATUS )
 *     The Plot class defines a set of escape sequences which can be
 *     included within a text string in order to control the appearance of
 *     sub-strings within the text. See the Escape attribute for a
-*     description of these escape sequences. It is usually inappropriate 
+*     description of these escape sequences. It is usually inappropriate
 *     for AST to return strings containing such escape sequences when
 *     called by application code. For instance, an application which
 *     displays the value of the Title attribute of a Frame usually does
-*     not want the displayed string to include potentially long escape 
+*     not want the displayed string to include potentially long escape
 *     sequences which a human read would have difficuly interpreting.
 *     Therefore the default behaviour is for AST to strip out such escape
 *     sequences when called by application code. This default behaviour
@@ -7220,11 +8221,11 @@ f     RESULT = AST_ESCAPES( NEWVAL, STATUS )
 c     new_value
 f     NEWVAL = INTEGER (Given)
 *        A flag which indicates if escapes sequences should be included
-*        in returned strings. If zero is supplied, escape sequences will 
-*        be stripped out of all strings returned by any AST function. If 
-*        a positive value is supplied, then any escape sequences will be 
+*        in returned strings. If zero is supplied, escape sequences will
+*        be stripped out of all strings returned by any AST function. If
+*        a positive value is supplied, then any escape sequences will be
 *        retained in the value returned to the caller. If a negative
-*        value is supplied, the current value of the flag will be left 
+*        value is supplied, the current value of the flag will be left
 *        unchanged.
 
 *  Returned Value:
@@ -7238,8 +8239,8 @@ c        This macro applies to all Objects.
 f        This routine applies to all Objects.
 
 *  Notes:
-*     - This function also controls whether the 
-c     astStripEscapes 
+*     - This function also controls whether the
+c     astStripEscapes
 f     AST_STRIPESCAPES
 *     function removes escape sequences from the supplied string, or
 *     returns the supplied string without change.
@@ -7250,9 +8251,9 @@ f     AST_STRIPESCAPES
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;
+   astDECLARE_GLOBALS
    int old_val;
-  
+
 /* Get a pointer to Thread-specific global data. */
    astGET_GLOBALS(NULL);
 
@@ -7281,14 +8282,14 @@ void CheckList( int *head, int *status ) {
    int ok;
    int ihandle;
    char buf[200];
-   astDECLARE_GLOBALS;          
+   astDECLARE_GLOBALS
    if( !astOK ) return;
 
    astGET_GLOBALS(NULL);
 
    ok = 1;
    if ( *head != -1 ) {
-      ihandle = *head;      
+      ihandle = *head;
       if( handles[ handles[ ihandle ].blink ].flink != ihandle ||
           handles[ handles[ ihandle ].flink ].blink != ihandle ) {
          ok = 0;
@@ -7302,7 +8303,7 @@ void CheckList( int *head, int *status ) {
                    CheckThread( ihandle, head, status ) == 0 ) {
                   ok = 0;
                   break;
-               } 
+               }
                ihandle= handles[ ihandle ].blink;
             }
          }
@@ -7311,19 +8312,19 @@ void CheckList( int *head, int *status ) {
 
    if( !ok ) {
       printf("CheckList error in %s\n", HeadString( head, buf ) );
-      printf("   Central handle: %s\n", HandleString( ihandle, buf ) );      
+      printf("   Central handle: %s\n", HandleString( ihandle, buf ) );
 
       if( handles[ handles[ ihandle ].blink ].flink != ihandle ) {
-         printf("   Central handle->blink: %s\n", 
-                 HandleString( handles[ ihandle ].blink, buf ) );      
-         printf("   Central handle->blink->flink: %s\n", 
+         printf("   Central handle->blink: %s\n",
+                 HandleString( handles[ ihandle ].blink, buf ) );
+         printf("   Central handle->blink->flink: %s\n",
                  HandleString( handles[ handles[ ihandle ].blink ].flink, buf ) );
       }
 
       if( handles[ handles[ ihandle ].flink ].blink != ihandle ) {
-         printf("   Central handle->flink: %s\n", 
-                 HandleString( handles[ ihandle ].flink, buf ) );      
-         printf("   Central handle->flink->blink: %s\n", 
+         printf("   Central handle->flink: %s\n",
+                 HandleString( handles[ ihandle ].flink, buf ) );
+         printf("   Central handle->flink->blink: %s\n",
                  HandleString( handles[ handles[ ihandle ].flink ].blink, buf ) );
       }
    }
@@ -7348,7 +8349,7 @@ void CheckInList( int ihandle, int *head, int in, int *status ){
                if( ihandle == jhandle ) {
                   found = 1;
                   break;
-               } 
+               }
                jhandle= handles[ jhandle ].blink;
             }
          }
@@ -7373,7 +8374,7 @@ int CheckThread( int ihandle, int *head, int *status ) {
 #if defined(THREAD_SAFE)
 
    char buf[200];
-   astDECLARE_GLOBALS;          
+   astDECLARE_GLOBALS
    if( !astOK ) return result;
 
    astGET_GLOBALS(NULL);
@@ -7381,7 +8382,7 @@ int CheckThread( int ihandle, int *head, int *status ) {
    if( *head == unowned_handles  ) {
       if(  handles[ ihandle ].thread != -1 ) {
          printf("Handle %s has wrong thread: is %d, should "
-             "be -1 (i.e. unowned)\n", HandleString( ihandle, buf ), 
+             "be -1 (i.e. unowned)\n", HandleString( ihandle, buf ),
               handles[ ihandle ].thread );
 
          result = 0;
@@ -7390,17 +8391,17 @@ int CheckThread( int ihandle, int *head, int *status ) {
    } else if( *head == free_handles ) {
       if(  handles[ ihandle ].thread != -1 ) {
          printf("Handle %s has wrong thread: is %d, should "
-             "be -1 (i.e. free)\n", HandleString( ihandle, buf ), 
+             "be -1 (i.e. free)\n", HandleString( ihandle, buf ),
               handles[ ihandle ].thread );
          result = 0;
       }
 
    } else if( handles[ ihandle ].thread != AST__THREAD_ID ) {
       printf("Handle %s has wrong thread: is %d, should "
-             "be %d\n", HandleString( ihandle, buf ), 
+             "be %d\n", HandleString( ihandle, buf ),
               handles[ ihandle ].thread, AST__THREAD_ID );
       result = 0;
-   } 
+   }
 
 #endif
 
@@ -7412,7 +8413,7 @@ void astWatchHandle_( int handle ){
 }
 
 void astHandleUse_( int handle, const char *verb, ... ){
-   va_list args;                 
+   va_list args;
    if( handle == Watched_Handle ) {
       va_start( args, verb );
       astHandleAlarm( verb, args );
@@ -7422,43 +8423,43 @@ void astHandleUse_( int handle, const char *verb, ... ){
 
 void astHandleAlarm_( const char *verb, va_list args ){
    char buff[200], hbuf[200];
-   astDECLARE_GLOBALS;          
+   astDECLARE_GLOBALS
    astGET_GLOBALS(NULL);
 
    vsprintf( buff, verb, args );
 
 #if defined(THREAD_SAFE)
-   printf( "astHandleAlarm: Handle %s %s (current thread is %d).\n\n", 
+   printf( "astHandleAlarm: Handle %s %s (current thread is %d).\n\n",
            HandleString( Watched_Handle, hbuf ), buff, AST__THREAD_ID );
 #else
-   printf( "astHandleAlarm: Handle %s %s.\n\n", 
+   printf( "astHandleAlarm: Handle %s %s.\n\n",
            HandleString( Watched_Handle, hbuf ), buff );
 #endif
 }
 
 MYSTATIC const char *HandleString( int ihandle, char *buf ){
 #if defined(THREAD_SAFE)
-   astDECLARE_GLOBALS;          
+   astDECLARE_GLOBALS
    astGET_GLOBALS(NULL);
 
    if( ihandle >= 0 ) {
-      sprintf( buf, "(index:%d v:%d c:%d t:%d i:%d cl:%s) [cur. thread: %d]", 
-               ihandle, 
-               handles[ ihandle ].check, 
+      sprintf( buf, "(index:%d v:%d c:%d t:%d i:%d cl:%s) [cur. thread: %d]",
+               ihandle,
+               handles[ ihandle ].check,
                handles[ ihandle ].context, handles[ ihandle ].thread,
-               handles[ ihandle ].id, 
+               handles[ ihandle ].id,
                handles[ ihandle ].vtab ? handles[ ihandle ].vtab->class : "<none>",
                AST__THREAD_ID );
    } else {
-      sprintf( buf, "(index:%d <invalid>) [cur. thread: %d]", ihandle, 
+      sprintf( buf, "(index:%d <invalid>) [cur. thread: %d]", ihandle,
                AST__THREAD_ID );
    }
 
 #else
    if( ihandle >= 0 ) {
-      sprintf( buf, "(index:%d v:%d c:%d i:%d cl:%s)", ihandle, 
-               handles[ ihandle ].check, 
-               handles[ ihandle ].context, handles[ ihandle ].id, 
+      sprintf( buf, "(index:%d v:%d c:%d i:%d cl:%s)", ihandle,
+               handles[ ihandle ].check,
+               handles[ ihandle ].context, handles[ ihandle ].id,
                handles[ ihandle ].vtab ? handles[ ihandle ].vtab->class : "<none>" );
    } else {
       sprintf( buf, "(index:%d <invalid>)", ihandle );
@@ -7469,7 +8470,7 @@ MYSTATIC const char *HandleString( int ihandle, char *buf ){
 
 MYSTATIC const char *HeadString( int *head, char *list ){
    int i;
-   astDECLARE_GLOBALS;          
+   astDECLARE_GLOBALS
    astGET_GLOBALS(NULL);
 
    if( head == &free_handles ) {
@@ -7490,11 +8491,8 @@ MYSTATIC const char *HeadString( int *head, char *list ){
       }
       if( *list == 0 ) sprintf( list, "unknown handles list with head %d",
                                 *head );
-   }      
+   }
    return list;
 }
 
 #endif
-
-
-

@@ -198,17 +198,17 @@ public class Channel extends AstObject {
     /** 
      * Returns any warnings issued by the previous read or write operation.   
      * This function returns an AST KeyMap object holding the text of any
-     * warnings issued as a result of the previous invocation of the 
+     * warnings issued as a result of the previous invocation of the
      * astRead or astWrite
-     * function on the Channel. If no warnings were issued, a 
+     * function on the Channel. If no warnings were issued, a
      * a NULL value
-     * will be returned. 
+     * will be returned.
      * <p>
      * Such warnings are non-fatal and will not prevent the
      * read or write operation succeeding. However, the converted object
      * may not be identical to the original object in all respects.
-     * Differences which would usually be deemed as insignificant in most 
-     * usual cases will generate a warning, whereas more significant 
+     * Differences which would usually be deemed as insignificant in most
+     * usual cases will generate a warning, whereas more significant
      * differences will generate an error.
      * <p>
      * The "Strict" attribute allows this warning facility to be switched
@@ -217,13 +217,13 @@ public class Channel extends AstObject {
      * <h4>Notes</h4>
      * <br> - The returned KeyMap uses keys of the form "Warning_1",
      * "Warning_2", etc.
-     * <br> - A value of 
+     * <br> - A value of
      * NULL will be returned if this function is invoked with the AST
      * error status set,
      * or if it should fail for any reason.
-     * @return  A pointer to the KeyMap holding the warning messages, or 
+     * @return  A pointer to the KeyMap holding the warning messages, or
      * NULL
-     * if no warnings were issued during the previous read operation. 
+     * if no warnings were issued during the previous read operation.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -237,7 +237,7 @@ public class Channel extends AstObject {
      * Channel. If included, they will describe what each item of
      * output represents.
      * <p>
-     * If Comment is non-zero, then comments will be included. If 
+     * If Comment is non-zero, then comments will be included. If
      * it is zero, comments will be omitted.
      * 
      *
@@ -255,7 +255,7 @@ public class Channel extends AstObject {
      * Channel. If included, they will describe what each item of
      * output represents.
      * <p>
-     * If Comment is non-zero, then comments will be included. If 
+     * If Comment is non-zero, then comments will be included. If
      * it is zero, comments will be omitted.
      * 
      *
@@ -325,7 +325,7 @@ public class Channel extends AstObject {
      * 1 - Report only conditions where significant information content has been
      * changed. For instance, an unsupported time-scale has been replaced by a
      * supported near-equivalent time-scale. Another example is if a basic
-     * Channel unexpected encounters data items that may have been introduced 
+     * Channel unexpected encounters data items that may have been introduced
      * by later versions of AST.
      * <p>
      * 2 - Report the above, and in addition report significant default
@@ -337,13 +337,13 @@ public class Channel extends AstObject {
      * interesting conditions that have no significant effect on the
      * conversion. For instance, report if a time-scale of "TT"
      * (terrestrial time) is used in place of "ET" (ephemeris time). This
-     * change has no signficiant effect because ET is the predecessor of, 
+     * change has no signficiant effect because ET is the predecessor of,
      * and is continuous with, TT. Synonyms such as "IAT" and "TAI" are
      * another example.
      * <p>
      * The default value is 1. Note, there are many other conditions that
      * can occur whilst reading or writing an Object that completely
-     * prevent the conversion taking place. Such conditions will always 
+     * prevent the conversion taking place. Such conditions will always
      * generate errors, irrespective of the ReportLevel and Strict attributes.
      * 
      *
@@ -367,7 +367,7 @@ public class Channel extends AstObject {
      * 1 - Report only conditions where significant information content has been
      * changed. For instance, an unsupported time-scale has been replaced by a
      * supported near-equivalent time-scale. Another example is if a basic
-     * Channel unexpected encounters data items that may have been introduced 
+     * Channel unexpected encounters data items that may have been introduced
      * by later versions of AST.
      * <p>
      * 2 - Report the above, and in addition report significant default
@@ -379,13 +379,13 @@ public class Channel extends AstObject {
      * interesting conditions that have no significant effect on the
      * conversion. For instance, report if a time-scale of "TT"
      * (terrestrial time) is used in place of "ET" (ephemeris time). This
-     * change has no signficiant effect because ET is the predecessor of, 
+     * change has no signficiant effect because ET is the predecessor of,
      * and is continuous with, TT. Synonyms such as "IAT" and "TAI" are
      * another example.
      * <p>
      * The default value is 1. Note, there are many other conditions that
      * can occur whilst reading or writing an Object that completely
-     * prevent the conversion taking place. Such conditions will always 
+     * prevent the conversion taking place. Such conditions will always
      * generate errors, irrespective of the ReportLevel and Strict attributes.
      * 
      *
@@ -443,19 +443,19 @@ public class Channel extends AstObject {
      * This is a boolean attribute which indicates whether a warning
      * rather than an error should be issed for insignificant conversion
      * problems. If it is set non-zero, then fatal errors are issued
-     * instead of warnings, resulting in the 
+     * instead of warnings, resulting in the
      * AST error status being set.
      * If Strict is zero (the default), then execution continues after minor
      * conversion problems, and a warning message is added to the Channel
-     * structure. Such messages can be retrieved using the 
+     * structure. Such messages can be retrieved using the
      * astWarnings
      * function.
      * <h4>Notes</h4>
      * <br> - This attribute was introduced in AST version 5.0. Prior to this
-     * version of AST unexpected data items read by a basic Channel always 
-     * caused an error to be reported. So applications linked against 
-     * versions of AST prior to version 5.0 may not be able to read Object 
-     * descriptions created by later versions of AST, if the Object's class 
+     * version of AST unexpected data items read by a basic Channel always
+     * caused an error to be reported. So applications linked against
+     * versions of AST prior to version 5.0 may not be able to read Object
+     * descriptions created by later versions of AST, if the Object's class
      * description has changed.
      * 
      *
@@ -471,19 +471,19 @@ public class Channel extends AstObject {
      * This is a boolean attribute which indicates whether a warning
      * rather than an error should be issed for insignificant conversion
      * problems. If it is set non-zero, then fatal errors are issued
-     * instead of warnings, resulting in the 
+     * instead of warnings, resulting in the
      * AST error status being set.
      * If Strict is zero (the default), then execution continues after minor
      * conversion problems, and a warning message is added to the Channel
-     * structure. Such messages can be retrieved using the 
+     * structure. Such messages can be retrieved using the
      * astWarnings
      * function.
      * <h4>Notes</h4>
      * <br> - This attribute was introduced in AST version 5.0. Prior to this
-     * version of AST unexpected data items read by a basic Channel always 
-     * caused an error to be reported. So applications linked against 
-     * versions of AST prior to version 5.0 may not be able to read Object 
-     * descriptions created by later versions of AST, if the Object's class 
+     * version of AST unexpected data items read by a basic Channel always
+     * caused an error to be reported. So applications linked against
+     * versions of AST prior to version 5.0 may not be able to read Object
+     * descriptions created by later versions of AST, if the Object's class
      * description has changed.
      * 
      *

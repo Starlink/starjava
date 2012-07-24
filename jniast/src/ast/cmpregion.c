@@ -12,31 +12,33 @@ f     AST_CMPREGION
 
 *  Description:
 *     A CmpRegion is a Region which allows two component
-*     Regions (of any class) to be combined to form a more complex 
-*     Region. This combination may be performed either a boolean 
-*     AND operator or a boolean OR operator. If the AND operator is 
-*     used, then a position is inside the CmpRegion only if it is 
-*     inside both of its two component Regions. If the OR operator is 
-*     used, then a position is inside the CmpRegion if it is inside 
-*     either (or both) of its two component Regions. Other operators can
-*     be formed by negating one or both component Regions before using 
+*     Regions (of any class) to be combined to form a more complex
+*     Region. This combination may be performed a boolean AND, OR
+*     or XOR (exclusive OR) operator. If the AND operator is
+*     used, then a position is inside the CmpRegion only if it is
+*     inside both of its two component Regions. If the OR operator is
+*     used, then a position is inside the CmpRegion if it is inside
+*     either (or both) of its two component Regions. If the XOR operator
+*     is used, then a position is inside the CmpRegion if it is inside
+*     one but not both of its two component Regions. Other operators can
+*     be formed by negating one or both component Regions before using
 *     them to construct a new CmpRegion.
 *
 *     The two component Region need not refer to the same coordinate
-*     Frame, but it must be possible for the 
-c     astConvert 
-f     AST_CONVERT 
+*     Frame, but it must be possible for the
+c     astConvert
+f     AST_CONVERT
 *     function to determine a Mapping between them (an error will be
 *     reported otherwise when the CmpRegion is created). For instance,
 *     a CmpRegion may combine a Region defined within an ICRS SkyFrame
 *     with a Region defined within a Galactic SkyFrame. This is
 *     acceptable because the SkyFrame class knows how to convert between
-*     these two systems, and consequently the 
-c     astConvert 
-f     AST_CONVERT 
+*     these two systems, and consequently the
+c     astConvert
+f     AST_CONVERT
 *     function will also be able to convert between them. In such cases,
 *     the second component Region will be mapped into the coordinate Frame
-*     of the first component Region, and the Frame represented by the 
+*     of the first component Region, and the Frame represented by the
 *     CmpRegion as a whole will be the Frame of the first component Region.
 *
 *     Since a CmpRegion is itself a Region, it can be used as a
@@ -67,16 +69,16 @@ f     The CmpRegion class does not define any new routines beyond those
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -90,6 +92,14 @@ f     The CmpRegion class does not define any new routines beyond those
 *        finding the extreme position sin a mesh covering the boundary.
 *     20-JAN-2009 (DSB):
 *        Over-ride astRegBasePick.
+*     19-MAR-2009 (DSB):
+*        Over-ride the astDecompose method.
+*     8-SEP-2009 (DSB):
+*        Fix logic in RegTrace.
+*     9-SEP-2009 (DSB):
+*        - Added astCmpRegionList
+*        - Added support for XOR
+*        - Override astGetObjSize.
 *class--
 */
 
@@ -140,9 +150,7 @@ static int class_check;
 
 /* Pointers to parent class methods which are extended by this class. */
 static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
-static AstRegion *(* parent_getuncfrm)( AstRegion *, int, int * );
-static void (* parent_clearunc)( AstRegion *, int * );
-static int (* parent_testunc)( AstRegion *, int * );
+static AstRegion *(* parent_getdefunc)( AstRegion *, int * );
 static void (* parent_setregfs)( AstRegion *, AstFrame *, int * );
 static AstMapping *(* parent_simplify)( AstMapping *, int * );
 static int (* parent_equal)( AstObject *, AstObject *, int * );
@@ -153,6 +161,8 @@ static void (* parent_clearmeshsize)( AstRegion *, int * );
 static double (*parent_getfillfactor)( AstRegion *, int * );
 static void (*parent_regsetattrib)( AstRegion *, const char *, char **, int * );
 static void (*parent_regclearattrib)( AstRegion *, const char *, char **, int * );
+static void (* parent_resetcache)( AstRegion *, int * );
+static int (* parent_getobjsize)( AstObject *, int * );
 
 #if defined(THREAD_SAFE)
 static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
@@ -160,9 +170,9 @@ static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
 
 
 #ifdef THREAD_SAFE
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
-   globals->Class_Init = 0; 
+   globals->Class_Init = 0;
 
 /* Create the function that initialises global data for this module. */
 astMAKE_INITGLOBALS(CmpRegion)
@@ -197,16 +207,20 @@ AstCmpRegion *astCmpRegionId_( void *, void *, int, const char *, ... );
 static AstMapping *Simplify( AstMapping *, int * );
 static AstPointSet *RegBaseMesh( AstRegion *, int * );
 static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
-static AstRegion *RegBasePick( AstRegion *this, int, const int *, int * );
-static AstRegion *GetUncFrm( AstRegion *, int, int * );
+static AstRegion *GetDefUnc( AstRegion *, int * );
 static AstRegion *MatchRegion( AstRegion *, int, AstRegion *, const char *, int * );
+static AstRegion *RegBasePick( AstRegion *this, int, const int *, int * );
 static double GetFillFactor( AstRegion *, int * );
+static int CmpRegionList( AstCmpRegion *, int *, AstRegion ***, int * );
 static int Equal( AstObject *, AstObject *, int * );
 static int GetBounded( AstRegion *, int * );
+static int GetObjSize( AstObject *, int * );
 static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int **, int * );
-static int TestUnc( AstRegion *, int * );
-static void ClearUnc( AstRegion *, int * );
+static int RegTrace( AstRegion *, int, double *, double **, int * );
+static void ClearClosed( AstRegion *, int * );
+static void ClearMeshSize( AstRegion *, int * );
 static void Copy( const AstObject *, AstObject *, int * );
+static void Decompose( AstMapping *, AstMapping **, AstMapping **, int *, int *, int *, int * );
 static void Delete( AstObject *, int * );
 static void Dump( AstObject *, AstChannel *, int * );
 static void GetRegions( AstCmpRegion *, AstRegion **, AstRegion **, int *, int *, int *, int * );
@@ -214,11 +228,12 @@ static void RegBaseBox( AstRegion *, double *, double *, int * );
 static void RegBaseBox2( AstRegion *, double *, double *, int * );
 static void RegClearAttrib( AstRegion *, const char *, char **, int * );
 static void RegSetAttrib( AstRegion *, const char *, char **, int * );
-static void SetRegFS( AstRegion *, AstFrame *, int * );
+static void ResetCache( AstRegion *this, int * );
+static void SetBreakInfo( AstCmpRegion *, int, int * );
 static void SetClosed( AstRegion *, int, int * );
 static void SetMeshSize( AstRegion *, int, int * );
-static void ClearClosed( AstRegion *, int * );
-static void ClearMeshSize( AstRegion *, int * );
+static void SetRegFS( AstRegion *, AstFrame *, int * );
+static void XORCheck( AstCmpRegion *, int * );
 
 #if defined(THREAD_SAFE)
 static int ManageLock( AstObject *, int, int, AstObject **, int * );
@@ -227,54 +242,247 @@ static int ManageLock( AstObject *, int, int, AstObject **, int * );
 
 /* Member functions. */
 /* ================= */
-static void ClearUnc( AstRegion *this_region, int *status ){
+int CmpRegionList( AstCmpRegion *this, int *nreg, AstRegion ***reg_list,
+                   int *status ) {
 /*
+*+
 *  Name:
-*     ClearUnc
+*     astCmpRegionList
 
 *  Purpose:
-*     Erase any uncertainty information in a Region.
+*     Decompose a CmpRegion into a sequence of simpler Regions.
+
+*  Type:
+*     Protected virtual function.
+
+*  Synopsis:
+*     #include "cmpregion.h"
+*     int astCmpRegionList( AstCmpRegion *this, int *nreg,
+*                           AstRegion ***reg_list, int *status )
+
+*  Class Membership:
+*     CmpRegion method.
+
+*  Description:
+*     This function decomposes a CmpRegion into a sequence of simpler
+*     Regions which may be applied in sequence to achieve the same
+*     effect.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpRegion to be decomposed (the CmpRegion is not
+*        actually modified by this function).
+*     nreg
+*        The address of an int which holds a count of the number of
+*        individual Regions in the decomposition. On entry, this
+*        should count the number of Regions already in the
+*        "*reg_list" array (below). On exit, it is updated to include
+*        any new Regions appended by this function.
+*     reg_list
+*        Address of a pointer to an array of Region pointers. On
+*        entry, this array pointer should either be NULL (if no
+*        Regions have yet been obtained) or should point at a
+*        dynamically allocated array containing Region pointers
+*        ("*nreg" in number) which have been obtained from a previous
+*        invocation of this function.
+*
+*        On exit, the dynamic array will be enlarged to contain any
+*        new Region pointers that result from the decomposition
+*        requested. These pointers will be appended to any previously
+*        present, and the array pointer will be updated as necessary
+*        to refer to the enlarged array (any space released by the
+*        original array will be freed automatically).
+*
+*        The new Region pointers returned will identify a sequence of
+*        Region which, when applied in order, will represent an area
+*        equivalent to that of the original Region.
+*
+*        All the Region pointers returned by this function should be
+*        annulled by the caller, using astAnnul, when no longer
+*        required. The dynamic array holding these pointers should
+*        also be freed, using astFree.
+
+*  Returned Value:
+*     An integer identifying the boolean operation that should be used to
+*     combine the Regions returned in "reg_list". This will be AST__AND
+*     or AST__OR.
+
+*-
+*/
+
+/* Local Variables: */
+   AstCmpRegion *cmpreg;
+   int add;
+   int result;
+
+/* Check the global error status. */
+   if ( !astOK ) return AST__AND;
+
+/* Check if this CmpRegion has an equivalent XOR representation. Is so,
+   store details of the XOR representation in the CmpRegion. */
+   XORCheck( this, status );
+
+/* The CmpRegion class only has full support for AND and OR operators.
+   However, it can also represent XOR operators, but it does this by
+   an equivalent set of AND and OR operators. When an XOR CmpRegion is
+   created, the original supplied argument regions are stored in
+   "this->xor1" and "this->xor2", and the component Regions placed in the
+   new CmpRegion are actually CmpRegions that implement the equivalent
+   of an XOR operation, using AND and OR operators. We want to hide this
+   to the outside world, so if the supplied CmpRegion represents an XOR
+   operation, add the XOR regions to the returned list, and return an
+   XOR operator. */
+   if( this->xor1 ) {
+      *reg_list = astGrow( *reg_list, *nreg + 2, sizeof( AstRegion * ) );
+      if( astOK ) {
+         ( *reg_list )[ (*nreg)++ ] = astClone( this->xor1 );
+         ( *reg_list )[ (*nreg)++ ] = astClone( this->xor2 );
+      }
+      result = AST__XOR;
+
+/* For AND and OR operators, we deal with the component Regions directly. */
+   } else {
+
+/* If the first component of the supplied CmpRegion is itself a CmpRegion
+   that uses the same boolean operator as "this", call this function
+   recursively to add its component Regions to the returned list. */
+      add = 1;
+      if( astIsACmpRegion( this->region1 ) ) {
+         cmpreg = (AstCmpRegion *) this->region1;
+         if( cmpreg->oper == this->oper ) {
+            (void) CmpRegionList( cmpreg, nreg, reg_list, status );
+            add = 0;
+         }
+      }
+
+/* Otherwise, add the component Region directly into the returned list of
+   Regions. */
+      if( add ) {
+         *reg_list = astGrow( *reg_list, *nreg + 1, sizeof( AstRegion * ) );
+         if( astOK ) {
+            ( *reg_list )[ *nreg ] = astClone( this->region1 );
+            ( *nreg )++;
+         }
+      }
+
+/* Do the same for the second component region */
+      add = 1;
+      if( astIsACmpRegion( this->region2 ) ) {
+         cmpreg = (AstCmpRegion *) this->region2;
+         if( cmpreg->oper == this->oper ) {
+            (void) CmpRegionList( cmpreg, nreg, reg_list, status );
+            add = 0;
+         }
+      }
+
+      if( add ) {
+         *reg_list = astGrow( *reg_list, *nreg + 1, sizeof( AstRegion * ) );
+         if( astOK ) {
+            ( *reg_list )[ *nreg ] = astClone( this->region2 );
+            ( *nreg )++;
+         }
+      }
+
+      result = this->oper;
+   }
+
+/* Return the boolean operator used to combine the regions in the
+   returned array. */
+   return result;
+}
+
+static void Decompose( AstMapping *this_mapping, AstMapping **map1,
+                       AstMapping **map2, int *series, int *invert1,
+                       int *invert2, int *status ) {
+/*
+*
+*  Name:
+*     Decompose
+
+*  Purpose:
+*     Decompose a CmpRegion into two component Regions.
 
 *  Type:
 *     Private function.
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     void ClearUnc( AstRegion *this, int *status )
+*     void Decompose( AstMapping *this, AstMapping **map1,
+*                     AstMapping **map2, int *series,
+*                     int *invert1, int *invert2, int *status )
 
 *  Class Membership:
-*     CmpRegion member function (over-rides the astClearUnc protected
-*     method inherited from the Region class).
+*     CmpRegion member function (over-rides the protected astDecompose
+*     method inherited from the Mapping class).
 
 *  Description:
-*     This function erases all uncertainty information, whether default
-*     or not, from a Region.
+*     This function returns pointers to two Mappings which, when applied
+*     either in series or parallel, are equivalent to the supplied Mapping.
+*
+*     Since the Frame class inherits from the Mapping class, Frames can
+*     be considered as special types of Mappings and so this method can
+*     be used to decompose either CmpMaps, CmpFrames, CmpRegions or Prisms.
 
 *  Parameters:
 *     this
-*        Pointer to the Region.
+*        Pointer to the Mapping.
+*     map1
+*        Address of a location to receive a pointer to first component
+*        Mapping.
+*     map2
+*        Address of a location to receive a pointer to second component
+*        Mapping.
+*     series
+*        Address of a location to receive a value indicating if the
+*        component Mappings are applied in series or parallel. A non-zero
+*        value means that the supplied Mapping is equivalent to applying map1
+*        followed by map2 in series. A zero value means that the supplied
+*        Mapping is equivalent to applying map1 to the lower numbered axes
+*        and map2 to the higher numbered axes, in parallel.
+*     invert1
+*        The value of the Invert attribute to be used with map1.
+*     invert2
+*        The value of the Invert attribute to be used with map2.
 *     status
 *        Pointer to the inherited status variable.
 
+*  Notes:
+*     - Any changes made to the component rames using the returned
+*     pointers will be reflected in the supplied CmpFrame.
+
+*-
 */
 
+
 /* Local Variables: */
-   AstCmpRegion *this;
+   AstCmpRegion *this;              /* Pointer to CmpRegion structure */
 
-/* Check the inherited status. */
-   if( !astOK ) return;
+/* Check the global error status. */
+   if ( !astOK ) return;
 
-/* Invoke the implementation inherited form the parent Region class to 
-   clear any default uncertainty information. */
-   (* parent_clearunc)( this_region, status );
+/* Obtain a pointer to the CmpMap structure. */
+   this = (AstCmpRegion *) this_mapping;
 
-/* Get a pointer to the CmpRegion structure. */
-   this = (AstCmpRegion *) this_region;
+/* The components Frames of a CmpRegion are considered to be series
+   Mappings. */
+   if( series ) *series = 1;
 
-/* Clear any uncertainty information in the component Regions. */
-   astClearUnc( this->region1 );
-   astClearUnc( this->region2 );
+/* The Frames are returned in their original order whether or not the
+   CmpRegion has been inverted. */
+   if( map1 ) *map1 = astClone( this->region1 );
+   if( map2 ) *map2 = astClone( this->region2 );
 
+/* The invert flags dont mean anything for a Region, but we return them
+   anyway. If the CmpRegion has been inverted, return inverted Invert flags. */
+   if( astGetInvert( this ) ) {
+      if( invert1 ) *invert1 = astGetInvert( this->region1 ) ? 0 : 1;
+      if( invert2 ) *invert2 = astGetInvert( this->region2 ) ? 0 : 1;
+
+/* If the CmpRegion has not been inverted, return the current Invert flags. */
+   } else {
+      if( invert1 ) *invert1 = astGetInvert( this->region1 );
+      if( invert2 ) *invert2 = astGetInvert( this->region2 );
+   }
 }
 
 static int Equal( AstObject *this_object, AstObject *that_object, int *status ) {
@@ -290,7 +498,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
+*     int Equal( AstObject *this_object, AstObject *that_object, int *status )
 
 *  Class Membership:
 *     CmpRegion member function (over-rides the astEqual protected
@@ -298,7 +506,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Description:
 *     This function returns a boolean result (0 or 1) to indicate whether
-*     two CmpRegions are equivalent. 
+*     two CmpRegions are equivalent.
 
 *  Parameters:
 *     this
@@ -320,9 +528,9 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 */
 
 /* Local Variables: */
-   AstCmpRegion *that;              
-   AstCmpRegion *this;              
-   int result;                   
+   AstCmpRegion *that;
+   AstCmpRegion *this;
+   int result;
 
 /* Initialise. */
    result = 0;
@@ -491,7 +699,7 @@ static int GetBounded( AstRegion *this_region, int *status ) {
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     int GetBounded( AstRegion *this, int *status ) 
+*     int GetBounded( AstRegion *this, int *status )
 
 *  Class Membership:
 *     CmpRegion method (over-rides the astGetBounded method inherited from
@@ -500,7 +708,7 @@ static int GetBounded( AstRegion *this_region, int *status ) {
 *  Description:
 *     This function returns a flag indicating if the Region is bounded.
 *     The implementation provided by the base Region class is suitable
-*     for Region sub-classes representing the inside of a single closed 
+*     for Region sub-classes representing the inside of a single closed
 *     curve (e.g. Circle, Ellipse, Box, etc). Other sub-classes (such as
 *     CmpRegion, PointList, etc ) may need to provide their own
 *     implementations.
@@ -537,12 +745,12 @@ static int GetBounded( AstRegion *this_region, int *status ) {
    if ( !astOK ) return result;
 
 /* Get a pointer to the CmpRegion structure. */
-   this = (AstCmpRegion *) this_region;   
+   this = (AstCmpRegion *) this_region;
 
 /* Get the component Regions, how they should be combined, and the
    Negated values which should be used with them. The returned values
-   take account of whether the supplied CmpRegion has itself been Negated 
-   or not. The returned Regions represent regions within the base Frame 
+   take account of whether the supplied CmpRegion has itself been Negated
+   or not. The returned Regions represent regions within the base Frame
    of the FrameSet encapsulated by the parent Region structure. */
    GetRegions( this, &reg1, &reg2, &oper, &neg1, &neg2, status );
 
@@ -564,7 +772,7 @@ static int GetBounded( AstRegion *this_region, int *status ) {
       if( reg1b || reg2b ) {
          result = 1;
 
-/* If neither of the two components is bounded, then the AND region is 
+/* If neither of the two components is bounded, then the AND region is
    unbounded if there is partial or no overlap between them and is bounded
    otherwise. */
       } else {
@@ -595,7 +803,7 @@ static int GetBounded( AstRegion *this_region, int *status ) {
    component Regions. */
    if( reg1 ) astSetNegated( reg1, neg1_old );
    if( reg2 ) astSetNegated( reg2, neg2_old );
-   
+
 /* Free resources. */
    reg1 = astAnnul( reg1 );
    reg2 = astAnnul( reg2 );
@@ -644,7 +852,7 @@ static double GetFillFactor( AstRegion *this_region, int *status ) {
 
 /* Local Variables: */
    AstCmpRegion *this;
-   double result; 
+   double result;
 
 /* Check the global error status. */
    if ( !astOK ) return AST__BAD;
@@ -660,7 +868,7 @@ static double GetFillFactor( AstRegion *this_region, int *status ) {
    if ( astTestFillFactor( this ) ) {
       result = (*parent_getfillfactor)( this_region, status );
 
-/* Otherwise, we will generate a default value equal to the FillFactor values 
+/* Otherwise, we will generate a default value equal to the FillFactor values
    of the first component Region. */
    } else {
       result = astGetFillFactor( this->region1 );
@@ -670,6 +878,73 @@ static double GetFillFactor( AstRegion *this_region, int *status ) {
    if ( !astOK ) result = AST__BAD;
 
 /* Return the result. */
+   return result;
+}
+
+static int GetObjSize( AstObject *this_object, int *status ) {
+/*
+*  Name:
+*     GetObjSize
+
+*  Purpose:
+*     Return the in-memory size of an Object.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpregion.h"
+*     int GetObjSize( AstObject *this, int *status )
+
+*  Class Membership:
+*     CmpRegion member function (over-rides the astGetObjSize protected
+*     method inherited from the parent class).
+
+*  Description:
+*     This function returns the in-memory size of the supplied CmpRegion,
+*     in bytes.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpRegion.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     The Object size, in bytes.
+
+*  Notes:
+*     - A value of zero will be returned if this function is invoked
+*     with the global status set, or if it should fail for any reason.
+*/
+
+/* Local Variables: */
+   AstCmpRegion *this;        /* Pointer to CmpRegion structure */
+   int result;                /* Result value to return */
+
+/* Initialise. */
+   result = 0;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Obtain a pointers to the CmpRegion structure. */
+   this = (AstCmpRegion *) this_object;
+
+/* Invoke the GetObjSize method inherited from the parent class, and then
+   add on any components of the class structure defined by this class
+   which are stored in dynamically allocated memory. */
+   result = (*parent_getobjsize)( this_object, status );
+
+   result += astGetObjSize( this->region1 );
+   result += astGetObjSize( this->region2 );
+   if( this->xor1 ) result += astGetObjSize( this->xor1 );
+   if( this->xor2 ) result += astGetObjSize( this->xor2 );
+
+/* If an error occurred, clear the result value. */
+   if ( !astOK ) result = 0;
+
+/* Return the result, */
    return result;
 }
 
@@ -692,17 +967,17 @@ static void GetRegions( AstCmpRegion *this, AstRegion **reg1, AstRegion **reg2,
 *                      int *oper, int *neg1, int *neg2, int *status )
 
 *  Class Membership:
-*     CmpRegion member function 
+*     CmpRegion member function
 
 *  Description:
 *     This function returns pointers to two Regions which, when applied
-*     using the returned boolean operator, are equivalent to the supplied 
-*     Region. If the CmpRegion has been negated, then the returned operator 
+*     using the returned boolean operator, are equivalent to the supplied
+*     Region. If the CmpRegion has been negated, then the returned operator
 *     and "negated" flags will be set such that they represent the
 *     negated CmpRegion.
 *
-*     The current Frames in both the returned component Regions will be 
-*     equivalent to the base Frame in the FrameSet encapsulated by the 
+*     The current Frames in both the returned component Regions will be
+*     equivalent to the base Frame in the FrameSet encapsulated by the
 *     parent Region structure.
 
 *  Parameters:
@@ -711,7 +986,7 @@ static void GetRegions( AstCmpRegion *this, AstRegion **reg1, AstRegion **reg2,
 *     reg1
 *        Address of a location to receive a pointer to first component
 *        Region. The current Frame in this region will be equivalent to
-*        the base Frame in the FrameSet 
+*        the base Frame in the FrameSet
 *     reg2
 *        Address of a location to receive a pointer to second component
 *        Region.
@@ -720,9 +995,9 @@ static void GetRegions( AstCmpRegion *this, AstRegion **reg1, AstRegion **reg2,
 *        component Regions are combined together. This will be one of
 *        AST__AND or AST__OR
 *     neg1
-*        The value of the Negated attribute to be used with reg1. 
+*        The value of the Negated attribute to be used with reg1.
 *     neg2
-*        The value of the Negated attribute to be used with reg2. 
+*        The value of the Negated attribute to be used with reg2.
 *     status
 *        Pointer to the inherited status variable.
 
@@ -746,7 +1021,7 @@ static void GetRegions( AstCmpRegion *this, AstRegion **reg1, AstRegion **reg2,
 
 /* Initialise the other returned items. Note, the CmpRegion initialiser
    stored a deep copy of the supplied component Regions, and so we do not
-   need to worry about attributes of the components having been changed 
+   need to worry about attributes of the components having been changed
    after the creation of the CmpRegion. This is different to the CmpMap
    class which merely clones its supplied component pointers and so has
    to save copies of the original Invert settings within the CmpMap
@@ -759,7 +1034,7 @@ static void GetRegions( AstCmpRegion *this, AstRegion **reg1, AstRegion **reg2,
    negation flags so that they reflect the inverted CmpRegion. */
    if( astGetNegated( this ) ) {
 
-/* If the component Regions are combined using AND, then the negated 
+/* If the component Regions are combined using AND, then the negated
    CmpRegion combines its negated components using  OR. */
       if( this->oper == AST__AND ){
          if( oper ) *oper = AST__OR;
@@ -776,58 +1051,45 @@ static void GetRegions( AstCmpRegion *this, AstRegion **reg1, AstRegion **reg2,
       } else if( astOK ) {
          astError( AST__INTER, "GetRegions(%s): The %s refers to an unknown "
                    "boolean operator with identifier %d (internal AST "
-                   "programming error).", status, astGetClass( this ), 
+                   "programming error).", status, astGetClass( this ),
                    astGetClass( this ), this->oper );
       }
    }
 }
 
-static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm, int *status ) {
+static AstRegion *GetDefUnc( AstRegion *this_region, int *status ) {
 /*
 *  Name:
-*     GetUncFrm
+*     GetDefUnc
 
 *  Purpose:
-*     Obtain a pointer to the uncertainty Region for a given Region.
+*     Obtain a pointer to the default uncertainty Region for a given Region.
 
 *  Type:
 *     Private function.
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     AstRegion *GetUncFrm( AstRegion *this, int ifrm, int *status ) 
+*     AstRegion *GetDefUnc( AstRegion *this )
 
 *  Class Membership:
-*     CmpRegion method (over-rides the astGetUncFrm method inherited from
+*     CmpRegion method (over-rides the astGetDefUnc method inherited from
 *     the Region class).
 
-*  Description:
 *     This function returns a pointer to a Region which represents the
-*     uncertainty associated with a position on the boundary of the given 
-*     Region. The returned Region can refer to the either the base or 
-*     the current Frame within the FrameSet encapsulated by the supplied 
-*     Region as specified by the "ifrm" parameter. If the returned Region is 
-*     re-centred at some point on the boundary of the supplied Region, then 
-*     the re-centred Region will represent the region in which the true 
-*     boundary position could be.
+*     default uncertainty associated with a position on the boundary of the
+*     given  Region. The returned Region refers to the base Frame within the
+*     FrameSet encapsulated by the supplied Region.
 
 *  Parameters:
 *     this
 *        Pointer to the Region.
-*     ifrm
-*        The index of a Frame within the FrameSet encapsulated by "this".
-*        The returned Region will refer to the requested Frame. It should
-*        be either AST__CURRENT or AST__BASE.
-*     status
-*        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to the Region. This should be annulled (using astAnnul)
 *     when no longer needed.
 
 *  Notes:
-*     - A default uncertainty Region will be created if the supplied Region 
-*     does not have an uncertainty Region.
 *     - A NULL pointer will be returned if this function is invoked
 *     with the global error status set, or if it should fail for any
 *     reason.
@@ -835,9 +1097,6 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm, int *status ) {
 
 /* Local Variables: */
    AstCmpRegion *this;        /* Pointer to CmpRegion structure */
-   AstFrame *frm;             /* Current Frame from supplied Region */
-   AstMapping *map;           /* Supplied to uncertainty Mapping */
-   AstRegion *bunc;           /* Uncertainty Region in base Frame of "this" */
    AstRegion *result;         /* Returned pointer */
 
 /* Initialise */
@@ -847,61 +1106,24 @@ static AstRegion *GetUncFrm( AstRegion *this_region, int ifrm, int *status ) {
    if ( !astOK ) return result;
 
 /* Get a pointer to the CmpRegion structure. */
-   this = (AstCmpRegion *) this_region;   
+   this = (AstCmpRegion *) this_region;
 
-/* If the parent Region structure contains explicit uncertainty information, 
-   use it in preference to any uncertainty Region stored in the component 
-   Regions. */
-   if( (* parent_testunc)( this_region, status ) ) {
-      bunc = (* parent_getuncfrm)( this_region, AST__BASE, status );
+/* If the first component region has non-default uncertainty, use it as
+   the default uncertainty for the CmpRegion. Note, the current Frame of
+   an uncertainty Region is assumed to be the same as the base Frame in the
+   CmpRegion. */
+   if( astTestUnc( this->region1 ) ) {
+      result = astGetUncFrm( this->region1, AST__CURRENT );
 
-/* Otherwise, if the first component has a defined uncertainty, use it. The 
-   current Frame in the component Region is equivalent to the base Frame in the
-   parent Region structure. So we may need to map the component uncertainty 
-   into the current Region of the parent is required later on. */
-   } else if( astTestUnc( this->region1 ) ) {
-      bunc = astGetUncFrm( this->region1, AST__CURRENT );
-
-/* Otherwise, if the second component has a defined uncertainty, use it. */
+/* Otherwise, if the second component region has non-default uncertainty,
+   use it as the default uncertainty for the CmpRegion. */
    } else if( astTestUnc( this->region2 ) ) {
-      bunc = astGetUncFrm( this->region2, AST__CURRENT );
+      result = astGetUncFrm( this->region2, AST__CURRENT );
 
-/* Otherwise invoke the astGetUncFrm method inherited from the parent Region
-   class to create a default uncertainty region. */
+/* Otherwise, use the parent method to determine the default uncertainty. */
    } else {
-      bunc = (* parent_getuncfrm)( this_region, AST__BASE, status );
+      result = (* parent_getdefunc)( this_region, status );
    }
-
-/* The above code obtains an uncertainty Region in the base Frame of the
-   parent Region (equal to the current Frame of the component Regions).
-   If this is what is required, return a clone of the abobe Region. */
-   if( ifrm == AST__BASE ) {
-      result = astClone( bunc );
-
-/* Otherwise, map it into the current Region of the parent.  */
-   } else {
-
-/* Get a Mapping from the Frame represented by the uncertainty Region
-   (the parent Region base Frame) to the parent Region current Frame. */
-      map = astGetMapping( this_region->frameset, AST__BASE, AST__CURRENT );
-
-/* If it is a UnitMap, the uncertainty Region is already in the correct 
-   Frame, so just return the stored pointer. */
-      if( astIsAUnitMap( map ) ) {
-         result= astClone( bunc );
-
-/* Otherwise, use this Mapping to map the uncertainty Region into the current
-   Frame. */
-      } else {
-         frm = astGetFrame( this_region->frameset, AST__CURRENT );
-         result = astMapRegion( bunc, map, frm );
-
-/* Free resources. */
-         frm = astAnnul( frm );
-      }
-      map = astAnnul( map );
-   }
-   bunc = astAnnul( bunc );
 
 /* Return NULL if an error occurred. */
    if( !astOK ) result = astAnnul( result );
@@ -940,14 +1162,14 @@ void astInitCmpRegionVtab_(  AstCmpRegionVtab *vtab, const char *name, int *stat
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstFrameVtab *frame;          /* Pointer to Frame component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
@@ -968,14 +1190,15 @@ void astInitCmpRegionVtab_(  AstCmpRegionVtab *vtab, const char *name, int *stat
    will be used (by astIsACmpRegion) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstRegionVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
 /* Store pointers to the member functions (implemented here) that
    provide virtual methods for this class. */
 
-/* None. */
+   vtab->CmpRegionList = CmpRegionList;
 
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
@@ -990,20 +1213,20 @@ void astInitCmpRegionVtab_(  AstCmpRegionVtab *vtab, const char *name, int *stat
    parent_simplify = mapping->Simplify;
    mapping->Simplify = Simplify;
 
-   parent_getuncfrm = region->GetUncFrm;
-   region->GetUncFrm = GetUncFrm;
-
-   parent_clearunc = region->ClearUnc;
-   region->ClearUnc = ClearUnc;
-
-   parent_testunc = region->TestUnc;
-   region->TestUnc = TestUnc;
+   parent_getdefunc = region->GetDefUnc;
+   region->GetDefUnc = GetDefUnc;
 
    parent_setregfs = region->SetRegFS;
    region->SetRegFS = SetRegFS;
 
+   parent_resetcache = region->ResetCache;
+   region->ResetCache = ResetCache;
+
    parent_equal = object->Equal;
    object->Equal = Equal;
+
+   parent_getobjsize = object->GetObjSize;
+   object->GetObjSize = GetObjSize;
 
 #if defined(THREAD_SAFE)
    parent_managelock = object->ManageLock;
@@ -1033,10 +1256,12 @@ void astInitCmpRegionVtab_(  AstCmpRegionVtab *vtab, const char *name, int *stat
 
 /* Store replacement pointers for methods which will be over-ridden by
    new member functions implemented here. */
+   mapping->Decompose = Decompose;
    region->RegBaseBox = RegBaseBox;
    region->RegBaseBox2 = RegBaseBox2;
    region->RegBaseMesh = RegBaseMesh;
    region->RegPins = RegPins;
+   region->RegTrace = RegTrace;
    region->GetBounded = GetBounded;
    region->RegBasePick = RegBasePick;
 
@@ -1046,13 +1271,16 @@ void astInitCmpRegionVtab_(  AstCmpRegionVtab *vtab, const char *name, int *stat
    astSetDump( vtab, Dump, "CmpRegion", "Combination of two Regions" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 #if defined(THREAD_SAFE)
-static int ManageLock( AstObject *this_object, int mode, int extra, 
+static int ManageLock( AstObject *this_object, int mode, int extra,
                        AstObject **fail, int *status ) {
 /*
 *  Name:
@@ -1066,8 +1294,8 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 
 *  Synopsis:
 *     #include "object.h"
-*     AstObject *ManageLock( AstObject *this, int mode, int extra, 
-*                            AstObject **fail, int *status ) 
+*     AstObject *ManageLock( AstObject *this, int mode, int extra,
+*                            AstObject **fail, int *status )
 
 *  Class Membership:
 *     CmpRegion member function (over-rides the astManageLock protected
@@ -1075,7 +1303,7 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 
 *  Description:
 *     This function manages the thread lock on the supplied Object. The
-*     lock can be locked, unlocked or checked by this function as 
+*     lock can be locked, unlocked or checked by this function as
 *     deteremined by parameter "mode". See astLock for details of the way
 *     these locks are used.
 
@@ -1094,21 +1322,21 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 *        AST__CHECKLOCK: Check that the object is locked for use by the
 *        calling thread (report an error if not).
 *     extra
-*        Extra mode-specific information. 
+*        Extra mode-specific information.
 *     fail
 *        If a non-zero function value is returned, a pointer to the
 *        Object that caused the failure is returned at "*fail". This may
 *        be "this" or it may be an Object contained within "this". Note,
 *        the Object's reference count is not incremented, and so the
-*        returned pointer should not be annulled. A NULL pointer is 
+*        returned pointer should not be annulled. A NULL pointer is
 *        returned if this function returns a value of zero.
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*    A local status value: 
+*    A local status value:
 *        0 - Success
-*        1 - Could not lock or unlock the object because it was already 
+*        1 - Could not lock or unlock the object because it was already
 *            locked by another thread.
 *        2 - Failed to lock a POSIX mutex
 *        3 - Failed to unlock a POSIX mutex
@@ -1182,7 +1410,7 @@ static AstRegion *MatchRegion( AstRegion *this, int ifrm, AstRegion *that,
 *        returned Region.
 *     method
 *        Pointer to a string holding the calling method.This is only used
-*        in error messages. 
+*        in error messages.
 *     status
 *        Pointer to the inherited status variable.
 
@@ -1205,10 +1433,11 @@ static AstRegion *MatchRegion( AstRegion *this, int ifrm, AstRegion *that,
 /* Initialise */
    result = NULL;
 
-/* Check the global error status. */
-   if ( !astOK ) return result;
+/* Check the global error status. Also return NULL if no Regions were
+   supplied. */
+   if ( !astOK || !this || !that ) return result;
 
-/* Temporarily invert "this" if we are matching its base Frame (since the 
+/* Temporarily invert "this" if we are matching its base Frame (since the
    astConvert method matches current Frames). */
    if( ifrm == AST__BASE ) astInvert( this );
 
@@ -1229,9 +1458,9 @@ static AstRegion *MatchRegion( AstRegion *this, int ifrm, AstRegion *that,
       result = astMapRegion( that, map, frm );
 
 /* Free resources. */
-      frm = astAnnul( frm );  
-      map = astAnnul( map );  
-      fs = astAnnul( fs );  
+      frm = astAnnul( frm );
+      map = astAnnul( map );
+      fs = astAnnul( fs );
 
 /* Report an error if there is no conversion between the two Frames. */
    } else {
@@ -1253,7 +1482,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 *     RegBaseBox
 
 *  Purpose:
-*     Returns the bounding box of an un-negated Region in the base Frame of 
+*     Returns the bounding box of an un-negated Region in the base Frame of
 *     the encapsulated FrameSet.
 
 *  Type:
@@ -1268,7 +1497,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 *     method inherited from the Region class).
 
 *  Description:
-*     This function returns the upper and lower axis bounds of a Region in 
+*     This function returns the upper and lower axis bounds of a Region in
 *     the base Frame of the encapsulated FrameSet, assuming the Region
 *     has not been negated. That is, the value of the Negated attribute
 *     is ignored.
@@ -1279,12 +1508,12 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 *     lbnd
 *        Pointer to an array in which to return the lower axis bounds
 *        covered by the Region in the base Frame of the encapsulated
-*        FrameSet. It should have at least as many elements as there are 
+*        FrameSet. It should have at least as many elements as there are
 *        axes in the base Frame.
 *     ubnd
 *        Pointer to an array in which to return the upper axis bounds
 *        covered by the Region in the base Frame of the encapsulated
-*        FrameSet. It should have at least as many elements as there are 
+*        FrameSet. It should have at least as many elements as there are
 *        axes in the base Frame.
 *     status
 *        Pointer to the inherited status variable.
@@ -1338,8 +1567,8 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
                if( *p != AST__BAD ) {
                   if( *p < lbnd[ icoord ] )  lbnd[ icoord ] = *p;
                   if( *p > ubnd[ icoord ] )  ubnd[ icoord ] = *p;
-               }   
-            }   
+               }
+            }
          }
       }
       ps = astAnnul( ps );
@@ -1365,8 +1594,8 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
       clbnd2 = astMalloc( sizeof( double )*(size_t) nax );
       cubnd2 = astMalloc( sizeof( double )*(size_t) nax );
       if( astOK ) {
-         astGetRegionBounds( reg1, clbnd1, cubnd1 ); 
-         astGetRegionBounds( reg2, clbnd2, cubnd2 ); 
+         astGetRegionBounds( reg1, clbnd1, cubnd1 );
+         astGetRegionBounds( reg2, clbnd2, cubnd2 );
 
 /* Loop round every axis. */
          for( i = 0; i < nax; i++ ) {
@@ -1378,7 +1607,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
             ub2 = cubnd2[ i ];
 
 /* If the first component Region has been negated, the lower and upper
-   bounds from the first component are the bounds of an *excluded* axis 
+   bounds from the first component are the bounds of an *excluded* axis
    interval, not an included interval. If either of the bounds are
    infinite, we can swap it to an included interval. If both bounds are
    finite, we cannot convert to an included interval. In this case, we
@@ -1402,7 +1631,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
             }
 
 /* Likewise attempt to convert an excluded interval into an included
-   interval for the second component Region. */   
+   interval for the second component Region. */
             inc2 = 1;
             if( neg2 ) {
                lb = clbnd2[ i ];
@@ -1423,7 +1652,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
    the axis intervals. This depends on whether the intervals are included
    or excluded. */
             if( this->oper == AST__AND ) {
-   
+
                if( inc1 ) {
                   if( inc2 ) {
                      lbnd[ i ] = MAX( clbnd1[ i ], clbnd2[ i ] );
@@ -1451,10 +1680,10 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
                } else {
                   lbnd[ i ] = -DBL_MAX;
                   ubnd[ i ] = DBL_MAX;
-               } 
+               }
             }
          }
-      }   
+      }
 
 /* Free resources. */
       clbnd1 = astFree( clbnd1 );
@@ -1470,7 +1699,7 @@ static void RegBaseBox2( AstRegion *this_region, double *lbnd, double *ubnd, int
 *     RegBaseBox2
 
 *  Purpose:
-*     Returns the bounding box of an un-negated Region in the base Frame of 
+*     Returns the bounding box of an un-negated Region in the base Frame of
 *     the encapsulated FrameSet.
 
 *  Type:
@@ -1485,8 +1714,8 @@ static void RegBaseBox2( AstRegion *this_region, double *lbnd, double *ubnd, int
 *     method inherited from the Region class).
 
 *  Description:
-*     This function is similar to astRegBaseBox in that it returns the 
-*     upper and lower axis bounds of a Region in the base Frame of the 
+*     This function is similar to astRegBaseBox in that it returns the
+*     upper and lower axis bounds of a Region in the base Frame of the
 *     encapsulated FrameSet. But, in addition to assuming that the
 *     supplied Region has not been negated, it also assumes that any
 *     component Regions contained within the supplied Region have not been
@@ -1498,12 +1727,12 @@ static void RegBaseBox2( AstRegion *this_region, double *lbnd, double *ubnd, int
 *     lbnd
 *        Pointer to an array in which to return the lower axis bounds
 *        covered by the Region in the base Frame of the encapsulated
-*        FrameSet. It should have at least as many elements as there are 
+*        FrameSet. It should have at least as many elements as there are
 *        axes in the base Frame.
 *     ubnd
 *        Pointer to an array in which to return the upper axis bounds
 *        covered by the Region in the base Frame of the encapsulated
-*        FrameSet. It should have at least as many elements as there are 
+*        FrameSet. It should have at least as many elements as there are
 *        axes in the base Frame.
 *     status
 *        Pointer to the inherited status variable.
@@ -1541,8 +1770,8 @@ static void RegBaseBox2( AstRegion *this_region, double *lbnd, double *ubnd, int
    clbnd2 = astMalloc( sizeof( double )*(size_t) nax );
    cubnd2 = astMalloc( sizeof( double )*(size_t) nax );
    if( astOK ) {
-      astGetRegionBounds2( reg1, clbnd1, cubnd1 ); 
-      astGetRegionBounds2( reg2, clbnd2, cubnd2 ); 
+      astGetRegionBounds2( reg1, clbnd1, cubnd1 );
+      astGetRegionBounds2( reg2, clbnd2, cubnd2 );
 
 /* How we combine the two bounding boxes depends on the boolean operator
    associated with this CmpRegion.  For AND find the overlap of the two
@@ -1559,7 +1788,7 @@ static void RegBaseBox2( AstRegion *this_region, double *lbnd, double *ubnd, int
             ubnd[ i ]= MAX( cubnd1[ i ], cubnd2[ i ] );
          }
       }
-   }   
+   }
 
 /* Free resources. */
    clbnd1 = astFree( clbnd1 );
@@ -1575,7 +1804,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 *     RegBaseMesh
 
 *  Purpose:
-*     Return a PointSet containing a mesh of points on the boundary of a 
+*     Return a PointSet containing a mesh of points on the boundary of a
 *     Region in its base Frame.
 
 *  Type:
@@ -1601,7 +1830,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     Pointer to the PointSet. Annul the pointer using astAnnul when it 
+*     Pointer to the PointSet. Annul the pointer using astAnnul when it
 *     is no longer needed.
 
 *  Notes:
@@ -1646,7 +1875,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 /* Get a pointer to the CmpRegion structure. */
    this = (AstCmpRegion *) this_region;
 
-/* If the Region structure contains a pointer to a PointSet holding 
+/* If the Region structure contains a pointer to a PointSet holding
    a previously created mesh, return it. */
    if( this_region->basemesh ) {
       result = astClone( this_region->basemesh );
@@ -1679,7 +1908,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
       if( !hasMesh1 && !hasMesh2 && astOK ) {
          astError( AST__INTER, "astRegBaseMesh(%s): No mesh can be "
                    "produced for the %s bacause neither of its component "
-                   "Regions has a mesh (internal AST programming error).", status, 
+                   "Regions has a mesh (internal AST programming error).", status,
                    astGetClass( this ), astGetClass( this ) );
 
 /* If only one Region has a mesh, we can produce a mesh so long as the
@@ -1705,7 +1934,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
          mesh1 = astRegMesh( reg1 );
          if( hasMesh2 ) {
             mesh2 = astRegMesh( reg2 );
-         } else {            
+         } else {
             astGetRegionBounds( reg1, lbnd, ubnd );
             mesh2 = astBndMesh( reg2, lbnd, ubnd );
          }
@@ -1716,11 +1945,11 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
          mesh1 = astBndMesh( reg1, lbnd, ubnd );
       }
 
-/* If the CmpRegion represents the intersection of the two component Regions 
-   (AND operator), the total mesh is the sum of the component mesh points 
-   which are inside the other component region. If the CmpRegion represents 
-   the union of the two component Regions (OR operator), the total mesh is 
-   the sum of the component mesh points which are outside the other component 
+/* If the CmpRegion represents the intersection of the two component Regions
+   (AND operator), the total mesh is the sum of the component mesh points
+   which are inside the other component region. If the CmpRegion represents
+   the union of the two component Regions (OR operator), the total mesh is
+   the sum of the component mesh points which are outside the other component
    region. So temporarily negate the component Regions if they are
    combined using OR. */
       if( this->oper == AST__OR ) {
@@ -1729,12 +1958,12 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
       }
 
 /* Transform the mesh for the first component using the second component
-   as a Mapping. Mesh points outside (or inside if "oper" is OR) the bounds 
+   as a Mapping. Mesh points outside (or inside if "oper" is OR) the bounds
    of the second component will be set bad. */
       mesh1b = astTransform( reg2, mesh1, 1, NULL );
 
 /* Transform the mesh for the second component using the first component
-   as a Mapping. Mesh points outside (or inside if "oper" is OR) the bounds 
+   as a Mapping. Mesh points outside (or inside if "oper" is OR) the bounds
    of the first component will be set bad. */
       mesh2b = astTransform( reg1, mesh2, 1, NULL );
 
@@ -1746,8 +1975,8 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 
 /* The required mesh contains all the good points form both mesh1b and
    mesh2b (i.e. all boundary points which are inside -or inside if "oper"
-   is OR- the other component Region). Create a PointSet assuming that all 
-   points are good. First allocate an array to hold pointers to the arrays 
+   is OR- the other component Region). Create a PointSet assuming that all
+   points are good. First allocate an array to hold pointers to the arrays
    holding coordinate values for each axis. */
       nc = astGetNcoord( mesh1b );
       np1 = astGetNpoint( mesh1b );
@@ -1781,7 +2010,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
                   ptr[ ic ][ jp ] = v;
                } else {
                   ok = 0;
-                  break;      
+                  break;
                }
             }
 
@@ -1790,7 +2019,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
             if( ok ) jp++;
          }
 
-/* Now similarly copy the good values from the second transformed mesh onto 
+/* Now similarly copy the good values from the second transformed mesh onto
    the end of the total mesh array. */
          for( ip = 0; ip < np2; ip++ ) {
             ok = 1;
@@ -1800,7 +2029,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
                   ptr[ ic ][ jp ] = v;
                } else {
                   ok = 0;
-                  break;      
+                  break;
                }
             }
             if( ok ) jp++;
@@ -1815,7 +2044,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
             np = jp;
          }
 
-/* Adjust the size of the returned PointSet to exclude the extra space 
+/* Adjust the size of the returned PointSet to exclude the extra space
    caused by any axis values being bad in the transformed meshes. */
          astSetNpoint( result, np );
 
@@ -1841,7 +2070,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
    return result;
 }
 
-static AstRegion *RegBasePick( AstRegion *this_region, int naxes, 
+static AstRegion *RegBasePick( AstRegion *this_region, int naxes,
                                const int *axes, int *status ){
 /*
 *  Name:
@@ -1856,7 +2085,7 @@ static AstRegion *RegBasePick( AstRegion *this_region, int naxes,
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     AstRegion *RegBasePick( AstRegion *this, int naxes, const int *axes, 
+*     AstRegion *RegBasePick( AstRegion *this, int naxes, const int *axes,
 *                             int *status )
 
 *  Class Membership:
@@ -1864,8 +2093,8 @@ static AstRegion *RegBasePick( AstRegion *this_region, int naxes,
 *     method inherited from the Region class).
 
 *  Description:
-*     This function attempts to return a Region that is spanned by selected 
-*     axes from the base Frame of the encapsulated FrameSet of the supplied 
+*     This function attempts to return a Region that is spanned by selected
+*     axes from the base Frame of the encapsulated FrameSet of the supplied
 *     Region. This may or may not be possible, depending on the class of
 *     Region. If it is not possible a NULL pointer is returned.
 
@@ -1889,7 +2118,7 @@ static AstRegion *RegBasePick( AstRegion *this_region, int naxes,
 */
 
 /* Local Variables: */
-   AstCmpRegion *this;     /* Pointer to Cmpregion structure */
+   AstCmpRegion *this;     /* Pointer to CmpRegion structure */
    AstFrame *frm1;         /* Axes picked from the 1st encapsulated Region */
    AstFrame *frm2;         /* Axes picked from the 2nd encapsulated Region */
    AstRegion *result;      /* Returned Region */
@@ -1904,7 +2133,7 @@ static AstRegion *RegBasePick( AstRegion *this_region, int naxes,
    this = (AstCmpRegion *) this_region;
 
 /* Both encapsulated regions refer to the same Frame (the base Frame of
-   the parent Region), so attempt to pick the requested axs from them. 
+   the parent Region), so attempt to pick the requested axs from them.
    If the resulting Frames are not Regions, we cannot pick the requested
    axes so return the NULL Frame pointer initialised above. */
    frm1 = astPickAxes( this->region1, naxes, axes, NULL );
@@ -1913,15 +2142,15 @@ static AstRegion *RegBasePick( AstRegion *this_region, int naxes,
       if( astIsARegion( frm2 ) ) {
 
 /* Create the new CmpRegion. */
-         result = (AstRegion *) astCmpRegion( (AstRegion *) frm1, 
-                                              (AstRegion *) frm2, 
+         result = (AstRegion *) astCmpRegion( (AstRegion *) frm1,
+                                              (AstRegion *) frm2,
                                               this->oper, "", status );
       }
-   }
 
 /* Free resources */
-   frm1 = astAnnul( frm1 );      
-   frm2 = astAnnul( frm2 );      
+      frm2 = astAnnul( frm2 );
+   }
+   frm1 = astAnnul( frm1 );
 
 /* Return a NULL pointer if an error has occurred. */
    if( !astOK ) result = astAnnul( result );
@@ -1953,7 +2182,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 
 *  Description:
 *     This function returns a flag indicating if the supplied set of
-*     points all fall on the boundary of the given CmpRegion. 
+*     points all fall on the boundary of the given CmpRegion.
 *
 *     Some tolerance is allowed, as specified by the uncertainty Region
 *     stored in the supplied CmpRegion "this", and the supplied uncertainty
@@ -1963,12 +2192,12 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 *     this
 *        Pointer to the CmpRegion.
 *     pset
-*        Pointer to the PointSet. The points are assumed to refer to the 
+*        Pointer to the PointSet. The points are assumed to refer to the
 *        base Frame of the FrameSet encapsulated by "this".
 *     unc
 *        Pointer to a Region representing the uncertainties in the points
-*        given by "pset". The Region is assumed to represent the base Frame 
-*        of the FrameSet encapsulated by "this". Zero uncertainity is assumed 
+*        given by "pset". The Region is assumed to represent the base Frame
+*        of the FrameSet encapsulated by "this". Zero uncertainity is assumed
 *        if NULL is supplied.
 *     mask
 *        Pointer to location at which to return a pointer to a newly
@@ -2022,7 +2251,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    reg1 = this->region1;
    reg2 = this->region2;
 
-/* Get a mask which indicates if each supplied point is on or off the 
+/* Get a mask which indicates if each supplied point is on or off the
    boundary of the first component Region. astRegPins expects its "pset"
    argument to contain positions in the base Frame of the Region, so
    we must first transform the supplied points into the base Frame of
@@ -2032,7 +2261,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    unc1 = MatchRegion( reg1, AST__BASE, unc, "astRegPins", status );
    astRegPins( reg1, psetb1, unc1, &mask1 );
 
-/* Likewise, get a mask which indicates if each supplied point is on or off 
+/* Likewise, get a mask which indicates if each supplied point is on or off
    the boundary of the second component Region. */
    psetb2 = astRegTransform( reg2, pset, 0, NULL, NULL );
    unc2 = MatchRegion( reg2, AST__BASE, unc, "astRegPins", status );
@@ -2041,11 +2270,11 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 /* The criteria for a point to be on the boundary of the CmpRegion depend
    on the boolean operator being used. If component regions A and B are
    ANDed together, then a point is on the boundary of the CmpRegion if
-   either 1) it is on the boundary of A and inside B, or 2) it is on the 
-   boundary of B and inside A. If the component regions are ORed together, 
-   then a point is on the boundary of the CmpRegion if either 1) it is on 
-   the boundary of A and outside B, or 2) it is on the boundary of B and 
-   outside A. Either we need to transform the supplied PointSet using each 
+   either 1) it is on the boundary of A and inside B, or 2) it is on the
+   boundary of B and inside A. If the component regions are ORed together,
+   then a point is on the boundary of the CmpRegion if either 1) it is on
+   the boundary of A and outside B, or 2) it is on the boundary of B and
+   outside A. Either we need to transform the supplied PointSet using each
    component Region as a Mapping. But if using OR we temporarily negate
    the Regions. */
    if( this->oper == AST__OR ) {
@@ -2078,8 +2307,8 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 /* Assume all points are on the boundary of the CmpRegion. */
       result = 1;
 
-/* If we are creating an output mask, we must check every point. Otherwise 
-   we can stop checking when we find the first point which is not on the 
+/* If we are creating an output mask, we must check every point. Otherwise
+   we can stop checking when we find the first point which is not on the
    boundary of the CmpRegion. */
       if( mask ) {
 
@@ -2112,8 +2341,8 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    pset2 = astAnnul( pset2 );
    psetb1 = astAnnul( psetb1 );
    psetb2 = astAnnul( psetb2 );
-   unc1 = astAnnul( unc1 );
-   unc2 = astAnnul( unc2 );
+   if( unc1 ) unc1 = astAnnul( unc1 );
+   if( unc2 ) unc2 = astAnnul( unc2 );
 
 /* If an error has occurred, return zero. */
    if( !astOK ) {
@@ -2125,7 +2354,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    return result;
 }
 
-static void RegSetAttrib( AstRegion *this_region, const char *setting, 
+static void RegSetAttrib( AstRegion *this_region, const char *setting,
                           char **base_setting, int *status ) {
 /*
 *  Name:
@@ -2139,7 +2368,7 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     void RegSetAttrib( AstRegion *this, const char *setting, 
+*     void RegSetAttrib( AstRegion *this, const char *setting,
 *                        char **base_setting, int *status )
 
 *  Class Membership:
@@ -2149,32 +2378,32 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 *  Description:
 *     This function assigns an attribute value to both the base and
 *     current Frame in the FrameSet encapsulated within a Region, without
-*     remapping either Frame. 
+*     remapping either Frame.
 *
-*     No error is reported if the attribute is not recognised by the base 
+*     No error is reported if the attribute is not recognised by the base
 *     Frame.
 
 *  Parameters:
 *     this
 *        Pointer to the Region.
 *     setting
-*        Pointer to a null terminated attribute setting string. NOTE, IT 
-*        SHOULD BE ENTIRELY LOWER CASE. The supplied string will be 
+*        Pointer to a null terminated attribute setting string. NOTE, IT
+*        SHOULD BE ENTIRELY LOWER CASE. The supplied string will be
 *        interpreted using the public interpretation implemented by
-*        astSetAttrib. This can be different to the interpretation of the 
+*        astSetAttrib. This can be different to the interpretation of the
 *        protected accessor functions. For instance, the public
-*        interpretation of an unqualified floating point value for the 
+*        interpretation of an unqualified floating point value for the
 *        Epoch attribute is to interpet the value as a gregorian year,
-*        but the protected interpretation is to interpret the value as an 
+*        but the protected interpretation is to interpret the value as an
 *        MJD.
 *     base_setting
-*        Address of a location at which to return a pointer to the null 
+*        Address of a location at which to return a pointer to the null
 *        terminated attribute setting string which was applied to the
 *        base Frame of the encapsulated FrameSet. This may differ from
-*        the supplied setting if the supplied setting contains an axis 
+*        the supplied setting if the supplied setting contains an axis
 *        index and the current->base Mapping in the FrameSet produces an
 *        axis permutation. The returned pointer should be freed using
-*        astFree when no longer needed. A NULL pointer may be supplied in 
+*        astFree when no longer needed. A NULL pointer may be supplied in
 *        which case no pointer is returned.
 *     status
 *        Pointer to the inherited status variable.
@@ -2182,7 +2411,7 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 */
 
 /* Local Variables: */
-   AstCmpRegion *this; 
+   AstCmpRegion *this;
    char *bset;
    int rep;
 
@@ -2192,14 +2421,14 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
 /* Get a pointer to the CmpRegion structure. */
    this = (AstCmpRegion *) this_region;
 
-/* Use the RegSetAttrib method inherited from the parent class to apply the 
-   setting to the current and base Frames in the FrameSet encapsulated by the 
+/* Use the RegSetAttrib method inherited from the parent class to apply the
+   setting to the current and base Frames in the FrameSet encapsulated by the
    parent Region structure. */
    (*parent_regsetattrib)( this_region, setting, &bset, status );
 
-/* Now apply the base Frame setting to the component Regions (the current 
+/* Now apply the base Frame setting to the component Regions (the current
    Frame within the component Regions is equivalent to the base Frame in the
-   parent Region structure). Annul any "attribute unknown" error that results 
+   parent Region structure). Annul any "attribute unknown" error that results
    from attempting to do this. */
    if( astOK ) {
       rep = astReporting( 0 );
@@ -2217,7 +2446,335 @@ static void RegSetAttrib( AstRegion *this_region, const char *setting,
    }
 }
 
-static void RegClearAttrib( AstRegion *this_region, const char *attrib, 
+static int RegTrace( AstRegion *this_region, int n, double *dist, double **ptr,
+                     int *status ){
+/*
+*+
+*  Name:
+*     RegTrace
+
+*  Purpose:
+*     Return requested positions on the boundary of a 2D Region.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpregion.h"
+*     int astRegTrace( AstRegion *this, int n, double *dist, double **ptr );
+
+*  Class Membership:
+*     CmpRegion member function (overrides the astRegTrace method
+*     inherited from the parent Region class).
+
+*  Description:
+*     This function returns positions on the boundary of the supplied
+*     Region, if possible. The required positions are indicated by a
+*     supplied list of scalar parameter values in the range zero to one.
+*     Zero corresponds to some arbitrary starting point on the boundary,
+*     and one corresponds to the end (which for a closed region will be
+*     the same place as the start).
+
+*  Parameters:
+*     this
+*        Pointer to the Region.
+*     n
+*        The number of positions to return. If this is zero, the function
+*        returns without action (but the returned function value still
+*        indicates if the method is supported or not).
+*     dist
+*        Pointer to an array of "n" scalar parameter values in the range
+*        0 to 1.0.
+*     ptr
+*        A pointer to an array of pointers. The number of elements in
+*        this array should equal tthe number of axes in the Frame spanned
+*        by the Region. Each element of the array should be a pointer to
+*        an array of "n" doubles, in which to return the "n" values for
+*        the corresponding axis. The contents of the arrays are unchanged
+*        if the supplied Region belongs to a class that does not
+*        implement this method.
+
+*  Returned Value:
+*     Non-zero if the astRegTrace method is implemented by the class
+*     of Region supplied, and zero if not.
+
+*-
+*/
+
+/* Local Variables; */
+   AstCmpRegion *this;
+   AstFrame *frm;
+   AstMapping *map;
+   AstPointSet *bpset;
+   AstPointSet *cpset;
+   double **bptr;
+   int i;
+   int j;
+   int ncur;
+   int result;
+   double *rval;
+   double *off;
+   double *r1d;
+   double *r2d;
+   double *r1ptr[ 2 ];
+   double *r2ptr[ 2 ];
+   double **r1ptrb;
+   double **r2ptrb;
+   double dbreak;
+   double dtot;
+   double x;
+   double x0;
+   int r1n;
+   int r2n;
+   AstPointSet *r1pset;
+   AstPointSet *r2pset;
+   AstPointSet *r1psetb;
+   AstPointSet *r2psetb;
+
+/* Initialise */
+   result = 0;
+
+/* Check inherited status. */
+   if( ! astOK ) return result;
+
+/* Get a pointer to the CmpRegion structure. */
+   this = (AstCmpRegion *) this_region;
+
+/* Get a pointer to the base Frame in the encapsulated FrameSet. */
+   frm = astGetFrame( this_region->frameset, AST__BASE );
+
+/* Check it is 2-dimensional. */
+   result = 1;
+   if( astGetNaxes( frm ) != 2 ) result = 0;
+
+/* Check the component Regions can be traced. */
+   if( !astRegTrace( this->region1, 0, NULL, NULL ) ||
+       !astRegTrace( this->region1, 0, NULL, NULL ) ) result = 0;
+
+/* Check we have some points to find. */
+   if( result && n > 0 ) {
+
+/* We first determine the required positions in the base Frame of the
+   Region, and then transform them into the current Frame. Get the
+   base->current Mapping, and the number of current Frame axes. */
+      map = astGetMapping( this_region->frameset, AST__BASE, AST__CURRENT );
+
+/* If it's a UnitMap we do not need to do the transformation, so put the
+   base Frame positions directly into the supplied arrays. */
+      if( astIsAUnitMap( map ) ) {
+         bpset = NULL;
+         bptr = ptr;
+         ncur = 2;
+
+/* Otherwise, create a PointSet to hold the base Frame positions. */
+      } else {
+         bpset = astPointSet( n, 2, " ", status );
+         bptr = astGetPoints( bpset );
+         ncur = astGetNout( map );
+      }
+
+      r1d = astMalloc( sizeof( double )*n );
+      r2d = astMalloc( sizeof( double )*n );
+
+/* Ensure information about the breaks in the boundary of each component
+   region is available within the CmpRegion structure. These breaks are
+   the points at which the two boundaries cross. */
+      SetBreakInfo( this, 0, status );
+      SetBreakInfo( this, 1, status );
+
+/* Get the constants needed to convert the supplied distances (normalised
+   so that the border of the entire CmpRegion has a length of 1.0), into
+   distances around the border of each component Region. */
+      dtot = this->d0[ 0 ] + this->d0[ 1 ];
+      dbreak = this->d0[ 0 ]/dtot;
+
+/* Initialise here to avoid compiler warnings. */
+      r1n = 0;
+      r2n = 0;
+
+/* Check the pointers can be used safely. */
+      if( astOK ) {
+
+/* Loop round all supplied distances, determining if they represent a
+   position on the first or second component Region. */
+         for( i = 0; i < n; i++ ) {
+
+/* If the current distance represents a point in the second component
+   Region... */
+            if( dist[ i ] > dbreak ) {
+
+/* Find the correspond distance around the used sections of the second
+   component region (normalised so that the entire border of the
+   component region has a length of "this->d0[1]"). */
+               x0 = ( dist[ i ] - dbreak )*dtot;
+               x = x0;
+
+/* Convert this into the correspond distance around the entire border of
+   the second component region (normalised so that the entire border of the
+   component region has unit length). */
+               rval = this->rvals[ 1 ];
+               off = this->offs[ 1 ];
+
+               for( j = 0; j < this->nbreak[ 1 ]; j++,rval++,off++ ) {
+                  if( *rval >= x0 ) break;
+                  x += *off;
+               }
+
+/* Store this as the next distance to move around the second component
+   Region. */
+               r2d[ r2n++ ] = x;
+
+/* Now we do the same if the current distance corresponds to a position
+   in the first component Region. */
+            } else {
+
+               x0 = dist[ i ]*dtot;
+               x = x0;
+
+               rval = this->rvals[ 0 ];
+               off = this->offs[ 0 ];
+
+               for( j = 0; j < this->nbreak[ 0 ]; j++,rval++,off++ ) {
+                  if( *rval >= x0 ) break;
+                  x += *off;
+               }
+
+               r1d[ r1n++ ] = x;
+
+            }
+
+         }
+      }
+
+/* Allocate memory to hold the axis values at the corresponding positions
+   in the first component Region. */
+      r1ptr[ 0 ] = astMalloc( sizeof( double )*r1n );
+      r1ptr[ 1 ] = astMalloc( sizeof( double )*r1n );
+
+/* Allocate memory to hold the axis values at the corresponding positions
+   in the second component Region. */
+      r2ptr[ 0 ] = astMalloc( sizeof( double )*r2n );
+      r2ptr[ 1 ] = astMalloc( sizeof( double )*r2n );
+
+/* Check the pointers can be used safely. */
+      if( astOK ) {
+
+/* Find the axis values at each of the required positions that fall in
+   the first component Region. Negate it first if needed to ensure the
+   Region is bounded (not guaranteed, but likely). */
+         if( astGetBounded( this->region1 ) ) {
+            (void) astRegTrace( this->region1, r1n, r1d, r1ptr );
+         } else {
+            astNegate( this->region1 );
+            (void) astRegTrace( this->region1, r1n, r1d, r1ptr );
+            astNegate( this->region1 );
+         }
+
+/* Do the same for the second component Region. */
+         if( astGetBounded( this->region2 ) ) {
+            (void) astRegTrace( this->region2, r2n, r2d, r2ptr );
+         } else {
+            astNegate( this->region2 );
+            (void) astRegTrace( this->region2, r2n, r2d, r2ptr );
+            astNegate( this->region2 );
+         }
+
+/* If the two component Regions are ANDed together, we want to remove the
+   positions from the boundary of the required component Region that fall
+   outside the other region. We can do this by simply using the other Region
+   as a Mapping. If the two component Regions are ORed together, we want to
+   remove the position that fall within (rather than outside) the other
+   Region. To do this we need to negate the other region  first. */
+         if( this->oper == AST__OR ) {
+            astNegate( this->region1 );
+            astNegate( this->region2 );
+         }
+
+/* Now transform the points on the boundary of the first Region in order
+   to set invalid those positions which are not on the boundary of the
+   supplied CmpRegion. */
+         if( r1n > 0 ) {
+            r1pset = astPointSet( r1n, 2, " ", status );
+            astSetPoints( r1pset, r1ptr );
+            r1psetb = astTransform( this->region2, r1pset, 1, NULL );
+            r1ptrb = astGetPoints( r1psetb );
+         } else {
+            r1pset = NULL;
+            r1psetb = NULL;
+            r1ptrb = NULL;
+         }
+
+/* Now transform the points on the boundary of the second Region in order
+   to set invalid those positions which are not on the boundary of the
+   supplied CmpRegion. */
+         if( r2n > 0 ) {
+            r2pset = astPointSet( r2n, 2, " ", status );
+            astSetPoints( r2pset, r2ptr );
+            r2psetb = astTransform( this->region1, r2pset, 1, NULL );
+            r2ptrb = astGetPoints( r2psetb );
+         } else {
+            r2pset = NULL;
+            r2psetb = NULL;
+            r2ptrb = NULL;
+         }
+
+/* Re-instate the original Negated values */
+         if( this->oper == AST__OR ) {
+            astNegate( this->region1 );
+            astNegate( this->region2 );
+         }
+
+/* Check pointer can be used safely. */
+         if( astOK ) {
+
+/* Copy the boundary positions from each component Region into a single
+   PointSet. These positions are in the base Frame of the CmpRegion. */
+            r1n = 0;
+            r2n = 0;
+            for( i = 0; i < n; i++ ) {
+               if( dist[ i ] > dbreak ) {
+                  bptr[ 0 ][ i ] = r2ptrb[ 0 ][ r2n ];
+                  bptr[ 1 ][ i ] = r2ptrb[ 1 ][ r2n++ ];
+               } else {
+                  bptr[ 0 ][ i ] = r1ptrb[ 0 ][ r1n ];
+                  bptr[ 1 ][ i ] = r1ptrb[ 1 ][ r1n++ ];
+               }
+            }
+
+         }
+
+/* Free resources. */
+         if( r1pset ) r1pset = astAnnul( r1pset );
+         if( r2pset ) r2pset = astAnnul( r2pset );
+         if( r1psetb ) r1psetb = astAnnul( r1psetb );
+         if( r2psetb ) r2psetb = astAnnul( r2psetb );
+
+      }
+
+
+/* If required, transform the base frame positions into the current
+   Frame of the CmpRegion, storing them in the supplied array. Then
+   free resources. */
+      if( bpset ) {
+         cpset = astPointSet( n, ncur, " ", status );
+         astSetPoints( cpset, ptr );
+
+         (void) astTransform( map, bpset, 1, cpset );
+
+         cpset = astAnnul( cpset );
+         bpset = astAnnul( bpset );
+      }
+
+/* Free remaining resources. */
+      map = astAnnul( map );
+   }
+   frm = astAnnul( frm );
+
+/* Return the result. */
+   return result;
+}
+
+static void RegClearAttrib( AstRegion *this_region, const char *attrib,
                             char **base_attrib, int *status ) {
 /*
 *  Name:
@@ -2231,19 +2788,19 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     void RegClearAttrib( AstRegion *this, const char *attrib, 
-*                          char **base_attrib, int *status ) 
+*     void RegClearAttrib( AstRegion *this, const char *attrib,
+*                          char **base_attrib, int *status )
 
 *  Class Membership:
-*     CmpRegion member function (over-rides the astRegClearAttrib method 
+*     CmpRegion member function (over-rides the astRegClearAttrib method
 *     inherited from the Region class).
 
 *  Description:
-*     This function clears the value of a named attribute in both the base 
+*     This function clears the value of a named attribute in both the base
 *     and current Frame in the FrameSet encapsulated within a Region, without
-*     remapping either Frame. 
+*     remapping either Frame.
 *
-*     No error is reported if the attribute is not recognised by the base 
+*     No error is reported if the attribute is not recognised by the base
 *     Frame.
 
 *  Parameters:
@@ -2251,15 +2808,15 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 *        Pointer to the Region.
 *     attrib
 *        Pointer to a null terminated string holding the attribute name.
-*        NOTE, IT SHOULD BE ENTIRELY LOWER CASE. 
+*        NOTE, IT SHOULD BE ENTIRELY LOWER CASE.
 *     base_attrib
-*        Address of a location at which to return a pointer to the null 
-*        terminated string holding the attribute name which was cleared in 
+*        Address of a location at which to return a pointer to the null
+*        terminated string holding the attribute name which was cleared in
 *        the base Frame of the encapsulated FrameSet. This may differ from
-*        the supplied attribute if the supplied attribute contains an axis 
+*        the supplied attribute if the supplied attribute contains an axis
 *        index and the current->base Mapping in the FrameSet produces an
 *        axis permutation. The returned pointer should be freed using
-*        astFree when no longer needed. A NULL pointer may be supplied in 
+*        astFree when no longer needed. A NULL pointer may be supplied in
 *        which case no pointer is returned.
 *     status
 *        Pointer to the inherited status variable.
@@ -2267,7 +2824,7 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 */
 
 /* Local Variables: */
-   AstCmpRegion *this; 
+   AstCmpRegion *this;
    char *batt;
    int rep;
 
@@ -2277,14 +2834,14 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
 /* Get a pointer to the CmpRegion structure. */
    this = (AstCmpRegion *) this_region;
 
-/* Use the RegClearAttrib method inherited from the parent class to clear the 
-   attribute in the current and base Frames in the FrameSet encapsulated by 
+/* Use the RegClearAttrib method inherited from the parent class to clear the
+   attribute in the current and base Frames in the FrameSet encapsulated by
    the parent Region structure. */
    (*parent_regclearattrib)( this_region, attrib, &batt, status );
 
-/* Now clear the base Frame attribute to the component Regions (the current 
+/* Now clear the base Frame attribute to the component Regions (the current
    Frame within the component Regions is equivalent to the base Frame in the
-   parent Region structure). Annul any "attribute unknown" error that results 
+   parent Region structure). Annul any "attribute unknown" error that results
    from attempting to do this. */
    if( astOK ) {
       rep = astReporting( 0 );
@@ -2301,6 +2858,313 @@ static void RegClearAttrib( AstRegion *this_region, const char *attrib,
       batt = astFree( batt );
    }
 }
+
+static void ResetCache( AstRegion *this_region, int *status ){
+/*
+*  Name:
+*     ResetCache
+
+*  Purpose:
+*     Clear cached information within the supplied Region.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpregion.h"
+*     void ResetCache( AstRegion *this, int *status )
+
+*  Class Membership:
+*     Region member function (overrides the astResetCache method
+*     inherited from the parent Region class).
+
+*  Description:
+*     This function clears cached information from the supplied Region
+*     structure.
+
+*  Parameters:
+*     this
+*        Pointer to the Region.
+*     status
+*        Pointer to the inherited status variable.
+*/
+
+/* Local Variables *: */
+   AstCmpRegion *this;
+   int i;
+
+/* Check a Region was supplied. */
+   if( this_region ) {
+
+/* Get a pointer to the CmpRegion structure. */
+      this = (AstCmpRegion *) this_region;
+
+/* Clear information cached in the CmpRegion structure. */
+      for( i = 0; i < 2; i++ ) {
+         this->rvals[ i ] = astFree(  this->rvals[ i ] );
+         this->offs[ i ] = astFree(  this->offs[ i ] );
+         this->nbreak[ i ] = 0;
+         this->d0[ i ] = AST__BAD;
+      }
+
+/* Clear information cached in the component regions. */
+      if( this->region1 ) astResetCache( this->region1 );
+      if( this->region2 ) astResetCache( this->region2 );
+
+/* Clear information cached in the parent Region structure. */
+      (*parent_resetcache)( this_region, status );
+   }
+}
+
+static void SetBreakInfo( AstCmpRegion *this, int comp, int *status ){
+/*
+*  Name:
+*     SetBreakInfo
+
+*  Purpose:
+*     Ensure that a CmpRegion has information about the breaks in the
+*     boundaries of one of the two component Regions.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpregion.h"
+*     void SetBreakInfo( AstCmpRegion *this, int comp, int *status )
+
+*  Class Membership:
+*     CmpRegion method.
+
+*  Description:
+*     This function returns without action if the supplied CmpRegion
+*     already contains break information for the specified component Region.
+*     Otherwise, it creates the required information and stores it in the
+*     CmpRegion.
+*
+*     Each component Region in the CmpRegion has a boundary. But in
+*     general only part of the boundary of a component Region will also
+*     be included in the CmpRegion boundary. Thus the component Region
+*     boundary can be broken up into sections; sections that form part
+*     of the CmpRegion boundary, and sections that do not. This function
+*     stores information about the breaks between these sections.
+*
+*     The complete boundary of a component Region is parameterised by a
+*     distance that goes from 0.0 to 1.0. This function find the ranges
+*     of this parameter that correspond to the sections of the boundary that
+*     are also on the CmpRegion boundary, and thus finds the total length
+*     that the component boundary contributes to the CmpRegion boundary.
+*     This length is stored in "this->d0" (a two element array, one for
+*     each component Region).
+*
+*     It also find two arrays "this->rvals" and "this->offs" that allow a
+*     distance value in the range 0.0 to "this->d0" (i.e. a distance
+*     measured by skipping over the parts of the component boundary that
+*     are not on the CmpRegion boundary), to be converted into the
+*     corresponding distance value in the range 0.0 to 1.0 (i.e. a distance
+*     measured round the complete component boundary, including the parts
+*     not on the CmpRegion boundary).
+
+*  Parameters:
+*     this
+*        Pointer to a CmpRegion.
+*     comp
+*        Zero or one, indicating which component Region is to be checked.
+*     status
+*        Pointer to the inherited status variable.
+
+*/
+
+/* The number of points to be spread evenly over the entire boundary of the
+   component Region. */
+#define NP 101
+
+/* Local Variables: */
+   AstPointSet *pset1;
+   AstPointSet *pset2;
+   AstRegion *other;
+   AstRegion *reg;
+   double **ptr1;
+   double **ptr2;
+   double *d;
+   double *offs;
+   double *p;
+   double *q;
+   double *rvals;
+   double delta;
+   double rval;
+   int i;
+   int j;
+   double rbad;
+   int nn;
+   int prevgood;
+
+/* Check inherited status */
+   if( !astOK ) return;
+
+/* If the information describing breaks in the component boundary has not
+   yet been set up, do so now. */
+   if( this->d0[ comp ] == AST__BAD ) {
+
+/* Get a pointer to the component Region for which break information is
+   required. */
+      reg = comp ? this->region2 : this->region1;
+
+/* Check the component class implements the astRegTrace method. */
+      if( astRegTrace( reg, 0, NULL, NULL ) ) {
+
+/* Create a pointSet to hold axis values at evenly spaced positions along
+   the entire boundary of the selected component region. */
+         pset1 = astPointSet( NP, 2, " ", status );
+         ptr1 = astGetPoints( pset1 );
+
+/* Allocate memory to hold an array of corresponding scalar distances around
+   the boundary. */
+         d = astMalloc( NP*sizeof( double ) );
+
+/* Check pointers can be used safely. */
+         if( astOK ) {
+
+/* Get the distance increment between points (the entire boundary has
+   unit length). */
+            delta = 1.0/( NP - 1 );
+
+/* Set up the array of evenly spaced distances around the boundary of the
+   component region. */
+            for( i = 0; i < NP; i++ ) d[ i ] = i*delta;
+
+/* Get the corresponding Frame positions. If the Region is unbounded
+   (e.g. a negated circle, etc), then negate it first in the hope that
+   this may produced a bounded Region. */
+            if( astGetBounded( reg ) ) {
+               (void) astRegTrace( reg, NP, d, ptr1 );
+            } else {
+               astNegate( reg );
+               (void) astRegTrace( reg, NP, d, ptr1 );
+               astNegate( reg );
+            }
+
+/* Get a pointer to the other component Region. */
+            other = comp ? this->region1 : this->region2;
+
+/* If the two component Regions are ANDed together, we want to remove the
+   positions from the boundary of the required component Region that fall
+   outside the other region. We can do this by simply using the other Region
+   as a Mapping. If the two component Regions are ORed together, we want to
+   remove the position that fall within (rather than outside) the other
+   Region. To do this we need to negate the other region  first. */
+            if( this->oper == AST__OR ) astNegate( other );
+
+/* Now transform the points on the boundary of the selected Region in
+   order to set invalid those positions which are not on the boundary of
+   the supplied CmpRegion. */
+            pset2 = astTransform( other, pset1, 1, NULL );
+
+/* Negate the other region again to revert it to is original state */
+            if( this->oper == AST__OR ) astNegate( other );
+
+/* Modify the distance array by setting invalid each element that is not
+   on the boundary of the CmpRegion. */
+            ptr2 = astGetPoints( pset2 );
+            if( astOK ) {
+               p = ptr2[ 0 ];
+               q = ptr2[ 1 ];
+               for( i = 0; i < NP; i++,p++,q++ ) {
+                  if( *p == AST__BAD || *q == AST__BAD ) d[ i ] = AST__BAD;
+               }
+
+/* At each good/bad junction in this list, extend the good section by one
+   point. This ensures that the good sections of the curve do in fact
+   touch each other (they may in fact overlap a little but that does not
+   matter). */
+               prevgood = ( d[ 0 ] != AST__BAD );
+               for( i = 1; i < NP; i++,p++,q++ ) {
+                  if( d[ i ] == AST__BAD ) {
+                     if( prevgood ) d[ i ] = i*delta;
+                     prevgood = 0;
+
+                  } else {
+                     if( !prevgood ) d[ i - 1 ] = ( i - 1 )*delta;
+                     prevgood = 1;
+                  }
+               }
+
+/* Now create two arrays - "rvals" holds the distance travelled around
+   the used parts of the border at which breaks occur, "offs" holds the jump
+   in distance around the complete border at each break. The distance
+   around the complete border is normalised to the range [0.0,1.0].
+   Therefore the total distance around the used parts of the border will in
+   general be less than 1.0 */
+
+               if( d[ 0 ] == AST__BAD ) {
+                  nn = 1;
+                  j = 0;
+                  rvals = astMalloc( sizeof( double ) );
+                  offs = astMalloc( sizeof( double ) );
+                  if( astOK ) rvals[ 0 ] = -0.5*delta;
+                  rbad = 0.5;
+                  prevgood = 0;
+                  rval = -0.5*delta;
+
+               } else {
+                  nn = 0;
+                  rvals = NULL;
+                  offs = NULL;
+                  prevgood = 1;
+                  rbad = 0.0;
+                  rval = 0.0;
+               }
+
+               for( i = 1; i < NP; i++,p++,q++ ) {
+
+                  if( d[ i ] == AST__BAD ) {
+                     if( prevgood ) {
+                        j = nn++;
+                        rvals = astGrow( rvals, nn, sizeof( double ) );
+                        offs = astGrow( offs, nn, sizeof( double ) );
+                        if( astOK ) {
+                           rvals[ j ] = rval + 0.5*delta;
+                           rbad = 0.0;
+                        } else {
+                           break;
+                        }
+                        prevgood = 0;
+                     }
+
+                     rbad += 1.0;
+
+                  } else {
+                     if( !prevgood ) {
+                        offs[ j ] = rbad*delta;
+                        prevgood = 1;
+                     }
+                     rval += delta;
+                  }
+               }
+
+               if( !prevgood ) {
+                  rval += 0.5*delta;
+                  offs[ j ] = rbad*delta;
+               }
+
+/* Record the information in the CmpRegion structure. */
+               this->rvals[ comp ] = rvals;
+               this->offs[ comp ] = offs;
+               this->nbreak[ comp ] = nn;
+               this->d0[ comp ] = rval;
+            }
+
+/* Free resources. */
+            pset2 = astAnnul( pset2 );
+         }
+
+         pset1 = astAnnul( pset1 );
+         d = astFree( d );
+
+      }
+   }
+}
+
+#undef NP
 
 static void SetRegFS( AstRegion *this_region, AstFrame *frm, int *status ) {
 /*
@@ -2435,7 +3299,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 
 /* Invoke the parent Simplify method inherited from the Region class. This
    will simplify the encapsulated FrameSet and uncertainty Region. The
-   returned pointer identifies a region within the current Frame of the 
+   returned pointer identifies a region within the current Frame of the
    FrameSet encapsulated by the parent Region structure. Note this by
    storing the pointer in the "newc" ("c" for "current") variable. */
    newc = (AstCmpRegion *) (*parent_simplify)( this_mapping, status );
@@ -2445,8 +3309,8 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
    pointer. */
    simpler = ( (AstMapping *) newc != this_mapping );
 
-/* Below we may create a new simplified region which identifies a region 
-   within the base Frame of the FrameSet encapsulated by the parent Region 
+/* Below we may create a new simplified region which identifies a region
+   within the base Frame of the FrameSet encapsulated by the parent Region
    structure. Such a result will need to be mapped into the current Frame
    before being returned. The "newb" variable ("b" for "base") will be
    used to store a pointer to such a result. Initialise this variable to
@@ -2455,8 +3319,8 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 
 /* Get the component Regions, how they should be combined, and the
    Negated values which should be used with them. The returned values
-   take account of whether the supplied CmpRegion has itself been Negated 
-   or not. The returned Regions represent regions within the base Frame 
+   take account of whether the supplied CmpRegion has itself been Negated
+   or not. The returned Regions represent regions within the base Frame
    of the FrameSet encapsulated by the parent Region structure. */
    GetRegions( newc, &reg1, &reg2, &oper, &neg1, &neg2, status );
 
@@ -2473,24 +3337,24 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
 /* Note if any simplification took place. */
    simpler = simpler || ( sreg1 != reg1 || sreg2 != reg2 );
 
-/* If either component is null or infinite we can exclude it from the 
+/* If either component is null or infinite we can exclude it from the
    returned Region. */
    if( astIsANullRegion( sreg1 ) || astIsANullRegion( sreg2 ) ) {
 
 /* Get a pointer to the non-null Region. The following is still valid
-   even if both regions are null or infinite. */      
+   even if both regions are null or infinite. */
       if( astIsANullRegion( sreg1 ) ){
          nullreg = sreg1;
          othereg = sreg2;
       } else {
          nullreg = sreg2;
          othereg = sreg1;
-      } 
+      }
 
 /* If null.. */
       if( !astGetNegated( nullreg ) ){
          if( oper == AST__AND ) {
-            newb = (AstCmpRegion *) astNullRegion( othereg, 
+            newb = (AstCmpRegion *) astNullRegion( othereg,
                                              astGetUnc( othereg, 0 ), "", status );
 
          } else if( oper == AST__OR ) {
@@ -2499,9 +3363,9 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
          } else {
             astError( AST__INTER, "astSimplify(%s): The %s refers to an "
                       "unknown boolean operator with identifier %d (internal "
-                      "AST programming error).", status, astGetClass( newc ), 
+                      "AST programming error).", status, astGetClass( newc ),
                       astGetClass( newc ), oper );
-         }            
+         }
 
 /* If infinite.. */
       } else {
@@ -2509,35 +3373,35 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
             newb = astCopy( othereg );
 
          } else if( oper == AST__OR ) {
-            newb = (AstCmpRegion *) astNullRegion( othereg, 
+            newb = (AstCmpRegion *) astNullRegion( othereg,
                                       astGetUnc( othereg, 0 ), "negated=1", status );
 
          } else {
             astError( AST__INTER, "astSimplify(%s): The %s refers to an "
                       "unknown boolean operator with identifier %d (internal "
-                      "AST programming error).", status, astGetClass( newc ), 
+                      "AST programming error).", status, astGetClass( newc ),
                       astGetClass( newc ), oper );
-         }            
+         }
       }
 
 /* Flag that we have done some simplication.*/
       simpler = 1;
 
-/* If neither component is null or infinite, see if it is possible to 
+/* If neither component is null or infinite, see if it is possible to
    remove one or both of the components on the basis of the overlap
    between them. */
    } else {
       overlap = astOverlap( sreg1, sreg2 );
 
-/* If the components have no overlap, and they are combined using AND, then 
+/* If the components have no overlap, and they are combined using AND, then
    the CmpRegion is null. */
       if( ( overlap == 1 || overlap == 6 ) && oper == AST__AND ) {
          newb = (AstCmpRegion *) astNullRegion( sreg1, astGetUnc( sreg1, 0 ),
                                                 "", status );
          simpler = 1;
 
-/* If one component is the negation of the other component, and they are 
-   combined using OR, then the CmpRegion is infinite. This is represented 
+/* If one component is the negation of the other component, and they are
+   combined using OR, then the CmpRegion is infinite. This is represented
    by a negated null region.*/
       } else if( overlap == 6 && oper == AST__OR ) {
          newb = (AstCmpRegion  *) astNullRegion( sreg1, astGetUnc( sreg1, 0 ),
@@ -2555,7 +3419,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
          } else {
             astError( AST__INTER, "astSimplify(%s): The %s refers to an "
                       "unknown boolean operator with identifier %d (internal "
-                      "AST programming error).", status, astGetClass( newc ), 
+                      "AST programming error).", status, astGetClass( newc ),
                       astGetClass( newc ), oper );
          }
 
@@ -2573,7 +3437,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
          newb = astCopy( ( oper == AST__AND ) ? sreg2 : sreg1 );
          simpler = 1;
 
-/* Otherwise, no further simplication is possible, so either create a new 
+/* Otherwise, no further simplication is possible, so either create a new
    CmpRegion or leave the "newb" pointer NULL (which will cause "newc" to
    be used), depending on whether the components were simplified. */
       } else if( simpler ){
@@ -2582,7 +3446,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
          newb = astCmpRegion( csreg1, csreg2, oper, "", status );
          csreg1 = astAnnul( csreg1 );
          csreg2 = astAnnul( csreg2 );
-   
+
       }
    }
 
@@ -2595,7 +3459,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
    if( reg2 ) astSetNegated( reg2, neg2_old );
    astReporting( rep );
    astSetStatus( status_value );
-   
+
 /* If any simplification took place, decide whether to use the "newc" or
    "newb" pointer for the returned Mapping. If "newb" is non-NULL we use
    it, otherwise we use "newc". If "newb" is used we must first map the
@@ -2629,68 +3493,6 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
    if ( !astOK ) result = astAnnul( result );
 
 /* Return the result. */
-   return result;
-}
-
-static int TestUnc( AstRegion *this_region, int *status ) {
-/*
-*  Name:
-*     TestUnc
-
-*  Purpose:
-*     Does the Region contain non-default uncertainty information?
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     include "cmpregion.h"
-*     int astTestUnc( AstRegion *this, int *status )
-
-*  Class Membership:
-*     CmpRegion member function (over-rides the astTestUnc protected
-*     method inherited from the Region class).
-
-*  Description:
-*     This function returns a flag indicating if the uncertainty Region in 
-*     the supplied Region was supplied explicit (i.e. is not a default 
-*     uncertainty Region).
-
-*  Parameters:
-*     this
-*        Pointer to the Region.
-*     status
-*        Pointer to the inherited status variable.
-
-*  Returned Value:
-*     Non-zero if the uncertainty Region was supplied explicitly.
-*     Zero otherwise.
-
-*/
-
-/* Local Variables; */
-   AstCmpRegion *this;
-   int result;
-
-/* Check the global error status. */
-   if ( !astOK ) return 0;
-
-/* Get a pointer to the CmpRegion structure. */
-   this = (AstCmpRegion *) this_region;
-
-/* See if the parent Region structure contains explicit uncertainty
-   information. If so this will be used in preference to any uncertainty
-   info in the component Regions. */
-   result = (* parent_testunc)( this_region, status );
-
-/* If not see if either of the two component Regions contains explicit 
-   uncertainty information. */
-   if( !result ) {
-      this = (AstCmpRegion *) this_region;
-      result = astTestUnc( this->region1 ) || astTestUnc( this->region2 );
-   }
-
-/* Return the result */
    return result;
 }
 
@@ -2786,8 +3588,8 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 
 /* Get the component Regions, how they should be combined, and the
    Negated values which should be used with them. The returned values
-   take account of whether the supplied CmpRegion has itself been Negated 
-   or not. The returned Regions represent regions within the base Frame 
+   take account of whether the supplied CmpRegion has itself been Negated
+   or not. The returned Regions represent regions within the base Frame
    of the FrameSet encapsulated by the parent Region structure. */
    GetRegions( this, &reg1, &reg2, &oper, &neg1, &neg2, status );
 
@@ -2799,18 +3601,18 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 
 /* Apply the parent mapping using the stored pointer to the Transform member
    function inherited from the parent Region class. This function validates
-   all arguments and generates an output PointSet if necessary, containing 
+   all arguments and generates an output PointSet if necessary, containing
    a copy of the input PointSet. */
    result = (*parent_transform)( this_mapping, in, forward, out, status );
 
 /* We will now extend the parent astTransform method by performing the
    calculations needed to generate the output coordinate values. */
 
-/* First use the encapsulated FrameSet in the parent Region structure to 
-   transform the supplied positions from the current Frame in the 
-   encapsulated FrameSet (the Frame represented by the CmpRegion), to the 
+/* First use the encapsulated FrameSet in the parent Region structure to
+   transform the supplied positions from the current Frame in the
+   encapsulated FrameSet (the Frame represented by the CmpRegion), to the
    base Frame (the Frame in which the component Regions are defined). Note,
-   the returned pointer may be a clone of the "in" pointer, and so we 
+   the returned pointer may be a clone of the "in" pointer, and so we
    must be carefull not to modify the contents of the returned PointSet. */
    pset_tmp = astRegTransform( this, in, 0, NULL, NULL );
 
@@ -2820,12 +3622,12 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    ps2 = astTransform( reg2, pset_tmp, 0, NULL );
 
 /* Determine the numbers of points and coordinates per point for these base
-   Frame PointSets and obtain pointers for accessing the base Frame and output 
+   Frame PointSets and obtain pointers for accessing the base Frame and output
    coordinate values. */
    npoint = astGetNpoint( pset_tmp );
    ncoord_tmp = astGetNcoord( pset_tmp );
-   ptr1 = astGetPoints( ps1 );      
-   ptr2 = astGetPoints( ps2 );      
+   ptr1 = astGetPoints( ps1 );
+   ptr2 = astGetPoints( ps2 );
    ncoord_out = astGetNcoord( result );
    ptr_out = astGetPoints( result );
 
@@ -2834,7 +3636,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    if ( astOK ) {
 
 /* First deal with ANDed Regions */
-      if( oper == AST__AND ) {   
+      if( oper == AST__AND ) {
          for ( point = 0; point < npoint; point++ ) {
             good = 0;
 
@@ -2844,17 +3646,17 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
                   good = 1;
                   break;
                }
-            }      
+            }
 
             if( !good ) {
                for ( coord = 0; coord < ncoord_out; coord++ ) {
                   ptr_out[ coord ][ point ] = AST__BAD;
                }
-            }      
+            }
          }
 
 /* Now deal with ORed Regions */
-      } else if( oper == AST__OR ) {   
+      } else if( oper == AST__OR ) {
          for ( point = 0; point < npoint; point++ ) {
             good = 0;
 
@@ -2864,20 +3666,20 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
                   good = 1;
                   break;
                }
-            }      
+            }
 
             if( !good ) {
                for ( coord = 0; coord < ncoord_out; coord++ ) {
                   ptr_out[ coord ][ point ] = AST__BAD;
                }
-            }      
+            }
          }
 
 /* Report error for any unknown operator. */
       } else if( astOK ) {
          astError( AST__INTER, "astTransform(%s): The %s refers to an unknown "
                    "boolean operator with identifier %d (internal AST "
-                   "programming error).", status, astGetClass( this ), 
+                   "programming error).", status, astGetClass( this ),
                     astGetClass( this ), oper );
       }
    }
@@ -2891,7 +3693,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    if( reg2 ) astSetNegated( reg2, neg2_old );
    astReporting( rep );
    astSetStatus( status_value );
-   
+
 /* Free resources. */
    reg1 = astAnnul( reg1 );
    reg2 = astAnnul( reg2 );
@@ -2908,6 +3710,105 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
 
 /* Return a pointer to the output PointSet. */
    return result;
+}
+
+static void XORCheck( AstCmpRegion *this, int *status ) {
+/*
+*  Name:
+*     XORCheck
+
+*  Purpose:
+*     Check if the supplied CmpRegion represents an XOR operation.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "cmpregion.h"
+*      void XORCheck( AstCmpRegion *this, int *status )
+
+*  Class Membership:
+*     CmpRegion method
+
+*  Decription:
+*     This function analyses the component Regions within the supplied
+*     CmpRegion to see if the CmpRegion is equivalent to an XOR operation
+*     on two other Regions. If it is, teh Regions that are XORed are
+*     stored in the supplied CmpRegion.
+
+*  Parameters:
+*     this
+*        Pointer to the CmpRegion.
+
+*/
+
+/* Local Variables: */
+   AstCmpRegion *cmpreg1;
+   AstCmpRegion *cmpreg2;
+   int xor;
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* If the CmpRegion is already known to be an XOR operation, return
+   without action. */
+   if( this->xor1 ) return;
+
+/* To be equivalent to an XOR operation, the supplied CmpRegion must be an
+   OR operation and each component Region must be a CmpRegion. */
+   if( this->oper == AST__OR && astIsACmpRegion( this->region1 )
+                             && astIsACmpRegion( this->region2 ) ) {
+      cmpreg1 = (AstCmpRegion *) this->region1;
+      cmpreg2 = (AstCmpRegion *) this->region2;
+
+/* Each component CmpRegion must be an AND operation. */
+      if( cmpreg1->oper == AST__AND && cmpreg2->oper == AST__AND ) {
+
+/* Temporarily negate the first component of the first CmpRegion. */
+         astNegate( cmpreg1->region1 );
+
+/* Initially, assume the supplied CmpRegion is not equivalent to an XOR
+   operation. */
+         xor = 0;
+
+/* This negated region must be equal to one of the two component Regions
+   in the second component CmpRegion. Check the first. */
+         if( astEqual( cmpreg1->region1, cmpreg2->region1 ) ) {
+
+/* We now check that the other two Regions are equal (after negating the
+   first). If so, set "xor" non-zero. */
+            astNegate( cmpreg1->region2 );
+            if( astEqual( cmpreg1->region2, cmpreg2->region2 ) ) xor = 1;
+            astNegate( cmpreg1->region2 );
+
+/* Do equiovalent checks the other way round. */
+         } else if( astEqual( cmpreg1->region1, cmpreg2->region2 ) ) {
+            astNegate( cmpreg1->region2 );
+            if( astEqual( cmpreg1->region2, cmpreg2->region1 ) ) xor = 1;
+            astNegate( cmpreg1->region2 );
+         }
+
+/* Re-instate the original state of the Negated attribute in the first
+   component of the first CmpRegion. */
+         astNegate( cmpreg1->region1 );
+
+/* If the supplied CmpRegion is equivalent to an XOR operation, store
+   copies of the components in the supplied CmpRegion. */
+         if( xor ) {
+            this->xor1 = astCopy( cmpreg1->region1 );
+            this->xor2 = astCopy( cmpreg1->region2 );
+
+/* We need to negate one of these two Region (it doesn't matter which),
+   and we choose to negate which ever of them is already negated (so that
+   it becomes un-negated). */
+            if( astGetNegated( this->xor1 ) ) {
+               astNegate( this->xor1 );
+            } else {
+               astNegate( this->xor2 );
+            }
+         }
+      }
+   }
 }
 
 /* Copy constructor. */
@@ -2948,6 +3849,7 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /* Local Variables: */
    AstCmpRegion *in;                /* Pointer to input CmpRegion */
    AstCmpRegion *out;               /* Pointer to output CmpRegion */
+   int i;                           /* Loop count */
 
 /* Check the global error status. */
    if ( !astOK ) return;
@@ -2960,11 +3862,22 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
    Regions from the output CmpRegion. */
    out->region1 = NULL;
    out->region2 = NULL;
+   out->xor1 = NULL;
+   out->xor2 = NULL;
+
+   for( i = 0; i < 2; i++ ) {
+      out->rvals[ i ] = NULL;
+      out->offs[ i ] = NULL;
+      out->nbreak[ i ] = 0;
+      out->d0[ i ] = AST__BAD;
+   }
 
 /* Make copies of these Regions and store pointers to them in the output
    CmpRegion structure. */
    out->region1 = astCopy( in->region1 );
    out->region2 = astCopy( in->region2 );
+   if( in->xor1 ) out->xor1 = astCopy( in->xor1 );
+   if( in->xor2 ) out->xor2 = astCopy( in->xor2 );
 }
 
 /* Destructor. */
@@ -3002,13 +3915,22 @@ static void Delete( AstObject *obj, int *status ) {
 
 /* Local Variables: */
    AstCmpRegion *this;              /* Pointer to CmpRegion */
+   int i;
 
 /* Obtain a pointer to the CmpRegion structure. */
    this = (AstCmpRegion *) obj;
 
+/* Free arrays holding cached information. */
+   for( i = 0; i < 2; i++ ) {
+      this->rvals[ i ] = astFree( this->rvals[ i ] );
+      this->offs[ i ] = astFree( this->offs[ i ] );
+   }
+
 /* Annul the pointers to the component Regions. */
    this->region1 = astAnnul( this->region1 );
    this->region2 = astAnnul( this->region2 );
+   if( this->xor1 ) this->xor1 = astAnnul( this->xor1 );
+   if( this->xor2 ) this->xor2 = astAnnul( this->xor2 );
 }
 
 /* Dump function. */
@@ -3041,15 +3963,35 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 */
 
 /* Local Variables: */
+   AstRegion *reg1;              /* First Region to include in dump */
+   AstRegion *reg2;              /* Second Region to include in dump */
    AstCmpRegion *this;           /* Pointer to the CmpRegion structure */
    const char *comment;          /* Pointer to comment string */
    int ival;                     /* Integer value */
+   int oper;                     /* The operator to include in the dump */
 
 /* Check the global error status. */
    if ( !astOK ) return;
 
 /* Obtain a pointer to the CmpRegion structure. */
    this = (AstCmpRegion *) this_object;
+
+/* Check if this CmpRegion has an equivalent XOR representation. Is so,
+   store details of the XOR representation in the CmpRegion. */
+   XORCheck( this, status );
+
+/* Choose the operator and component regions to include in the dump. If
+   the CmpRegion originally used an XOR operator, then save the XORed
+   regions. Otherwise, store the real component Regions. */
+   if( this->xor1 ) {
+      oper = AST__XOR;
+      reg1 = this->xor1;
+      reg2 = this->xor2;
+   } else {
+      oper = this->oper;
+      reg1 = this->region1;
+      reg2 = this->region2;
+   }
 
 /* Write out values representing the instance variables for the CmpRegion
    class.  Accompany these with appropriate comment strings, possibly
@@ -3069,11 +4011,13 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 
 /* Oper */
 /* ------- */
-   ival = this->oper;
+   ival = oper;
    if( ival == AST__AND ) {
       comment = "Regions combined using Boolean AND";
    } else if( ival == AST__OR ) {
       comment = "Regions combined using Boolean OR";
+   } else if( ival == AST__XOR ) {
+      comment = "Regions combined using Boolean XOR";
    } else {
       comment = "Regions combined using unknown operator";
    }
@@ -3081,12 +4025,12 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 
 /* First Region. */
 /* -------------- */
-   astWriteObject( channel, "RegionA", 1, 1, this->region1,
+   astWriteObject( channel, "RegionA", 1, 1, reg1,
                    "First component Region" );
 
 /* Second Region. */
 /* --------------- */
-   astWriteObject( channel, "RegionB", 1, 1, this->region2,
+   astWriteObject( channel, "RegionB", 1, 1, reg2,
                    "Second component Region" );
 }
 
@@ -3094,7 +4038,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsACmpRegion and astCheckCmpRegion functions using the
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(CmpRegion,Region,check,&class_check)
+astMAKE_ISA(CmpRegion,Region)
 astMAKE_CHECK(CmpRegion)
 
 AstCmpRegion *astCmpRegion_( void *region1_void, void *region2_void, int oper,
@@ -3112,7 +4056,7 @@ AstCmpRegion *astCmpRegion_( void *region1_void, void *region2_void, int oper,
 
 *  Synopsis:
 *     #include "cmpregion.h"
-*     AstCmpRegion *astCmpRegion( AstRegion *region1, AstRegion *region2, 
+*     AstCmpRegion *astCmpRegion( AstRegion *region1, AstRegion *region2,
 *                                 int oper, const char *options, ..., int *status )
 
 *  Class Membership:
@@ -3167,7 +4111,7 @@ AstCmpRegion *astCmpRegion_( void *region1_void, void *region2_void, int oper,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstCmpRegion *new;              /* Pointer to new CmpRegion */
    AstRegion *region1;             /* Pointer to first Region structure */
    AstRegion *region2;             /* Pointer to second Region structure */
@@ -3189,8 +4133,8 @@ AstCmpRegion *astCmpRegion_( void *region1_void, void *region2_void, int oper,
 
 /* Initialise the CmpRegion, allocating memory and initialising the
    virtual function table as well if necessary. */
-      new = astInitCmpRegion( NULL, sizeof( AstCmpRegion ), !class_init, 
-                              &class_vtab, "CmpRegion", region1, region2, 
+      new = astInitCmpRegion( NULL, sizeof( AstCmpRegion ), !class_init,
+                              &class_vtab, "CmpRegion", region1, region2,
                               oper );
 
 /* If successful, note that the virtual function table has been
@@ -3214,7 +4158,7 @@ AstCmpRegion *astCmpRegion_( void *region1_void, void *region2_void, int oper,
    return new;
 }
 
-AstCmpRegion *astCmpRegionId_( void *region1_void, void *region2_void, 
+AstCmpRegion *astCmpRegionId_( void *region1_void, void *region2_void,
                                int oper, const char *options, ... ) {
 /*
 *++
@@ -3230,7 +4174,7 @@ f     AST_CMPREGION
 
 *  Synopsis:
 c     #include "cmpregion.h"
-c     AstCmpRegion *astCmpRegion( AstRegion *region1, AstRegion *region2, 
+c     AstCmpRegion *astCmpRegion( AstRegion *region1, AstRegion *region2,
 c                                 int oper, const char *options, ... )
 f     RESULT = AST_CMPREGION( REGION1, REGION2, OPER, OPTIONS, STATUS )
 
@@ -3242,31 +4186,33 @@ f     RESULT = AST_CMPREGION( REGION1, REGION2, OPER, OPTIONS, STATUS )
 *     its attributes.
 *
 *     A CmpRegion is a Region which allows two component
-*     Regions (of any class) to be combined to form a more complex 
-*     Region. This combination may be performed either a boolean 
-*     AND operator or a boolean OR operator. If the AND operator is 
-*     used, then a position is inside the CmpRegion only if it is 
-*     inside both of its two component Regions. If the OR operator is 
-*     used, then a position is inside the CmpRegion if it is inside 
-*     either (or both) of its two component Regions. Other operators can
-*     be formed by negating one or both component Regions before using 
+*     Regions (of any class) to be combined to form a more complex
+*     Region. This combination may be performed a boolean AND, OR
+*     or XOR (exclusive OR) operator. If the AND operator is
+*     used, then a position is inside the CmpRegion only if it is
+*     inside both of its two component Regions. If the OR operator is
+*     used, then a position is inside the CmpRegion if it is inside
+*     either (or both) of its two component Regions. If the XOR operator
+*     is used, then a position is inside the CmpRegion if it is inside
+*     one but not both of its two component Regions. Other operators can
+*     be formed by negating one or both component Regions before using
 *     them to construct a new CmpRegion.
 *
 *     The two component Region need not refer to the same coordinate
-*     Frame, but it must be possible for the 
-c     astConvert 
-f     AST_CONVERT 
+*     Frame, but it must be possible for the
+c     astConvert
+f     AST_CONVERT
 *     function to determine a Mapping between them (an error will be
 *     reported otherwise when the CmpRegion is created). For instance,
 *     a CmpRegion may combine a Region defined within an ICRS SkyFrame
 *     with a Region defined within a Galactic SkyFrame. This is
 *     acceptable because the SkyFrame class knows how to convert between
-*     these two systems, and consequently the 
-c     astConvert 
-f     AST_CONVERT 
+*     these two systems, and consequently the
+c     astConvert
+f     AST_CONVERT
 *     function will also be able to convert between them. In such cases,
 *     the second component Region will be mapped into the coordinate Frame
-*     of the first component Region, and the Frame represented by the 
+*     of the first component Region, and the Frame represented by the
 *     CmpRegion as a whole will be the Frame of the first component Region.
 *
 *     Since a CmpRegion is itself a Region, it can be used as a
@@ -3281,12 +4227,12 @@ f     REGION1 = INTEGER (Given)
 c     region2
 f     REGION2 = INTEGER (Given)
 *        Pointer to the second component Region. This Region will be
-*        transformed into the coordinate Frame of the first region before 
+*        transformed into the coordinate Frame of the first region before
 *        use. An error will be reported if this is not possible.
 c     oper
 f     OPER = INTEGER (Given)
 *        The boolean operator with which to combine the two Regions. This
-*        must be one of the symbolic constants AST__AND or AST__OR.
+*        must be one of the symbolic constants AST__AND, AST__OR or AST__XOR.
 c     options
 f     OPTIONS = CHARACTER * ( * ) (Given)
 c        Pointer to a null-terminated string containing an optional
@@ -3317,10 +4263,10 @@ f     AST_CMPREGION = INTEGER
 *     - If one of the supplied Regions has an associated uncertainty,
 *     that uncertainty will also be used for the returned CmpRegion.
 *     If both supplied Regions have associated uncertainties, the
-*     uncertainty associated with the first Region will be used for the 
+*     uncertainty associated with the first Region will be used for the
 *     returned CmpRegion.
 *     - Deep copies are taken of the supplied Regions. This means that
-*     any subsequent changes made to the component Regions using the 
+*     any subsequent changes made to the component Regions using the
 *     supplied pointers will have no effect on the CmpRegion.
 *     - A null Object pointer (AST__NULL) will be returned if this
 c     function is invoked with the AST error status set, or if it
@@ -3346,19 +4292,19 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstCmpRegion *new;              /* Pointer to new CmpRegion */
    AstRegion *region1;             /* Pointer to first Region structure */
    AstRegion *region2;             /* Pointer to second Region structure */
    va_list args;                   /* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
 
 /* Get a pointer to the thread specific global data structure. */
    astGET_GLOBALS(NULL);
 
 /* Initialise. */
    new = NULL;
-
-   int *status;                  /* Pointer to inherited status value */
 
 /* Get a pointer to the inherited status value. */
    status = astGetStatusPtr;
@@ -3374,8 +4320,8 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Initialise the CmpRegion, allocating memory and initialising the
    virtual function table as well if necessary. */
-      new = astInitCmpRegion( NULL, sizeof( AstCmpRegion ), !class_init, 
-                              &class_vtab, "CmpRegion", region1, region2, 
+      new = astInitCmpRegion( NULL, sizeof( AstCmpRegion ), !class_init,
+                              &class_vtab, "CmpRegion", region1, region2,
                               oper );
 
 /* If successful, note that the virtual function table has been initialised. */
@@ -3400,7 +4346,7 @@ f     function is invoked with STATUS set to an error value, or if it
 
 AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
                                  AstCmpRegionVtab *vtab, const char *name,
-                                 AstRegion *region1, AstRegion *region2, 
+                                 AstRegion *region1, AstRegion *region2,
                                  int oper, int *status ) {
 /*
 *+
@@ -3417,7 +4363,7 @@ AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
 *     #include "cmpregion.h"
 *     AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
 *                                      AstCmpRegionVtab *vtab, const char *name,
-*                                      AstRegion *region1, AstRegion *region2, 
+*                                      AstRegion *region1, AstRegion *region2,
 *                                      int oper )
 
 *  Class Membership:
@@ -3462,7 +4408,8 @@ AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
 *     region2
 *        Pointer to the second Region.
 *     oper
-*        The boolean operator to use. Must be one of AST__AND or AST__OR.
+*        The boolean operator to use. Must be one of AST__AND, AST__OR or
+*        AST__XOR.
 
 *  Returned Value:
 *     A pointer to the new CmpRegion.
@@ -3479,9 +4426,14 @@ AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
    AstFrameSet *fs;              /* FrameSet connecting supplied Regions */
    AstMapping *map;              /* Mapping between two supplied Regions */
    AstMapping *smap;             /* Simplified Mapping between two supplied Regions */
-   AstRegion *new_reg2;          /* 2nd Region mapped into 1st Region's Frame */
-   AstRegion *reg1;              /* Copy of first supplied Region */
-   AstRegion *reg2;              /* Copy of second supplied Region */
+   AstRegion *new_reg1;          /* Replacement for first region */
+   AstRegion *new_reg2;          /* Replacement for second region */
+   AstRegion *reg1;              /* First Region to store in the CmpRegion */
+   AstRegion *reg2;              /* Second Region to store in the CmpRegion */
+   AstRegion *xor1;              /* Copy of first supplied Region or NULL */
+   AstRegion *xor2;              /* Copy of second supplied Region or NULL */
+   int i;                        /* Loop count */
+   int used_oper;                /* The boolean operation actually used */
 
 /* Check the global status. */
    if ( !astOK ) return NULL;
@@ -3493,7 +4445,7 @@ AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
    new = NULL;
 
 /* Check the supplied oper value. */
-   if( oper != AST__AND && oper != AST__OR && astOK ) {
+   if( oper != AST__AND && oper != AST__OR && oper != AST__XOR && astOK ) {
       astError( AST__INTRD, "astInitCmpRegion(%s): Illegal "
                 "boolean operator value (%d) supplied.", status, name, oper );
    }
@@ -3529,11 +4481,44 @@ AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
       fs = astAnnul( fs );
    }
 
+/* The CmpRegion class does not implement XOR directly (as it does for
+   AND and OR). Instead, when requested to create an XOR CmpRegion, it
+   creates a CmpRegion that uses AND and OR to simulate XOR. The top
+   level XOR CmpRegion actually uses AST__OR and the two component
+   regions within it are CmpRegions formed by combing the two supplied
+   Regions (one being negated first) using AND. Create the required
+   component Regions. */
+   if( oper == AST__XOR ) {
+      astNegate( reg1 );
+      new_reg1 = (AstRegion *) astCmpRegion( reg1, reg2, AST__AND, " ",
+                                             status );
+      astNegate( reg1 );
+
+      astNegate( reg2 );
+      new_reg2 = (AstRegion *) astCmpRegion( reg1, reg2, AST__AND, " ",
+                                             status );
+      astNegate( reg2 );
+
+      xor1 = reg1;
+      xor2 = reg2;
+
+      reg1 = new_reg1;
+      reg2 = new_reg2;
+
+      used_oper = AST__OR;
+
+/* For AND and OR, use the supplied operator. */
+   } else {
+      xor1 = NULL;
+      xor2 = NULL;
+      used_oper = oper;
+   }
+
 /* Initialise a Region structure (the parent class) as the first component
    within the CmpRegion structure, allocating memory if necessary. A NULL
    PointSet is suppled as the two component Regions will perform the function
    of defining the Region shape. The base Frame of the FrameSet in the
-   parent Region structure will be the same as the current Frames of the 
+   parent Region structure will be the same as the current Frames of the
    FrameSets in the two component Regions. */
    if ( astOK ) {
       new = (AstCmpRegion *) astInitRegion( mem, size, 0,
@@ -3547,9 +4532,29 @@ AstCmpRegion *astInitCmpRegion_( void *mem, size_t size, int init,
       new->region2 = astClone( reg2 );
 
 /* Note the operator used to combine the somponent Regions. */
-      new->oper = oper;
+      new->oper = used_oper;
 
-/* If the base->current Mapping in the FrameSet within each component Region 
+/* If we are creating an XOR CmpRegion, save copies of the supplied
+   Regions (i.e. the supplied Regions which are XORed). These will not
+   be the same as "reg1" and "reg2" since each of those two regions will
+   be CmpRegions that combine the supplied Regions using AST__AND. */
+      if( oper == AST__XOR ) {
+         new->xor1 = xor1;
+         new->xor2 = xor2;
+      } else {
+         new->xor1 = NULL;
+         new->xor2 = NULL;
+      }
+
+/* Initialised cached values to show they have not yet been found. */
+      for( i = 0; i < 2; i++ ) {
+         new->rvals[ i ] = NULL;
+         new->offs[ i ] = NULL;
+         new->nbreak[ i ] = 0;
+         new->d0[ i ] = AST__BAD;
+      }
+
+/* If the base->current Mapping in the FrameSet within each component Region
    is a UnitMap, then the FrameSet does not need to be included in the
    Dump of the new CmpRegion. Set the RegionFS attribute of the component
    Region to zero to flag this. */
@@ -3665,10 +4670,14 @@ AstCmpRegion *astLoadCmpRegion_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
-   AstCmpRegion *new;               /* Pointer to the new CmpRegion */
-   AstFrame *f1;                    /* Base Frame in parent Region */
-   AstRegion *creg;                 /* Pointer to component Region */
+   AstCmpRegion *new;            /* Pointer to the new CmpRegion */
+   AstRegion *reg1;              /* First Region read from dump */
+   AstRegion *reg2;              /* Second Region read from dump */
+   AstFrame *f1;                 /* Base Frame in parent Region */
+   AstRegion *creg;              /* Pointer to component Region */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
+   int i;                        /* Loop count */
+   int oper;                     /* The operator to include in the dump */
 
 /* Initialise. */
    new = NULL;
@@ -3719,23 +4728,63 @@ AstCmpRegion *astLoadCmpRegion_( void *mem, size_t size,
 
 /* Operator */
 /* -------- */
-      new->oper = astReadInt( channel, "operator", AST__AND );
+      oper = astReadInt( channel, "operator", AST__AND );
 
 /* First Region. */
 /* -------------- */
-      new->region1 = astReadObject( channel, "regiona", NULL );
+      reg1 = astReadObject( channel, "regiona", NULL );
 
 /* Second Region. */
 /* --------------- */
-      new->region2 = astReadObject( channel, "regionb", NULL );
+      reg2 = astReadObject( channel, "regionb", NULL );
+
+/* Initialised cached values to show they have not yet been found. */
+      for( i = 0; i < 2; i++ ) {
+         new->rvals[ i ] = NULL;
+         new->offs[ i ] = NULL;
+         new->nbreak[ i ] = 0;
+         new->d0[ i ] = AST__BAD;
+      }
+
+/* The CmpRegion class does not implement XOR directly (as it does for
+   AND and OR). Instead, when requested to create an XOR CmpRegion, it
+   creates a CmpRegion that uses AND and OR to simulate XOR. The top
+   level XOR CmpRegion actually uses AST__OR and the two component
+   regions within it are CmpRegions formed by combing the two supplied
+   Regions (one being negated first) using AND. Create the required
+   component Regions. */
+      if( oper == AST__XOR ) {
+         astNegate( reg1 );
+         new->region1 = (AstRegion *) astCmpRegion( reg1, reg2, AST__AND,
+                                                    " ", status );
+         astNegate( reg1 );
+
+         astNegate( reg2 );
+         new->region2 = (AstRegion *) astCmpRegion( reg1, reg2, AST__AND,
+                                                    " ", status );
+         astNegate( reg2 );
+
+         new->xor1 = reg1;
+         new->xor2 = reg2;
+
+         new->oper = AST__OR;
+
+/* For AND and OR, use the supplied Regions and operator. */
+      } else {
+         new->region1 = reg1;
+         new->region2 = reg2;
+         new->xor1 = NULL;
+         new->xor2 = NULL;
+         new->oper = oper;
+      }
 
 /* If either component Region has a dummy FrameSet rather than the correct
-   FrameSet, the correct FrameSet will have copies of the base Frame of the 
-   new CmpRegion as both its current and base Frames, connected by a UnitMap 
-   (this is equivalent to a FrameSet containing a single Frame). However if 
-   the new CmpRegion being loaded has itself got a dummy FrameSet, then we do 
-   not do this since we do not yet know what the correct FrameSet is. In this 
-   case we wait until the parent Region invokes the astSetRegFS method on the 
+   FrameSet, the correct FrameSet will have copies of the base Frame of the
+   new CmpRegion as both its current and base Frames, connected by a UnitMap
+   (this is equivalent to a FrameSet containing a single Frame). However if
+   the new CmpRegion being loaded has itself got a dummy FrameSet, then we do
+   not do this since we do not yet know what the correct FrameSet is. In this
+   case we wait until the parent Region invokes the astSetRegFS method on the
    new CmpRegion. */
       if( !astRegDummyFS( new ) ) {
          f1 = astGetFrame( ((AstRegion *) new)->frameset, AST__BASE );
@@ -3766,10 +4815,12 @@ AstCmpRegion *astLoadCmpRegion_( void *mem, size_t size,
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
 
-/* None. */
-
-
-
+int astCmpRegionList_( AstCmpRegion *this, int *nreg, AstRegion ***reg_list,
+                       int *status ) {
+   if ( !astOK ) return AST__AND;
+   return (**astMEMBER(this,CmpRegion,CmpRegionList))( this, nreg, reg_list,
+                                                       status );
+}
 
 
 

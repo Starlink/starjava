@@ -9,16 +9,16 @@ package uk.ac.starlink.ast;
 /**
  * Java interface to the AST SpecFrame class
  *  - spectral coordinate system description. 
- * A SpecFrame is a specialised form of one-dimensional Frame which 
- * represents various coordinate systems used to describe positions within 
- * an electro-magnetic spectrum. The particular coordinate system to be 
- * used is specified by setting the SpecFrame's System attribute (the 
- * default is wavelength) qualified, as necessary, by other attributes 
- * such as the rest frequency, the standard of rest, the epoch of 
+ * A SpecFrame is a specialised form of one-dimensional Frame which
+ * represents various coordinate systems used to describe positions within
+ * an electro-magnetic spectrum. The particular coordinate system to be
+ * used is specified by setting the SpecFrame's System attribute (the
+ * default is wavelength) qualified, as necessary, by other attributes
+ * such as the rest frequency, the standard of rest, the epoch of
  * observation, units, etc (see the description of the System attribute
  * for details).
  * <p>
- * By setting a value for thr SpecOrigin attribute, a SpecFrame can be made 
+ * By setting a value for thr SpecOrigin attribute, a SpecFrame can be made
  * to represent offsets from a given spectral position, rather than absolute
  * spectral values.
  * <h4>Licence</h4>
@@ -34,8 +34,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecFrame'>AST SpecFrame</a>  
@@ -52,7 +52,7 @@ public class SpecFrame extends Frame {
 
     /** 
      * Return the reference position in a specified celestial coordinate system.   
-     * This function 
+     * This function
      * returns the reference position (specified by attributes RefRA and
      * RefDec) converted to the celestial coordinate system represented by
      * a supplied SkyFrame. The celestial longitude and latitude values
@@ -63,9 +63,9 @@ public class SpecFrame extends Frame {
      * any reason.
      * @param   frm
      * Pointer to the SkyFrame which defines the required celestial
-     * coordinate system. 
-     * If NULL 
-     * is supplied, then the longitude and latitude values are returned 
+     * coordinate system.
+     * If NULL
+     * is supplied, then the longitude and latitude values are returned
      * as FK5 J2000 RA and Dec values.
      * 
      * @return  
@@ -79,16 +79,16 @@ public class SpecFrame extends Frame {
 
     /** 
      * Set the reference position in a specified celestial coordinate system.   
-     * This function 
-     * sets the reference position (see attributes RefRA and RefDec) using 
-     * axis values (in radians) supplied within the celestial coordinate 
-     * system represented by a supplied SkyFrame. 
+     * This function
+     * sets the reference position (see attributes RefRA and RefDec) using
+     * axis values (in radians) supplied within the celestial coordinate
+     * system represented by a supplied SkyFrame.
      * 
      * @param   frm
-     * Pointer to the SkyFrame which defines the celestial coordinate 
+     * Pointer to the SkyFrame which defines the celestial coordinate
      * system in which the longitude and latitude values are supplied.
-     * If NULL 
-     * is supplied, then the supplied longitude and latitude values are 
+     * If NULL
+     * is supplied, then the supplied longitude and latitude values are
      * assumed to be FK5 J2000 RA and Dec values.
      * 
      * @param   lon
@@ -108,13 +108,13 @@ public class SpecFrame extends Frame {
      * standard of rest to use when aligning SpecFrames.  
      * This attribute controls how a SpecFrame behaves when it is used (by
      * astFindFrame or astConvert) as a template to match another (target)
-     * SpecFrame. It identifies the standard of rest in which alignment is 
-     * to occur. See the StdOfRest attribute for a desription of the values 
-     * which may be assigned to this attribute. The default AlignStdOfRest 
+     * SpecFrame. It identifies the standard of rest in which alignment is
+     * to occur. See the StdOfRest attribute for a desription of the values
+     * which may be assigned to this attribute. The default AlignStdOfRest
      * value is "Helio" (heliographic).
      * <p>
-     * When astFindFrame or astConvert is used on two SpecFrames (potentially 
-     * describing different spectral coordinate systems), it returns a Mapping 
+     * When astFindFrame or astConvert is used on two SpecFrames (potentially
+     * describing different spectral coordinate systems), it returns a Mapping
      * which can be used to transform a position in one SpecFrame into the
      * corresponding position in the other. The Mapping is made up of the
      * following steps in the indicated order:
@@ -124,17 +124,17 @@ public class SpecFrame extends Frame {
      * AlignSystem attribute, using the target's rest frequency if necessary.
      * <p>
      * <br> - Map these values from the target's standard of rest to the standard of
-     * rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat, 
-     * ObsLon, RefDec and RefRA attributes of the target to define the two
-     * standards of rest.
+     * rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat,
+     * ObsLon, ObsAlt, RefDec and RefRA attributes of the target to define the
+     * two standards of rest.
      * <p>
-     * <br> - Map these values from the standard of rest specified by the 
-     * AlignStdOfRest attribute, to the template's standard of rest, using the 
-     * Epoch, ObsLat, ObsLon, RefDec and RefRA attributes of the template to 
-     * define the two standards of rest.
+     * <br> - Map these values from the standard of rest specified by the
+     * AlignStdOfRest attribute, to the template's standard of rest, using the
+     * Epoch, ObsLat, ObsLon, ObsAlt, RefDec and RefRA attributes of the
+     * template to define the two standards of rest.
      * <p>
-     * <br> - Map these values from the system specified by the AlignSystem 
-     * attribute, to the system used by the template, using the template's 
+     * <br> - Map these values from the system specified by the AlignSystem
+     * attribute, to the system used by the template, using the template's
      * rest frequency if necessary.
      * 
      *
@@ -149,13 +149,13 @@ public class SpecFrame extends Frame {
      * standard of rest to use when aligning SpecFrames.  
      * This attribute controls how a SpecFrame behaves when it is used (by
      * astFindFrame or astConvert) as a template to match another (target)
-     * SpecFrame. It identifies the standard of rest in which alignment is 
-     * to occur. See the StdOfRest attribute for a desription of the values 
-     * which may be assigned to this attribute. The default AlignStdOfRest 
+     * SpecFrame. It identifies the standard of rest in which alignment is
+     * to occur. See the StdOfRest attribute for a desription of the values
+     * which may be assigned to this attribute. The default AlignStdOfRest
      * value is "Helio" (heliographic).
      * <p>
-     * When astFindFrame or astConvert is used on two SpecFrames (potentially 
-     * describing different spectral coordinate systems), it returns a Mapping 
+     * When astFindFrame or astConvert is used on two SpecFrames (potentially
+     * describing different spectral coordinate systems), it returns a Mapping
      * which can be used to transform a position in one SpecFrame into the
      * corresponding position in the other. The Mapping is made up of the
      * following steps in the indicated order:
@@ -165,17 +165,17 @@ public class SpecFrame extends Frame {
      * AlignSystem attribute, using the target's rest frequency if necessary.
      * <p>
      * <br> - Map these values from the target's standard of rest to the standard of
-     * rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat, 
-     * ObsLon, RefDec and RefRA attributes of the target to define the two
-     * standards of rest.
+     * rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat,
+     * ObsLon, ObsAlt, RefDec and RefRA attributes of the target to define the
+     * two standards of rest.
      * <p>
-     * <br> - Map these values from the standard of rest specified by the 
-     * AlignStdOfRest attribute, to the template's standard of rest, using the 
-     * Epoch, ObsLat, ObsLon, RefDec and RefRA attributes of the template to 
-     * define the two standards of rest.
+     * <br> - Map these values from the standard of rest specified by the
+     * AlignStdOfRest attribute, to the template's standard of rest, using the
+     * Epoch, ObsLat, ObsLon, ObsAlt, RefDec and RefRA attributes of the
+     * template to define the two standards of rest.
      * <p>
-     * <br> - Map these values from the system specified by the AlignSystem 
-     * attribute, to the system used by the template, using the template's 
+     * <br> - Map these values from the system specified by the AlignSystem
+     * attribute, to the system used by the template, using the template's
      * rest frequency if necessary.
      * 
      *
@@ -188,8 +188,8 @@ public class SpecFrame extends Frame {
     /**
      * Get 
      * the declination of the reference point.  
-     * This attribute specifies the FK5 J2000.0 declination of a reference 
-     * point on the sky. See the description of attribute RefRA for details. 
+     * This attribute specifies the FK5 J2000.0 declination of a reference
+     * point on the sky. See the description of attribute RefRA for details.
      * The default RefDec is "0:0:0".
      * 
      *
@@ -202,8 +202,8 @@ public class SpecFrame extends Frame {
     /**
      * Set 
      * the declination of the reference point.  
-     * This attribute specifies the FK5 J2000.0 declination of a reference 
-     * point on the sky. See the description of attribute RefRA for details. 
+     * This attribute specifies the FK5 J2000.0 declination of a reference
+     * point on the sky. See the description of attribute RefRA for details.
      * The default RefDec is "0:0:0".
      * 
      *
@@ -216,14 +216,14 @@ public class SpecFrame extends Frame {
     /**
      * Get 
      * the right ascension of the reference point.  
-     * This attribute, together with the RefDec attribute, specifies the FK5 
-     * J2000.0 coordinates of a reference point on the sky. For 1-dimensional 
-     * spectra, this should normally be the position of the source. For 
-     * spectral data with spatial coverage (spectral cubes, etc), this should 
-     * be close to centre of the spatial coverage. It is used to define the 
-     * correction for Doppler shift to be applied when using the 
-     * astFindFrame or astConvert 
-     * method to convert between different standards of rest. 
+     * This attribute, together with the RefDec attribute, specifies the FK5
+     * J2000.0 coordinates of a reference point on the sky. For 1-dimensional
+     * spectra, this should normally be the position of the source. For
+     * spectral data with spatial coverage (spectral cubes, etc), this should
+     * be close to centre of the spatial coverage. It is used to define the
+     * correction for Doppler shift to be applied when using the
+     * astFindFrame or astConvert
+     * method to convert between different standards of rest.
      * <p>
      * The SpecFrame class assumes this velocity correction is spatially
      * invariant. If a single SpecFrame is used (for instance, as a
@@ -234,14 +234,14 @@ public class SpecFrame extends Frame {
      * of V*SIN(FOV), where FOV is the angular field of view, and V is the
      * relative velocity of the two standards of rest. As an example, when
      * correcting from the observers rest frame (i.e. the topocentric rest
-     * frame) to the kinematic local standard of rest the maximum value of V 
-     * is about 20 km/s, so for 5 arc-minute field of view the maximum velocity 
-     * error introduced by the correction will be about 0.03 km/s. As another 
-     * example, the maximum error when correcting from the observers rest frame 
+     * frame) to the kinematic local standard of rest the maximum value of V
+     * is about 20 km/s, so for 5 arc-minute field of view the maximum velocity
+     * error introduced by the correction will be about 0.03 km/s. As another
+     * example, the maximum error when correcting from the observers rest frame
      * to the local group is about 5 km/s over a 1 degree field of view.
      * <p>
-     * The RefRA and RefDec attributes are stored internally in radians, but 
-     * are converted to and from a string for access. The format "hh:mm:ss.ss" 
+     * The RefRA and RefDec attributes are stored internally in radians, but
+     * are converted to and from a string for access. The format "hh:mm:ss.ss"
      * is used for RefRA, and "dd:mm:ss.s" is used for RefDec. The methods
      * astSetRefPos and astGetRefPos may be used to access the values of
      * these attributes directly as unformatted values in radians.
@@ -258,14 +258,14 @@ public class SpecFrame extends Frame {
     /**
      * Set 
      * the right ascension of the reference point.  
-     * This attribute, together with the RefDec attribute, specifies the FK5 
-     * J2000.0 coordinates of a reference point on the sky. For 1-dimensional 
-     * spectra, this should normally be the position of the source. For 
-     * spectral data with spatial coverage (spectral cubes, etc), this should 
-     * be close to centre of the spatial coverage. It is used to define the 
-     * correction for Doppler shift to be applied when using the 
-     * astFindFrame or astConvert 
-     * method to convert between different standards of rest. 
+     * This attribute, together with the RefDec attribute, specifies the FK5
+     * J2000.0 coordinates of a reference point on the sky. For 1-dimensional
+     * spectra, this should normally be the position of the source. For
+     * spectral data with spatial coverage (spectral cubes, etc), this should
+     * be close to centre of the spatial coverage. It is used to define the
+     * correction for Doppler shift to be applied when using the
+     * astFindFrame or astConvert
+     * method to convert between different standards of rest.
      * <p>
      * The SpecFrame class assumes this velocity correction is spatially
      * invariant. If a single SpecFrame is used (for instance, as a
@@ -276,14 +276,14 @@ public class SpecFrame extends Frame {
      * of V*SIN(FOV), where FOV is the angular field of view, and V is the
      * relative velocity of the two standards of rest. As an example, when
      * correcting from the observers rest frame (i.e. the topocentric rest
-     * frame) to the kinematic local standard of rest the maximum value of V 
-     * is about 20 km/s, so for 5 arc-minute field of view the maximum velocity 
-     * error introduced by the correction will be about 0.03 km/s. As another 
-     * example, the maximum error when correcting from the observers rest frame 
+     * frame) to the kinematic local standard of rest the maximum value of V
+     * is about 20 km/s, so for 5 arc-minute field of view the maximum velocity
+     * error introduced by the correction will be about 0.03 km/s. As another
+     * example, the maximum error when correcting from the observers rest frame
      * to the local group is about 5 km/s over a 1 degree field of view.
      * <p>
-     * The RefRA and RefDec attributes are stored internally in radians, but 
-     * are converted to and from a string for access. The format "hh:mm:ss.ss" 
+     * The RefRA and RefDec attributes are stored internally in radians, but
+     * are converted to and from a string for access. The format "hh:mm:ss.ss"
      * is used for RefRA, and "dd:mm:ss.s" is used for RefDec. The methods
      * astSetRefPos and astGetRefPos may be used to access the values of
      * these attributes directly as unformatted values in radians.
@@ -335,25 +335,25 @@ public class SpecFrame extends Frame {
      * Sets the value of the <tt>restFreq</tt> attribute optionally 
      * with a unit string. 
      * This attribute specifies the frequency corresponding to zero
-     * velocity. It is used when converting between between velocity-based 
-     * coordinate systems and and other coordinate systems (such as frequency, 
+     * velocity. It is used when converting between between velocity-based
+     * coordinate systems and and other coordinate systems (such as frequency,
      * wavelength, energy, etc). The default value is 1.0E5 GHz.
      * <p>
-     * When setting a new value for this attribute, the new value can be 
-     * supplied either directly as a frequency, or indirectly as a wavelength 
-     * or energy, in which case the supplied value is converted to a frequency 
-     * before being stored. The nature of the supplied value is indicated by 
-     * appending text to the end of the numerical value indicating the units in 
-     * which the value is supplied. If the units are not specified, then the 
-     * supplied value is assumed to be a frequency in units of GHz. If the 
-     * supplied unit is a unit of frequency, the supplied value is assumed to 
-     * be a frequency in the given units. If the supplied unit is a unit of 
-     * length, the supplied value is assumed to be a (vacuum) wavelength. If 
-     * the supplied unit is a unit of energy, the supplied value is assumed to 
-     * be an energy. For instance, the following strings all result in 
+     * When setting a new value for this attribute, the new value can be
+     * supplied either directly as a frequency, or indirectly as a wavelength
+     * or energy, in which case the supplied value is converted to a frequency
+     * before being stored. The nature of the supplied value is indicated by
+     * appending text to the end of the numerical value indicating the units in
+     * which the value is supplied. If the units are not specified, then the
+     * supplied value is assumed to be a frequency in units of GHz. If the
+     * supplied unit is a unit of frequency, the supplied value is assumed to
+     * be a frequency in the given units. If the supplied unit is a unit of
+     * length, the supplied value is assumed to be a (vacuum) wavelength. If
+     * the supplied unit is a unit of energy, the supplied value is assumed to
+     * be an energy. For instance, the following strings all result in
      * a rest frequency of around 1.4E14 Hz being used: "1.4E5", "1.4E14 Hz",
      * "1.4E14 s**-1", "1.4E5 GHz", "2.14E-6 m", "21400 Angstrom", "9.28E-20 J",
-     * "9.28E-13 erg", "0.58 eV", etc. 
+     * "9.28E-13 erg", "0.58 eV", etc.
      * <p>
      * When getting the value of this attribute, the returned value is
      * always a frequency in units of GHz.
@@ -396,7 +396,7 @@ public class SpecFrame extends Frame {
      * Get 
      * spectral system in which the source velocity is stored.  
      * This attribute identifies the spectral system in which the
-     * SourceVel attribute value (the source velocity) is supplied and 
+     * SourceVel attribute value (the source velocity) is supplied and
      * returned. It can be one of the following:
      * <p>
      *    - "VRAD" or "VRADIO": Radio velocity (km/s)
@@ -405,12 +405,12 @@ public class SpecFrame extends Frame {
      *    - "BETA": Beta factor (dimensionless)
      *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
      * <p>
-     * When setting a new value for the SourceVel attribute, the source 
+     * When setting a new value for the SourceVel attribute, the source
      * velocity should be supplied in the spectral system indicated
      * by this attribute. Likewise, when getting the value of the SourceVel
      * attribute, the velocity will be returned in this spectral system.
      * <p>
-     * If the value of SourceSys is changed, the value stored for SourceVel 
+     * If the value of SourceSys is changed, the value stored for SourceVel
      * will be converted from the old to the new spectral systems.
      * <p>
      * The default value is "VELO" (apparent radial velocity).
@@ -426,7 +426,7 @@ public class SpecFrame extends Frame {
      * Set 
      * spectral system in which the source velocity is stored.  
      * This attribute identifies the spectral system in which the
-     * SourceVel attribute value (the source velocity) is supplied and 
+     * SourceVel attribute value (the source velocity) is supplied and
      * returned. It can be one of the following:
      * <p>
      *    - "VRAD" or "VRADIO": Radio velocity (km/s)
@@ -435,12 +435,12 @@ public class SpecFrame extends Frame {
      *    - "BETA": Beta factor (dimensionless)
      *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
      * <p>
-     * When setting a new value for the SourceVel attribute, the source 
+     * When setting a new value for the SourceVel attribute, the source
      * velocity should be supplied in the spectral system indicated
      * by this attribute. Likewise, when getting the value of the SourceVel
      * attribute, the velocity will be returned in this spectral system.
      * <p>
-     * If the value of SourceSys is changed, the value stored for SourceVel 
+     * If the value of SourceSys is changed, the value stored for SourceVel
      * will be converted from the old to the new spectral systems.
      * <p>
      * The default value is "VELO" (apparent radial velocity).
@@ -455,31 +455,31 @@ public class SpecFrame extends Frame {
     /**
      * Get 
      * the source velocity.  
-     * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec) 
-     * defines the "Source" standard of rest (see attribute StdOfRest). This is 
-     * a rest frame which is moving towards the position given by RefRA and 
+     * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec)
+     * defines the "Source" standard of rest (see attribute StdOfRest). This is
+     * a rest frame which is moving towards the position given by RefRA and
      * RefDec at a  velocity given by SourceVel. A positive value means
      * the source is moving away from the observer. When a new value is
      * assigned to this attribute, the supplied value is assumed to refer
      * to the spectral system specified by the SourceSys attribute. For
      * instance, the SourceVel value may be supplied as a radio velocity, a
      * redshift, a beta factor, etc. Similarly, when the current value of
-     * the SourceVel attribute is obtained, the returned value will refer 
+     * the SourceVel attribute is obtained, the returned value will refer
      * to the spectral system specified by the SourceSys value. If the
      * SourceSys value is changed, any value previously stored for the SourceVel
-     * attribute will be changed automatically from the old spectral system 
+     * attribute will be changed automatically from the old spectral system
      * to the new spectral system.
      * <p>
-     * When setting a value for SourceVel, the value should be supplied in the 
-     * rest frame specified by the SourceVRF attribute. Likewise, when getting 
-     * the value of SourceVel, it will be returned in the rest frame specified 
+     * When setting a value for SourceVel, the value should be supplied in the
+     * rest frame specified by the SourceVRF attribute. Likewise, when getting
+     * the value of SourceVel, it will be returned in the rest frame specified
      * by the SourceVRF attribute.
      * <p>
      * The default SourceVel value is zero.
      * <h4>Notes</h4>
      * <br> - It is important to set an appropriate value for SourceVRF and
-     * SourceSys before setting a value for SourceVel. If a new value is later 
-     * set for SourceVRF or SourceSys, the value stored for SourceVel will 
+     * SourceSys before setting a value for SourceVel. If a new value is later
+     * set for SourceVRF or SourceSys, the value stored for SourceVel will
      * simultaneously be changed to the new standard of rest or spectral
      * system.
      * 
@@ -493,31 +493,31 @@ public class SpecFrame extends Frame {
     /**
      * Set 
      * the source velocity.  
-     * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec) 
-     * defines the "Source" standard of rest (see attribute StdOfRest). This is 
-     * a rest frame which is moving towards the position given by RefRA and 
+     * This attribute (together with SourceSys, SourceVRF, RefRA and RefDec)
+     * defines the "Source" standard of rest (see attribute StdOfRest). This is
+     * a rest frame which is moving towards the position given by RefRA and
      * RefDec at a  velocity given by SourceVel. A positive value means
      * the source is moving away from the observer. When a new value is
      * assigned to this attribute, the supplied value is assumed to refer
      * to the spectral system specified by the SourceSys attribute. For
      * instance, the SourceVel value may be supplied as a radio velocity, a
      * redshift, a beta factor, etc. Similarly, when the current value of
-     * the SourceVel attribute is obtained, the returned value will refer 
+     * the SourceVel attribute is obtained, the returned value will refer
      * to the spectral system specified by the SourceSys value. If the
      * SourceSys value is changed, any value previously stored for the SourceVel
-     * attribute will be changed automatically from the old spectral system 
+     * attribute will be changed automatically from the old spectral system
      * to the new spectral system.
      * <p>
-     * When setting a value for SourceVel, the value should be supplied in the 
-     * rest frame specified by the SourceVRF attribute. Likewise, when getting 
-     * the value of SourceVel, it will be returned in the rest frame specified 
+     * When setting a value for SourceVel, the value should be supplied in the
+     * rest frame specified by the SourceVRF attribute. Likewise, when getting
+     * the value of SourceVel, it will be returned in the rest frame specified
      * by the SourceVRF attribute.
      * <p>
      * The default SourceVel value is zero.
      * <h4>Notes</h4>
      * <br> - It is important to set an appropriate value for SourceVRF and
-     * SourceSys before setting a value for SourceVel. If a new value is later 
-     * set for SourceVRF or SourceSys, the value stored for SourceVel will 
+     * SourceSys before setting a value for SourceVel. If a new value is later
+     * set for SourceVRF or SourceSys, the value stored for SourceVel will
      * simultaneously be changed to the new standard of rest or spectral
      * system.
      * 
@@ -532,18 +532,18 @@ public class SpecFrame extends Frame {
      * Get 
      * rest frame in which the source velocity is stored.  
      * This attribute identifies the rest frame in which the source
-     * velocity or redshift is stored (the source velocity or redshift is 
-     * accessed using attribute SourceVel). When setting a new value for the 
-     * SourceVel attribute, the source velocity or redshift should be supplied 
-     * in the rest frame indicated by this attribute. Likewise, when getting 
-     * the value of the SourceVel attribute, the velocity or redshift will be 
+     * velocity or redshift is stored (the source velocity or redshift is
+     * accessed using attribute SourceVel). When setting a new value for the
+     * SourceVel attribute, the source velocity or redshift should be supplied
+     * in the rest frame indicated by this attribute. Likewise, when getting
+     * the value of the SourceVel attribute, the velocity or redshift will be
      * returned in this rest frame.
      * <p>
-     * If the value of SourceVRF is changed, the value stored for SourceVel 
+     * If the value of SourceVRF is changed, the value stored for SourceVel
      * will be converted from the old to the new rest frame.
      * <p>
-     * The values which can be supplied are the same as for the StdOfRest 
-     * attribute (except that SourceVRF cannot be set to "Source"). The 
+     * The values which can be supplied are the same as for the StdOfRest
+     * attribute (except that SourceVRF cannot be set to "Source"). The
      * default value is "Helio".
      * 
      *
@@ -557,18 +557,18 @@ public class SpecFrame extends Frame {
      * Set 
      * rest frame in which the source velocity is stored.  
      * This attribute identifies the rest frame in which the source
-     * velocity or redshift is stored (the source velocity or redshift is 
-     * accessed using attribute SourceVel). When setting a new value for the 
-     * SourceVel attribute, the source velocity or redshift should be supplied 
-     * in the rest frame indicated by this attribute. Likewise, when getting 
-     * the value of the SourceVel attribute, the velocity or redshift will be 
+     * velocity or redshift is stored (the source velocity or redshift is
+     * accessed using attribute SourceVel). When setting a new value for the
+     * SourceVel attribute, the source velocity or redshift should be supplied
+     * in the rest frame indicated by this attribute. Likewise, when getting
+     * the value of the SourceVel attribute, the velocity or redshift will be
      * returned in this rest frame.
      * <p>
-     * If the value of SourceVRF is changed, the value stored for SourceVel 
+     * If the value of SourceVRF is changed, the value stored for SourceVel
      * will be converted from the old to the new rest frame.
      * <p>
-     * The values which can be supplied are the same as for the StdOfRest 
-     * attribute (except that SourceVRF cannot be set to "Source"). The 
+     * The values which can be supplied are the same as for the StdOfRest
+     * attribute (except that SourceVRF cannot be set to "Source"). The
      * default value is "Helio".
      * 
      *
@@ -583,62 +583,62 @@ public class SpecFrame extends Frame {
      * standard of rest.  
      * This attribute identifies the standard of rest to which the spectral
      * axis values of a SpecFrame refer, and may take any of the values
-     * listed in the "Standards of Rest" section (below). 
+     * listed in the "Standards of Rest" section (below).
      * <p>
      * The default StdOfRest value is "Helio".
      * <h4>Standards of Rest</h4>
      * The SpecFrame class supports the following StdOfRest values (all are
      * case-insensitive):
      * <p>
-     * <br> - "Topocentric", "Topocent" or "Topo": The observers rest-frame (assumed 
-     * to be on the surface of the earth). Spectra recorded in this standard of 
+     * <br> - "Topocentric", "Topocent" or "Topo": The observers rest-frame (assumed
+     * to be on the surface of the earth). Spectra recorded in this standard of
      * rest suffer a Doppler shift which varies over the course of a day
      * because of the rotation of the observer around the axis of the earth.
-     * This standard of rest must be qualified using the ObsLat, ObsLon, Epoch, 
-     * RefRA and RefDec attributes. 
+     * This standard of rest must be qualified using the ObsLat, ObsLon,
+     * ObsAlt, Epoch, RefRA and RefDec attributes.
      * <p>
-     * <br> - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre. 
-     * Spectra recorded in this standard of rest suffer a Doppler shift which 
-     * varies over the course of a year because of the rotation of the earth 
-     * around the Sun. This standard of rest must be qualified using the Epoch, 
-     * RefRA and RefDec attributes. 
+     * <br> - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre.
+     * Spectra recorded in this standard of rest suffer a Doppler shift which
+     * varies over the course of a year because of the rotation of the earth
+     * around the Sun. This standard of rest must be qualified using the Epoch,
+     * RefRA and RefDec attributes.
      * <p>
      * <br> - "Barycentric", "Barycent" or "Bary": The rest-frame of the solar-system
-     * barycentre. Spectra recorded in this standard of rest suffer a Doppler 
-     * shift which depends both on the velocity of the Sun through the Local 
-     * Standard of Rest, and on the movement of the planets through the solar 
-     * system. This standard of rest must be qualified using the Epoch, RefRA 
-     * and RefDec attributes. 
+     * barycentre. Spectra recorded in this standard of rest suffer a Doppler
+     * shift which depends both on the velocity of the Sun through the Local
+     * Standard of Rest, and on the movement of the planets through the solar
+     * system. This standard of rest must be qualified using the Epoch, RefRA
+     * and RefDec attributes.
      * <p>
-     * <br> - "Heliocentric", "Heliocen" or "Helio": The rest-frame of the Sun. 
-     * Spectra recorded in this standard of rest suffer a Doppler shift which 
-     * depends on the velocity of the Sun through the Local Standard of Rest. 
-     * This standard of rest must be qualified using the RefRA and RefDec 
-     * attributes. 
+     * <br> - "Heliocentric", "Heliocen" or "Helio": The rest-frame of the Sun.
+     * Spectra recorded in this standard of rest suffer a Doppler shift which
+     * depends on the velocity of the Sun through the Local Standard of Rest.
+     * This standard of rest must be qualified using the RefRA and RefDec
+     * attributes.
      * <p>
-     * <br> - "LSRK", "LSR": The rest-frame of the kinematical Local Standard of 
-     * Rest. Spectra recorded in this standard of rest suffer a Doppler shift 
-     * which depends on the velocity of the kinematical Local Standard of Rest 
-     * through the galaxy. This standard of rest must be qualified using the 
-     * RefRA and RefDec attributes. 
+     * <br> - "LSRK", "LSR": The rest-frame of the kinematical Local Standard of
+     * Rest. Spectra recorded in this standard of rest suffer a Doppler shift
+     * which depends on the velocity of the kinematical Local Standard of Rest
+     * through the galaxy. This standard of rest must be qualified using the
+     * RefRA and RefDec attributes.
      * <p>
      * <br> - "LSRD": The rest-frame of the dynamical Local Standard of Rest. Spectra
-     * recorded in this standard of rest suffer a Doppler shift which depends 
-     * on the velocity of the dynamical Local Standard of Rest through the 
-     * galaxy.  This standard of rest must be qualified using the RefRA and 
-     * RefDec attributes. 
+     * recorded in this standard of rest suffer a Doppler shift which depends
+     * on the velocity of the dynamical Local Standard of Rest through the
+     * galaxy.  This standard of rest must be qualified using the RefRA and
+     * RefDec attributes.
      * <p>
      * <br> - "Galactic", "Galactoc" or "Gal": The rest-frame of the galactic centre.
-     * Spectra recorded in this standard of rest suffer a Doppler shift which 
-     * depends on the velocity of the galactic centre through the local group. 
-     * This standard of rest must be qualified using the RefRA and RefDec 
+     * Spectra recorded in this standard of rest suffer a Doppler shift which
+     * depends on the velocity of the galactic centre through the local group.
+     * This standard of rest must be qualified using the RefRA and RefDec
      * attributes.
      * <p>
-     * <br> - "Local_group", "Localgrp" or "LG": The rest-frame of the local group. 
-     * This standard of rest must be qualified using the RefRA and RefDec 
+     * <br> - "Local_group", "Localgrp" or "LG": The rest-frame of the local group.
+     * This standard of rest must be qualified using the RefRA and RefDec
      * attributes.
      * <p>
-     * <br> - "Source", or "src": The rest-frame of the source. This standard of 
+     * <br> - "Source", or "src": The rest-frame of the source. This standard of
      * rest must be qualified using the RefRA, RefDec and SourceVel attributes.
      * <p>
      * Where more than one alternative System value is shown above, the
@@ -655,62 +655,62 @@ public class SpecFrame extends Frame {
      * standard of rest.  
      * This attribute identifies the standard of rest to which the spectral
      * axis values of a SpecFrame refer, and may take any of the values
-     * listed in the "Standards of Rest" section (below). 
+     * listed in the "Standards of Rest" section (below).
      * <p>
      * The default StdOfRest value is "Helio".
      * <h4>Standards of Rest</h4>
      * The SpecFrame class supports the following StdOfRest values (all are
      * case-insensitive):
      * <p>
-     * <br> - "Topocentric", "Topocent" or "Topo": The observers rest-frame (assumed 
-     * to be on the surface of the earth). Spectra recorded in this standard of 
+     * <br> - "Topocentric", "Topocent" or "Topo": The observers rest-frame (assumed
+     * to be on the surface of the earth). Spectra recorded in this standard of
      * rest suffer a Doppler shift which varies over the course of a day
      * because of the rotation of the observer around the axis of the earth.
-     * This standard of rest must be qualified using the ObsLat, ObsLon, Epoch, 
-     * RefRA and RefDec attributes. 
+     * This standard of rest must be qualified using the ObsLat, ObsLon,
+     * ObsAlt, Epoch, RefRA and RefDec attributes.
      * <p>
-     * <br> - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre. 
-     * Spectra recorded in this standard of rest suffer a Doppler shift which 
-     * varies over the course of a year because of the rotation of the earth 
-     * around the Sun. This standard of rest must be qualified using the Epoch, 
-     * RefRA and RefDec attributes. 
+     * <br> - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre.
+     * Spectra recorded in this standard of rest suffer a Doppler shift which
+     * varies over the course of a year because of the rotation of the earth
+     * around the Sun. This standard of rest must be qualified using the Epoch,
+     * RefRA and RefDec attributes.
      * <p>
      * <br> - "Barycentric", "Barycent" or "Bary": The rest-frame of the solar-system
-     * barycentre. Spectra recorded in this standard of rest suffer a Doppler 
-     * shift which depends both on the velocity of the Sun through the Local 
-     * Standard of Rest, and on the movement of the planets through the solar 
-     * system. This standard of rest must be qualified using the Epoch, RefRA 
-     * and RefDec attributes. 
+     * barycentre. Spectra recorded in this standard of rest suffer a Doppler
+     * shift which depends both on the velocity of the Sun through the Local
+     * Standard of Rest, and on the movement of the planets through the solar
+     * system. This standard of rest must be qualified using the Epoch, RefRA
+     * and RefDec attributes.
      * <p>
-     * <br> - "Heliocentric", "Heliocen" or "Helio": The rest-frame of the Sun. 
-     * Spectra recorded in this standard of rest suffer a Doppler shift which 
-     * depends on the velocity of the Sun through the Local Standard of Rest. 
-     * This standard of rest must be qualified using the RefRA and RefDec 
-     * attributes. 
+     * <br> - "Heliocentric", "Heliocen" or "Helio": The rest-frame of the Sun.
+     * Spectra recorded in this standard of rest suffer a Doppler shift which
+     * depends on the velocity of the Sun through the Local Standard of Rest.
+     * This standard of rest must be qualified using the RefRA and RefDec
+     * attributes.
      * <p>
-     * <br> - "LSRK", "LSR": The rest-frame of the kinematical Local Standard of 
-     * Rest. Spectra recorded in this standard of rest suffer a Doppler shift 
-     * which depends on the velocity of the kinematical Local Standard of Rest 
-     * through the galaxy. This standard of rest must be qualified using the 
-     * RefRA and RefDec attributes. 
+     * <br> - "LSRK", "LSR": The rest-frame of the kinematical Local Standard of
+     * Rest. Spectra recorded in this standard of rest suffer a Doppler shift
+     * which depends on the velocity of the kinematical Local Standard of Rest
+     * through the galaxy. This standard of rest must be qualified using the
+     * RefRA and RefDec attributes.
      * <p>
      * <br> - "LSRD": The rest-frame of the dynamical Local Standard of Rest. Spectra
-     * recorded in this standard of rest suffer a Doppler shift which depends 
-     * on the velocity of the dynamical Local Standard of Rest through the 
-     * galaxy.  This standard of rest must be qualified using the RefRA and 
-     * RefDec attributes. 
+     * recorded in this standard of rest suffer a Doppler shift which depends
+     * on the velocity of the dynamical Local Standard of Rest through the
+     * galaxy.  This standard of rest must be qualified using the RefRA and
+     * RefDec attributes.
      * <p>
      * <br> - "Galactic", "Galactoc" or "Gal": The rest-frame of the galactic centre.
-     * Spectra recorded in this standard of rest suffer a Doppler shift which 
-     * depends on the velocity of the galactic centre through the local group. 
-     * This standard of rest must be qualified using the RefRA and RefDec 
+     * Spectra recorded in this standard of rest suffer a Doppler shift which
+     * depends on the velocity of the galactic centre through the local group.
+     * This standard of rest must be qualified using the RefRA and RefDec
      * attributes.
      * <p>
-     * <br> - "Local_group", "Localgrp" or "LG": The rest-frame of the local group. 
-     * This standard of rest must be qualified using the RefRA and RefDec 
+     * <br> - "Local_group", "Localgrp" or "LG": The rest-frame of the local group.
+     * This standard of rest must be qualified using the RefRA and RefDec
      * attributes.
      * <p>
-     * <br> - "Source", or "src": The rest-frame of the source. This standard of 
+     * <br> - "Source", or "src": The rest-frame of the source. This standard of
      * rest must be qualified using the RefRA, RefDec and SourceVel attributes.
      * <p>
      * Where more than one alternative System value is shown above, the

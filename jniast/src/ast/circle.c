@@ -22,29 +22,35 @@ f     AST_CIRCLE
 *     those which are applicable to all Regions.
 
 *  Functions:
-c     The Circle class does not define any new functions beyond those
-f     The Circle class does not define any new routines beyond those
-*     which are applicable to all Regions.
+c     In addition to those functions applicable to all Regions, the
+c     following functions may also be applied to all Circles:
+f     In addition to those routines applicable to all Regions, the
+f     following routines may also be applied to all Circles:
+*
+c     - astCirclePars: Get the geometric parameters of the Circle
+c     - AST_CIRCLEPARS: Get the geometric parameters of the Circle
 
 *  Copyright:
 *     Copyright (C) 1997-2006 Council for the Central Laboratory of the
 *     Research Councils
+*     Copyright (C) 2009 Science & Technology Facilities Council.
+*     All Rights Reserved.
 
 *  Licence:
 *     This program is free software; you can redistribute it and/or
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -118,9 +124,9 @@ static void (* parent_resetcache)( AstRegion *, int * );
 
 
 #ifdef THREAD_SAFE
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
-   globals->Class_Init = 0; 
+   globals->Class_Init = 0;
 
 /* Create the function that initialises global data for this module. */
 astMAKE_INITGLOBALS(Circle)
@@ -155,15 +161,19 @@ AstCircle *astCircleId_( void *, int, const double[], const double[], void *, co
 static AstMapping *Simplify( AstMapping *, int * );
 static AstPointSet *RegBaseMesh( AstRegion *, int * );
 static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
+static double *CircumPoint( AstFrame *, int, const double *, double, int * );
 static double *RegCentre( AstRegion *this, double *, double **, int, int, int * );
 static int RegPins( AstRegion *, AstPointSet *, AstRegion *, int **, int * );
+static int RegTrace( AstRegion *, int, double *, double **, int * );
 static void Cache( AstCircle *, int * );
+static void CalcPars( AstFrame *, AstPointSet *, double *, double *, double *, int * );
+static void CirclePars( AstCircle *, double *, double *, double *, int * );
 static void Copy( const AstObject *, AstObject *, int * );
 static void Delete( AstObject *, int * );
 static void Dump( AstObject *, AstChannel *, int * );
 static void RegBaseBox( AstRegion *this, double *, double *, int * );
-static void SetRegFS( AstRegion *, AstFrame *, int * );
 static void ResetCache( AstRegion *this, int * );
+static void SetRegFS( AstRegion *, AstFrame *, int * );
 
 /* Member functions. */
 /* ================= */
@@ -185,10 +195,10 @@ AstRegion *astBestCircle_( AstPointSet *mesh, double *cen, AstRegion *unc, int *
 *     AstRegion *astBestCircle( AstPointSet *mesh, double *cen, AstRegion *unc )
 
 *  Class Membership:
-*     Circle member function 
+*     Circle member function
 
 *  Description:
-*     This function finds the best fitting Circle through a given mesh of 
+*     This function finds the best fitting Circle through a given mesh of
 *     points.
 
 *  Parameters:
@@ -214,7 +224,7 @@ AstRegion *astBestCircle_( AstPointSet *mesh, double *cen, AstRegion *unc, int *
 */
 
 /* Local Variables: */
-   AstRegion *result; 
+   AstRegion *result;
    double *p;
    double rad;
    double **ptr;
@@ -238,7 +248,7 @@ AstRegion *astBestCircle_( AstPointSet *mesh, double *cen, AstRegion *unc, int *
    nc = astGetNcoord( mesh );
 
 /* Get pointers to the axis values. */
-   ptr = astGetPoints( mesh );   
+   ptr = astGetPoints( mesh );
 
 /* Check pointers can be used safely */
    if( astOK ) {
@@ -283,6 +293,365 @@ AstRegion *astBestCircle_( AstPointSet *mesh, double *cen, AstRegion *unc, int *
    return result;
 }
 
+static void Cache( AstCircle *this, int *status ){
+/*
+*  Name:
+*     Cache
+
+*  Purpose:
+*     Calculate intermediate values and cache them in the Circle structure.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "circle.h"
+*     void Cache( AstCircle *this, int *status )
+
+*  Class Membership:
+*     Circle member function
+
+*  Description:
+*     This function uses the PointSet stored in the parent Region to calculate
+*     some intermediate values which are useful in other methods. These
+*     values are stored within the Circle structure.
+
+*  Parameters:
+*     this
+*        Pointer to the Circle.
+*     status
+*        Pointer to the inherited status variable.
+
+*/
+
+/* Local Variables: */
+   AstFrame *frm;
+   double *centre;
+   double *lb;
+   double *ub;
+   double radius;
+   int i;
+   int nc;
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Do Nothing if the cached information is up to date. */
+   if( this->stale ) {
+
+/* Get a pointer to the base Frame and the number of base axes. */
+      frm = astGetFrame( ((AstRegion *) this)->frameset, AST__BASE );
+      nc = astGetNaxes( frm );
+
+/* Allocate memory to hold the centre coords. */
+      centre = astMalloc( sizeof( double )*astGetNaxes( frm ) );
+
+/* Get the radius and centre of the Circle in the base Frame, using the
+   centre and circumference positions stored in the parent Region structure. */
+      CalcPars( frm, ( (AstRegion *) this)->points, centre, &radius, NULL,
+                status );
+
+/* Allocate memory to store the base frame bounding box. This is just
+   initialised here. It is set properly when the astRegBaseMesh
+   function is called. This box should not be used unless the "basemesh"
+   component of the parent Region structure is set to a non-null value. */
+      lb = (double *) astMalloc( sizeof( double )*(size_t) nc );
+      ub = (double *) astMalloc( sizeof( double )*(size_t) nc );
+
+/* Initialise the bounding box. */
+      for( i = 0; astOK && i < nc; i++ ) {
+         lb[ i ] = -DBL_MAX;
+         ub[ i ] = DBL_MAX;
+      }
+
+/* If everything went OK, store these values in the Circle structure. */
+      if( astOK ) {
+         this->radius = radius;
+
+         astFree( this->centre );
+         this->centre = centre;
+         centre = NULL;
+
+         astFree( this->lb );
+         this->lb = lb;
+         lb = NULL;
+
+         astFree( this->ub );
+         this->ub = ub;
+         ub = NULL;
+      }
+
+/* Free resources */
+      frm = astAnnul( frm );
+      if( centre ) centre = astFree( centre );
+
+/* Indicate cached information is up to date. */
+      this->stale = 0;
+   }
+}
+
+static void CalcPars( AstFrame *frm, AstPointSet *pset, double *centre,
+                      double *radius, double *p1, int *status ){
+/*
+*  Name:
+*     CalcPars
+
+*  Purpose:
+*     Calculate the geometric parameters of the supplied Circle.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "circle.h"
+*     double *CalcPars( AstFrame *frm, AstPointSet *pset, double *centre,
+*                       double *radius, double *p1, int *status )
+
+*  Class Membership:
+*     Circle member function
+
+*  Description:
+*     This function uses the supplied PointSet to calculate the geometric
+*     parameters that describe the a crcle. These values are returned in
+*     a newly allocated dynamic array.
+
+*  Parameters:
+*     frm
+*        Pointer to the Frame in which the circle is defined.
+*     pset
+*        Pointer to a PointSet. The first point should be the circle
+*        centre, and the second point should be a point on the circle
+*        circumference.
+*     centre
+*        An array in which to return the axis values at the circle centre.
+*        The length of this array should be no less than the number of
+*        axes in "frm".
+*     radius
+*        Pointer to a double in which to return the circle radius,
+*        expressed as a geodesic distance in the supplied Frame.
+*     p1
+*        An array in which to return the coordinates of a point on the
+*        circumference of the circle. The length of this array should be
+*        no less than the number of axes in "frm". Can be NULL if the
+*        circumference position is not needed.
+*     status
+*        Pointer to the inherited status variable.
+
+*/
+
+/* Local Variables: */
+   double **ptr;
+   double *circum;
+   int i;
+   int nc;
+
+/* Check the global error status. */
+   if ( !astOK ) return;
+
+/* Get and the number of axes. */
+   nc = astGetNaxes( frm );
+
+/* Get pointers to the coordinate data in the supplied PointSet. */
+   ptr = astGetPoints( pset );
+
+/* If no p1 array was supplied, create a temporary work array to hold the
+   circumference position. */
+   if( !p1 ) {
+      circum = astMalloc( sizeof( double )*nc );
+   } else {
+      circum = p1;
+   }
+
+/* Check pointers can be used safely. */
+   if( ptr ) {
+
+/* Copy the two points in to the allocated memory. */
+      for( i = 0; i < nc; i++ ) {
+         centre[ i ] = ptr[ i ][ 0 ];
+         circum[ i ] = ptr[ i ][ 1 ];
+      }
+
+/* Return the geodesic distance between these two points as the radius. */
+      *radius = astDistance( frm, centre, circum );
+   }
+
+/* Free any work array. */
+   if( !p1 ) circum = astFree( circum );
+}
+
+static void CirclePars( AstCircle *this, double *centre, double *radius,
+                        double *p1, int *status ){
+/*
+*++
+*  Name:
+c     astCirclePars
+f     AST_CIRCLEPARS
+
+*  Purpose:
+*     Returns the geometric parameters of an Circle.
+
+*  Type:
+*     Public virtual function.
+
+*  Synopsis:
+c     #include "circle.h"
+c     void astCirclePars( AstCircle *this, double *centre, double *radius,
+c                         double *p1 )
+f     CALL AST_CIRCLEPARS( THIS, CENTRE, RADIUS, P1, STATUS )
+
+*  Class Membership:
+*     Region method.
+
+*  Description:
+c     This function
+f     This routine
+*     returns the geometric parameters describing the supplied Circle.
+
+*  Parameters:
+c     this
+f     THIS = INTEGER (Given)
+*        Pointer to the Region.
+c     centre
+f     CENTRE( * ) = DOUBLE PRECISION (Returned)
+c        Pointer to an array
+f        An array
+*        in which to return the coordinates of the Circle centre.
+*        The length of this array should be no less than the number of
+*        axes in the associated coordinate system.
+c     radius
+f     RADIUS = DOUBLE PRECISION (Returned)
+*        Returned holding the radius of the Circle, as an geodesic
+*        distance in the associated coordinate system.
+c     p1
+f     P1( * ) = DOUBLE PRECISION (Returned)
+c        Pointer to an array
+f        An array
+*        in which to return the coordinates of a point on the
+*        circumference of the Circle. The length of this array should be
+*        no less than the number of axes in the associated coordinate system.
+c        A NULL pointer can be supplied if the circumference position is
+c        not needed.
+f     STATUS = INTEGER (Given and Returned)
+f        The global status.
+
+*  Notes:
+*     - If the coordinate system represented by the Circle has been
+*     changed since it was first created, the returned parameters refer
+*     to the new (changed) coordinate system, rather than the original
+*     coordinate system. Note however that if the transformation from
+*     original to new coordinate system is non-linear, the shape
+*     represented by the supplied Circle object may not be an accurate
+*     circle.
+*--
+*/
+
+/* Local Variables: */
+   AstRegion *this_region;  /* Parent Region pointer */
+   AstFrame *frm;           /* Current Frame represented by the Circle */
+   AstPointSet *pset;       /* PointSet holding PointList axis values */
+
+/* Check the inherited status. */
+   if( !astOK ) return;
+
+/* Store a pointer to the parent region structure. */
+   this_region = (AstRegion *) this;
+
+/* Transform the base Frame axis values into the current Frame. */
+   pset = astTransform( this_region->frameset, this_region->points, 1, NULL );
+
+/* Get the Circle frame. */
+   frm = astGetFrame( this_region->frameset, AST__CURRENT );
+
+/* Calculate the required parameters. */
+   CalcPars( frm, pset, centre, radius, p1, status );
+
+/* Free resources */
+   frm = astAnnul( frm );
+   pset = astAnnul( pset );
+}
+
+static double *CircumPoint( AstFrame *frm, int nax, const double *centre,
+                            double radius, int *status ){
+/*
+*  Name:
+*     CircumPoint
+
+*  Purpose:
+*     Find a point on the circumference of the circle.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "circle.h"
+*     double *CircumPoint( AstFrame *frm, int nax, const double *centre,
+*                          double radius, int *status )
+
+*  Class Membership:
+*     Circle member function
+
+*  Description:
+*     This function returns a dynamically allocated array containing the
+*     axis values at a point on the circumference of the circle specified
+*     by a given centre and radius. The returned point is the point at
+*     which the circle crosses the first axis.
+
+*  Parameters:
+*     frm
+*        Pointer to the Frame in which the circle is defined.
+*     nax
+*        The number of axes in the Frame.
+*     centre
+*        An array holding the axis values at the circle centre.
+*     radius
+*        The circle radius, expressed as a geodesic distance in the
+*        supplied Frame.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     A pointer to a 1D array holding the axis values at the point where
+*     the circle crosses the first frame axis. The length of this array
+*     will equal the number of axes in the supsplied Frame. It should be
+*     freed using astFree when no longer needed.
+
+*/
+
+/* Local Variables: */
+   double *circum;
+   double *work;
+   int i;
+
+/* Check the global error status. */
+   if ( !astOK ) return NULL;
+
+/* Allocate the returned array. */
+   circum = astMalloc( sizeof( double)*(size_t) nax );
+
+/* Allocate work space */
+   work = astMalloc( sizeof( double)*(size_t) nax );
+
+/* Check pointers can be used safely. */
+   if( astOK ) {
+
+/* Find the coords of a point that is offset away from the centre
+   position along the first axis. We use the supplied radius value as a
+   convenient offset length, but the actual length used is not critical. */
+      for( i = 0; i < nax; i++ ) work[ i ] = centre[ i ];
+      work[ 0 ] = astAxOffset( frm, 1, work[ 0 ], radius );
+
+/* Offset away from the centre position, towards the position found
+   above, going the distance specified by the supplied radius. */
+      astOffset( frm, centre, work, radius, (double *) circum );
+   }
+
+/* Free resources. */
+   work = astFree( work );
+
+/* Return the result. */
+   return circum;
+}
+
 void astInitCircleVtab_(  AstCircleVtab *vtab, const char *name, int *status ) {
 /*
 *+
@@ -313,14 +682,14 @@ void astInitCircleVtab_(  AstCircleVtab *vtab, const char *name, int *status ) {
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
    AstRegionVtab *region;        /* Pointer to Region component of Vtab */
 
@@ -338,12 +707,14 @@ void astInitCircleVtab_(  AstCircleVtab *vtab, const char *name, int *status ) {
    will be used (by astIsACircle) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstRegionVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
 /* Store pointers to the member functions (implemented here) that provide
    virtual methods for this class. */
+   vtab->CirclePars = CirclePars;
 
 /* Save the inherited pointers to methods that will be extended, and
    replace them with pointers to the new member functions. */
@@ -363,6 +734,7 @@ void astInitCircleVtab_(  AstCircleVtab *vtab, const char *name, int *status ) {
    region->ResetCache = ResetCache;
 
    region->RegPins = RegPins;
+   region->RegTrace = RegTrace;
    region->RegBaseMesh = RegBaseMesh;
    region->RegBaseBox = RegBaseBox;
    region->RegCentre = RegCentre;
@@ -377,97 +749,11 @@ void astInitCircleVtab_(  AstCircleVtab *vtab, const char *name, int *status ) {
    astSetDump( vtab, Dump, "Circle", "Circular or spherical region" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
-}
-
-static void Cache( AstCircle *this, int *status ){
-/*
-*  Name:
-*     Cache
-
-*  Purpose:
-*     Calculate intermediate values and cache them in the Circle structure.
-
-*  Type:
-*     Private function.
-
-*  Synopsis:
-*     #include "circle.h"
-*     void Cache( AstCircle *this, int *status )
-
-*  Class Membership:
-*     Circle member function 
-
-*  Description:
-*     This function uses the PointSet stored in the parent Region to calculate 
-*     some intermediate values which are useful in other methods. These
-*     values are stored within the Circle structure.
-
-*  Parameters:
-*     this
-*        Pointer to the Circle.
-*     status
-*        Pointer to the inherited status variable.
-
-*/
-
-/* Local Variables: */
-   AstFrame *frm;
-   AstPointSet *pset;
-   double **ptr;
-   double *centre;
-   double *circum;
-   int i;
-   int nc;
-
-/* Check the global error status. */
-   if ( !astOK ) return;
-
-/* Do Nothing if the cached information is up to date. */
-   if( this->stale ) {
-
-/* Get a pointer to the base Frame and the number of base axes. */
-      frm = astGetFrame( ((AstRegion *) this)->frameset, AST__BASE );
-      nc = astGetNaxes( frm );
-
-/* Allocate memory to store two positions in the base Frame. */
-      centre = (double *) astMalloc( sizeof( double )*(size_t) nc );   
-      circum = (double *) astMalloc( sizeof( double )*(size_t) nc );   
-
-/* Get pointers to the coordinate data in the parent Region structure. */
-      pset = ( (AstRegion *) this)->points;
-      ptr = astGetPoints( pset );
-
-/* Check pointers can be used safely. */
-      if( ptr ) {
-
-/* Copy the two points in to the allocated memory. */
-         for( i = 0; i < nc; i++ ) {
-            centre[ i ] = ptr[ i ][ 0 ];
-            circum[ i ] = ptr[ i ][ 1 ];
-         }
-
-/* Store the geodesic distance between these two points as the radius. */
-         this->radius = astDistance( frm, centre, circum );      
-
-/* Store the pointer to the centre coords array in the Circle structure. */
-         if( astOK ) {
-           astFree( this->centre );
-           this->centre = centre;
-           centre = NULL;
-         }
-      }
-
-/* Free resources */
-      frm = astAnnul( frm );
-      if( centre ) centre = astFree( centre );
-      circum = astFree( circum );
-
-/* Indicate cached information is up to date. */
-      this->stale = 0;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
    }
 }
 
@@ -477,7 +763,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 *     RegBaseBox
 
 *  Purpose:
-*     Returns the bounding box of an un-negated Region in the base Frame of 
+*     Returns the bounding box of an un-negated Region in the base Frame of
 *     the encapsulated FrameSet.
 
 *  Type:
@@ -492,7 +778,7 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 *     method inherited from the Region class).
 
 *  Description:
-*     This function returns the upper and lower axis bounds of a Region in 
+*     This function returns the upper and lower axis bounds of a Region in
 *     the base Frame of the encapsulated FrameSet, assuming the Region
 *     has not been negated. That is, the value of the Negated attribute
 *     is ignored.
@@ -503,12 +789,12 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 *     lbnd
 *        Pointer to an array in which to return the lower axis bounds
 *        covered by the Region in the base Frame of the encapsulated
-*        FrameSet. It should have at least as many elements as there are 
+*        FrameSet. It should have at least as many elements as there are
 *        axes in the base Frame.
 *     ubnd
 *        Pointer to an array in which to return the upper axis bounds
 *        covered by the Region in the base Frame of the encapsulated
-*        FrameSet. It should have at least as many elements as there are 
+*        FrameSet. It should have at least as many elements as there are
 *        axes in the base Frame.
 *     status
 *        Pointer to the inherited status variable.
@@ -517,11 +803,10 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 
 /* Local Variables: */
    AstCircle *this;              /* Pointer to Circle structure */
-   AstFrame *frm;                /* Encapsulated Frame */
-   AstFrame *reg;                /* Base Frame region */
-   double axcen;                 /* Central axis value */
+   AstFrame *frm;                /* Pointer to base Frame */
+   const char *class;            /* Pointer to class name */
    int i;                        /* Axis index */
-   int nc;                       /* No. of axes in base Frame */
+   int nb;                       /* No. of axes in base Frame */
 
 /* Check the global error status. */
    if ( !astOK ) return;
@@ -529,42 +814,40 @@ static void RegBaseBox( AstRegion *this_region, double *lbnd, double *ubnd, int 
 /* Get a pointer to the Circle structure */
    this = (AstCircle *) this_region;
 
-/* Get the number of base Frame axes. */
-   nc = astGetNin( this_region->frameset );
-
 /* Ensure cached information is available. */
    Cache( this, status );
 
-/* Do each base Frame axis. */
-   for( i = 0; i < nc; i++ ) {
+/* Get a pointer to the base Frame in the Region, and get the number of
+   axes. */
+   frm = astGetFrame( this_region->frameset, AST__BASE );
+   nb = astGetNaxes( frm );
 
-/* Get the value on this axis at the centre. */
-      axcen = this->centre[ i ];
+/* If the Frame is a simple Frame, we can assume plane geometry. */
+   class = astGetClass( frm );
+   if( class && !strcmp( class, "Frame" ) ) {
+      for( i = 0; i < nb; i++ ) {
+         lbnd[ i ] = ( this->centre )[ i ] - this->radius;
+         ubnd[ i ] = ( this->centre )[ i ] + this->radius;
+      }
 
-/* Store the upper and lower bounds. */
-      lbnd[ i ] = axcen - this->radius;
-      ubnd[ i ] = axcen + this->radius;
+/* If the Frame is not a simple Frame we cannot assume plane geometry. */
+   } else {
+
+/* The bounding box of the mesh returned by astRegBaseMesh is used as the
+   bounding box of the Circle. These bounds are cached in the Circle
+   structure by astRegBaseMesh. Ensure astRegBaseMesh has been invoked,
+   so that it is safe to use the cached bounding box. */
+      if( !this_region->basemesh ) (void) astAnnul( astRegBaseMesh( this ) );
+
+/* Store the bounding box. */
+      for( i = 0; i < nb; i++ ) {
+         lbnd[ i ] = this->lb[ i ];
+         ubnd[ i ] = this->ub[ i ];
+      }
    }
 
-/* Get a pointer to the base Frame in the frameset encapsulated by the
-   parent Region structure. */
-   frm = astGetFrame( this_region->frameset, AST__BASE );
-
-/* The astNormBox requires a Mapping which can be used to test points in 
-   this base Frame. Create a copy of the Circle and then set its
-   FrameSet so that the current Frame in the copy is the same as the base
-   Frame in the original. */
-   reg = astCopy( this );
-   astSetRegFS( reg, frm );
-   astSetNegated( reg, 0 );
-
-/* Normalise this box. */
-   astNormBox( frm, lbnd, ubnd, reg );
-
-/* Free resources */
-   reg = astAnnul( reg );
+/* Free resources. */
    frm = astAnnul( frm );
-
 }
 
 static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
@@ -573,7 +856,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 *     RegBaseMesh
 
 *  Purpose:
-*     Return a PointSet containing a mesh of points on the boundary of a 
+*     Return a PointSet containing a mesh of points on the boundary of a
 *     Region in its base Frame.
 
 *  Type:
@@ -599,7 +882,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     Pointer to the PointSet. The axis values in this PointSet will have 
+*     Pointer to the PointSet. The axis values in this PointSet will have
 *     associated accuracies derived from the accuracies which were
 *     supplied when the Region was created.
 
@@ -615,6 +898,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 /* Local Variables: */
    AstBox *box;                   /* Bounding box for this Circle */
    AstCircle *this;               /* The Circle structure */
+   AstRegion *reg;                /* Copy of supplied Circle */
    AstFrame *frm;                 /* Base Frame in encapsulated FrameSet */
    AstPointSet *result;           /* Returned pointer */
    double **ptr;                  /* Pointers to data */
@@ -622,7 +906,12 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
    double *p2;                    /* Pointer to array holding a single point */
    double angle;                  /* Angular position of point */
    double delta;                  /* Angular separation of points */
+   double dist;                   /* Offset along an axis */
+   double lbx;                    /* Lower x bound of mesh bounding box */
+   double lby;                    /* Lower y bound of mesh bounding box */
    double p[ 2 ];                 /* Position in 2D Frame */
+   double ubx;                    /* Upper x bound of mesh bounding box */
+   double uby;                    /* Upper y bound of mesh bounding box */
    int i;                         /* Point index */
    int j;                         /* Axis index */
    int naxes;                     /* No. of axes in base Frame */
@@ -634,7 +923,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 /* Check the global error status. */
    if ( !astOK ) return result;
 
-/* If the Region structure contains a pointer to a PointSet holding 
+/* If the Region structure contains a pointer to a PointSet holding
    a previously created mesh, return it. */
    if( this_region->basemesh ) {
       result = astClone( this_region->basemesh );
@@ -660,7 +949,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 /* First deal with 1-D "circles" (where we ignore MeshSize). */
       if( naxes == 1 ) {
 
-/* The boundary of a 1-D circle consists of 2 points - the two extreme values. 
+/* The boundary of a 1-D circle consists of 2 points - the two extreme values.
    Create a PointSet to hold 2 1-D values, and store the extreme values. */
          result = astPointSet( 2, 1, "", status );
          ptr = astGetPoints( result );
@@ -668,6 +957,10 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
             ptr[ 0 ][ 0 ] = ( this->centre )[ 0 ] - this->radius;
             ptr[ 0 ][ 1 ] = ( this->centre )[ 0 ] + this->radius;
          }
+
+/* Store the bounding box in the Circle structure. */
+         this->lb[ 0 ] = ptr[ 0 ][ 0 ];
+         this->ub[ 0 ] = ptr[ 0 ][ 1 ];
 
 /* Now deal with 2-D circles. */
       } else if( naxes == 2 ){
@@ -680,6 +973,12 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
          ptr = astGetPoints( result );
          if( astOK ) {
 
+/* Initialise the bounding box of the mesh points. */
+            lbx = DBL_MAX;
+            ubx = -DBL_MAX;
+            lby = DBL_MAX;
+            uby = -DBL_MAX;
+
 /* Loop round each point. */
             angle = 0.0;
             for( i = 0; i < np; i++ ) {
@@ -690,26 +989,61 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
                ptr[ 0 ][ i ] = p[ 0 ];
                ptr[ 1 ][ i ] = p[ 1 ];
 
+/* Update the bounds of the mesh bounding box. The box is expressed in
+   terms of axis offsets from the centre, in order to avoid problems with
+   boxes that cross RA=0 or RA=12h */
+               if( p[ 0 ] != AST__BAD && p[ 1 ] != AST__BAD ){
+                  dist =  astAxDistance( frm, 1, this->centre[ 0 ], p[ 0 ] );
+                  if( dist < lbx ) {
+                     lbx = dist;
+                  } else if( dist > ubx ) {
+                     ubx = dist;
+                  }
+                  dist =  astAxDistance( frm, 2, this->centre[ 1 ], p[ 1 ] );
+                  if( dist < lby ) {
+                     lby = dist;
+                  } else if( dist > uby ) {
+                     uby = dist;
+                  }
+               }
+
 /* Increment the angular position of the next mesh point. */
                angle += delta;
             }
+
+/* Store the bounding box in the Circle structure. */
+            this->lb[ 0 ] = this->centre[ 0 ] + lbx;
+            this->lb[ 1 ] = this->centre[ 1 ] + lby;
+            this->ub[ 0 ] = this->centre[ 0 ] + ubx;
+            this->ub[ 1 ] = this->centre[ 1 ] + uby;
          }
 
 /* Now deal with circles with more than 2 dimensions. Producing an evenly
    spread mesh of points over a sphere is a complex task (see e.g.
    http://www.eso.org/science/healpix/ ). This implementation does not
-   attempt to produce a genuinely even spread. Instead it simply uses the 
-   mesh for the bounding box if the sphere, and projects each point on to
+   attempt to produce a genuinely even spread. Instead it simply uses the
+   mesh for the bounding box of the sphere, and projects each point on to
    the surface of the sphere. */
       } else {
 
-/* Allocate memory and put the circle bounding box coords into it. */
+/* Allocate memory to hold an approximation of the circle bounding box. */
          p1 = astMalloc( sizeof( double )*(size_t) naxes );
          p2 = astMalloc( sizeof( double )*(size_t) naxes );
-         astRegBaseBox( this, p1, p2 );
+
+/* Get an approximation to the bounding box, and initialise the real
+   bounding box of the mesh points. */
+         if( astOK ) {
+            memcpy( p1, this->centre, sizeof( double )*(size_t) naxes );
+            for( j = 0; j < naxes; j++ ) {
+               p1[ j ] += this->radius;
+               astOffset( frm, this->centre, p1, this->radius, p2 );
+               p1[ j ] = this->centre[ j ];
+               this->ub[ j ] = p2[ j ];
+            }
+         }
 
 /* Create a Box region which just encompasses the circle. */
-         box = astBox( frm, 0, this->centre, p1, NULL, "", status );
+         box = astBox( frm, 0, this->centre, this->ub, NULL, "", status );
 
 /* Get a mesh covering this box. */
          astSetMeshSize( box, np );
@@ -720,13 +1054,31 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
 /* Allocate memory for a single point */
          if( astOK ) {
 
+/* Initialise the real bounding box of the mesh points. */
+            for( j = 0; j < naxes; j++ ) {
+               this->lb[ j ] = DBL_MAX;
+               this->ub[ j ] = -DBL_MAX;
+            }
+
 /* Move each point in this mesh radially so that its distance from the centre
    equals the radius of this Circle. */
             for( i = 0; i < np; i++ ) {
                for( j = 0; j < naxes; j++ ) p1[ j ] = ptr[ j ][ i ];
                astOffset( frm, this->centre, p1, this->radius, p2 );
-               for( j = 0; j < naxes; j++ ) ptr[ j ][ i ] = p2[ j ];
-            }    
+
+               for( j = 0; j < naxes; j++ ) {
+                  ptr[ j ][ i ] = p2[ j ];
+
+/* Update the bounds of the mesh bounding box. */
+                  if( p2[ j ] != AST__BAD ){
+                     if( p2[ j ] < this->lb[ j ] ) {
+                        this->lb[ j ] = p2[ j ];
+                     } else if( p2[ j ] > this->ub[ j ] ) {
+                        this->ub[ j ] = p2[ j ];
+                     }
+                  }
+               }
+            }
          }
 
 /* Same the returned pointer in the Region structure so that it does not
@@ -739,9 +1091,20 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
          box = astAnnul( box );
       }
 
-/* Free resources. */
-      frm = astAnnul( frm );
+/* Extend the bounding box if it contains any singularies. The astNormBox
+   requires a Mapping which can be used to test points in the base Frame.
+   Create a copy of the Circle and then set its FrameSet so that the current
+   Frame in the copy is the same as the base Frame in the original. */
+      reg = astCopy( this );
+      astSetRegFS( reg, frm );
+      astSetNegated( reg, 0 );
 
+/* Normalise this box. */
+      astNormBox( frm, this->lb, this->ub, reg );
+
+/* Free resources. */
+      reg = astAnnul( reg );
+      frm = astAnnul( frm );
    }
 
 /* Annul the result if an error has occurred. */
@@ -751,7 +1114,7 @@ static AstPointSet *RegBaseMesh( AstRegion *this_region, int *status ){
    return result;
 }
 
-static double *RegCentre( AstRegion *this_region, double *cen, double **ptr, 
+static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
                           int index, int ifrm, int *status ){
 /*
 *  Name:
@@ -765,7 +1128,7 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
 
 *  Synopsis:
 *     #include "circle.h"
-*     double *RegCentre( AstRegion *this, double *cen, double **ptr, 
+*     double *RegCentre( AstRegion *this, double *cen, double **ptr,
 *                        int index, int ifrm, int *status )
 
 *  Class Membership:
@@ -781,20 +1144,20 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
 *        Pointer to the Region.
 *     cen
 *        Pointer to an array of axis values, giving the new centre.
-*        Supply a NULL value for this in order to use "ptr" and "index" to 
+*        Supply a NULL value for this in order to use "ptr" and "index" to
 *        specify the new centre.
 *     ptr
-*        Pointer to an array of points, one for each axis in the Region.
+*        Pointer to an array of pointers, one for each axis in the Region.
 *        Each pointer locates an array of axis values. This is the format
 *        returned by the PointSet method astGetPoints. Only used if "cen"
 *        is NULL.
 *     index
 *        The index of the point within the arrays identified by "ptr" at
-*        which is stored the coords for the new centre position. Only used 
+*        which is stored the coords for the new centre position. Only used
 *        if "cen" is NULL.
 *     ifrm
-*        Should be AST__BASE or AST__CURRENT. Indicates whether the centre 
-*        position is supplied and returned in the base or current Frame of 
+*        Should be AST__BASE or AST__CURRENT. Indicates whether the centre
+*        position is supplied and returned in the base or current Frame of
 *        the FrameSet encapsulated within "this".
 *     status
 *        Pointer to the inherited status variable.
@@ -807,17 +1170,19 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
 *     NULL pointer is returned.
 
 *  Notes:
-*    - Some Region sub-classes do not have a centre. Such classes will report 
+*    - Some Region sub-classes do not have a centre. Such classes will report
 *    an AST__INTER error code if this method is called.
 */
 
 /* Local Variables: */
+   AstFrame *frm;      /* Pointer to base Frame */
    AstCircle *this;    /* Pointer to Circle structure */
    double **rptr;      /* Data pointers for Region PointSet */
    double *bc;         /* Base Frame centre position */
+   double *circum;     /* Base frame circumference position */
    double *result;     /* Returned pointer */
    double *tmp;        /* Temporary array pointer */
-   double delta;       /* Amount by which to shift axis values */
+   double axval;       /* Axis value */
    int ic;             /* Coordinate index */
    int ncb;            /* Number of base frame coordinate values per point */
    int ncc;            /* Number of current frame coordinate values per point */
@@ -838,7 +1203,7 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
 /* Ensure cached information is available. */
    Cache( this, status );
 
-/* If the centre coords are to be returned, return either a copy of the 
+/* If the centre coords are to be returned, return either a copy of the
    base Frame centre coords, or transform the base Frame centre coords
    into the current Frame. */
    if( !ptr && !cen ) {
@@ -848,9 +1213,12 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
          result = astStore( NULL, this->centre, sizeof( double )*ncb );
       }
 
-/* Otherwise, we store the supplied new centre coords and return a NULL 
+/* Otherwise, we store the supplied new centre coords and return a NULL
    pointer. */
    } else {
+
+/* Get a pointer to the base Frame in the Region's FrameSet. */
+      frm = astGetFrame( this_region->frameset, AST__BASE );
 
 /* Get a pointer to the axis values stored in the Region structure. */
       rptr = astGetPoints( this_region->points );
@@ -858,7 +1226,7 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
 /* Check pointers can be used safely */
       if( astOK ) {
 
-/* If the centre position was supplied in the current Frame, find the 
+/* If the centre position was supplied in the current Frame, find the
    corresponding base Frame position... */
          if( ifrm == AST__CURRENT ) {
             if( cen ) {
@@ -872,31 +1240,49 @@ static double *RegCentre( AstRegion *this_region, double *cen, double **ptr,
                tmp = astFree( tmp );
             }
 
-/* ... and change the coords in the parent Region structure and the cached 
-   coords in the Circle structure. */
+/* Replace any bad centre values with their current values. */
             for( ic = 0; ic < ncb; ic++ ) {
-               delta = bc[ ic ] - rptr[ ic ][ 0 ];
-               rptr[ ic ][ 0 ] += delta;
-               rptr[ ic ][ 1 ] += delta;
-               this->centre[ ic ] += delta;
+               if( bc[ ic ] ==  AST__BAD ) bc[ ic ] = this->centre[ ic ];
+            }
+
+/* ... and change the coords in the parent Region structure and the cached
+   coords in the Circle structure. */
+            circum = CircumPoint( frm, ncb, bc, this->radius, status );
+            if( circum ) {
+               for( ic = 0; ic < ncb; ic++ ) {
+                  rptr[ ic ][ 0 ] = bc[ ic ];
+                  rptr[ ic ][ 1 ] = circum[ ic ];
+                  this->centre[ ic ] = bc[ ic ];
+               }
             }
 
 /* Free resources */
+            circum = astFree( circum );
             bc = astFree( bc );
 
 /* If the centre position was supplied in the base Frame, use the
-   supplied "cen" or "ptr" pointer directly to change the coords in the 
+   supplied "cen" or "ptr" pointer directly to change the coords in the
    parent Region structure and the cached coords in the Circle structure. */
          } else {
             for( ic = 0; ic < ncb; ic++ ) {
-               delta = cen ? cen[ ic ] : ptr[ ic ][ index ];
-               delta -= rptr[ ic ][ 0 ];
-               rptr[ ic ][ 0 ] += delta;
-               rptr[ ic ][ 1 ] += delta;
-               this->centre[ ic ] += delta;
+               axval = cen ? cen[ ic ] : ptr[ ic ][ index ];
+               if( axval != AST__BAD ) this->centre[ ic ] = axval;
+            }
+
+            circum = CircumPoint( frm, ncb, this->centre, this->radius,
+                                  status );
+            if( circum ) {
+               for( ic = 0; ic < ncb; ic++ ) {
+                  rptr[ ic ][ 0 ] = this->centre[ ic ];
+                  rptr[ ic ][ 1 ] = circum[ ic ];
+               }
+               circum = astFree( circum );
             }
          }
       }
+
+/* Free resources */
+      frm = astAnnul( frm );
    }
 
 /* Return the result. */
@@ -926,7 +1312,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 
 *  Description:
 *     This function returns a flag indicating if the supplied set of
-*     points all fall on the boundary of the given Circle. 
+*     points all fall on the boundary of the given Circle.
 *
 *     Some tolerance is allowed, as specified by the uncertainty Region
 *     stored in the supplied Circle "this", and the supplied uncertainty
@@ -936,12 +1322,12 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 *     this
 *        Pointer to the Circle.
 *     pset
-*        Pointer to the PointSet. The points are assumed to refer to the 
+*        Pointer to the PointSet. The points are assumed to refer to the
 *        base Frame of the FrameSet encapsulated by "this".
 *     unc
 *        Pointer to a Region representing the uncertainties in the points
-*        given by "pset". The Region is assumed to represent the base Frame 
-*        of the FrameSet encapsulated by "this". Zero uncertainity is assumed 
+*        given by "pset". The Region is assumed to represent the base Frame
+*        of the FrameSet encapsulated by "this". Zero uncertainity is assumed
 *        if NULL is supplied.
 *     mask
 *        Pointer to location at which to return a pointer to a newly
@@ -970,11 +1356,11 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    AstPointSet *ps2;            /* Points masked by larger and smaller Circlees */
    AstRegion *tunc;             /* Uncertainity Region from "this" */
    double **ptr;                /* Pointer to axis values in "ps2" */
-   double *lbnd_tunc;           /* Lower bounds of "this" uncertainty Region */ 
-   double *lbnd_unc;            /* Lower bounds of supplied uncertainty Region */ 
+   double *lbnd_tunc;           /* Lower bounds of "this" uncertainty Region */
+   double *lbnd_unc;            /* Lower bounds of supplied uncertainty Region */
    double *p;                   /* Pointer to next axis value */
-   double *ubnd_tunc;           /* Upper bounds of "this" uncertainty Region */ 
-   double *ubnd_unc;            /* Upper bounds of supplied uncertainty Region */ 
+   double *ubnd_tunc;           /* Upper bounds of "this" uncertainty Region */
+   double *ubnd_unc;            /* Upper bounds of supplied uncertainty Region */
    double drad;                 /* Radius increment corresponding to border width */
    double l1;                   /* Length of bounding box diagonal */
    double l2;                   /* Length of bounding box diagonal */
@@ -995,7 +1381,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 /* Get a pointer to the Circle structure. */
    this = (AstCircle *) this_region;
 
-/* Get the number of base Frame axes in the Circle, and check the supplied 
+/* Get the number of base Frame axes in the Circle, and check the supplied
    PointSet has the same number of axis values per point. */
    frm = astGetFrame( this_region->frameset, AST__BASE );
    nc = astGetNaxes( frm );
@@ -1006,7 +1392,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
                 astGetNcoord( pset ), nc );
    }
 
-/* Get the number of axes in the uncertainty Region and check it is the 
+/* Get the number of axes in the uncertainty Region and check it is the
    same as above. */
    if( unc && astGetNaxes( unc ) != nc && astOK ) {
       astError( AST__INTER, "astRegPins(%s): Illegal number of axes (%d) "
@@ -1015,17 +1401,17 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
                 astGetNaxes( unc ), nc );
    }
 
-/* We now find the maximum distance on each axis that a point can be from the 
-   boundary of the Circle for it still to be considered to be on the boundary. 
+/* We now find the maximum distance on each axis that a point can be from the
+   boundary of the Circle for it still to be considered to be on the boundary.
    First get the Region which defines the uncertainty within the Circle being
    checked (in its base Frame), and get its bounding box. */
-   tunc = astGetUncFrm( this, AST__BASE );      
+   tunc = astGetUncFrm( this, AST__BASE );
 
    lbnd_tunc = astMalloc( sizeof( double )*(size_t) nc );
    ubnd_tunc = astMalloc( sizeof( double )*(size_t) nc );
-   astGetUncBounds( tunc, lbnd_tunc, ubnd_tunc ); 
+   astGetRegionBounds( tunc, lbnd_tunc, ubnd_tunc );
 
-/* Find the geodesic length withi the base Frame of "this" of the diagonal of 
+/* Find the geodesic length withi the base Frame of "this" of the diagonal of
    the bounding box. */
    l1 = astDistance( frm, lbnd_tunc, ubnd_tunc );
 
@@ -1034,12 +1420,12 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    if( unc ) {
       lbnd_unc = astMalloc( sizeof( double )*(size_t) nc );
       ubnd_unc = astMalloc( sizeof( double )*(size_t) nc );
-      astGetUncBounds( unc, lbnd_unc, ubnd_unc ); 
+      astGetRegionBounds( unc, lbnd_unc, ubnd_unc );
 
 /* Find the geodesic length of the diagonal of this bounding box. */
       l2 = astDistance( frm, lbnd_unc, ubnd_unc );
 
-/* Use a zero sized box "unc" if no box was supplied. */      
+/* Use a zero sized box "unc" if no box was supplied. */
    } else {
       lbnd_unc = NULL;
       ubnd_unc = NULL;
@@ -1049,8 +1435,8 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 /* Ensure cached information is available. */
    Cache( this, status );
 
-/* The required border width is half of the total diagonal of the two bounding 
-   boxes. */   
+/* The required border width is half of the total diagonal of the two bounding
+   boxes. */
    if( astOK ) {
       drad = 0.5*( l1 + l2 );
 
@@ -1083,7 +1469,7 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
 
 /* Check all the resulting points, setting mask values for all of them. */
          if( astOK ) {
-   
+
 /* Initialise the mask elements on the basis of the first axis values */
             result = 1;
             p = ptr[ 0 ];
@@ -1147,6 +1533,150 @@ static int RegPins( AstRegion *this_region, AstPointSet *pset, AstRegion *unc,
    return result;
 }
 
+static int RegTrace( AstRegion *this_region, int n, double *dist, double **ptr,
+                     int *status ){
+/*
+*+
+*  Name:
+*     RegTrace
+
+*  Purpose:
+*     Return requested positions on the boundary of a 2D Region.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "circle.h"
+*     int astTraceRegion( AstRegion *this, int n, double *dist, double **ptr );
+
+*  Class Membership:
+*     Circle member function (overrides the astTraceRegion method
+*     inherited from the parent Region class).
+
+*  Description:
+*     This function returns positions on the boundary of the supplied
+*     Region, if possible. The required positions are indicated by a
+*     supplied list of scalar parameter values in the range zero to one.
+*     Zero corresponds to some arbitrary starting point on the boundary,
+*     and one corresponds to the end (which for a closed region will be
+*     the same place as the start).
+
+*  Parameters:
+*     this
+*        Pointer to the Region.
+*     n
+*        The number of positions to return. If this is zero, the function
+*        returns without action (but the returned function value still
+*        indicates if the method is supported or not).
+*     dist
+*        Pointer to an array of "n" scalar parameter values in the range
+*        0 to 1.0.
+*     ptr
+*        A pointer to an array of pointers. The number of elements in
+*        this array should equal tthe number of axes in the Frame spanned
+*        by the Region. Each element of the array should be a pointer to
+*        an array of "n" doubles, in which to return the "n" values for
+*        the corresponding axis. The contents of the arrays are unchanged
+*        if the supplied Region belongs to a class that does not
+*        implement this method.
+
+*  Returned Value:
+*     Non-zero if the astTraceRegion method is implemented by the class
+*     of Region supplied, and zero if not.
+
+*-
+*/
+
+/* Local Variables; */
+   AstCircle *this;
+   AstFrame *frm;
+   AstMapping *map;
+   AstPointSet *bpset;
+   AstPointSet *cpset;
+   double **bptr;
+   double angle;
+   double p[ 2 ];
+   int i;
+   int ncur;
+   int result;
+
+/* Initialise */
+   result = 0;
+
+/* Check inherited status. */
+   if( ! astOK ) return result;
+
+/* Get a pointer to the base Frame in the encapsulated FrameSet. */
+   frm = astGetFrame( this_region->frameset, AST__BASE );
+
+/* Check it is 2-dimensional. */
+   if( astGetNaxes( frm ) == 2 ) result = 1;
+
+/* Check we have some points to find. */
+   if( result && n > 0 ) {
+
+/* Get a pointer to the Circle structure. */
+      this = (AstCircle *) this_region;
+
+/* Ensure cached information is available. */
+      Cache( this, status );
+
+/* We first determine the required positions in the base Frame of the
+   Region, and then transform them into the current Frame. Get the
+   base->current Mapping, and the number of current Frame axes. */
+      map = astGetMapping( this_region->frameset, AST__BASE, AST__CURRENT );
+
+/* If it's a UnitMap we do not need to do the transformation, so put the
+   base Frame positions directly into the supplied arrays. */
+      if( astIsAUnitMap( map ) ) {
+         bpset = NULL;
+         bptr = ptr;
+         ncur = 2;
+
+/* Otherwise, create a PointSet to hold the base Frame positions. */
+      } else {
+         bpset = astPointSet( n, 2, " ", status );
+         bptr = astGetPoints( bpset );
+         ncur = astGetNout( map );
+      }
+
+/* Check the pointers can be used safely. */
+      if( astOK ) {
+
+/* Loop round each point. Get the angle around the circle, and offset
+   along that angle to find the point that is one radius away from the
+   centre. Copy the results into the required arrays. */
+         for( i = 0; i < n; i++ ) {
+            angle = dist[ i ]*2*AST__DPI;
+            astOffset2( frm, this->centre, angle, this->radius, p );
+            bptr[ 0 ][ i ] = p[ 0 ];
+            bptr[ 1 ][ i ] = p[ 1 ];
+         }
+
+      }
+
+/* If required, transform the base frame positions into the current
+   Frame, storing them in the supplied array. Then free resources. */
+      if( bpset ) {
+         cpset = astPointSet( n, ncur, " ", status );
+         astSetPoints( cpset, ptr );
+
+         (void) astTransform( map, bpset, 1, cpset );
+
+         cpset = astAnnul( cpset );
+         bpset = astAnnul( bpset );
+      }
+
+/* Free remaining resources. */
+      map = astAnnul( map );
+   }
+   frm = astAnnul( frm );
+
+/* Return the result. */
+   return result;
+}
+
 static void ResetCache( AstRegion *this, int *status ){
 /*
 *  Name:
@@ -1167,7 +1697,7 @@ static void ResetCache( AstRegion *this, int *status ){
 *     inherited from the parent Region class).
 
 *  Description:
-*     This function clears cached information from the supplied Region 
+*     This function clears cached information from the supplied Region
 *     structure.
 
 *  Parameters:
@@ -1335,7 +1865,7 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
             if( cen[ ic ] == AST__BAD ) ok = 0;
          }
 
-/* Find the best fitting Circle (defined in the current Frame) through these 
+/* Find the best fitting Circle (defined in the current Frame) through these
    points */
          newreg = ok ? astBestCircle( mesh, cen, unc ) : NULL;
 
@@ -1347,15 +1877,15 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
             (void) astAnnul( new );
             new = astClone( newreg );
 
-/* Otherwise, if the region is 2-d we see if an Ellipse can represent the 
+/* Otherwise, if the region is 2-d we see if an Ellipse can represent the
    mesh. */
          } else if( ok && nc == 2 ){
 
-/* Find the best fitting Ellipse (defined in the current Frame) through these 
+/* Find the best fitting Ellipse (defined in the current Frame) through these
    points */
             if( newreg ) (void) astAnnul( newreg );
             newreg = astBestEllipse( mesh, cen, unc );
- 
+
 /* See if all points within this mesh fall on the boundary of the best
    fitting Ellipse, to within the uncertainty of the Region. */
             if( newreg && astRegPins( newreg, mesh, NULL, NULL ) ) {
@@ -1378,11 +1908,12 @@ static AstMapping *Simplify( AstMapping *this_mapping, int *status ) {
    }
    map = astAnnul( map );
 
-/* If any simplification could be performed, copy Region attributes from 
+/* If any simplification could be performed, copy Region attributes from
    the supplied Region to the returned Region, and return a pointer to it.
-   Otherwise, return a clone of the supplied pointer. */
+   If the supplied Region had no uncertainty, ensure the returned Region
+   has no uncertainty. Otherwise, return a clone of the supplied pointer. */
    if( simpler ){
-      astRegOverlay( new, this );
+      astRegOverlay( new, this, 1 );
       result = (AstMapping *) new;
 
    } else {
@@ -1498,11 +2029,11 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
    pset_tmp = astRegTransform( this, in, 0, NULL, &frm );
 
 /* Determine the numbers of points and coordinates per point from the base
-   Frame PointSet and obtain pointers for accessing the base Frame and output 
+   Frame PointSet and obtain pointers for accessing the base Frame and output
    coordinate values. */
    npoint = astGetNpoint( pset_tmp );
    ncoord_tmp = astGetNcoord( pset_tmp );
-   ptr_tmp = astGetPoints( pset_tmp );      
+   ptr_tmp = astGetPoints( pset_tmp );
    ncoord_out = astGetNcoord( result );
    ptr_out = astGetPoints( result );
 
@@ -1526,13 +2057,13 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
       for ( point = 0; point < npoint; point++ ) {
 
 /* Copy the base Frame position into a work array. */
-         for ( coord = 0; coord < ncoord_tmp; coord++ ) {    
+         for ( coord = 0; coord < ncoord_tmp; coord++ ) {
             work[ coord ] = ptr_tmp[ coord ][ point ];
          }
 
-/* Find the geodesic distance from the centre of the Circle in the base 
+/* Find the geodesic distance from the centre of the Circle in the base
    Frame. */
-         d = astDistance( frm, this->centre, work );  
+         d = astDistance( frm, this->centre, work );
 
 /* Now consider whether this radius value puts the point in or out of the
    Circle. */
@@ -1560,7 +2091,7 @@ static AstPointSet *Transform( AstMapping *this_mapping, AstPointSet *in,
                ptr_out[ coord ][ point ] = AST__BAD;
             }
          }
-      } 
+      }
    }
 
 /* Free resources */
@@ -1628,11 +2159,15 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
 /* For safety, first clear any references to the input memory from
    the output Circle. */
    out->centre = NULL;
+   out->lb = NULL;
+   out->ub = NULL;
 
 /* Copy dynamic memory contents */
    nax = astGetNin( ((AstRegion *) in)->frameset );
-   out->centre = astStore( NULL, in->centre, 
+   out->centre = astStore( NULL, in->centre,
                            sizeof( double )*(size_t)nax );
+   out->lb = astStore( NULL, in->lb, sizeof( double )*(size_t)nax );
+   out->ub = astStore( NULL, in->ub, sizeof( double )*(size_t)nax );
 }
 
 
@@ -1674,6 +2209,8 @@ static void Delete( AstObject *obj, int *status ) {
 
 /* Annul all resources. */
    this->centre = astFree( this->centre );
+   this->lb = astFree( this->lb );
+   this->ub = astFree( this->ub );
 }
 
 /* Dump function. */
@@ -1737,11 +2274,11 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsACircle and astCheckCircle functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(Circle,Region,check,&class_check)
+astMAKE_ISA(Circle,Region)
 astMAKE_CHECK(Circle)
 
-AstCircle *astCircle_( void *frame_void, int form, const double centre[], 
-                       const double point[], AstRegion *unc, 
+AstCircle *astCircle_( void *frame_void, int form, const double centre[],
+                       const double point[], AstRegion *unc,
                        const char *options, int *status, ...) {
 /*
 *++
@@ -1757,8 +2294,8 @@ f     AST_CIRCLE
 
 *  Synopsis:
 c     #include "circle.h"
-c     AstCircle *astCircle( AstFrame *frame, int form, const double centre[], 
-c                           const double point[], AstRegion *unc, 
+c     AstCircle *astCircle( AstFrame *frame, int form, const double centre[],
+c                           const double point[], AstRegion *unc,
 c                           const char *options, ... )
 f     RESULT = AST_CIRCLE( FRAME, FORM, CENTRE, POINT, UNC, OPTIONS, STATUS )
 
@@ -1783,8 +2320,8 @@ c     form
 f     FORM = INTEGER (Given)
 *        Indicates how the circle is described by the remaining parameters.
 *        A value of zero indicates that the circle is specified by a
-*        centre position and a position on the circumference. A value of one 
-*        indicates that the circle is specified by a centre position and a 
+*        centre position and a position on the circumference. A value of one
+*        indicates that the circle is specified by a centre position and a
 *        scalar radius.
 c     centre
 f     CENTRE( * ) = DOUBLE PRECISION (Given)
@@ -1794,48 +2331,48 @@ f        An array with one element for each Frame axis
 *        the circle or sphere.
 c     point
 f     POINT( * ) = DOUBLE PRECISION (Given)
-c        If "form" 
+c        If "form"
 f        If FORM
 *        is zero, then this array should have one element for each Frame
-*        axis (Naxes attribute), and should be supplied holding the 
-*        coordinates at a point on the circumference of the circle or sphere. 
-c        If "form" 
+*        axis (Naxes attribute), and should be supplied holding the
+*        coordinates at a point on the circumference of the circle or sphere.
+c        If "form"
 f        If FORM
-*        is one, then this array should have one element only which should 
+*        is one, then this array should have one element only which should
 *        be supplied holding the scalar radius of the circle or sphere,
 *        as a geodesic distance within the Frame.
 c     unc
 f     UNC = INTEGER (Given)
-*        An optional pointer to an existing Region which specifies the 
-*        uncertainties associated with the boundary of the Circle being created. 
-*        The uncertainty in any point on the boundary of the Circle is found by 
-*        shifting the supplied "uncertainty" Region so that it is centred at 
+*        An optional pointer to an existing Region which specifies the
+*        uncertainties associated with the boundary of the Circle being created.
+*        The uncertainty in any point on the boundary of the Circle is found by
+*        shifting the supplied "uncertainty" Region so that it is centred at
 *        the boundary point being considered. The area covered by the
 *        shifted uncertainty Region then represents the uncertainty in the
 *        boundary position. The uncertainty is assumed to be the same for
 *        all points.
 *
-*        If supplied, the uncertainty Region must be of a class for which 
-*        all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.) 
-*        or be a Prism containing centro-symetric component Regions. A deep 
-*        copy of the supplied Region will be taken, so subsequent changes to 
-*        the uncertainty Region using the supplied pointer will have no 
-*        effect on the created Circle. Alternatively, 
-f        a null Object pointer (AST__NULL) 
-c        a NULL Object pointer 
-*        may be supplied, in which case a default uncertainty is used 
+*        If supplied, the uncertainty Region must be of a class for which
+*        all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.)
+*        or be a Prism containing centro-symetric component Regions. A deep
+*        copy of the supplied Region will be taken, so subsequent changes to
+*        the uncertainty Region using the supplied pointer will have no
+*        effect on the created Circle. Alternatively,
+f        a null Object pointer (AST__NULL)
+c        a NULL Object pointer
+*        may be supplied, in which case a default uncertainty is used
 *        equivalent to a box 1.0E-6 of the size of the Circle being created.
 *
-*        The uncertainty Region has two uses: 1) when the 
+*        The uncertainty Region has two uses: 1) when the
 c        astOverlap
-f        AST_OVERLAP 
+f        AST_OVERLAP
 *        function compares two Regions for equality the uncertainty
 *        Region is used to determine the tolerance on the comparison, and 2)
 *        when a Region is mapped into a different coordinate system and
-*        subsequently simplified (using 
+*        subsequently simplified (using
 c        astSimplify),
 f        AST_SIMPLIFY),
-*        the uncertainties are used to determine if the transformed boundary 
+*        the uncertainties are used to determine if the transformed boundary
 *        can be accurately represented by a specific shape of Region.
 c     options
 f     OPTIONS = CHARACTER * ( * ) (Given)
@@ -1872,7 +2409,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstFrame *frame;              /* Pointer to Frame structure */
    AstCircle *new;               /* Pointer to new Circle */
    va_list args;                 /* Variable argument list */
@@ -1910,7 +2447,7 @@ f     function is invoked with STATUS set to an error value, or if it
    return new;
 }
 
-AstCircle *astCircleId_( void *frame_void, int form, const double centre[], 
+AstCircle *astCircleId_( void *frame_void, int form, const double centre[],
                          const double point[], void *unc_void,
                          const char *options, ... ) {
 /*
@@ -1925,7 +2462,7 @@ AstCircle *astCircleId_( void *frame_void, int form, const double centre[],
 
 *  Synopsis:
 *     #include "circle.h"
-*     AstCircle *astCircleId_( AstFrame *frame, int form, const double centre[], 
+*     AstCircle *astCircleId_( AstFrame *frame, int form, const double centre[],
 *                              const double point[], AstRegion *unc,
 *                              const char *options, ... )
 
@@ -1953,7 +2490,7 @@ AstCircle *astCircleId_( void *frame_void, int form, const double centre[],
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstFrame *frame;              /* Pointer to Frame structure */
    AstCircle *new;               /* Pointer to new Circle */
    AstRegion *unc;               /* Pointer to Region structure */
@@ -2002,7 +2539,7 @@ AstCircle *astCircleId_( void *frame_void, int form, const double centre[],
    return astMakeId( new );
 }
 
-AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab, 
+AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab,
                            const char *name, AstFrame *frame, int form,
                            const double centre[], const double point[],
                            AstRegion *unc, int *status ) {
@@ -2019,7 +2556,7 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
 
 *  Synopsis:
 *     #include "circle.h"
-*     AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab, 
+*     AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab,
 *                                const char *name, AstFrame *frame, int form,
 *                                const double centre[], const double point[],
 *                                AstRegion *unc )
@@ -2067,28 +2604,28 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
 *        Indicates how the "point" parameter should be interpreted.
 *        Should be either 0 or 1.
 *     centre
-*        An array of double, with one element for each Frame axis (Naxes 
+*        An array of double, with one element for each Frame axis (Naxes
 *        attribute) containing the coordinates of the circle centre.
 *     point
-*        If "form" is zero, this should be an array of double, with one 
-*        element for each Frame axis (Naxes attribute) containing the 
-*        coordinates at any point on the circumference. If "form" is one, 
+*        If "form" is zero, this should be an array of double, with one
+*        element for each Frame axis (Naxes attribute) containing the
+*        coordinates at any point on the circumference. If "form" is one,
 *        this should be the address of a double containing the scalar
 *        radius of the circle or sphere.
 *     unc
 *        A pointer to a Region which specifies the uncertainty in the
 *        supplied positions (all points on the boundary of the new Circle
-*        being initialised are assumed to have the same uncertainty). A NULL 
-*        pointer can be supplied, in which case default uncertainties equal to 
-*        1.0E-6 of the dimensions of the new Circle's bounding box are used. 
-*        If an uncertainty Region is supplied, it must be either a Box, a 
+*        being initialised are assumed to have the same uncertainty). A NULL
+*        pointer can be supplied, in which case default uncertainties equal to
+*        1.0E-6 of the dimensions of the new Circle's bounding box are used.
+*        If an uncertainty Region is supplied, it must be either a Box, a
 *        Circle or an Ellipse, and its encapsulated Frame must be related
 *        to the Frame supplied for parameter "frame" (i.e. astConvert
-*        should be able to find a Mapping between them). Two positions 
-*        the "frame" Frame are considered to be co-incident if their 
+*        should be able to find a Mapping between them). Two positions
+*        the "frame" Frame are considered to be co-incident if their
 *        uncertainty Regions overlap. The centre of the supplied
-*        uncertainty Region is immaterial since it will be re-centred on the 
-*        point being tested before use. A deep copy is taken of the supplied 
+*        uncertainty Region is immaterial since it will be re-centred on the
+*        point being tested before use. A deep copy is taken of the supplied
 *        Region.
 
 *  Returned Value:
@@ -2105,8 +2642,6 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
    AstPointSet *pset;        /* PointSet to pass to Region initialiser */
    const double *circum;     /* Pointer to circumference position */
    double **ptr;             /* Pointer to coords data in pset */
-   double *work;             /* Pointer to arbitrary non-centre position */
-   double radius;            /* Circle radius */
    int i;                    /* Axis index */
    int nc;                   /* No. of axes */
 
@@ -2132,15 +2667,7 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
 /* If the circle radius has been supplied, find a point on the circle
    circumference. */
    if( form == 1 ) {
-      radius = *point;
-      circum = astMalloc( sizeof( double)*(size_t) nc );
-      work = astMalloc( sizeof( double)*(size_t) nc );
-      if( astOK ) {
-         for( i = 0; i < nc; i++ ) work[ i ] = centre[ i ];
-         work[ 0 ] = astAxOffset( frame, 1, work[ 0 ], radius );
-         astOffset( frame, centre, work, radius, (double *) circum );
-      }
-      work = astFree( work );
+      circum = CircumPoint( frame, nc, centre, *point, status );
 
 /* Otherwise, use the supplied circumference point. */
    } else {
@@ -2152,13 +2679,13 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
    pset = astPointSet( 2, nc, "", status );
    ptr = astGetPoints( pset );
 
-/* Copy the centre and circumference coordinates into the PointSet, checking 
+/* Copy the centre and circumference coordinates into the PointSet, checking
    that no bad values have been supplied. */
    for( i = 0; astOK && i < nc; i++ ) {
       if( centre[ i ] == AST__BAD ) {
          astError( AST__BADIN, "astInitCircle(%s): The value of axis %d is "
                    "undefined at the circle centre.", status, name, i + 1 );
-      } 
+      }
       if( astOK && circum[ i ] == AST__BAD ) {
          astError( AST__BADIN, "astInitCircle(%s): The value of axis %d is "
                    "undefined on the circumference of the circle.", status, name, i + 1 );
@@ -2172,7 +2699,7 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
 
 /* Initialise a Region structure (the parent class) as the first component
    within the Circle structure, allocating memory if necessary. */
-      new = (AstCircle *) astInitRegion( mem, size, 0, (AstRegionVtab *) vtab, 
+      new = (AstCircle *) astInitRegion( mem, size, 0, (AstRegionVtab *) vtab,
                                          name, frame, pset, unc );
 
       if ( astOK ) {
@@ -2181,6 +2708,8 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
 /* ------------------------ */
          new->stale = 1;
          new->centre = NULL;
+         new->lb = NULL;
+         new->ub = NULL;
          Cache( new, status );
 
 /* If an error occurred, clean up by deleting the new Circle. */
@@ -2196,7 +2725,7 @@ AstCircle *astInitCircle_( void *mem, size_t size, int init, AstCircleVtab *vtab
    return new;
 }
 
-AstCircle *astLoadCircle_( void *mem, size_t size, AstCircleVtab *vtab, 
+AstCircle *astLoadCircle_( void *mem, size_t size, AstCircleVtab *vtab,
                            const char *name, AstChannel *channel, int *status ) {
 /*
 *+
@@ -2211,7 +2740,7 @@ AstCircle *astLoadCircle_( void *mem, size_t size, AstCircleVtab *vtab,
 
 *  Synopsis:
 *     #include "circle.h"
-*     AstCircle *astLoadCircle( void *mem, size_t size, AstCircleVtab *vtab, 
+*     AstCircle *astLoadCircle( void *mem, size_t size, AstCircleVtab *vtab,
 *                               const char *name, AstChannel *channel )
 
 *  Class Membership:
@@ -2270,7 +2799,7 @@ AstCircle *astLoadCircle_( void *mem, size_t size, AstCircleVtab *vtab,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstCircle *new;              /* Pointer to the new Circle */
 
 /* Initialise. */
@@ -2325,6 +2854,8 @@ AstCircle *astLoadCircle_( void *mem, size_t size, AstCircleVtab *vtab,
 
 /* Cache intermediate results in the Circle structure */
       new->centre = NULL;
+      new->lb = NULL;
+      new->ub = NULL;
       new->stale = 1;
       Cache( new, status );
 
@@ -2349,8 +2880,12 @@ AstCircle *astLoadCircle_( void *mem, size_t size, AstCircleVtab *vtab,
    same interface. */
 
 
-
-
+void astCirclePars_( AstCircle *this, double *centre, double *radius,
+                     double *p1, int *status ){
+   if ( !astOK ) return;
+   (**astMEMBER(this,Circle,CirclePars))( this, centre, radius,
+                                          p1, status );
+}
 
 
 
