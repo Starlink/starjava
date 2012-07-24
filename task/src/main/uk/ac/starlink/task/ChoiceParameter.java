@@ -216,7 +216,7 @@ public class ChoiceParameter<T> extends Parameter {
      * @param  name   name of option which has been added
      * @return  correspondig option object
      */
-    public T getOption( String name ) {
+    public Object getOption( String name ) {
         for ( T option : optionMap_.keySet() ) {
             if ( name.equalsIgnoreCase( getName( option ) ) ) {
                 return option;

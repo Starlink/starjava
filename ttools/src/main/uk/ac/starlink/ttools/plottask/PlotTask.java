@@ -23,7 +23,6 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.AuxLegend;
-import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Legend;
 import uk.ac.starlink.ttools.plot.PlotData;
 import uk.ac.starlink.ttools.plot.PlotState;
@@ -169,28 +168,18 @@ public abstract class PlotTask implements Task {
                     addDecoration( plot_, state, hasLegend, title );
 
                 /* Set the size for the output image. */
-                Dimension size = new Dimension( xpix, ypix );
+                box.setSize( new Dimension( xpix, ypix ) );
 
-                /* If we are actually displaying this to the screen, handle
-                 * it specially.  As well as being more direct, this is
-                 * necessary to make sure that window resizing works. */
-                if ( painter instanceof SwingPainter ) {
-                    box.setPreferredSize( size );
-                    ((SwingPainter) painter).postComponent( box );
-                }
+                /* Some magic is required in order to get a Swing component
+                 * laid out and painted when it is not actually present on
+                 * screen.  See, e.g., Sun's Java bugs #4356383, #4639354, 
+                 * #4520228. */
+                box.setDoubleBuffered( false );  // is this sensible??
+                box.addNotify();
+                box.validate();
 
-                /* Otherwise generate graphics which is a copy of the window
-                 * content and export it.  Som magic is required in this case
-                 * to get a Swing component laid out and painted when it
-                 * is not actually present on screen.
-                 * See, e.g., Sun's Java bugs #4356383, #4639354, #4520228. */
-                else {
-                    box.setSize( size );
-                    box.setDoubleBuffered( false );  // is this sensible??
-                    box.addNotify();
-                    box.validate();
-                    painter.paintPicture( GraphicExporter.toPicture( box ) );
-                }
+                /* Paint the plot to its final destination. */
+                painter.paintPlot( box );
             }
         };
     }

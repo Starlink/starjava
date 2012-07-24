@@ -20,11 +20,9 @@ public class TapTester extends TestCase {
     }
 
     private void showExamples( AdqlExample[] examples, TableMeta[] tables,
-                               TapCapability tcap ) {
-        TapLanguage[] langs = tcap.getLanguages();
-        String lang = langs != null && langs.length > 0
-                    ? langs[ 0 ].getName()
-                    : null;
+                              TapCapability tcap ) {
+        String[] langs = tcap.getLanguages();
+        String lang = langs != null && langs.length > 0 ? langs[ 0 ] : null;
         for ( int ie = 0; ie < examples.length; ie++ ) {
             AdqlExample example = examples[ ie ];
             String exTxt =

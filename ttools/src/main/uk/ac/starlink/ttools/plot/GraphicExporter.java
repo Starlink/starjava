@@ -6,9 +6,7 @@ import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfWriter;
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Composite;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -26,7 +24,7 @@ import javax.swing.JComponent;
 import org.jibble.epsgraphics.EpsGraphics2D;
 
 /**
- * Exports painted graphics to an output file in some graphics format.
+ * Exports a graphical component to a graphics file.
  *
  * @author   Mark Taylor
  * @since    1 Aug 2008
@@ -57,14 +55,14 @@ public abstract class GraphicExporter {
     }
 
     /**
-     * Paints the given picture to an output stream using some graphics format
-     * or other.
-     * This method should not close the stream.
+     * Exports the graphic content of a given component to an output stream
+     * using some graphics format or other.
+     * The output stream should not be closed following the write.
      *
-     * @param  picture  picture to draw
-     * @param  out   destination output stream
+     * @param   comp  component to draw
+     * @param   out   destination output stream
      */
-    public abstract void exportGraphic( Picture picture, OutputStream out )
+    public abstract void exportGraphic( JComponent comp, OutputStream out )
             throws IOException;
 
     /**
@@ -109,33 +107,6 @@ public abstract class GraphicExporter {
         return name_;
     }
 
-    /**
-     * Utility method to acquire a Picture object which can paint the content
-     * of a screen component.
-     * The component should not be altered while the picture is in use.
-     *
-     * @param   comp  screen component
-     * @return   object to draw comp's content
-     */
-    public static Picture toPicture( final JComponent comp ) {
-        final Rectangle bounds = comp.getBounds();
-        return new Picture() {
-            public int getPictureWidth() {
-                return bounds.width;
-            }
-            public int getPictureHeight() {
-                return bounds.height;
-            }
-            public void paintPicture( Graphics2D g ) {
-                int xoff = - bounds.x;
-                int yoff = - bounds.y;
-                g.translate( xoff, yoff );
-                comp.print( g );
-                g.translate( -xoff, -yoff );
-            }
-        };
-    }
-
     /** Exports to JPEG format. */
     public static final GraphicExporter JPEG =
          new ImageIOExporter( "jpeg", "image/jpeg",
@@ -144,35 +115,36 @@ public abstract class GraphicExporter {
     /** Exports to PNG format. */
     public static final GraphicExporter PNG =
          new ImageIOExporter( "png", "image/png",
-                              new String[] { ".png" }, false );
+                              new String[] { ".png" }, true );
 
     /**
      * Exports to GIF format.
+     *
+     * <p>There's something wrong with this - it ought to produce a
+     * transparent background, but it doesn't.  I'm not sure why, or
+     * even whether it's to do with the plot or the encoder.
      */
     public static final GraphicExporter GIF =
             new GraphicExporter( "gif", "image/gif",
                                  new String[] { ".gif", } ) {
-
-        public void exportGraphic( Picture picture, OutputStream out )
+        public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
 
             /* Get component dimensions. */
-            int w = picture.getPictureWidth();
-            int h = picture.getPictureHeight();
+            int w = comp.getWidth();
+            int h = comp.getHeight();
 
             /* Create a BufferedImage to draw it onto. */
             BufferedImage image =
-                new BufferedImage( w, h, BufferedImage.TYPE_3BYTE_BGR );
+                new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
 
-            /* Clear the background. */
+            /* Set the background to transparent white. */
             Graphics2D g = image.createGraphics();
-            Color color = g.getColor();
-            g.setColor( Color.WHITE );
-            g.fillRect( 0, 0, w, h );
-            g.setColor( color );
+            g.setBackground( new Color( 0x00ffffff, true ) );
+            g.clearRect( 0, 0, w, h );
 
             /* Draw the component onto the image. */
-            picture.paintPicture( g );
+            comp.print( g );
             g.dispose();
 
             /* Count the number of colours represented in the resulting
@@ -216,7 +188,7 @@ public abstract class GraphicExporter {
                  * drawImage!  Can't get to the bottom of it. */
                 gifG.setRenderingHint( RenderingHints.KEY_DITHERING,
                                        RenderingHints.VALUE_DITHER_DISABLE );
-                picture.paintPicture( gifG );
+                comp.print( gifG );
                 gifG.dispose();
             }
 
@@ -229,31 +201,32 @@ public abstract class GraphicExporter {
     public static final GraphicExporter EPS =
             new GraphicExporter( "eps", "application/postscript",
                                  new String[] { ".eps", ".ps", } ) {
-        public void exportGraphic( Picture picture, OutputStream out )
+        public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
         
             /* Scale to a pixel size which makes the bounding box sit
              * sensibly on an A4 or letter page.  EpsGraphics2D default
              * scale is 72dpi. */
-            int width = picture.getPictureWidth();
-            int height = picture.getPictureHeight();
+            Rectangle bounds = comp.getBounds();
             double padfrac = 0.05;       
-            double xdpi = width / 6.0;
-            double ydpi = height / 9.0;
+            double xdpi = bounds.width / 6.0;
+            double ydpi = bounds.height / 9.0;
             double scale;
             int pad;
             if ( xdpi > ydpi ) {
                 scale = 72.0 / xdpi;     
-                pad = (int) Math.ceil( width * padfrac * scale );
+                pad = (int) Math.ceil( bounds.width * padfrac * scale );
             }           
             else {
                 scale = 72.0 / ydpi;
-                pad = (int) Math.ceil( height * padfrac * scale );
+                pad = (int) Math.ceil( bounds.height * padfrac * scale );
             }
-            int xlo = - pad;
-            int ylo = - pad;
-            int xhi = (int) Math.ceil( scale * width ) + pad;
-            int yhi = (int) Math.ceil( scale * height ) + pad;
+            int xlo = (int) Math.floor( scale * bounds.x ) - pad;
+            int ylo = (int) Math.floor( scale * bounds.y ) - pad;
+            int xhi = (int) Math.ceil( scale * ( bounds.x + bounds.width ) )
+                    + pad;
+            int yhi = (int) Math.ceil( scale * ( bounds.y + bounds.height ) )
+                    + pad;
             
             /* Construct a graphics object which will write postscript
              * down this stream. */
@@ -262,7 +235,7 @@ public abstract class GraphicExporter {
             g2.scale( scale, scale );
 
             /* Do the drawing. */
-            picture.paintPicture( g2 );
+            comp.print( g2 );
 
             /* Note this close call *must* be made, otherwise the
              * eps file is not flushed or correctly terminated.
@@ -278,19 +251,19 @@ public abstract class GraphicExporter {
     public static final GraphicExporter PDF =
             new GraphicExporter( "pdf", "application/pdf",
                                  new String[] { "pdf", } ) {
-        public void exportGraphic( Picture picture, OutputStream out )
+        public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
-            int width = picture.getPictureWidth();
-            int height = picture.getPictureHeight();
+            Rectangle bounds = comp.getBounds();
             Document doc =
-                new Document( new com.lowagie.text.Rectangle( width, height ) );
+                new Document( new com.lowagie.text.Rectangle( bounds.width,
+                                                              bounds.height ) );
             try {
                 PdfWriter pWriter = PdfWriter.getInstance( doc, out );
                 doc.open();
-                Graphics2D g = pWriter.getDirectContent()
-                              .createGraphics( width, height );
-                picture.paintPicture( g );
-                g.dispose();
+                Graphics2D g2 = pWriter.getDirectContent()
+                               .createGraphics( bounds.width, bounds.height );
+                comp.print( g2 );
+                g2.dispose();
                 doc.close();
             }
             catch ( DocumentException e ) {
@@ -305,7 +278,7 @@ public abstract class GraphicExporter {
      */
     private static class ImageIOExporter extends GraphicExporter {
         private final String formatName_;
-        private final boolean transparentBg_;
+        private final int imageType_;
         private final boolean isSupported_;
 
         /**
@@ -313,21 +286,22 @@ public abstract class GraphicExporter {
          *
          * @param  formatName  ImageIO format name
          * @param  mimeType  MIME type for this exporter's output format
-         * @param  transparentBg  true to use a transparent background,
-         *              only permissible if format supports transparency
+         * @param  transparent  true iff format is capable of supporting
+         *                      transparency
          * @param   fileSuffixes  file suffixes which usually indicate the
          *          export format used by this instance (may be null)
          */
         ImageIOExporter( String formatName, String mimeType, 
-                         String[] fileSuffixes, boolean transparentBg ) {
+                         String[] fileSuffixes, boolean transparent ) {
             super( formatName, mimeType, fileSuffixes );
             formatName_ = formatName;
-            transparentBg_ = transparentBg;
+            imageType_ = transparent ? BufferedImage.TYPE_INT_ARGB
+                                     : BufferedImage.TYPE_INT_RGB;
             isSupported_ =
                 ImageIO.getImageWritersByFormatName( formatName ).hasNext();
         }
 
-        public void exportGraphic( Picture picture, OutputStream out )
+        public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
             if ( ! isSupported_ ) {
                 throw new IOException( "Graphics export to " + formatName_
@@ -335,33 +309,23 @@ public abstract class GraphicExporter {
             }
 
             /* Create an image buffer on which to paint. */
-            int w = picture.getPictureWidth();
-            int h = picture.getPictureHeight();
-            int imageType = transparentBg_ ? BufferedImage.TYPE_INT_ARGB
-                                           : BufferedImage.TYPE_INT_RGB;
-            BufferedImage image = new BufferedImage( w, h, imageType );
+            int w = comp.getWidth();
+            int h = comp.getHeight();
+            BufferedImage image = new BufferedImage( w, h, imageType_ );
             Graphics2D g2 = image.createGraphics();
 
-            /* Clear the background.  Failing to do this can leave junk. */
+            /* Clear the background to transparent white.  Failing to do this
+             * leaves all kinds of junk in the background. */
             Color color = g2.getColor();
             Composite compos = g2.getComposite();
-            if ( transparentBg_ ) {
-
-                /* Attempt to clear to transparent white, but this doesn't
-                 * seem to work well, at least for PNG (looks like
-                 * transparent black). */
-                g2.setComposite( AlphaComposite.Src );
-                g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
-            }
-            else {
-                g2.setColor( Color.WHITE );
-            }
+            g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
+            g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
             g2.fillRect( 0, 0, w, h );
             g2.setColor( color );
             g2.setComposite( compos );
 
             /* Paint the graphics to the buffer. */
-            picture.paintPicture( g2 );
+            comp.print( g2 );
 
             /* Export. */
             boolean done = ImageIO.write( image, formatName_, out );
@@ -391,10 +355,10 @@ public abstract class GraphicExporter {
             baseExporter_ = baseExporter;
         }
 
-        public void exportGraphic( Picture picture, OutputStream out )
+        public void exportGraphic( JComponent comp, OutputStream out )
                 throws IOException {
             GZIPOutputStream gzout = new GZIPOutputStream( out );
-            baseExporter_.exportGraphic( picture, gzout );
+            baseExporter_.exportGraphic( comp, gzout );
             gzout.finish();
         }
 

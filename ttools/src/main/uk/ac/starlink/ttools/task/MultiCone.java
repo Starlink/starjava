@@ -10,9 +10,8 @@ import uk.ac.starlink.ttools.cone.SkyConeMatch2;
  * @since    4 Jul 2006
  */
 public class MultiCone extends SkyConeMatch2 {
-    public static int PARALLEL_WARN_THRESHOLD = 10;
     public MultiCone() {
         super( "Crossmatches table on sky position against remote cone service",
-               new ConeSearchConer(), true, PARALLEL_WARN_THRESHOLD );
+               new ConeSearchConer(), true );
     }
 }

@@ -15,9 +15,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
-import uk.ac.starlink.ttools.filter.CalculatorColumnSupplement;
-import uk.ac.starlink.ttools.filter.ColumnSupplement;
-import uk.ac.starlink.ttools.filter.PermutedColumnSupplement;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 
 /**
@@ -176,9 +173,13 @@ public class JdbcConeSearcher implements ConeSearcher {
             }
         };
 
-        /* Consider doctoring the output table: if the angles are not
-         * in degrees as supplied, we need to append columns which
-         * are in degrees, since they are required by the interface. */
+        /* Doctor the output table: if the angles are not in degrees as
+         * supplied, append columns which are in degrees, since they are
+         * required by the interface. */
+        int[] inColIndices = new int[ ncolRset ];
+        for ( int i = 0; i < ncolRset; i++ ) {
+            inColIndices[ i ] = i;
+        }
         List outInfoList = new ArrayList();
         final boolean addDegCols =
             convertAngles && raRsetIndex_ >= 0 && decRsetIndex_ >= 0;
@@ -186,64 +187,50 @@ public class JdbcConeSearcher implements ConeSearcher {
             outInfoList.add( new ColumnInfo( RADEG_INFO ) );
             outInfoList.add( new ColumnInfo( DECDEG_INFO ) );
         }
-        final int nAddCol = outInfoList.size();
-        final boolean hasTiles = tileRsetIndex_ >= 0;
-        StarTable result = coneTable;
+        ColumnInfo[] outInfos =
+            (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
+        StarTable result = new AddColumnsTable( coneTable, inColIndices,
+                                                outInfos, ncolRset ) {
+            protected Object[] calculateValues( Object[] inValues ) {
+                List calcValues = new ArrayList();
 
-        /* Adjust the table if we need to add degrees, or for assertions
-         * about tiles. */
-        if ( nAddCol > 0 || hasTiles ) {
-            int[] colMap =
-                  hasTiles
-                ? new int[] { raRsetIndex_, decRsetIndex_, tileRsetIndex_ }
-                : new int[] { raRsetIndex_, decRsetIndex_ };
-            ColumnSupplement radecSup =
-                new PermutedColumnSupplement( result, colMap );
-            ColumnInfo[] addInfos =
-                (ColumnInfo[]) outInfoList.toArray( new ColumnInfo[ 0 ] );
-            ColumnSupplement addSup =
-                    new CalculatorColumnSupplement( radecSup, addInfos ) {
-                protected Object[] calculate( Object[] inValues ) {
-
-                    /* Get input row values. */
-                    Object raObj = inValues[ 0 ];
-                    Object decObj = inValues[ 1 ];
-                    Object tileObj = hasTiles ? inValues[ 2 ] : null;
-
-                    /* Prepare to populate output row. */
-                    Object[] calcValues = new Object[ nAddCol ];
-                    int icol = 0;
-
-                    /* Work out position in degrees. */
-                    double raDeg = getDouble( raObj ) * angleFactor;
-                    double decDeg = getDouble( decObj ) * angleFactor;
-
-                    /* If necessary, prepare additional column values
-                     * containing position in degrees. */
-                    if ( addDegCols ) {
-                        calcValues[ icol++ ] = new Double( raDeg );
-                        calcValues[ icol++ ] = new Double( decDeg );
-                    }
-
-                    /* If using tiles, do an assertion test on the value of
-                     * this one. */
-                    if ( hasTiles ) {
-                        long gotTile = ((Number) tileObj).longValue();
-                        long calcTile =
-                            tiling_.getPositionTile( raDeg, decDeg );
-                        if ( gotTile != calcTile ) {
-                            logger_.warning( "Tiling equivalence fails: "
-                                           + calcTile + " != " + gotTile );
-                        }
-                    }
-
-                    /* Return additional column values. */
-                    assert icol == calcValues.length;
-                    return calcValues;
+                /* Work out position in degrees. */
+                Object ra = inValues[ raRsetIndex_ ];
+                Object dec = inValues[ decRsetIndex_ ];
+                double raDeg;
+                double decDeg;
+                if ( ra instanceof Number && dec instanceof Number ) {
+                    raDeg = ((Number) ra).doubleValue() * angleFactor;
+                    decDeg = ((Number) dec).doubleValue() * angleFactor;
                 }
-            };
-            result = new AddColumnsTable( result, addSup );
-        }
+                else {
+                    raDeg = Double.NaN;
+                    decDeg = Double.NaN;
+                }
+
+                /* If necessary, prepare additional column values containing
+                 * position in degrees. */
+                if ( addDegCols ) {
+                    calcValues.add( new Double( raDeg ) );
+                    calcValues.add( new Double( decDeg ) );
+                }
+
+                /* If using tiles, do an assertion test on the value of this
+                 * one. */
+                if ( tileRsetIndex_ >= 0 ) {
+                    long gotTile =
+                        ((Number) inValues[ tileRsetIndex_ ]).longValue();
+                    long calcTile = tiling_.getPositionTile( raDeg, decDeg );
+                    if ( gotTile != calcTile ) {
+                        logger_.warning( "Tiling equivalence fails: "
+                                       + calcTile + " != " + gotTile );
+                    }
+                }
+
+                /* Return additional column values. */
+                return calcValues.toArray();
+            }
+        };
 
         /* Return the result table. */
         return result;

@@ -20,7 +20,7 @@ public class TopcatForwarder implements TopcatListener {
      *
      * @param  listener listener to add
      */
-    public void addTopcatListener( TopcatListener listener ) {
+    public void addListener( TopcatListener listener ) {
         listeners_.add( listener );
     }
 
@@ -29,7 +29,7 @@ public class TopcatForwarder implements TopcatListener {
      *
      * @param  listener  listener to remove
      */
-    public void removeTopcatListener( TopcatListener listener ) {
+    public void removeListener( TopcatListener listener ) {
         listeners_.remove( listener );
     }
 

@@ -1853,8 +1853,7 @@ public abstract class GraphicsWindow extends AuxWindow {
         }
 
         public void exportTo( OutputStream out ) throws IOException {
-            gExporter_.exportGraphic( GraphicExporter.toPicture( plotArea_ ),
-                                      out );
+            gExporter_.exportGraphic( plotArea_, out );
         }
     }
 

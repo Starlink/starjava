@@ -146,11 +146,10 @@ public class TapMapper implements TableMapper {
         final URL serviceUrl = urlParam_.urlValue( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
-            AdqlValidator validator = new AdqlValidator( null );
             try {
-                validator.validate( adql );
+                new AdqlValidator( null ).validate( adql );
             }
-            catch ( Throwable e ) {
+            catch ( ParseException e ) {
                 throw new ExecutionException( "ADQL Parse error: "
                                             + e.getMessage(), e );
             }

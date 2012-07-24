@@ -2,8 +2,6 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -88,7 +86,7 @@ public class TapCapabilityPanel extends JPanel {
 
         /* Apparently healthy capability object. */
         else {
-            String[] langs = getLanguageNames( capability );
+            String[] langs = capability.getLanguages();
             langSelector_.setModel( new DefaultComboBoxModel( langs ) );
             langSelector_.setSelectedItem( getDefaultLanguage( langs ) );
             langSelector_.setEnabled( true );
@@ -266,7 +264,7 @@ public class TapCapabilityPanel extends JPanel {
         String[] upMethods = tcap == null ? null : tcap.getUploadMethods();
         return upMethods != null
             && Arrays.asList( upMethods )
-              .contains( TapCapability.TAPREGEXT_STD_URI + "#upload-inline" );
+                     .contains( TapCapability.UPLOADS_URI + "inline" );
     }
 
     /**
@@ -287,27 +285,6 @@ public class TapCapabilityPanel extends JPanel {
             }
         }
         return langs.length > 0 ? langs[ 0 ] : "ADQL";
-    }
-
-    /**
-     * Returns an array of language-version specifiers for languages
-     * supported by a given TapCapability object.
-     *
-     * @param   tcap  capability object
-     * @return   array of language identifiers
-     */
-    private static String[] getLanguageNames( TapCapability tcap ) {
-        List<String> langList = new ArrayList<String>();
-        TapLanguage[] tlangs = tcap.getLanguages();
-        for ( int il = 0; il < tlangs.length; il++ ) {
-            TapLanguage tlang = tlangs[ il ];
-            String baseName = tlang.getName();
-            String[] versNames = tlang.getVersions();
-            for ( int iv = 0; iv < versNames.length; iv++ ) {
-                langList.add( baseName + "-" + versNames[ iv ] );
-            }
-        }
-        return langList.toArray( new String[ 0 ] );
     }
 
     /**

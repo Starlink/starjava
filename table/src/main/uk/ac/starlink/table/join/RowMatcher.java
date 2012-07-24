@@ -695,8 +695,6 @@ public class RowMatcher {
         indicator.startStage( "Eliminating internal links" );
         double nLink = (double) links.size();
         int iLink = 0;
-        int nReplace = 0;
-        int nRemove = 0;
         for ( Iterator it = links.iterator(); it.hasNext(); ) {
             RowLink link = (RowLink) it.next();
             int nref = link.size();
@@ -728,27 +726,15 @@ public class RowMatcher {
                             repRefs.add( refs[ i ] );
                         }
                     }
-
-                    /* Only schedule a replacement if the link is
-                     * non-trivial. */
-                    if ( repRefs.size() > 1 ) {
-                        replacements.addLink( new RowLink( repRefs ) );
-                        nReplace++;
-                    }
-                    else {
-                        nRemove++;
-                    }
+                    RowLink repLink = new RowLink( repRefs );
+                    replacements.addLink( repLink );
                 }
             }
             indicator.setLevel( ++iLink / nLink );
         }
         indicator.endStage();
-        if ( nReplace > 0 ) {
-            indicator.logMessage( "Internal links replaced: " + nReplace );
-        }
-        if ( nRemove > 0 ) {
-            indicator.logMessage( "Internal links removed: " + nRemove );
-        }
+        indicator.logMessage( "Internal links removed: " 
+                            + replacements.size() );
         for ( Iterator it = replacements.iterator(); it.hasNext(); ) {
             RowLink repLink = (RowLink) it.next();
             links.addLink( repLink );

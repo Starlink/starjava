@@ -73,7 +73,6 @@ public class CoordsDegrees {
      * in degrees.  Delimiters may be colon, space, characters
      * <code>dm[s]</code>, or some others.
      * Additional spaces and leading +/- are permitted.
-     * The :seconds part is optional.
      *
      * @param  dms  formatted DMS string
      * @return  angle in degrees specified by <code>dms</code>
@@ -89,7 +88,6 @@ public class CoordsDegrees {
      * in degrees.  Delimiters may be colon, space, characters
      * <code>hm[s]</code>, or some others.
      * Additional spaces and leading +/- are permitted.
-     * The :seconds part is optional.
      *
      * @param  hms  formatted HMS string
      * @return  angle in degrees specified by <code>hms</code>

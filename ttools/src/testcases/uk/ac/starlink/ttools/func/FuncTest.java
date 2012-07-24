@@ -448,20 +448,17 @@ public class FuncTest extends TestCase {
                       CoordsRadians.radiansToHms( Maths.PI / 4.0 ) );
         assertEquals( "12:00:00.000",
                       CoordsRadians.radiansToHms( -Maths.PI, 3 ) );
-        assertEquals( "11:59:59.500", 
+        assertEquals( "12:00:00.500", 
                       CoordsRadians.radiansToHms( -Maths.PI*(1+.5000/12/60/60),
                                                   3 ) );
-        assertEquals( "12:00:00.500", 
-                      CoordsRadians.radiansToHms( -Maths.PI*(1-.5000/12/60/60),
-                                                  3 ) );
         assertEquals( "12:00:00.005", 
-                      CoordsRadians.radiansToHms( Maths.PI*(1+.0050/12/60/60),
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.0050/12/60/60),
                                                   3 ) );
         assertEquals( "12:00:00.500", 
-                      CoordsRadians.radiansToHms( Maths.PI*(1+.5004/12/60/60),
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.5004/12/60/60),
                                                   3 ) );
         assertEquals( "12:00:00.500", 
-                      CoordsRadians.radiansToHms( Maths.PI*(1+.4996/12/60/60),
+                      CoordsRadians.radiansToHms( -Maths.PI*(1+.4996/12/60/60),
                                                   3 ) );
 
         assertEquals( Maths.PI / 4.0,

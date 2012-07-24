@@ -225,7 +225,6 @@ public class ResourceIcon implements Icon {
         LISTEN = makeIcon( "tcear3.gif" ),
         TO_BROWSER = makeIcon( "toBrowser.gif" ),
         SYNTAX = makeIcon( "syntax.gif" ),
-        FOOTPRINT = makeIcon( "footprint.gif" ),
 
         /* Non-standard sizes. */
         SMALL_DEC = makeIcon( "dec.gif" ),

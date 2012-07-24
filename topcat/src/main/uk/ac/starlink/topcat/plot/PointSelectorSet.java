@@ -238,7 +238,7 @@ public abstract class PointSelectorSet extends JPanel {
      * @param   listener  listener to add
      */
     public void addActionListener( ActionListener listener ) {
-        actionForwarder_.addActionListener( listener );
+        actionForwarder_.addListener( listener );
     }
 
     /**
@@ -248,7 +248,7 @@ public abstract class PointSelectorSet extends JPanel {
      * @see    #addActionListener
      */
     public void removeActionListener( ActionListener listener ) {
-        actionForwarder_.removeActionListener( listener );
+        actionForwarder_.removeListener( listener );
     }
 
     /**
@@ -258,7 +258,7 @@ public abstract class PointSelectorSet extends JPanel {
      * @param   listener  listener to add
      */
     public void addTopcatListener( TopcatListener listener ) {
-        topcatForwarder_.addTopcatListener( listener );
+        topcatForwarder_.addListener( listener );
     }
 
     /**
@@ -268,7 +268,7 @@ public abstract class PointSelectorSet extends JPanel {
      * @see    #addTopcatListener
      */
     public void removeTopcatListener( TopcatListener listener ) {
-        topcatForwarder_.removeTopcatListener( listener );
+        topcatForwarder_.removeListener( listener );
     }
 
     /**

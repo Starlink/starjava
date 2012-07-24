@@ -30,7 +30,7 @@ public class HealpixTiling implements SkyTiling {
         }
         nside_ = 1L << k;
         nest_ = nest;
-        pixTools_ = PixTools.getInstance();
+        pixTools_ = new PixTools();
         resolution_ = pixTools_.PixRes( nside_ ) / 3600;
     }
 

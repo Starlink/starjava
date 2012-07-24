@@ -583,9 +583,7 @@ public class TopcatModel {
     public void highlightRow( long lrow, boolean sendOut ) {
         if ( lrow != lastHighlight_ ) {
             fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
-            if ( activator_ != null &&
-                 ( sendOut ||
-                   ! ActivationQueryWindow.isRowSender( activator_ ) ) ) {
+            if ( activator_ != null ) {
                 String msg = activator_.activateRow( lrow );
                 if ( msg != null && msg.trim().length() > 0 ) {
                     System.out.println( msg );
@@ -1442,9 +1440,6 @@ public class TopcatModel {
         }
         public void intervalRemoved( ListDataEvent evt ) {
             fireIntervalRemoved( this, evt.getIndex0(), evt.getIndex1() );
-            if ( ! subsets_.contains( getSelectedItem() ) ) {
-                setSelectedItem( subsets_.getElementAt( 0 ) );
-            }
         }
     }
 }

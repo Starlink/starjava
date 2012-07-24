@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.filter;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.convert.SkyUnits;
@@ -178,12 +177,10 @@ public class AddSkyCoordsFilter extends BasicFilter {
                     outColInfos[ i ] = cinfo;
                 }
 
-                ColumnSupplement inCoordsSup =
-                    new PermutedColumnSupplement( base, inColIndices );
-                ColumnSupplement outCoordsSup =
-                        new CalculatorColumnSupplement( inCoordsSup,
-                                                        outColInfos ) {
-                    protected Object[] calculate( Object[] inputs ) {
+                int ipos = base.getColumnCount();
+                return new AddColumnsTable( base, inColIndices, outColInfos,
+                                            ipos ) {
+                    protected Object[] calculateValues( Object[] inputs ) {
                         double[] inRads =
                             inUnits.decode( inputs[ 0 ], inputs[ 1 ] );
                         double[] fk5 =
@@ -195,7 +192,6 @@ public class AddSkyCoordsFilter extends BasicFilter {
                         return outVals;
                     }
                 };
-                return new AddColumnsTable( base, outCoordsSup );
             }
         };
     }

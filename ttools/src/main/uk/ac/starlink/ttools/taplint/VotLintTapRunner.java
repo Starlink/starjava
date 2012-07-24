@@ -323,7 +323,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                     }
                     err = "Unknown TAP result error";
                 }
-                throw new IOException( "Service error: \"" + err + "\"" );
+                throw new IOException( err );
             }
             else if ( "OK".equals( preStatus ) ) {
                 // ok

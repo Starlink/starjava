@@ -17,7 +17,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
 public class ShowFunctions implements Task, Executable {
 
     public String getPurpose() {
-        return "Browses functions used by algebraic expression language";
+        return "Browses functions used by algebraic expression langauage";
     }
 
     public Parameter[] getParameters() {

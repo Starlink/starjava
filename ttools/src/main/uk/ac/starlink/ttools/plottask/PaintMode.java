@@ -1,19 +1,21 @@
 package uk.ac.starlink.ttools.plottask;
 
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.Image;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.KeyStroke;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
-import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.util.Destination;
 
 /**
@@ -137,7 +139,29 @@ public abstract class PaintMode {
 
         public Painter createPainter( Environment env,
                                       PaintModeParameter param ) {
-            return new SwingPainter( "STILTS Plot" );
+            return new Painter() {
+                public void paintPlot( JComponent plot ) {
+
+                    /* The mode may have got set to single-buffered by other
+                     * bits of code - reverse this. */
+                    // (I admit I'm not quite sure about double buffering)
+                    plot.setDoubleBuffered( true );
+                    plot.setPreferredSize( plot.getSize() );
+                    final JFrame frame = new JFrame( "STILTS Plot" );
+                    frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+                    frame.getContentPane().add( plot );
+                    Object quitKey = "quit";
+                    plot.getInputMap().put( KeyStroke.getKeyStroke( 'q' ),
+                                            quitKey );
+                    plot.getActionMap().put( quitKey, new AbstractAction() {
+                        public void actionPerformed( ActionEvent evt ) {
+                            frame.dispose();
+                        }
+                    } );
+                    frame.pack();
+                    frame.setVisible( true );
+                }
+            };
         }
     }
 
@@ -191,15 +215,21 @@ public abstract class PaintMode {
             final GraphicExporter exporter =
                 (GraphicExporter) formatParam.objectValue( env );
             return new Painter() {
-                public void paintPicture( Picture picture ) throws IOException {
+                public void paintPlot( JComponent plot ) throws IOException {
                     OutputStream out =
                         new BufferedOutputStream( dest.createStream() );
                     try {
-                        exporter.exportGraphic( picture, out );
+                        exporter.exportGraphic( plot, out );
                     }
-                    finally {
-                        out.close();
+                    catch ( IOException e ) {
+                        try {
+                            out.close();
+                        }
+                        catch ( IOException e2 ) {
+                            throw e;
+                        }
                     }
+                    out.close();
                 }
             };
         }
@@ -235,7 +265,7 @@ public abstract class PaintMode {
                 (GraphicExporter) param.getFormatParameter().objectValue( env );
             final OutputStream out = env.getOutputStream();
             return new Painter() {
-                public void paintPicture( Picture picture ) throws IOException {
+                public void paintPlot( JComponent plot ) throws IOException {
                     BufferedOutputStream bout = new BufferedOutputStream( out );
                     StringBuffer hbuf = new StringBuffer();
                     hbuf.append( "Content-Type: " )
@@ -249,7 +279,7 @@ public abstract class PaintMode {
                     }
                     hbuf.append( '\n' );
                     bout.write( hbuf.toString().getBytes( "UTF-8" ) );
-                    exporter.exportGraphic( picture, bout );
+                    exporter.exportGraphic( plot, bout );
                     bout.flush();
                 }
             };
@@ -276,23 +306,15 @@ public abstract class PaintMode {
                                       PaintModeParameter param )
                 throws TaskException {
             return new Painter() {
-                public void paintPicture( Picture picture ) throws IOException {
-                    Image image = createImage( picture.getPictureWidth(),
-                                               picture.getPictureHeight() );
-                    Graphics2D g2 = (Graphics2D) image.getGraphics();
-                    picture.paintPicture( g2 );
+                public void paintPlot( JComponent plot ) {
+
+                    /* Get a graphics context to render to, so that we actually
+                     * do the plot. */
+                    BufferedImage image =
+                        new BufferedImage( 1, 1, BufferedImage.TYPE_INT_RGB );
+                    Graphics2D g2 = image.createGraphics();
+                    plot.print( g2 );
                     g2.dispose();
-                    image.flush();
-                }
-                private Image createImage( int w, int h ) {
-                    GraphicsEnvironment genv =
-                        GraphicsEnvironment.getLocalGraphicsEnvironment();
-                    return genv.isHeadless()
-                         ? (Image)
-                           new BufferedImage( w, h, BufferedImage.TYPE_INT_RGB )
-                         : (Image) genv.getDefaultScreenDevice()
-                                       .getDefaultConfiguration()
-                                       .createCompatibleVolatileImage( w, h );
                 }
             };
         }

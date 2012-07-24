@@ -49,7 +49,6 @@ import uk.ac.starlink.table.gui.TableLoader;
 public class TapTableLoadDialog extends DalTableLoadDialog {
 
     private final Map<String,TapQueryPanel> tqMap_;
-    private final AdqlExample[] basicExamples_;
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
@@ -59,6 +58,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
+    private AdqlExample[] examples_;
     private int iseq_;
 
     // This is an expression designed to pick up things that the user might
@@ -83,7 +83,6 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                "Query remote databases using SQL-like language",
                Capability.TAP, false, false );
         tqMap_ = new HashMap<String,TapQueryPanel>();
-        basicExamples_ = AbstractAdqlExample.createSomeExamples();
         setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );
     }
 
@@ -176,6 +175,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 updateReady();
             }
         };
+
+        /* ADQL query examples. */
+        examples_ = createAdqlExamples();
 
         /* Reload action. */
         final Action reloadAct = new AbstractAction( "Reload" ) {
@@ -382,15 +384,22 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
-     * Creates a new TapQueryPanel.  This is called when a new TAP service
-     * is selected.  The default implementation constructs one with a basic
-     * set of examples, but it can be overridden for more specialised
-     * behaviour.
+     * Creates a list of actions which supply example ADQL query text.
      *
-     * @return  new query panel
+     * @return  example list
      */
-    protected TapQueryPanel createTapQueryPanel() {
-        return new TapQueryPanel( basicExamples_ );
+    protected AdqlExample[] createAdqlExamples() {
+        return AbstractAdqlExample.createSomeExamples();
+    }
+
+    /**
+     * May be called to ensure that the text of queries in the Examples menu
+     * is reconfigured by calling the examples' getText method.
+     */
+    public void configureExamples() {
+        if ( tqPanel_ != null ) {
+            tqPanel_.configureExamples();
+        }
     }
 
     public boolean isReady() {
@@ -466,7 +475,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             /* Construct, configure and cache a suitable query panel
              * if we haven't seen this service URL before now. */
             if ( ! tqMap_.containsKey( serviceUrl ) ) {
-                TapQueryPanel tqPanel = createTapQueryPanel();
+                TapQueryPanel tqPanel = new TapQueryPanel( examples_ );
                 tqPanel.setServiceHeading( getServiceHeading( serviceUrl ) );
                 tqPanel.setServiceUrl( serviceUrl );
                 tqMap_.put( serviceUrl, tqPanel );

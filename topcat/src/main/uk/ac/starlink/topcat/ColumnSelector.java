@@ -215,9 +215,7 @@ public class ColumnSelector extends JComponent {
      */
     public void addActionListener( ActionListener listener ) {
         colComboBox_.addActionListener( listener );
-        if ( convComboBox_ != null ) {
-            convComboBox_.addActionListener( listener );
-        }
+        convComboBox_.addActionListener( listener );
     }
 
     /**
@@ -227,9 +225,7 @@ public class ColumnSelector extends JComponent {
      */
     public void removeActionListener( ActionListener listener ) {
         colComboBox_.removeActionListener( listener );
-        if ( convComboBox_ != null ) {
-            convComboBox_.removeActionListener( listener );
-        }
+        convComboBox_.removeActionListener( listener );
     }
 
     public void setEnabled( boolean enabled ) {

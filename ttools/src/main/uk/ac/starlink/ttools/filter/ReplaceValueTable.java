@@ -20,7 +20,7 @@ import uk.ac.starlink.table.WrapperStarTable;
  */
 public class ReplaceValueTable extends WrapperStarTable {
 
-    private final static Replacer unitReplacer_ = new Replacer( true ) {
+    private final static Replacer unitReplacer_ = new Replacer() {
         public Object replaceValue( Object obj ) {
             return obj;
         }
@@ -89,11 +89,6 @@ public class ReplaceValueTable extends WrapperStarTable {
         }
     }
 
-    public ColumnInfo getColumnInfo( int icol ) {
-        return replacers_[ icol ]
-              .adjustColumnInfo( super.getColumnInfo( icol ) );
-    }
-
     public Object getCell( long irow, int icol ) throws IOException {
         return replacers_[ icol ].replaceValue( super.getCell( irow, icol ) );
     }
@@ -143,7 +138,7 @@ public class ReplaceValueTable extends WrapperStarTable {
             final Object newValue = newBlank ? null
                                              : info.unformatString( newStr );
             if ( oldBlank ) {
-                return new Replacer( newBlank ) {
+                return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         return Tables.isBlank( obj ) ? newValue
                                                      : obj;
@@ -152,7 +147,7 @@ public class ReplaceValueTable extends WrapperStarTable {
             }
             else if ( clazz == Double.class ) {
                 final double oldVal = Double.parseDouble( oldStr );
-                return new Replacer( true ) {
+                return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         if ( obj instanceof Double ) {
                             double value = ((Double) obj).doubleValue();
@@ -169,7 +164,7 @@ public class ReplaceValueTable extends WrapperStarTable {
             }
             else if ( clazz == Float.class ) {
                 final float oldVal = Float.parseFloat( oldStr );
-                return new Replacer( true ) {
+                return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         if ( obj instanceof Float ) {
                             float value = ((Float) obj).floatValue();
@@ -196,7 +191,7 @@ public class ReplaceValueTable extends WrapperStarTable {
                                 + ")" );
                     return unitReplacer_;
                 }
-                return new Replacer( newBlank ) {
+                return new Replacer() {
                     public Object replaceValue( Object obj ) {
                         return oldVal.equals( obj ) ? newValue
                                                     : obj;
@@ -244,19 +239,6 @@ public class ReplaceValueTable extends WrapperStarTable {
      */
     private static abstract class Replacer {
 
-        private final boolean keepShape_;
-
-        /**
-         * Constructor.
-         *
-         * @param  keepShape true if the output element size/shape is known
-         *         to be still valid for the replaced column; otherwise
-         *         it will be invalidated (set to -1)
-         */
-        Replacer( boolean keepShape ) {
-            keepShape_ = keepShape;
-        }
-
         /**
          * Replaces the value.
          *
@@ -264,19 +246,5 @@ public class ReplaceValueTable extends WrapperStarTable {
          * @return  post-replacement value
          */
         public abstract Object replaceValue( Object value );
-
-        /**
-         * Returns a column info suitable for the replacement column.
-         *
-         * @param  info  pre-replacement metadata
-         * @return  post-replacement metadata
-         */
-        public ColumnInfo adjustColumnInfo( ColumnInfo info ) {
-            if ( ! keepShape_ ) {
-                info = new ColumnInfo( info );
-                info.setElementSize( -1 );
-            }
-            return info;
-        }
     }
 }

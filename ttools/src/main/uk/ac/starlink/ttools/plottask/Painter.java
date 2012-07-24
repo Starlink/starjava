@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.plottask;
 
 import java.io.IOException;
-import uk.ac.starlink.ttools.plot.Picture;
+import javax.swing.JComponent;
 
 /**
  * Interface for plot output.
@@ -12,9 +12,9 @@ import uk.ac.starlink.ttools.plot.Picture;
 public interface Painter {
 
     /**
-     * Export the graphics contained in a Picture.
+     * Export the graphics displayed by a Swing component in some way.
      *
-     * @param   picture  graphics to export
+     * @param   plot  component to export
      */
-    void paintPicture( Picture picture ) throws IOException;
+    void paintPlot( JComponent plot ) throws IOException;
 }

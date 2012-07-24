@@ -147,8 +147,7 @@ public class FileByteStore implements ByteStore {
         }
         ByteBuffer[] bufs = new ByteBuffer[ nBuf ];
         for ( int ib = 0; ib < nBuf; ib++ ) {
-            long start = ib * (long) maxLen;
-            assert size >= 0;
+            long start = ib * maxLen;
             assert size - start > 0;
             long len = Math.min( size - start, maxLen );
             bufs[ ib ] = chan.map( mode, start, len );

@@ -489,11 +489,10 @@ public class Loader {
     public static void checkJ2seVendor() {
         String vendorProp = "java.vendor";
         String vendor = System.getProperty( vendorProp );
-        String recommendedDownload = "http://java.sun.com/javase/downloads/";
+        String recommendedDownload = "http://sun.java.com/javase/downloads/";
         final Level vendorLevel;
         final String[] vendorMsgs;
         if ( vendor.matches( "[Ss]un\\b.*" ) ||
-             vendor.matches( "[Oo]racle\\b.*" ) ||
              vendor.matches( "[Aa]pple\\b.*" ) ) {
             vendorLevel = Level.CONFIG;
             vendorMsgs = new String[ 0 ];
@@ -501,19 +500,17 @@ public class Loader {
         else if ( vendor.matches( ".*Free Software Foundation.*" ) ||
                   vendor.matches( ".*\\bFSF\\b.*" ) ||
                   vendor.matches( ".*\\bGNU\\b.*" ) ) {
-            vendorLevel = Level.INFO;
+            vendorLevel = Level.WARNING;
             vendorMsgs = new String[] {
                 "You appear to be running GNU/FSF Java",
-                "In at least some versions, "
-                + "this is an incomplete implementation",
+                "At time of writing, this is an incomplete implementation",
                 "The application may work incorrectly, or not at all",
-                "You are advised to use Sun/Oracle's Java implementation "
-                + "instead:",
+                "You are advised to use Sun's Java implementation instead:",
                 recommendedDownload,
             };
         }
         else {
-            vendorLevel = Level.INFO;
+            vendorLevel = Level.WARNING;
             vendorMsgs = new String[] {
                 "JRE is not Sun's - may or may not work properly",
             };

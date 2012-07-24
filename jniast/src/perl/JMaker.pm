@@ -93,8 +93,6 @@ sub jdocize {
       $text =~ s/\n/\n     * /g;
       $text =~ s/(\n     \* *\n)/\n     \* <p>\n/g;
       $text =~ s/(\n     \* - )/\n     \* <br> - /g;
-   } else {
-     $text = '';
    }
    return $text;
 }

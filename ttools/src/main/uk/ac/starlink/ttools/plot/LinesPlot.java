@@ -96,7 +96,7 @@ public class LinesPlot extends TablePlot {
                               state.getLogFlags()[ 0 ],
                               state.getFlipFlags()[ 0 ], fm, AxisLabeller.X,
                               10, axPad_, axPad_ )
-           .getAnnotationBounds().height;
+           .getAnnotationHeight();
 
         /* Work out the available height for each plotted graph. */
         final int yInc = ( height - border.bottom - border.top ) / ngraph;
@@ -122,9 +122,9 @@ public class LinesPlot extends TablePlot {
                                   yInc,
                                   yLogFlags[ igraph ], yFlipFlags[ igraph ],
                                   fm, AxisLabeller.Y, 6, axPad_, axPad_ );
-            border.left =
-                Math.max( border.left,
-                          yAxes[ igraph ].getAnnotationBounds().height );
+            int left = yAxes[ igraph ].getAnnotationHeight();
+            border.left = Math.max( border.left,
+                                    yAxes[ igraph ].getAnnotationHeight() );
         }
 
         /* Work out available width for plotted graphs and set up axis

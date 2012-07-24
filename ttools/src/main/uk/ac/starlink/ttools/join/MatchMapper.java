@@ -106,11 +106,6 @@ public class MatchMapper implements TableMapper {
             "the same results.  For crowded fields however it will make",
             "a difference which is chosen.",
             "</p>",
-            "<p>Note that which rows actually appear in the output",
-            "is also influenced by the", 
-            "<code>" + new MultiJoinTypeParameter( "N" ).getName() + "</code>",
-            "parameter.",
-            "</p>",
         } );
 
         matcherParam_ = new MatchEngineParameter( "matcher" );

@@ -346,12 +346,7 @@ public abstract class MarkShape {
             }
         }
         public int hashCode() {
-            int code = 5555;
-            for ( int i = 0; i < npoints; i++ ) {
-                code = 23 * code + xpoints[ i ];
-                code = 23 * code + ypoints[ i ];
-            }
-            return code;
+            return npoints + xpoints.hashCode() + ypoints.hashCode();
         }
     }
 

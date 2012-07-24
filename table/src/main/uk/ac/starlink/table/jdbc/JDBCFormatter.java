@@ -249,10 +249,12 @@ public class JDBCFormatter {
                         Object val = row[ icol ];
                         if ( Tables.isBlank( val ) ) {
                             pstmt.setNull( pix, sqlTypes_[ icol ] );
+                            // pstmt.setObject( pix, null );
                         }
                         else {
-                            pstmt.setObject( pix, row[ icol ],
-                                             sqlTypes_[ icol ] );
+                            // pstmt.setObject( pix, row[ icol ],
+                            //                  sqlTypes_[ icol ] );
+                            pstmt.setObject( pix, row[ icol ] );
                         }
                     }
                 }

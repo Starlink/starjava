@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.net_tests;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -13,14 +11,12 @@ public class RegQueryTest extends TableTestCase {
 
     public RegQueryTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.registry" ).setLevel( Level.WARNING );
-        Logger.getLogger( "uk.ac.starlink.vo" ).setLevel( Level.WARNING );
     }
 
     public void testData() throws Exception {
         MapEnvironment env = new MapEnvironment()
             .setValue( "query", "identifier like '%astrogrid%'" )
-            .setValue( "ocmd", "keepcols ID" );
+            .setValue( "ocmd", "keepcols identifier" );
         new RegQuery().createExecutable( env ).execute();
         StarTable result = env.getOutputTable( "omode" );
         Tables.checkTable( result );
@@ -35,10 +31,8 @@ public class RegQueryTest extends TableTestCase {
     }
 
     public void testQueries() throws Exception {
-        tryQuery( "capability/@standardID = 'ivo://ivoa.net/std/SSA'",
-                  10, 100 );
-        tryQuery( "capability/@standardID = 'ivo://ivoa.net/std/ConeSearch'"
-                + " and title like '%Sloan%'", 20, 200 );
+        tryQuery( "serviceType='SSAP'", 10, 100 );
+        tryQuery( "serviceType = 'CONE' and title like '%Sloan%'", 4, 40 );
     }
 
     private void tryQuery( String text, int loCount, int hiCount )
