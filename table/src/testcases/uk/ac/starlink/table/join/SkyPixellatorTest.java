@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 public class SkyPixellatorTest extends TestCase {
 
     public void testOverlaps() {
-        checkOverlaps( new HealpixSkyPixellator() );
+        checkOverlaps( new PixtoolsHealpixSkyPixellator() );
         try {
             checkOverlaps( new HtmSkyPixellator() );
         }

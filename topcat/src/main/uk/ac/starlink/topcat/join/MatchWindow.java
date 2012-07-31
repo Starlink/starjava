@@ -33,10 +33,10 @@ import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
 import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
-import uk.ac.starlink.table.join.HealpixSkyPixellator;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.PixtoolsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RangeModelProgressIndicator;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
@@ -436,14 +436,14 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         Arrays.fill( someLengths4, someLength );
         CombinedMatchEngine skyPlus1Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new FixedSkyMatchEngine( new HealpixSkyPixellator(),
+                new FixedSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
                                          someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths1 ),
             } );
         skyPlus1Engine.setName( "Sky + X" );
         CombinedMatchEngine skyPlus2Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
-                new FixedSkyMatchEngine( new HealpixSkyPixellator(),
+                new FixedSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
                                          someAngle ),
                 new AnisotropicCartesianMatchEngine( someLengths2 ),
             } );
@@ -455,9 +455,12 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             }
         };
         return new MatchEngine[] {
-            new FixedSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
-            new ErrorSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
-            new EllipseSkyMatchEngine( new HealpixSkyPixellator(), someAngle ),
+            new FixedSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
+                                     someAngle ),
+            new ErrorSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
+                                     someAngle ),
+            new EllipseSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
+                                       someAngle ),
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
             new IsotropicCartesianMatchEngine( 1, someLength, false ),

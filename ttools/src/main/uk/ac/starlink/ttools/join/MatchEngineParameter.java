@@ -14,10 +14,10 @@ import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.FixedSkyMatchEngine;
-import uk.ac.starlink.table.join.HealpixSkyPixellator;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
+import uk.ac.starlink.table.join.PixtoolsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -439,22 +439,24 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             String cName = names[ i ];
             if ( "sky".equalsIgnoreCase( cName ) ||
                  "healpix".equalsIgnoreCase( cName ) ) {
-                component = new FixedSkyMatchEngine( new HealpixSkyPixellator(),
-                                                     ARC_SECOND );
+                component =
+                    new FixedSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
+                                             ARC_SECOND );
             }
             else if ( "skyerr".equalsIgnoreCase( cName ) ) {
-                component = new ErrorSkyMatchEngine( new HealpixSkyPixellator(),
-                                                     ARC_SECOND );
+                component =
+                    new ErrorSkyMatchEngine( new PixtoolsHealpixSkyPixellator(),
+                                             ARC_SECOND );
             }
             else if ( "skyellipse".equalsIgnoreCase( cName ) ) {
                 component =
-                    new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
-                                               ARC_SECOND );
+                    new EllipseSkyMatchEngine(
+                        new PixtoolsHealpixSkyPixellator(), ARC_SECOND );
             }
             else if ( "skyellipse-nocirc".equalsIgnoreCase( cName ) ) {
                 EllipseSkyMatchEngine matcher =
-                    new EllipseSkyMatchEngine( new HealpixSkyPixellator(),
-                                               ARC_SECOND );
+                    new EllipseSkyMatchEngine(
+                        new PixtoolsHealpixSkyPixellator(), ARC_SECOND );
                 matcher.setRecogniseCircles( false );
                 component = matcher;
             }
