@@ -15397,6 +15397,10 @@ introduced since the last version:
         <ref id="matchGroup">Multi-Object Matches</ref>.</li>
     <li>Work around change in VizieR output so that VizieR catalogue
         searching works again.  This may be a temporary change.</li>
+    <li>Fix small but genuine sky matching bug.
+        The effect was that near the poles matches near the specified
+        threshold could be missed.  The bug was in the PixTools library,
+        fixed at the 2012-07-28 release.</li>
     </ul>
     </p>
     </dd>

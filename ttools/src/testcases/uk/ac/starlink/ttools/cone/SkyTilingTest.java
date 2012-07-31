@@ -56,14 +56,16 @@ public class SkyTilingTest extends TestCase {
 
 //          assertEquals( 1, // would be nice, but not available yet
 //          assertTrue( 4 >= // 07-Jan-2008 version achieves this
-            assertTrue( 2 >= // 30-Apr-2008 version achieves this
+//          assertTrue( 2 >= // 30-Apr-2008 version achieves this
+            assertTrue( 4 >= // 28-Jul-2012 - reversion required by bugfix
                 new PixTools().query_disc( 1024,
                                            new Vector3d( -0.704, 0.580, 0.408 ),
                                            1.22E-12,
                                            1, 1 ).size() );
 //          assertEquals( 1, // would be nice, but not available yet
 //          assertTrue( 4 >= // 07-Jan-2008 version achieves this
-            assertTrue( 2 >= // 30-Apr-2008 version achieves this
+//          assertTrue( 2 >= // 30-Apr-2008 version achieves this
+            assertTrue( 4 >= // 28-Jul-2012 - reversion required by bugfix
                 new PixTools().query_disc( 1024,
                                            new Vector3d( -0.704, 0.580, 0.408 ),
                                            1.22E-12,
