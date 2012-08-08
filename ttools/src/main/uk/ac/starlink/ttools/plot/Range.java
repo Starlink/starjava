@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot;
 
+import java.util.Arrays;
+
 /**
  * Describes a one-dimensional range.
  * This is effectively a lower and upper bound, but either of these
@@ -266,7 +268,28 @@ public class Range {
         limit( boundRange.getBounds() );
     }
 
+    @Override
+    public boolean equals( Object o ) {
+        return o instanceof Range
+            && Arrays.equals( this.stateArray(), ((Range) o).stateArray() );
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode( stateArray() );
+    }
+
+    @Override
     public String toString() {
         return "[" + lo_ + " .. " + hi_ + "]";
+    }
+
+    /**
+     * Returns the complete state of this object as a double array.
+     *
+     * @return  state object
+     */
+    private double[] stateArray() {
+        return new double[] { lo_, hi_, loPos_, hiPos_ };
     }
 }
