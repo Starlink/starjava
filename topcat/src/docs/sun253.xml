@@ -15401,6 +15401,8 @@ introduced since the last version:
         The effect was that near the poles matches near the specified
         threshold could be missed.  The bug was in the PixTools library,
         fixed at the 2012-07-28 release.</li>
+    <li>IPAC format "long"/"l" column type, apparently now official,
+        now accepted without warning.</li>
     </ul>
     </p>
     </dd>
