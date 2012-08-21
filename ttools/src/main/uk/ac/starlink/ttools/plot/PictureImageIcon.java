@@ -101,9 +101,10 @@ public class PictureImageIcon implements Icon {
             image = cachedImage_;
         }
         else {
-            image = createImage( picture_,
-                                 ((Graphics2D) g).getDeviceConfiguration(),
-                                 c.getBackground(), transparency_ );
+            GraphicsConfiguration gc =
+                ((Graphics2D) g).getDeviceConfiguration();
+            Color bg = c == null ? Color.WHITE : c.getBackground();
+            image = createImage( picture_, gc, bg, transparency_ );
             if ( caching_ ) {
                 cachedImage_ = image;
             }
