@@ -101,8 +101,9 @@ public class PictureImageIcon implements Icon {
             image = cachedImage_;
         }
         else {
-            image = createImage( ((Graphics2D) g).getDeviceConfiguration(),
-                                 c.getBackground() );
+            image = createImage( picture_,
+                                 ((Graphics2D) g).getDeviceConfiguration(),
+                                 c.getBackground(), transparency_ );
             if ( caching_ ) {
                 cachedImage_ = image;
             }
@@ -120,34 +121,36 @@ public class PictureImageIcon implements Icon {
      *               lead to unpredictable effects.
      */
     public void cacheImage( GraphicsConfiguration gc, Color bg ) {
-        cachedImage_ = createImage( gc, bg );
+        cachedImage_ = createImage( picture_, gc, bg, transparency_ );
     }
 
     /**
      * Creates an image containing the graphic content of this icon,
      * suitable for caching or painting to a graphics context.
      *
+     * @param   picture  picture to paint on the image
      * @param   gc   graphics config in which this icon will be displayed
      * @param   bg   background colour for image; null is legal but may
      *               lead to unpredictable effects.
+     * @param   transparency  integer value of Transparency code, or null
      * @return  image containing picture graphics
      */
-    private BufferedImage createImage( GraphicsConfiguration gc, Color bg ) {
-        int w = picture_.getPictureWidth();
-        int h = picture_.getPictureHeight();
+    public static BufferedImage createImage( Picture picture,
+                                             GraphicsConfiguration gc,
+                                             Color bg, Integer transparency ) {
+        int w = picture.getPictureWidth();
+        int h = picture.getPictureHeight();
 
         /* Try a volatile image.  It may be much faster, though it's
          * harder to handle. */
         VolatileImage vim =
-              transparency_ == null
+              transparency == null
             ? gc.createCompatibleVolatileImage( w, h )
-            : gc.createCompatibleVolatileImage( w, h,
-                                                transparency_.intValue() );
+            : gc.createCompatibleVolatileImage( w, h, transparency.intValue() );
         ImageCapabilities imCaps = vim.getCapabilities();
         if ( logger_.isLoggable( Level.CONFIG ) ) {
             String msg = new StringBuffer()
                 .append( "Painting picture to " )
-                .append( caching_ ? "cached " : "" )
                 .append( "image: " )
                 .append( imCaps.isAccelerated() ? "accelerated"
                                                 : "not accelerated" )
@@ -160,7 +163,7 @@ public class PictureImageIcon implements Icon {
         for ( int iLost = 0; iLost < MAX_TRY; iLost++ ) {
             vim.validate( gc );
             Graphics2D gv = vim.createGraphics();
-            doPaint( gv, bg );
+            doPaint( gv, bg, picture );
             boolean lost = vim.contentsLost();
             BufferedImage im = lost ? null : vim.getSnapshot();
             lost = lost || vim.contentsLost();
@@ -180,11 +183,11 @@ public class PictureImageIcon implements Icon {
         /* If attempts to draw to a volatile image fail repeatedly,
          * fall back to a normal buffered image. */
         BufferedImage bim =
-              transparency_ == null
+              transparency == null
             ? gc.createCompatibleImage( w, h )
-            : gc.createCompatibleImage( w, h, transparency_.intValue() );
+            : gc.createCompatibleImage( w, h, transparency.intValue() );
         Graphics2D gb = bim.createGraphics();
-        doPaint( gb, bg );
+        doPaint( gb, bg, picture );
         gb.dispose();
         return bim;
     }
@@ -194,21 +197,22 @@ public class PictureImageIcon implements Icon {
      *
      * @param  g  graphics context
      * @param  bg  background colour, or null
+     * @param  picture  picture to paint
      */
-    private void doPaint( Graphics2D g, Color bg ) {
+    private static void doPaint( Graphics2D g, Color bg, Picture picture ) {
         if ( bg != null ) {
             Color color = g.getColor();
             g.setColor( bg );
-            g.fillRect( 0, 0, picture_.getPictureWidth(),
-                              picture_.getPictureHeight() );
+            g.fillRect( 0, 0, picture.getPictureWidth(),
+                              picture.getPictureHeight() );
             g.setColor( color );
         }
         try {
-            picture_.paintPicture( g );
+            picture.paintPicture( g );
         }
         catch ( IOException e ) {
             logger_.log( Level.WARNING, "Graphic plotting IO error", e );
-            g.drawString( e.toString(), 10, picture_.getPictureHeight() / 2 );
+            g.drawString( e.toString(), 10, picture.getPictureHeight() / 2 );
         }
     }
 }
