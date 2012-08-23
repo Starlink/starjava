@@ -21,7 +21,7 @@ public class Point3D {
      * @param   iseq   sequence value, used as a tie-breaker for comparisons
      * @param   z   Z coordinate, used for sorting
      */
-    Point3D( int iseq, double z ) {
+    public Point3D( int iseq, double z ) {
         z_ = (float) z;
         iseq_ = iseq;
     }
@@ -42,8 +42,8 @@ public class Point3D {
      * @param   seqAscending  true for ascending sequence ID
      * @return  comparator
      */
-    public static Comparator getComparator( boolean zAscending,
-                                            boolean seqAscending ) {
+    public static Comparator<Point3D> getComparator( boolean zAscending,
+                                                     boolean seqAscending ) {
         return new Point3DComparator( zAscending, seqAscending );
     }
 
@@ -52,7 +52,7 @@ public class Point3D {
      * descending as per constructor).  Objects with the same Z value
      * use sequence ID as a tie breaker.
      */
-    private static class Point3DComparator implements Comparator {
+    private static class Point3DComparator implements Comparator<Point3D> {
         private final int zPlus_;
         private final int zMinus_;
         private final int seqPlus_;
@@ -70,9 +70,7 @@ public class Point3D {
             seqMinus_ = - seqPlus_;
         }
 
-        public int compare( Object o1, Object o2 ) {
-            Point3D p1 = (Point3D) o1;
-            Point3D p2 = (Point3D) o2;
+        public int compare( Point3D p1, Point3D p2 ) {
             float z1 = p1.z_;
             float z2 = p2.z_;
             if ( z1 < z2 ) {
