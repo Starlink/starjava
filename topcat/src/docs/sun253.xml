@@ -9306,7 +9306,7 @@ permits direct queries to the services provided by
 the German Astrophysical Virtual Observatory.
 The main databases of general interest available through these services
 are the <label>Millennium Simulation</label> results,
-documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
+documented at <webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
 </p>
 
 <p>To make a query, fill in the fields as required:
@@ -9315,13 +9315,15 @@ documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
 <dd><p>This determines the database to be queried.  The following options
     are available:
     <dl>
-    <dt>Milli-Millennium (<code>http://www.g-vo.org/Millennium</code>)</dt>
+    <dt>Milli-Millennium
+        (<code>http://gavo.mpa-garching.mpg.de/Millennium</code>)</dt>
     <dd><p>Public simulation results database, containing a fraction of the
         full simulation results.  
         No username or password is required (the User and Password
         boxes will be disabled).
         </p></dd>
-    <dt>Millennium (<code>http://www.g-vo.org/MyMillennium3</code>)</dt>
+    <dt>Millennium
+        (<code>http://gavo.mpa-garching.mpg.de/MyMillennium</code>)</dt>
     <dd><p>Full, protected simulation results database.  
         The username and password must be filled in for these queries.
         Registration is by application to GAVO.
@@ -9354,14 +9356,15 @@ is in progress will stop it running.
 <p>The <label>HaloSamples</label> and <label>GalaxySamples</label> menus
 provide some examples of
 queries on the Milli-Millennium database (these have been copied from 
-the <webref url="http://www.g-vo.org/Millennium/">GAVO query page</webref>).
+the <webref url="http://gavo.mpa-garching.mpg.de/Millennium/"
+            >GAVO query page</webref>).
 If you select one of these the <label>SQL Query</label> panel will be
 filled in accordingly.
 </p>
 
 <p>Much more documentation, including tutorials and descriptions of the 
 database schemas, is available on the GAVO website, at
-<webref url="http://www.g-vo.org/Millennium/Help"/>.
+<webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
 </p>
 
 </subsubsect>
@@ -15403,6 +15406,8 @@ introduced since the last version:
         fixed at the 2012-07-28 release.</li>
     <li>IPAC format "long"/"l" column type, apparently now official,
         now accepted without warning.</li>
+    <li>Update URLs for GAVO Millennium database service at request of
+        Gerard Lemson.</li>
     </ul>
     </p>
     </dd>

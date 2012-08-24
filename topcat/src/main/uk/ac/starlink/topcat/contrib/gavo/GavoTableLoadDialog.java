@@ -53,9 +53,9 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
     private int nquery = 0;
 
     private static final String MILL_URL =
-        "http://www.g-vo.org/Millennium";
+        "http://gavo.mpa-garching.mpg.de/Millennium";
     private static final String MYMILL_URL =
-        "http://www.g-vo.org/MyMillennium3";
+        "http://gavo.mpa-garching.mpg.de/MyMillennium";
     private static final String QUERY_TRAIL = "?action=doQuery&SQL=";
     private static final Database[] DATABASES = new Database[] {
         new Database( MILL_URL, MILL_URL + QUERY_TRAIL, false ),
