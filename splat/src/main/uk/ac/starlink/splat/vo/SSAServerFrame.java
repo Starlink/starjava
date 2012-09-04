@@ -111,6 +111,20 @@ public class SSAServerFrame
     }
 
     /**
+     * Create an instance, where the visibility can be set.
+     */
+ /*   public SSAServerFrame( SSAServerList serverList, boolean visibility )
+    {
+        initUI();
+       // initMenus();
+        //initFrame();
+   
+        setSSAServerList( serverList );
+        setVisible(visibility);
+    }
+    */
+    
+    /**
      * Get the SSAServerList that we are using.
      *
      * @return the SSAServerList
@@ -356,7 +370,12 @@ public class SSAServerFrame
         this.dispose();
     }
 
-
+ /*   public  JPanel getServerPanel() 
+    {
+        
+        return (JPanel) this.getContentPane();
+    }
+*/
     /**
      * Update the RegistryTable to match the current list of servers.
      */
@@ -465,6 +484,7 @@ public class SSAServerFrame
         }
     }
 
+   
     /**
      * Initialise the file chooser to have the necessary filters.
      */

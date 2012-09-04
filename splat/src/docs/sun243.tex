@@ -1472,6 +1472,12 @@ The list of SSAP servers available can be queried by selecting the
 choose a subset of the known servers, find out more about them, and to query a
 VO registry for any new servers.
 
+%mcneves
+By selecting the \labelitem{More Parameters} button you can \htmlref{query the selected SSA servers for
+metadata parameters}{ssap_metadata}  they support and use them for your query. See the subsection below.
+%mcneves
+
+
 Once the SSAP query is complete lists of spectra that the servers hold will be
 shown in the \labelitem{Query results:} region. There is a tab of results for
 each server. If the tab is empty then the server has no spectra for the
@@ -1537,7 +1543,24 @@ the wavelength and flux calibration options. These are located in the
 \item \labelitem{Shift-F1} Display help on window.
 \end{itemize}
 
+%mcneves
+\subsubsection{Query SSAP servers for metadata parameters\xlabel{ssap_metadata}}
 
+By selecting the \labelitem{More Parameters} button you can query the selected
+SSA servers for all metadata parameters they support. The result is a table which
+columns show a checkbox to select the parameter, the number of servers supporting it,
+the parameter name and a value field, where you can insert a value. By putting the
+mouse on a parameter name, its description will be displayed. If provided, the
+default values will be inserted to the value field. the parameter. The checked
+parameters having a non empty value  will be added to the query.
+
+\mainfigure{ssapMetadataTable}
+
+After selecting the desired parameters and adding values, they will be included to the query when
+the \labelitem{Go} button is selected on the Query VO  for Spectra window.  
+The current list of parameters can be written to, or read from a file, as well as updated from the
+current list of SSA servers.
+%mcneves
 \newpage
 \subsection{The animation window\xlabel{animation_window}}
 
@@ -3879,6 +3902,23 @@ components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
 
 \section{Changes}
+
+\subsection{3.9-9}
+
+   Two new features have been introduced to the VO part: an option to 
+   manually add a ssap server into the server list, and the possibility to 
+   enter other metadata parameters when searching for spectra.
+
+\subsection{3.9-6}
+
+   Make position and target optional in VO queries. Not all SSAP
+   servers are fixated on positions and objects.
+
+   Both sidebands are now loaded when a request to load all matching
+   line identifiers is made.
+
+   The deblend script has been enhanced to also report errors for the
+   parameter fits.
 
 \subsection{3.9-2}
 

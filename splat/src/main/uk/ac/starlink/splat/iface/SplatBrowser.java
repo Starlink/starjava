@@ -28,6 +28,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,6 +61,7 @@ import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
+import uk.ac.starlink.splat.data.NameParser;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -84,6 +86,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
+import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 
 /**
  * This is the main class for the SPLAT program. It creates the
@@ -357,6 +360,9 @@ public class SplatBrowser
     protected static String LONG_FILE_NAME = "12345678901234567890" +
         "123456789012345678901234567890123456789012345678901234567890";
 
+    /** Authenticator**/
+    private SSAPAuthenticator authenticator;
+    
     /**
      *  Create a browser with no existing spectra.
      */
@@ -427,7 +433,7 @@ public class SplatBrowser
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
         //  Don't know where to put this though.
         Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-
+        
         setEmbedded( embedded );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
@@ -1732,6 +1738,7 @@ public class SplatBrowser
         if ( ssapBrowser == null ) {
             try {
                 ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
+                authenticator = ssapBrowser.getAuthenticator();
             }
             catch (SplatException e) {
                 ErrorDialog.showError( this, e );
@@ -1760,6 +1767,7 @@ public class SplatBrowser
      * @param props properties of the spectra to be loaded, including names.
      * @param display whether to also display the spectra.
      */
+  
     public void threadLoadSpectra( SpectrumIO.Props[] props, boolean display )
     {
         if ( props.length == 0 ) return;
@@ -1802,6 +1810,7 @@ public class SplatBrowser
         getGlassPane().setVisible( false );
     }
 
+  
     /**
      * Add a new spectrum, with a possibly pre-defined type, to the
      * global list. This becomes the current spectrum. Any errors are reported
@@ -1818,6 +1827,7 @@ public class SplatBrowser
      */
     public boolean addSpectrum( String name, int usertype )
     {
+        
         try {
             tryAddSpectrum( name, usertype );
             return true;
@@ -1843,6 +1853,7 @@ public class SplatBrowser
     public void tryAddSpectrum( String name, int usertype )
         throws SplatException
     {
+        
         if ( usertype == SpecDataFactory.SED ) {
             //  Could be a source of several spectra. Only XML serialisation
             //  understood by this route. FITS should be trapped below.
@@ -1851,7 +1862,8 @@ public class SplatBrowser
                 addSpectrum( spectra[i] );
             }
         }
-        else {
+        else {           
+               
             try {
                 SpecData spectrum = specDataFactory.get( name, usertype );
                 addSpectrum( spectrum );
@@ -1867,7 +1879,10 @@ public class SplatBrowser
                     }
                 }
                 else {
-                    throw e;
+                    if (authenticator.getStatus() != null ) // in this case there as an error concerning authentication
+                        throw new SplatException(authenticator.getStatus());
+                    else 
+                        throw e;
                 }
             }
         }
@@ -1895,9 +1910,9 @@ public class SplatBrowser
             }
         }
         else {
-            try {
-                SpecData spectrum = specDataFactory.get( props.getSpectrum(),
-                                                         props.getType() );
+              
+            try {            
+                SpecData spectrum = specDataFactory.get( props.getSpectrum(), props.getType() );
                 addSpectrum( spectrum );
                 props.apply( spectrum );
             }
@@ -1913,7 +1928,10 @@ public class SplatBrowser
                     }
                 }
                 else {
-                    throw e;
+                    if (authenticator.getStatus() != null ) // in this case there as an error concerning authentication
+                        throw new SplatException(authenticator.getStatus());
+                    else 
+                        throw e;
                 }
             }
         }
@@ -1930,8 +1948,9 @@ public class SplatBrowser
      */
     public boolean addSpectrum( String name )
     {
+        
         try {
-            SpecData spectrum = specDataFactory.get( name );
+            SpecData spectrum = specDataFactory.get( name);
             addSpectrum( spectrum );
             return true;
         }

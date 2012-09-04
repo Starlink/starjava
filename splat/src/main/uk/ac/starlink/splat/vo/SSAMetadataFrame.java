@@ -431,7 +431,7 @@ public class SSAMetadataFrame extends JFrame implements ActionListener
         resetFile.setActionCommand( "reset" );
 
         //  Create the Help menu.
-        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window", menuBar, null );
+        HelpFrame.createButtonHelpMenu( "ssa-metadata", "Help on window", menuBar, null );
        
         // The Buttons bar
         // the action buttons
@@ -625,14 +625,15 @@ public class SSAMetadataFrame extends JFrame implements ActionListener
 
         BufferedWriter tableWriter = new BufferedWriter(new FileWriter(paramFile));
 
-        for ( int row=0; row< metadataTable.getRowCount(); row++) {
-            tableWriter.append(metadataTable.getValueAt(row, NR_SERVERS_INDEX).toString());
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
+        for ( int row=0; row< mtm.getRowCount(); row++) {
+            tableWriter.append(mtm.getValueAt(row, NR_SERVERS_INDEX).toString());
             tableWriter.append(';');
-            tableWriter.append(metadataTable.getValueAt(row, NAME_INDEX).toString());
+            tableWriter.append(mtm.getValueAt(row, NAME_INDEX).toString());
             tableWriter.append(';');
-            tableWriter.append(metadataTable.getValueAt(row, VALUE_INDEX).toString());
+            tableWriter.append(mtm.getValueAt(row, VALUE_INDEX).toString());
             tableWriter.append(';');
-            tableWriter.append(metadataTable.getValueAt(row, DESCRIPTION_INDEX).toString());
+            tableWriter.append(mtm.getValueAt(row, DESCRIPTION_INDEX).toString());
             tableWriter.append('\n');
         }
         tableWriter.flush();
@@ -706,7 +707,7 @@ public class SSAMetadataFrame extends JFrame implements ActionListener
         }
 
         if (unit != null && unit.length() >0) {
-            desc = desc + "  ("+unit+")"; // description (unit)
+            desc = desc + "  ("+unit+")"; //  (unit)
         }
         paramRow[DESCRIPTION_INDEX] = desc; // description
 

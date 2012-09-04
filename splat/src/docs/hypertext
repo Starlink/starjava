@@ -16,12 +16,16 @@ setenv COPYRIGHT "$copyr1<br>$copyr2<br>$copyr3"
 
 #  Help system docs, these need to be in a jar file so we can 
 #  access them from javahelp? Figures?
+echo "star2html -no_navigation -c "$COPYRIGHT" sun243.tex"
+
+#exit(0)
 star2html -no_navigation -c "$COPYRIGHT" sun243.tex
+
 ./makeSearchDatabase
 jar cf splat_help.jar sun243.htx HelpSet.hs TOC.xml Map.jhm JavaHelpSearch
 \mv splat_help.jar ../lib
 
-echo "Created JavaHelp archives"
+#echo "Created JavaHelp archives"
 
 #  Normal docs. Note remove files that change trivially to stop
 #  unneccesary updates.

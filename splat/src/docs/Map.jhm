@@ -20,43 +20,45 @@
   <mapID target="browser-window"             url="sun243.htx/node8.html"/>
   <mapID target="plot-window"                url="sun243.htx/node9.html"/>
   <mapID target="ssa-window"                 url="sun243.htx/node10.html"/>
-  <mapID target="animation-window"           url="sun243.htx/node11.html"/>
-  <mapID target="viewer"                     url="sun243.htx/node12.html"/>
-  <mapID target="specxcoord-window"          url="sun243.htx/node13.html"/>
-  <mapID target="dataunits-window"           url="sun243.htx/node14.html"/>
-  <mapID target="binary-maths"               url="sun243.htx/node15.html"/>
-  <mapID target="unary-maths"                url="sun243.htx/node16.html"/>
-  <mapID target="panner-window"              url="sun243.htx/node17.html"/>
+  <mapID target="ssa-metadata"                 url="sun243.htx/node11.html"/>
+  <mapID target="animation-window"           url="sun243.htx/node12.html"/>
+  <mapID target="viewer"                     url="sun243.htx/node13.html"/>
+  <mapID target="specxcoord-window"          url="sun243.htx/node14.html"/>
+  <mapID target="dataunits-window"           url="sun243.htx/node15.html"/>
+  <mapID target="binary-maths"               url="sun243.htx/node16.html"/>
+  <mapID target="unary-maths"                url="sun243.htx/node17.html"/>
+  <mapID target="panner-window"              url="sun243.htx/node18.html"/>
 
-  <mapID target="config-window"              url="sun243.htx/node18.html"/>
-  <mapID target="config-window-limits"       url="sun243.htx/node19.html"/>
-  <mapID target="config-window-title"        url="sun243.htx/node20.html"/>
-  <mapID target="config-window-axis-labels"  url="sun243.htx/node21.html"/>
-  <mapID target="config-window-axis-numbers" url="sun243.htx/node22.html"/>
-  <mapID target="config-window-axes"         url="sun243.htx/node23.html"/>
-  <mapID target="config-window-grid"         url="sun243.htx/node24.html"/>
-  <mapID target="config-window-border"       url="sun243.htx/node25.html"/>
-  <mapID target="config-window-ticks"        url="sun243.htx/node26.html"/>
-  <mapID target="config-window-render"       url="sun243.htx/node28.html"/>
-  <mapID target="config-window-edge"         url="sun243.htx/node29.html"/>
-  <mapID target="config-window-background"   url="sun243.htx/node30.html"/>
+  <mapID target="config-window"              url="sun243.htx/node19.html"/>
+  <mapID target="config-window-limits"       url="sun243.htx/node20.html"/>
+  <mapID target="config-window-title"        url="sun243.htx/node21.html"/>
+  <mapID target="config-window-axis-labels"  url="sun243.htx/node22.html"/>
+  <mapID target="config-window-axis-numbers" url="sun243.htx/node23.html"/>
+  <mapID target="config-window-axes"         url="sun243.htx/node24.html"/>
+  <mapID target="config-window-grid"         url="sun243.htx/node25.html"/>
+  <mapID target="config-window-border"       url="sun243.htx/node26.html"/>
+  <mapID target="config-window-ticks"        url="sun243.htx/node27.html"/>
+  <mapID target="config-window-render"       url="sun243.htx/node29.html"/>
+  <mapID target="config-window-edge"         url="sun243.htx/node30.html"/>
+  <mapID target="config-window-background"   url="sun243.htx/node31.html"/>
 
-  <mapID target="cutter-window"              url="sun243.htx/node32.html"/>
-  <mapID target="polynomial-fit-window"      url="sun243.htx/node33.html"/>
-  <mapID target="interpolation-window"       url="sun243.htx/node34.html"/>
-  <mapID target="line-fit-window"            url="sun243.htx/node35.html"/>
-  <mapID target="line-fit-saving-window"     url="sun243.htx/node36.html"/>
-  <mapID target="filter-window"              url="sun243.htx/node37.html"/>
-  <mapID target="simpleunits-window"         url="sun243.htx/node38.html"/>
-  <mapID target="flipper-window"             url="sun243.htx/node39.html"/>
-  <mapID target="stats-window"               url="sun243.htx/node40.html"/>
-  <mapID target="stacker-window"             url="sun243.htx/node41.html"/>
+  <mapID target="save-window"                url="sun243.htx/node32.html"/>
+  <mapID target="cutter-window"              url="sun243.htx/node33.html"/>
+  <mapID target="polynomial-fit-window"      url="sun243.htx/node34.html"/>
+  <mapID target="interpolation-window"       url="sun243.htx/node35.html"/>
+  <mapID target="line-fit-window"            url="sun243.htx/node36.html"/>
+  <mapID target="line-fit-saving-window"     url="sun243.htx/node37.html"/>
+  <mapID target="filter-window"              url="sun243.htx/node38.html"/>
+  <mapID target="simpleunits-window"         url="sun243.htx/node39.html"/>
+  <mapID target="flipper-window"             url="sun243.htx/node40.html"/>
+  <mapID target="stats-window"               url="sun243.htx/node41.html"/>
+  <mapID target="stacker-window"             url="sun243.htx/node42.html"/>
 
-  <mapID target="data-formats"               url="sun243.htx/node42.html"/>
-  <mapID target="command-line"               url="sun243.htx/node44.html"
-  <mapID target="interop"                    url="sun243.htx/node45.html"/>
-  <mapID target="samp-window"                url="sun243.htx/node46.html"/>
-  <mapID target="plastic"                    url="sun243.htx/node47.html"/>
-  <mapID target="acknowledgements"           url="sun243.htx/node48.html"/>
+  <mapID target="data-formats"               url="sun243.htx/node43.html"/>
+  <mapID target="command-line"               url="sun243.htx/node45.html"
+  <mapID target="interop"                    url="sun243.htx/node46.html"/>
+  <mapID target="samp-window"                url="sun243.htx/node47.html"/>
+  <mapID target="plastic"                    url="sun243.htx/node48.html"/>
+  <mapID target="acknowledgements"           url="sun243.htx/node49.html"/>
 
 </map>

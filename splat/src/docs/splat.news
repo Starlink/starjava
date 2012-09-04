@@ -1,5 +1,16 @@
 1 Starlink SPLAT news.
 
+   3.9-9
+   =====
+
+   Two new features have been introduced to the VO part: an option to 
+   manually add a ssap server into the server list, and the possibility to 
+   enter other metadata parameters when searching for spectra.
+
+   If the MAXREC limit is reached, SPLAT does not return an error anymore, but
+   downloads the MAXREC records.
+
+
    3.9-8
    =====
 

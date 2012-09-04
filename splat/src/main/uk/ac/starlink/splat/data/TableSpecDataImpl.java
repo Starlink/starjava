@@ -336,7 +336,7 @@ public class TableSpecDataImpl
             readTable( -1 );
         }
         catch (Exception e) {
-            throw new SplatException("Failed to open table: " + tablespec, e);
+                throw new SplatException("Failed to open table: " + tablespec, e);
         }
     }
 

@@ -9,8 +9,10 @@
 
 package uk.ac.starlink.splat.vo;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 
 import jsky.coords.DMS;
 import jsky.coords.HMS;
@@ -206,6 +208,7 @@ public class SSAQuery
      */
     public void setBand( String lower, String upper )
     {
+       
         queryBandLower = lower;
         queryBandUpper = upper;
     }
@@ -249,7 +252,7 @@ public class SSAQuery
      * used to create a StarTable).
      */
     public URL getQueryURL()
-        throws MalformedURLException
+        throws MalformedURLException, UnsupportedEncodingException
     {
         //  Note that some baseURLs may have an embedded ?.
         StringBuffer buffer = new StringBuffer( baseURL );
@@ -264,14 +267,17 @@ public class SSAQuery
         //  Else ends with a ?, so that's OK already.
 
         //  Start with "VERSION=1.0&REQUEST=queryData".
-        buffer.append( SSAPVERSION + "&REQUEST=queryData" );
+       // buffer.append( SSAPVERSION + "&REQUEST=queryData" );       
+        // (MCN 04.2012) At the moment Splat will not send any version information, because
+        // it causes more problems than it helps... To be changed later
+        buffer.append( "REQUEST=queryData" );
 
         //  Add basic search parameters, POS or TARGETNAME, FORMAT and SIZE.
         if ( queryRA >= 0.0 ) {
             buffer.append( "&POS=" + queryRA + "," + queryDec );
         }
         else if ( targetName != null ) {
-            buffer.append( "&TARGETNAME=" + targetName );
+            buffer.append( "&TARGETNAME=" + URLEncoder.encode(targetName,"UTF-8"));
         }
         if ( queryFormat != null ) {
             buffer.append( "&FORMAT=" + queryFormat );
@@ -287,7 +293,7 @@ public class SSAQuery
             buffer.append( "&BAND=" + "/" + queryBandUpper );
         }
         else if ( queryBandLower != null ) {
-            buffer.append( "&BAND=" + queryBandLower );
+            buffer.append( "&BAND=" + queryBandLower + "/");
         }
 
         //  The time coverage. Assume "lower/upper" range or includes
@@ -306,7 +312,6 @@ public class SSAQuery
         if ( fluxCalib != null ) {
             buffer.append( "&FLUXCALIB=" + fluxCalib );
         }
-
         return new URL( buffer.toString() );
     }
 }

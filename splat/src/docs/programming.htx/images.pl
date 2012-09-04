@@ -1,4 +1,4 @@
-# LaTeX2HTML 2002-2 (1.70)
+# LaTeX2HTML 2008 (1.71)
 # Associate images original text with physical files.
 
 
@@ -63,15 +63,6 @@ $cached_env_img{$key} = q|<IMG
 class SpecDataFactory}
 }}">|; 
 
-$key = q/nomath_inline}fboxparboxtextwidthtextitpublicclassSpectralFileFilterimplementsjava.io.FileFilternomath_inline};MSF=1.5;LFS=11;AAT/;
-$cached_env_img{$key} = q|<IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="|."$dir".q|img9.gif"
- ALT="\fbox{\parbox{\textwidth}{
-\textit{public
-class SpectralFileFilter implements java.io.FileFilter}
-}}">|; 
-
 $key = q/fbox{parbox{textwidth}{textit{publicclassSpecDataFactory}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
  WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
@@ -86,6 +77,15 @@ $cached_env_img{$key} = q|<IMG
  WIDTH="150" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img3.gif"
  ALT="\fbox{Example set colour}">|; 
+
+$key = q/nomath_inline}fboxparboxtextwidthtextitpublicclassSpectralFileFilterimplementsjava.io.FileFilternomath_inline};MSF=1.5;LFS=11;AAT/;
+$cached_env_img{$key} = q|<IMG
+ WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="|."$dir".q|img9.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class SpectralFileFilter implements java.io.FileFilter}
+}}">|; 
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassPlotControlextendsjavax.swing.JPanelimpeListener,PlotScaledListener,java.awt.event.ActionListener}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG

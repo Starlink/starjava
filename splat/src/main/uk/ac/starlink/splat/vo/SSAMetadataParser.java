@@ -11,6 +11,7 @@ package uk.ac.starlink.splat.vo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -56,14 +57,17 @@ class SSAMetadataParser
     /** The SSA query  URL */
     private static String query = "REQUEST=queryData&FORMAT=METADATA";
 
+    
     /**
      * Constructor: 
      * @param  server  - is the SSA server to be queried for metadata
      */ 
+
     public SSAMetadataParser( RegResource server ) 
     {
         RegCapabilityInterface[] rci = server.getCapabilities();
         this.baseURL = rci[0].getAccessUrl(); 
+     
     }
 
 
@@ -125,13 +129,15 @@ class SSAMetadataParser
         InputSource inSrc=null;
         VOElement voElement = null;
 
+ 
         // open the URL
         try {
+           // inSrc = new InputSource( queryCon.getInputStream() );
             inSrc = new InputSource( url.openStream() );            
         } catch (IOException ioe) {
             if ( progressPanel != null )
                 progressPanel.logMessage( ioe.getMessage() );
-            logger.info( "Connection IOException from " + url );
+            logger.info( "RESPONSE Connection IOException from " + url + " "+ioe.getMessage() );
             return null;  
         } 
 
@@ -154,12 +160,12 @@ class SSAMetadataParser
         } catch (SAXException se) {
             if ( progressPanel != null )
                 progressPanel.logMessage( "SAX parser configuration error"+se.getMessage() );
-            logger.info( "SAXException when configuring parser" + url );
+            logger.info( "RESPONSE SAXException when configuring parser" + url );
             return null;
         } catch (ParserConfigurationException pce) {
             if ( progressPanel != null )
                 progressPanel.logMessage( "Parser configuration error"+pce.getMessage());
-            logger.info( "ParserConfigurationException when configuring " + url );
+            logger.info( "RESPONSE ParserConfigurationException when configuring " + url );
             return null;
         }
 
@@ -176,12 +182,12 @@ class SSAMetadataParser
         } catch (SAXException se) {
             if ( progressPanel != null )
                 progressPanel.logMessage( "SAXException when parsing" );
-            logger.info( "SAXException when parsing " + url );
+            logger.info( "RESPONSE SAXException when parsing " + url );
             return null;
         } catch (IOException ioe2) {
             if ( progressPanel != null )
                 progressPanel.logMessage( "IOException when parsing" );
-            logger.info( "IOException when parsing " + url );          
+            logger.info( "RESPONSE IOException when parsing " + url );          
             return null;
         }
         if ( Thread.interrupted() ) 

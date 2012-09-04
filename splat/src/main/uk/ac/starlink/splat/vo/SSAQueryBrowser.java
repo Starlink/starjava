@@ -13,6 +13,7 @@ package uk.ac.starlink.splat.vo;
 
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -29,8 +30,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -58,6 +64,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.border.Border;
 //import javax.swing.SwingWorker;
 
 import jsky.catalog.BasicQueryArgs;
@@ -70,6 +77,7 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 
+import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -155,6 +163,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
     /** Centre panel */
     protected JPanel centrePanel = null;
 
+    /** Centre panel */
+    protected JPanel serverPanel = null;
+    
     /** Query panel */
     protected JPanel queryPanel = null;
 
@@ -261,8 +272,10 @@ implements ActionListener, MouseListener, PropertyChangeListener
     }
 
     /** The list of all input parameters read from the servers as a hash map */
-    private static HashMap<String, MetadataInputParameter> metaParam=null;
-
+    private static HashMap<String, MetadataInputParameter> metaParam=null;  
+    
+    /** the authenticator for access control **/
+    private SSAPAuthenticator authenticator;
 
     /**
      * Create an instance.
@@ -271,11 +284,18 @@ implements ActionListener, MouseListener, PropertyChangeListener
     {
         this.serverList = serverList;
         this.browser = browser;
+        authenticator = new SSAPAuthenticator();
+        Authenticator.setDefault(authenticator);
+        specDataFactory.setAuthenticator(authenticator);
         initUI();
         initMenusAndToolbar();
-        initFrame();      
+        initFrame(); 
+        
     }
 
+    public SSAPAuthenticator getAuthenticator() {
+        return authenticator;
+    }
     /**
      * Create and display the UI components.
      */
@@ -284,13 +304,21 @@ implements ActionListener, MouseListener, PropertyChangeListener
         contentPane = (JPanel) getContentPane();
         contentPane.setLayout( new BorderLayout() );
         centrePanel = new JPanel( new BorderLayout() );
+       // serverPanel = new JPanel();
+       // contentPane.add( serverPanel, BorderLayout.LINE_START);
+      //  contentPane.add( centrePanel, BorderLayout.LINE_END );
         contentPane.add( centrePanel, BorderLayout.CENTER );
 
+    //    initServerComponents();
         initQueryComponents();
         initResultsComponent();
         setDefaultNameServers();
     }
 
+ //   public void initServerComponents()
+ //   {
+ //       serverPanel.add(new SSAServerFrame( serverList, false ).getServerPanel());
+ //   }
     /**
      * Initialise the menu bar, action bar and related actions.
      */
@@ -474,16 +502,24 @@ implements ActionListener, MouseListener, PropertyChangeListener
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
         nameLookup.setToolTipText( "Press to get coordinates of Object" );
-
         layouter.add( nameLookup, false );
-        //  Do the search.
-        goButton = new JButton( "Go" );
-        goButton.addActionListener( this );
-        layouter.add( goButton, false );
 
         customButton = new JButton( "More parameters" );
         customButton.addActionListener(this);
         layouter.add( customButton, false );
+      
+        //  Do the search.
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.FIRST_LINE_END;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady=30;c.ipadx=30;
+        c.gridx=5;
+
+        goButton = new JButton( "    GO    " );
+      //  goButton.setAlignmentX(RIGHT_ALIGNMENT);
+        //goButton.setBackground(Color.green);
+        goButton.addActionListener( this );
+        layouter.add( goButton, c);
 
         layouter.eatLine();
 
@@ -647,7 +683,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
     {
         JMenu formatMenu = new JMenu( "Query format" );
         String[] names =
-            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml" };
+            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
         JRadioButtonMenuItem item;
         formatGroup = new ButtonGroup();
         for ( int i = 0; i < names.length; i++ ) {
@@ -985,16 +1021,18 @@ implements ActionListener, MouseListener, PropertyChangeListener
                     throws InterruptedException
                     {
         boolean failed = false;
+        boolean overflow = false;
 
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
         StarTable starTable = null;
+        URL queryURL = null;
 
         // int j = 0;
 
         try {
-            URL url = ssaQuery.getQueryURL();
-            logger.info( "Base Query string " + url );
+            queryURL = ssaQuery.getQueryURL();
+          
 
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
@@ -1003,25 +1041,37 @@ implements ActionListener, MouseListener, PropertyChangeListener
                 String extendedQuery=metaFrame.getParamsQueryString();
                 logger.info( "Extended Query string " + extendedQuery );
                 if (extendedQuery != null && extendedQuery.length() > 0) {
-                    String newURL = url.toString() + extendedQuery;
+                    String newURL = queryURL.toString() + extendedQuery;
                     logger.info( "Query string " + newURL );
-                    //try 
-                    //{
-                    url = new URL(newURL);
-                    //} catch ( MalformedURLException e ) {
-                    //   logger.warning( "Malformed URL "+newURL );
-                    //	}
+                    queryURL = new URL(newURL);
                 }
-
             }
-            logger.info( "Querying: " + url );
+        }   
+        catch ( MalformedURLException mue ) {
+            progressPanel.logMessage( mue.getMessage() );
+            logger.info( "Malformed URL "+queryURL );
+            failed = true;
+        }
+        catch ( UnsupportedEncodingException uee) {
+            progressPanel.logMessage( uee.getMessage() );
+            logger.info( "URL Encoding Exception "+queryURL );
+            failed = true;
+        } 
+        //   accessControl = new HashMap<String,String>;
+        //    accessControl.addPropertyChangeListener(this);
 
-            progressPanel.logMessage( ssaQuery.getBaseURL() );
+        logger.info( "Querying: " + queryURL );
 
-            //  Do the query and get the result as a StarTable. Uses this
-            //  method for efficiency as non-result tables are ignored.
-            InputSource inSrc = new InputSource( url.openStream() );
-            inSrc.setSystemId( url.toString() );
+        progressPanel.logMessage( ssaQuery.getBaseURL() );
+    
+    
+        //  Do the query and get the result as a StarTable. Uses this
+        //  method for efficiency as non-result tables are ignored.
+        try {
+            InputSource inSrc = new InputSource( queryURL.openStream() );
+            
+            // inSrc.setSystemId( ssaQuery.getBaseURL() );
+            inSrc.setSystemId( queryURL.toString());
             VOElementFactory vofact = new VOElementFactory();
 
             starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
@@ -1045,6 +1095,12 @@ implements ActionListener, MouseListener, PropertyChangeListener
             if ( "OK".equalsIgnoreCase( queryOK ) ) {
                 ssaQuery.setStarTable( starTable );
                 progressPanel.logMessage( "Done" );
+            }
+            else if ("OVERFLOW".equalsIgnoreCase( queryOK ) ) {
+                ssaQuery.setStarTable( starTable );
+                progressPanel.logMessage( queryDescription );
+                logger.info( queryDescription);
+                overflow=true;
             }
             else {
                 //  Some problem with the service, report that.
@@ -1079,14 +1135,15 @@ implements ActionListener, MouseListener, PropertyChangeListener
             progressPanel.logMessage( ge.getMessage() );
             logger.info( ssaQuery.getDescription() + ": " + ge.getMessage() );
             failed = true;
-        }
+        } 
+
         if ( Thread.interrupted() ) {
             throw new InterruptedException();
         }
-        if ( ! failed ) {
+        if ( ! failed && ! overflow ) {
             progressPanel.logMessage( "Completed download" );
         }
-                    }
+} //runProcessQUery
 
     /**
      * Display the results of the queries to the SSA servers. The results can
@@ -1227,6 +1284,18 @@ implements ActionListener, MouseListener, PropertyChangeListener
         //  And load and display...
         SpectrumIO.Props[] propList = new SpectrumIO.Props[specList.size()];
         specList.toArray( propList );
+        
+        // check for authentication
+        for (int p=0; p<propList.length; p++ ) {
+            URL url=null;
+            try {
+                 url = new URL(propList[p].getSpectrum());
+            } catch (MalformedURLException mue) {
+                logger.info(mue.getMessage());
+            }
+        }
+        
+
         browser.threadLoadSpectra( propList, display );
         browser.toFront();
     }
@@ -1902,9 +1971,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
         }
 
         public Object construct()
-        {
+        {   
             final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
-            if (progressPanel != null)
+               if (progressPanel != null)
                 progressPanel.start();            
 
             try {
@@ -1949,10 +2018,10 @@ implements ActionListener, MouseListener, PropertyChangeListener
             //  display the final status of the query
             if ( metadata != null ) {
                 // adds parameter information into the metaParam hash
-                logger.info(queryURL+"returned "+ metadata.length +"parameters ");
+                logger.info("RESPONSE "+queryURL+"returned "+ metadata.length +"parameters ");
                 progressPanel.logMessage( metadata.length +"  input parameters found");
             } else {
-                logger.info( "No input parameters loaded from " + queryURL );                
+                logger.info( "RESPONSE No input parameters loaded from " + queryURL );                
             }
             if (progressPanel != null)
                 progressPanel.stop();  
@@ -2002,7 +2071,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
 
     /**
-     * queue that receives information from the MetadataQueryWorker threads
+     * queue that receives information from the QueryWorker threads
      * and process them
      */
     class WorkQueue {
@@ -2189,6 +2258,8 @@ implements ActionListener, MouseListener, PropertyChangeListener
         }
     }
 
+
+ 
     /**
      * A Metadata input parameter class, to contain the parameter element and the number of servers that
      * accept this parameter

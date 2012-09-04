@@ -3,8 +3,8 @@
 \RequirePackage{ifthen}
 
 
-\input{/loc/pwda/pdraper/starjava_svn/source/splat/src/docs/programming_htx/html.sty}
-\input{/loc/pwda/pdraper/starjava_svn/source/splat/src/docs/programming_htx/star2html.sty} 
+\input{/Users/mm/Development/SPLAT-ALL/starjava/splat/src/docs/programming_htx/html.sty}
+\input{/Users/mm/Development/SPLAT-ALL/starjava/splat/src/docs/programming_htx/star2html.sty} 
 
 
 \usepackage{graphicx}        
@@ -233,7 +233,12 @@ be useful when extending \textsf{SPLAT}.
 \newcommand\lthtmlboxmathZ{\@next\next\@currlist{}{\def\next{\voidb@x}}%
  \expandafter\box\next\egroup}%
 \newcommand\lthtmlmathtype[1]{\gdef\lthtmlmathenv{#1}}%
-\newcommand\lthtmllogmath{\lthtmltypeout{l2hSize %
+\newcommand\lthtmllogmath{\dimen0\ht\sizebox \advance\dimen0\dp\sizebox
+  \ifdim\dimen0>.95\vsize
+   \lthtmltypeout{%
+*** image for \lthtmlmathenv\space is too tall at \the\dimen0, reducing to .95 vsize ***}%
+   \ht\sizebox.95\vsize \dp\sizebox\z@ \fi
+  \lthtmltypeout{l2hSize %
 :\lthtmlmathenv:\the\ht\sizebox::\the\dp\sizebox::\the\wd\sizebox.\preveqno}}%
 \newcommand\lthtmlfigureA[1]{\let\@savefreelist\@freelist
        \lthtmlmathtype{#1}\lthtmlvboxmathA}%

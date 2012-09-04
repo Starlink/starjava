@@ -8,5 +8,5 @@ if ( -e sun243.htx/icons.html ) then
   \rm sun243.htx/icons.html
 endif
 
-$HOME/splat/javahelp/javahelp/javahelp/bin/jhindexer sun243.htx
+$HOME/Development/SPLAT-ALL/help/jh1.1/javahelp/bin/jhindexer sun243.htx
 
