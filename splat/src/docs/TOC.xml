@@ -15,6 +15,7 @@
    <tocitem target="browser-window" text="Browser window"/>
    <tocitem target="plot-window" text="Plot window"/>
    <tocitem target="ssa-window" text="Query VO for spectra"/>
+       <tocitem target="ssa-metadata" text="Query VO for metadata"/>
    <tocitem target="animation-window" text="Animation window"/>
    <tocitem target="viewer" text="View/modify values window"/>
    <tocitem target="specxcoord-window" text="Coordinate system attributes window"/>
