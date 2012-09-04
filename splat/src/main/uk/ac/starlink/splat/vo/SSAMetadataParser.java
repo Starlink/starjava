@@ -59,6 +59,7 @@ class SSAMetadataParser
 
     /** the server short name */
     private String server;
+    
     /**
      * Constructor: 
      * @param  server  - is the SSA server to be queried for metadata
@@ -131,6 +132,7 @@ class SSAMetadataParser
         InputSource inSrc=null;
         VOElement voElement = null;
 
+ 
         // open the URL
         try {
             URLConnection con =  url.openConnection();

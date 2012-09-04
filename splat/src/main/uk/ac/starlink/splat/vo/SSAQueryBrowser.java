@@ -34,6 +34,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
@@ -88,6 +89,7 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 
+import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -195,7 +197,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.property  name="gbcentre"
      */
     protected GridBagConstraints gbcentre;
-
 
     /**
      * Servers panel
@@ -1762,7 +1763,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             progressPanel.logMessage( "Completed download" );
         }
 
-} //runProcessQUery
+    } //runProcessQUery
 
  
     /**
@@ -3277,7 +3278,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
 
         public Object construct()
-        {
+        {   
             final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
                if (progressPanel != null)
                 progressPanel.start();            

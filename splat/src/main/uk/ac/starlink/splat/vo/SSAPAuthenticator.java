@@ -352,6 +352,7 @@ public class SSAPAuthenticator extends Authenticator{
         {
             return skip;
         }
+
         /**
          * skipAll
          * @returns skipAll
@@ -369,7 +370,8 @@ public class SSAPAuthenticator extends Authenticator{
         {
             return realm;
         }
-        /**
+        
+	/**
          * getAauthString
          * 
          * @param firstTry = true if it's the first time the user tries to authenticate to this realm, false otherwise
