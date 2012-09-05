@@ -8236,7 +8236,8 @@ but my thanks are especially due to the following:
         threshold could be missed.  The bug was in the PixTools library,
         fixed at the 2012-07-28 release.</li>
     <li>IPAC format "long"/"l" column type, apparently now official,
-        now accepted without warning.</li>
+        now accepted without warning.  IPAC headers may now use minus
+        signs instead of whitespace.</li>
     </ul>
     </p></dd>
 

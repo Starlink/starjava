@@ -171,7 +171,9 @@ class IpacReader implements RowSequence {
         int ipos = 1;
         String[] tokens = new String[ ends_.length ];
         for ( int icol = 0; icol < tokens.length; icol++ ) {
-            tokens[ icol ] = line.substring( ipos, ends_[ icol ] - 1 ).trim();
+            String token = line.substring( ipos, ends_[ icol ] - 1 );
+            token = token.replace( '-', ' ' ).trim();
+            tokens[ icol ] = token;
             ipos = ends_[ icol ];
         }
         return tokens;
