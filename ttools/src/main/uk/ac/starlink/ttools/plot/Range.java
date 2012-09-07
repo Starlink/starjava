@@ -191,6 +191,15 @@ public class Range {
     }
 
     /**
+     * Returns true if both ends of the range have values which are not NaN.
+     *
+     * @return  true iff low and high are numbers
+     */
+    public boolean isFinite() {
+        return ! Double.isNaN( lo_ ) && ! Double.isNaN( hi_ );
+    }
+
+    /**
      * Adds padding to either end of this range.
      *
      * @param  ratio  padding ratio (should normally be greater than 0)
