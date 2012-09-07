@@ -243,11 +243,19 @@ public class Range {
             if ( ! ( lo <= 0.0 ) ) {
                 loPos_ = lo;
             }
+            if ( hi_ < lo_ ) {
+                hi_ = lo_;
+                hiPos_ = loPos_;
+            }
         }
 	if ( ! Double.isNaN( hi ) && ! Double.isInfinite( hi ) && hi >= lo_ ) {
             hi_ = hi;
             if ( ! ( hi <= 0.0 ) ) {
                 hiPos_ = hi;
+            }
+            if ( lo_ > hi_ ) {
+                lo_ = hi_;
+                loPos_ = hiPos_;
             }
         }
     }
