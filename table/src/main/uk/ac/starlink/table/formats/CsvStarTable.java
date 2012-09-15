@@ -160,7 +160,7 @@ public class CsvStarTable extends StreamStarTable {
                         if ( discard ) {
                             discard = false;
                         }
-                        else if ( cellList.size() > 0 ) {
+                        else if ( cellList.size() > 0 || ! endFile ) {
                             cellList.add( buffer.toString().trim() );
                         }
                         buffer.setLength( 0 );

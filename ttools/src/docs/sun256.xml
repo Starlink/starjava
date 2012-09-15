@@ -8238,6 +8238,7 @@ but my thanks are especially due to the following:
     <li>IPAC format "long"/"l" column type, apparently now official,
         now accepted without warning.  IPAC headers may now use minus
         signs instead of whitespace.</li>
+    <li>Cope with 1-column CSV files.</li>
     </ul>
     </p></dd>
 
