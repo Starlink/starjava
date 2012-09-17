@@ -21,8 +21,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-//import jsky.util.Logger;
-
 import org.apache.commons.codec.binary.Base64;
 
 import sun.misc.BASE64Encoder;
@@ -45,7 +43,7 @@ import java.util.logging.Logger;
 /**
  * Class Authenticator
  * 
- * Authenticator implementation to authenticate ssap servers
+ * Authenticator implementation to authenticate ssap servers using HTTP Authentication
  * 
  * @author Margarida Castro Neves
  */
@@ -113,12 +111,12 @@ public class SSAPAuthenticator extends Authenticator{
            
         PasswordAuthentication passAuth=authDialog.getAuthentication(firstTry, realm);
         authWindowSize=authDialog.getSize();
-        logger.info( "WINDOW SIZE" + authWindowSize.toString() );
+     //   logger.info( "WINDOW SIZE" + authWindowSize.toString() );
         lastURL=currentURL;
     
         if (authDialog.skipThis() ) {
             // will be asked again next time ...
-             logger.info( "Skipped now" + realm );
+      //       logger.info( "Skipped now" + realm );
              //throw new SplatException("SKIPPED "+realm.toString());
              authStatus="SKIP";
             return null;
@@ -131,7 +129,7 @@ public class SSAPAuthenticator extends Authenticator{
           //  else 
            //   accessControl.put( realm.toString(), passAuth );        
             
-            logger.info( "Skipped always" + authDialog.getRealm()  );
+   //         logger.info( "Skipped always" + authDialog.getRealm()  );
            // throw new SplatException("SKIPPED "+realm.toString());
             authStatus="SKIP";
             return null;
@@ -170,16 +168,6 @@ public class SSAPAuthenticator extends Authenticator{
         if ( ! accessControl.isEmpty() ) {
             if ( accessControl.containsKey(realm))
                 return accessControl.get(realm); // search exact  URL 
- /*           else { // search for a key that is a substring of realm
-                Iterator<Entry<String, PasswordAuthentication>> it = accessControl.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry)it.next();
-                    if (realm.startsWith(pair.getKey().toString()) )
-                       return (PasswordAuthentication) pair.getValue(); // search host           
-                }
-   
-            }
-             */
         } // accesscontrol already contains realm, authenticate
         return null;
     }
@@ -206,6 +194,12 @@ public class SSAPAuthenticator extends Authenticator{
         private String prompt=null;
         private String realm=null;
 
+        
+        /**
+         * constructor
+         * 
+         * @param serverRealm the realm string of the calling server
+         */
 
         public AuthDialog(String serverRealm) 
         {
@@ -218,6 +212,12 @@ public class SSAPAuthenticator extends Authenticator{
             //initUI();
         }
 
+        /**
+         * constructor for dialog window with given size
+         * 
+         * @param serverRealm the realm string of the calling server
+         * @param givenSize the size of the dialog window
+         */
         public AuthDialog(String serverRealm, Dimension givenSize) 
         {
             super();
@@ -229,6 +229,11 @@ public class SSAPAuthenticator extends Authenticator{
             //initUI();
         }
 
+        /**
+         * initUI UI initialization
+         * 
+         * @param firstTry true if it's the first password try, false if the first try was wrong.
+         */
         private final void initUI(boolean firstTry) 
         {
            
@@ -245,14 +250,6 @@ public class SSAPAuthenticator extends Authenticator{
            
             add(message);
 
-   /*         JPanel realmPanel = new JPanel();
-            realmPanel.setLayout( new BoxLayout(realmPanel,BoxLayout.X_AXIS));
-            JLabel realm = new JLabel("Realm: ");
-            realmPanel.add(realm);
-            realmData = new JTextField(server);        
-            realmPanel.add(realmData);
-            add(realmPanel);
- */           
             JPanel userPanel = new JPanel();
             userPanel.setLayout( new BoxLayout(userPanel,BoxLayout.X_AXIS));
             JLabel user = new JLabel("Username: ");
@@ -293,7 +290,11 @@ public class SSAPAuthenticator extends Authenticator{
             setVisible(true);
 
         }
-
+        /**
+         * ActionPerformed
+         * 
+         * @param e event triggering action
+         */
         public void actionPerformed(ActionEvent e) {
 
             Object command = e.getActionCommand();
@@ -326,51 +327,82 @@ public class SSAPAuthenticator extends Authenticator{
             }
 
         }
-
+        
+        /**
+         * processPassword
+         * 
+         * create an authentication string from username and password
+         */
         private void processPassword()
         {
-            authString = userData.getText()+":"+new String(passData.getPassword());
+            
             username = userData.getText();
             password= passData.getPassword();
+            authString = username+":"+new String(password);
+            
             //  byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
             //  authStringEnc = new String(authEncBytes);       
         }
 
+        /**
+         * skip
+         * returns skip
+         */
         public boolean skipThis()
         {
             return skip;
         }
+        /**
+         * skipAll
+         * @returns skipAll
+         */
         public boolean skipAll()
         {
             return skipall;
         }
+        
+        /**
+         * getRealm
+         * @returns the realm string
+         */
         public String getRealm()
         {
             return realm;
         }
-        
+        /**
+         * getAauthString
+         * 
+         * @param firstTry = true if it's the first time the user tries to authenticate to this realm, false otherwise
+         * @return the authentication string
+         */
         public String getAuthString(boolean firstTry)
         {
             initUI(firstTry);
             // return(authStringEnc);
             return(authString);
-        }
+        } //getAuthString
+        
+        /**
+         * getAuthentication()
+         * 
+         * @param firstTry  true if it's the first time the user tries to authenticate to this realm, false otherwise
+         * @param realm the realm
+         * @return a password authentication bject
+         */
         public PasswordAuthentication getAuthentication(boolean firstTry, String realm)
         {
           
             if (realm != null)
                 this.realm = realm;
-           
-            //prompt="Please enter accessp information for realm "+realm;
       
             initUI(firstTry);
           
             if (username==null || password == null)
                 return null;
             return(new PasswordAuthentication(username,password));
-        }
+        } //getAuthentication
 
   
-    }
+    } //AuthDialog
 
-}
+} // SSAPAuthentication
