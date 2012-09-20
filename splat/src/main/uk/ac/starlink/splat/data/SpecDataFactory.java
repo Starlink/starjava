@@ -128,6 +128,7 @@ public class SpecDataFactory
         "table",
         "line ids",
         "guess"
+   
     };
 
     /**
@@ -151,7 +152,7 @@ public class SpecDataFactory
         {"fits", "fit"},
         {"sdf"},
         {"txt", "lis"},
-        {"xml"},
+        {"xml", "vot"}, // changed MCN 
         {"*"},
         {"ids"}
     };
