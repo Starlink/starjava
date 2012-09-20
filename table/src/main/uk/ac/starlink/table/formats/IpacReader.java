@@ -155,6 +155,9 @@ class IpacReader implements RowSequence {
      * @return   data token array
      */
     private String[] getDataTokens() throws IOException {
+        if ( dataLine_ == null ) {
+            throw new IllegalStateException( "next() not yet called" );
+        }
         if ( dataTokens_ == null ) {
             dataTokens_ = readDataTokens( dataLine_ );
         }
