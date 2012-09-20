@@ -34,6 +34,8 @@ import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableWriter;
+import uk.ac.starlink.table.formats.IpacTableBuilder;
+import uk.ac.starlink.table.formats.IpacTableWriter;
 import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.util.DataSource;
@@ -249,6 +251,7 @@ public class FormatsTest extends TableCase {
             "ascii",
             "csv",
             "csv-noheader",
+            "ipac",
             "tst",
             "html",
             "html-element",
@@ -421,6 +424,8 @@ public class FormatsTest extends TableCase {
                            new AsciiTableBuilder(), "text" );
         exerciseReadWrite( new CsvTableWriter( true ),
                            new CsvTableBuilder(), "text" );
+        exerciseReadWrite( new IpacTableWriter(),
+                           new IpacTableBuilder(), "ipac" );
         exerciseReadWrite( new TstTableWriter(),
                            new TstTableBuilder(), "text" );
                     
@@ -472,6 +477,9 @@ public class FormatsTest extends TableCase {
         }
         else if ( "text".equals( equalMethod ) ) {
             assertTextTableEquals( t1, t2 );
+        }
+        else if ( "ipac".equals( equalMethod ) ) {
+            assertIpacTableEquals( t1, t2 );
         }
         else if ( "exact".equals( equalMethod ) ) {
             assertTableEquals( t1, t2 );
@@ -537,6 +545,17 @@ public class FormatsTest extends TableCase {
 
     private void assertTextTableEquals( StarTable t1, StarTable t2 )
             throws IOException {
+        assertTextTableEquals( t1, t2, false );
+    }
+   
+    private void assertIpacTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
+        assertTextTableEquals( t1, t2, true );
+    }
+
+    private void assertTextTableEquals( StarTable t1, StarTable t2, 
+                                        boolean trimString )
+            throws IOException {
         int ncol = t1.getColumnCount();
         assertEquals( ncol, t2.getColumnCount() );
         char[] types = new char[ ncol ];
@@ -587,14 +606,18 @@ public class FormatsTest extends TableCase {
                                               ((Number) val2).doubleValue() );
                                 break;
                             case 's':
-                                if ( ((String) val1).length() > 24 ) {
-                                    assertEquals(
-                                        ((String) val1).substring( 0, 24 ),
-                                        ((String) val2).substring( 0, 24 ) );
+                                String s1 = (String) val1;
+                                String s2 = (String) val2;
+                                if ( trimString ) {
+                                    s1 = s1.trim();
+                                    s2 = s2.trim();
+                                }
+                                if ( s1.length() > 24 ) {
+                                    assertEquals( s1.substring( 0, 24 ),
+                                                  s2.substring( 0, 24 ) );
                                 }
                                 else {
-                                    assertEquals( (String) val1,
-                                                  (String) val2 );
+                                    assertEquals( s1, s2 );
                                 }
                                 break;
                             case 'o':

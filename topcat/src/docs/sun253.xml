@@ -1504,6 +1504,15 @@ such as some spreadsheets or databases.
 
 </subsubsubsect>
 
+<subsubsubsect id="outIpac">
+<subhead><title>IPAC</title></subhead>
+
+<p>Tables can be wrtten to the IPAC data format,
+described in more detail in <ref id="inIpac"/>.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="outTst">
 <subhead><title>Tab-Separated Table</title></subhead>
 
@@ -15407,6 +15416,7 @@ introduced since the last version:
     <li>IPAC format "long"/"l" column type, apparently now official,
         now accepted without warning.  IPAC headers may now use minus
         signs instead of whitespace.</li>
+    <li>Add IPAC output format.</li>
     <li>Update URLs for GAVO Millennium database service at request of
         Gerard Lemson.</li>
     <li>Cope with 1-column CSV files.</li>

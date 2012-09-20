@@ -1975,6 +1975,9 @@ Matching is case-insensitive.
 <dt><code>csv-noheader</code></dt>
 <dd><p>Comma-Separated Value format with no header line.</p></dd>
 
+<dt><code>ipac</code></dt>
+<dd><p>IPAC Table Format.</p></dd>
+
 <dt><code>tst</code></dt>
 <dd><p>Tab-Separated Table format.</p></dd>
 
@@ -8238,6 +8241,7 @@ but my thanks are especially due to the following:
     <li>IPAC format "long"/"l" column type, apparently now official,
         now accepted without warning.  IPAC headers may now use minus
         signs instead of whitespace.</li>
+    <li>Add IPAC table output format.</li>
     <li>Cope with 1-column CSV files.</li>
     </ul>
     </p></dd>
