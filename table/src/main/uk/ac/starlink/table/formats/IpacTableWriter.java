@@ -3,6 +3,7 @@ package uk.ac.starlink.table.formats;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -61,7 +62,9 @@ public class IpacTableWriter extends AbstractTextTableWriter {
     }
 
     public String formatValue( Object val, ValueInfo info, int width ) {
-        return info.formatValue( val, width );
+        return Tables.isBlank( val )
+             ? NULL
+             : info.formatValue( val, width );
     }
 
     public void printColumnHeads( OutputStream out, int[] colwidths,
