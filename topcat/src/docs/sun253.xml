@@ -3601,6 +3601,13 @@ The meaning of the flags is as follows:
     information about this.
     </p></dd>
 
+<dt>-debug</dt>
+<dd><p>The <code>-debug</code> flag affects how logging messages appear
+    (whether they appear is affected by the <code>-verbose</code> flag).
+    If present, these messages will provide more detail about where
+    each message was generated from.
+    </p></dd>
+
 <dt>-demo</dt>
 <dd><p>The <code>-demo</code> flag causes the program to start up with
     a few demonstration tables loaded in.  You can use these to play
@@ -15420,6 +15427,7 @@ introduced since the last version:
     <li>Update URLs for GAVO Millennium database service at request of
         Gerard Lemson.</li>
     <li>Cope with 1-column CSV files.</li>
+    <li>Add <code>-debug</code> flag to manage logging messages better.</li>
     </ul>
     </p>
     </dd>
