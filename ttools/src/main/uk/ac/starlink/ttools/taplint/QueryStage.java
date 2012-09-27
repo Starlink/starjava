@@ -162,6 +162,9 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to test
          */
         private void runOneColumn( TableMeta tmeta ) {
+            if ( ! checkHasColumns( tmeta ) ) {
+                return;
+            }
             final int nr0 = 10;
             String tname = tmeta.getName();
 
@@ -251,6 +254,9 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to run tests on
          */
         private void runSomeColumns( TableMeta tmeta ) {
+            if ( ! checkHasColumns( tmeta ) ) {
+                return;
+            }
 
             /* Assemble column specifiers for the query. */
             String talias = tmeta.getName().substring( 0, 1 );
@@ -306,6 +312,11 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to run tests on
          */
         private void runJustMeta( TableMeta tmeta ) {
+            if ( ! checkHasColumns( tmeta ) ) {
+                return;
+            }
+
+            /* Run test. */
             ColSpec cspec = new ColSpec( tmeta.getColumns()[ 0 ] );
             String adql = new StringBuffer()
                 .append( "SELECT " )
@@ -368,6 +379,24 @@ public class QueryStage implements Stage {
                 checkMeta( adql, colSpecs, table );
             }
             return table;
+        }
+
+        /**
+         * Checks that at least one column exists in a table metadata item.
+         * If not, a FAILURE report is made and false is returned.
+         *
+         * @param   tmeta  table metadata object
+         * @return  true iff tmeta has at least one column
+         */
+        private boolean checkHasColumns( TableMeta tmeta ) {
+            boolean hasColumns = tmeta.getColumns().length > 0;
+            if ( ! hasColumns ) {
+                reporter_.report( ReportType.FAILURE, "ZCOL",
+                                  "No columns known for table "
+                                + tmeta.getName() );
+       
+            }
+            return hasColumns;
         }
 
         /**
