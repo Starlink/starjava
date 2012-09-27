@@ -2,8 +2,8 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import javax.swing.JComponent;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -78,9 +78,8 @@ public class SizingScrollPane extends JScrollPane {
      */
     private SizeConfig getConfig() {
         if ( config_ == null ) {
-            config_ = new SizeConfig( ((Graphics2D) getGraphics())
-                                     .getDeviceConfiguration()
-                                     .getBounds().getSize() );
+            config_ = new SizeConfig( Toolkit.getDefaultToolkit()
+                                             .getScreenSize() );
         }
         return config_;
     }

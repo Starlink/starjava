@@ -15428,6 +15428,7 @@ introduced since the last version:
         Gerard Lemson.</li>
     <li>Cope with 1-column CSV files.</li>
     <li>Add <code>-debug</code> flag to manage logging messages better.</li>
+    <li>Fix possible bug(s) related to running on Java 1.7 on Mac.</li>
     </ul>
     </p>
     </dd>
