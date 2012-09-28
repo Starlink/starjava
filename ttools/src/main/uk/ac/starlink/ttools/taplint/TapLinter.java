@@ -63,14 +63,14 @@ public class TapLinter {
         tapSchemaMetadata_ = new TapSchemaMetadataHolder();
         MetadataHolder metaHolder =
                 new AnyMetadataHolder( new MetadataHolder[] {
-            tmetaStage_,
             tapSchemaStage_,
+            tmetaStage_,
             tapSchemaMetadata_,
         } );
         MetadataHolder declaredMetaHolder =
                 new AnyMetadataHolder( new MetadataHolder[] {
-            tmetaStage_,
             tapSchemaStage_,
+            tmetaStage_,
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
