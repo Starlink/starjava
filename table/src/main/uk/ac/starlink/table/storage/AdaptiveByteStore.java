@@ -163,7 +163,7 @@ public class AdaptiveByteStore implements ByteStore {
          * end of the memory buffer, shift to phase 2: copy all the data
          * from memory to a file, and continue. */
         if ( file_ == null ) {
-            assert count_ < memLimit_;
+            assert count_ <= memLimit_;
             if ( c1 > memLimit_ ) {
                 baseOut_.close();
                 file_ = createFile();
