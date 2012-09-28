@@ -135,7 +135,7 @@ public class TapSchemaStage extends TableMetadataStage {
          */
         public LintTapSchemaInterrogator( Reporter reporter, URL serviceUrl,
                                           TapRunner tapRunner ) {
-            super( serviceUrl );
+            super( serviceUrl, 0 );
             reporter_ = reporter;
             tapRunner_ = tapRunner;
         }
