@@ -8243,6 +8243,9 @@ but my thanks are especially due to the following:
         signs instead of whitespace.</li>
     <li>Add IPAC table output format.</li>
     <li>Cope with 1-column CSV files.</li>
+    <li>Use "<code>rows</code>"/"<code>bytes</code>"
+        rather than "<code>row</code>"/"<code>byte</code>"
+        for TAP capability unit values.</li>
     </ul>
     </p></dd>
 

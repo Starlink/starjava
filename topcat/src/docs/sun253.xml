@@ -15429,6 +15429,9 @@ introduced since the last version:
     <li>Cope with 1-column CSV files.</li>
     <li>Add <code>-debug</code> flag to manage logging messages better.</li>
     <li>Fix possible bug(s) related to running on Java 1.7 on Mac.</li>
+    <li>Use "<code>rows</code>"/"<code>bytes</code>" 
+        rather than "<code>row</code>"/"<code>byte</code>"
+        for TAP capability unit values.</li>
     </ul>
     </p>
     </dd>

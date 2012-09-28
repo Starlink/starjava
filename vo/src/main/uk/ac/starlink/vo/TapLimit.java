@@ -18,10 +18,10 @@ public class TapLimit {
     public static final String SECONDS = "seconds";
 
     /** Unit string used for a data limit of rows ({@value}). */
-    public static final String ROWS = "rows";
+    public static final String ROWS = "row";
 
     /** Unit string used for a data limit of bytes ({@value}). */
-    public static final String BYTES = "bytes";
+    public static final String BYTES = "byte";
 
     /**
      * Constructor.

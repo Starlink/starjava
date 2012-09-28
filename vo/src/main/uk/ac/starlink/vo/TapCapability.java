@@ -75,7 +75,7 @@ public abstract class TapCapability {
     /**
      * Returns an array of limit values representing the data limits for
      * result tables.
-     * Legal values for limit units are "rows" or "bytes".
+     * Legal values for limit units are "row" or "byte".
      *
      * @return   output table limits
      */
@@ -84,7 +84,7 @@ public abstract class TapCapability {
     /**
      * Returns an array of limit values representing the data limits for
      * uploaded tables.
-     * Legal values for limit units are "rows" or "bytes".
+     * Legal values for limit units are "row" or "byte".
      *
      * @return   upload table limits
      */
