@@ -92,7 +92,7 @@ resultsFile = pathToFile( bsh.args[2] );
 // class, which understands the various specifications and data
 // types.
 try {
-    spectrum = SpecDataFactory.getReference().get( bsh.args[3] );
+    spectrum = SpecDataFactory.getInstance().get( bsh.args[3] );
 }
 catch (Exception badSpecification) {
     print( badSpecification.printStackTrace() );
@@ -100,7 +100,7 @@ catch (Exception badSpecification) {
     usage();
 }
 try {
-    background = SpecDataFactory.getReference().get( bsh.args[4] );
+    background = SpecDataFactory.getInstance().get( bsh.args[4] );
 }
 catch (Exception badSpecification) {
     print( badSpecification.printStackTrace() );
@@ -211,7 +211,7 @@ while ( ( line = bufReader.readLine() ) != null ) {
 
     //  Fit the line! First by the QuickFitter to get the equivalent
     //  width and accurate position.
-    quickFitter = new QuickLineFitter( specCoords, fitData, backData );
+    quickFitter = new QuickLineFitter( specCoords, fitData, backData, 0.0 );
     if ( quickFitter.isAbsorption() ) {
         quickPeak = -quickFitter.getPeak();
     }

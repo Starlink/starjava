@@ -137,7 +137,7 @@ for ( i = 3; i < bsh.args.length; i++ ) {
     // types (i.e. you can use any specification that SPLAT
     // understands).
     try {
-        spectrum = SpecDataFactory.getReference().get( bsh.args[i] );
+        spectrum = SpecDataFactory.getInstance().get( bsh.args[i] );
     }
     catch (Exception badSpecification) {
         print( badSpecification.printStackTrace() );
@@ -172,7 +172,7 @@ for ( i = 3; i < bsh.args.length; i++ ) {
         //  Get the new position using the QuickLineFitter. Note no
         //  background so most values not useful.
         quickFitter = new QuickLineFitter( subSpectrum.getXData(), 
-                                           subSpectrum.getYData(), null );
+                                           subSpectrum.getYData(), null, 0.0 );
 
         //  Record the results.
         record( outputStream, wavelength + ", " + quickFitter.getCentre() );

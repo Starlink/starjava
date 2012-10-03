@@ -85,7 +85,7 @@ resultsFile = pathToFile( bsh.args[2] );
 // class, which understands the various specifications and data
 // types (i.e. you can use any specification that SPLAT understands).
 try {
-    spectrum = SpecDataFactory.getReference().get( bsh.args[3] );
+    spectrum = SpecDataFactory.getInstance().get( bsh.args[3] );
 }
 catch (Exception badSpecification) {
     print( badSpecification.printStackTrace() );
@@ -174,7 +174,7 @@ while ( ( line = inputStream.readLine() ) != null ) {
 
     //  Fit the line! First by the QuickFitter to get an estimate of
     //  the peak value.
-    quickFitter = new QuickLineFitter( specCoords, specData, null );
+    quickFitter = new QuickLineFitter( specCoords, specData, null, 0.0 );
     if ( quickFitter.isAbsorption() ) {
         quickPeak = -quickFitter.getPeak();
     }
