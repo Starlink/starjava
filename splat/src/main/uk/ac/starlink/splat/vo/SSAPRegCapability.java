@@ -1,20 +1,24 @@
 
 package uk.ac.starlink.splat.vo;
 
-import uk.ac.starlink.vo.RegCapabilityInterface;
+//import uk.ac.starlink.vo.RegCapabilityInterface;
 
 /**
  *  Concrete implementation of {@link RegCapabilityInterface} that
  *  allows mutability and bean access.
  */
 public class SSAPRegCapability 
-    implements RegCapabilityInterface
+  //  implements RegCapabilityInterface
 {
     private String accessUrl;
     private String standardId;
     private String description;
     private String version;
     private String xsiType;
+    private String dataSource;
+    private String creationType;
+    private String dataType;
+  
 
     /**
      * Constructor.
@@ -28,14 +32,20 @@ public class SSAPRegCapability
      * Constructor with settings from a {@link RegCapabilityInterface}
      * instance.
      */
-    public SSAPRegCapability( RegCapabilityInterface rci )
+    public SSAPRegCapability( SSAPRegCapability rci )
     {
         accessUrl = rci.getAccessUrl();
         standardId= rci.getStandardId();
         description = rci.getDescription();
         version = rci.getVersion();
         xsiType = rci.getXsiType();
+        dataSource = rci.getDataSource();
+        creationType = rci.getCreationType();
+        dataType = rci.getDataType();
+      
     }
+
+   
 
     /**
      * Constructor to manually add a  simple resource capability
@@ -46,7 +56,7 @@ public class SSAPRegCapability
         setAccessUrl( newAccessUrl );
     }
 
-
+  
     public String getAccessUrl()
     {
         return accessUrl;
@@ -54,7 +64,7 @@ public class SSAPRegCapability
 
     public void setAccessUrl( String accessUrl )
     {
-        this. accessUrl = accessUrl;;
+        this.accessUrl = accessUrl;
     }
 
     public String getStandardId()
@@ -96,4 +106,27 @@ public class SSAPRegCapability
     {
         this.xsiType = xsiType;
     }
+    
+    public String getDataSource() {
+        return dataSource;
+    }
+    public void setDataSource( String dataSource )
+    {
+        this.dataSource = dataSource;
+    }
+    public String getCreationType() {
+        return creationType;
+    }
+    public void setCreationType( String dataSource )
+    {
+        this.creationType = creationType;
+    }
+    public String getDataType() {
+        return dataType;
+    }
+    public void setDataType( String dataType )
+    {
+        this.dataType = dataType;
+    }
+   
 }
