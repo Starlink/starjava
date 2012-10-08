@@ -269,7 +269,7 @@ implements ActionListener
     /**
      *  Returns the new resource to be added to the list
      */
-    public RegResource getResource()
+    public SSAPRegResource getResource()
     {
         return newResource;
     }
