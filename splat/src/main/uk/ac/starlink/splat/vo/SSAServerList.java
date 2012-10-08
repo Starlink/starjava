@@ -39,7 +39,8 @@ import uk.ac.starlink.vo.RegResource;
  */
 public class SSAServerList
 {
-    private HashMap serverList = new HashMap();
+    private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
+    private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
     private static String configFile = "SSAPServerListV3.xml";
     private static String defaultFile = "serverlist.xml";
 
@@ -54,7 +55,7 @@ public class SSAServerList
      *
      * @param server an instance of RegResource.
      */
-    public void addServer( RegResource server )
+    public void addServer( SSAPRegResource server )
     {
         addServer( server, true );
     }
@@ -65,7 +66,7 @@ public class SSAServerList
      * @param server an instance of RegResource.
      * @param save if true then the backing store of servers should be updated.
      */
-    protected void addServer( RegResource server, boolean save )
+    protected void addServer( SSAPRegResource server, boolean save )
     {
         serverList.put( server.getShortName(), server );
         if ( save ) {
@@ -83,11 +84,14 @@ public class SSAServerList
      *
      * @param server an instance of RegResource.
      */
-    public void removeServer( RegResource server )
+    public void removeServer( SSAPRegResource server )
     {
         serverList.remove( server.getShortName() );
     }
-
+    public void removeServer( String shortName )
+    {
+        serverList.remove( shortName );
+    }
 
     /**
      * Return an Iterator over the known servers. The objects iterated over
@@ -130,11 +134,21 @@ public class SSAServerList
      * Return an array of {@link RegResource} instances that describe the
      * current list of servers.
      */
-    public RegResource[] getData()
+    public SSAPRegResource[] getData()
     {
-        RegResource[] rra = new RegResource[serverList.size()];
-        rra = (RegResource[]) serverList.values().toArray( rra );
+        SSAPRegResource[] rra = new SSAPRegResource[serverList.size()];
+        rra = (SSAPRegResource[]) serverList.values().toArray( rra );
         return rra;
+    }
+    
+    /**
+     * Return a {@link SSAPRegResource} instance matching the short name given
+     * current list of servers.
+     * @param shortname
+     */
+    public SSAPRegResource getResource(String shortname)
+    {
+        return (SSAPRegResource) serverList.get(shortname);
     }
 
     /**
@@ -247,6 +261,7 @@ public class SSAServerList
             try {
                 server = (SSAPRegResource) decoder.readObject();
                 serverList.put( server.getShortName(), server );
+                selectionList.put(server.getShortName(), true );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.
@@ -307,10 +322,10 @@ public class SSAServerList
 
         //  Note these have to be SSAPRegResource instances, not RegResource.
         //  So that they can be serialised as beans.
-        RegResource server = null;
+        SSAPRegResource server = null;
         SSAPRegResource resource = null;
         while ( i.hasNext() ) {
-            server = (RegResource) i.next();
+            server = (SSAPRegResource) i.next();
             try {
                 resource = new SSAPRegResource( server );
                 encoder.writeObject( resource );
@@ -325,4 +340,27 @@ public class SSAServerList
     public int getSize() {
         return serverList.size();
     }
+    
+    /**
+     * set selection tag
+     */
+     public void selectServer(String shortname) {
+         if (serverList.containsKey(shortname))
+                 selectionList.put(shortname, true);
+     }
+     /**
+      * set selection tag
+      */
+      public void unselectServer(String shortname) {
+          if (serverList.containsKey(shortname))
+                  selectionList.put(shortname, false);
+      }
+      /**
+       * returns selection tag
+       */
+       public boolean isServerSelected(String shortname) {
+           if (serverList.containsKey(shortname))
+                   return selectionList.get(shortname);
+           return false;
+       }
 }
