@@ -397,7 +397,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   gblayout.setConstraints(centrePanel, c);
    //     contentPane.add( centrePanel);//, BorderLayout.LINE_END );
         
-       // this.setPreferredSize(ç);
+       // this.setPreferredSize();
       //  contentPane.setSize(800, 600);
        // this.setSize(new Dimension(800,600));
       
