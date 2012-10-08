@@ -57,16 +57,18 @@ class SSAMetadataParser
     /** The SSA query  URL */
     private static String query = "REQUEST=queryData&FORMAT=METADATA";
 
-    
+    /** the server short name */
+    private String server;
     /**
      * Constructor: 
      * @param  server  - is the SSA server to be queried for metadata
      */ 
 
-    public SSAMetadataParser( RegResource server ) 
+    public SSAMetadataParser( SSAPRegResource server ) 
     {
-        RegCapabilityInterface[] rci = server.getCapabilities();
+        SSAPRegCapability[] rci = server.getCapabilities();
         this.baseURL = rci[0].getAccessUrl(); 
+        this.server = server.getShortName();
      
     }
 
@@ -99,7 +101,7 @@ class SSAMetadataParser
 
 
     /**
-     * ParseMetadata 
+     * QueryMetadata 
      * makes a query and parses the resulting VOTable 
      * (no progress panel display)
      * 
@@ -115,7 +117,7 @@ class SSAMetadataParser
 
 
     /**
-     * ParseMetadata 
+     * QueryMetadata 
      * makes a query and parses the resulting VOTable, updating a progress panel
      * 
      * @param url the ssa server url  to be  queried
@@ -208,7 +210,7 @@ class SSAMetadataParser
 
 
     /**
-     * Returns the PARAM elements for this table.
+     * Returns the PARAM elements for this table. The server name is also added to the list.
      *
      * @param voe - the VO Element containing the parameters
      * @return the PARAM elements which are children of this table
