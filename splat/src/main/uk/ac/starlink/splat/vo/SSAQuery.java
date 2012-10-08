@@ -21,6 +21,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
@@ -90,14 +91,39 @@ public class SSAQuery
     public SSAQuery( String baseURL )
     {
         this.baseURL = baseURL;
-    }
+        this.description = null;
 
+ 
+    }
+    /**
+     * Create an instance copying another query
+     */
+    public SSAQuery( SSAQuery q )
+    {
+        this.baseURL = q.baseURL;
+        this.description = q.description;
+        this.queryRA = q.queryRA;
+        this.queryDec = q.queryDec;
+        this.targetName = q.targetName; 
+        this.queryRadius = q.queryRadius ;
+        this.queryFormat = q.queryFormat ;
+        this.waveCalib = q.waveCalib ;
+        this.fluxCalib = q.fluxCalib ;
+        this.queryBandUpper = q.queryBandUpper;
+        this.queryBandLower = q.queryBandLower;
+        this.queryTimeUpper = q.queryTimeUpper ;
+        this.queryTimeLower = q.queryTimeLower ;
+        this.starTable = q.starTable; 
+
+    }
+  
     /**
      * Create an instance with the given SSA service.
      */
-    public SSAQuery( RegResource server )
+    public SSAQuery( SSAPRegResource server )
     {
-        RegCapabilityInterface[] rci = server.getCapabilities();
+        //RegCapabilityInterface[] 
+                SSAPRegCapability [] rci = server.getCapabilities();
         this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per
                                                //  interface. 
         this.description = server.getShortName();
@@ -251,9 +277,15 @@ public class SSAQuery
      * server and the content downloaded as a VOTable (which should then be
      * used to create a StarTable).
      */
-    public URL getQueryURL()
+    public URL getQueryURL() 
         throws MalformedURLException, UnsupportedEncodingException
+    {  
+        return new URL(getQueryURLText());
+    }
+    
+    public String getQueryURLText() throws UnsupportedEncodingException
     {
+          
         //  Note that some baseURLs may have an embedded ?.
         StringBuffer buffer = new StringBuffer( baseURL );
         if ( baseURL.indexOf( '?' ) == -1 ) {
@@ -279,9 +311,10 @@ public class SSAQuery
         else if ( targetName != null ) {
             buffer.append( "&TARGETNAME=" + URLEncoder.encode(targetName,"UTF-8"));
         }
-        if ( queryFormat != null ) {
+        if ( queryFormat != null && !queryFormat.equalsIgnoreCase("None")) {
             buffer.append( "&FORMAT=" + queryFormat );
         }
+        
         buffer.append( "&SIZE=" + queryRadius );
 
         //  The spectral bandpass. SSAP spec allows "lower/upper" range,
@@ -306,12 +339,21 @@ public class SSAQuery
         }
 
         //  Wavelength and flux calibrations.
-        if ( waveCalib != null ) {
+        if ( waveCalib != null && !waveCalib.equalsIgnoreCase("None")) {
             buffer.append( "&WAVECALIB=" + waveCalib );
         }
-        if ( fluxCalib != null ) {
+        if ( fluxCalib != null && !fluxCalib.equalsIgnoreCase("None")) { 
             buffer.append( "&FLUXCALIB=" + fluxCalib );
         }
-        return new URL( buffer.toString() );
+        return  buffer.toString();
     }
+    
+    public void setServer( SSAPRegResource server) {             
+   
+        SSAPRegCapability [] rci = server.getCapabilities();
+        this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per   interface. 
+        this.description = server.getShortName();
+    }
+        
+ 
 }
