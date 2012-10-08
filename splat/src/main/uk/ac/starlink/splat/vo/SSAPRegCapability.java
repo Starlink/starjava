@@ -58,7 +58,7 @@ public class SSAPRegCapability
 
   
    
-	 /**
+    /**
      * Constructor to manually add a  simple resource capability
      */
     public SSAPRegCapability( String newDescription, String newAccessUrl,  String newDataSource )
@@ -67,7 +67,6 @@ public class SSAPRegCapability
         setAccessUrl( newAccessUrl );
         setDataSource(newDataSource);
     }
-
 
     public String getAccessUrl()
     {
