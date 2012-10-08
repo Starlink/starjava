@@ -22,7 +22,7 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.vo.RegResource;
-import uk.ac.starlink.vo.RegistryQuery;
+//import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.RegistryQueryPanel;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 
@@ -33,12 +33,13 @@ import uk.ac.starlink.vo.RegistryTableLoadDialog;
  *
  * @author Peter W. Draper
  * @author Mark Taylor (Starlink)
+ * @author Margarida Castro Neves (adapted source to SSAP queries with extended parameters)
  * @version $Id: SSARegistryQueryDialog.java 9052 2009-12-09 18:48:37Z mbt $
  */
 public class SSARegistryQueryDialog
     extends RegistryTableLoadDialog
 {
-    private RegistryQueryPanel rqPanel_;
+    private SSAPRegistryQueryPanel rqPanel_;
     private static Boolean available_;
     private StarTable table_;
 
@@ -48,6 +49,7 @@ public class SSARegistryQueryDialog
             "capability/@standardID = 'ivo://ivoa.net/std/SSA'"
         };
 
+    
     public String getName()
     {
         return "SSAP Registry Query";
@@ -60,7 +62,7 @@ public class SSARegistryQueryDialog
 
     protected Component createQueryComponent()
     {
-        rqPanel_ = new RegistryQueryPanel();
+        rqPanel_ = new SSAPRegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQuery_ );
         return rqPanel_;
     }
@@ -68,16 +70,17 @@ public class SSARegistryQueryDialog
     public TableLoader createTableLoader()
     {
         try {
-            final RegistryQuery query = rqPanel_.getRegistryQuery();
+            final SSAPRegistryQuery query = rqPanel_.getRegistryQuery();
+          
             return new TableLoader()
                 {
                     public TableSequence loadTables( StarTableFactory factory )
                             throws IOException
                     {
-                        RegResource[] resources = query.getQueryResources();
+                        SSAPRegResource[] resources = query.getQueryResources();
                         BeanStarTable st;
                         try {
-                            st = new BeanStarTable( RegResource.class );
+                            st = new BeanStarTable( SSAPRegResource.class );
                         }
                         catch ( IntrospectionException e ) {
                             throw (IOException)
