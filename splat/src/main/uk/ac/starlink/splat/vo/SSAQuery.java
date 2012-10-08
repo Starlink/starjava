@@ -342,7 +342,7 @@ public class SSAQuery
         if ( waveCalib != null && !waveCalib.equalsIgnoreCase("None")) {
             buffer.append( "&WAVECALIB=" + waveCalib );
         }
-        if ( fluxCalib != null && !fluxCalib.equalsIgnoreCase("None")) { 
+        if ( fluxCalib != null && !fluxCalib.equalsIgnoreCase("None")) {
             buffer.append( "&FLUXCALIB=" + fluxCalib );
         }
         return  buffer.toString();
