@@ -21,6 +21,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Construct a URL query for contacting an SSA server. Also hold various
@@ -460,4 +461,6 @@ public class SSAQuery
         return new URL(newURL);
         
     }
+        
+ 
 }
