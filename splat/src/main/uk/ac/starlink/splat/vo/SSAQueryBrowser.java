@@ -8,15 +8,20 @@
  *     23-FEB-2012 (Margarida Castro Neves, mcneves@ari.uni-heidelberg.de)
  *       Added support for customized metadata parameters.  
  *       Ported SwingWorker from jsky.util.SwingWorker to javax.swing.SwingWorker
+ *     08-OCT-2012 Redesigned new GUI
  */
 package uk.ac.starlink.splat.vo;
 
 
 import java.awt.BorderLayout;
+import java.awt.Checkbox;
+import java.awt.CheckboxGroup;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -39,6 +44,7 @@ import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -51,6 +57,9 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -62,6 +71,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
@@ -116,6 +126,7 @@ import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableWriter;
+import javax.swing.BoxLayout;
 
 
 /**
@@ -125,6 +136,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  *
  * @author Peter W. Draper
  * @author Mark Taylor
+ * @author Margarida Castro Neves 
  * @version $Id$
  *
  */
@@ -133,8 +145,7 @@ extends JFrame
 implements ActionListener, MouseListener, PropertyChangeListener
 {
     // Logger.
-    private static Logger logger =
-            Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
+    private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
 
     /** UI preferences. */
     protected static Preferences prefs =
@@ -142,7 +153,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-            new Rectangle( 0, 0, 650, 700 );
+            new Rectangle( 0, 0, 600, 600 );
 
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
@@ -163,8 +174,10 @@ implements ActionListener, MouseListener, PropertyChangeListener
     /** Centre panel */
     protected JPanel centrePanel = null;
 
-    /** Centre panel */
-    protected JPanel serverPanel = null;
+    /** Servers panel */
+    protected JPanel leftPanel = null;
+    private JPanel leftPanel_1;
+    
     
     /** Query panel */
     protected JPanel queryPanel = null;
@@ -233,14 +246,25 @@ implements ActionListener, MouseListener, PropertyChangeListener
     /** Upper limits for TIME */
     protected JTextField upperTimeField = null;
 
+    /** The query text */
+    protected JTextArea queryText = null;
+    
+    /** The extended query text */
+    protected String extendedQueryText = null;
+    
+
     /** ButtonGroup for the format selection */
     protected ButtonGroup formatGroup = null;
+    protected JComboBox formatList = null;
 
     /** ButtonGroup for the FLUXCALIB selection */
     protected ButtonGroup fluxCalibGroup = null;
+    protected JComboBox flcalibList = null;
+    
 
     /** ButtonGroup for the WAVECALIB selection */
     protected ButtonGroup waveCalibGroup = null;
+    protected JComboBox wlcalibList = null;
 
     /** Tabbed pane showing the query results tables */
     protected JTabbedPane resultsPane = null;
@@ -263,19 +287,38 @@ implements ActionListener, MouseListener, PropertyChangeListener
     /** The SSA servers window */
     protected SSAServerFrame serverWindow = null;
 
+    /** The Button for adding optional parameters to the query */
+    protected JButton addParamButton = null;
+    /** The Button for removing optional parameters from the optional parameters list */
+    protected JButton removeParamButton = null;
+    
     /** The list of all input parameters read from the servers */
     protected static SSAMetadataFrame metaFrame = null;
+    protected static SSAMetadataPanel metaPanel = null;
 
     /** Make sure the proxy environment is setup */
     static {
         ProxySetup.getInstance().restore();
     }
 
+    /* The Query text that will be displayed */
+    private SSAQuery queryLine;
+    
     /** The list of all input parameters read from the servers as a hash map */
     private static HashMap<String, MetadataInputParameter> metaParam=null;  
     
+    /** The list of all input parameters read from the servers as a hash map */
+    private static HashMap< JTextField, String > queryMetaParam=null; 
+    
     /** the authenticator for access control **/
-    private SSAPAuthenticator authenticator;
+    private static SSAPAuthenticator authenticator;
+    
+    /** two way mapping servers-metadata parameters **/
+    private static ServerParamRelation serverParam;
+    
+    /** the serverlist as a tree **/
+    private SSAServerTree tree;
+
 
     /**
      * Create an instance.
@@ -287,6 +330,10 @@ implements ActionListener, MouseListener, PropertyChangeListener
         authenticator = new SSAPAuthenticator();
         Authenticator.setDefault(authenticator);
         specDataFactory.setAuthenticator(authenticator);
+        serverParam = new ServerParamRelation();
+        queryMetaParam = new HashMap< JTextField, String >();
+        if (serverList != null) customParameters();
+       
         initUI();
         initMenusAndToolbar();
         initFrame(); 
@@ -302,23 +349,41 @@ implements ActionListener, MouseListener, PropertyChangeListener
     private void initUI()
     {
         contentPane = (JPanel) getContentPane();
-        contentPane.setLayout( new BorderLayout() );
+        //contentPane.setLayout( new BorderLayout() );
+       // contentPane.setLayout( new GridLayout(1,2,3,3) );
+        contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
         centrePanel = new JPanel( new BorderLayout() );
-       // serverPanel = new JPanel();
-       // contentPane.add( serverPanel, BorderLayout.LINE_START);
-      //  contentPane.add( centrePanel, BorderLayout.LINE_END );
-        contentPane.add( centrePanel, BorderLayout.CENTER );
-
-    //    initServerComponents();
+        leftPanel_1 = new JPanel( );
+     //   leftPanel_1.setPreferredSize(new Dimension(100,600));
+     //   centrePanel.setPreferredSize(new Dimension(500,700));
+        contentPane.add( leftPanel_1);//, BorderLayout.LINE_START);
+        contentPane.add( centrePanel);//, BorderLayout.LINE_END );
+  
+        initServerComponents();
+        
+        
         initQueryComponents();
         initResultsComponent();
         setDefaultNameServers();
     }
 
- //   public void initServerComponents()
- //   {
- //       serverPanel.add(new SSAServerFrame( serverList, false ).getServerPanel());
- //   }
+
+    public void initServerComponents()
+    {
+        leftPanel_1.setLayout(new BoxLayout(leftPanel_1, BoxLayout.Y_AXIS));
+
+        tree=new SSAServerTree( serverList, serverParam );   
+        leftPanel_1.add(tree);
+        //serverPanel.add(tree); 
+       // leftPanel_1.add(serverPanel);
+       // tree.adaptTreeHeight( leftPanel.getHeight());
+     //   JPanel paramPanel = new JPanel();
+       // paramPanel.setBorder ( BorderFactory.createTitledBorder( "SSAP Parameters" ) );
+        //metaPanel = new SSAMetadataPanel();
+      //  paramPanel.add(metaPanel);
+      //  leftPanel.add(paramPanel);
+        //tree.setSize(getMaximumSize());
+    }
     /**
      * Initialise the menu bar, action bar and related actions.
      */
@@ -329,7 +394,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         setJMenuBar( menuBar );
 
         //  Create the toolbar.
-        ToolButtonBar toolBar = new ToolButtonBar( contentPane );
+       // ToolButtonBar toolBar = new ToolButtonBar( contentPane );
         JPanel actionBarContainer = new JPanel();
 
         //  Get icons.
@@ -390,20 +455,20 @@ implements ActionListener, MouseListener, PropertyChangeListener
                 "proxy..." );
         optionsMenu.add( proxyAction );
 
-        //  Add item to control the use of SSA servers.
+ /*       //  Add item to control the use of SSA servers.
         LocalAction serverAction = new LocalAction(LocalAction.SERVER,
                 "Configure SSAP servers...",
                 ssaImage,
                 "Configure SSAP servers" );
         optionsMenu.add( serverAction );
-        toolBar.add( serverAction );
+    //    toolBar.add( serverAction );
 
         //  SSAP version 1 format control, wavelength calibation and
         //  flux calibration options.
         initFormatOptions( optionsMenu );
         initWaveCalibOptions( optionsMenu );
         initFluxCalibOptions( optionsMenu );
-
+*/
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
@@ -453,11 +518,12 @@ implements ActionListener, MouseListener, PropertyChangeListener
         .setMnemonic( KeyEvent.VK_T );
 
         //  Create the Help menu.
-        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
-                menuBar, toolBar );
+//        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
+ //               menuBar, toolBar );
 
         //  ActionBar goes at bottom.
-        contentPane.add( actionBarContainer, BorderLayout.SOUTH );
+        //contentPane.add( actionBarContainer, BorderLayout.SOUTH );
+        centrePanel.add( actionBarContainer, BorderLayout.SOUTH );
     }
 
     /**
@@ -478,70 +544,108 @@ implements ActionListener, MouseListener, PropertyChangeListener
      */
     private void initQueryComponents()
     {
+        queryLine = new SSAQuery("<SERVER>");
         queryPanel = new JPanel();
-        queryPanel.setBorder
-        ( BorderFactory.createTitledBorder( "Search parameters:" ) );
-
-
-        centrePanel.add( queryPanel, BorderLayout.NORTH );
-
-        GridBagLayouter layouter =
-                new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME4 /*SCHEME3*/ );
+        JPanel queryParamPanel = new JPanel();
+       // queryParamPanel.setPreferredSize(new Dimension(300, 200));
+       /// customQueryPanel = new JPanel();
+        queryPanel.setBorder ( BorderFactory.createTitledBorder( "Search parameters:" ) );
+        queryPanel.setLayout( new BorderLayout());
+      // customScrollPanel = new JScrollPane( customQueryPanel );
+        queryParamPanel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill=GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        
+        JPanel simpleQueryPanel = new JPanel();
+     //   simpleQueryPanel.setPreferredSize(new Dimension(100,200));
+        simpleQueryPanel.setBorder(BorderFactory.createTitledBorder("Simple Query"));
+        queryParamPanel.add(simpleQueryPanel, c);
+        
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 0.5;
+        c.gridx = 1;
+        c.gridy = 0;
+       
+        JPanel optionalQueryPanel = new JPanel();
+        optionalQueryPanel.setBorder(BorderFactory.createTitledBorder("Optional Parameters"));
+  //      optionalQueryPanel.setPreferredSize(new Dimension(300,200));
+        queryParamPanel.add(optionalQueryPanel, c);
+        
+       
+        
+      
+        // The simple query panel
+        //------------------------
+        
+       // GridBagLayouter layouter =  new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 /*SCHEME4*/ );
+        GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
 
 
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
-        nameField = new JTextField( 15 );
+        nameField = new JTextField( 10 );
         nameField.setToolTipText( "Enter the name of an object " +
                 " -- press return to get coordinates" );
         nameField.addActionListener( this );
-        layouter.add( nameLabel, false );
-        layouter.add( nameField, false );
-
+        
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
         nameLookup.setToolTipText( "Press to get coordinates of Object" );
-        layouter.add( nameLookup, false );
-
-        customButton = new JButton( "More parameters" );
-        customButton.addActionListener(this);
-        layouter.add( customButton, false );
-      
-        //  Do the search.
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.FIRST_LINE_END;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipady=30;c.ipadx=30;
-        c.gridx=5;
-
-        goButton = new JButton( "    GO    " );
-      //  goButton.setAlignmentX(RIGHT_ALIGNMENT);
-        //goButton.setBackground(Color.green);
-        goButton.addActionListener( this );
-        layouter.add( goButton, c);
-
+        
+        JPanel objPanel = new JPanel( new GridBagLayout());
+        GridBagConstraints gbcs = new GridBagConstraints();
+        gbcs.weightx = 1.0;
+        gbcs.fill = GridBagConstraints.HORIZONTAL;
+        gbcs.ipadx = 15;
+        objPanel.add(nameField, gbcs);
+        objPanel.add(nameLookup, gbcs);
+        layouter.add( nameLabel, false );
+     
+        layouter.add(objPanel, true);
+ 
         layouter.eatLine();
 
+       
         //  RA and Dec fields. We're free-formatting on these (decimal degrees
         //  not required).
-        JLabel raLabel = new JLabel( "RA:" );
-        raField = new JTextField( 30 );
-        layouter.add( raLabel, false );
-        layouter.add( raField, true );
-        raField.setToolTipText( "Enter the RA of field centre, " +
-                "decimal degrees or hh:mm:ss.ss" );
 
+        JLabel raLabel = new JLabel( "RA:" );
+        raField = new JTextField( 10 );
+        raField.addActionListener(this);
+       
         JLabel decLabel = new JLabel( "Dec:" );
-        decField = new JTextField( 30 );
-        layouter.add( decLabel, false );
-        layouter.add( decField, true );
-        decField.setToolTipText( "Enter the Dec of field centre, " +
-                "decimal degrees or dd:mm:ss.ss" );
+        decField = new JTextField( 10 );
+        decField.addActionListener(this);
+        
+        JPanel posPanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+     
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        posPanel.add( raField, gbc );
+        gbc.weightx=0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        posPanel.add(decLabel, gbc);
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        posPanel.add(decField, gbc);
+        
+        layouter.add( raLabel, false );
+        layouter.add(posPanel,true);
+        decField.setToolTipText( "Enter the Dec of field centre, decimal degrees or dd:mm:ss.ss" );
+        raField.setToolTipText( "Enter the RA of field centre, decimal degrees or hh:mm:ss.ss" );
+
+    
+
 
         //  Radius field.
         JLabel radiusLabel = new JLabel( "Radius:" );
-        radiusField = new JTextField( "10.0", 15 );
+        radiusField = new JTextField( "10.0", 10 );
+        queryLine.setRadius(10.0);
+        radiusField.addActionListener( this );
         layouter.add( radiusLabel, false );
         layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
@@ -550,23 +654,27 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
-        lowerBandField = new JTextField( 15 );
-        upperBandField = new JTextField( 15 );
+        lowerBandField = new JTextField( 10 );
+        lowerBandField.addActionListener( this );
+        upperBandField = new JTextField( 10 );
+        upperBandField.addActionListener( this );
 
         JPanel bandPanel = new JPanel( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
+        GridBagConstraints gbc2 = new GridBagConstraints();
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( lowerBandField, gbc );
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( lowerBandField, gbc2 );
 
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        bandPanel.add( new JLabel( "/" ), gbc );
+     
+        gbc2.weightx = 0.0;
+        gbc2.fill = GridBagConstraints.NONE;
+        bandPanel.add( new JLabel( "/" ), gbc2 );
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( upperBandField, gbc );
+ 
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( upperBandField, gbc2 );
 
         layouter.add( bandLabel, false );
         layouter.add( bandPanel, true );
@@ -578,21 +686,26 @@ implements ActionListener, MouseListener, PropertyChangeListener
         //  Time fields, note this shares a line with the band fields.
         JLabel timeLabel = new JLabel( "Time:" );
         lowerTimeField = new JTextField( 15 );
+        lowerTimeField.addActionListener( this );
         upperTimeField = new JTextField( 15 );
+        upperTimeField.addActionListener( this );
 
         JPanel timePanel = new JPanel( new GridBagLayout() );
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        timePanel.add( lowerTimeField, gbc );
+        GridBagConstraints gbc4 = new GridBagConstraints();
+        gbc4.weightx = 1.0;
+        gbc4.fill = GridBagConstraints.HORIZONTAL;
+        timePanel.add( lowerTimeField, gbc4 );
 
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        timePanel.add( new JLabel( "/" ), gbc );
+        GridBagConstraints gbc5 = new GridBagConstraints();
+        gbc5.weightx = 0.0;
+        gbc5.fill = GridBagConstraints.NONE;
+        timePanel.add( new JLabel( "/" ), gbc5 );
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        timePanel.add( upperTimeField, gbc );
+        GridBagConstraints gbc6 = new GridBagConstraints();
+        gbc6.weightx = 1.0;
+        gbc6.fill = GridBagConstraints.HORIZONTAL;
+        timePanel.add( upperTimeField, gbc6 );
 
         layouter.add( timeLabel, false );
         layouter.add( timePanel, true );
@@ -603,8 +716,83 @@ implements ActionListener, MouseListener, PropertyChangeListener
         upperTimeField.setToolTipText( "Upper limit for time coverage, " +
                 "in ISO 8601 format " +
                 "(e.g 2008-10-15T20:48Z)" );
-
+        
+        // format and calibration options:
+        JPanel calibOptions = new JPanel(new GridLayout(3,2));
+        
+        // Formats
+        String[] formats =  { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
+        formatList = new JComboBox(formats);
+        formatList.setSelectedIndex(0);
+        formatList.addActionListener(this);
+        calibOptions.add(new JLabel("Query Format:"), false);
+        calibOptions.add( formatList, true);
+        
+        //Wavelength Calibration
+        String[] wlcalibs = { "None", "any", "absolute", "relative" };
+        wlcalibList = new JComboBox(wlcalibs);
+        wlcalibList.setSelectedIndex(0);
+        wlcalibList.addActionListener(this);
+        calibOptions.add(new JLabel( "Wavelength calibration:"), false);
+        calibOptions.add( wlcalibList, true);
+        
+        //Flux Calibration
+        String[] flcalibs = { "None", "any", "absolute", "relative", "normalized" };
+        flcalibList = new JComboBox(flcalibs);
+        flcalibList.setSelectedIndex(0);
+        flcalibList.addActionListener(this);
+        calibOptions.add(new JLabel( "Flux calibration:"), false);
+        calibOptions.add( flcalibList, true);
+        layouter.add(calibOptions, true);
+     
         layouter.eatSpare();
+        
+        
+        // The optional query parameter (metadata) Panel
+        //----------------------------------------------
+     
+        optionalQueryPanel.setLayout( new BoxLayout(optionalQueryPanel, BoxLayout.PAGE_AXIS) /*BorderLayout()*/);
+       metaPanel = new SSAMetadataPanel();
+       metaPanel.addPropertyChangeListener(this);
+       metaPanel.setVisible(false);
+      // layouter.add(metaPanel, true);
+    //   metaPanel.setTableWidth(200);
+       optionalQueryPanel.add(metaPanel);//, BorderLayout.NORTH);
+
+    //   queryTextPanel.add(new JLabel("Query:"));
+        JPanel paramButtonsPanel = new JPanel( );
+        addParamButton = new JButton("Add Parameter");
+        addParamButton.addActionListener( this );
+        addParamButton.setToolTipText("Add Optional Parameters");
+       // optionalQueryPanel.add(addParamButton, BorderLayout.WEST);
+        removeParamButton = new JButton("Remove Parameter");
+        removeParamButton.addActionListener( this );
+        removeParamButton.setToolTipText("Remove selected Parameters");
+    //    optionalQueryPanel.add(removeParamButton, BorderLayout.EAST);
+        paramButtonsPanel.add( addParamButton );
+        paramButtonsPanel.add( removeParamButton );
+        optionalQueryPanel.add(paramButtonsPanel, BorderLayout.SOUTH);
+       
+        queryPanel.add(queryParamPanel, BorderLayout.NORTH);
+        
+        // the query string display Panel
+        //-------------------------------
+        goButton = new JButton( "    SEND QUERY    " );
+        goButton.setBackground(Color.green);
+        goButton.addActionListener( this );
+      
+        JPanel sendQueryPanel = new JPanel(new BorderLayout());
+        sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
+        queryText = new JTextArea(2,30);
+//        queryText.set
+        sendQueryPanel.add(queryText);
+        queryText.setLineWrap(true);
+        sendQueryPanel.add(goButton, BorderLayout.LINE_END);
+       
+        
+        queryPanel.add( sendQueryPanel, BorderLayout.SOUTH);
+       
+        centrePanel.add( queryPanel, BorderLayout.NORTH );
 
     }
 
@@ -622,7 +810,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
                 "of SSAP servers. One table per server" );
 
         resultsPane = new JTabbedPane();
-        resultsPanel.add( resultsPane, BorderLayout.CENTER );
+        resultsPanel.add( resultsPane, BorderLayout.NORTH );
 
         JPanel controlPanel = new JPanel( new BorderLayout() );
         JPanel controlPanel1 = new JPanel();
@@ -791,6 +979,8 @@ implements ActionListener, MouseListener, PropertyChangeListener
                                             ((WorldCoords) coords).format();
                                     raField.setText( radec[0] );
                                     decField.setText( radec[1] );
+                                    // 
+                                    queryLine.setPosition(radec[0], radec[1]);
                                 }
                             }
                         }
@@ -883,65 +1073,36 @@ implements ActionListener, MouseListener, PropertyChangeListener
                 radius = Double.parseDouble( radiusText );
             }
             catch (NumberFormatException e) {
-                ErrorDialog.showError( this, "Cannot understand radius value",
-                        e );
+                ErrorDialog.showError( this, "Cannot understand radius value", e );
                 return;
             }
         }
 
-        //  Spectral bandpass. These should be in meters. XXX allow other
-        //  units and do the conversion.
-        String lowerBand = lowerBandField.getText();
-        if ( "".equals( lowerBand ) ) {
-            lowerBand = null;
-        }
-        String upperBand = upperBandField.getText();
-        if ( "".equals( upperBand ) ) {
-            upperBand = null;
-        }
+       
 
-        //  Time coverage.
-        String lowerTime = lowerTimeField.getText();
-        if ( "".equals( lowerTime ) ) {
-            lowerTime = null;
-        }
-        String upperTime = upperTimeField.getText();
-        if ( "".equals( upperTime ) ) {
-            upperTime = null;
-        }
-
-        //  See if there's a data format choice.
-        String format = formatGroup.getSelection().getActionCommand();
-        if ( format.equals( "None" ) ) {
-            format = null;
-        }
-
-        //  See if there are wavelength and flux calibration options.
-        String waveCalib = waveCalibGroup.getSelection().getActionCommand();
-        if ( waveCalib.equals( "None" ) ) {
-            waveCalib = null;
-        }
-        String fluxCalib = fluxCalibGroup.getSelection().getActionCommand();
-        if ( fluxCalib.equals( "None" ) ) {
-            fluxCalib = null;
-        }
-
+      //  queryLine.setQueryParameters(ra, dec, objectName, radiusText, lowerBandField.getText(), upperBandField.getText(), lowerTimeField.getText(), upperTimeField.getText(), 
+      //                              waveCalibGroup.getSelection().getActionCommand(), fluxCalibGroup.getSelection().getActionCommand(), formatGroup.getSelection().getActionCommand());
+        
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
         Iterator i = serverList.getIterator();
-        RegResource server = null;
+        SSAPRegResource server = null;
         while( i.hasNext() ) {
-            server = (RegResource) i.next();
-            SSAQuery ssaQuery = new SSAQuery( server );
-            ssaQuery.setTargetName( objectName );
+            server = (SSAPRegResource) i.next();
+            if (serverList.isServerSelected(server.getShortName())) {
+            
+            SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
+            ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
+ /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
             ssaQuery.setBand( lowerBand, upperBand );
             ssaQuery.setTime( lowerTime, upperTime );
             ssaQuery.setFormat( format );
             ssaQuery.setWaveCalib( waveCalib );
-            ssaQuery.setFluxCalib( fluxCalib );
+            ssaQuery.setFluxCalib( fluxCalib );*/
             queryList.add( ssaQuery );
+            }
         }
 
         // Now actually do the queries, these are performed in a separate
@@ -1037,15 +1198,19 @@ implements ActionListener, MouseListener, PropertyChangeListener
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
             //
-            if (metaFrame != null) {
-                String extendedQuery=metaFrame.getParamsQueryString();
-                logger.info( "Extended Query string " + extendedQuery );
-                if (extendedQuery != null && extendedQuery.length() > 0) {
-                    String newURL = queryURL.toString() + extendedQuery;
-                    logger.info( "Query string " + newURL );
-                    queryURL = new URL(newURL);
-                }
+        //    if (metaFrame != null) {
+            //       String extendedQuery=metaFrame.getParamsQueryString();
+            String extendedQuery = null;
+    //        if (querystring != null)
+                extendedQuery=metaPanel.getParamsQueryString();
+            logger.info( "Extended Query string " + extendedQuery );
+            if (extendedQuery != null && extendedQuery.length() > 0) 
+            {
+                String newURL = queryURL.toString() + extendedQuery;
+                logger.info( "Query string " + newURL );
+                queryURL = new URL(newURL);
             }
+            //     }
         }   
         catch ( MalformedURLException mue ) {
             progressPanel.logMessage( mue.getMessage() );
@@ -1830,24 +1995,203 @@ implements ActionListener, MouseListener, PropertyChangeListener
         Object source = e.getSource();
         String cmd = e.getActionCommand();
 
-        if ( source.equals( nameLookup ) || source.equals( nameField ) ) {
-            resolveName();
-            return;
-        }
-
-        if ( source.equals( radiusField ) || source .equals( goButton ) ) {
+        if ( source.equals( goButton ) ) {
             {
                 doQuery();
-            } 
+               
+            }        
             return;
+        } 
+        if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
+            resolveName();
+           // queryLine.setPosition(raField.getText(), decField.getText());
+            try {
+                String q = queryLine.getQueryURLText();
+                queryText.setText(q);
+            } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            return;
+        } 
+           
+        if (source.equals(raField) || source.equals(decField) || source.equals(nameField)) {
+
+                //  Get the position. Allow the object name to be passed using
+                //  TARGETNAME, useful for solar system objects.
+                String ra = raField.getText();
+                String dec = decField.getText();
+                String objectName = nameField.getText();
+                if ( ra == null || ra.length() == 0 ||
+                        dec == null || dec.length() == 0 ) {
+
+                    //  Check for an object name. Need one or the other.
+                    if ( objectName != null && objectName.length() > 0 ) {
+                        ra = null;
+                        dec = null;
+                    }
+                    else { 
+                        //  To be clear.
+                        ra = null;
+                        dec = null;
+                        objectName = null;
+                    }
+                }
+                queryLine.setPosition( ra, dec );
+                queryLine.setTargetName(objectName);
+                try {
+                    queryText.setText(queryLine.getQueryURLText());
+                } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                return;   
+            }
+            if ( source.equals( radiusField )  ) {
+            
+                String radiusText = radiusField.getText();
+                double radius = 10.0;
+                if ( radiusText != null && radiusText.length() > 0 ) {
+                    try {
+                        radius = Double.parseDouble( radiusText );
+                    }
+                    catch (NumberFormatException e1) {
+                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
+                        return;
+                    }
+                }
+                queryLine.setRadius(radius);
+            
+                try {
+                    queryText.setText(queryLine.getQueryURLText());
+                } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                return;            
+            }
+            
+            //  Spectral bandpass. These should be in meters. XXX allow other
+            //  units and do the conversion.
+            if (  source.equals( lowerBandField ) || source.equals( upperBandField )) {
+                 
+                String lowerBand = lowerBandField.getText();
+                if ( "".equals( lowerBand ) ) {
+                    lowerBand = null;
+                }
+                String upperBand = upperBandField.getText();
+                if ( "".equals( upperBand ) ) {
+                    upperBand = null;
+                }
+                  queryLine.setBand(lowerBand, upperBand);
+                  try {
+                      queryText.setText(queryLine.getQueryURLText());
+                  } catch (UnsupportedEncodingException e1) {
+                  // TODO Auto-generated catch block
+                      e1.printStackTrace();
+                  }
+                  return;            
+            }
+           
+            if (  source.equals( upperTimeField ) || source.equals( lowerTimeField ))  {
+                
+                String lowerTime = lowerTimeField.getText();
+                if ( "".equals( lowerTime ) ) {
+                    lowerTime = null;
+                }
+                String upperTime = upperTimeField.getText();
+                if ( "".equals( upperTime ) ) {
+                    upperTime = null;
+                }
+                  queryLine.setTime(lowerTime, upperTime);
+                  try {
+                      queryText.setText(queryLine.getQueryURLText());
+                  } catch (UnsupportedEncodingException e1) {
+                  // TODO Auto-generated catch block
+                      e1.printStackTrace();
+                  }
+                  return;            
+            }
+            if ( source.equals(formatList)) {
+                    queryLine.setFormat(formatList.getSelectedItem().toString());
+                    try {
+                        queryText.setText(queryLine.getQueryURLText());
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                
+                return;     
+            }
+            if ( source.equals(wlcalibList)) {
+                
+                    queryLine.setWaveCalib(wlcalibList.getSelectedItem().toString());
+                    try {
+                        queryText.setText(queryLine.getQueryURLText());
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                
+                return;     
+            }
+            if ( source.equals(flcalibList)) {
+            
+                    queryLine.setFluxCalib(flcalibList.getSelectedItem().toString());
+                    try {
+                        queryText.setText(queryLine.getQueryURLText());
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                
+                return;     
+            }
+
+        if ( (source.getClass() == JTextField.class) && queryMetaParam.get(source) != null) {
+        //    queryLine.setParam()
         }
+                                 
+        if ( source.equals( addParamButton ) ) 
+        {
+            //tree.setParamMap(serverParam);
+            addParameter();
+            if (extendedQueryText != null && extendedQueryText.length() > 0) 
+            {
+                try {
+                    queryText.setText(queryLine.getQueryURLText() + extendedQueryText );
+                } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+          
+            return;
+        } 
+        if ( source.equals( removeParamButton ) ) 
+        {
+            // de-select and update query text
+            
+            metaPanel.removeSelectedMetadata();
+        /*    if (extendedQueryText != null && extendedQueryText.length() > 0) 
+            {
+                try {
+                    queryText.setText(queryLine.getQueryURLText() + extendedQueryText );
+                } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+         */ 
+            return;
+        } 
 
         if ( source.equals( customButton ) ) {
-            if (metaFrame == null) {
+   //         if (metaFrame == null) {
                 customParameters();
-            } else {
-                metaFrame.openWindow();
-            }
+   //         } else {
+   //             metaFrame.openWindow();
+    //        }
             return;
         }
 
@@ -1882,14 +2226,74 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
     /**
      * Event listener to trigger a metadata update. Triggered by SSAMetadataFrame
-     * when the "Refresh" Button is clicked
+     * the table has been updated
      */
     public void propertyChange(PropertyChangeEvent pvt)
     {
-        customParameters();
+      
+        // customParameters();
+        if (metaPanel != null)
+            extendedQueryText=metaPanel.getParamsQueryString(); 
+      
+ //       if (extendedQueryText != null && extendedQueryText.length() > 0) 
+ //       {
+            try {
+                queryText.setText(queryLine.getQueryURLText() + extendedQueryText);
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }           
+       
+  //      }
+        
     }
 
-
+    /**
+     * addParameter
+     * Adds an optional metadata parameter to the query.
+     * Allows the user to select a list of parameters, according to the selected list of servers
+     * update the parameter table
+     */
+    private void addParameter() 
+    {
+        // check serverlist (selected servers!!)
+        ArrayList<String> parameters = new ArrayList();
+        Iterator srv=serverList.getIterator();
+        while ( srv.hasNext() ) {
+            SSAPRegResource server = (SSAPRegResource) srv.next();
+            if (serverList.isServerSelected(server.getShortName())) {
+                ArrayList<String> serverpars = serverParam.getParams(server.getShortName());
+                if (serverpars != null )
+                    parameters.addAll(serverpars);
+            }
+        }
+        // make the list unique 
+        HashSet<String> hs = new HashSet<String>();
+        hs.addAll(parameters);
+        parameters.clear();
+        parameters.addAll(hs);
+        
+        // remove the INPUT: Prefix from the parameters
+        for (int i=0; i<parameters.size(); i++) {
+           // String param = parameters.get(i).substring(6); // INPUT: = 6 characters
+            parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
+        }
+         
+        Object selectedValue = JOptionPane.showInputDialog(this, "Supported Parameters", "Input", JOptionPane.INFORMATION_MESSAGE, null, 
+                (Object[]) parameters.toArray(), null);
+        if (selectedValue != null) {
+            
+            metaPanel.addRow(metaParam.get("INPUT:"+selectedValue.toString()), false); // INPUT: has to be added again
+    //        metaPanel.
+            metaPanel.setVisible(true);
+        }
+        metaPanel.repaint();
+       // queryMetaParam.put(txtf, selectedValue.toString());
+      //  JLabel label = new JLabel(selectedValue.toString() + ":");
+      //  customQueryPanel.add(label); queryPanel.add(txtf);
+       // customQueryPanel.repaint();
+      
+    }
     /**
      * Customize metadata parameters
      * Query metadata from known servers to retrieve all possible parameters. Every
@@ -1902,20 +2306,21 @@ implements ActionListener, MouseListener, PropertyChangeListener
         final WorkQueue workQueue = new WorkQueue(nrServers);
 
         metaParam = new HashMap<String, MetadataInputParameter>();
-
+     
+/*
         if ( metaFrame == null ) {
             metaFrame = new SSAMetadataFrame( metaParam );
             metaFrame.addPropertyChangeListener(this);
         } else
             metaFrame.updateMetadata( metaParam );
-
+*/
         final ProgressPanelFrame metadataProgressFrame = new ProgressPanelFrame( "Querying Metadata" );
 
         Iterator i = serverList.getIterator();
 
         while( i.hasNext() ) {
 
-            final RegResource server = (RegResource) i.next();
+            final SSAPRegResource server = (SSAPRegResource) i.next();
             final ProgressPanel metadataProgressPanel = new ProgressPanel( "Querying: " + server.getShortName());
             metadataProgressFrame.addProgressPanel( metadataProgressPanel );
             //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
@@ -1931,6 +2336,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
          *  XXX to do eventually: create the parameter frame only after the first parameter has been found. After all threads are
          *  done, show a dialog message in case no parameters have been found.
          */
+       // tree.setParamMap(serverParam);
     } // customParameters
 
     /**
@@ -1944,7 +2350,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
     class MetadataQueryWorker extends SwingWorker 
     {
         URL queryURL=null;
-        RegResource server=null;
+        SSAPRegResource server=null;
         ParamElement [] metadata = null;
         WorkQueue workQueue=null;
         ProgressPanel progressPanel = null;
@@ -1954,7 +2360,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
          * @param queue  the work queue
          * @param server the server which to query for metadata
          */
-        public MetadataQueryWorker(WorkQueue queue, RegResource server) {
+        public MetadataQueryWorker(WorkQueue queue, SSAPRegResource server) {
             this.server=server;
             this.workQueue=queue;
         }
@@ -1964,7 +2370,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
          * @param server the server which to query for metadata
          * @param panel  the progress panel
          */
-        public MetadataQueryWorker(WorkQueue queue, RegResource server,ProgressPanel panel) {
+        public MetadataQueryWorker(WorkQueue queue, SSAPRegResource server,ProgressPanel panel) {
             this.server=server;
             this.workQueue=queue;
             this.progressPanel=panel;
@@ -2009,6 +2415,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
             if (progressPanel != null)
                 progressPanel.stop();  
             // add results to the queue
+            workQueue.setServer(server);
             workQueue.addWork(metadata);
             return null;
         } //doinbackground
@@ -2034,7 +2441,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
      *  Metadata Process worker class
      *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
      *  
-     * @author mm
+     * @author Margarida Castro Neves
      *
      */
 
@@ -2051,7 +2458,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
             try {
                 ParamElement [] data = workQueue.getWork();
                 if ( data != null)
-                    processMetadata(data);
+                    processMetadata(data, workQueue.getServer());
             } 
             catch (InterruptedException e) {
             }
@@ -2078,6 +2485,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         LinkedList<Object> queue = new LinkedList<Object>();
         int workedItems = 0;
         int maxItems=0;
+        SSAPRegResource server;
 
         public WorkQueue( int total ) {
             maxItems = total;
@@ -2101,6 +2509,13 @@ implements ActionListener, MouseListener, PropertyChangeListener
             workedItems++;
             return (data);
         }
+        
+        public void setServer( SSAPRegResource server ) {
+            this.server=server;
+        }
+        public SSAPRegResource getServer(  ) {
+            return this.server;
+        }
     } // WorkerQueue
 
 
@@ -2111,7 +2526,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
      * @param - metadata the parameters read from all servers 
      * 
      */
-    private void processMetadata( ParamElement[] metadata) {
+    private void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
 
         int i=0;
         //boolean changed = false;
@@ -2127,13 +2542,19 @@ implements ActionListener, MouseListener, PropertyChangeListener
                     ! paramName.equalsIgnoreCase("INPUT:FLUXCALIB") && 
                     ! paramName.equalsIgnoreCase("INPUT:TARGETNAME") ) 
             {
+                addRelation( server.getShortName(), paramName);
                 MetadataInputParameter mip = new MetadataInputParameter(metadata[i]);
-                addMetaParam(mip);    // call static synchronized method to change the data with mutual exclusion
+                addMetaParam(mip);    // call static synchronized method to change the data with mutual exclusion             
             } // if
             i++;
         } // while
 
     }//processMetadata
+    private synchronized static void addRelation( String server, String param ) {
+        
+        serverParam.addRelation(server, param);
+
+    }
 
     /*
      * Adds parameters to the hash and to the parameter table
@@ -2146,7 +2567,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         {
             metaParam.put( mip.getName(), mip );
             // add new element to the parameter table
-            metaFrame.addRow(mip);
+         //   metaPanel.addRow(mip); //!! frame
 
         } else {
             // increase counter of existing hash member
@@ -2154,9 +2575,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
             mip.increase();
             metaParam.put( mip.getName(), mip );
             // update nr server column in the table
-            metaFrame.setNrServers(mip.getCounter(), mip.getName());
+    //        metaPanel.setNrServers(mip.getCounter(), mip.getName()); // !! Frame
         }
-
+        
     }
     //
     // MouseListener interface. Double clicks display the clicked spectrum.
