@@ -44,6 +44,8 @@ public class SSAPRegCapability
       
     }
 
+   
+
     /**
      * Constructor to manually add a  simple resource capability
      */
