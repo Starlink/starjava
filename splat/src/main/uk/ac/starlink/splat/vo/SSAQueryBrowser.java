@@ -43,6 +43,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -221,6 +222,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
     /** Make the query to all known servers */
     protected JButton goButton = null;
+    
+    /** update/display query string */
+    JButton showQueryButton = null;
 
     /** Allows user to customize search parameters */
     protected JButton customButton = null;
@@ -318,6 +322,11 @@ implements ActionListener, MouseListener, PropertyChangeListener
     
     /** the serverlist as a tree **/
     private SSAServerTree tree;
+    
+    /** progress frame **/
+    private ProgressPanelFrame oldProgressFrame = null;
+    
+    static ProgressPanelFrame progressFrame = null;
 
 
     /**
@@ -781,10 +790,13 @@ implements ActionListener, MouseListener, PropertyChangeListener
         goButton.setBackground(Color.green);
         goButton.addActionListener( this );
       
+  //      showQueryButton = new JButton( "Query: ");
+  //      showQueryButton.setToolTipText("show/update query string");
+  //      showQueryButton.addActionListener( this );
         JPanel sendQueryPanel = new JPanel(new BorderLayout());
         sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
+  //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
         queryText = new JTextArea(2,30);
-//        queryText.set
         sendQueryPanel.add(queryText);
         queryText.setLineWrap(true);
         sendQueryPanel.add(goButton, BorderLayout.LINE_END);
@@ -1125,9 +1137,14 @@ implements ActionListener, MouseListener, PropertyChangeListener
     {
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
-
-        final ProgressPanelFrame progressFrame =
-                new ProgressPanelFrame( "Querying SSAP servers" );
+        
+        if (progressFrame != null) {
+            progressFrame.closeWindowEvent();
+            progressFrame=null;
+        }
+       // final ProgressPanelFrame 
+        progressFrame = new ProgressPanelFrame( "Querying SSAP servers" );
+        
 
         Iterator<SSAQuery> i = queryList.iterator();
         while ( i.hasNext() ) {
@@ -2002,6 +2019,17 @@ implements ActionListener, MouseListener, PropertyChangeListener
             }        
             return;
         } 
+      /*  if ( source.equals( showQueryButton ) ) {
+            {
+                try {
+                    queryText.setText(queryLine.getQueryURLText()+ extendedQueryText);
+                } catch (UnsupportedEncodingException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }        
+            return;
+        } */
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
             resolveName();
            // queryLine.setPosition(raField.getText(), decField.getText());
@@ -2272,12 +2300,14 @@ implements ActionListener, MouseListener, PropertyChangeListener
         hs.addAll(parameters);
         parameters.clear();
         parameters.addAll(hs);
+        Collections.sort(parameters);
         
         // remove the INPUT: Prefix from the parameters
         for (int i=0; i<parameters.size(); i++) {
            // String param = parameters.get(i).substring(6); // INPUT: = 6 characters
             parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
         }
+        
          
         Object selectedValue = JOptionPane.showInputDialog(this, "Supported Parameters", "Input", JOptionPane.INFORMATION_MESSAGE, null, 
                 (Object[]) parameters.toArray(), null);

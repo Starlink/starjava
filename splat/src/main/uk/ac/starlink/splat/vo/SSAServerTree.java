@@ -276,8 +276,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        srcPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        
        JCheckBox src_obs = new JCheckBox("Survey", true);
-       src_obs.setToolTipText("A survey dataset, which typically covers some region of observational <BR>" +
-       		                   "parameter space in a uniform fashion, with as complete as possible <BR>" +
+       src_obs.setToolTipText("A survey dataset, which typically covers some region of observational" +
+       		                   "parameter space in a uniform fashion, with as complete as possible" +
        		                   "coverage in the region of parameter space observed.");
        srcPanel.add(src_obs);       
        src_obs.setName("src_obs");
@@ -315,6 +315,13 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        src_art.setName("src_art");
        src_art.addItemListener(checkBoxlistener);
        treeRenderer.addSrc(src_art.getText());
+       
+       JCheckBox src_all = new JCheckBox("ALL", false);
+       src_all.setToolTipText("All servers (including the ones with no data source set)");
+       srcPanel.add(src_all);
+       src_all.setName("src_all");
+       src_all.addItemListener(checkBoxlistener);
+       treeRenderer.addSrc(src_all.getText());
        
        optionsPanel.add(srcPanel);       
        optionsPanel.add(bandPanel);
@@ -473,8 +480,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             capnode.add( new ServerTreeNode( "XSI Type: " + cap.getXsiType() ));   
            
           
-            servernode.setUserObject((String) servernode.getUserObject() + "       [" + server.getTitle() + "]");
-           // servernode.setUserObject((String) servernode.getUserObject() + "       [" + cap.getDataSource() + "]" +"["+ cap.getDataType() + "]") ;
+           servernode.setUserObject((String) servernode.getUserObject() + "       [" + server.getTitle() + "]");
+         //   servernode.setUserObject((String) servernode.getUserObject() + "       [" + cap.getDataSource() + "]" +"["+ cap.getDataType() + "]") ;
             
        
           
@@ -684,6 +691,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         public void actionPerformed( ActionEvent ae )
         {
             addNewServer();
+            serverTree.updateUI();
         }
     }
 
@@ -1273,6 +1281,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         private ArrayList<String> bandList;
         private HashMap selectHash;
         private boolean allBands = false;
+        private boolean allSources = false;
         private boolean selectTags = false; // if not use options selection
 
         public ServerTreeCellRenderer () {
@@ -1354,7 +1363,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             return false;
         }
         private boolean matchesSrcFilter(ServerTreeNode node) {
-            
+            if (allSources)
+                return true;
             String srctag = node.getDataSource();
             for (int i=0;i< srcList.size(); i++) {
                 if (srctag.equalsIgnoreCase(srcList.get(i)))
@@ -1400,6 +1410,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         public void setAllBands( boolean set) {
             allBands = set;
         }
+        public void setAllSources( boolean set) {
+            allSources = set;
+        }
       
         public void setTagsSelection( boolean sel) {
             selectTags = sel;
@@ -1421,7 +1434,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                  //       treeRenderer.addTag(src);                       
                  //   } else  
                     if (name.startsWith("src") ) {
-                        treeRenderer.addSrc(src);                       
+                        if (src.equals("ALL"))
+                            treeRenderer.setAllSources(true);
+                        else
+                            treeRenderer.addSrc(src);                       
                     } else { // band
                         if (src.equals("ALL"))
                             treeRenderer.setAllBands(true);
@@ -1432,7 +1448,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                     if (name.startsWith("tag")) {
                         treeRenderer.removeTag(src);                       
                     } else if (name.startsWith("src")) {
-                        treeRenderer.removeSrc(src); 
+                        if (src.equals("ALL"))
+                            treeRenderer.setAllSources(false);
+                        else
+                            treeRenderer.removeSrc(src); 
                     } else {
                         
                         if (src.equals("ALL"))
