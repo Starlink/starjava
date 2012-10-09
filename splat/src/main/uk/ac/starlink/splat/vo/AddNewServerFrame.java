@@ -85,7 +85,7 @@ implements ActionListener
         centrePanel = new JPanel();
         centrePanel.setLayout( new BoxLayout(centrePanel, BoxLayout.PAGE_AXIS ));
         getContentPane().add( centrePanel, BorderLayout.CENTER );
-        centrePanel.setBorder( BorderFactory.createTitledBorder( "Add New Server" ) );
+        centrePanel.setBorder( BorderFactory.createTitledBorder( "Add New Service" ) );
 
         buttonsPanel = new JPanel( new BorderLayout() );
         getContentPane().add( buttonsPanel, BorderLayout.PAGE_END );
@@ -97,7 +97,7 @@ implements ActionListener
      */
     private void initFrame()
     {
-        setTitle( "Add New SSAP Server" );
+        setTitle( "Add New SSAP Service" );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         setSize( new Dimension( 500, 200 ) );
         setVisible( true );
@@ -148,9 +148,9 @@ implements ActionListener
         // the action buttons
 
         //  Add action to add the new server to the list
-        JButton addButton = new JButton( "Add New Server" );
+        JButton addButton = new JButton( "Add New Service" );
         addButton.setActionCommand( "add" );
-        addButton.setToolTipText( "Add new server" );
+        //addButton.setToolTipText( "Add new server" );
         addButton.addActionListener( this );
         buttonsPanel.add( addButton, BorderLayout.LINE_START );
 

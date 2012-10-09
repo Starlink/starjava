@@ -510,10 +510,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        controlPanel = new JPanel( new BorderLayout() );
        JPanel topActionBar1 = new JPanel();
        JPanel topActionBar2 = new JPanel();
-       // topActionBar.setLayout(new BoxLayout(topActionBar, BoxLayout.X_AXIS));
+       JPanel topActionBar3 = new JPanel();
+      // topActionBar1.setLayout(new BoxLayout(topActionBar1, BoxLayout.Y_AXIS));
       //  topActionBar.setBorder(BorderFactory.createEmptyBorder( 3, 3, 3, 3 ));
 
-        JPanel botActionBar = new JPanel();
+  // botActionBar = new JPanel();
       //  botActionBar.setLayout(new BoxLayout(botActionBar, BoxLayout.X_AXIS));
      //   botActionBar.setBorder(BorderFactory.createEmptyBorder( 3, 3, 3, 3 ));
 
@@ -562,10 +563,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         //  Action to check a registry for additional/updated servers.
         QueryNewAction newAction = new QueryNewAction( "Query registry" );
    //     optionsMenu.add( newAction );
-        JButton newButton = new JButton( newAction );
+        JButton newQueryButton = new JButton( newAction );
   //      topActionBar.add( Box.createGlue() );
-        topActionBar2.add( newButton );
-        newButton.setToolTipText( "Query registry for new SSAP servers" );
+        topActionBar2.add( newQueryButton );
+        newQueryButton.setToolTipText( "Query registry for new SSAP services" );
         
         //  Add action to manually add a new server to the list
    //     AddNewAction addNewAction = new AddNewAction( "New Server" );
@@ -580,7 +581,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
  //       optionsMenu.add( removeAction );
         JButton removeButton = new JButton( removeAction );
   //      topActionBar.add( Box.createGlue() );
-  //      topActionBar1.add( removeButton );
+        topActionBar1.add( removeButton );
         removeButton.setToolTipText
             ( "Remove selected servers from current list" );
 
@@ -590,7 +591,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
  //       optionsMenu.add( removeUnAction );
         JButton removeUnButton = new JButton( removeUnAction );
  //       topActionBar.add( Box.createGlue() );
-        topActionBar1.add( removeUnButton );
+        topActionBar3.add( removeUnButton );
         removeUnButton.setToolTipText
             ( "Remove unselected servers from current list" );
 
@@ -609,7 +610,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         JPanel addPanel = new JPanel();
       //  addPanel.setLayout(new BorderLayout());
         JButton addButton1 = new JButton(addNewAction);
-        addButton1.setToolTipText("Add new server");
+        addButton1.setToolTipText("Add new service to the list");
         addPanel.add(addButton1);
         mainPanel.add(addPanel, BorderLayout.EAST);
         
@@ -624,9 +625,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
    //     botActionBar.add( Box.createGlue() );
 
         controlPanel.add(topActionBar1, BorderLayout.NORTH);
+        controlPanel.add(topActionBar3, BorderLayout.CENTER);
         controlPanel.add(topActionBar2, BorderLayout.SOUTH);
         mainPanel.add( controlPanel, BorderLayout.SOUTH );
-        buttonsPanel.add( botActionBar, BorderLayout.SOUTH );
+     //   buttonsPanel.add( botActionBar, BorderLayout.SOUTH );
 
         //  Add a Column menu that allows the choice of which registry
         //  query columns to show.
@@ -890,14 +892,15 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             //  And remove these from the server list.
             ServerTreeNode [] node = new ServerTreeNode[selected.length];
             // first create an array of nodes (instead of indexes)
-            for ( int i = 0; i < selected.length; i++ ) {             
+            for ( int i = 0; i < selected.length; i++ ) {        
                 node[i]= (ServerTreeNode) model.getChild(root, selected[i]-1);
             }
             // have to run the loop again with the nodes, because when removing a node the indexes get wrong.
             for ( int i = 0; i < selected.length; i++ ) {
                 try {
                 String name = node[i].getUserObject().toString();
-                serverList.removeServer( name ); // name cannot be null!!!!!!!!!
+                name = name.substring(0, name.indexOf("[")).trim();
+                serverList.removeServer( name); // name cannot be null!!!!!!!!!
                 } catch ( Exception e) {}
                 model.removeNodeFromParent(node[i]);              
             }
@@ -928,9 +931,12 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
               
                     if (currentNode.getUserObject() != null ) {
                         String name = currentNode.getUserObject().toString();
+                        name = name.substring(0, name.indexOf("[")).trim();
                         try{
                             serverList.removeServer( name ); // NAME Cannot be empty!
-                        }catch (Exception e) {}
+                        }catch (Exception e) {
+                            
+                        }
                     }
                         model.removeNodeFromParent(currentNode);
                         // how to remove from serverlist if name is empty?
