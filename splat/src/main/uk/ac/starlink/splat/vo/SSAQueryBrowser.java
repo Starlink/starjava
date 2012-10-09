@@ -331,6 +331,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     static ProgressPanelFrame progressFrame = null;
 
 
+
     /**
      * Create an instance.
      */
@@ -2141,6 +2142,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }        
             return;
         } */
+                try {
+                    queryText.setText(queryLine.getQueryURLText()+ extendedQueryText);
+                } catch (UnsupportedEncodingException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }        
+            return;
+        } */
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
             
             
@@ -2426,6 +2436,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            // String param = parameters.get(i).substring(6); // INPUT: = 6 characters
             parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
         }
+        
         
          
         Object selectedValue = JOptionPane.showInputDialog(this, "Supported Parameters", "Input", JOptionPane.INFORMATION_MESSAGE, null, 
