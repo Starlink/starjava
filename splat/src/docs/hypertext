@@ -3,7 +3,7 @@
 #  Convert Latex SUN243 into hypertext for the on-line docs and help
 #  system.
 
-setenv HTX_EMAIL '<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A>'
+setenv HTX_EMAIL '<A HREF="mailto:starlink@jiscmail.ac.uk">starlink@jiscmail.ac.uk</A>'
 
 set copyr1="Copyright (C) 2001-2005 Council for the Central Laboratory of the Research Councils"
 set copyr2="Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council"
