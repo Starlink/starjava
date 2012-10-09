@@ -685,8 +685,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
           controlPanel.add(topActionBar, gbc);//, BorderLayout.NORTH);
           gbc.gridy=1;
           controlPanel.add(botActionBar, gbc);//, BorderLayout.SOUTH);
-     
-    
     
     }
 
