@@ -122,7 +122,6 @@
 
    Post Hikianalia
 
-
    3.9-9
    ======
 
@@ -135,8 +134,6 @@
    to selected servers. 
 
    Possibility to manually add a ssap server into the server list.
-
-   Access control with HTTP password implemented
 
    Bug fixes:
    If the MAXREC limit is reached, SPLAT does not return an error anymore, but downloads
