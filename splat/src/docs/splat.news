@@ -1,5 +1,26 @@
 1 Starlink SPLAT news.
 
+   3.9-93
+   ======
+
+    Extensive changes in the SSAP Query GUI. Possibility to select servers 
+    according to waveband, or data source (theory/archive/survey), as well 
+    as user defined tags. Possibility to add optional metadata parameters 
+    to the query according to selected servers. 
+
+   3.9-92
+   ======
+
+   Access Control implemented
+   Bug fix: If the MAXREC limit is reached, SPLAT does not return an error anymo   re, but downloads the MAXREC records.
+
+   3.9-91
+   ======
+
+   Access control partially implemented
+   Fixed BAND parameter input in the case when the upper limit is null
+   Added URL encoding for TARGETNAME, so the targets can have special characters like '+'   
+
    3.9-9
    =====
 
@@ -7,8 +28,6 @@
    manually add a ssap server into the server list, and the possibility to 
    enter other metadata parameters when searching for spectra.
 
-   If the MAXREC limit is reached, SPLAT does not return an error anymore, but
-   downloads the MAXREC records.
 
 
    3.9-8
