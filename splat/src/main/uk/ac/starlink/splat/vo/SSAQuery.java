@@ -385,7 +385,6 @@ public class SSAQuery
         else if ( queryTimeUpper != null && queryTimeUpper.length() > 0) {
             buffer.append( "&TIME=" + "/" + queryTimeUpper );
         }
-        
 
         //  Wavelength and flux calibrations.
         if ( waveCalib != null && !waveCalib.equalsIgnoreCase("None")) {
