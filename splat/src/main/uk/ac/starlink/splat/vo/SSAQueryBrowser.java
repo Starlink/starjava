@@ -289,7 +289,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
     protected ProxySetupFrame proxyWindow = null;
 
     /** The SSA servers window */
-    protected SSAServerFrame serverWindow = null;
+   // protected SSAServerFrame serverWindow = null;
 
     /** The Button for adding optional parameters to the query */
     protected JButton addParamButton = null;
@@ -297,7 +297,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
     protected JButton removeParamButton = null;
     
     /** The list of all input parameters read from the servers */
-    protected static SSAMetadataFrame metaFrame = null;
+   // protected static SSAMetadataFrame metaFrame = null;
     protected static SSAMetadataPanel metaPanel = null;
 
     /** Make sure the proxy environment is setup */
@@ -527,8 +527,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         .setMnemonic( KeyEvent.VK_T );
 
         //  Create the Help menu.
-//        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
- //               menuBar, toolBar );
+        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window", menuBar, null /*toolBar*/ );
 
         //  ActionBar goes at bottom.
         //contentPane.add( actionBarContainer, BorderLayout.SOUTH );
@@ -1079,7 +1078,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
         //  And the radius.
         String radiusText = radiusField.getText();
-        double radius = 10.0;
+        double radius=0;// = 10.0;
         if ( radiusText != null && radiusText.length() > 0 ) {
             try {
                 radius = Double.parseDouble( radiusText );
@@ -1092,8 +1091,15 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
        
 
-      //  queryLine.setQueryParameters(ra, dec, objectName, radiusText, lowerBandField.getText(), upperBandField.getText(), lowerTimeField.getText(), upperTimeField.getText(), 
-      //                              waveCalibGroup.getSelection().getActionCommand(), fluxCalibGroup.getSelection().getActionCommand(), formatGroup.getSelection().getActionCommand());
+       // queryLine.setQueryParameters(ra, dec, objectName, radiusText, lowerBandField.getText(), upperBandField.getText(), lowerTimeField.getText(), upperTimeField.getText(), 
+       //                             waveCalibGroup.getSelection().getActionCommand(), fluxCalibGroup.getSelection().getActionCommand(), formatGroup.getSelection().getActionCommand());
+        queryLine.setPosition(ra, dec);
+        queryLine.setRadius( radius );
+        queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
+        queryLine.setTime(lowerTimeField.getText(), upperTimeField.getText());
+        queryLine.setWaveCalib(wlcalibList.getSelectedItem().toString());
+        queryLine.setFluxCalib(flcalibList.getSelectedItem().toString());
+        queryLine.setFormat(formatList.getSelectedItem().toString());
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
@@ -1982,7 +1988,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
 
     /**
      * Configure the SSA servers.
-     */
+     *
     protected void showServerWindow()
     {
         if ( serverWindow == null ) {
@@ -1990,7 +1996,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
         }
         serverWindow.setVisible( true );
     }
-
+    */
     public static void main( String[] args )
     {
         try {
@@ -2078,7 +2084,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
             if ( source.equals( radiusField )  ) {
             
                 String radiusText = radiusField.getText();
-                double radius = 10.0;
+                double radius = 0.0;
                 if ( radiusText != null && radiusText.length() > 0 ) {
                     try {
                         radius = Double.parseDouble( radiusText );
@@ -2690,7 +2696,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
                     break;
                 }
                 case SERVER: {
-                    showServerWindow();
+                 //   showServerWindow();
                     break;
                 }
                 case SAVE: {

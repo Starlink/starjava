@@ -80,7 +80,7 @@ import uk.ac.starlink.splat.iface.ProgressPanel;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.vo.SSAServerFrame.AddNewAction;
+/*import uk.ac.starlink.splat.vo.SSAServerFrame.AddNewAction;
 import uk.ac.starlink.splat.vo.SSAServerFrame.CloseAction;
 import uk.ac.starlink.splat.vo.SSAServerFrame.DeleteAction;
 import uk.ac.starlink.splat.vo.SSAServerFrame.ProxyAction;
@@ -90,6 +90,7 @@ import uk.ac.starlink.splat.vo.SSAServerFrame.RemoveAction;
 import uk.ac.starlink.splat.vo.SSAServerFrame.RemoveUnAction;
 import uk.ac.starlink.splat.vo.SSAServerFrame.SaveAction;
 import uk.ac.starlink.splat.vo.SSAServerFrame.SelectAllAction;
+*/
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -276,26 +277,26 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        srcPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        
        JCheckBox src_obs = new JCheckBox("Survey", true);
-       src_obs.setToolTipText("A survey dataset, which typically covers some region of observational" +
-       		                   "parameter space in a uniform fashion, with as complete as possible" +
-       		                   "coverage in the region of parameter space observed.");
+       src_obs.setToolTipText("<html>A survey dataset, which typically covers some region of observational <br>" +
+       		                   "parameter space in a uniform fashion, with as complete as possible <br>" +
+       		                   "coverage in the region of parameter space observed.</html>");
        srcPanel.add(src_obs);       
        src_obs.setName("src_obs");
        src_obs.addItemListener(checkBoxlistener);
        treeRenderer.addSrc(src_obs.getText());
        
        JCheckBox src_theo = new JCheckBox("Theory", true);
-       src_theo.setToolTipText("Theory data, or any data generated from a theoretical model, for example a synthetic spectrum.");
+       src_theo.setToolTipText("<html>Theory data, or any data generated from a theoretical model, <br>for example a synthetic spectrum.</html>");
        srcPanel.add(src_theo);
        src_theo.setName("src_theo");
        src_theo.addItemListener(checkBoxlistener);
        treeRenderer.addSrc(src_theo.getText());
        
        JCheckBox src_point = new JCheckBox("Pointed", true);
-       src_point.setToolTipText("A pointed observation of a particular astronomical object or field.  " +
-       		                    " Typically these are instrumental observations taken as part of some PI observing program. " +
-       		                    " The data quality and characteristics may be variable, but the observations of a particular " +
-       		                    " object or field may be more extensive than for a survey.");
+       src_point.setToolTipText("<html>A pointed observation of a particular astronomical object or field. <br> " +
+       		                    " Typically these are instrumental observations taken as part of some PI observing program.<br> " +
+       		                    " The data quality and characteristics may be variable, but the observations of a particular <br>" +
+       		                    " object or field may be more extensive than for a survey.</html>");
        srcPanel.add(src_point);
        src_point.setName("src_point");
        src_point.addItemListener(checkBoxlistener);
@@ -309,8 +310,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        treeRenderer.addSrc(src_cust.getText());
        
        JCheckBox src_art = new JCheckBox("Artificial", true);
-       src_art.setToolTipText("Artificial or simulated data.  This is similar to theory data but need not be based " +
-       		                    "on a physical model, and is often used for testing purposes.");
+       src_art.setToolTipText("<html>Artificial or simulated data.  This is similar to theory data but need not be based <br>" +
+       		                    "on a physical model, and is often used for testing purposes.</html>");
        srcPanel.add(src_art);
        src_art.setName("src_art");
        src_art.addItemListener(checkBoxlistener);
@@ -437,9 +438,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         while( i.hasNext()) {
             SSAPRegResource server= (SSAPRegResource) i.next(); 
        
-            ServerTreeNode dmtn = new ServerTreeNode( server.getShortName()  ); 
-            addInfoNodes(server, dmtn);
-            root.addsort( dmtn );
+            ServerTreeNode stn = new ServerTreeNode( server.getShortName()  ); 
+            addInfoNodes(server, stn);
+            root.addsort( stn );
             
         }
 

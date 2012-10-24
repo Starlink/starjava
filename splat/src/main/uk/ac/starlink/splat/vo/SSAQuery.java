@@ -305,7 +305,8 @@ public class SSAQuery
         buffer.append( "REQUEST=queryData" );
 
         //  Add basic search parameters, POS or TARGETNAME, FORMAT and SIZE.
-        if ( queryRA >= 0.0 ) {
+        // TO DO this way you cannot search for objects in the position 0,0. Should be done in a more elegant way
+        if ( queryRA > 0.0 || queryDec > 0.0 ) {
             buffer.append( "&POS=" + queryRA + "," + queryDec );
         }
         else if ( targetName != null ) {
@@ -314,29 +315,34 @@ public class SSAQuery
         if ( queryFormat != null && !queryFormat.equalsIgnoreCase("None")) {
             buffer.append( "&FORMAT=" + queryFormat );
         }
-        
-        buffer.append( "&SIZE=" + queryRadius );
+        if (queryRadius > 0)
+            buffer.append( "&SIZE=" + queryRadius );
 
         //  The spectral bandpass. SSAP spec allows "lower/upper" range,
         //  or bounded from above or below.
-        if ( queryBandUpper != null && queryBandLower != null ) {
+        if ( (queryBandUpper != null && queryBandUpper.length() > 0 ) && (queryBandLower != null && queryBandLower.length() > 0)) { 
             buffer.append( "&BAND=" + queryBandLower + "/" + queryBandUpper );
         }
-        else if ( queryBandUpper != null ) {
+        else if ( queryBandUpper != null && queryBandUpper.length() > 0) {
             buffer.append( "&BAND=" + "/" + queryBandUpper );
         }
-        else if ( queryBandLower != null ) {
+        else if ( queryBandLower != null && queryBandLower.length() > 0) {
             buffer.append( "&BAND=" + queryBandLower + "/");
         }
+        
 
         //  The time coverage. Assume "lower/upper" range or includes
         //  a single value.
-        if ( queryTimeUpper != null && queryTimeLower != null ) {
+        if ( (queryTimeUpper != null && queryTimeUpper.length() > 0 ) && (queryTimeLower != null && queryTimeLower.length() > 0 ) ) {
             buffer.append( "&TIME=" + queryTimeLower + "/" + queryTimeUpper );
         }
-        else if ( queryTimeLower != null ) {
-            buffer.append( "&TIME=" + queryTimeLower );
+        else if ( queryTimeLower != null && queryTimeLower.length() > 0 ) {
+            buffer.append( "&TIME=" + queryTimeLower + "/" );
         }
+        else if ( queryTimeUpper != null && queryTimeUpper.length() > 0) {
+            buffer.append( "&TIME=" + "/" + queryTimeUpper );
+        }
+        
 
         //  Wavelength and flux calibrations.
         if ( waveCalib != null && !waveCalib.equalsIgnoreCase("None")) {

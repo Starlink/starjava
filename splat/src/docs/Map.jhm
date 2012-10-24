@@ -21,7 +21,7 @@
   <mapID target="browser-window"             url="sun243.htx/node8.html"/>
   <mapID target="plot-window"                url="sun243.htx/node9.html"/>
   <mapID target="ssa-window"                 url="sun243.htx/node10.html"/>
-  <mapID target="ssa-metadata"                 url="sun243.htx/node11.html"/>
+  <!mapID target="ssa-metadata"                 url="sun243.htx/node11.html"/>
   <mapID target="animation-window"           url="sun243.htx/node12.html"/>
   <mapID target="viewer"                     url="sun243.htx/node13.html"/>
   <mapID target="specxcoord-window"          url="sun243.htx/node14.html"/>

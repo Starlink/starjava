@@ -1432,16 +1432,32 @@ wavelengths \etc\ on new plots.
 \newpage
 \subsection{The query VO for spectra window{\xlabel{ssap_window}}}
 
-This window provides basic access to the Virtual Observatory. Using it you can
-query the current list of SSAP servers (Simple Spectral Access Protocol) for
-lists of the spectra that they hold about a circular region on the sky or
-about a particular object. You can then select which of these you are
+This window provides access to the Virtual Observatory. Using it you can
+query a selection from the current list of SSAP servers (Simple Spectral Access Protocol) for
+lists of the spectra that they hold about a circular region on the sky,
+about a particular object or having certain metadata parameters. You can then select which of these you are
 interested in and download these into \SPLAT.
 
-\mainfigure{ssapwindow}
+\mainfigure{splatquery}
 
-The figure above shows the window after a query to all the currently known
-servers has been made.
+The figure above shows the window after a query  has been made.  The window is divided in three main areas.
+The left area is the server selection area, where the current list of SSAP servers is shown and also options to select 
+a subset of servers to be queried. The upper right area is the query parameters area, where query options can be entered.
+The right-lower part is the results area, showing the query results.
+
+\subheading{Server selection}
+
+When clicking on a server in the SSAP Servers list you can see all information stored about this server.
+A subset of servers can be selected by data source ( theory, survey, pointed, custom artificial ) or
+by waveband. It is also possible to add a tag to servers, so only the tagged servers will be queried
+if the tag is selected.
+To add a new server to the current server list, click on the  \labelitem{+}  button. A new window will open
+where the information about the new server can be filled in. 
+Servers can also be removed from the list with \labelitem{Remove selected}  and \labelitem{Remove unselected} buttons.
+The \labelitem{Query registry} allows you to query a VO registry for a current list of  servers.
+
+
+\subheading{SSAP query}
 
 To lookup the coordinates of an object just type in an identifier in the
 \labelitem{Object} field and either press \hitext{<Return>} or the
@@ -1461,22 +1477,33 @@ The \labelitem{Time} entries define either a time that should match the
 time the spectra where taken, or a range in which they should match (again
 not all servers support this option).
 
+The file format, wavelength and flux calibration options can also be chosen.
+If the value is "None", the query will not contain these parameters.
+
+Besides the mandatory parameters, some servers also support a set of other
+metadata parameters. By clicking \labelitem{Add Parameter} a list of all supported
+parameters supported by the selected SSAP servers will be displayed, and one can be chosen.
+The chosen parameters will appear in the optional parameters list. If provided, the
+default values will be inserted into the value field. The checked
+parameters having a non empty value  field will be added to the query.
+
 Once you have identified the region to search or object press the
 \labelitem{Go} button to contact the current list of SSAP servers. To make
 these queries it may be necessary for you to tell \SPLAT\ about your local
 web-proxy server (this is the same as that you use in your Internet browser),
 select the \submenuitem{Options}{Configure proxy...} item to do this.
 
-The list of SSAP servers available can be queried by selecting the 
-\submenuitem{Options}{Configure SSAP servers...} item. This allows you to
-choose a subset of the known servers, find out more about them, and to query a
-VO registry for any new servers.
+%The list of SSAP servers available can be queried by selecting the 
+%\submenuitem{Options}{Configure SSAP servers...} item. This allows you to
+%choose a subset of the known servers, find out more about them, and to query a
+%VO registry for any new servers.
 
 %mcneves
-By selecting the \labelitem{More Parameters} button you can \htmlref{query the selected SSA servers for
-metadata parameters}{ssap_metadata}  they support and use them for your query. See the subsection below.
+%By selecting the \labelitem{More Parameters} button you can \htmlref{query the selected SSA servers for
+%metadata parameters}{ssap_metadata}  they support and use them for your query. See the subsection below.
 %mcneves
 
+\subheading {Query results}
 
 Once the SSAP query is complete lists of spectra that the servers hold will be
 shown in the \labelitem{Query results:} region. There is a tab of results for
@@ -1502,7 +1529,7 @@ then make sure that the
 item is still switched on in the plot window.
 
 To view a single spectrum quickly just double click on its row. This will
-download the spectrum and display it in its own plot window.
+download the spectrum and display it in its own plot window.\\
 
 \subheading{Implementation status}
 
@@ -1530,10 +1557,12 @@ Conversion between fluxes is currently restricted to flux per unit wavelength
 and flux per unit frequency is provided and does not require any `dimensional
 analysis' information to be present, just correctly formed units strings.
 
+%!!!!!!!!!!!!!!!!!!!
 The SSAP query is limited to just a cone region on the sky or single object
 name and only some optional query parameters are not supported, namely
-the wavelength and flux calibration options. These are located in the 
-\menuitem{Options} menu.
+the wavelength and flux calibration options.
+% These are located in the 
+% \menuitem{Options} menu.
 
 \subheading{Accelerator keys}
 
@@ -1543,24 +1572,6 @@ the wavelength and flux calibration options. These are located in the
 \item \labelitem{Shift-F1} Display help on window.
 \end{itemize}
 
-%mcneves
-\subsubsection{Query SSAP servers for metadata parameters\xlabel{ssap_metadata}}
-
-By selecting the \labelitem{More Parameters} button you can query the selected
-SSA servers for all metadata parameters they support. The result is a table which
-columns show a checkbox to select the parameter, the number of servers supporting it,
-the parameter name and a value field, where you can insert a value. By putting the
-mouse on a parameter name, its description will be displayed. If provided, the
-default values will be inserted to the value field. the parameter. The checked
-parameters having a non empty value  will be added to the query.
-
-\mainfigure{ssapMetadataTable}
-
-After selecting the desired parameters and adding values, they will be included to the query when
-the \labelitem{Go} button is selected on the Query VO  for Spectra window.  
-The current list of parameters can be written to, or read from a file, as well as updated from the
-current list of SSA servers.
-%mcneves
 \newpage
 \subsection{The animation window\xlabel{animation_window}}
 
