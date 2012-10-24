@@ -1,35 +1,5 @@
 1 Starlink SPLAT news.
 
-   3.9-93
-   ======
-
-    Extensive changes in the SSAP Query GUI. Possibility to select servers 
-    according to waveband, or data source (theory/archive/survey), as well 
-    as user defined tags. Possibility to add optional metadata parameters 
-    to the query according to selected servers. 
-
-   3.9-92
-   ======
-
-   Access Control implemented
-   Bug fix: If the MAXREC limit is reached, SPLAT does not return an error anymo   re, but downloads the MAXREC records.
-
-   3.9-91
-   ======
-
-   Access control partially implemented
-   Fixed BAND parameter input in the case when the upper limit is null
-   Added URL encoding for TARGETNAME, so the targets can have special characters like '+'   
-
-   3.9-9
-   =====
-
-   Two new features have been introduced to the VO part: an option to 
-   manually add a ssap server into the server list, and the possibility to 
-   enter other metadata parameters when searching for spectra.
-
-
-
    3.9-8
    =====
 
@@ -38,6 +8,15 @@
    have a correct coordinate value assigned to the removed region. This
    resulted in a non-monotonic spectrum.
 
+   A bug in the flip toolbox that always reported the radial velocity as
+   zero in the log file has been fixed. The log now also includes whether
+   the values are redshifts.
+
+   A bug that meant some NDF spectra opened in SPLAT using the "splatdisp"
+   command could not be saved to disk. This has been fixed. Note this includes
+   spectra sent from GAIA.
+ 
+   Post Kaulia
 
    3.9-7
    =====

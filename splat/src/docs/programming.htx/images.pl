@@ -1,10 +1,10 @@
-# LaTeX2HTML 2008 (1.71)
+# LaTeX2HTML 2009-1 (1.71)
 # Associate images original text with physical files.
 
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassSplatBrowserextendsjavax.swing.JFrame}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img14.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -13,7 +13,7 @@ class SplatBrowser extends javax.swing.JFrame}
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassSpecDataimplementsSpecDataAccess,AnalyticSpectrum,java.io.Serializable}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img5.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -28,19 +28,19 @@ $cached_env_img{$key} = q|<IMG
 
 $key = q/fbox{Examplespectralauto-loading};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="233" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="233" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img1.png"
  ALT="\fbox{Example spectral auto-loading}">|; 
 
 $key = q/|;MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="8" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="9" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img15.png"
  ALT="$\vert$">|; 
 
 $key = q/fbox{Examplesetcolour};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="151" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="151" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img3.png"
  ALT="\fbox{Example set colour}">|; 
 
@@ -63,18 +63,9 @@ $cached_env_img{$key} = q|<IMG
 class SpecDataFactory}
 }}">|; 
 
-$key = q/nomath_inline}fboxparboxtextwidthtextitpublicclassSpectralFileFilterimplementsjava.io.FileFilternomath_inline};MSF=1.5;LFS=11;AAT/;
-$cached_env_img{$key} = q|<IMG
- WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
- SRC="|."$dir".q|img9.gif"
- ALT="\fbox{\parbox{\textwidth}{
-\textit{public
-class SpectralFileFilter implements java.io.FileFilter}
-}}">|; 
-
 $key = q/fbox{parbox{textwidth}{textit{publicclassSpecDataFactory}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img6.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -87,9 +78,18 @@ $cached_env_img{$key} = q|<IMG
  SRC="|."$dir".q|img3.gif"
  ALT="\fbox{Example set colour}">|; 
 
+$key = q/nomath_inline}fboxparboxtextwidthtextitpublicclassSpectralFileFilterimplementsjava.io.FileFilternomath_inline};MSF=1.5;LFS=11;AAT/;
+$cached_env_img{$key} = q|<IMG
+ WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="|."$dir".q|img9.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class SpectralFileFilter implements java.io.FileFilter}
+}}">|; 
+
 $key = q/fbox{parbox{textwidth}{textit{publicclassPlotControlextendsjavax.swing.JPanelimpeListener,PlotScaledListener,java.awt.event.ActionListener}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img7.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -99,7 +99,7 @@ class PlotControl extends javax.swing...
 
 $key = q/fbox{Examplezoomandcentre};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="200" HEIGHT="42" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="201" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img2.png"
  ALT="\fbox{Example zoom and centre}">|; 
 
@@ -129,7 +129,7 @@ $cached_env_img{$key} = q|<IMG
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassRemoteUtilities}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img9.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -162,7 +162,7 @@ class GlobalSpecPlotList}
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassSpectralFileFilterimplementsjava.io.FileFilter}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img10.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -171,7 +171,7 @@ class SpectralFileFilter implements java.io.FileFilter}
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassGlobalSpecPlotList}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img13.png"
  ALT="\fbox{\parbox{\textwidth}{
 \textit{public
@@ -198,7 +198,7 @@ $cached_env_img{$key} = q|<IMG
 
 $key = q/fbox{parbox{textwidth}{textit{publicclassMEMSpecDataImplextendsSpecDataImpl}}};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="1056" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ WIDTH="783" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
  SRC="|."$dir".q|img4.png"
  ALT="\fbox
 {\parbox{\textwidth}{
