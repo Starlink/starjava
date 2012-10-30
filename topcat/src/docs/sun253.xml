@@ -15432,6 +15432,7 @@ introduced since the last version:
     <li>Use "<code>rows</code>"/"<code>bytes</code>" 
         rather than "<code>row</code>"/"<code>byte</code>"
         for TAP capability unit values.</li>
+    <li>Upgrade to JSAMP v1.3-3.</li>
     </ul>
     </p>
     </dd>
