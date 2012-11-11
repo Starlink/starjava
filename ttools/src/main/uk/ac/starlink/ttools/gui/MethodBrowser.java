@@ -222,8 +222,8 @@ public class MethodBrowser extends JPanel {
         parent.add( clazzNode );
 
         /* Add nodes based on its public static members. */
-        addPublicStaticMembers( clazzNode, clazz.getDeclaredFields() );
         addPublicStaticMembers( clazzNode, clazz.getDeclaredMethods() );
+        addPublicStaticMembers( clazzNode, clazz.getDeclaredFields() );
     }
 
     /**
