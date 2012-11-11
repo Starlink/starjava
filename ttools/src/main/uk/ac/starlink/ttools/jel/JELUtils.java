@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.func.Distances;
 import uk.ac.starlink.ttools.func.Fluxes;
 import uk.ac.starlink.ttools.func.Footprints;
 import uk.ac.starlink.ttools.func.Formats;
+import uk.ac.starlink.ttools.func.KCorrections;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.func.Tilings;
@@ -85,6 +86,7 @@ public class JELUtils {
                 Fluxes.class,
                 Footprints.class,
                 Formats.class,
+                KCorrections.class,
                 Maths.class,
                 Strings.class,
                 Tilings.class,

@@ -15433,6 +15433,7 @@ introduced since the last version:
         rather than "<code>row</code>"/"<code>byte</code>"
         for TAP capability unit values.</li>
     <li>Upgrade to JSAMP v1.3-3.</li>
+    <li>Add K-Corrections functions of I&amp;I.</li>
     </ul>
     </p>
     </dd>
