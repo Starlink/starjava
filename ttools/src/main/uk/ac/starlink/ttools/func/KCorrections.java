@@ -12,6 +12,9 @@ import java.util.Map;
  * Functions for calculating K-corrections.
  *
  * @author   Mark Taylor
+ * @author   Igor Chilingarian
+ * @author   Anne-Laure Melchior
+ * @author   Ivan Zolotukhin
  * @since    9 Nov 2012
  */
 public class KCorrections {
@@ -23,27 +26,31 @@ public class KCorrections {
     }
 
     /**
-     * Calculates K-correction coefficients.
-     * This allows you to determine
-     * <em>K</em>-corrections for a galaxy, given its redshift and a colour.
-     * Filters for GALEX, SDSS, UKIDSS, Johnson, Cousins and 2MASS are covered.
+     * Calculates K-corrections. This allows you to determine K-corrections
+     * for a galaxy, given its redshift and a colour. Filters for GALEX,
+     * SDSS, UKIDSS, Johnson, Cousins and 2MASS are covered.
      *
      * <p>To define the calculation you must choose both a filter,
-     * specified as a <code>KCF_*</code> constant and a
-     * colour (filter pair) specified as a <code>KCC_*</code> constant.
+     * specified as a <code>KCF_*</code> constant,
+     * and a colour (filter pair) specified as a <code>KCC_*</code> constant.
      * For each available filter, only certain colours are available,
      * as described in the documentation of the relevant <code>KCF_*</code>
-     * object.
+     * constant.
      *
      * <p>The algorithm used is described at
      * <a href="http://kcor.sai.msu.ru/">http://kcor.sai.msu.ru/</a>.
      * This is based on the paper
+     * <em>"Analytical Approximations of K-corrections in
+     * Optical and Near-Infrared Bands"</em>
+     * by I.Chilingarian, A.-L.Melchior and I.Zolotukhin
+     * (<a href="http://adsabs.harvard.edu/abs/2010MNRAS.405.1409C"
+     *     >2010MNRAS.405.1409C</a>),
+     * but extended to include GALEX UV bands and with redshift
+     * coverage up to 0.5 as described in
      * <em>"Universal UV-optical Colour-Colour-Magnitude Relation of
      * Galaxies"</em> by I.Chilingarian and I.Zolotukhin
      * (<a href="http://adsabs.harvard.edu/abs/2012MNRAS.419.1727C"
-     *     >2012MNRAS.419.1727C</a>),
-     * but extended to unclide GALEX UV bands and with redshift coverage
-     * up to 0.5.
+     *     >2012MNRAS.419.1727C</a>).
      *
      * @example <code>kCorr(KCF_g, 0.16, KCC_gr, -0.8) = 3.593</code>
      * @example <code>kCorr(KCF_FUV, 0.48, KCC_FUVu, 0.31) = -0.170</code>
