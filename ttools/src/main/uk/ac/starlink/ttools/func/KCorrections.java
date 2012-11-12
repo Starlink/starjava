@@ -80,7 +80,7 @@ public class KCorrections {
     /**
      * Characterises a filter for which K-corrections can be calculated.
      */
-    private static class KFilter {
+    static class KFilter {
         private final CoeffMap cmap_;
         private final String fname_;
 
@@ -114,7 +114,7 @@ public class KCorrections {
     /**
      * Characterises an ordered pair of filters.
      */
-    private static class KColor {
+    static class KColor {
         private final String f1_;
         private final String f2_;
 
@@ -247,9 +247,6 @@ public class KCorrections {
     /** UKIDSS H - K colour. */
     public static final KColor KCC_HK = new KColor( "H", "K" );
 
-    /** Cousins Ic - VIc colour. */
-    public static final KColor KCC_IcVIc = new KColor( "Ic", "VIc" );
-
     /** 2MASS J - H colour. */
     public static final KColor KCC_J2H2 = new KColor( "J2", "H2" );
 
@@ -337,7 +334,7 @@ public class KCorrections {
             } ) );
 
         KCF_Ic = new KFilter( "Cousins Ic", new CoeffMap()
-            .add( KCC_IcVIc, new double[][] {
+            .add( KCC_VIc, new double[][] {
                 {0,0,0,0},
                 {-7.92467,17.6389,-15.2414,5.12562},
                 {15.7555,-1.99263,10.663,-10.8329},
