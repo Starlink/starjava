@@ -524,12 +524,12 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
   
             SSAPRegCapability caps[] = server.getCapabilities();
 
-                    ServerTreeNode stn = new ServerTreeNode( name  ); 
+            ServerTreeNode stn = new ServerTreeNode( name  ); 
                 
-                    addInfoNodes(server, caps[0], stn);
-                    if (stn.isSelected())
-                        serverList.selectServer(server.getShortName());
-                    root.addsort( stn );
+            addInfoNodes(server, caps[0], stn);
+            if (stn.isSelected())
+                 serverList.selectServer(server.getShortName());
+            root.addsort( stn );
                  
          }
     }
