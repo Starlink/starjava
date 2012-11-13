@@ -742,7 +742,7 @@ public class FlipFrame
             spefoOffset = offset;
             double centre = flipCentre.getDoubleValue();
             if ( centre != 0.0 ) {
-                double spefoRV = 0.001 * 
+                spefoRV = 0.001 * 
                     PhysicalConstants.SPEED_OF_LIGHT * offset / centre;
 
                 ScientificFormat sf = 
@@ -888,6 +888,12 @@ public class FlipFrame
             writer = new BufferedWriter( new FileWriter( "SPEFO.log", true ) );
             SpecData spec = plot.getCurrentSpectrum();
 
+            if ( redshiftBox.isSelected() ) {
+                writer.write( "#  redshift enabled\n" );
+            }
+            else {
+                writer.write( "#  redshift disabled\n" );
+            }
             writer.write( spec.getShortName() + " | ");
             writer.write( spefoOffset + "| " );
             writer.write( flipCentre.getDoubleValue() + "| " );

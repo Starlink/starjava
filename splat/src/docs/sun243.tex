@@ -28,11 +28,11 @@ Copyright \copyright\ 2007-2009 Science and Technology Facilities Council
 }
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.39}
+\newcommand{\stardocnumber}    {243.40}
 \newcommand{\stardocauthors}   {Peter W. Draper \& Mark Taylor}
-\newcommand{\stardocdate}      {23 Jul 2009}
+\newcommand{\stardocdate}      {29 Nov 2011}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.9-2}
+\newcommand{\stardocversion}   {3.9-8}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -1251,43 +1251,37 @@ the display area.\\
   \begin{quote}
   \begin{description}
      \item[Name:] the short name.
-     \item[Telescope:] the telescope, instrument and it's backend 
-                       (TELESCOP/ INSTRUME/ BACKEND).
-     \item[Object:] The target, molecule and molecular transition being
-                    observed (OBJECT/ MOLECULE/ TRANSITI).
+     \item[Telescope:] the telescope, instrument and it's backend (TELESCOP/ INSTRUME/ BACKEND).
+     \item[Object:] The target, molecule and molecular transition being observed (OBJECT/ MOLECULE/ TRANSITI).
      \item[Date obs:] The date of the observation (DATE$-$OBS or Epoch in UTC). 
-     \item[Elevation:] The observatory elevation 
-                       (ELSTART or $0.5*$(ELSTART$+$ELEND)).
+     \item[Elevation:] The observatory elevation (ELSTART or $0.5*$(ELSTART$+$ELEND)).
      \item[Exposure:] Exposure time for the spectrum (EXTIME).
      \item[~or]
      \item[Exposure (median):] Exposure time for the spectrum (EXP\_TIME).
      \item[~or]
-     \item[Exposure (elapsed):] The time elapsed during exposure (INT\_TIME
-                                otherwise DATE-END$-$DATE-OBS).
+     \item[Exposure (elapsed):] The time elapsed during exposure (INT\_TIME otherwise DATE-END$-$DATE-OBS).
      \item[Exposure (effective):] Effective exposure time (EXEFFT).
      \item[Coord sys:] The coordinate system code (System).  
+
      \item[Spec position:] The position of spectrum on the sky (EXRAX, EXDECX).
-     \item[Src position:] The position of the observation centre 
-                          (EXRRA, EXRDEC).
+     \item[Src position:] The position of the observation centre (EXRRA, EXRDEC).
      \item[~or]
      \item[Img centre:] The centre of the originating image (EXRA, EXDEC).
-     \item[Offset:] The offset of spectrum from observation centre
-                    (EXRRAOF, EXRDECOF or EXRAOF, EXDECOF). 
+     \item[Offset:] The offset of spectrum from observation centre (EXRRAOF, EXRDECOF or EXRAOF, EXDECOF). 
+
      \item[Doppler RA, Dec:] The reference position (RefRA,RefDec).
      \item[SourceVel:] The source velocity (SourceVel).
      \item[SourceVRF:] The source velocity reference frame (SourceVRF).
      \item[SourceSys:] The system of the source velocity (SourceSys).
      \item[StdOfRest:] The standard of rest (StdOfRest). 
      \item[RestFreq:] The rest frequency (RestFreq).
-     \item[ImagFreq:] The image sideband equivalent of the rest frequency
-                      (ImagFreq). 
+     \item[ImagFreq:] The image sideband equivalent of the rest frequency (ImagFreq). 
      \item[Channel spacing:] The channel spacing (derived value).
      \item[Number of channels:] Number of coordinate positions.
      \item[TSYS:] System temperature (TSYS).
      \item[~or]
      \item[TSYS (median):] Median system temperature (MEDTSYS).
-     \item[TSYS (est):] System temperature (derived value, see region
-                        statistics window).
+     \item[TSYS (est):] System temperature (derived value, see region statistics window).
      \item[TRX:] Receiver temperature (TRX).
   \end{description}
   \end{quote}
@@ -1448,7 +1442,7 @@ The right-lower part is the results area, showing the query results.
 \subheading{Server selection}
 
 When clicking on a server in the SSAP Servers list you can see all information stored about this server.
-A subset of servers can be selected by data source ( theory, survey, pointed, custom artificial ) or
+A subset of servers can be selected by data source (theory, survey, pointed, custom, artificial) or
 by waveband. It is also possible to add a tag to servers, so only the tagged servers will be queried
 if the tag is selected.
 To add a new server to the current server list, click on the  \labelitem{+}  button. A new window will open

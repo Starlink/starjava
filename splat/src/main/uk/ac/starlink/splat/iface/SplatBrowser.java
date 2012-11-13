@@ -7,6 +7,14 @@
  *     25-SEP-2000 (Peter W. Draper):
  *       Original version.
  */
+
+//  XXX Need to use SpectrumIO consistently for opening all spectra
+//  from all sources and all the public methods that support this
+//  need to be made package private so we can remove or change any
+//  methods side-stepping SpectrumIO (in case it is forgotten NDFs must
+//  all be opened in the same thread, this keeps the NDF library state
+//  consistent, especially for any WCS components).
+
 package uk.ac.starlink.splat.iface;
 
 import java.awt.AWTEvent;
@@ -1776,6 +1784,68 @@ public class SplatBrowser
     }
 
     /**
+     * Load and optionally display a list of spectra with some pre-defined
+     * properties that should be applied to the spectra immediately after
+     * loading. Uses a thread to load the files, but waits until all the
+     * spectra have been loaded before returning. Returns the number of
+     * spectra successfully loaded.
+     *
+     * @param props properties of the spectra to be loaded, including names.
+     * @param display whether to also display the spectra.
+     */
+    public int blockedThreadLoadSpectra( SpectrumIO.Props[] props,
+                                          boolean display )
+    {
+        if ( props.length == 0 ) return 0;
+        SpectrumIO sio = SpectrumIO.getInstance();
+
+        final Object lock = new Object();
+
+        class Watcher implements SpectrumIO.Watch 
+        {
+            public int nseen = 0;
+
+            public void loadSucceeded( SpectrumIO.Props props )
+            {
+                nseen++;
+                synchronized( lock ) {
+                    lock.notify();
+                }
+            }
+            public void loadFailed( SpectrumIO.Props props,
+                                    Throwable error )
+            {
+                nseen++;
+                synchronized( lock ) {
+                    lock.notify();
+                }
+            }
+
+            public int getSeen()
+            {
+                return nseen;
+            }
+        };
+
+        Watcher watcher = new Watcher();
+        sio.setWatcher( watcher );
+        sio.load( this, display, props );
+
+        synchronized ( lock ) {
+            while ( watcher.getSeen() < props.length ) {
+                try {
+                    lock.wait();
+                }
+                catch( InterruptedException i ) {
+                    // Give up.
+                    break;
+                }
+            }
+        }
+        return watcher.getSeen();
+    }
+
+    /**
      * Save a spectrum. Uses a thread to load the files so that we do not
      * block the UI (although the wait cursor is enabled so no interaction can
      * be performed).
@@ -1958,7 +2028,7 @@ public class SplatBrowser
             JOptionPane.showMessageDialog( this,
                                            e.getMessage(),
                                            "Error opening spectrum",
-                                           JOptionPane.ERROR_MESSAGE);
+                                           JOptionPane.ERROR_MESSAGE );
         }
         return false;
     }
@@ -2150,8 +2220,11 @@ public class SplatBrowser
         int[] indices = new int[count];
         int openedCount = 0;
         SpecList specList = SpecList.getInstance();
+        SpectrumIO.Props props[] = new SpectrumIO.Props[1];
+
         for ( int i = 0; i < count; i++ ) {
-            if ( addSpectrum( st.nextToken() ) ) {
+            props[0] = new SpectrumIO.Props( st.nextToken() );
+            if ( blockedThreadLoadSpectra( props, false ) == 1 ) {
                 indices[openedCount++] = specList.specCount() - 1;
             }
         }
@@ -2198,13 +2271,16 @@ public class SplatBrowser
         int count = st.countTokens();
         if ( count == 0 ) return -1;
 
-        //  Attempt to open all the spectra and keep a list of their indices.
+        //  Attempt to open each one and keep a list of their
+        //  indices.
         int[] indices = new int[count];
         int openedCount = 0;
-        int start = 0;
         SpecList specList = SpecList.getInstance();
+        SpectrumIO.Props props[] = new SpectrumIO.Props[1];
+
         for ( int i = 0; i < count; i++ ) {
-            if ( addSpectrum( st.nextToken() ) ) {
+            props[0] = new SpectrumIO.Props( st.nextToken() );
+            if ( blockedThreadLoadSpectra( props, false ) == 1 ) {
                 indices[openedCount++] = specList.specCount() - 1;
             }
         }
@@ -2217,6 +2293,7 @@ public class SplatBrowser
         //  If no current PlotControl instance with this identifier then
         //  create a new one, using the first spectrum to initialise it
         //  (obviously clear has no effect).
+        int start = 0;
         if ( plotIndex == -1 ) {
             SpecData spectrum = globalList.getSpectrum( indices[0] );
             start = 1;

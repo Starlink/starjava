@@ -1496,6 +1496,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
      * <p>
      * Can return the selected spectra, if requested, otherwise all spectra
      * are returned or if a row value other than -1 is given just one row.
+     * @throws SplatException 
      */
     private void extractSpectraFromTable( StarJTable starJTable,
             ArrayList<Props> specList,
@@ -1598,8 +1599,8 @@ implements ActionListener, MouseListener, PropertyChangeListener
             //  that are appropriate.
             if ( linkcol != -1 ) {
                 RowSequence rseq = null;
-                SpectrumIO.Props props;
-                String value;
+                SpectrumIO.Props props = null;
+                String value = null;
                 String[] axes;
                 String[] units;
                 try {
@@ -1697,11 +1698,17 @@ implements ActionListener, MouseListener, PropertyChangeListener
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.
-                                value = ( (String)rseq.getCell( linkcol ).toString() );
-                                value = value.trim();
-                                props = new SpectrumIO.Props( value );
+                                if (rseq.getCell( linkcol ) != null)                                      
+                                    value = ( (String)rseq.getCell( linkcol ).toString() );
+                                if (value != null ) {         
+                                    value = value.trim();
+                                    props = new SpectrumIO.Props( value );
+                                } 
                                 if ( typecol != -1 ) {
-                                    value =((String)rseq.getCell(typecol).toString());
+                                    value = null;
+                                    Object obj = rseq.getCell(typecol);
+                                    if (obj != null) 
+                                        value =((String)rseq.getCell(typecol).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setType
@@ -1710,6 +1717,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
                                     }
                                 }
                                 if ( namecol != -1 ) {
+                                    value = null;
+                                    Object obj = rseq.getCell(namecol);
+                                    if (obj != null) 
                                     value = ((String)rseq.getCell( namecol ).toString());
                                     if ( value != null ) {
                                         value = value.trim();
@@ -1717,16 +1727,23 @@ implements ActionListener, MouseListener, PropertyChangeListener
                                     }
                                 }
                                 if ( axescol != -1 ) {
-                                    value = ((String)rseq.getCell( axescol ).toString());
-                                    if ( value != null ) {
-                                        value = value.trim();
+                                    value = null;
+                                    Object obj = rseq.getCell(axescol);
+                                    if (obj != null) 
+                                        value = ((String)obj.toString());
+                                    
+                                    if (value != null ) {
+                                         value = value.trim();
                                         axes = value.split("\\s");
                                         props.setCoordColumn( axes[0] );
                                         props.setDataColumn( axes[1] );
                                     }
                                 }
                                 if ( unitscol != -1 ) {
-                                    value = ((String)rseq.getCell(unitscol).toString());
+                                    value = null;
+                                    Object obj = rseq.getCell(unitscol);
+                                    if (obj != null) 
+                                        value = ((String)rseq.getCell(unitscol).toString());
                                     if ( value != null ) {
                                         units = value.split("\\s");
                                         props.setCoordUnits( units[0] );
@@ -1747,6 +1764,9 @@ implements ActionListener, MouseListener, PropertyChangeListener
                 }
                 catch (IOException ie) {
                     ie.printStackTrace();
+                }
+                catch (NullPointerException ee) {
+                    ErrorDialog.showError( this, "Failed to parse query results file", ee );
                 }
                 finally {
                     try {

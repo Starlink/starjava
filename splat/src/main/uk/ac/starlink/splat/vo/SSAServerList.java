@@ -260,8 +260,11 @@ public class SSAServerList
         while ( true ) {
             try {
                 server = (SSAPRegResource) decoder.readObject();
-                serverList.put( server.getShortName(), server );
-                selectionList.put(server.getShortName(), true );
+                String name = server.getShortName();
+                if (name == null || name.length()==0)
+                    name = "<>";
+                serverList.put( name, server );
+                selectionList.put(name, true );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.

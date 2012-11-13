@@ -437,8 +437,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         Iterator  i =  serverList.getIterator();
         while( i.hasNext()) {
             SSAPRegResource server= (SSAPRegResource) i.next(); 
-       
-            ServerTreeNode stn = new ServerTreeNode( server.getShortName()  ); 
+            String name = server.getShortName();
+    //        if (name == null || name.length() == 0)
+    //            name = "<>" ;
+            ServerTreeNode stn = new ServerTreeNode( name  ); 
             addInfoNodes(server, stn);
             root.addsort( stn );
             
