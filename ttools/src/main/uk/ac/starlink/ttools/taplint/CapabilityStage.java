@@ -66,7 +66,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         }
         catch ( MalformedURLException e ) {
             capUrl = null;
+<<<<<<< HEAD
             reporter.report( FixedCode.F_CAIO,
+=======
+            reporter.report( ReportType.FAILURE, "CAIO",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                              "Bad URL " + serviceUrl + "?", e );
         }
         tcap_ = checkCapabilities( reporter, capUrl );
@@ -84,7 +88,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         /* Attempt to read a TapCapability object from the URL.
          * If it can't be done, give up now. */
         final TapCapability tcap;
+<<<<<<< HEAD
         reporter.report( FixedCode.I_CURL,
+=======
+        reporter.report( ReportType.INFO, "CURL",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                          "Reading capability metadata from " + capUrl );
         try {
             tcap = TapCapability.readTapCapability( capUrl );
@@ -109,6 +117,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                      .parse( new BufferedInputStream( capUrl.openStream() ) );
         }
         catch ( IOException e ) {
+<<<<<<< HEAD
             reporter.report( FixedCode.E_CAIO,
                              "Error reading capabilities from " + capUrl, e );
         }
@@ -118,6 +127,17 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         }
         catch ( ParserConfigurationException e ) {
             reporter.report( FixedCode.F_CAPC,
+=======
+            reporter.report( ReportType.ERROR, "CAIO",
+                             "Error reading capabilities from " + capUrl, e );
+        }
+        catch ( SAXException e ) {
+            reporter.report( ReportType.ERROR, "CAXM",
+                             "Error parsing capabilities from " + capUrl, e );
+        }
+        catch ( ParserConfigurationException e ) {
+            reporter.report( ReportType.FAILURE, "CAPC",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                              "Error parsing capabilities XML from " + capUrl,
                              e );
         }
@@ -163,7 +183,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             /* Check at least one language is present. */
             TapLanguage[] languages = tcap_.getLanguages();
             if ( languages.length == 0 ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_NOQL,
+=======
+                reporter_.report( ReportType.ERROR, "NOQL",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   "No query languages declared" );
                 return;
             }
@@ -187,7 +211,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( langName )
                                .append( " has empty version string" )
                                .toString();
+<<<<<<< HEAD
                             reporter_.report( FixedCode.W_LVAN, msg );
+=======
+                            reporter_.report( ReportType.WARNING, "LVAN", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                         }
                         String vid = lang.getVersionIds()[ iv ];
                         boolean isNumber2 = "2.0".equals( vname );
@@ -204,7 +232,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( ADQL2_ID )
                                .append( "\"" )
                                .toString();
+<<<<<<< HEAD
                             reporter_.report( FixedCode.W_A2MN, msg );
+=======
+                            reporter_.report( ReportType.WARNING, "A2MN", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                         }
                         else if ( isNumber2 && ! hasId2 ) {
                             String msg = new StringBuffer()
@@ -219,7 +251,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( ADQL2_ID )
                                .append( "\"" )
                                .toString();
+<<<<<<< HEAD
                             reporter_.report( FixedCode.W_A2MX, msg );
+=======
+                            reporter_.report( ReportType.WARNING, "A2MX", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                         }
                         else if ( ! isNumber2 && hasId2 ) {
                             String msg = new StringBuffer()
@@ -232,7 +268,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( " not " )
                                .append( "ADQL-2.0" )
                                .toString();
+<<<<<<< HEAD
                             reporter_.report( FixedCode.E_A2XI, msg );
+=======
+                            reporter_.report( ReportType.ERROR, "A2XI", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                         }
                     }
                 }
@@ -244,11 +284,19 @@ public class CapabilityStage implements Stage, CapabilityHolder {
 
             /* Report on presence of (required) ADQL 2. */
             if ( ! hasAdql ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_ADQX,
                                   "ADQL not declared as a query language" );
             }
             else if ( ! hasAdql2 ) {
                 reporter_.report( FixedCode.W_AD2X,
+=======
+                reporter_.report( ReportType.ERROR, "ADQX",
+                                  "ADQL not declared as a query language" );
+            }
+            else if ( ! hasAdql2 ) {
+                reporter_.report( ReportType.WARNING, "AD2X",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   "ADQL-2.0 not declared as a query language" );
             }
         }
@@ -283,7 +331,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "\" for language " )
                        .append( langName )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.E_KEYX, msg );
+=======
+                    reporter_.report( ReportType.ERROR, "KEYX", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
                 else {
                     String msg = new StringBuffer()
@@ -292,7 +344,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "\" for language " )
                        .append( langName )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.W_CULF, msg );
+=======
+                    reporter_.report( ReportType.WARNING, "CULF", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             }
         }
@@ -321,7 +377,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "f(a T[, ...]) -> T)" )
                        .append( "\"" )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.E_UDFE, msg );
+=======
+                    reporter_.report( ReportType.ERROR, "UDFE", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             }
         }
@@ -352,7 +412,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( form )
                        .append( "\" unknown" )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.E_GEOX, msg );
+=======
+                    reporter_.report( ReportType.ERROR, "GEOX", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             }
         }
@@ -378,7 +442,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                            .append( frag )
                            .append( "\" for upload method" )
                            .toString();
+<<<<<<< HEAD
                         reporter_.report( FixedCode.E_UPBD, msg );
+=======
+                        reporter_.report( ReportType.ERROR, "UPBD", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                     }
                 }
                 else {
@@ -387,7 +455,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( upMethod )
                        .append( "\"" )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.W_UPCS, msg );
+=======
+                    reporter_.report( ReportType.WARNING, "UPCS", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             }
             if ( upMethods.length > 0 ) {
@@ -401,7 +473,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                            .append( ", though uploads are " )
                            .append( "apparently supported" )
                            .toString();
+<<<<<<< HEAD
                         reporter_.report( FixedCode.E_MUPM, msg );
+=======
+                        reporter_.report( ReportType.ERROR, "MUPM", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                     }
                 }
             }
@@ -432,13 +508,21 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         private void checkOutputFormats() {
             Element treEl = getCapabilityElement( "ivo://ivoa.net/std/TAP" );
             if ( treEl == null ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_TCAP,
+=======
+                reporter_.report( ReportType.ERROR, "TCAP",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   "No TAPRegExt capability element" );
                 return;
             }
             OutputFormat[] outFormats = readOutputFormats( treEl );
             if ( outFormats.length == 0 ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_NOOF,
+=======
+                reporter_.report( ReportType.ERROR, "NOOF",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   "No output formats defined" );
                 return;
             }
@@ -462,7 +546,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "\" for output format " )
                        .append( ofName )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.E_BMIM, msg );
+=======
+                    reporter_.report( ReportType.ERROR, "BMIM", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
                 String ivoid = of.ivoid_;
                 if ( ivoid != null && ivoid.startsWith( stdPrefix ) &&
@@ -474,7 +562,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( " for output format " )
                        .append( ofName )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.E_XOFK, msg );
+=======
+                    reporter_.report( ReportType.ERROR, "XOFK", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             }
         }

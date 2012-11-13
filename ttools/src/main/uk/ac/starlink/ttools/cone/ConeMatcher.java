@@ -47,7 +47,11 @@ public class ConeMatcher {
     private final QuerySequenceFactory qsFact_;
     private final int parallelism_;
     private final boolean bestOnly_;
+<<<<<<< HEAD
     private final Coverage coverage_;
+=======
+    private final Footprint footprint_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final boolean includeBlanks_;
     private final boolean distFilter_;
     private final String copyColIdList_;
@@ -80,10 +84,16 @@ public class ConeMatcher {
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
      */
+<<<<<<< HEAD
     public ConeMatcher( ConeSearcher coneSearcher, ConeErrorPolicy errAct,
                         TableProducer inProd, QuerySequenceFactory qsFact,
                         boolean bestOnly ) {
         this( coneSearcher, errAct, inProd, qsFact, bestOnly, null, true, false,
+=======
+    public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
+                        QuerySequenceFactory qsFact, boolean bestOnly ) {
+        this( coneSearcher, inProd, qsFact, bestOnly, null, true, false,
+>>>>>>> finished merging changes in trunk to branch splat-ari
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
@@ -98,7 +108,11 @@ public class ConeMatcher {
      * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
+<<<<<<< HEAD
      * @param   coverage  coverage for cone searcher, or null
+=======
+     * @param   footprint  coverage footprint for cone searcher, or null
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * @param   includeBlanks  true iff a row is to be output for input rows
      *                         for which the cone search has no matches
      * @param   distFilter true to perform post-query filtering on results
@@ -118,7 +132,11 @@ public class ConeMatcher {
     public ConeMatcher( ConeSearcher coneSearcher, ConeErrorPolicy errAct,
                         TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly,
+<<<<<<< HEAD
                         Coverage coverage, boolean includeBlanks,
+=======
+                        Footprint footprint, boolean includeBlanks,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                         boolean distFilter, int parallelism,
                         String copyColIdList, String distanceCol,
                         JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
@@ -127,7 +145,11 @@ public class ConeMatcher {
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
+<<<<<<< HEAD
         coverage_ = coverage;
+=======
+        footprint_ = footprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
         includeBlanks_ = includeBlanks;
         distFilter_ = distFilter;
         parallelism_ = parallelism;
@@ -166,20 +188,33 @@ public class ConeMatcher {
     public ConeWorker createConeWorker() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
+<<<<<<< HEAD
         if ( coverage_ != null ) {
             try {
                 coverage_.initCoverage();
             }
             catch ( IOException e ) {
                 logger_.warning( "Coverage initialisation failed: " + e );
+=======
+        if ( footprint_ != null ) {
+            try {
+                footprint_.initFootprint();
+            }
+            catch ( IOException e ) {
+                logger_.warning( "Footprint initialisation failed: " + e );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
         }
         final ConeResultRowSequence resultSeq;
         if ( parallelism_ == 1 ) {
             resultSeq = new SequentialResultRowSequence( querySeq,
                                                          coneSearcher_,
+<<<<<<< HEAD
                                                          errAct_,
                                                          coverage_,
+=======
+                                                         footprint_,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                                          bestOnly_, distFilter_,
                                                          distanceCol_ ) {
                    public void close() throws IOException {
@@ -191,8 +226,12 @@ public class ConeMatcher {
         else {
             resultSeq = new ParallelResultRowSequence( querySeq,
                                                        coneSearcher_,
+<<<<<<< HEAD
                                                        errAct_,
                                                        coverage_,
+=======
+                                                       footprint_,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                                        bestOnly_, distFilter_,
                                                        distanceCol_,
                                                        parallelism_ ) {

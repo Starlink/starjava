@@ -156,10 +156,17 @@ public abstract class NamedObjectParameter<T> extends Parameter<T> {
      *
      * @return   object list
      */
+<<<<<<< HEAD
     public T[] getOptions() {
         List<T> list = new ArrayList<T>();
         for ( int i = 0; i < optList_.size(); i++ ) {
             list.add( optList_.get( i ).option_ );
+=======
+    public Object[] getOptions() {
+        Object[] options = new Object[ optList_.size() ];
+        for ( int i = 0; i < options.length; i++ ) {
+            options[ i ] = ((NamedOption) optList_.get( i )).option_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
         return toArray( list );
     }

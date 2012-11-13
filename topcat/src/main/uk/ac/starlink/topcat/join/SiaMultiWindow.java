@@ -13,7 +13,11 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.cone.Coverage;
+=======
+import uk.ac.starlink.ttools.cone.Footprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.ttools.cone.SiaConeSearcher;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
@@ -111,11 +115,19 @@ public class SiaMultiWindow extends DalMultiWindow {
             return new SiaConeSearcher( url.toString(), format, false, tfact );
         }
 
+<<<<<<< HEAD
         public boolean hasCoverages() {
             return false;
         }
 
         public Coverage getCoverage( URL url ) {
+=======
+        public boolean hasFootprints() {
+            return false;
+        }
+
+        public Footprint getFootprint( URL url ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
             return null;
         }
     }

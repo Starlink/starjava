@@ -7,7 +7,10 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+<<<<<<< HEAD
 import uk.ac.starlink.task.StringParameter;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
@@ -39,11 +42,19 @@ public class PixSample extends MapperTask {
      */
     private static class PixSampleMapper implements TableMapper {
         private final ChoiceParameter<PixSampler.StatMode> modeParam_;
+<<<<<<< HEAD
         private final StringParameter lonParam_;
         private final StringParameter latParam_;
         private final ChoiceParameter<SkySystem> insysParam_;
         private final ChoiceParameter<SkySystem> outsysParam_;
         private final StringParameter radiusParam_;
+=======
+        private final Parameter lonParam_;
+        private final Parameter latParam_;
+        private final ChoiceParameter<SkySystem> insysParam_;
+        private final ChoiceParameter<SkySystem> outsysParam_;
+        private final Parameter radiusParam_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
         private final ChoiceParameter<HealpixScheme> schemeParam_;
 
         /**
@@ -63,7 +74,11 @@ public class PixSample extends MapperTask {
                     return mode.toString().toLowerCase();
                 }
             };
+<<<<<<< HEAD
             radiusParam_ = new StringParameter( "radius" );
+=======
+            radiusParam_ = new Parameter( "radius" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             insysParam_ =
                 new ChoiceParameter<SkySystem>( "insys",
                                                 SkySystem.getKnownSystems() );
@@ -133,7 +148,11 @@ public class PixSample extends MapperTask {
                 .append( " parameters.\n" )
                 .toString();
 
+<<<<<<< HEAD
             lonParam_ = new StringParameter( "lon" );
+=======
+            lonParam_ = new Parameter( "lon" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             lonParam_.setPrompt( "Input table longitude in degrees" );
             lonParam_.setUsage( "<expr>" );
             lonParam_.setDescription( new String[] {
@@ -144,7 +163,11 @@ public class PixSample extends MapperTask {
                 "</p>",
             } );
 
+<<<<<<< HEAD
             latParam_ = new StringParameter( "lat" );
+=======
+            latParam_ = new Parameter( "lat" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             latParam_.setPrompt( "Input table latitude in degrees" );
             latParam_.setUsage( "<expr>" );
             latParam_.setDescription( new String[] {
@@ -324,7 +347,11 @@ public class PixSample extends MapperTask {
                 "This is usually, but not necessarily, FITS.",
                 "</p>",
             } );
+<<<<<<< HEAD
             pixFmtParam.setStringDefault( "fits" );
+=======
+            pixFmtParam.setDefault( "fits" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
             pixFilterParam_ = new FilterParameter( "pcmd" );
             pixFilterParam_.setPrompt( "Processing command(s)"

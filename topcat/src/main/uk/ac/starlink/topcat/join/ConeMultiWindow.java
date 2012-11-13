@@ -13,8 +13,13 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
+=======
+import uk.ac.starlink.ttools.cone.Footprint;
+import uk.ac.starlink.ttools.cone.MocServiceFootprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
@@ -109,12 +114,21 @@ public class ConeMultiWindow extends DalMultiWindow {
                                             verb, false, tfact );
         }
 
+<<<<<<< HEAD
         public boolean hasCoverages() {
             return true;
         }
 
         public Coverage getCoverage( URL url ) {
             return UrlMocCoverage.getServiceMoc( url, -1 );
+=======
+        public boolean hasFootprints() {
+            return true;
+        }
+
+        public Footprint getFootprint( URL url ) {
+            return new MocServiceFootprint( url );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
     }
 }

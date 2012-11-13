@@ -231,8 +231,13 @@ public class TapSchemaStage extends TableMetadataStage {
          * @param  tapRunner  object to perform TAP queries
          */
         public LintTapSchemaInterrogator( Reporter reporter, URL serviceUrl,
+<<<<<<< HEAD
                                           int maxrec, TapRunner tapRunner ) {
             super( serviceUrl, maxrec );
+=======
+                                          TapRunner tapRunner ) {
+            super( serviceUrl, 0 );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             reporter_ = reporter;
             tapRunner_ = tapRunner;
         }

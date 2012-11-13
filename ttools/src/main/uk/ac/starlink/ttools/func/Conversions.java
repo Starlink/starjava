@@ -59,6 +59,7 @@ public class Conversions {
     }
 
     /**
+<<<<<<< HEAD
      * Turns a byte value into a string.
      *
      * @param  byteVal  byte numeric value
@@ -91,6 +92,15 @@ public class Conversions {
      * and get a useful return from it.
      *
      * @param  objVal  non-primitive value
+=======
+     * Turns any value into a string.
+     * As applied to existing string values this isn't really useful,
+     * but it means that you can apply <code>toString()</code>
+     * to any value without knowing its type
+     * and get a useful return from it.
+     *
+     * @param  objVal  non-numeric value
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * @return  a string representation of <code>objVal</code>
      */
     public static String toString( Object objVal ) {

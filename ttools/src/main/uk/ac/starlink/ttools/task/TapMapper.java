@@ -150,7 +150,11 @@ public class TapMapper implements TableMapper {
         final URL serviceUrl = urlParam_.objectValue( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
+<<<<<<< HEAD
             AdqlValidator validator = new AdqlValidator( null, true );
+=======
+            AdqlValidator validator = new AdqlValidator( null );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             try {
                 validator.validate( adql );
             }

@@ -31,9 +31,13 @@ public class ObsTapStage implements Stage {
     private final CapabilityHolder capHolder_;
     private final MetadataHolder metaHolder_;
 
+<<<<<<< HEAD
     private static final String OBSCORE_ID = "ivo://ivoa.net/std/ObsCore/v1.0";
     private static final String OBSCORE_ID_WRONG =
         "ivo://ivoa.net/std/ObsCore-1.0";
+=======
+    private static final String OBSCORE_ID = "ivo://ivoa.net/std/ObsCore-1.0";
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private static final String OBSCORE_TNAME = "ivoa.ObsCore";
 
     private static Map<String,ObsCol> mandatoryColumnMap_;
@@ -54,12 +58,17 @@ public class ObsTapStage implements Stage {
     }
 
     public String getDescription() {
+<<<<<<< HEAD
         return "Test implementation of ObsCore Data Model";
+=======
+        return "Tests implementation of ObsCore Data Model";
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
 
         /* Check prerequisites. */
+<<<<<<< HEAD
         boolean obsDeclared;
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null ) {
@@ -79,6 +88,22 @@ public class ObsTapStage implements Stage {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null ) {
             reporter.report( FixedCode.F_NOTM,
+=======
+        TapCapability tcap = capHolder_.getCapability();
+        if ( tcap != null ) {
+            String[] dms = tcap.getDataModels();
+            if ( dms == null ||
+                 ! Arrays.asList( dms ).contains( OBSCORE_ID ) ) {
+                reporter.report( ReportType.FAILURE, "NODM",
+                                 "Table capabilities lists no DataModel "
+                               + OBSCORE_ID );
+                return;
+            }
+        }
+        TableMeta[] tmetas = metaHolder_.getTableMetadata();
+        if ( tmetas == null ) {
+            reporter.report( ReportType.FAILURE, "NOTM",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                              "No table metadata"
                            + " (earlier stages failed/skipped?)" );
             return;
@@ -93,6 +118,7 @@ public class ObsTapStage implements Stage {
             }
         }
         if ( obsMeta == null ) {
+<<<<<<< HEAD
             String missingMsg = "No table with name " + OBSCORE_TNAME;
             if ( obsDeclared ) {
                 reporter.report( FixedCode.F_NOTB, missingMsg );
@@ -105,6 +131,10 @@ public class ObsTapStage implements Stage {
                                + " because no capabilities present"
                                + " (earlier stages failed/skipped?)" );
             }
+=======
+            reporter.report( ReportType.FAILURE, "NOTB",
+                             "No table with name " + OBSCORE_TNAME );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             return;
         }
 
@@ -113,6 +143,7 @@ public class ObsTapStage implements Stage {
     }
 
     /**
+<<<<<<< HEAD
      * Determines whether a table capability reports conformance to the
      * ObsCore data model.  If not, an appropriate report is made.
      *
@@ -172,6 +203,8 @@ public class ObsTapStage implements Stage {
     }
 
     /**
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * Does the work for running tests on ObsCore table.
      */
     private static class ObsTapRunner implements Runnable {
@@ -220,7 +253,11 @@ public class ObsTapStage implements Stage {
                        .append( reqName )
                        .append( " is missing" )
                        .toString();
+<<<<<<< HEAD
                     reporter_.report( FixedCode.E_OCOL, msg );
+=======
+                    reporter_.report( ReportType.ERROR, "MCOL", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             }
 
@@ -264,7 +301,11 @@ public class ObsTapStage implements Stage {
                .append( nother )
                .append( " custom" )
                .toString();
+<<<<<<< HEAD
             reporter_.report( FixedCode.S_COLS, msg );
+=======
+            reporter_.report( ReportType.SUMMARY, "COLS", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             tRunner_.reportSummary( reporter_ );
         }
 
@@ -276,11 +317,19 @@ public class ObsTapStage implements Stage {
          */
         private void checkMetadata( ColumnMeta gotCol, ObsCol stdCol ) {
             String cname = gotCol.getName();
+<<<<<<< HEAD
             compareItem( cname, "Utype", FixedCode.E_CUTP,
                          stdCol.utype_, gotCol.getUtype(), false );
             compareItem( cname, "UCD", FixedCode.E_CUCD,
                          stdCol.ucd_, gotCol.getUcd(), false );
             compareItem( cname, "Unit", FixedCode.E_CUNI,
+=======
+            compareItem( cname, "Utype", "CUTP",
+                         stdCol.utype_, gotCol.getUtype(), false );
+            compareItem( cname, "UCD", "CUCD",
+                         stdCol.ucd_, gotCol.getUcd(), false );
+            compareItem( cname, "Unit", "CUNI",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                          stdCol.unit_, gotCol.getUnit(), true );
             checkType( gotCol, stdCol );
         }
@@ -307,7 +356,11 @@ public class ObsTapStage implements Stage {
                    .append( " != " )
                    .append( stdType )
                    .toString();
+<<<<<<< HEAD
                 reporter_.report( FixedCode.W_TYPI, msg );
+=======
+                reporter_.report( ReportType.WARNING, "TYPI", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
             else {
                 String msg = new StringBuffer()
@@ -318,7 +371,11 @@ public class ObsTapStage implements Stage {
                    .append( " != " )
                    .append( stdType )
                    .toString();
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_TYPX, msg );
+=======
+                reporter_.report( ReportType.ERROR, "TYPX", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
         }
 
@@ -367,7 +424,11 @@ public class ObsTapStage implements Stage {
                    .append( "Illegal NULL(s) in ObsCore column " )
                    .append( cname )
                    .toString();
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_HNUL, msg );
+=======
+                reporter_.report( ReportType.ERROR, "HNUL", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
         }
 
@@ -404,7 +465,11 @@ public class ObsTapStage implements Stage {
                    .append( range[ 1 ] )
                    .append( "]" )
                    .toString();
+<<<<<<< HEAD
                 reporter_.report( FixedCode.E_RANG, msg );
+=======
+                reporter_.report( ReportType.ERROR, "RANG", msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
         }
 
@@ -480,7 +545,12 @@ public class ObsTapStage implements Stage {
                         .append( opts[ io ] )
                         .append( '"' );
                 }
+<<<<<<< HEAD
                 reporter_.report( hard ? FixedCode.E_ILOP : FixedCode.W_NSOP,
+=======
+                reporter_.report( hard ? ReportType.ERROR : ReportType.WARNING,
+                                  hard ? "ILOP" : "NSOP",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   mbuf.toString() );
             }
         }
@@ -496,8 +566,12 @@ public class ObsTapStage implements Stage {
          * @param  gotValue  actual value of metadata item
          * @param  isCaseSensitive  true iff value comparison is case-sensitive
          */
+<<<<<<< HEAD
         private void compareItem( String colName, String itemName,
                                   ReportCode code,
+=======
+        private void compareItem( String colName, String itemName, String code,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   String obsValue, String gotValue,
                                   boolean isCaseSensitive ) {
             String vGot = String.valueOf( gotValue );
@@ -514,7 +588,11 @@ public class ObsTapStage implements Stage {
                     .append( " != " )
                     .append( obsValue )
                     .toString();
+<<<<<<< HEAD
                 reporter_.report( code, msg );
+=======
+                reporter_.report( ReportType.ERROR, code, msg );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
         }
 
@@ -527,7 +605,19 @@ public class ObsTapStage implements Stage {
          * @return   table result, or null
          */
         private TableData runQuery( String adql ) {
+<<<<<<< HEAD
             TapQuery tq = new TapQuery( serviceUrl_, adql, null );
+=======
+            TapQuery tq;
+            try {
+                tq = new TapQuery( serviceUrl_, adql, null, null, 0 );
+            }
+            catch ( IOException e ) {
+                reporter_.report( ReportType.ERROR, "TQER",
+                                  "TAP job creation failed for " + adql, e );
+                return null;
+            }
+>>>>>>> finished merging changes in trunk to branch splat-ari
             StarTable table = tRunner_.getResultTable( reporter_, tq );
             if ( table == null ) {
                 return null;
@@ -545,7 +635,11 @@ public class ObsTapStage implements Stage {
                 }
             }
             catch ( IOException e ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.F_TIOF,
+=======
+                reporter_.report( ReportType.FAILURE, "TIOF",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   "Error reading result table", e );
                 return null;
             }

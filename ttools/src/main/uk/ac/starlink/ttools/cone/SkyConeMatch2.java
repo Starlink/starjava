@@ -19,7 +19,10 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+<<<<<<< HEAD
 import uk.ac.starlink.task.StringParameter;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.task.ChoiceMode;
@@ -43,18 +46,33 @@ import uk.ac.starlink.ttools.task.TableProducer;
 public abstract class SkyConeMatch2 extends SingleMapperTask {
 
     private final Coner coner_;
+<<<<<<< HEAD
     private final StringParameter raParam_;
     private final StringParameter decParam_;
     private final StringParameter srParam_;
     private final StringParameter copycolsParam_;
     private final ChoiceParameter<String> modeParam_;
     private final StringParameter distcolParam_;
+=======
+    private final int parallelWarnThreshold_;
+    private final Parameter raParam_;
+    private final Parameter decParam_;
+    private final Parameter srParam_;
+    private final Parameter copycolsParam_;
+    private final ChoiceParameter modeParam_;
+    private final Parameter distcolParam_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final BooleanParameter ostreamParam_;
     private final IntegerParameter parallelParam_;
     private final ConeErrorPolicyParameter erractParam_;
     private final JoinFixActionParameter fixcolsParam_;
+<<<<<<< HEAD
     private final StringParameter insuffixParam_;
     private final StringParameter conesuffixParam_;
+=======
+    private final Parameter insuffixParam_;
+    private final Parameter conesuffixParam_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final BooleanParameter usefootParam_;
     private final IntegerParameter nsideParam_;
     private static final Logger logger_ =
@@ -65,6 +83,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
      *
      * @param  purpose  one-line description of the purpose of the task
      * @param  coner   object which provides the sky cone search service
+<<<<<<< HEAD
      * @param  maxParallel  the largest number of parallel threads which
      *         will be permitted for multi-threaded operation;
      *         1 means single-threaded only, and &lt;=0 means no limit -
@@ -74,6 +93,21 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         super( purpose, new ChoiceMode(), true, true );
         coner_ = coner;
         List<Parameter> paramList = new ArrayList<Parameter>();
+=======
+     * @param  allowParallel  if true, provide parameters for selecting
+     *         multi-threaded operation
+     * @param  parallelWarnThreshold  values of the parallelism over this
+     *         value result in a warning through the logging system;
+     *         &lt;=0 means no warnings;
+     *         ignored if <code>allowParallel</code> is false
+     */
+    public SkyConeMatch2( String purpose, Coner coner, boolean allowParallel,
+                          int parallelWarnThreshold ) {
+        super( purpose, new ChoiceMode(), true, true );
+        coner_ = coner;
+        parallelWarnThreshold_ = parallelWarnThreshold;
+        List paramList = new ArrayList();
+>>>>>>> finished merging changes in trunk to branch splat-ari
         String system = coner.getSkySystem();
         String inDescrip = "the input table";
     
@@ -163,7 +197,11 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "which covers VizieR and a few other cone search services.",
             "</p>",
         } );
+<<<<<<< HEAD
         usefootParam_.setBooleanDefault( true );
+=======
+        usefootParam_.setDefault( Boolean.TRUE.toString() );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         paramList.add( usefootParam_ );
 
         nsideParam_ = new IntegerParameter( "footnside" );
@@ -187,10 +225,18 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "</p>",
         } );
         nsideParam_.setMinimum( 1 );
+<<<<<<< HEAD
         nsideParam_.setNullPermitted( true );
         paramList.add( nsideParam_ );
 
         copycolsParam_ = new StringParameter( "copycols" );
+=======
+        nsideParam_.setDefault( Integer.toString( MocServiceFootprint
+                                                 .getServiceNside() ) );
+        paramList.add( nsideParam_ );
+
+        copycolsParam_ = new Parameter( "copycols" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         copycolsParam_.setUsage( "<colid-list>" );
         copycolsParam_.setNullPermitted( true );
         copycolsParam_.setStringDefault( "*" );
@@ -230,9 +276,17 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         parallelParam_.setPrompt( "Number of queries to make in parallel" );
         parallelParam_.setUsage( "<n>" );
         parallelParam_.setMinimum( 1 );
+<<<<<<< HEAD
         if ( maxParallel > 0 ) {
             parallelParam_.setMaximum( maxParallel );
         }
+=======
+        String warnText = parallelWarnThreshold_ > 1
+            ? "This command does not impose any maximum value, " +
+              "but if a value &gt;" + parallelWarnThreshold_ +
+              " is submitted a warning will be issued."
+            : "";
+>>>>>>> finished merging changes in trunk to branch splat-ari
         parallelParam_.setDescription( new String[] {
             "<p>Allows multiple cone searches to be performed concurrently.",
             "If set to the default value, 1, the cone query corresponding",
@@ -249,6 +303,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "In particular, setting it to too large a number may overload",
             "the service resulting in some combination of failed queries,",
             "ultimately slower runtimes, and unpopularity with server admins.",
+<<<<<<< HEAD
             "</p>",
             "<p>The maximum value permitted for this parameter by default is",
             ParallelResultRowSequence.DEFAULT_MAXPAR + ".",
@@ -259,6 +314,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "As a rule, you should only increase this value if you have",
             "obtained permission from the data centres whose services",
             "on which you will be using the increased parallelism.",
+=======
+            warnText,
+>>>>>>> finished merging changes in trunk to branch splat-ari
             "</p>",
         } );
         if ( maxParallel > 1 ) {
@@ -311,6 +369,16 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String srString = srParam_.stringValue( env );
         final boolean ostream = ostreamParam_.booleanValue( env );
         int parallelism = parallelParam_.intValue( env );
+        if ( parallelWarnThreshold_ > 1 &&
+             parallelism > parallelWarnThreshold_ ) {
+            String msg = new StringBuffer()
+                .append( parallelParam_.getName() )
+                .append( "=" )
+                .append( parallelism )
+                .append( " - high value might overload server" )
+                .toString();
+            logger_.warning( msg );
+        }
         ConeErrorPolicy erract = erractParam_.policyValue( env );
         if ( erract == ConeErrorPolicy.ABORT ) {
             String advice = "Cone search failed - try other values of "
@@ -339,6 +407,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                                       modeParam_.getName() + "??" );
         }
         TableProducer inProd = createInputProducer( env );
+<<<<<<< HEAD
         ConeSearcher coneSearcher = coner_.createSearcher( env, bestOnly );
         final Coverage footprint;
         if ( usefootParam_.booleanValue( env ) &&
@@ -348,6 +417,23 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                 ((ConeSearchConer) coner_).setNside( nSide.intValue() );
             }
             footprint = coner_.getCoverage( env );
+=======
+        ConeSearcher coneSearcher =
+            erract.adjustConeSearcher( coner_.createSearcher( env, bestOnly ) );
+        final Footprint footprint;
+        if ( usefootParam_.booleanValue( env ) ) {
+            footprint = coner_.getFootprint( env );
+            int nside = nsideParam_.intValue( env );
+            if ( nside != MocServiceFootprint.getServiceNside() ) {
+                try {
+                    MocServiceFootprint.setServiceNside( nside );
+                }
+                catch ( IllegalArgumentException e ) {
+                    throw new ParameterValueException( nsideParam_,
+                                                       e.getMessage(), e );
+                }
+            }
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
         else {
             footprint = null;
@@ -360,9 +446,15 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             new JELQuerySequenceFactory( raString, decString, srString );
 
         /* Return a table producer using these values. */
+<<<<<<< HEAD
         final ConeMatcher coneMatcher =
             new ConeMatcher( coneSearcher, erract, inProd, qsFact, bestOnly,
                              footprint, includeBlanks, distFilter, parallelism,
+=======
+        ConeMatcher coneMatcher =
+            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly, footprint,
+                             includeBlanks, distFilter, parallelism,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                              copyColIdList, distanceCol, inFixAct, coneFixAct );
         coneMatcher.setStreamOutput( true );
         return new TableProducer() {

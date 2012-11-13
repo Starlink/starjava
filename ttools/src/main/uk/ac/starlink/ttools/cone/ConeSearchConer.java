@@ -24,7 +24,11 @@ import uk.ac.starlink.vo.ConeSearch;
 public class ConeSearchConer implements Coner {
 
     private final URLParameter urlParam_;
+<<<<<<< HEAD
     private final ChoiceParameter<String> verbParam_;
+=======
+    private final ChoiceParameter verbParam_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final ChoiceParameter<ServiceType> serviceParam_;
     private final BooleanParameter believeemptyParam_;
     private final StringParameter formatParam_;
@@ -175,13 +179,18 @@ public class ConeSearchConer implements Coner {
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
         ServiceType serviceType = serviceParam_.objectValue( env );
+<<<<<<< HEAD
         URL url = urlParam_.objectValue( env );
+=======
+        URL url = urlParam_.urlValue( env );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         boolean believeEmpty = believeemptyParam_.booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         return serviceType
               .createSearcher( env, url.toString(), believeEmpty, tfact );
     }
 
+<<<<<<< HEAD
     public Coverage getCoverage( Environment env ) throws TaskException {
         ServiceType serviceType = serviceParam_.objectValue( env );
         URL url = urlParam_.objectValue( env );
@@ -196,6 +205,12 @@ public class ConeSearchConer implements Coner {
      */
     public void setNside( int nside ) {
         nside_ = nside;
+=======
+    public Footprint getFootprint( Environment env ) throws TaskException {
+        ServiceType serviceType = serviceParam_.objectValue( env );
+        URL url = urlParam_.urlValue( env );
+        return serviceType.getFootprint( url );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     /**
@@ -263,10 +278,16 @@ public class ConeSearchConer implements Coner {
          * Returns a coverage footprint for use with the service specified.
          *
          * @param  url  cone search service URL
+<<<<<<< HEAD
          * @param  nside  MOC nside parameter
          * @return  coverage footprint, or null
          */
         abstract Coverage getCoverage( URL url, int nside );
+=======
+         * @return  coverage footprint, or null
+         */
+        abstract Footprint getFootprint( URL url );
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
         public String toString() {
             return name_;
@@ -341,8 +362,13 @@ public class ConeSearchConer implements Coner {
             };
         }
 
+<<<<<<< HEAD
         public Coverage getCoverage( URL url, int nside ) {
             return UrlMocCoverage.getServiceMoc( url, nside );
+=======
+        public Footprint getFootprint( URL url ) {
+            return new MocServiceFootprint( url );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
     }
 
@@ -400,7 +426,11 @@ public class ConeSearchConer implements Coner {
             };
         }
 
+<<<<<<< HEAD
         public Coverage getCoverage( URL url, int nside ) {
+=======
+        public Footprint getFootprint( URL url ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
             return null;
         }
     }
@@ -460,7 +490,11 @@ public class ConeSearchConer implements Coner {
             };
         }
 
+<<<<<<< HEAD
         public Coverage getCoverage( URL url, int nside ) {
+=======
+        public Footprint getFootprint( URL url ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
             return null;
         }
     } 

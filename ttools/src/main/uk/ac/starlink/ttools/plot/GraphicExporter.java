@@ -155,6 +155,7 @@ public abstract class GraphicExporter {
 
     /** Exports to PNG format with a standard (currently opaque) background. */
     public static final GraphicExporter PNG =
+<<<<<<< HEAD
          new ImageIOExporter( "png", "image/png", "PNG",
                               new String[] { ".png" }, "png", false );
 
@@ -163,6 +164,10 @@ public abstract class GraphicExporter {
          new ImageIOExporter( "png-transp", "image/png",
                               "PNG with transparent background",
                               null, "png", true );
+=======
+         new ImageIOExporter( "png", "image/png",
+                              new String[] { ".png" }, false );
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
     /**
      * Exports to GIF format.
@@ -293,6 +298,7 @@ public abstract class GraphicExporter {
     /** Exports to gzipped Encapsulated PostScript. */
     public static final GraphicExporter EPS_GZIP = new GzipExporter( EPS );
 
+<<<<<<< HEAD
     /**
      * Returns a standard list of available GraphicExporter objects.
      * However, the one for exporting PDFs must be supplied explicitly,
@@ -310,6 +316,31 @@ public abstract class GraphicExporter {
         list.add( GraphicExporter.JPEG );
         if ( pdfEx != null ) {
             list.add( pdfEx );
+=======
+    /** Exports to PDF. */
+    public static final GraphicExporter PDF =
+            new GraphicExporter( "pdf", "application/pdf",
+                                 new String[] { "pdf", } ) {
+        public void exportGraphic( Picture picture, OutputStream out )
+                throws IOException {
+            int width = picture.getPictureWidth();
+            int height = picture.getPictureHeight();
+            Document doc =
+                new Document( new com.lowagie.text.Rectangle( width, height ) );
+            try {
+                PdfWriter pWriter = PdfWriter.getInstance( doc, out );
+                doc.open();
+                Graphics2D g = pWriter.getDirectContent()
+                              .createGraphics( width, height );
+                picture.paintPicture( g );
+                g.dispose();
+                doc.close();
+            }
+            catch ( DocumentException e ) {
+                throw (IOException)
+                      new IOException( e.getMessage() ).initCause( e );
+            }
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
 
         /* Note there is another option for postscript - net.sf.epsgraphics.
@@ -327,7 +358,11 @@ public abstract class GraphicExporter {
      * GraphicExporter implementation which uses the ImageIO framework.
      */
     private static class ImageIOExporter extends GraphicExporter {
+<<<<<<< HEAD
         private final String iioName_;
+=======
+        private final String formatName_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
         private final boolean transparentBg_;
         private final boolean isSupported_;
 
@@ -336,6 +371,7 @@ public abstract class GraphicExporter {
          *
          * @param  name   exporter name
          * @param  mimeType  MIME type for this exporter's output format
+<<<<<<< HEAD
          * @param  description  minimal format description (may just be name)
          * @param  fileSuffixes  file suffixes which usually indicate the
          *         export format used by this instance (may be null)
@@ -348,6 +384,17 @@ public abstract class GraphicExporter {
                          boolean transparentBg ) {
             super( name, mimeType, description, fileSuffixes );
             iioName_ = iioName;
+=======
+         * @param  transparentBg  true to use a transparent background,
+         *              only permissible if format supports transparency
+         * @param   fileSuffixes  file suffixes which usually indicate the
+         *          export format used by this instance (may be null)
+         */
+        ImageIOExporter( String formatName, String mimeType, 
+                         String[] fileSuffixes, boolean transparentBg ) {
+            super( formatName, mimeType, fileSuffixes );
+            formatName_ = formatName;
+>>>>>>> finished merging changes in trunk to branch splat-ari
             transparentBg_ = transparentBg;
             isSupported_ =
                 ImageIO.getImageWritersByFormatName( iioName ).hasNext();

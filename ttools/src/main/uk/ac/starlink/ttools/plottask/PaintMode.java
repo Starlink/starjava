@@ -13,7 +13,10 @@ import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.util.Destination;
 

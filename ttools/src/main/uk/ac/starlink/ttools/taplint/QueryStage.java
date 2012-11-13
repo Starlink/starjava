@@ -474,7 +474,11 @@ public class QueryStage implements Stage {
         private boolean checkHasColumns( TableMeta tmeta ) {
             boolean hasColumns = tmeta.getColumns().length > 0;
             if ( ! hasColumns ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.F_ZCOL,
+=======
+                reporter_.report( ReportType.FAILURE, "ZCOL",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                   "No columns known for table "
                                 + tmeta.getName() );
        

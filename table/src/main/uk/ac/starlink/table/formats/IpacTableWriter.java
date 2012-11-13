@@ -2,8 +2,11 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+<<<<<<< HEAD
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -131,6 +134,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
     protected void printParam( OutputStream out, String name, String value,
                                Class clazz )
             throws IOException {
+<<<<<<< HEAD
         String[] lines = value.split( "[\\n\\r]+" );
         int maxl = 320;
         if ( IpacTableBuilder.COMMENT_INFO.getName().equals( name ) ) {
@@ -171,6 +175,17 @@ public class IpacTableWriter extends AbstractTextTableWriter {
      */
     private String truncateLine( String txt, int maxLeng ) {
         return txt.length() > maxLeng ? txt.substring( 0, maxLeng ) : txt;
+=======
+        out.write( '\\' );
+        out.write( getBytes( name.trim() ) );
+        out.write( ' ' );
+        out.write( '=' );
+        out.write( ' ' );
+        out.write( getBytes( clazz.equals( String.class )
+                             ? quoteString( value )
+                             : value ) );
+        out.write( '\n' );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     /**

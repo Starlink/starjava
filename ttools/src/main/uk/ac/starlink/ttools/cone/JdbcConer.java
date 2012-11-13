@@ -213,7 +213,11 @@ public class JdbcConer implements Coner {
         }
     }
 
+<<<<<<< HEAD
     public Coverage getCoverage( Environment env ) {
+=======
+    public Footprint getFootprint( Environment env ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
         return null;
     }
 }

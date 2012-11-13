@@ -37,11 +37,24 @@ import uk.ac.starlink.vo.UwsJob;
  */
 public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
+<<<<<<< HEAD
     private AdqlExample[] examples_;
+=======
+    private final AdqlExample[] examples_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private volatile DeletionPolicy deletionPolicy_;
 
     public TopcatTapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "tap", false );
+
+        /* Prepare ADQL examples: basic and upload-based. */
+        List<AdqlExample> exampleList = new ArrayList<AdqlExample>();
+        exampleList.addAll( Arrays.asList( AbstractAdqlExample
+                                          .createSomeExamples() ) );
+        JList tcList = ControlWindow.getInstance().getTablesList();
+        exampleList.addAll( Arrays.asList( UploadAdqlExample
+                                          .createSomeExamples( tcList ) ) );
+        examples_ = exampleList.toArray( new AdqlExample[ 0 ] );
     }
 
     public Component createQueryComponent() {
@@ -160,7 +173,11 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
+<<<<<<< HEAD
         return new TapQueryPanel( getExamples() ) {
+=======
+        return new TapQueryPanel( examples_ ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
             @Override
             protected AdqlValidator.ValidatorTable[] getExtraTables() {
 
@@ -220,6 +237,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     }
 
     /**
+<<<<<<< HEAD
      * Returns a lazily constructed list of ADQL examples suitable for
      * this window. It includes basic and upload-based examples.
      *
@@ -239,6 +257,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     }
 
     /**
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * Adapts a TopcatModel for use as a table metadata object indicating to
      * the ADQL validator a permitted (upload) table.
      *

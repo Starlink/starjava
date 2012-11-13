@@ -434,7 +434,11 @@ public class TapQueryPanel extends JPanel {
             vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
 
         /* Construct and return a validator. */
+<<<<<<< HEAD
         return new AdqlValidator( vtables, true );
+=======
+        return new AdqlValidator( vtables );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     /**
@@ -575,6 +579,7 @@ public class TapQueryPanel extends JPanel {
         private Rectangle[] toRectangles( Throwable perr ) {
             List<Rectangle> rectList = new ArrayList<Rectangle>();
             if ( perr instanceof UnresolvedIdentifiersException ) {
+<<<<<<< HEAD
                 UnresolvedIdentifiersException uerr =
                    (UnresolvedIdentifiersException) perr;
                 Rectangle rect = toRectangle( uerr );
@@ -590,6 +595,21 @@ public class TapQueryPanel extends JPanel {
                 if ( rect != null ) {
                     rectList.add( rect );
                 }
+=======
+                for ( ParseException pe :
+                      (UnresolvedIdentifiersException) perr ) {
+                    Rectangle rect = toRectangle( pe );
+                    if ( rect != null ) {
+                        rectList.add( rect );
+                    }
+                }
+            }
+            else if ( perr instanceof ParseException ) {
+                Rectangle rect = toRectangle( (ParseException) perr );
+                if ( rect != null ) {
+                    rectList.add( rect );
+                }
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
             else if ( perr instanceof TokenMgrError ) {
                 Rectangle rect = toRectangle( (TokenMgrError) perr );
@@ -598,8 +618,12 @@ public class TapQueryPanel extends JPanel {
                 }
             }
             else if ( perr != null ) {
+<<<<<<< HEAD
                 logger_.log( Level.WARNING,
                              "Unexpected parse exception: " + perr, perr );
+=======
+                logger_.warning( "Unexpected parse exception: " + perr );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
             return rectList.toArray( new Rectangle[ 0 ] );
         }

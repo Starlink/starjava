@@ -3,6 +3,10 @@ package uk.ac.starlink.topcat.join;
 import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Color;
+<<<<<<< HEAD
+=======
+import java.awt.Dimension;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -48,7 +52,11 @@ import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ColumnSelectorModel;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
+<<<<<<< HEAD
 import uk.ac.starlink.topcat.Scheduler;
+=======
+import uk.ac.starlink.topcat.RowSubset;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
@@ -57,12 +65,20 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.cone.ConeQueryCoverage;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.ParallelResultRowSequence;
+=======
+import uk.ac.starlink.ttools.cone.ConeQueryFootprint;
+import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
+import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.Footprint;
+import uk.ac.starlink.ttools.cone.MocFootprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -79,10 +95,16 @@ public class DalMultiPanel extends JPanel {
     private final DalMultiService service_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
+<<<<<<< HEAD
     private final boolean hasCoverage_;
     private final CoverageView serviceCoverageView_;
     private final CoverageView queryCoverageView_;
     private final CoverageView overlapCoverageView_;
+=======
+    private final FootprintView serviceFootprintView_;
+    private final FootprintView queryFootprintView_;
+    private final FootprintView overlapFootprintView_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final ColumnSelector srSelector_;
@@ -93,9 +115,15 @@ public class DalMultiPanel extends JPanel {
     private final Action stopAction_;
     private final JComponent[] components_;
     private final TopcatListener tcListener_;
+<<<<<<< HEAD
     private final ToggleButtonModel coverageModel_;
     private Coverage lastCoverage_;
     private URL lastCoverageUrl_;
+=======
+    private final ToggleButtonModel footprintModel_;
+    private Footprint lastFootprint_;
+    private URL lastFootprintUrl_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private TopcatModel tcModel_;
     private MatchWorker matchWorker_;
 
@@ -216,6 +244,7 @@ public class DalMultiPanel extends JPanel {
         main.add( modeLine );
         main.add( Box.createVerticalStrut( 5 ) );
 
+<<<<<<< HEAD
         /* Set up coverage icons. */
         hasCoverage_ = service_.hasCoverages();
         if ( hasCoverage_ ) {
@@ -228,16 +257,34 @@ public class DalMultiPanel extends JPanel {
             urlField_.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     updateServiceCoverage();
+=======
+        /* Set up footprint icons. */
+        if ( service_.hasFootprints() ) {
+
+            /* Service footprint icon. */
+            serviceFootprintView_ =
+                new FootprintView( service_.getLabel() + " service" );
+            serviceFootprintView_.setForeground( new Color( 0x0000ff ) );
+            serviceFootprintView_.setBackground( new Color( 0xc0c0ff ) );
+            urlField_.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateServiceFootprint();
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             } );
             urlField_.addFocusListener( new FocusListener() {
                 public void focusLost( FocusEvent evt ) {
+<<<<<<< HEAD
                     updateServiceCoverage();
+=======
+                    updateServiceFootprint();
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
                 public void focusGained( FocusEvent evt ) {
                 }
             } );
             urlLine.add( Box.createHorizontalStrut( 5 ) );
+<<<<<<< HEAD
             urlLine.add( serviceCoverageView_ );
 
             /* Table coverage icon. */
@@ -247,21 +294,41 @@ public class DalMultiPanel extends JPanel {
             ActionListener tableListener = new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     updateQueryCoverage();
+=======
+            urlLine.add( serviceFootprintView_ );
+
+            /* Table footprint icon. */
+            queryFootprintView_ = new FootprintView( "table" );
+            queryFootprintView_.setForeground( new Color( 0xff0000 ) );
+            queryFootprintView_.setBackground( new Color( 0xffc0c0 ) );
+            ActionListener tableListener = new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    updateQueryFootprint();
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 }
             };
             tableSelector.addActionListener( tableListener );
             raSelector_.addActionListener( tableListener );
             decSelector_.addActionListener( tableListener );
             srSelector_.addActionListener( tableListener );
+<<<<<<< HEAD
             tableLine.add( new ShrinkWrapper( queryCoverageView_ ) );
             tcListener_ = new TopcatListener() {
                 public void modelChanged( TopcatEvent evt ) {
                     if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
                         updateQueryCoverage();
+=======
+            tableLine.add( new ShrinkWrapper( queryFootprintView_ ) );
+            tcListener_ = new TopcatListener() {
+                public void modelChanged( TopcatEvent evt ) {
+                    if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
+                        updateQueryFootprint();
+>>>>>>> finished merging changes in trunk to branch splat-ari
                     }
                 }
             };
 
+<<<<<<< HEAD
             /* Overlap coverage icon. */
             overlapCoverageView_ = new CoverageView( "potential matches" );
             overlapCoverageView_.setForeground( new Color( 0xd000d0 ) );
@@ -292,6 +359,36 @@ public class DalMultiPanel extends JPanel {
                     updateServiceCoverage();
                     updateQueryCoverage();
                     updateOverlapCoverage();
+=======
+            /* Overlap footprint icon. */
+            overlapFootprintView_ = new FootprintView( "potential matches" );
+            overlapFootprintView_.setForeground( new Color( 0xd000d0 ) );
+            overlapFootprintView_.setBackground( new Color( 0xffc0ff ) );
+            modeLine.add( new ShrinkWrapper( overlapFootprintView_ ) );
+        }
+        else {
+            tcListener_ = null;
+            queryFootprintView_ = null;
+            serviceFootprintView_ = null;
+            overlapFootprintView_ = null;
+        }
+
+        /* Configure footprint display toggle. */
+        footprintModel_ =
+            new ToggleButtonModel( "Show Footprints", ResourceIcon.FOOTPRINT,
+                                   "Display sky footprints for service and "
+                                 + "query where available" );
+        footprintModel_.setSelected( service_.hasFootprints() );
+        footprintModel_.setEnabled( service_.hasFootprints() );
+        footprintModel_.addChangeListener( new ChangeListener() {
+            private boolean wasSelected_ = footprintModel_.isSelected();
+            public void stateChanged( ChangeEvent evt ) {
+                boolean isSelected = footprintModel_.isSelected();
+                if ( isSelected ^ wasSelected_ ) {
+                    updateServiceFootprint();
+                    updateQueryFootprint();
+                    updateOverlapFootprint();
+>>>>>>> finished merging changes in trunk to branch splat-ari
                     wasSelected_ = isSelected;
                 }
             }
@@ -348,6 +445,7 @@ public class DalMultiPanel extends JPanel {
     public void setServiceUrl( String url ) {
         urlField_.setText( url );
         urlField_.setCaretPosition( 0 );
+<<<<<<< HEAD
         updateServiceCoverage();
     }
 
@@ -384,6 +482,42 @@ public class DalMultiPanel extends JPanel {
             Coverage coverage;
             if ( tcModel_ == null ) {
                 coverage = null;
+=======
+        updateServiceFootprint();
+    }
+
+    /**
+     * Update the service footprint component if the currently selected
+     * service URL has changed.
+     */
+    private void updateServiceFootprint() {
+        if ( footprintModel_.isSelected() ) {
+            URL url = toUrl( urlField_.getText() );
+            if ( ( url == null && lastFootprintUrl_ != null ) ||
+                 ( url != null && ! url.equals( lastFootprintUrl_ ) ) ) {
+                Footprint fp = url == null ? null
+                                           : service_.getFootprint( url );
+                serviceFootprintView_.setFootprint( fp );
+                lastFootprintUrl_ = url;
+                updateOverlapFootprint();
+            }
+        }
+        else {
+            serviceFootprintView_.setFootprint( null );
+            lastFootprintUrl_ = null;
+        }
+    }
+
+    /**
+     * Update the query footprint component.
+     * Call this method if the effective selected table may have changed.
+     */
+    private void updateQueryFootprint() {
+        if ( footprintModel_.isSelected() ) {
+            Footprint footprint;
+            if ( tcModel_ == null ) {
+                footprint = null;
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
             else {
                 int[] rowMap = tcModel_.getViewModel().getRowMap();
@@ -399,6 +533,7 @@ public class DalMultiPanel extends JPanel {
                         ConeQueryRowSequence qseq =
                             qsf.createQuerySequence( table );
                         double resDeg = 1.0;
+<<<<<<< HEAD
                         coverage = new ConeQueryCoverage( qseq, resDeg );
                     }
                     catch ( IOException e ) {
@@ -414,10 +549,28 @@ public class DalMultiPanel extends JPanel {
         }
         else {
             queryCoverageView_.setCoverage( null );
+=======
+                        footprint = new ConeQueryFootprint( qseq, resDeg );
+                    }
+                    catch ( IOException e ) {
+                        footprint = null;
+                    }
+                }
+                else {
+                    footprint = null;
+                }
+            }
+            queryFootprintView_.setFootprint( footprint );
+            updateOverlapFootprint();
+        }
+        else {
+            queryFootprintView_.setFootprint( null );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
     }
 
     /**
+<<<<<<< HEAD
      * Update the overlap coverage component.
      * Call this method if the query table coverage, or the service coverage,
      * or both, may have changed.
@@ -431,6 +584,21 @@ public class DalMultiPanel extends JPanel {
                                                        (MocCoverage) scov } )
             : null;
         overlapCoverageView_.setCoverage( ocov );
+=======
+     * Update the overlap footprint component.
+     * Call this method if the query table footprint, or the service footprint,
+     * or both, may have changed.
+     */
+    private void updateOverlapFootprint() {
+        Footprint tfp = queryFootprintView_.getFootprint();
+        Footprint sfp = serviceFootprintView_.getFootprint();
+        Footprint ofp =
+            tfp instanceof MocFootprint && sfp instanceof MocFootprint
+            ? new OverlapFootprint( new MocFootprint[] { (MocFootprint) tfp,
+                                                         (MocFootprint) sfp } )
+            : null;
+        overlapFootprintView_.setFootprint( ofp );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     /**
@@ -454,6 +622,7 @@ public class DalMultiPanel extends JPanel {
     }
 
     /**
+<<<<<<< HEAD
      * Returns a toggle model which controls whether coverage icons
      * are displayed in this panel.
      *
@@ -461,6 +630,15 @@ public class DalMultiPanel extends JPanel {
      */
     public ToggleButtonModel getCoverageModel() {
         return coverageModel_;
+=======
+     * Returns a toggle model which controls whether footprint icons
+     * are displayed in this panel.
+     *
+     * @return   footprint display model
+     */
+    public ToggleButtonModel getFootprintModel() {
+        return footprintModel_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     /**
@@ -629,6 +807,7 @@ public class DalMultiPanel extends JPanel {
 
         /* Assemble objects based on this information. */
         ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
+<<<<<<< HEAD
         Coverage coverage = coverageModel_.isSelected()
                           ? service_.getCoverage( serviceUrl )
                           : null;
@@ -636,6 +815,16 @@ public class DalMultiPanel extends JPanel {
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher =
             mcMode.createConeMatcher( searcher, erract, inTable, qsf, coverage,
+=======
+        searcher = erract.adjustConeSearcher( searcher );
+        Footprint footprint = footprintModel_.isSelected()
+                            ? service_.getFootprint( serviceUrl )
+                            : null;
+        DatasQuerySequenceFactory qsf =
+            new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
+        ConeMatcher matcher =
+            mcMode.createConeMatcher( searcher, inTable, qsf, footprint,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                       parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
@@ -804,12 +993,23 @@ public class DalMultiPanel extends JPanel {
                 long irow_ = -1;
 
                 public boolean next() throws IOException {
+<<<<<<< HEAD
                     if ( matchWorker_ != null && matchWorker_.cancelled_ ) {
                         throw new IOException( "Cancelled" );
                     }
                     boolean retval = rseq.next();
                     if ( matchWorker_ != null && matchWorker_.cancelled_ ) {
                         throw new IOException( "Cancelled" );
+=======
+                    if ( matchWorker_ != null &&
+                         matchWorker_.isInterrupted() ) {
+                        throw new InterruptedIOException();
+                    }
+                    boolean retval = rseq.next();
+                    if ( matchWorker_ != null &&
+                         matchWorker_.isInterrupted() ) {
+                        throw new InterruptedIOException();
+>>>>>>> finished merging changes in trunk to branch splat-ari
                     }
                     if ( retval ) {
                         irow_++;
@@ -1047,7 +1247,11 @@ public class DalMultiPanel extends JPanel {
          * @param  inTable  input table
          * @param  qsFact   object which can produce a ConeQueryRowSequence
          *                  from the <code>inTable</code>
+<<<<<<< HEAD
          * @param  coverage  coverage of coneSearcher, or null
+=======
+         * @param  footprint  coverage footprint of coneSearcher, or null
+>>>>>>> finished merging changes in trunk to branch splat-ari
          * @param  parallelism  number of threads to execute matches
          * @return   new cone matcher
          */
@@ -1055,7 +1259,11 @@ public class DalMultiPanel extends JPanel {
                 createConeMatcher( ConeSearcher coneSearcher,
                                    ConeErrorPolicy errAct, StarTable inTable,
                                    QuerySequenceFactory qsFact,
+<<<<<<< HEAD
                                    Coverage coverage, int parallelism );
+=======
+                                   Footprint footprint, int parallelism );
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
         /**
          * Constructs a ResultHandler suitable for use with this mode.
@@ -1226,11 +1434,19 @@ public class DalMultiPanel extends JPanel {
                                               ConeErrorPolicy errAct,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
+<<<<<<< HEAD
                                               Coverage coverage,
                                               int parallelism ) {
             return
                 new ConeMatcher( coneSearcher, errAct, toProducer( inTable ),
                                  qsFact, best_, coverage, includeBlanks_, true,
+=======
+                                              Footprint footprint,
+                                              int parallelism ) {
+            return
+                new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
+                                 best_, footprint, includeBlanks_, true,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                  parallelism, "*", DIST_NAME,
                                  JoinFixAction.NO_ACTION,
                                  JoinFixAction
@@ -1274,11 +1490,19 @@ public class DalMultiPanel extends JPanel {
                                               ConeErrorPolicy errAct,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
+<<<<<<< HEAD
                                               Coverage coverage,
+=======
+                                              Footprint footprint,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher, errAct,
                                     toProducer( prependIndex( inTable ) ),
+<<<<<<< HEAD
                                     qsFact, true, coverage, false, true,
+=======
+                                    qsFact, true, footprint, false, true,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                     parallelism, INDEX_INFO.getName(), null,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction.NO_ACTION );

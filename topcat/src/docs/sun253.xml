@@ -398,10 +398,23 @@ read in its HTML form than on paper.
 <webref url="http://www.starlink.ac.uk/topcat/" plaintextref="yes"
         >TOPCAT web page</webref>.
 It was initially developed within the now-terminated
+<<<<<<< HEAD
 Starlink and then AstroGrid projects,
 and has subsequently been supported by the UK's PPARC and STFC
 research councils, various Euro-VO and FP7 projects,
 GAVO and ESA.
+=======
+<webref url="http://www.starlink.ac.uk/">Starlink</webref> project,
+and has subsequently been supported by PPARC grant PP/D002486/1,
+<webref url="http://eurovotech.org/">VOTech</webref>,
+<webref url="http://www.astrogrid.org/">AstroGrid</webref>,
+<webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
+        >AIDA</webref>,
+STFC grant ST/H008470/1,
+GAVO (BMBF Bewilligungsnummer 05A08VHA)
+and
+STFC grant ST/I00176X/1.
+>>>>>>> finished merging changes in trunk to branch splat-ari
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
@@ -2151,6 +2164,7 @@ in multi-object match contexts.
 
 </subsect>
 
+<<<<<<< HEAD
 <subsect id="matchPlot">
 <subhead><title>Plotting Match Results</title></subhead>
 
@@ -2195,6 +2209,8 @@ It is also possible to set up such plots by hand.
 
 </subsect>
 
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 <subsect id="matchAlgorithm">
 <subhead><title>Notes on Matching</title></subhead>
 
@@ -17539,7 +17555,11 @@ functionality:
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within TOPCAT)</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
+<<<<<<< HEAD
     (Ptolemy) for some 2D axis plotting</li>
+=======
+    (Ptolemy) for 2D axis plotting</li>
+>>>>>>> finished merging changes in trunk to branch splat-ari
 <li><webref url="http://itextpdf.com/">iText</webref>
     for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
@@ -17555,6 +17575,7 @@ functionality:
 <li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc"
             >MOC</webref> (CDS)
             Multi-Order Coverage HEALPix maps for footprint manipulation</li>
+<<<<<<< HEAD
 <li><webref url="http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/"
             >nom.tam.fits</webref> (NASA) for parts of FITS I/O</li>
 <li><webref url="http://skyview.gsfc.nasa.gov/jar/jar.html"
@@ -17564,6 +17585,8 @@ functionality:
 <li><webref url="http://www.jidesoft.com/products/oss.htm"
             >JIDE Common Layer</webref> (Jidesoft)
             for double-ended slider controls</li>
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 <li><webref url="http://browserlaunch2.sourceforge.net/"
             >BrowserLauncher2</webref> for launching default web browser</li>
 </ul>
@@ -20371,6 +20394,7 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+<<<<<<< HEAD
     <li>Support viewing tables up to 2^31 (2 billion) rows in the table
         viewer window.  The previous limit was 2^27 (134 million) rows.</li>
     <li>Attempting to write FITS tables with &gt;999 columns now fails
@@ -20386,6 +20410,76 @@ introduced since the last version:
         since it can point to different RegTAP services as required.</li>
     <li>Fix regression bug (introduced at v4.2) which caused authentication
         to fail when using the SQL Query load dialogue.</li>
+=======
+    <li>Fixed SAMP table loads to honour "name" parameter.</li>
+    <li>Fixed table concatenation so that column datatype array size etc
+        is consistent with both input tables not just the first one.</li>
+    <li>Adjust SQL writer to avoid type error for MySQL.
+        Hope it hasn't introduced new problems elsewhere.</li>
+    <li>You can now reference tables in multi-extension FITS files by name
+        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+    <li>Fix bug which failed when attempting to read FITS files with 
+        complex array columns (<code>TFORMn=rC/rM</code>).</li>
+    <li>Use MOC footprints to speed up multi-cone searches,
+        including footprint icon display in multicone window.</li>
+    <li>Fix failure when loading very large sequential tables.</li>
+    <li>Slight changes to <code>toString</code> function: now works on
+        non-numeric values, gives the right answer for <code>Long</code>
+        integers, and returns a blank value rather than "null" or "NaN"
+        for blank inputs.</li>
+    <li>PNG graphics output no longer has transparent background.</li>
+    <li>Fixed problem with row highlight messages bouncing for ever between
+        applications when the Transmit Row activation action is in use.</li>
+    <li>Sexagesimal to numeric angle conversion functions now permit the
+        seconds part of the sexagesimal string to be missing.</li>
+    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
+        reads to fail) for FITS output of boolean array columns.</li>
+    <li>Fix plotting bug that might have caused mysterious failures to
+        update the plot.  Or it might not.</li>
+    <li>Fix bug which could cause truncation of strings in FITS and
+        possibly VOTable output when tables were hand-edited to add
+        strings longer than previously-declared length.</li>
+    <li>Fixed bug in multi-table matches (&gt;2 tables) which could result in
+        output rows with columns from only a single table,
+        i.e. not representing an inter-table match.</li>
+    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+        negative angles.  Now the output is forced positive.</li>
+    <li>ADQL parsing in the TAP window can now highlight all unknown symbols
+        not just one of them.  This is possible by upgrading to the
+        official v1.0 of Gr&#x00e9;gory Mantelet's ADQL library.
+        Fixed parsing so that TAP_UPLOAD tables in ADQL are treated
+        correctly.</li>
+    <li>Fixed minor bug associated with deleting the current row subset
+        (this now causes All to become current).</li>
+    <li>Add new class
+        <ref id="Footprints">Footprints</ref>
+        to the expression language
+        containing MOC-related functions
+        (currently, just <code>inMoc</code>).</li>
+    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
+    <li>Add explanatory section to manual on
+        <ref id="matchGroup">Multi-Object Matches</ref>.</li>
+    <li>Work around change in VizieR output so that VizieR catalogue
+        searching works again.  This may be a temporary change.</li>
+    <li>Fix small but genuine sky matching bug.
+        The effect was that near the poles matches near the specified
+        threshold could be missed.  The bug was in the PixTools library,
+        fixed at the 2012-07-28 release.</li>
+    <li>IPAC format "long"/"l" column type, apparently now official,
+        now accepted without warning.  IPAC headers may now use minus
+        signs instead of whitespace.</li>
+    <li>Add IPAC output format.</li>
+    <li>Update URLs for GAVO Millennium database service at request of
+        Gerard Lemson.</li>
+    <li>Cope with 1-column CSV files.</li>
+    <li>Add <code>-debug</code> flag to manage logging messages better.</li>
+    <li>Fix possible bug(s) related to running on Java 1.7 on Mac.</li>
+    <li>Use "<code>rows</code>"/"<code>bytes</code>" 
+        rather than "<code>row</code>"/"<code>byte</code>"
+        for TAP capability unit values.</li>
+    <li>Upgrade to JSAMP v1.3-3.</li>
+    <li>Add K-Corrections functions of I&amp;I.</li>
+>>>>>>> finished merging changes in trunk to branch splat-ari
     </ul>
     </p></dd>
 

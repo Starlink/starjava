@@ -191,6 +191,18 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
+     * Indicates whether a given activator sends rows to external applications.
+     * This can be necessary to avoid infinite loops where row highlight
+     * messages bounce between different tools.
+     *
+     * @param  activator  activator object produced by this factory
+     * @return   true iff activator sends rows out of the application
+     */
+    public static boolean isRowSender( Activator activator ) {
+        return TRANSMIT_ROW.equals( activator.toString() );
+    }
+
+    /**
      * Helper class defining the appearance and fucntionality of an
      * option for creating new Activator objects on the basis of
      * user selections.

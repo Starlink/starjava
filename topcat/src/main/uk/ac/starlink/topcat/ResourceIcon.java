@@ -225,6 +225,7 @@ public class ResourceIcon implements Icon {
         TO_BROWSER = makeIcon( "toBrowser.gif" ),
         SYNTAX = makeIcon( "syntax.gif" ),
         FOOTPRINT = makeIcon( "footprint.gif" ),
+<<<<<<< HEAD
         ZOOM_IN = makeIcon( "mag-plus.gif" ),
         ZOOM_OUT = makeIcon( "mag-minus.gif" ),
         SKETCH = makeIcon( "sketch1.gif" ),
@@ -249,6 +250,12 @@ public class ResourceIcon implements Icon {
         SMALL_CLOSE = makeIcon( "x9.gif" ),
         SMALL_HELP = makeIcon( "q9.gif" ),
         ADD_CONTROL = makeIcon( "addlayer4.png" ),
+=======
+
+        /* Non-standard sizes. */
+        SMALL_DEC = makeIcon( "dec.gif" ),
+        SMALL_INC = makeIcon( "inc.gif" ),
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),

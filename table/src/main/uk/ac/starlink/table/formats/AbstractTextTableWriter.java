@@ -144,8 +144,12 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
                   it.hasNext(); ) {
                 DescribedValue param = (DescribedValue) it.next();
                 ValueInfo info = param.getInfo();
+<<<<<<< HEAD
                 printParam( strm, info.getName(),
                             param.getValueAsString( maxleng ),
+=======
+                printParam( strm, info.getName(), param.getValueAsString( 160 ),
+>>>>>>> finished merging changes in trunk to branch splat-ari
                             info.getContentClass() );
             }
         }

@@ -20,8 +20,12 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
 
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
+<<<<<<< HEAD
     private final ConeErrorPolicy errAct_;
     private final Coverage coverage_;
+=======
+    private final Footprint footprint_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final boolean bestOnly_;
     private final boolean distFilter_;
     private final String distanceCol_;
@@ -34,6 +38,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     private IOException error_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
+<<<<<<< HEAD
 
     /**
      * Default maximum value for the number of threads that should be
@@ -60,14 +65,20 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     public static final String MAXPAR_PROP = "service.maxparallel";
 
     private static Integer maxpar_;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
     /**
      * Constructor.
      *
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
+<<<<<<< HEAD
      * @param  errAct   defines action on cone search invocation error
      * @param  coverage   coverage for results, or null
+=======
+     * @param  footprint   coverage footprint for results, or null
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * @param  bestOnly  whether all results or just best are required
      * @param  distFilter  true to perform post-query filtering on results
      *                     based on the distance between the query position
@@ -78,14 +89,22 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     public ParallelResultRowSequence( ConeQueryRowSequence querySeq,
                                       ConeSearcher coneSearcher,
+<<<<<<< HEAD
                                       ConeErrorPolicy errAct,
                                       Coverage coverage, boolean bestOnly,
+=======
+                                      Footprint footprint, boolean bestOnly,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                       boolean distFilter, String distanceCol,
                                       int parallelism ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
+<<<<<<< HEAD
         errAct_ = errAct;
         coverage_ = coverage;
+=======
+        footprint_ = footprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
         bestOnly_ = bestOnly;
         distFilter_ = distFilter;
         distanceCol_ = distanceCol;
@@ -99,7 +118,11 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         }
 
         /* Ensure that at least one query is performed even if all points
+<<<<<<< HEAD
          * are outside the coverage.  This way the metadata for an empty
+=======
+         * are outside the footprint.  This way the metadata for an empty
+>>>>>>> finished merging changes in trunk to branch splat-ari
          * table is returned, so at least you have the columns. */
         workers_[ 0 ].forceNextQuery_ = true;
 
@@ -197,7 +220,11 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             nSkip += worker.nSkip_;
         }
         querySeq_.close();
+<<<<<<< HEAD
         if ( coverage_ != null ) {
+=======
+        if ( footprint_ != null ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
             logger_.info( "Submitted " + nQuery + ", skipped " + nSkip
                         + " queries to service" );
         }
@@ -442,24 +469,38 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             /* Perform the query unless it can be shown to be unnecesary. */
             final StarTable table;
             boolean excluded = ! forceNextQuery_
+<<<<<<< HEAD
                             && coverage_ != null
                             && ! coverage_.discOverlaps( ra, dec, radius );
+=======
+                            && footprint_ != null
+                            && ! footprint_.discOverlaps( ra, dec, radius );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             forceNextQuery_ = false;
             if ( excluded ) {
                 Level level = Level.CONFIG;
                 if ( logger_.isLoggable( level ) ) {
                     logger_.log( level,
                                  "Skipping cone query for point outside "
+<<<<<<< HEAD
                                + "coverage " + "(" + (float) ra + ","
+=======
+                               + "footprint " + "(" + (float) ra + ","
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                + (float) dec + ")+" + (float) radius );
                 }
                 table = null;
                 nSkip_++;
             }
             else {
+<<<<<<< HEAD
                 table = ConeMatcher.getConeResult( coneSearcher_, errAct_,
                                                    bestOnly_, distFilter_,
                                                    distanceCol_,
+=======
+                table = ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
+                                                   distFilter_, distanceCol_,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                                    ra, dec, radius );
                 nQuery_++;
             }

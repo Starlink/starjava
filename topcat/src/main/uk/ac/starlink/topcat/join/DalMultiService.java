@@ -7,7 +7,11 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.cone.Coverage;
+=======
+import uk.ac.starlink.ttools.cone.Footprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.vo.Capability;
 
 /**
@@ -80,6 +84,7 @@ public interface DalMultiService {
     ConeSearcher createSearcher( URL url, StarTableFactory tfact );
 
     /**
+<<<<<<< HEAD
      * Indicates whether this service is capable of supplying coverage
      * information.
      *
@@ -94,4 +99,20 @@ public interface DalMultiService {
      * @return  coverage coverage object, or null
      */
     Coverage getCoverage( URL url );
+=======
+     * Indicates whether this service is capable of supplying footprint
+     * information.
+     *
+     * @return   false if <code>getFootprint</code> will always return false
+     */
+    boolean hasFootprints();
+
+    /**
+     * Gets a coverage footprint for this service.
+     *
+     * @param    url   service URL
+     * @return  coverage footprint object, or null
+     */
+    Footprint getFootprint( URL url );
+>>>>>>> finished merging changes in trunk to branch splat-ari
 }

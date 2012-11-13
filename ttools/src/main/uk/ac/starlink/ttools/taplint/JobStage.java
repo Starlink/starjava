@@ -605,7 +605,11 @@ public class JobStage implements Stage {
                                         + " for started job " + jobUrl );
                         return;
                     case ILLEGAL:
+<<<<<<< HEAD
                         reporter_.report( FixedCode.E_ILPH,
+=======
+                        reporter_.report( ReportType.ERROR, "ILPH",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                           "Bad phase " + phase
                                         + " for job " + jobUrl );
                         return;
@@ -639,7 +643,11 @@ public class JobStage implements Stage {
          * @param  jobUrl  job URL for reporting purposes only
          */
         private void waitUnknown( URL jobUrl ) {
+<<<<<<< HEAD
             reporter_.report( FixedCode.W_UNPH,
+=======
+            reporter_.report( ReportType.WARNING, "UNPH",
+>>>>>>> finished merging changes in trunk to branch splat-ari
                               "Phase UNKNOWN reported for job " + jobUrl
                             + "; wait and poll" );
             waitPoll();
@@ -653,7 +661,11 @@ public class JobStage implements Stage {
                 Thread.sleep( poll_ );
             }
             catch ( InterruptedException e ) {
+<<<<<<< HEAD
                 reporter_.report( FixedCode.F_INTR, "Interrupted??" );
+=======
+                reporter_.report( ReportType.FAILURE, "INTR", "Interrupted??" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
             }
         }
 

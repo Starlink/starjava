@@ -150,8 +150,13 @@ public class DalMultiWindow extends AuxWindow {
         getJMenuBar().add( interopMenu );
 
         /* Place toolbar buttons. */
+<<<<<<< HEAD
         if ( service.hasCoverages() ) {
             getToolBar().add( multiPanel.getCoverageModel()
+=======
+        if ( service.hasFootprints() ) {
+            getToolBar().add( multiPanel.getFootprintModel()
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                         .createToolbarButton() );
             getToolBar().addSeparator();
         }

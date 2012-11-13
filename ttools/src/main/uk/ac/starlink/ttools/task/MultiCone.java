@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.cone.SkyConeMatch2;
  * @since    4 Jul 2006
  */
 public class MultiCone extends SkyConeMatch2 {
+<<<<<<< HEAD
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
     public MultiCone() {
@@ -28,5 +29,11 @@ public class MultiCone extends SkyConeMatch2 {
                        + "TAP or CDS X-Match" );
         logger_.warning( "There is probably a much faster way to do this" );
         return super.createExecutable( env );
+=======
+    public static int PARALLEL_WARN_THRESHOLD = 10;
+    public MultiCone() {
+        super( "Crossmatches table on sky position against remote cone service",
+               new ConeSearchConer(), true, PARALLEL_WARN_THRESHOLD );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 }

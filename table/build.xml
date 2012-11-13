@@ -79,7 +79,11 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Table"/>
   <property name="name" value="table"/>
+<<<<<<< HEAD
   <property name="version" value="3.0-6+"/>
+=======
+  <property name="version" value="3.0-3+"/>
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.table"/>

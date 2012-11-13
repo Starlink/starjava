@@ -13,7 +13,10 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.OutputStreamParameter;
+<<<<<<< HEAD
 import uk.ac.starlink.task.StringParameter;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -21,7 +24,10 @@ import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.task.SkyCoordParameter;
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.util.Destination;
 
 /**
@@ -33,9 +39,15 @@ import uk.ac.starlink.util.Destination;
 public class MocMode implements ProcessingMode {
 
     private final IntegerParameter orderParam_;
+<<<<<<< HEAD
     private final StringParameter raParam_;
     private final StringParameter decParam_;
     private final StringParameter radiusParam_;
+=======
+    private final Parameter raParam_;
+    private final Parameter decParam_;
+    private final Parameter radiusParam_;
+>>>>>>> finished merging changes in trunk to branch splat-ari
     private final ChoiceParameter<MocFormat> mocfmtParam_;
     private final OutputStreamParameter outParam_;
     private static final Logger logger_ =
@@ -57,6 +69,7 @@ public class MocMode implements ProcessingMode {
             "(3520*2^<em>-k</em> arcmin).",
             "</p>",
         } );
+<<<<<<< HEAD
         orderParam_.setIntDefault( 13 );
 
         String system = null;
@@ -67,6 +80,35 @@ public class MocMode implements ProcessingMode {
             SkyCoordParameter.createDecParameter( "dec", system, inDescrip );
 
         radiusParam_ = new StringParameter( "radius" );
+=======
+        orderParam_.setDefault( Integer.toString( 13 ) );
+
+        raParam_ = new Parameter( "ra" );
+        raParam_.setUsage( "<expr>" );
+        raParam_.setPrompt( "Right Ascension expression in degrees" );
+        raParam_.setDescription( new String[] {
+            "<p>Expression which evaluates to the right ascension in degrees",
+            "for the position at each row of the input table.",
+            "This will usually be the name or ID of a column in the",
+            "input table, or a function involving one,",
+            "as described in <ref id='jel'/>.",
+            "</p>",
+        } );
+
+        decParam_ = new Parameter( "dec" );
+        decParam_.setUsage( "<expr>" );
+        decParam_.setPrompt( "Declination expression in degrees" );
+        decParam_.setDescription( new String[] {
+            "<p>Expression which evaluates to the declination in degrees",
+            "for the position at each row of the input table.",
+            "This will usually be the name or ID of a column in the",
+            "input table, or a function involving one,",
+            "as described in <ref id='jel'/>.",
+            "</p>",
+        } );
+
+        radiusParam_ = new DoubleParameter( "radius" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         radiusParam_.setUsage( "<expr>" );
         radiusParam_.setPrompt( "Radius expression in degrees" );
         radiusParam_.setDescription( new String[] {
@@ -78,7 +120,11 @@ public class MocMode implements ProcessingMode {
             "<ref id='jel'/> may be used instead.",
             "</p>",
         } );
+<<<<<<< HEAD
         radiusParam_.setStringDefault( "0" );
+=======
+        radiusParam_.setDefault( "0" );
+>>>>>>> finished merging changes in trunk to branch splat-ari
 
         mocfmtParam_ =
             new ChoiceParameter<MocFormat>( "mocfmt", MocFormat.getFormats() );
@@ -123,7 +169,11 @@ public class MocMode implements ProcessingMode {
             new JELQuerySequenceFactory( raString, decString, radiusString );
         final int order = orderParam_.intValue( env );
         final MocFormat mocfmt = mocfmtParam_.objectValue( env );
+<<<<<<< HEAD
         final Destination dest = outParam_.objectValue( env );
+=======
+        final Destination dest = outParam_.destinationValue( env );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 ConeQueryRowSequence qseq = qsFact.createQuerySequence( table );

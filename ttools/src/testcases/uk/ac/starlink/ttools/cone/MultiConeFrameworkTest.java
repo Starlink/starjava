@@ -11,7 +11,11 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableTestCase;
+<<<<<<< HEAD
 import uk.ac.starlink.ttools.cone.Coverage;
+=======
+import uk.ac.starlink.ttools.cone.Footprint;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.util.TestCase;
@@ -95,20 +99,36 @@ public class MultiConeFrameworkTest extends TableTestCase {
         assertEquals( 2 + 3 + ( addScore ? 1 : 0 ),
                       allResult.getColumnCount() );
 
+<<<<<<< HEAD
         Coverage footNorth = new HemisphereCoverage( true );
         Coverage footSouth = new HemisphereCoverage( false );
         ConeMatcher footMatcherN = new ConeMatcher(
                 searcher, errAct, inProd,
+=======
+        Footprint footNorth = new HemisphereFootprint( true );
+        Footprint footSouth = new HemisphereFootprint( false );
+        ConeMatcher footMatcherN = new ConeMatcher(
+                searcher, inProd,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 footNorth, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         ConeMatcher footMatcherS = new ConeMatcher(
+<<<<<<< HEAD
                 searcher, errAct, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 footSouth, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable footResultN = Tables.randomTable( getTable( footMatcherN ) );
         StarTable footResultS = Tables.randomTable( getTable( footMatcherS ) );
+=======
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                footSouth, false, true, parallelism, "*", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        StarTable footResultN = Tables.randomTable( footMatcherN.getTable() );
+        StarTable footResultS = Tables.randomTable( footMatcherS.getTable() );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         long nrN = footResultN.getRowCount();
         long nrS = footResultS.getRowCount();
         assertTrue( nrN > 10 );
@@ -191,10 +211,17 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
         ConeMatcher matcher3 = new ConeMatcher(
+<<<<<<< HEAD
                 searcher, errAct, inProd, qsFact3, true, null, false, true,
                 parallelism, "", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( getTable( matcher3 ) );
+=======
+                searcher, inProd, qsFact3, true, null, false, true,
+                parallelism, "", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        StarTable result3 = Tables.randomTable( matcher3.getTable() );
+>>>>>>> finished merging changes in trunk to branch splat-ari
         assertEquals( 3 + ( addScore ? 1 : 0 ), result3.getColumnCount() );
         assertEquals( "ID", result3.getColumnInfo( 0 ).getName() );
         assertEquals( "RA", result3.getColumnInfo( 1 ).getName() );
@@ -215,6 +242,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         return allResult;
     }
 
+<<<<<<< HEAD
     private static StarTable getTable( ConeMatcher coneMatcher )
             throws IOException, TaskException {
         ConeMatcher.ConeWorker worker = coneMatcher.createConeWorker();
@@ -234,6 +262,20 @@ public class MultiConeFrameworkTest extends TableTestCase {
         }
         public Amount getAmount() {
             return Amount.SOME_SKY;
+=======
+    /**
+     * Test footprint that covers a hemisphere at a time.
+     */
+    private static class HemisphereFootprint implements Footprint {
+        private final boolean isNorth_;
+        HemisphereFootprint( boolean isNorth ) {
+            isNorth_ = isNorth;
+        }
+        public void initFootprint() {
+        }
+        public Coverage getCoverage() {
+            return Coverage.SOME_SKY;
+>>>>>>> finished merging changes in trunk to branch splat-ari
         }
         public boolean discOverlaps( double alphaDeg, double deltaDeg,
                                      double radiusDeg ) {

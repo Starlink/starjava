@@ -854,9 +854,14 @@ public class Shaders {
                                 int xpad, int ypad ) {
             Color baseColor = baseShader_ instanceof BasicShader
                             ? ((BasicShader) baseShader_).baseColor_
+<<<<<<< HEAD
                             : null;
             return create1dIcon( this, horizontal,
                                  baseColor == null ? Color.BLACK : baseColor,
+=======
+                            : Color.BLACK;
+            return create1dIcon( this, horizontal, baseColor,
+>>>>>>> finished merging changes in trunk to branch splat-ari
                                  width, height, xpad, ypad );
         }
 
@@ -1116,6 +1121,7 @@ public class Shaders {
     }
 
     /**
+<<<<<<< HEAD
      * Shader which works with a few RGB samples supplied in the constructor
      * and interpolates between them.
      */
@@ -1159,6 +1165,8 @@ public class Shaders {
     }
 
     /**
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * LutShader which creates a lookup table by applying an existing
      * (presumably non-absolute) shader to a given colour.
      */

@@ -34,10 +34,16 @@ public class AdqlValidator {
      * Constructor.
      *
      * @param  vtables  table metadata for database to be checked against
+<<<<<<< HEAD
      * @param  allowUdfs  whether unknown functions should cause a parse error
      */
     public AdqlValidator( ValidatorTable[] vtables, boolean allowUdfs ) {
         parser_ = new ADQLParser( new ADQLQueryFactory( allowUdfs ) );
+=======
+     */
+    public AdqlValidator( ValidatorTable[] vtables ) {
+        parser_ = new ADQLParser();
+>>>>>>> finished merging changes in trunk to branch splat-ari
         parser_.setDebug( false );
         checker_ = vtables == null ? null
                                    : new DBChecker( toDBTables( vtables ) );
@@ -147,6 +153,7 @@ public class AdqlValidator {
         TableMeta[] tmetas = null;
         boolean allowUdfs = false;
         ArrayList<String> argList =
+<<<<<<< HEAD
         new ArrayList<String>( java.util.Arrays.asList( args ) );
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
             String arg = it.next();
@@ -158,6 +165,17 @@ public class AdqlValidator {
                 it.remove();
                 String loc = it.next();
                 it.remove();
+=======
+            new ArrayList<String>( java.util.Arrays.asList( args ) );
+        try {
+            if ( argList.get( 0 ).startsWith( "-h" ) ) {
+                System.out.println( usage );
+                return;
+            }
+            if ( argList.get( 0 ).equals( "-meta" ) ) {
+                argList.remove( 0 );
+                String loc = argList.remove( 0 );
+>>>>>>> finished merging changes in trunk to branch splat-ari
                 tmetas = TableSetSaxHandler
                         .readTableSet( new java.net.URL( loc ) );
             }
@@ -170,11 +188,23 @@ public class AdqlValidator {
                 allowUdfs = false;
             }
         }
+<<<<<<< HEAD
         if ( argList.size() != 1 ) {
+=======
+        ValidatorTable[] vtables = null;
+        if ( tmetas != null ) {
+            vtables = new ValidatorTable[ tmetas.length ];
+            for ( int i = 0; i < tmetas.length; i++ ) {
+                vtables[ i ] = toValidatorTable( tmetas[ i ] );
+            }
+        }
+        if ( query == null || ! argList.isEmpty() ) {
+>>>>>>> finished merging changes in trunk to branch splat-ari
             System.err.println( usage );
             System.exit( 1 );
             return;
         }
+<<<<<<< HEAD
         String query = argList.remove( 0 );
         ValidatorTable[] vtables = null;
         if ( tmetas != null ) {
@@ -184,6 +214,9 @@ public class AdqlValidator {
             }
         }
         new AdqlValidator( vtables, allowUdfs ).validate( query );
+=======
+        new AdqlValidator( vtables ).validate( query );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 
     /**

@@ -78,11 +78,19 @@ public interface Coner {
         throws TaskException;
 
     /**
+<<<<<<< HEAD
      * Returns a coverage object suitable for use with the cone search
+=======
+     * Returns a coverage footprint suitable for use with the cone search
+>>>>>>> finished merging changes in trunk to branch splat-ari
      * service configured by this object's parameters.
      *
      * @param   env  execution environment
      * @return   coverage footprint, or null
      */
+<<<<<<< HEAD
     Coverage getCoverage( Environment env ) throws TaskException;
+=======
+    Footprint getFootprint( Environment env ) throws TaskException;
+>>>>>>> finished merging changes in trunk to branch splat-ari
 }

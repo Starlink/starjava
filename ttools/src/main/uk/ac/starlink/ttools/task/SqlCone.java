@@ -17,6 +17,10 @@ public class SqlCone extends SkyConeMatch2 {
          * implementation uses a single JDBC connection for all queries,
          * and this cannot be used to make multiple queries at once. */
         super( "Crossmatches table on sky position against SQL table",
+<<<<<<< HEAD
                new JdbcConer(), 1 );
+=======
+               new JdbcConer(), false, 0 );
+>>>>>>> finished merging changes in trunk to branch splat-ari
     }
 }

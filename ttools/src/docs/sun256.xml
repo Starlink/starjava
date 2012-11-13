@@ -446,7 +446,10 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>cdsskymatch</code></li>
 <li><code>coneskymatch</code></li>
+<<<<<<< HEAD
 <li><code>funcs</code></li>
+=======
+>>>>>>> finished merging changes in trunk to branch splat-ari
 <li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
 <li><code>plot2d</code></li>
@@ -4472,7 +4475,11 @@ There are no parameters.
 table and generates a pixel map describing a sky region which includes
 them all.
 Currently the output is to a format known as a 
+<<<<<<< HEAD
 <webref url="http://www.ivoa.net/Documents/MOC/"
+=======
+<webref url="http://www.ivoa.net/Documents/Notes/MOC/"
+>>>>>>> finished merging changes in trunk to branch splat-ari
         >Multi-Order Coverage map</webref> (MOC),
 which is a HEALPix-based format composed of a list of HEALPix pixels
 of different sizes, which can efficiently describe complex regions.
@@ -4480,7 +4487,11 @@ Other output formats may be introduced in the future.
 </p>
 
 <p>See also the
+<<<<<<< HEAD
 <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref> class
+=======
+<ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref> class
+>>>>>>> finished merging changes in trunk to branch splat-ari
 for MOC-related functions.
 </p>
 
@@ -4493,23 +4504,40 @@ for MOC-related functions.
 <dl>
 
 <dt><verbatim>
+<<<<<<< HEAD
 stilts pixfoot in=survey.vot order=8 mocfmt=fits out=sfoot.fits
 </verbatim></dt>
 <dd><p>Generates an order-8 FITS MOC file from the point positions of
     rows in the given VOTable.  The columns representing sky position
     are determined automatically (if possible)
     by examining the metadata in the input table.
+=======
+stilts pixfoot in=survey.vot ra=RA2000 dec=DEC2000
+               order=8 mocfmt=fits out=sfoot.fits
+</verbatim></dt>
+<dd><p>Generates an order-8 FITS MOC file from the point positions of
+    rows in the given VOTable.
+>>>>>>> finished merging changes in trunk to branch splat-ari
     </p></dd>
 
 <dt><verbatim>
 stilts pixfoot in='jdbc:mysql://localhost/astro1#SELECT * FROM first1'
+<<<<<<< HEAD
                icmd='addskycoords galactic icrs GLON GLAT ALPHA DELTA'
                ra=ALPHA dec=DELTA radius=20./3600.
+=======
+               icmd='addskycoords galactic icrs GLON GLAT RA DEC'
+               ra=RA dec=DEC radius=20./3600.
+>>>>>>> finished merging changes in trunk to branch splat-ari
                order=13 mocfmt=fits out=first.moc
 </verbatim></dt>
 <dd><p>Generates an order-13 FITS MOC file from positions in a table
     held in a database.  The positions in the original table are in
+<<<<<<< HEAD
     galactic coordinates, so have to be converted to equatorial (ICRS) first.  
+=======
+    galactic coordinates, so have to be converted to ecliptic (ICRS) first.  
+>>>>>>> finished merging changes in trunk to branch splat-ari
     The map is formed in this case by surrounding each point by a
     disc of 20 arcsec.
     Note that JDBC database access will have to be set up as per
@@ -8413,6 +8441,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
+<<<<<<< HEAD
 <dt>Version 2.5 (28 March 2013)</dt>
 <dd><p>
     <dl>
@@ -8718,6 +8747,87 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         </ul>
         </p></dd>
 
+=======
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fixed <code>tcat</code>, <code>tcatn</code> so that in most cases
+        output column metadata is compatible with all input tables, not
+        just the first one in terms of nullability, array shape etc.</li>
+    <li>Add <code>OBS</code> stage (ObsTAP validation)
+        to <code>taplint</code>.</li>
+    <li>Add more checks to <code>CAP</code> stage of <code>taplint</code>.
+        Declared languages (including features) and output formats are
+        now checked.</li>
+    <li>Adjust SQL writer to avoid type error for MySQL.
+        Hope it hasn't introduced new problems elsewhere.</li>
+    <li>Add <ref id="pixsample"><code>pixsample</code></ref> command,
+        which can sample pixel data from HEALPix table files
+        (useful for things like Schlegel dust extinction).
+        Also <ref id="addpixsample"><code>addpixsample</code></ref> filter,
+        which does the same job.</li>
+    <li>You can now reference tables in multi-extension FITS files by name
+        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+    <li>Tidied up error reporting a bit (fewer duplicate nested messages
+        reported).</li>
+    <li>Fix bug which failed when attempting to read FITS files with
+        complex array columns (<code>TFORMn=rC/rM</code>).</li>
+    <li>Add MOC-based coverage filter to <code>coneskymatch</code>
+        when using some Cone Search services (mostly VizieR).
+        This uses the Multi-Order Coverage map service operated by CDS.
+        It can make VizieR multi-cone queries much faster by not doing
+        cone searches that are outside the coverage region of the
+        catalogue in question.</li>
+    <li>Fix failure when caching very large sequential tables.</li>
+    <li>Slight changes to <code>toString</code> function: now works on
+        non-numeric values, gives the right answer for <code>Long</code>
+        integers, and character values,
+        and returns a blank value rather than "null" or "NaN"
+        for blank inputs.</li>
+    <li>PNG graphics output no longer has transparent background.</li>
+    <li>Sexagesimal to numeric angle conversion functions now permit the
+        seconds part of the sexagesimal string to be missing.</li>
+    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
+        reads to fail) for FITS output of boolean array columns.</li>
+    <li>Issue warning for high values of <code>coneskymatch</code>
+        <code>parallel</code> parameter.</li>
+    <li>Fix bug in <code>replacecol</code> and <code>replaceval</code> filters
+        which could cause truncation of strings in FITS and possibly
+        VOTable output when the new value was longer than the previously
+        declared maximum length.</li>
+    <li>Fixed bug in <code>tmatchn</code> group mode which could result in
+        output rows with columns from only a single table,
+        i.e. not representing an inter-table match, 
+        even when <code>join*=default</code>.</li>
+    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+        negative angles.  Now the output is forced positive.</li>
+    <li>Upgrade to official v1.0 of Gr&#x00e9;gory Mantelet's
+        ADQL library for TAP query parsing.</li>
+    <li>Add new task <code><ref id="pixfoot">pixfoot</ref></code> for
+        generating MOC (Multi-Order Coverage) maps.</li>
+    <li>Add new class 
+        <ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref>
+        to the expression language containing MOC-related functions
+        (currently, just <code>inMoc</code>).</li>
+    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
+    <li>Fix small but genuine sky matching bug.
+        The effect was that near the poles matches near the specified
+        threshold could be missed.  The bug was in the PixTools library,
+        fixed at the 2012-07-28 release.</li>
+    <li>IPAC format "long"/"l" column type, apparently now official,
+        now accepted without warning.  IPAC headers may now use minus
+        signs instead of whitespace.</li>
+    <li>Add IPAC table output format.</li>
+    <li>Cope with 1-column CSV files.</li>
+    <li>Use "<code>rows</code>"/"<code>bytes</code>"
+        rather than "<code>row</code>"/"<code>byte</code>"
+        for TAP capability unit values.</li>
+    <li>Upgrade to JSAMP v1.3-3.</li>
+    <li>Add K-Corrections functions of I&amp;I.</li>
+    </ul>
+    </p></dd>
+
+>>>>>>> finished merging changes in trunk to branch splat-ari
 </dl>
 </p>
 </subsect>
